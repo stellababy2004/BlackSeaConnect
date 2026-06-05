@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero" id="top">
+    <div class="hero__backdrop" aria-hidden="true">
+      <div class="hero__glow hero__glow--sunset"></div>
+      <div class="hero__glow hero__glow--sea"></div>
+      <div class="hero__glow hero__glow--mist"></div>
+      <div class="hero__rays hero__rays--left"></div>
+      <div class="hero__rays hero__rays--right"></div>
+      <div class="hero__horizon"></div>
+      <div class="hero__reflection"></div>
+      <div class="hero__harbor-lights">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="#top">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="#preview" data-i18n="navPortal">Отвори портала</a>
+      </div>
+    </nav>
+
+    <div class="hero__content">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="badge">Операционна платформа за луксозни имоти и гост услуги</p>
+        <h1 data-i18n="headline">Операции за премиум гостоприемство край морето.</h1>
+        <p class="hero__text" data-i18n="subtitle">
+          BlackSea Connect обединява гости, почистване, трансфери, локални услуги и оперативни задачи в една спокойна система за крайбрежни екипи.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="#early-access" data-i18n="primaryCta">Заяви ранен достъп</a>
+          <a class="button button--secondary" href="#preview" data-i18n="secondaryCta">Отвори портала</a>
+        </div>
+      </div>
+
+      <aside class="preview-card" id="preview" aria-label="Преглед на операциите" data-i18n-attr="aria-label:previewAria">
+        <div class="preview-card__topline">
+          <span class="preview-card__signal">
+            <span class="preview-card__dot" aria-hidden="true"></span>
+            <span data-i18n="previewSignalPrimary">Операции на живо</span>
+          </span>
+          <span class="preview-card__signal">
+            <span class="preview-card__dot preview-card__dot--warm" aria-hidden="true"></span>
+            <span data-i18n="previewSignalSecondary">Марина режим</span>
+          </span>
+        </div>
+
+        <div class="preview-card__header">
+          <div>
+            <p class="preview-card__label" data-i18n="previewLabel">Крайбрежен оперативен изглед</p>
+            <h2 data-i18n="previewApartment">Apartment A-302</h2>
+          </div>
+          <span class="status-pill" data-i18n="previewPill">Морски престой</span>
+        </div>
+
+        <div class="preview-card__meta">
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaSeaLabel">Море</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaSeaValue">Спокойно</strong>
+          </div>
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaWeatherLabel">Време</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaWeatherValue">Ясно</strong>
+          </div>
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaSunsetLabel">Залез</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaSunsetValue">20:41</strong>
+          </div>
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaBeachLabel">Плаж</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaBeachValue">Умерено</strong>
+          </div>
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaLocalLabel">Активност</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaLocalValue">Активна</strong>
+          </div>
+          <div class="preview-stat">
+            <span class="preview-stat__label" data-i18n="previewMetaTransfersLabel">Трансфери</span>
+            <strong class="preview-stat__value" data-i18n="previewMetaTransfersValue">Активни</strong>
+          </div>
+        </div>
+
+        <dl class="status-list">
+          <div class="status-list__row">
+            <dt data-i18n="previewCheckinLabel">Настаняване</dt>
+            <dd data-i18n="previewCheckinValue">Днес 16:00</dd>
+          </div>
+          <div class="status-list__row">
+            <dt data-i18n="previewCleaningLabel">Почистване</dt>
+            <dd class="status-list__value status-list__value--ready" data-i18n="previewCleaningValue">Готово</dd>
+          </div>
+          <div class="status-list__row">
+            <dt data-i18n="previewTransferLabel">Трансфер</dt>
+            <dd data-i18n="previewTransferValue">Резервиран</dd>
+          </div>
+          <div class="status-list__row">
+            <dt data-i18n="previewIncidentLabel">Инцидент</dt>
+            <dd class="status-list__value status-list__value--clear" data-i18n="previewIncidentValue">Няма отворени проблеми</dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+
+    <div class="hero__waves" aria-hidden="true">
+      <div class="wave wave--far"></div>
+      <div class="wave wave--back"></div>
+      <div class="wave wave--mid"></div>
+      <div class="wave wave--front"></div>
+      <div class="wave wave--foam"></div>
+      <div class="wave-haze"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="features" aria-labelledby="features-title">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow" data-i18n="featuresEyebrow">Създадено за премиум хотелски операции</p>
+        <h2 id="features-title" data-i18n="featuresTitle">Всичко необходимо за по-спокойна координация между гости, екипи и локални услуги.</h2>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-card__icon">01</span>
+          <h3 data-i18n="feature1Title">Guest QR Portal</h3>
+          <p data-i18n="feature1Description">Гостите сканират QR код и получават бърз достъп до Wi-Fi, инструкции, услуги и помощ.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-card__icon">02</span>
+          <h3 data-i18n="feature2Title">Property Operations</h3>
+          <p data-i18n="feature2Description">Следете почистване, настанявания, статуси, задачи и инциденти от един оперативен панел.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-card__icon">03</span>
+          <h3 data-i18n="feature3Title">Trusted Local Services</h3>
+          <p data-i18n="feature3Description">Свържете екипа си с проверени трансфери, ремонти, почистване и надеждни локални партньори.</p>
+        </article>
+      </div>
+
+      <section class="trust-layer" aria-labelledby="trust-title">
+        <div class="section-heading section-heading--trust">
+          <p class="section-heading__eyebrow" data-i18n="trustEyebrow">Оперативен слой на доверие</p>
+          <h2 id="trust-title" data-i18n="trustTitle">Създадено за екипи, които разчитат на видимост, надеждни партньори и спокойна координация.</h2>
+        </div>
+
+        <div class="trust-grid">
+          <article class="trust-card">
+            <h3 data-i18n="trust1Title">Проверени локални оператори</h3>
+            <p data-i18n="trust1Description">Работете с проверени локални партньори за трансфери, ремонти и обслужване без оперативен шум.</p>
+          </article>
+          <article class="trust-card">
+            <h3 data-i18n="trust2Title">Процеси при инциденти</h3>
+            <p data-i18n="trust2Description">Проследявайте инциденти, ескалации и изпълнение в ясен процес с видима отговорност.</p>
+          </article>
+          <article class="trust-card">
+            <h3 data-i18n="trust3Title">Видимост в реално време</h3>
+            <p data-i18n="trust3Description">Виждате статуса на гости, екипи и услуги точно когато са важни за деня.</p>
+          </article>
+          <article class="trust-card">
+            <h3 data-i18n="trust4Title">Надеждни екипи за почистване</h3>
+            <p data-i18n="trust4Description">Поддържайте готовност за настаняване с по-ясна координация между екипи и обекти.</p>
+          </article>
+          <article class="trust-card">
+            <h3 data-i18n="trust5Title">Координация на поддръжката за гости</h3>
+            <p data-i18n="trust5Description">Събирайте поддръжка, инструкции и заявки от гости в една спокойна оперативна линия.</p>
+          </article>
+          <article class="trust-card">
+            <h3 data-i18n="trust6Title">Надеждност на локалните услуги</h3>
+            <p data-i18n="trust6Description">Подредете координацията така, че локалните услуги да изглеждат предвидими и професионални.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="product-preview" aria-labelledby="product-preview-title">
+        <div class="section-heading section-heading--product">
+          <p class="section-heading__eyebrow" data-i18n="productPreviewEyebrow">Оперативен продуктов преглед</p>
+          <h2 id="product-preview-title" data-i18n="productPreviewTitle">Реална оперативна екосистема за гости, екипи, партньори и ежедневна координация.</h2>
+        </div>
+
+        <div class="product-preview__stage">
+          <article class="showcase-console">
+            <div class="showcase-console__header">
+              <div>
+                <p class="showcase-console__eyebrow" data-i18n="consoleEyebrow">BlackSea Connect OS</p>
+                <h3 data-i18n="consoleTitle">Live Coastal Operations</h3>
+              </div>
+              <div class="showcase-console__signals">
+                <span class="showcase-pill showcase-pill--live" data-i18n="consoleSignalLive">Гост поток активен</span>
+                <span class="showcase-pill" data-i18n="consoleSignalOps">Оперативна смяна</span>
+              </div>
+            </div>
+
+            <div class="showcase-console__body">
+              <section class="showcase-column showcase-column--timeline">
+                <div class="showcase-panel">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="timelineLabel">Хронология на заявки</p>
+                    <span class="showcase-panel__meta" data-i18n="timelineMeta">Днес · 12 активни елемента</span>
+                  </div>
+                  <ul class="timeline-list">
+                    <li class="timeline-item">
+                      <span class="timeline-item__time">14:05</span>
+                      <div class="timeline-item__body">
+                        <strong data-i18n="timeline1Title">Консиержът отговаря</strong>
+                        <p data-i18n="timeline1Body">Заявка за късна вечеря на терасата е насочена към консиерж екипа.</p>
+                      </div>
+                      <span class="timeline-tag timeline-tag--active" data-i18n="timeline1Tag">В процес</span>
+                    </li>
+                    <li class="timeline-item">
+                      <span class="timeline-item__time">13:42</span>
+                      <div class="timeline-item__body">
+                        <strong data-i18n="timeline2Title">Пристигането е планирано</strong>
+                        <p data-i18n="timeline2Body">Пристигането е потвърдено с трансфер до марината в 16:10.</p>
+                      </div>
+                      <span class="timeline-tag" data-i18n="timeline2Tag">Планирано</span>
+                    </li>
+                    <li class="timeline-item">
+                      <span class="timeline-item__time">12:58</span>
+                      <div class="timeline-item__body">
+                        <strong data-i18n="timeline3Title">Wi-Fi инструкции</strong>
+                        <p data-i18n="timeline3Body">QR порталът е обновен с достъп, вход и кратки указания.</p>
+                      </div>
+                      <span class="timeline-tag timeline-tag--soft" data-i18n="timeline3Tag">Порталът е готов</span>
+                    </li>
+                    <li class="timeline-item">
+                      <span class="timeline-item__time">11:26</span>
+                      <div class="timeline-item__body">
+                        <strong data-i18n="timeline4Title">Ескалация на инцидент</strong>
+                        <p data-i18n="timeline4Body">Сигнал за водно налягане е възложен на локален оператор със SLA 18 мин.</p>
+                      </div>
+                      <span class="timeline-tag timeline-tag--attention" data-i18n="timeline4Tag">Ескалирано</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="showcase-panel showcase-panel--compact">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="portalLabel">QR портал за гости</p>
+                    <span class="showcase-panel__meta" data-i18n="portalMeta">Достъпен при пристигане</span>
+                  </div>
+                  <div class="portal-preview">
+                    <div class="portal-preview__card">
+                      <strong data-i18n="portalCardTitle">Посрещане в апартамента</strong>
+                      <span data-i18n="portalCardBody">Wi-Fi, инструкции, консиерж линия и локален гид.</span>
+                    </div>
+                    <div class="portal-preview__qr" aria-hidden="true"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="showcase-column showcase-column--center">
+                <div class="showcase-panel showcase-panel--hero">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="statusLabel">Статус на имота</p>
+                    <span class="showcase-panel__meta" data-i18n="statusMeta">Крайбрежно портфолио · 7 активни престоя</span>
+                  </div>
+                  <div class="property-hero">
+                    <div>
+                      <p class="property-hero__name" data-i18n="propertyHeroName">Villa Marina One</p>
+                      <p class="property-hero__sub" data-i18n="propertyHeroSub">Операции за луксозни апартаменти · concierge tier</p>
+                    </div>
+                    <span class="status-pill status-pill--soft" data-i18n="propertyHeroPill">Спокоен режим</span>
+                  </div>
+                  <div class="status-chip-grid">
+                    <div class="status-chip">
+                      <span data-i18n="statusChip1Label">Пристигане</span>
+                      <strong data-i18n="statusChip1Value">Планирано</strong>
+                    </div>
+                    <div class="status-chip">
+                      <span data-i18n="statusChip2Label">Почистване</span>
+                      <strong data-i18n="statusChip2Value">Завършено</strong>
+                    </div>
+                    <div class="status-chip">
+                      <span data-i18n="statusChip3Label">Трансфер</span>
+                      <strong data-i18n="statusChip3Value">Потвърден</strong>
+                    </div>
+                    <div class="status-chip">
+                      <span data-i18n="statusChip4Label">Консиерж</span>
+                      <strong data-i18n="statusChip4Value">Отговаря</strong>
+                    </div>
+                  </div>
+                  <div class="ops-rows">
+                    <div class="ops-row">
+                      <span data-i18n="opsRow1Label">Гостът е настанен</span>
+                      <strong data-i18n="opsRow1Value">Apartment B-12 · 15:54</strong>
+                    </div>
+                    <div class="ops-row">
+                      <span data-i18n="opsRow2Label">Назначен локален оператор</span>
+                      <strong data-i18n="opsRow2Value">Harbor Electric · Incident 204</strong>
+                    </div>
+                    <div class="ops-row">
+                      <span data-i18n="opsRow3Label">Трансферът е потвърден</span>
+                      <strong data-i18n="opsRow3Value">Dock Gate 3 · Driver V. Petrov</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="showcase-column showcase-column--stack">
+                <div class="showcase-panel">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="housekeepingLabel">Координация на почистването</p>
+                    <span class="showcase-panel__meta" data-i18n="housekeepingMeta">Смяна 2 · 4 активни екипа</span>
+                  </div>
+                  <div class="mini-list">
+                    <div class="mini-list__row">
+                      <span data-i18n="housekeeping1Label">Почистването е завършено</span>
+                      <strong data-i18n="housekeeping1Value">A-302 · Готово за пристигане</strong>
+                    </div>
+                    <div class="mini-list__row">
+                      <span data-i18n="housekeeping2Label">Подготовка в процес</span>
+                      <strong data-i18n="housekeeping2Value">Villa Azure · Остават 18 мин</strong>
+                    </div>
+                    <div class="mini-list__row">
+                      <span data-i18n="housekeeping3Label">Зареждане на бельо</span>
+                      <strong data-i18n="housekeeping3Value">Boutique Residence · 2 елемента</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="showcase-panel">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="transferLabel">Планиране на трансфери</p>
+                    <span class="showcase-panel__meta" data-i18n="transferMeta">3 активни крайбрежни маршрута</span>
+                  </div>
+                  <div class="mini-list">
+                    <div class="mini-list__row">
+                      <span data-i18n="transfer1Label">Час за пристигане</span>
+                      <strong data-i18n="transfer1Value">16:10 · Потвърдено</strong>
+                    </div>
+                    <div class="mini-list__row">
+                      <span data-i18n="transfer2Label">Посрещане от летището</span>
+                      <strong data-i18n="transfer2Value">Шофьор възложен · Терминал 2</strong>
+                    </div>
+                    <div class="mini-list__row">
+                      <span data-i18n="transfer3Label">Късен обратен курс</span>
+                      <strong data-i18n="transfer3Value">Очаква одобрение от гост</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="showcase-panel">
+                  <div class="showcase-panel__topline">
+                    <p class="showcase-panel__label" data-i18n="partnerLabel">Мрежа от доверени партньори</p>
+                    <span class="showcase-panel__meta" data-i18n="partnerMeta">Проверена мрежа · 23 оператора</span>
+                  </div>
+                  <div class="partner-grid">
+                    <div class="partner-card">
+                      <strong data-i18n="partner1Title">Harbor Electric</strong>
+                      <span data-i18n="partner1Body">Възложен · ескалация на инцидент</span>
+                    </div>
+                    <div class="partner-card">
+                      <strong data-i18n="partner2Title">Blue Linen House</strong>
+                      <span data-i18n="partner2Body">Стабилно ниво на услуга</span>
+                    </div>
+                    <div class="partner-card">
+                      <strong data-i18n="partner3Title">Coastal Transfer Desk</strong>
+                      <span data-i18n="partner3Body">Потвърден маршрут за пристигане</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="guest-portal" aria-labelledby="guest-portal-title">
+        <div class="section-heading section-heading--guest-portal">
+          <p class="section-heading__eyebrow" data-i18n="guestPortalEyebrow">Портал за гости</p>
+          <h2 id="guest-portal-title" data-i18n="guestPortalTitle">Спокойно пристигане, консиерж координация и доверени услуги в мобилен портал за гости.</h2>
+        </div>
+
+        <div class="guest-portal__stage">
+          <article class="guest-device" aria-label="Преглед на портала за гости" data-i18n-attr="aria-label:guestPortalAria">
+            <div class="guest-device__frame">
+              <div class="guest-device__topbar">
+                <div>
+                  <p class="guest-device__eyebrow" data-i18n="guestDeviceEyebrow">Преглед при пристигане</p>
+                  <h3 data-i18n="guestDeviceTitle">Villa Marina One</h3>
+                </div>
+                <span class="showcase-pill showcase-pill--live" data-i18n="guestDevicePill">Пристигането е потвърдено</span>
+              </div>
+
+              <div class="guest-device__screen">
+                <section class="guest-block guest-block--welcome">
+                  <div class="guest-block__topline">
+                    <p class="showcase-panel__label" data-i18n="guestArrivalLabel">Преглед при пристигане</p>
+                    <span class="showcase-panel__meta" data-i18n="guestArrivalMeta">Днес · директен достъп</span>
+                  </div>
+                  <p class="guest-welcome__title" data-i18n="guestWelcomeTitle">Добре дошли. Всичко за пристигането е готово.</p>
+                  <div class="guest-arrival-grid">
+                    <div class="guest-arrival-item">
+                      <span data-i18n="guestArrival1Label">Настаняване</span>
+                      <strong data-i18n="guestArrival1Value">16:00 потвърден</strong>
+                    </div>
+                    <div class="guest-arrival-item">
+                      <span data-i18n="guestArrival2Label">Консиерж</span>
+                      <strong data-i18n="guestArrival2Value">Наличен сега</strong>
+                    </div>
+                    <div class="guest-arrival-item">
+                      <span data-i18n="guestArrival3Label">Wi-Fi</span>
+                      <strong data-i18n="guestArrival3Value">Готов при пристигане</strong>
+                    </div>
+                    <div class="guest-arrival-item">
+                      <span data-i18n="guestArrival4Label">Достъп</span>
+                      <strong data-i18n="guestArrival4Value">Входен гид готов</strong>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="guest-block">
+                  <div class="guest-block__topline">
+                    <p class="showcase-panel__label" data-i18n="guestStayLabel">Статус на престоя</p>
+                    <span class="showcase-panel__meta" data-i18n="guestStayMeta">Спокоен вечерен режим</span>
+                  </div>
+                  <div class="guest-status-grid">
+                    <div class="guest-status-chip">
+                      <span data-i18n="guestStay1Label">Почистване</span>
+                      <strong data-i18n="guestStay1Value">Завършено</strong>
+                    </div>
+                    <div class="guest-status-chip">
+                      <span data-i18n="guestStay2Label">Апартамент</span>
+                      <strong data-i18n="guestStay2Value">Подготвен</strong>
+                    </div>
+                    <div class="guest-status-chip">
+                      <span data-i18n="guestStay3Label">Трансфер</span>
+                      <strong data-i18n="guestStay3Value">Активен</strong>
+                    </div>
+                    <div class="guest-status-chip">
+                      <span data-i18n="guestStay4Label">Консиерж</span>
+                      <strong data-i18n="guestStay4Value">Отговаря</strong>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="guest-block">
+                  <div class="guest-block__topline">
+                    <p class="showcase-panel__label" data-i18n="guestConciergeLabel">Дигитален консиерж</p>
+                    <span class="showcase-panel__meta" data-i18n="guestConciergeMeta">Бърз достъп</span>
+                  </div>
+                  <div class="guest-action-grid">
+                    <button class="guest-action" type="button" data-i18n="guestAction1">Късна вечеря</button>
+                    <button class="guest-action" type="button" data-i18n="guestAction2">Летищен трансфер</button>
+                    <button class="guest-action" type="button" data-i18n="guestAction3">Допълнителни кърпи</button>
+                    <button class="guest-action" type="button" data-i18n="guestAction4">Препоръки</button>
+                    <button class="guest-action" type="button" data-i18n="guestAction5">Лодка</button>
+                    <button class="guest-action" type="button" data-i18n="guestAction6">Поддръжка</button>
+                  </div>
+                </section>
+
+                <section class="guest-access-card">
+                  <div class="guest-access-card__content">
+                    <div class="guest-block__topline">
+                      <p class="showcase-panel__label" data-i18n="guestQrLabel">QR карта за достъп</p>
+                      <span class="showcase-panel__meta" data-i18n="guestQrMeta">Директен линк</span>
+                    </div>
+                    <strong data-i18n="guestQrTitle">Достъпът до апартамента е готов</strong>
+                    <p data-i18n="guestQrBody">Wi-Fi, вход и concierge помощ в един спокоен поток.</p>
+                  </div>
+                  <div class="guest-access-card__qr" aria-hidden="true"></div>
+                </section>
+              </div>
+            </div>
+          </article>
+
+          <aside class="guest-portal__rail">
+            <article class="guest-sidecard">
+              <div class="guest-block__topline">
+                <p class="showcase-panel__label" data-i18n="guestServicesLabel">Доверени местни услуги</p>
+                <span class="showcase-panel__meta" data-i18n="guestServicesMeta">Проверени локални оператори</span>
+              </div>
+              <div class="guest-service-list">
+                <div class="guest-service-item">
+                  <strong data-i18n="guestService1Title">Трансфери</strong>
+                  <span data-i18n="guestService1Body">Марина и летищни маршрути</span>
+                </div>
+                <div class="guest-service-item">
+                  <strong data-i18n="guestService2Title">Ресторанти</strong>
+                  <span data-i18n="guestService2Body">Подбрани места за вечеря</span>
+                </div>
+                <div class="guest-service-item">
+                  <strong data-i18n="guestService3Title">Морски активности</strong>
+                  <span data-i18n="guestService3Body">Подбрани морски активности</span>
+                </div>
+                <div class="guest-service-item">
+                  <strong data-i18n="guestService4Title">Уелнес</strong>
+                  <span data-i18n="guestService4Body">Частни сесии и spa</span>
+                </div>
+                <div class="guest-service-item">
+                  <strong data-i18n="guestService5Title">Спешна помощ</strong>
+                  <span data-i18n="guestService5Body">Назначен локален оператор</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="guest-sidecard guest-sidecard--support">
+              <div class="guest-block__topline">
+                <p class="showcase-panel__label" data-i18n="guestSupportLabel">Достъп при пристигане</p>
+                <span class="showcase-panel__meta" data-i18n="guestSupportMeta">Спокоен достъп</span>
+              </div>
+              <div class="guest-support-list">
+                <div class="guest-support-row">
+                  <span data-i18n="guestSupport1Label">Вход към имота</span>
+                  <strong data-i18n="guestSupport1Value">Гидът е наличен сега</strong>
+                </div>
+                <div class="guest-support-row">
+                  <span data-i18n="guestSupport2Label">Тих режим</span>
+                  <strong data-i18n="guestSupport2Value">Активен вечерен режим</strong>
+                </div>
+                <div class="guest-support-row">
+                  <span data-i18n="guestSupport3Label">Консиерж линия</span>
+                  <strong data-i18n="guestSupport3Value">Отговор до 5 мин</strong>
+                </div>
+              </div>
+            </article>
+          </aside>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <section id="early-access" class="cta-panel" aria-labelledby="cta-title">
+    <div class="cta-panel__content">
+      <p class="section-heading__eyebrow" data-i18n="ctaEyebrow">Ранен достъп</p>
+      <h2 id="cta-title" data-i18n="ctaTitle">Въведете по-спокойна система за гости, екипи и ежедневна координация.</h2>
+    </div>
+    <a class="button button--primary" href="mailto:hello@blackseaconnect.com" data-i18n="ctaButton">Заяви ранен достъп</a>
+  </section>
+
+  <script>
+    (function () {
+      const translations = {
+        bg: {
+          navPortal: "Отвори портала",
+          badge: "Операционна платформа за луксозни имоти и гост услуги",
+          headline: "Операции за премиум гостоприемство край морето.",
+          subtitle: "BlackSea Connect обединява гости, почистване, трансфери, локални услуги и оперативни задачи в една спокойна система за крайбрежни екипи.",
+          primaryCta: "Заяви ранен достъп",
+          secondaryCta: "Отвори портала",
+          previewAria: "Преглед на операциите",
+          previewSignalPrimary: "Операции на живо",
+          previewSignalSecondary: "Марина режим",
+          previewLabel: "Крайбрежен оперативен изглед",
+          previewApartment: "Apartment A-302",
+          previewPill: "Морски престой",
+          previewMetaSeaLabel: "Море",
+          previewMetaSeaValue: "Спокойно",
+          previewMetaWeatherLabel: "Време",
+          previewMetaWeatherValue: "Ясно",
+          previewMetaSunsetLabel: "Залез",
+          previewMetaSunsetValue: "20:41",
+          previewMetaBeachLabel: "Плаж",
+          previewMetaBeachValue: "Умерено",
+          previewMetaLocalLabel: "Активност",
+          previewMetaLocalValue: "Активна",
+          previewMetaTransfersLabel: "Трансфери",
+          previewMetaTransfersValue: "Активни",
+          previewCheckinLabel: "Настаняване",
+          previewCheckinValue: "Днес 16:00",
+          previewCleaningLabel: "Почистване",
+          previewCleaningValue: "Готово",
+          previewTransferLabel: "Трансфер",
+          previewTransferValue: "Резервиран",
+          previewIncidentLabel: "Инцидент",
+          previewIncidentValue: "Няма отворени проблеми",
+          featuresEyebrow: "Създадено за премиум хотелски операции",
+          featuresTitle: "Всичко необходимо за по-спокойна координация между гости, екипи и локални услуги.",
+          feature1Title: "Guest QR Portal",
+          feature1Description: "Гостите сканират QR код и получават бърз достъп до Wi-Fi, инструкции, услуги и помощ.",
+          feature2Title: "Property Operations",
+          feature2Description: "Следете почистване, настанявания, статуси, задачи и инциденти от един оперативен панел.",
+          feature3Title: "Trusted Local Services",
+          feature3Description: "Свържете екипа си с проверени трансфери, ремонти, почистване и надеждни локални партньори.",
+          trustEyebrow: "Оперативен слой на доверие",
+          trustTitle: "Създадено за екипи, които разчитат на видимост, надеждни партньори и спокойна координация.",
+          trust1Title: "Проверени локални оператори",
+          trust1Description: "Работете с проверени локални партньори за трансфери, ремонти и обслужване без оперативен шум.",
+          trust2Title: "Процеси при инциденти",
+          trust2Description: "Проследявайте инциденти, ескалации и изпълнение в ясен процес с видима отговорност.",
+          trust3Title: "Видимост в реално време",
+          trust3Description: "Виждате статуса на гости, екипи и услуги точно когато са важни за деня.",
+          trust4Title: "Надеждни екипи за почистване",
+          trust4Description: "Поддържайте готовност за настаняване с по-ясна координация между екипи и обекти.",
+          trust5Title: "Координация на поддръжката за гости",
+          trust5Description: "Събирайте поддръжка, инструкции и заявки от гости в една спокойна оперативна линия.",
+          trust6Title: "Надеждност на локалните услуги",
+          trust6Description: "Подредете координацията така, че локалните услуги да изглеждат предвидими и професионални.",
+          productPreviewEyebrow: "Оперативен продуктов преглед",
+          productPreviewTitle: "Реална оперативна екосистема за гости, екипи, партньори и ежедневна координация.",
+          consoleEyebrow: "BlackSea Connect OS",
+          consoleTitle: "Live Coastal Operations",
+          consoleSignalLive: "Гост поток активен",
+          consoleSignalOps: "Оперативна смяна",
+          timelineLabel: "Хронология на заявки",
+          timelineMeta: "Днес · 12 активни елемента",
+          timeline1Title: "Консиержът отговаря",
+          timeline1Body: "Заявка за късна вечеря на терасата е насочена към консиерж екипа.",
+          timeline1Tag: "В процес",
+          timeline2Title: "Пристигането е планирано",
+          timeline2Body: "Пристигането е потвърдено с трансфер до марината в 16:10.",
+          timeline2Tag: "Планирано",
+          timeline3Title: "Wi-Fi инструкции",
+          timeline3Body: "QR portal е обновен с достъп, входни стъпки и указания.",
+          timeline3Tag: "Портал готов",
+          timeline4Title: "Ескалация на инцидент",
+          timeline4Body: "Сигнал за водно налягане е възложен на локален оператор с SLA 18 мин.",
+          timeline4Tag: "Ескалирано",
+          portalLabel: "QR портал за гости",
+          portalMeta: "Достъпен при пристигане",
+          portalCardTitle: "Посрещане в апартамента",
+          portalCardBody: "Wi-Fi, инструкции, консиерж линия и локален гид.",
+          statusLabel: "Статус на имота",
+          statusMeta: "Крайбрежно портфолио · 7 активни престоя",
+          propertyHeroName: "Villa Marina One",
+          propertyHeroSub: "Операции за луксозни апартаменти · concierge tier",
+          propertyHeroPill: "Спокоен режим",
+          statusChip1Label: "Пристигане",
+          statusChip1Value: "Планирано",
+          statusChip2Label: "Почистване",
+          statusChip2Value: "Завършено",
+          statusChip3Label: "Трансфер",
+          statusChip3Value: "Потвърден",
+          statusChip4Label: "Консиерж",
+          statusChip4Value: "Отговаря",
+          opsRow1Label: "Гостът е настанен",
+          opsRow1Value: "Apartment B-12 · 15:54",
+          opsRow2Label: "Назначен локален оператор",
+          opsRow2Value: "Harbor Electric · Инцидент 204",
+          opsRow3Label: "Трансферът е потвърден",
+          opsRow3Value: "Dock Gate 3 · Driver V. Petrov",
+          housekeepingLabel: "Координация на почистването",
+          housekeepingMeta: "Смяна 2 · 4 активни екипа",
+          housekeeping1Label: "Почистването е завършено",
+          housekeeping1Value: "A-302 · Ready for arrival",
+          housekeeping2Label: "Подготовка в процес",
+          housekeeping2Value: "Villa Azure · Остават 18 мин",
+          housekeeping3Label: "Зареждане на бельо",
+          housekeeping3Value: "Boutique Residence · 2 елемента",
+          transferLabel: "Планиране на трансфери",
+          transferMeta: "3 активни крайбрежни маршрута",
+          transfer1Label: "Час за пристигане",
+          transfer1Value: "16:10 · Потвърдено",
+          transfer2Label: "Посрещане от летището",
+          transfer2Value: "Шофьор възложен · Терминал 2",
+          transfer3Label: "Късен обратен курс",
+          transfer3Value: "Очаква одобрение от гост",
+          partnerLabel: "Мрежа от доверени партньори",
+          partnerMeta: "Проверена мрежа · 23 оператора",
+          partner1Title: "Harbor Electric",
+          partner1Body: "Възложен · ескалация на инцидент",
+          partner2Title: "Blue Linen House",
+          partner2Body: "Стабилно ниво на услуга",
+          partner3Title: "Coastal Transfer Desk",
+          partner3Body: "Потвърден маршрут за пристигане",
+          guestPortalEyebrow: "Портал за гости",
+          guestPortalTitle: "Спокойно пристигане, консиерж координация и доверени услуги в мобилен портал за гости.",
+          guestPortalAria: "Преглед на портала за гости",
+          guestDeviceEyebrow: "Преглед при пристигане",
+          guestDeviceTitle: "Villa Marina One",
+          guestDevicePill: "Пристигането е потвърдено",
+          guestArrivalLabel: "Преглед при пристигане",
+          guestArrivalMeta: "Днес · директен достъп",
+          guestWelcomeTitle: "Добре дошли. Всичко за пристигането е готово.",
+          guestArrival1Label: "Настаняване",
+          guestArrival1Value: "16:00 потвърден",
+          guestArrival2Label: "Консиерж",
+          guestArrival2Value: "Наличен сега",
+          guestArrival3Label: "Wi-Fi",
+          guestArrival3Value: "Готов при пристигане",
+          guestArrival4Label: "Достъп",
+          guestArrival4Value: "Входен гид готов",
+          guestStayLabel: "Статус на престоя",
+          guestStayMeta: "Спокоен вечерен режим",
+          guestStay1Label: "Почистване",
+          guestStay1Value: "Завършено",
+          guestStay2Label: "Апартамент",
+          guestStay2Value: "Подготвен",
+          guestStay3Label: "Трансфер",
+          guestStay3Value: "Активен",
+          guestStay4Label: "Консиерж",
+          guestStay4Value: "Отговаря",
+          guestConciergeLabel: "Дигитален консиерж",
+          guestConciergeMeta: "Бърз достъп",
+          guestAction1: "Късна вечеря",
+          guestAction2: "Летищен трансфер",
+          guestAction3: "Допълнителни кърпи",
+          guestAction4: "Препоръки",
+          guestAction5: "Лодка",
+          guestAction6: "Поддръжка",
+          guestQrLabel: "QR карта за достъп",
+          guestQrMeta: "Директен линк",
+          guestQrTitle: "Достъпът до апартамента е готов",
+          guestQrBody: "Wi-Fi, вход и concierge помощ в един спокоен поток.",
+          guestServicesLabel: "Доверени местни услуги",
+          guestServicesMeta: "Проверени локални оператори",
+          guestService1Title: "Трансфери",
+          guestService1Body: "Марина и летищни маршрути",
+          guestService2Title: "Ресторанти",
+          guestService2Body: "Подбрани места за вечеря",
+          guestService3Title: "Морски активности",
+          guestService3Body: "Подбрани морски активности",
+          guestService4Title: "Уелнес",
+          guestService4Body: "Частни сесии и spa",
+          guestService5Title: "Спешна помощ",
+          guestService5Body: "Назначен локален оператор",
+          guestSupportLabel: "Достъп при пристигане",
+          guestSupportMeta: "Спокоен достъп",
+          guestSupport1Label: "Вход към имота",
+          guestSupport1Value: "Гидът е наличен сега",
+          guestSupport2Label: "Тих режим",
+          guestSupport2Value: "Активен вечерен режим",
+          guestSupport3Label: "Консиерж линия",
+          guestSupport3Value: "Отговор до 5 мин",
+          ctaEyebrow: "Ранен достъп",
+          ctaTitle: "Въведете по-спокойна система за гости, екипи и ежедневна координация.",
+          ctaButton: "Заяви ранен достъп"
+        },
+        en: {
+          navPortal: "View Guest Portal",
+          badge: "Operations platform for luxury properties and guest services",
+          headline: "Luxury operations for coastal stays.",
+          subtitle: "BlackSea Connect brings together guests, cleaning, transfers, local services and daily workflows in one calm system for coastal teams.",
+          primaryCta: "Request Early Access",
+          secondaryCta: "View Guest Portal",
+          previewAria: "Operations preview",
+          previewSignalPrimary: "Operations live",
+          previewSignalSecondary: "Marina mode",
+          previewLabel: "Coastal Operations View",
+          previewApartment: "Apartment A-302",
+          previewPill: "Seafront stay",
+          previewMetaSeaLabel: "Sea",
+          previewMetaSeaValue: "Calm",
+          previewMetaWeatherLabel: "Weather",
+          previewMetaWeatherValue: "Clear",
+          previewMetaSunsetLabel: "Sunset",
+          previewMetaSunsetValue: "20:41",
+          previewMetaBeachLabel: "Beach activity",
+          previewMetaBeachValue: "Moderate",
+          previewMetaLocalLabel: "Local activity",
+          previewMetaLocalValue: "Active",
+          previewMetaTransfersLabel: "Transfers",
+          previewMetaTransfersValue: "Active",
+          previewCheckinLabel: "Guest check-in",
+          previewCheckinValue: "Today 16:00",
+          previewCleaningLabel: "Cleaning",
+          previewCleaningValue: "Ready",
+          previewTransferLabel: "Transfer",
+          previewTransferValue: "Booked",
+          previewIncidentLabel: "Incident",
+          previewIncidentValue: "No open issues",
+          featuresEyebrow: "Built for premium hospitality operations",
+          featuresTitle: "Everything your team needs for calmer coordination across guests, staff and local services.",
+          feature1Title: "Guest QR Portal",
+          feature1Description: "Guests scan a QR code for quick access to Wi-Fi, instructions, services and support.",
+          feature2Title: "Property Operations",
+          feature2Description: "Track cleaning, arrivals, statuses, tasks and incidents from one operational panel.",
+          feature3Title: "Trusted Local Services",
+          feature3Description: "Connect your team with vetted transfers, repairs, cleaning and trusted local partners.",
+          trustEyebrow: "Operational trust layer",
+          trustTitle: "Designed for teams that depend on visibility, reliable partners and calm coordination.",
+          trust1Title: "Verified Local Operators",
+          trust1Description: "Work with vetted local operators for transfers, repairs and servicing without operational noise.",
+          trust2Title: "Incident Workflows",
+          trust2Description: "Track incidents, escalations and follow-through in a clear process with visible accountability.",
+          trust3Title: "Real-Time Visibility",
+          trust3Description: "See the live status of guests, teams and services at the exact moment it matters.",
+          trust4Title: "Trusted Cleaning Teams",
+          trust4Description: "Maintain check-in readiness with clearer coordination across teams and units.",
+          trust5Title: "Guest Support Coordination",
+          trust5Description: "Bring support, instructions and guest requests into one calm operational line.",
+          trust6Title: "Local Service Reliability",
+          trust6Description: "Structure coordination so local delivery feels dependable and professional.",
+          productPreviewEyebrow: "Operational Product Preview",
+          productPreviewTitle: "A live operational ecosystem for guests, teams, partners and daily coordination.",
+          consoleEyebrow: "BlackSea Connect OS",
+          consoleTitle: "Live Coastal Operations",
+          consoleSignalLive: "Guest flow active",
+          consoleSignalOps: "Operations shift",
+          timelineLabel: "Guest request timeline",
+          timelineMeta: "Today · 12 live items",
+          timeline1Title: "Concierge responding",
+          timeline1Body: "Late terrace dining request routed to concierge desk.",
+          timeline1Tag: "In progress",
+          timeline2Title: "Arrival scheduled",
+          timeline2Body: "Guest arrival confirmed with marina transfer window 16:10.",
+          timeline2Tag: "Scheduled",
+          timeline3Title: "Wi-Fi instructions available",
+          timeline3Body: "QR portal updated with access guide and entry steps.",
+          timeline3Tag: "Portal ready",
+          timeline4Title: "Incident escalation flow",
+          timeline4Body: "Water pressure alert assigned to local operator with 18 min SLA.",
+          timeline4Tag: "Escalated",
+          portalLabel: "QR guest portal",
+          portalMeta: "Available on arrival",
+          portalCardTitle: "Suite Welcome",
+          portalCardBody: "Wi-Fi, arrival steps, concierge line and local guide.",
+          statusLabel: "Live property status",
+          statusMeta: "Seafront portfolio · 7 active stays",
+          propertyHeroName: "Villa Marina One",
+          propertyHeroSub: "Luxury suite operations · concierge tier",
+          propertyHeroPill: "Calm operating state",
+          statusChip1Label: "Arrival",
+          statusChip1Value: "Scheduled",
+          statusChip2Label: "Housekeeping",
+          statusChip2Value: "Completed",
+          statusChip3Label: "Transfer",
+          statusChip3Value: "Confirmed",
+          statusChip4Label: "Concierge",
+          statusChip4Value: "Responding",
+          opsRow1Label: "Guest checked in",
+          opsRow1Value: "Apartment B-12 · 15:54",
+          opsRow2Label: "Local operator assigned",
+          opsRow2Value: "Harbor Electric · Incident 204",
+          opsRow3Label: "Marina transfer confirmed",
+          opsRow3Value: "Dock Gate 3 · Driver V. Petrov",
+          housekeepingLabel: "Housekeeping coordination",
+          housekeepingMeta: "Shift 2 · 4 teams active",
+          housekeeping1Label: "Cleaning completed",
+          housekeeping1Value: "A-302 · Ready for arrival",
+          housekeeping2Label: "Turnover in progress",
+          housekeeping2Value: "Villa Azure · 18 min remaining",
+          housekeeping3Label: "Linen restock queued",
+          housekeeping3Value: "Boutique Residence · 2 items",
+          transferLabel: "Transfer scheduling",
+          transferMeta: "3 coastal routes active",
+          transfer1Label: "Marina arrival window",
+          transfer1Value: "16:10 · Confirmed",
+          transfer2Label: "Airport pickup dispatch",
+          transfer2Value: "Driver assigned · Terminal 2",
+          transfer3Label: "Late return route",
+          transfer3Value: "Pending guest approval",
+          partnerLabel: "Trusted local partner system",
+          partnerMeta: "Vetted network · 23 operators",
+          partner1Title: "Harbor Electric",
+          partner1Body: "Assigned · incident escalation",
+          partner2Title: "Blue Linen House",
+          partner2Body: "Stable service level",
+          partner3Title: "Coastal Transfer Desk",
+          partner3Body: "Arrival route confirmed",
+          guestPortalEyebrow: "Guest Portal Experience",
+          guestPortalTitle: "Calm arrival guidance, concierge coordination and trusted services in one mobile guest portal.",
+          guestPortalAria: "Guest Portal preview",
+          guestDeviceEyebrow: "Arrival overview",
+          guestDeviceTitle: "Villa Marina One",
+          guestDevicePill: "Arrival confirmed",
+          guestArrivalLabel: "Arrival overview",
+          guestArrivalMeta: "Today · direct portal access",
+          guestWelcomeTitle: "Welcome. Everything for arrival is ready.",
+          guestArrival1Label: "Check-in",
+          guestArrival1Value: "16:00 confirmed",
+          guestArrival2Label: "Concierge",
+          guestArrival2Value: "Available now",
+          guestArrival3Label: "Wi-Fi",
+          guestArrival3Value: "Ready on arrival",
+          guestArrival4Label: "Access",
+          guestArrival4Value: "Entry guide ready",
+          guestStayLabel: "Live stay status",
+          guestStayMeta: "Quiet evening mode",
+          guestStay1Label: "Cleaning",
+          guestStay1Value: "Completed",
+          guestStay2Label: "Apartment",
+          guestStay2Value: "Prepared",
+          guestStay3Label: "Transfer",
+          guestStay3Value: "Active",
+          guestStay4Label: "Concierge",
+          guestStay4Value: "Responding",
+          guestConciergeLabel: "Digital concierge",
+          guestConciergeMeta: "Quick access",
+          guestAction1: "Late dinner",
+          guestAction2: "Airport transfer",
+          guestAction3: "Extra towels",
+          guestAction4: "Recommendations",
+          guestAction5: "Private boat",
+          guestAction6: "Maintenance",
+          guestQrLabel: "QR access card",
+          guestQrMeta: "Direct arrival link",
+          guestQrTitle: "Suite access ready",
+          guestQrBody: "Wi-Fi, entry and concierge support in one calm arrival flow.",
+          guestServicesLabel: "Trusted local services",
+          guestServicesMeta: "Verified local operators",
+          guestService1Title: "Transfers",
+          guestService1Body: "Marina and airport routes",
+          guestService2Title: "Restaurants",
+          guestService2Body: "Quiet dining picks",
+          guestService3Title: "Marine activities",
+          guestService3Body: "Curated coastal options",
+          guestService4Title: "Wellness",
+          guestService4Body: "Private sessions and spa",
+          guestService5Title: "Emergency assistance",
+          guestService5Body: "Local operator assigned",
+          guestSupportLabel: "Arrival access",
+          guestSupportMeta: "Frictionless onboarding",
+          guestSupport1Label: "Property entry",
+          guestSupport1Value: "Guide available now",
+          guestSupport2Label: "Quiet indicator",
+          guestSupport2Value: "Evening mode active",
+          guestSupport3Label: "Concierge line",
+          guestSupport3Value: "Reply within 5 min",
+          ctaEyebrow: "Early access",
+          ctaTitle: "Introduce a calmer system for guests, teams and day-to-day coordination.",
+          ctaButton: "Request Early Access"
+        },
+        fr: {
+          navPortal: "Voir le portail client",
+          badge: "Plateforme opérationnelle pour propriétés premium et services voyageurs",
+          headline: "Des opérations premium pour les séjours en bord de mer.",
+          subtitle: "BlackSea Connect réunit voyageurs, ménage, transferts, services locaux et tâches quotidiennes dans un système serein pour les équipes côtières.",
+          primaryCta: "Demander un accès anticipé",
+          secondaryCta: "Voir le portail client",
+          previewAria: "Aperçu des opérations",
+          previewSignalPrimary: "Opérations en direct",
+          previewSignalSecondary: "Mode marina",
+          previewLabel: "Vue opérationnelle côtière",
+          previewApartment: "Appartement A-302",
+          previewPill: "Séjour en bord de mer",
+          previewMetaSeaLabel: "Mer",
+          previewMetaSeaValue: "Calme",
+          previewMetaWeatherLabel: "Météo",
+          previewMetaWeatherValue: "Clair",
+          previewMetaSunsetLabel: "Coucher",
+          previewMetaSunsetValue: "20:41",
+          previewMetaBeachLabel: "Plage",
+          previewMetaBeachValue: "Modérée",
+          previewMetaLocalLabel: "Activité locale",
+          previewMetaLocalValue: "Active",
+          previewMetaTransfersLabel: "Transferts",
+          previewMetaTransfersValue: "Actifs",
+          previewCheckinLabel: "Arrivée client",
+          previewCheckinValue: "Aujourd'hui 16:00",
+          previewCleaningLabel: "Ménage",
+          previewCleaningValue: "Prêt",
+          previewTransferLabel: "Transfert",
+          previewTransferValue: "Réservé",
+          previewIncidentLabel: "Incident",
+          previewIncidentValue: "Aucun problème en cours",
+          featuresEyebrow: "Conçu pour des opérations hôtelières premium",
+          featuresTitle: "Tout ce qu'il faut pour une coordination plus sereine entre voyageurs, équipes et services locaux.",
+          feature1Title: "Portail QR voyageurs",
+          feature1Description: "Les voyageurs scannent un QR code et accèdent rapidement au Wi-Fi, aux consignes, aux services et à l'assistance.",
+          feature2Title: "Opérations des biens",
+          feature2Description: "Suivez le ménage, les arrivées, les statuts, les tâches et les incidents depuis un panneau opérationnel unique.",
+          feature3Title: "Services locaux de confiance",
+          feature3Description: "Reliez votre équipe à des transferts, réparations, ménages et partenaires locaux vérifiés.",
+          trustEyebrow: "Couche de confiance opérationnelle",
+          trustTitle: "Pensé pour les équipes qui dépendent de la visibilité, de partenaires fiables et d'une coordination sereine.",
+          trust1Title: "Opérateurs locaux vérifiés",
+          trust1Description: "Travaillez avec des opérateurs locaux vérifiés pour les transferts, réparations et interventions sans bruit opérationnel.",
+          trust2Title: "Flux de gestion des incidents",
+          trust2Description: "Suivez incidents, escalades et résolution dans un processus clair avec une responsabilité visible.",
+          trust3Title: "Visibilité en temps réel",
+          trust3Description: "Voyez l'état des voyageurs, des équipes et des services exactement quand cela compte.",
+          trust4Title: "Équipes de ménage fiables",
+          trust4Description: "Maintenez la préparation des arrivées grâce à une coordination plus claire entre équipes et unités.",
+          trust5Title: "Coordination du support voyageurs",
+          trust5Description: "Réunissez support, consignes et demandes des voyageurs dans une seule ligne opérationnelle calme.",
+          trust6Title: "Fiabilité des services locaux",
+          trust6Description: "Structurez la coordination pour que l'exécution locale inspire confiance et professionnalisme.",
+          productPreviewEyebrow: "Aperçu produit opérationnel",
+          productPreviewTitle: "Un écosystème opérationnel vivant pour voyageurs, équipes, partenaires et coordination quotidienne.",
+          consoleEyebrow: "BlackSea Connect OS",
+          consoleTitle: "Opérations côtières en direct",
+          consoleSignalLive: "Flux voyageurs actif",
+          consoleSignalOps: "Shift opérationnel",
+          timelineLabel: "Chronologie des demandes voyageurs",
+          timelineMeta: "Aujourd'hui · 12 éléments actifs",
+          timeline1Title: "Conciergerie en réponse",
+          timeline1Body: "Demande de dîner tardif sur la terrasse transmise au desk conciergerie.",
+          timeline1Tag: "En cours",
+          timeline2Title: "Arrivée planifiée",
+          timeline2Body: "Arrivée confirmée avec créneau de transfert marina à 16:10.",
+          timeline2Tag: "Planifié",
+          timeline3Title: "Instructions Wi-Fi disponibles",
+          timeline3Body: "Le portail QR a été mis à jour avec accès, entrée et consignes.",
+          timeline3Tag: "Portail prêt",
+          timeline4Title: "Flux d'escalade incident",
+          timeline4Body: "Alerte de pression d'eau attribuée à un opérateur local avec SLA de 18 min.",
+          timeline4Tag: "Escaladé",
+          portalLabel: "Portail QR voyageurs",
+          portalMeta: "Disponible à l'arrivée",
+          portalCardTitle: "Accueil Suite",
+          portalCardBody: "Wi-Fi, arrivée, ligne conciergerie et guide local.",
+          statusLabel: "Statut du bien en direct",
+          statusMeta: "Portefeuille en bord de mer · 7 séjours actifs",
+          propertyHeroName: "Villa Marina One",
+          propertyHeroSub: "Opérations suite de luxe · niveau conciergerie",
+          propertyHeroPill: "État opérationnel calme",
+          statusChip1Label: "Arrivée",
+          statusChip1Value: "Planifiée",
+          statusChip2Label: "Ménage",
+          statusChip2Value: "Terminé",
+          statusChip3Label: "Transfert",
+          statusChip3Value: "Confirmé",
+          statusChip4Label: "Conciergerie",
+          statusChip4Value: "Répond",
+          opsRow1Label: "Voyageur enregistré",
+          opsRow1Value: "Appartement B-12 · 15:54",
+          opsRow2Label: "Opérateur local attribué",
+          opsRow2Value: "Harbor Electric · Incident 204",
+          opsRow3Label: "Transfert marina confirmé",
+          opsRow3Value: "Dock Gate 3 · Chauffeur V. Petrov",
+          housekeepingLabel: "Coordination ménage",
+          housekeepingMeta: "Shift 2 · 4 équipes actives",
+          housekeeping1Label: "Nettoyage terminé",
+          housekeeping1Value: "A-302 · Prêt pour arrivée",
+          housekeeping2Label: "Rotation en cours",
+          housekeeping2Value: "Villa Azure · 18 min restantes",
+          housekeeping3Label: "Réassort linge en file",
+          housekeeping3Value: "Boutique Residence · 2 articles",
+          transferLabel: "Planification transferts",
+          transferMeta: "3 routes côtières actives",
+          transfer1Label: "Créneau marina",
+          transfer1Value: "16:10 · Confirmé",
+          transfer2Label: "Dispatch aéroport",
+          transfer2Value: "Chauffeur attribué · Terminal 2",
+          transfer3Label: "Retour tardif",
+          transfer3Value: "En attente de validation client",
+          partnerLabel: "Système de partenaires locaux",
+          partnerMeta: "Réseau vérifié · 23 opérateurs",
+          partner1Title: "Harbor Electric",
+          partner1Body: "Attribué · escalade incident",
+          partner2Title: "Blue Linen House",
+          partner2Body: "Niveau de service stable",
+          partner3Title: "Coastal Transfer Desk",
+          partner3Body: "Route d'arrivée confirmée",
+          guestPortalEyebrow: "Expérience Portail Voyageur",
+          guestPortalTitle: "Arrivée sereine, coordination conciergerie et services fiables dans un portail mobile premium.",
+          guestPortalAria: "Aperçu du portail voyageur",
+          guestDeviceEyebrow: "Vue d'arrivée",
+          guestDeviceTitle: "Villa Marina One",
+          guestDevicePill: "Arrivée confirmée",
+          guestArrivalLabel: "Vue d'arrivée",
+          guestArrivalMeta: "Aujourd'hui · accès portail direct",
+          guestWelcomeTitle: "Bienvenue. Tout pour votre arrivée est prêt.",
+          guestArrival1Label: "Arrivée",
+          guestArrival1Value: "16:00 confirmé",
+          guestArrival2Label: "Conciergerie",
+          guestArrival2Value: "Disponible maintenant",
+          guestArrival3Label: "Wi-Fi",
+          guestArrival3Value: "Prêt à l'arrivée",
+          guestArrival4Label: "Accès",
+          guestArrival4Value: "Guide d'entrée prêt",
+          guestStayLabel: "Statut du séjour",
+          guestStayMeta: "Mode soirée calme",
+          guestStay1Label: "Ménage",
+          guestStay1Value: "Terminé",
+          guestStay2Label: "Appartement",
+          guestStay2Value: "Préparé",
+          guestStay3Label: "Transfert",
+          guestStay3Value: "Marina active",
+          guestStay4Label: "Conciergerie",
+          guestStay4Value: "Répond",
+          guestConciergeLabel: "Conciergerie digitale",
+          guestConciergeMeta: "Accès rapide",
+          guestAction1: "Dîner tardif",
+          guestAction2: "Transfert aéroport",
+          guestAction3: "Serviettes supplémentaires",
+          guestAction4: "Recommandations",
+          guestAction5: "Bateau privé",
+          guestAction6: "Maintenance",
+          guestQrLabel: "Carte d'accès QR",
+          guestQrMeta: "Lien d'arrivée direct",
+          guestQrTitle: "Accès à la suite prêt",
+          guestQrBody: "Wi-Fi, accès et assistance conciergerie dans un parcours d'arrivée calme.",
+          guestServicesLabel: "Services locaux de confiance",
+          guestServicesMeta: "Opérateurs locaux vérifiés",
+          guestService1Title: "Transferts",
+          guestService1Body: "Routes marina et aéroport",
+          guestService2Title: "Restaurants",
+          guestService2Body: "Adresses calmes",
+          guestService3Title: "Activités marines",
+          guestService3Body: "Options côtières choisies",
+          guestService4Title: "Bien-être",
+          guestService4Body: "Sessions privées et spa",
+          guestService5Title: "Assistance d'urgence",
+          guestService5Body: "Opérateur local assigné",
+          guestSupportLabel: "Accès à l'arrivée",
+          guestSupportMeta: "Onboarding sans friction",
+          guestSupport1Label: "Entrée du bien",
+          guestSupport1Value: "Guide disponible maintenant",
+          guestSupport2Label: "Indicateur calme",
+          guestSupport2Value: "Mode soirée actif",
+          guestSupport3Label: "Ligne conciergerie",
+          guestSupport3Value: "Réponse sous 5 min",
+          ctaEyebrow: "Accès anticipé",
+          ctaTitle: "Mettez en place un système plus serein pour les voyageurs, les équipes et la coordination quotidienne.",
+          ctaButton: "Demander un accès anticipé"
+        },
+        ru: {
+          navPortal: "Открыть портал",
+          badge: "Операционная платформа для премиальной недвижимости и гостевых сервисов",
+          headline: "Премиальные операции для прибрежного гостеприимства.",
+          subtitle: "BlackSea Connect объединяет гостей, уборку, трансферы, локальные сервисы и ежедневные задачи в одной спокойной системе для прибрежных команд.",
+          primaryCta: "Запросить ранний доступ",
+          secondaryCta: "Открыть портал",
+          previewAria: "Обзор операций",
+          previewSignalPrimary: "Операции в эфире",
+          previewSignalSecondary: "Режим марины",
+          previewLabel: "Прибрежный операционный обзор",
+          previewApartment: "Apartment A-302",
+          previewPill: "Проживание у моря",
+          previewMetaSeaLabel: "Море",
+          previewMetaSeaValue: "Спокойно",
+          previewMetaWeatherLabel: "Погода",
+          previewMetaWeatherValue: "Ясно",
+          previewMetaSunsetLabel: "Закат",
+          previewMetaSunsetValue: "20:41",
+          previewMetaBeachLabel: "Пляж",
+          previewMetaBeachValue: "Умеренно",
+          previewMetaLocalLabel: "Активность",
+          previewMetaLocalValue: "Активна",
+          previewMetaTransfersLabel: "Трансферы",
+          previewMetaTransfersValue: "Активны",
+          previewCheckinLabel: "Заезд",
+          previewCheckinValue: "Сегодня 16:00",
+          previewCleaningLabel: "Уборка",
+          previewCleaningValue: "Готово",
+          previewTransferLabel: "Трансфер",
+          previewTransferValue: "Забронирован",
+          previewIncidentLabel: "Инцидент",
+          previewIncidentValue: "Нет открытых проблем",
+          featuresEyebrow: "Создано для премиальных гостиничных операций",
+          featuresTitle: "Все, что нужно для более спокойной координации между гостями, командами и локальными сервисами.",
+          feature1Title: "Guest QR Portal",
+          feature1Description: "Гости сканируют QR-код и быстро получают доступ к Wi‑Fi, инструкциям, сервисам и помощи.",
+          feature2Title: "Property Operations",
+          feature2Description: "Отслеживайте уборку, заезды, статусы, задачи и инциденты из одной операционной панели.",
+          feature3Title: "Trusted Local Services",
+          feature3Description: "Свяжите вашу команду с проверенными трансферами, ремонтом, клинингом и локальными партнерами.",
+          trustEyebrow: "Операционный слой доверия",
+          trustTitle: "Создано для команд, которым нужны прозрачность, надежные партнеры и спокойная координация.",
+          trust1Title: "Проверенные локальные операторы",
+          trust1Description: "Работайте с проверенными локальными операторами по трансферам, ремонту и обслуживанию без лишнего операционного шума.",
+          trust2Title: "Сценарии инцидентов",
+          trust2Description: "Отслеживайте инциденты, эскалации и исполнение в понятном процессе с видимой ответственностью.",
+          trust3Title: "Видимость в реальном времени",
+          trust3Description: "Видьте статус гостей, команд и сервисов именно тогда, когда это важно.",
+          trust4Title: "Надежные клининговые команды",
+          trust4Description: "Поддерживайте готовность к заезду благодаря более ясной координации между командами и объектами.",
+          trust5Title: "Координация поддержки гостей",
+          trust5Description: "Соберите поддержку, инструкции и запросы гостей в одну спокойную операционную линию.",
+          trust6Title: "Надежность локальных сервисов",
+          trust6Description: "Организуйте координацию так, чтобы локальное исполнение выглядело предсказуемо и профессионально.",
+          productPreviewEyebrow: "Операционный продуктовый обзор",
+          productPreviewTitle: "Живая операционная экосистема для гостей, команд, партнеров и ежедневной координации.",
+          consoleEyebrow: "BlackSea Connect OS",
+          consoleTitle: "Live Coastal Operations",
+          consoleSignalLive: "Поток гостей активен",
+          consoleSignalOps: "Операционная смена",
+          timelineLabel: "Хронология запросов гостей",
+          timelineMeta: "Сегодня · 12 активных элементов",
+          timeline1Title: "Консьерж отвечает",
+          timeline1Body: "Запрос на поздний ужин на террасе передан команде консьержа.",
+          timeline1Tag: "В процессе",
+          timeline2Title: "Прибытие запланировано",
+          timeline2Body: "Прибытие подтверждено с трансфером до марины в 16:10.",
+          timeline2Tag: "Запланировано",
+          timeline3Title: "Инструкции по Wi‑Fi",
+          timeline3Body: "QR portal обновлен инструкциями по доступу и входу.",
+          timeline3Tag: "Портал готов",
+          timeline4Title: "Эскалация инцидента",
+          timeline4Body: "Сигнал по давлению воды назначен локальному оператору со SLA 18 мин.",
+          timeline4Tag: "Эскалация",
+          portalLabel: "QR портал для гостей",
+          portalMeta: "Доступен при заезде",
+          portalCardTitle: "Добро пожаловать",
+          portalCardBody: "Wi‑Fi, шаги по прибытию, линия консьержа и локальный гид.",
+          statusLabel: "Статус объекта",
+          statusMeta: "Прибрежный портфель · 7 активных заездов",
+          propertyHeroName: "Villa Marina One",
+          propertyHeroSub: "Операции люксового сьюта · уровень консьержа",
+          propertyHeroPill: "Спокойное операционное состояние",
+          statusChip1Label: "Прибытие",
+          statusChip1Value: "Запланировано",
+          statusChip2Label: "Клининг",
+          statusChip2Value: "Завершен",
+          statusChip3Label: "Трансфер",
+          statusChip3Value: "Подтвержден",
+          statusChip4Label: "Консьерж",
+          statusChip4Value: "Отвечает",
+          opsRow1Label: "Гость заселен",
+          opsRow1Value: "Apartment B-12 · 15:54",
+          opsRow2Label: "Назначен локальный оператор",
+          opsRow2Value: "Harbor Electric · Инцидент 204",
+          opsRow3Label: "Трансфер подтвержден",
+          opsRow3Value: "Dock Gate 3 · Driver V. Petrov",
+          housekeepingLabel: "Координация уборки",
+          housekeepingMeta: "Смена 2 · 4 активные команды",
+          housekeeping1Label: "Уборка завершена",
+          housekeeping1Value: "A-302 · Готово к приезду",
+          housekeeping2Label: "Подготовка в процессе",
+          housekeeping2Value: "Villa Azure · Осталось 18 мин",
+          housekeeping3Label: "Пополнение белья",
+          housekeeping3Value: "Boutique Residence · 2 позиции",
+          transferLabel: "Планирование трансферов",
+          transferMeta: "3 активных прибрежных маршрута",
+          transfer1Label: "Время прибытия",
+          transfer1Value: "16:10 · Подтверждено",
+          transfer2Label: "Встреча в аэропорту",
+          transfer2Value: "Водитель назначен · Терминал 2",
+          transfer3Label: "Поздний обратный маршрут",
+          transfer3Value: "Ожидает подтверждения гостя",
+          partnerLabel: "Сеть доверенных партнеров",
+          partnerMeta: "Проверенная сеть · 23 оператора",
+          partner1Title: "Harbor Electric",
+          partner1Body: "Назначен · эскалация инцидента",
+          partner2Title: "Blue Linen House",
+          partner2Body: "Стабильный уровень сервиса",
+          partner3Title: "Coastal Transfer Desk",
+          partner3Body: "Маршрут прибытия подтвержден",
+          guestPortalEyebrow: "Портал для гостей",
+          guestPortalTitle: "Спокойное прибытие, координация консьержа и проверенные сервисы в мобильном портале для гостей.",
+          guestPortalAria: "Обзор портала для гостей",
+          guestDeviceEyebrow: "Обзор прибытия",
+          guestDeviceTitle: "Villa Marina One",
+          guestDevicePill: "Прибытие подтверждено",
+          guestArrivalLabel: "Обзор прибытия",
+          guestArrivalMeta: "Сегодня · прямой доступ",
+          guestWelcomeTitle: "Добро пожаловать. Всё для прибытия готово.",
+          guestArrival1Label: "Заселение",
+          guestArrival1Value: "16:00 подтвержден",
+          guestArrival2Label: "Консьерж",
+          guestArrival2Value: "Доступен сейчас",
+          guestArrival3Label: "Wi-Fi",
+          guestArrival3Value: "Готов к прибытию",
+          guestArrival4Label: "Доступ",
+          guestArrival4Value: "Инструкция для входа готова",
+          guestStayLabel: "Статус пребывания",
+          guestStayMeta: "Спокойный вечерний режим",
+          guestStay1Label: "Уборка",
+          guestStay1Value: "Завершена",
+          guestStay2Label: "Апартамент",
+          guestStay2Value: "Подготовлен",
+          guestStay3Label: "Трансфер",
+          guestStay3Value: "Активен",
+          guestStay4Label: "Консьерж",
+          guestStay4Value: "Отвечает",
+          guestConciergeLabel: "Цифровой консьерж",
+          guestConciergeMeta: "Быстрый доступ",
+          guestAction1: "Поздний ужин",
+          guestAction2: "Трансфер в аэропорт",
+          guestAction3: "Дополнительные полотенца",
+          guestAction4: "Рекомендации",
+          guestAction5: "Лодка",
+          guestAction6: "Поддержка",
+          guestQrLabel: "QR карта доступа",
+          guestQrMeta: "Прямая ссылка",
+          guestQrTitle: "Доступ в апартаменты готов",
+          guestQrBody: "Wi-Fi, вход и помощь консьержа в одном спокойном сценарии.",
+          guestServicesLabel: "Доверенные местные услуги",
+          guestServicesMeta: "Проверенные локальные операторы",
+          guestService1Title: "Трансферы",
+          guestService1Body: "Марина и аэропорт маршруты",
+          guestService2Title: "Рестораны",
+          guestService2Body: "Спокойные адреса",
+          guestService3Title: "Морские активности",
+          guestService3Body: "Подобранные морские опции",
+          guestService4Title: "Уелнес",
+          guestService4Body: "Частные сессии и spa",
+          guestService5Title: "Экстренная помощь",
+          guestService5Body: "Назначен локальный оператор",
+          guestSupportLabel: "Доступ при прибытии",
+          guestSupportMeta: "Спокойный доступ",
+          guestSupport1Label: "Вход в объект",
+          guestSupport1Value: "Инструкция доступна сейчас",
+          guestSupport2Label: "Тихий режим",
+          guestSupport2Value: "Вечерний режим активен",
+          guestSupport3Label: "Линия консьержа",
+          guestSupport3Value: "Ответ до 5 мин",
+          ctaEyebrow: "Ранний доступ",
+          ctaTitle: "Внедрите более спокойную систему для гостей, команд и ежедневной координации.",
+          ctaButton: "Запросить ранний доступ"
+        }
+      };
+
+      const nodes = document.querySelectorAll("[data-i18n]");
+      const attrNodes = document.querySelectorAll("[data-i18n-attr]");
+      const buttons = document.querySelectorAll("[data-lang-switch]");
+
+      function applyLanguage(lang) {
+        const dictionary = translations[lang] || translations.bg;
+
+        nodes.forEach((node) => {
+          const key = node.getAttribute("data-i18n");
+          if (dictionary[key]) {
+            node.textContent = dictionary[key];
+          }
+        });
+
+        attrNodes.forEach((node) => {
+          const mappings = node.getAttribute("data-i18n-attr").split(",");
+          mappings.forEach((mapping) => {
+            const parts = mapping.split(":");
+            const attr = parts[0] && parts[0].trim();
+            const key = parts[1] && parts[1].trim();
+            if (attr && key && dictionary[key]) {
+              node.setAttribute(attr, dictionary[key]);
+            }
+          });
+        });
+
+        document.documentElement.lang = lang;
+
+        buttons.forEach((button) => {
+          const isActive = button.getAttribute("data-lang-switch") === lang;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", function () {
+          applyLanguage(this.getAttribute("data-lang-switch"));
+        });
+      });
+
+      applyLanguage("bg");
+    }());
+  </script>
+</body>
+</html>
