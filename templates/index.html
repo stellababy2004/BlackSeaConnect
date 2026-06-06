@@ -563,12 +563,51 @@
     </section>
   </main>
 
-  <section id="early-access" class="cta-panel" aria-labelledby="cta-title">
+  <section id="early-access" class="cta-panel cta-panel--pilot" aria-labelledby="cta-title">
     <div class="cta-panel__content">
       <p class="section-heading__eyebrow" data-i18n="ctaEyebrow">Ранен достъп</p>
       <h2 id="cta-title" data-i18n="ctaTitle">Въведете по-спокойна система за гости, екипи и ежедневна координация.</h2>
+      <p class="cta-panel__copy" data-i18n="ctaCopy">Оставете кратка заявка за пилотен достъп и ще получите email със съвсем реален next step.</p>
+      <p class="cta-panel__trust" data-i18n="ctaTrust">Private pilot · No public listing · Operational access only</p>
     </div>
-    <a class="button button--primary" href="mailto:hello@blackseaconnect.com" data-i18n="ctaButton">Заяви ранен достъп</a>
+    <form class="pilot-form" data-pilot-form>
+      <div class="pilot-form__grid">
+        <label class="pilot-form__field">
+          <span data-i18n="pilotNameLabel">Име / Name</span>
+          <input name="name" type="text" required data-i18n-attr="placeholder:pilotNamePlaceholder" placeholder="Вашето име">
+        </label>
+        <label class="pilot-form__field">
+          <span data-i18n="pilotEmailLabel">Email</span>
+          <input name="email" type="email" required data-i18n-attr="placeholder:pilotEmailPlaceholder" placeholder="name@company.com">
+        </label>
+        <label class="pilot-form__field">
+          <span data-i18n="pilotPropertyLabel">Тип имот / Property type</span>
+          <select name="property_type" required>
+            <option value="" data-i18n="pilotPropertyPlaceholder">Избери тип имот</option>
+            <option data-i18n="pilotPropertyOption1">Луксозен апартамент</option>
+            <option data-i18n="pilotPropertyOption2">Boutique хотел</option>
+            <option data-i18n="pilotPropertyOption3">Вила / резиденция</option>
+            <option data-i18n="pilotPropertyOption4">Смесено портфолио</option>
+          </select>
+        </label>
+        <label class="pilot-form__field">
+          <span data-i18n="pilotLocationLabel">Локация / Location</span>
+          <input name="location" type="text" required data-i18n-attr="placeholder:pilotLocationPlaceholder" placeholder="Varna Marina">
+        </label>
+        <label class="pilot-form__field">
+          <span data-i18n="pilotApartmentCountLabel">Брой апартаменти / Apartment count</span>
+          <input name="apartment_count" type="number" min="1" required data-i18n-attr="placeholder:pilotApartmentCountPlaceholder" placeholder="18">
+        </label>
+        <label class="pilot-form__field pilot-form__field--full">
+          <span data-i18n="pilotNeedsLabel">Нужди / Needs</span>
+          <textarea name="needs" rows="4" required data-i18n-attr="placeholder:pilotNeedsPlaceholder" placeholder="Arrivals, cleaning, transfers, guest services"></textarea>
+        </label>
+      </div>
+      <div class="pilot-form__footer">
+        <button class="button button--primary" type="submit" data-i18n="formSubmit">Изпрати заявка за пилотен достъп</button>
+        <p class="pilot-form__hint" data-pilot-response data-i18n="pilotSuccessHint">Ще се отвори вашият email клиент с подготвена заявка.</p>
+      </div>
+    </form>
   </section>
 
   <script>
@@ -759,7 +798,26 @@
           guestSupport3Value: "Отговор до 5 мин",
           ctaEyebrow: "Ранен достъп",
           ctaTitle: "Въведете по-спокойна система за гости, екипи и ежедневна координация.",
-          ctaButton: "Заяви ранен достъп"
+          ctaCopy: "Оставете кратка заявка за пилотен достъп и ще получите email със съвсем реален next step.",
+          ctaTrust: "Private pilot · No public listing · Operational access only",
+          pilotNameLabel: "Име / Name",
+          pilotNamePlaceholder: "Вашето име",
+          pilotEmailLabel: "Имейл",
+          pilotEmailPlaceholder: "name@company.com",
+          pilotPropertyLabel: "Тип имот / Property type",
+          pilotPropertyPlaceholder: "Избери тип имот",
+          pilotPropertyOption1: "Луксозен апартамент",
+          pilotPropertyOption2: "Boutique хотел",
+          pilotPropertyOption3: "Вила / резиденция",
+          pilotPropertyOption4: "Смесено портфолио",
+          pilotLocationLabel: "Локация / Location",
+          pilotLocationPlaceholder: "Varna Marina",
+          pilotApartmentCountLabel: "Брой апартаменти / Apartment count",
+          pilotApartmentCountPlaceholder: "18",
+          pilotNeedsLabel: "Нужди / Needs",
+          pilotNeedsPlaceholder: "Пристигания, почистване, трансфери, гост услуги",
+          formSubmit: "Изпрати заявка за пилотен достъп",
+          pilotSuccessHint: "Ще се отвори вашият email клиент с подготвена заявка."
         },
         en: {
           navPortal: "Open Guest Portal",
@@ -946,7 +1004,26 @@
           guestSupport3Value: "Reply within 5 min",
           ctaEyebrow: "Early access",
           ctaTitle: "Introduce a calmer system for guests, teams and day-to-day coordination.",
-          ctaButton: "Request Early Access"
+          ctaCopy: "Leave a short pilot request and you’ll get an email with a real next step.",
+          ctaTrust: "Private pilot · No public listing · Operational access only",
+          pilotNameLabel: "Name / Name",
+          pilotNamePlaceholder: "Your name",
+          pilotEmailLabel: "Email",
+          pilotEmailPlaceholder: "name@company.com",
+          pilotPropertyLabel: "Property type / Property type",
+          pilotPropertyPlaceholder: "Select property type",
+          pilotPropertyOption1: "Luxury apartment",
+          pilotPropertyOption2: "Boutique hotel",
+          pilotPropertyOption3: "Villa / residence",
+          pilotPropertyOption4: "Mixed portfolio",
+          pilotLocationLabel: "Location / Location",
+          pilotLocationPlaceholder: "Varna Marina",
+          pilotApartmentCountLabel: "Apartment count / Apartment count",
+          pilotApartmentCountPlaceholder: "18",
+          pilotNeedsLabel: "Needs / Needs",
+          pilotNeedsPlaceholder: "Arrivals, cleaning, transfers, guest services",
+          formSubmit: "Send pilot access request",
+          pilotSuccessHint: "Your email client will open with a prepared request."
         },
         fr: {
           navPortal: "Ouvrir le Guest Portal",
@@ -1133,7 +1210,26 @@
           guestSupport3Value: "Réponse sous 5 min",
           ctaEyebrow: "Accès anticipé",
           ctaTitle: "Mettez en place un système plus serein pour les voyageurs, les équipes et la coordination quotidienne.",
-          ctaButton: "Demander un accès anticipé"
+          ctaCopy: "Laissez une courte demande pilote et vous recevrez un email avec la prochaine étape réelle.",
+          ctaTrust: "Private pilot · No public listing · Operational access only",
+          pilotNameLabel: "Nom / Name",
+          pilotNamePlaceholder: "Votre nom",
+          pilotEmailLabel: "Email",
+          pilotEmailPlaceholder: "name@company.com",
+          pilotPropertyLabel: "Type de bien / Property type",
+          pilotPropertyPlaceholder: "Choisir le type de bien",
+          pilotPropertyOption1: "Appartement de luxe",
+          pilotPropertyOption2: "Hôtel boutique",
+          pilotPropertyOption3: "Villa / résidence",
+          pilotPropertyOption4: "Portefeuille mixte",
+          pilotLocationLabel: "Localisation / Location",
+          pilotLocationPlaceholder: "Varna Marina",
+          pilotApartmentCountLabel: "Nombre d’appartements / Apartment count",
+          pilotApartmentCountPlaceholder: "18",
+          pilotNeedsLabel: "Besoins / Needs",
+          pilotNeedsPlaceholder: "Arrivées, nettoyage, transferts, services clients",
+          formSubmit: "Envoyer la demande d’accès pilote",
+          pilotSuccessHint: "Votre client email va s’ouvrir avec une demande préparée."
         },
         ru: {
           navPortal: "Открыть Guest Portal",
@@ -1320,7 +1416,26 @@
           guestSupport3Value: "Ответ до 5 мин",
           ctaEyebrow: "Ранний доступ",
           ctaTitle: "Внедрите более спокойную систему для гостей, команд и ежедневной координации.",
-          ctaButton: "Запросить ранний доступ"
+          ctaCopy: "Оставьте короткую заявку на пилот и получите email с реальным следующим шагом.",
+          ctaTrust: "Private pilot · No public listing · Operational access only",
+          pilotNameLabel: "Имя / Name",
+          pilotNamePlaceholder: "Ваше имя",
+          pilotEmailLabel: "Email",
+          pilotEmailPlaceholder: "name@company.com",
+          pilotPropertyLabel: "Тип объекта / Property type",
+          pilotPropertyPlaceholder: "Выберите тип объекта",
+          pilotPropertyOption1: "Апартаменты класса люкс",
+          pilotPropertyOption2: "Бутик-отель",
+          pilotPropertyOption3: "Вилла / резиденция",
+          pilotPropertyOption4: "Смешанный портфель",
+          pilotLocationLabel: "Локация / Location",
+          pilotLocationPlaceholder: "Varna Marina",
+          pilotApartmentCountLabel: "Количество апартаментов / Apartment count",
+          pilotApartmentCountPlaceholder: "18",
+          pilotNeedsLabel: "Потребности / Needs",
+          pilotNeedsPlaceholder: "Прибытия, уборка, трансферы, гостевые сервисы",
+          formSubmit: "Отправить заявку на пилотный доступ",
+          pilotSuccessHint: "Откроется ваш email-клиент с подготовленной заявкой."
         }
       };
 
@@ -1331,5 +1446,6 @@
     }());
   </script>
   <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/pilot-form.js"></script>
 </body>
 </html>

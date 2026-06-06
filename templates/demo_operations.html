@@ -30,7 +30,7 @@
         <span class="operations-chip operations-chip--live" data-i18n="topLiveChip">Demo operations live</span>
         <span class="operations-chip" data-i18n="topUpdatedChip">Updated 2 min ago</span>
       </div>
-      <a class="operations-button operations-button--ghost" href="#pilot-access" data-i18n="topPilotCta">Request pilot access</a>
+      <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="topPilotCta">Request pilot access</button>
     </nav>
 
     <div class="operations-hero__grid">
@@ -42,7 +42,7 @@
         </p>
 
         <div class="operations-hero__cta-row">
-          <a class="operations-button operations-button--primary" href="#pilot-access" data-i18n="heroPrimaryCta">Request pilot access</a>
+          <button class="operations-button operations-button--primary" type="button" data-open-pilot-modal data-i18n="heroPrimaryCta">Request pilot access</button>
           <a class="operations-button operations-button--secondary" href="#operations-overview" data-i18n="heroSecondaryCta">View live demo</a>
         </div>
 
@@ -381,8 +381,9 @@
           <span data-i18n="formEmail">Email</span>
           <input name="email" type="email" placeholder="name@company.com" data-i18n-attr="placeholder:formEmailPlaceholder" required>
         </label>
-        <button class="operations-button operations-button--primary operations-button--full" type="submit" data-i18n="formSubmit">Request pilot access</button>
-        <p class="operations-form__response" data-pilot-response aria-live="polite"></p>
+        <p class="operations-form__trust" data-i18n="pilotTrust">Private pilot · No public listing · Operational access only</p>
+        <button class="operations-button operations-button--primary operations-button--full" type="submit" data-i18n="formSubmit">Изпрати заявка за пилотен достъп</button>
+        <p class="operations-form__response" data-pilot-response data-i18n="pilotSuccessHint" aria-live="polite">Ще се отвори вашият email клиент с подготвена заявка.</p>
       </form>
     </div>
   </section>
@@ -522,7 +523,9 @@
           formNeedsPlaceholder: "Пристигания, почистване, трансфери, гост услуги, реакция при инциденти",
           formEmail: "Имейл",
           formEmailPlaceholder: "name@company.com",
-          formSubmit: "Заяви pilot достъп"
+          formSubmit: "Изпрати заявка за пилотен достъп",
+          pilotTrust: "Private pilot · No public listing · Operational access only",
+          pilotSuccessHint: "Ще се отвори вашият email клиент с подготвена заявка."
         },
         en: {
           topLiveChip: "demo operations live",
@@ -655,7 +658,9 @@
           formNeedsPlaceholder: "Arrivals, cleaning, transfers, guest services, incident response",
           formEmail: "Email",
           formEmailPlaceholder: "name@company.com",
-          formSubmit: "Request pilot access"
+          formSubmit: "Send pilot access request",
+          pilotTrust: "Private pilot · No public listing · Operational access only",
+          pilotSuccessHint: "Your email client will open with a prepared request."
           ,
           dockPilot: "Pilot access",
           dockStatus: "Quick status",
@@ -793,7 +798,9 @@
           formNeedsPlaceholder: "Arrivées, nettoyage, transferts, services clients, gestion incidents",
           formEmail: "Email",
           formEmailPlaceholder: "nom@entreprise.com",
-          formSubmit: "Demander un accès pilote"
+          formSubmit: "Envoyer la demande d’accès pilote",
+          pilotTrust: "Private pilot · No public listing · Operational access only",
+          pilotSuccessHint: "Votre client email va s’ouvrir avec une demande préparée."
           ,
           dockPilot: "Accès pilote",
           dockStatus: "Statut rapide",
@@ -931,7 +938,9 @@
           formNeedsPlaceholder: "Прибытия, уборка, трансферы, гостевые сервисы, реакция на инциденты",
           formEmail: "Email",
           formEmailPlaceholder: "name@company.com",
-          formSubmit: "Запросить пилотный доступ"
+          formSubmit: "Отправить заявку на пилотный доступ",
+          pilotTrust: "Private pilot · No public listing · Operational access only",
+          pilotSuccessHint: "Откроется ваш email-клиент с подготовленной заявкой."
           ,
           dockPilot: "Пилотный доступ",
           dockStatus: "Быстрый статус",
@@ -943,6 +952,7 @@
   </script>
 
   <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/pilot-form.js"></script>
 
   <script>
     (function () {
@@ -950,7 +960,6 @@
       const openButtons = document.querySelectorAll("[data-open-pilot-modal]");
       const closeButtons = document.querySelectorAll("[data-close-pilot-modal]");
       const form = document.querySelector("[data-pilot-form]");
-      const response = document.querySelector("[data-pilot-response]");
       const body = document.body;
 
       function openModal() {
@@ -987,12 +996,6 @@
         if (event.key === "Escape" && modal.classList.contains("is-open")) {
           closeModal();
         }
-      });
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        response.textContent = "Pilot request queued. A hospitality operations lead will follow up shortly.";
-        form.querySelector("button[type='submit']").disabled = true;
       });
     }());
   </script>

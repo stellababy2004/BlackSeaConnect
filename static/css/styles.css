@@ -2101,8 +2101,91 @@ main::after {
   animation: sectionReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both 140ms;
 }
 
+.cta-panel--pilot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.92fr);
+  align-items: start;
+}
+
 .cta-panel__content {
   max-width: 760px;
+}
+
+.cta-panel__copy {
+  margin: 18px 0 0;
+  color: rgba(230, 239, 247, 0.78);
+  font-size: 0.98rem;
+  line-height: 1.85;
+}
+
+.cta-panel__trust {
+  margin: 14px 0 0;
+  color: rgba(255, 220, 170, 0.82);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pilot-form {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  margin-left: auto;
+}
+
+.pilot-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pilot-form__field {
+  display: grid;
+  gap: 8px;
+}
+
+.pilot-form__field--full {
+  grid-column: 1 / -1;
+}
+
+.pilot-form__field span {
+  color: rgba(244, 248, 252, 0.72);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pilot-form input,
+.pilot-form select,
+.pilot-form textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+}
+
+.pilot-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.pilot-form__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.pilot-form__hint {
+  margin: 0;
+  color: rgba(160, 240, 198, 0.94);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .cta-panel::before {
@@ -2544,6 +2627,22 @@ main::after {
 
   .hero__cta .button,
   .cta-panel > .button {
+    width: 100%;
+  }
+
+  .cta-panel--pilot {
+    grid-template-columns: 1fr;
+  }
+
+  .pilot-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pilot-form__footer {
+    align-items: stretch;
+  }
+
+  .pilot-form__footer .button {
     width: 100%;
   }
 
@@ -4498,6 +4597,15 @@ body.operations-demo-page.operations-modal-open {
     margin: 0;
     color: rgba(160, 240, 198, 0.96);
     font-size: 0.92rem;
+}
+
+.operations-form__trust {
+    margin: 4px 0 0;
+    color: rgba(255, 220, 170, 0.82);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .operations-mobile-dock,
