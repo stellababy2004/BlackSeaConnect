@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
@@ -10,56 +10,71 @@
 
 <section class="guest-portal-shell">
 
+    <nav class="topbar guest-portal-topbar" aria-label="Primary">
+        <a class="brand" href="/">BlackSea Connect</a>
+        <div class="topbar__actions">
+            <div class="language-switcher" aria-label="Language switcher">
+                <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+                <span class="language-switcher__divider" aria-hidden="true">|</span>
+                <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+                <span class="language-switcher__divider" aria-hidden="true">|</span>
+                <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+                <span class="language-switcher__divider" aria-hidden="true">|</span>
+                <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+            </div>
+        </div>
+    </nav>
+
     <div class="guest-portal-hero">
-        <span class="guest-eyebrow">BLACKSEA CONNECT</span>
+        <span class="guest-eyebrow" data-i18n="guestEyebrow">BLACKSEA CONNECT</span>
 
-        <h1>Apartment A-302</h1>
+        <h1 data-i18n="guestTitle">Apartment A-302</h1>
 
-        <p>
+        <p data-i18n="guestIntro">
             Спокоен companion portal за вашето пристигане,
             достъп и concierge поддръжка.
         </p>
 
-        <div class="guest-arrival-pill">
+        <div class="guest-arrival-pill" data-i18n="guestArrivalPill">
             Пристигането е потвърдено
         </div>
 
-        <div class="guest-live-strip" aria-label="Operational live indicators">
-            <span class="guest-live-chip guest-live-chip--live">updated 2 min ago</span>
-            <span class="guest-live-chip">live guest flow</span>
-            <span class="guest-live-chip">3 active arrivals</span>
-            <span class="guest-live-chip">concierge online</span>
+        <div class="guest-live-strip" aria-label="Operational live indicators" data-i18n-attr="aria-label:guestLiveAria">
+            <span class="guest-live-chip guest-live-chip--live" data-i18n="guestLiveUpdated">обновено преди 2 мин.</span>
+            <span class="guest-live-chip" data-i18n="guestLiveFlow">жив гост поток</span>
+            <span class="guest-live-chip" data-i18n="guestLiveArrivals">3 активни пристигания</span>
+            <span class="guest-live-chip" data-i18n="guestLiveConcierge">консиерж онлайн</span>
         </div>
     </div>
 
     <div id="wifi-access" class="guest-card">
         <div class="guest-card-top">
-            <span>ARRIVAL STATUS</span>
-            <span>Днес · 16:00</span>
+            <span data-i18n="arrivalStatusEyebrow">СТАТУС НА ПРИСТИГАНЕ</span>
+            <span data-i18n="arrivalStatusTime">Днес · 16:00</span>
         </div>
 
-        <h2>Всичко за посрещането е готово.</h2>
+        <h2 data-i18n="arrivalTitle">Всичко за посрещането е готово.</h2>
 
         <div class="guest-status-grid">
 
             <div class="guest-status-item">
-                <label>Настаняване</label>
-                <strong>Днес 16:00</strong>
+                <label data-i18n="checkinLabel">Настаняване</label>
+                <strong data-i18n="checkinValue">Днес 16:00</strong>
             </div>
 
             <div class="guest-status-item">
-                <label>Апартамент</label>
-                <strong>Готов за пристигане</strong>
+                <label data-i18n="apartmentLabel">Апартамент</label>
+                <strong data-i18n="apartmentValue">Готов за пристигане</strong>
             </div>
 
             <div class="guest-status-item">
-                <label>Трансфер</label>
-                <strong>Потвърден</strong>
+                <label data-i18n="transferLabel">Трансфер</label>
+                <strong data-i18n="transferValue">Потвърден</strong>
             </div>
 
             <div class="guest-status-item">
-                <label>Консиерж</label>
-                <strong>Наличен сега</strong>
+                <label data-i18n="conciergeLabel">Консиерж</label>
+                <strong data-i18n="conciergeValue">Наличен сега</strong>
             </div>
 
         </div>
@@ -68,30 +83,30 @@
     <div class="guest-card">
 
         <div class="guest-card-top">
-            <span>WI-FI & ACCESS</span>
-            <span>QR достъп</span>
+            <span data-i18n="wifiEyebrow">WI-FI & ACCESS</span>
+            <span data-i18n="wifiMeta">QR достъп</span>
         </div>
 
-        <h2>Wi-Fi и достъп до сградата</h2>
+        <h2 data-i18n="wifiTitle">Wi-Fi и достъп до сградата</h2>
 
         <div class="guest-access-layout">
 
             <div class="guest-access-left">
 
                 <div class="guest-access-box">
-                    <label>WI-FI ИМЕ</label>
+                    <label data-i18n="wifiNameLabel">WI-FI ИМЕ</label>
                     <strong>BlackSea-Guest-A302</strong>
                 </div>
 
                 <div class="guest-access-box">
-                    <label>WI-FI ПАРОЛА</label>
+                    <label data-i18n="wifiPassLabel">WI-FI ПАРОЛА</label>
                     <strong>MarinaCalm24</strong>
                 </div>
 
                 <div class="guest-instructions">
-                    <p>1. Влезте през основния вход и използвайте кодовия панел вдясно.</p>
-                    <p>2. Изберете етаж 3 и следвайте табелата за A-302.</p>
-                    <p>3. При нужда от съдействие, консиержът отговаря в рамките на минути.</p>
+                    <p data-i18n="wifiInstructions1">1. Влезте през основния вход и използвайте кодовия панел вдясно.</p>
+                    <p data-i18n="wifiInstructions2">2. Изберете етаж 3 и следвайте табелата за A-302.</p>
+                    <p data-i18n="wifiInstructions3">3. При нужда от съдействие, консиержът отговаря в рамките на минути.</p>
                 </div>
 
             </div>
@@ -100,7 +115,7 @@
 
                 <div class="guest-qr-visual"></div>
 
-                <span>QR достъп и бързи инструкции</span>
+                <span data-i18n="wifiQrCaption">QR достъп и бързи инструкции</span>
 
             </div>
 
@@ -108,62 +123,64 @@
 
     </div>
 
-    <div class="guest-floating-actions" aria-label="Бързи действия за госта">
+    <div class="guest-floating-actions" aria-label="Бързи действия за госта" data-i18n-attr="aria-label:guestActionsAria">
 
         <a
             class="guest-action"
             href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5."
             rel="noreferrer"
+            data-i18n="actionConcierge"
         >Консиерж</a>
-        <a class="guest-action" href="#wifi-access">QR достъп</a>
+        <a class="guest-action" href="#wifi-access" data-i18n="actionQr">QR достъп</a>
         <a
             class="guest-action"
             href="mailto:blackseaconnect@orange.fr?subject=Transfer%20request%20-%20Apartment%20A-302&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B1%D0%B8%D1%85%20%D0%B8%D1%81%D0%BA%D0%B0%D0%BB%2F%D0%B0%20%D0%B4%D0%B0%20%D0%B7%D0%B0%D1%8F%D0%B2%D1%8F%20%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%84%D0%B5%D1%80%20%D0%B7%D0%B0%20Apartment%20A-302."
+            data-i18n="actionTransfer"
         >Трансфер</a>
-        <a class="guest-action guest-action-danger" href="tel:+359899111019">SOS</a>
+        <a class="guest-action guest-action-danger" href="tel:+359899111019" data-i18n="actionSos">SOS</a>
 
     </div>
 
-    <p class="guest-action-helper">
+    <p class="guest-action-helper" data-i18n="actionHelper">
         Бързи действия за госта — без инсталация, директно от телефона.
     </p>
 
-    <div class="guest-trust-strip" aria-label="Trust indicators">
-        <span class="guest-trust-chip">encrypted guest access</span>
-        <span class="guest-trust-chip">verified local partners</span>
-        <span class="guest-trust-chip">secure arrival coordination</span>
-        <span class="guest-trust-chip">private concierge flow</span>
+    <div class="guest-trust-strip" aria-label="Trust indicators" data-i18n-attr="aria-label:trustAria">
+        <span class="guest-trust-chip" data-i18n="trustChip1">криптиран достъп за гости</span>
+        <span class="guest-trust-chip" data-i18n="trustChip2">проверени локални партньори</span>
+        <span class="guest-trust-chip" data-i18n="trustChip3">сигурна координация на пристигането</span>
+        <span class="guest-trust-chip" data-i18n="trustChip4">частен консиерж поток</span>
     </div>
 
     <div class="guest-card">
 
         <div class="guest-card-top">
-            <span>LOCAL TRUSTED SERVICES</span>
-            <span>Проверени оператори</span>
+            <span data-i18n="servicesEyebrow">ПРОВЕРЕНИ МЕСТНИ УСЛУГИ</span>
+            <span data-i18n="servicesMeta">Проверени оператори</span>
         </div>
 
-        <h2>Местни услуги, готови при нужда</h2>
+        <h2 data-i18n="servicesTitle">Местни услуги, готови при нужда</h2>
 
         <div class="guest-service-list">
 
             <div class="guest-service-item">
-                <strong>Marina Transfer Desk</strong>
-                <span>Трансфер · 16:10 потвърден</span>
+                <strong data-i18n="service1Title">Marina Transfer Desk</strong>
+                <span data-i18n="service1Body">Трансфер · 16:10 потвърден</span>
             </div>
 
             <div class="guest-service-item">
-                <strong>Riviera Table</strong>
-                <span>Ресторант · Резервации и вечеря</span>
+                <strong data-i18n="service2Title">Riviera Table</strong>
+                <span data-i18n="service2Body">Ресторант · Резервации и вечеря</span>
             </div>
 
             <div class="guest-service-item">
-                <strong>Pharma Coast</strong>
-                <span>Аптека · Дежурен партньор</span>
+                <strong data-i18n="service3Title">Pharma Coast</strong>
+                <span data-i18n="service3Body">Аптека · Дежурен партньор</span>
             </div>
 
             <div class="guest-service-item">
-                <strong>Blue Horizon Charters</strong>
-                <span>Морски активности · Частни излизания</span>
+                <strong data-i18n="service4Title">Blue Horizon Charters</strong>
+                <span data-i18n="service4Body">Морски активности · Частни излизания</span>
             </div>
 
         </div>
@@ -171,6 +188,227 @@
     </div>
 
 </section>
+
+<script>
+  window.BLACKSEA_I18N = {
+    defaultLang: "bg",
+    translations: {
+      bg: {
+        guestLiveAria: "Оперативни живи индикатори",
+        guestEyebrow: "BLACKSEA CONNECT",
+        guestTitle: "Apartment A-302",
+        guestIntro: "Спокоен companion portal за вашето пристигане, достъп и concierge поддръжка.",
+        guestArrivalPill: "Пристигането е потвърдено",
+        guestLiveUpdated: "обновено преди 2 мин.",
+        guestLiveFlow: "жив гост поток",
+        guestLiveArrivals: "3 активни пристигания",
+        guestLiveConcierge: "консиерж онлайн",
+        arrivalStatusEyebrow: "СТАТУС НА ПРИСТИГАНЕ",
+        arrivalStatusTime: "Днес · 16:00",
+        arrivalTitle: "Всичко за посрещането е готово.",
+        checkinLabel: "Настаняване",
+        checkinValue: "Днес 16:00",
+        apartmentLabel: "Апартамент",
+        apartmentValue: "Готов за пристигане",
+        transferLabel: "Трансфер",
+        transferValue: "Потвърден",
+        conciergeLabel: "Консиерж",
+        conciergeValue: "Наличен сега",
+        wifiEyebrow: "WI-FI & ACCESS",
+        wifiMeta: "QR достъп",
+        wifiTitle: "Wi-Fi и достъп до сградата",
+        wifiNameLabel: "WI-FI ИМЕ",
+        wifiPassLabel: "WI-FI ПАРОЛА",
+        wifiInstructions1: "1. Влезте през основния вход и използвайте кодовия панел вдясно.",
+        wifiInstructions2: "2. Изберете етаж 3 и следвайте табелата за A-302.",
+        wifiInstructions3: "3. При нужда от съдействие, консиержът отговаря в рамките на минути.",
+        wifiQrCaption: "QR достъп и бързи инструкции",
+        guestActionsAria: "Бързи действия за госта",
+        actionConcierge: "Консиерж",
+        actionQr: "QR достъп",
+        actionTransfer: "Трансфер",
+        actionSos: "SOS",
+        actionHelper: "Бързи действия за госта — без инсталация, директно от телефона.",
+        trustAria: "Индикатори на доверие",
+        trustChip1: "криптиран достъп за гости",
+        trustChip2: "проверени локални партньори",
+        trustChip3: "сигурна координация на пристигането",
+        trustChip4: "частен консиерж поток",
+        servicesEyebrow: "ПРОВЕРЕНИ МЕСТНИ УСЛУГИ",
+        servicesMeta: "Проверени оператори",
+        servicesTitle: "Местни услуги, готови при нужда",
+        service1Title: "Marina Transfer Desk",
+        service1Body: "Трансфер · 16:10 потвърден",
+        service2Title: "Riviera Table",
+        service2Body: "Ресторант · Резервации и вечеря",
+        service3Title: "Pharma Coast",
+        service3Body: "Аптека · Дежурен партньор",
+        service4Title: "Blue Horizon Charters",
+        service4Body: "Морски активности · Частни излизания"
+      },
+      en: {
+        guestLiveAria: "Operational live indicators",
+        guestEyebrow: "BLACKSEA CONNECT",
+        guestTitle: "Apartment A-302",
+        guestIntro: "A calm companion portal for your arrival, access and concierge support.",
+        guestArrivalPill: "Arrival confirmed",
+        guestLiveUpdated: "updated 2 min ago",
+        guestLiveFlow: "live guest flow",
+        guestLiveArrivals: "3 active arrivals",
+        guestLiveConcierge: "concierge online",
+        arrivalStatusEyebrow: "ARRIVAL STATUS",
+        arrivalStatusTime: "Today · 16:00",
+        arrivalTitle: "Everything for the welcome is ready.",
+        checkinLabel: "Check-in",
+        checkinValue: "Today 16:00",
+        apartmentLabel: "Apartment",
+        apartmentValue: "Ready for arrival",
+        transferLabel: "Transfer",
+        transferValue: "Confirmed",
+        conciergeLabel: "Concierge",
+        conciergeValue: "Available now",
+        wifiEyebrow: "WI-FI & ACCESS",
+        wifiMeta: "QR access",
+        wifiTitle: "Wi-Fi and building access",
+        wifiNameLabel: "WI-FI NAME",
+        wifiPassLabel: "WI-FI PASSWORD",
+        wifiInstructions1: "1. Enter through the main entrance and use the code panel on the right.",
+        wifiInstructions2: "2. Choose floor 3 and follow the sign for A-302.",
+        wifiInstructions3: "3. If you need help, concierge will respond within minutes.",
+        wifiQrCaption: "QR access and quick instructions",
+        guestActionsAria: "Quick guest actions",
+        actionConcierge: "Concierge",
+        actionQr: "QR access",
+        actionTransfer: "Transfer",
+        actionSos: "SOS",
+        actionHelper: "Quick guest actions, no installation, right from your phone.",
+        trustAria: "Trust indicators",
+        trustChip1: "encrypted guest access",
+        trustChip2: "verified local partners",
+        trustChip3: "secure arrival coordination",
+        trustChip4: "private concierge flow",
+        servicesEyebrow: "VERIFIED LOCAL SERVICES",
+        servicesMeta: "Trusted operators",
+        servicesTitle: "Local services, ready when needed",
+        service1Title: "Marina Transfer Desk",
+        service1Body: "Transfer · 16:10 confirmed",
+        service2Title: "Riviera Table",
+        service2Body: "Restaurant · Reservations and dinner",
+        service3Title: "Pharma Coast",
+        service3Body: "Pharmacy · On-call partner",
+        service4Title: "Blue Horizon Charters",
+        service4Body: "Sea activities · Private outings"
+      },
+      fr: {
+        guestLiveAria: "Indicateurs opérationnels en direct",
+        guestEyebrow: "BLACKSEA CONNECT",
+        guestTitle: "Appartement A-302",
+        guestIntro: "Un portail compagnon apaisé pour votre arrivée, l’accès et l’assistance conciergerie.",
+        guestArrivalPill: "Arrivée confirmée",
+        guestLiveUpdated: "mis à jour il y a 2 min",
+        guestLiveFlow: "flux clients en direct",
+        guestLiveArrivals: "3 arrivées actives",
+        guestLiveConcierge: "conciergerie en ligne",
+        arrivalStatusEyebrow: "STATUT D’ARRIVÉE",
+        arrivalStatusTime: "Aujourd’hui · 16:00",
+        arrivalTitle: "Tout est prêt pour votre accueil.",
+        checkinLabel: "Arrivée",
+        checkinValue: "Aujourd’hui 16:00",
+        apartmentLabel: "Appartement",
+        apartmentValue: "Prêt pour l’arrivée",
+        transferLabel: "Transfert",
+        transferValue: "Confirmé",
+        conciergeLabel: "Conciergerie",
+        conciergeValue: "Disponible maintenant",
+        wifiEyebrow: "WI-FI & ACCÈS",
+        wifiMeta: "Accès QR",
+        wifiTitle: "Wi-Fi et accès à l’immeuble",
+        wifiNameLabel: "NOM WI-FI",
+        wifiPassLabel: "MOT DE PASSE WI-FI",
+        wifiInstructions1: "1. Entrez par l’entrée principale et utilisez le panneau de code à droite.",
+        wifiInstructions2: "2. Choisissez l’étage 3 et suivez l’indication pour A-302.",
+        wifiInstructions3: "3. Si besoin, la conciergerie répond en quelques minutes.",
+        wifiQrCaption: "Accès QR et instructions rapides",
+        guestActionsAria: "Actions rapides pour l’invité",
+        actionConcierge: "Conciergerie",
+        actionQr: "Accès QR",
+        actionTransfer: "Transfert",
+        actionSos: "SOS",
+        actionHelper: "Actions rapides pour l’invité, sans installation, directement depuis le téléphone.",
+        trustAria: "Indicateurs de confiance",
+        trustChip1: "accès invité chiffré",
+        trustChip2: "partenaires locaux vérifiés",
+        trustChip3: "coordination d’arrivée sécurisée",
+        trustChip4: "flux conciergerie privé",
+        servicesEyebrow: "SERVICES LOCAUX VÉRIFIÉS",
+        servicesMeta: "Opérateurs de confiance",
+        servicesTitle: "Des services locaux prêts quand il faut",
+        service1Title: "Marina Transfer Desk",
+        service1Body: "Transfert · 16:10 confirmé",
+        service2Title: "Riviera Table",
+        service2Body: "Restaurant · Réservations et dîner",
+        service3Title: "Pharma Coast",
+        service3Body: "Pharmacie · Partenaire d’astreinte",
+        service4Title: "Blue Horizon Charters",
+        service4Body: "Activités marines · Sorties privées"
+      },
+      ru: {
+        guestLiveAria: "Оперативные индикаторы в реальном времени",
+        guestEyebrow: "BLACKSEA CONNECT",
+        guestTitle: "Апартамент A-302",
+        guestIntro: "Спокойный companion portal для вашего прибытия, доступа и поддержки консьержа.",
+        guestArrivalPill: "Прибытие подтверждено",
+        guestLiveUpdated: "обновлено 2 мин назад",
+        guestLiveFlow: "живой поток гостей",
+        guestLiveArrivals: "3 активных прибытия",
+        guestLiveConcierge: "консьерж онлайн",
+        arrivalStatusEyebrow: "СТАТУС ПРИБЫТИЯ",
+        arrivalStatusTime: "Сегодня · 16:00",
+        arrivalTitle: "Всё для встречи уже готово.",
+        checkinLabel: "Заезд",
+        checkinValue: "Сегодня 16:00",
+        apartmentLabel: "Апартамент",
+        apartmentValue: "Готов к прибытию",
+        transferLabel: "Трансфер",
+        transferValue: "Подтверждён",
+        conciergeLabel: "Консьерж",
+        conciergeValue: "Доступен сейчас",
+        wifiEyebrow: "WI-FI & ДОСТУП",
+        wifiMeta: "QR-доступ",
+        wifiTitle: "Wi-Fi и доступ в здание",
+        wifiNameLabel: "ИМЯ WI-FI",
+        wifiPassLabel: "ПАРОЛЬ WI-FI",
+        wifiInstructions1: "1. Войдите через главный вход и используйте кодовую панель справа.",
+        wifiInstructions2: "2. Выберите этаж 3 и следуйте указателю к A-302.",
+        wifiInstructions3: "3. Если нужна помощь, консьерж ответит в течение нескольких минут.",
+        wifiQrCaption: "QR-доступ и быстрые инструкции",
+        guestActionsAria: "Быстрые действия для гостя",
+        actionConcierge: "Консьерж",
+        actionQr: "QR-доступ",
+        actionTransfer: "Трансфер",
+        actionSos: "SOS",
+        actionHelper: "Быстрые действия для гостя без установки, прямо с телефона.",
+        trustAria: "Индикаторы доверия",
+        trustChip1: "зашифрованный доступ для гостей",
+        trustChip2: "проверенные локальные партнёры",
+        trustChip3: "безопасная координация прибытия",
+        trustChip4: "частный поток консьержа",
+        servicesEyebrow: "ПРОВЕРЕННЫЕ МЕСТНЫЕ УСЛУГИ",
+        servicesMeta: "Проверенные операторы",
+        servicesTitle: "Локальные услуги, готовые при необходимости",
+        service1Title: "Marina Transfer Desk",
+        service1Body: "Трансфер · 16:10 подтверждён",
+        service2Title: "Riviera Table",
+        service2Body: "Ресторан · Бронирование и ужин",
+        service3Title: "Pharma Coast",
+        service3Body: "Аптека · Партнёр на дежурстве",
+        service4Title: "Blue Horizon Charters",
+        service4Body: "Морские активности · Частные выходы"
+      }
+    }
+  };
+</script>
+<script src="/static/js/i18n.js"></script>
 
 </body>
 </html>

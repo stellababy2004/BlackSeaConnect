@@ -2667,6 +2667,10 @@ main::after {
   gap: 14px;
 }
 
+.guest-portal-topbar {
+  margin-bottom: 10px;
+}
+
 .guest-portal-page .guest-portal-header,
 .guest-portal-page .guest-portal-card {
   position: relative;
