@@ -37,21 +37,22 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="#preview" data-i18n="navPortal">Отвори портала</a>
+        <a class="button button--ghost topbar__portal" href="#guest-portal" data-i18n="navPortal">Отвори Guest Portal</a>
       </div>
     </nav>
 
     <div class="hero__content">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="badge">Операционна платформа за луксозни имоти и гост услуги</p>
+        <p class="eyebrow" data-i18n="badge">Премиум оперативна платформа за луксозни крайбрежни имоти и гост услуги</p>
         <h1 data-i18n="headline">Операции за премиум гостоприемство край морето.</h1>
         <p class="hero__text" data-i18n="subtitle">
-          BlackSea Connect обединява гости, почистване, трансфери, локални услуги и оперативни задачи в една спокойна система за крайбрежни екипи.
+          BlackSea Connect обединява гости, почистване, трансфери, локални услуги и консиерж координация в една спокойна система за крайбрежни екипи.
         </p>
         <div class="hero__cta">
           <a class="button button--primary" href="#early-access" data-i18n="primaryCta">Заяви ранен достъп</a>
-          <a class="button button--secondary" href="#preview" data-i18n="secondaryCta">Отвори портала</a>
+          <a class="button button--secondary" href="#guest-portal" data-i18n="secondaryCta">Отвори Guest Portal</a>
         </div>
+        <p class="hero__flow" data-i18n="heroFlow">Начална страница → демо → консиерж / оперативно изживяване</p>
       </div>
 
       <aside class="preview-card" id="preview" aria-label="Преглед на операциите" data-i18n-attr="aria-label:previewAria">
@@ -387,7 +388,7 @@
         </div>
       </section>
 
-      <section class="guest-portal" aria-labelledby="guest-portal-title">
+      <section id="guest-portal" class="guest-portal" aria-labelledby="guest-portal-title">
         <div class="section-heading section-heading--guest-portal">
           <p class="section-heading__eyebrow" data-i18n="guestPortalEyebrow">Портал за гости</p>
           <h2 id="guest-portal-title" data-i18n="guestPortalTitle">Спокойно пристигане, консиерж координация и доверени услуги в мобилен портал за гости.</h2>
@@ -554,12 +555,13 @@
     (function () {
       const translations = {
         bg: {
-          navPortal: "Отвори портала",
-          badge: "Операционна платформа за луксозни имоти и гост услуги",
+          navPortal: "Отвори Guest Portal",
+          badge: "Премиум оперативна платформа за луксозни крайбрежни имоти и гост услуги",
           headline: "Операции за премиум гостоприемство край морето.",
-          subtitle: "BlackSea Connect обединява гости, почистване, трансфери, локални услуги и оперативни задачи в една спокойна система за крайбрежни екипи.",
+          subtitle: "BlackSea Connect обединява гости, почистване, трансфери, локални услуги и консиерж координация в една спокойна система за крайбрежни екипи.",
           primaryCta: "Заяви ранен достъп",
-          secondaryCta: "Отвори портала",
+          secondaryCta: "Отвори Guest Portal",
+          heroFlow: "Начална страница → демо → консиерж / оперативно изживяване",
           previewAria: "Преглед на операциите",
           previewSignalPrimary: "Операции на живо",
           previewSignalSecondary: "Марина режим",
@@ -623,7 +625,7 @@
           timeline2Body: "Пристигането е потвърдено с трансфер до марината в 16:10.",
           timeline2Tag: "Планирано",
           timeline3Title: "Wi-Fi инструкции",
-          timeline3Body: "QR portal е обновен с достъп, входни стъпки и указания.",
+          timeline3Body: "QR порталът е обновен с достъп, входни стъпки и кратки указания.",
           timeline3Tag: "Портал готов",
           timeline4Title: "Ескалация на инцидент",
           timeline4Body: "Сигнал за водно налягане е възложен на локален оператор с SLA 18 мин.",
@@ -635,7 +637,7 @@
           statusLabel: "Статус на имота",
           statusMeta: "Крайбрежно портфолио · 7 активни престоя",
           propertyHeroName: "Villa Marina One",
-          propertyHeroSub: "Операции за луксозни апартаменти · concierge tier",
+          propertyHeroSub: "Операции за луксозни апартаменти · Консиерж ниво",
           propertyHeroPill: "Спокоен режим",
           statusChip1Label: "Пристигане",
           statusChip1Value: "Планирано",
@@ -654,7 +656,7 @@
           housekeepingLabel: "Координация на почистването",
           housekeepingMeta: "Смяна 2 · 4 активни екипа",
           housekeeping1Label: "Почистването е завършено",
-          housekeeping1Value: "A-302 · Ready for arrival",
+          housekeeping1Value: "A-302 · Готово за пристигане",
           housekeeping2Label: "Подготовка в процес",
           housekeeping2Value: "Villa Azure · Остават 18 мин",
           housekeeping3Label: "Зареждане на бельо",
@@ -676,7 +678,7 @@
           partner3Title: "Coastal Transfer Desk",
           partner3Body: "Потвърден маршрут за пристигане",
           guestPortalEyebrow: "Портал за гости",
-          guestPortalTitle: "Спокойно пристигане, консиерж координация и доверени услуги в мобилен портал за гости.",
+          guestPortalTitle: "Спокойно пристигане, консиерж координация и доверени услуги в мобилен Guest Portal.",
           guestPortalAria: "Преглед на портала за гости",
           guestDeviceEyebrow: "Преглед при пристигане",
           guestDeviceTitle: "Villa Marina One",
@@ -739,12 +741,13 @@
           ctaButton: "Заяви ранен достъп"
         },
         en: {
-          navPortal: "View Guest Portal",
+          navPortal: "Open Guest Portal",
           badge: "Operations platform for luxury properties and guest services",
           headline: "Luxury operations for coastal stays.",
           subtitle: "BlackSea Connect brings together guests, cleaning, transfers, local services and daily workflows in one calm system for coastal teams.",
           primaryCta: "Request Early Access",
-          secondaryCta: "View Guest Portal",
+          secondaryCta: "Open Guest Portal",
+          heroFlow: "Landing page → demo → concierge / operations experience",
           previewAria: "Operations preview",
           previewSignalPrimary: "Operations live",
           previewSignalSecondary: "Marina mode",
@@ -861,7 +864,7 @@
           partner3Title: "Coastal Transfer Desk",
           partner3Body: "Arrival route confirmed",
           guestPortalEyebrow: "Guest Portal Experience",
-          guestPortalTitle: "Calm arrival guidance, concierge coordination and trusted services in one mobile guest portal.",
+          guestPortalTitle: "Calm arrival guidance, concierge coordination and trusted services in one mobile Guest Portal.",
           guestPortalAria: "Guest Portal preview",
           guestDeviceEyebrow: "Arrival overview",
           guestDeviceTitle: "Villa Marina One",
@@ -924,12 +927,13 @@
           ctaButton: "Request Early Access"
         },
         fr: {
-          navPortal: "Voir le portail client",
+          navPortal: "Ouvrir le Guest Portal",
           badge: "Plateforme opérationnelle pour propriétés premium et services voyageurs",
           headline: "Des opérations premium pour les séjours en bord de mer.",
           subtitle: "BlackSea Connect réunit voyageurs, ménage, transferts, services locaux et tâches quotidiennes dans un système serein pour les équipes côtières.",
           primaryCta: "Demander un accès anticipé",
-          secondaryCta: "Voir le portail client",
+          secondaryCta: "Ouvrir le Guest Portal",
+          heroFlow: "Page d’accueil → démo → expérience conciergerie / opérations",
           previewAria: "Aperçu des opérations",
           previewSignalPrimary: "Opérations en direct",
           previewSignalSecondary: "Mode marina",
@@ -1046,7 +1050,7 @@
           partner3Title: "Coastal Transfer Desk",
           partner3Body: "Route d'arrivée confirmée",
           guestPortalEyebrow: "Expérience Portail Voyageur",
-          guestPortalTitle: "Arrivée sereine, coordination conciergerie et services fiables dans un portail mobile premium.",
+          guestPortalTitle: "Arrivée sereine, coordination conciergerie et services fiables dans un Guest Portal mobile premium.",
           guestPortalAria: "Aperçu du portail voyageur",
           guestDeviceEyebrow: "Vue d'arrivée",
           guestDeviceTitle: "Villa Marina One",
@@ -1109,12 +1113,13 @@
           ctaButton: "Demander un accès anticipé"
         },
         ru: {
-          navPortal: "Открыть портал",
+          navPortal: "Открыть Guest Portal",
           badge: "Операционная платформа для премиальной недвижимости и гостевых сервисов",
           headline: "Премиальные операции для прибрежного гостеприимства.",
           subtitle: "BlackSea Connect объединяет гостей, уборку, трансферы, локальные сервисы и ежедневные задачи в одной спокойной системе для прибрежных команд.",
           primaryCta: "Запросить ранний доступ",
-          secondaryCta: "Открыть портал",
+          secondaryCta: "Открыть Guest Portal",
+          heroFlow: "Лендинг → демо → консьерж / операционный сценарий",
           previewAria: "Обзор операций",
           previewSignalPrimary: "Операции в эфире",
           previewSignalSecondary: "Режим марины",
@@ -1231,7 +1236,7 @@
           partner3Title: "Coastal Transfer Desk",
           partner3Body: "Маршрут прибытия подтвержден",
           guestPortalEyebrow: "Портал для гостей",
-          guestPortalTitle: "Спокойное прибытие, координация консьержа и проверенные сервисы в мобильном портале для гостей.",
+          guestPortalTitle: "Спокойное прибытие, координация консьержа и проверенные сервисы в мобильном Guest Portal.",
           guestPortalAria: "Обзор портала для гостей",
           guestDeviceEyebrow: "Обзор прибытия",
           guestDeviceTitle: "Villa Marina One",
