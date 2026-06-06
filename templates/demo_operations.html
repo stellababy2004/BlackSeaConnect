@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Demo Operations</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="operations-demo-page">
+  <div class="operations-demo-page__ambient" aria-hidden="true">
+    <div class="operations-demo-page__orb operations-demo-page__orb--gold"></div>
+    <div class="operations-demo-page__orb operations-demo-page__orb--sea"></div>
+    <div class="operations-demo-page__marina-blur"></div>
+    <div class="operations-demo-page__grain"></div>
+  </div>
+
+  <header class="operations-hero">
+    <nav class="operations-topbar" aria-label="Primary">
+      <a class="operations-brand" href="/">BlackSea Connect</a>
+      <div class="operations-topbar__status">
+        <span class="operations-chip operations-chip--live">Demo operations live</span>
+        <span class="operations-chip">Updated 2 min ago</span>
+      </div>
+      <a class="operations-button operations-button--ghost" href="#pilot-access">Request pilot access</a>
+    </nav>
+
+    <div class="operations-hero__grid">
+      <section class="operations-hero__copy">
+        <p class="operations-eyebrow">Calm luxury hospitality software</p>
+        <h1>Investor-grade coastal operations for premium stays.</h1>
+        <p class="operations-hero__text">
+          A demo surface for hospitality teams managing arrivals, concierge load, cleaning status, trusted local operators and guest experience from one calm command layer.
+        </p>
+
+        <div class="operations-hero__cta-row">
+          <a class="operations-button operations-button--primary" href="#pilot-access">Request pilot access</a>
+          <a class="operations-button operations-button--secondary" href="#operations-overview">View live demo</a>
+        </div>
+
+        <div class="operations-signal-row" aria-label="Operational signals">
+          <span class="operations-chip operations-chip--soft">Occupancy 87%</span>
+          <span class="operations-chip operations-chip--soft">5 arrivals today</span>
+          <span class="operations-chip operations-chip--soft">3 concierge tickets</span>
+          <span class="operations-chip operations-chip--soft">2 incidents in review</span>
+        </div>
+      </section>
+
+      <aside class="operations-hero__preview" aria-label="Coastal operations preview">
+        <div class="operations-preview-card">
+          <div class="operations-preview-card__topline">
+            <span class="operations-chip operations-chip--live">Live board</span>
+            <span class="operations-preview-card__time">14:28 local time</span>
+          </div>
+          <div class="operations-preview-card__headline">
+            <div>
+              <p class="operations-preview-card__label">Coastal operations overview</p>
+              <h2>Villa Marina One</h2>
+            </div>
+            <span class="operations-status-pill">Stable shift</span>
+          </div>
+          <div class="operations-preview-grid">
+            <div class="operations-preview-stat">
+              <span>Occupancy</span>
+              <strong>87%</strong>
+            </div>
+            <div class="operations-preview-stat">
+              <span>Arrivals today</span>
+              <strong>5</strong>
+            </div>
+            <div class="operations-preview-stat">
+              <span>Concierge queue</span>
+              <strong>3 open</strong>
+            </div>
+            <div class="operations-preview-stat">
+              <span>SLA health</span>
+              <strong>94%</strong>
+            </div>
+          </div>
+          <div class="operations-preview-card__notes">
+            <div>
+              <span>14:05</span>
+              <strong>Guest transfer confirmed for Dock Gate 3.</strong>
+            </div>
+            <div>
+              <span>13:42</span>
+              <strong>Cleaning team cleared A-302 for arrival.</strong>
+            </div>
+            <div>
+              <span>12:58</span>
+              <strong>Trusted local operator assigned for water pressure check.</strong>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="operations-shell" id="operations-overview">
+    <section class="operations-kpis" aria-label="Operational quick status cards">
+      <article class="operations-kpi">
+        <span class="operations-kpi__label">Occupancy</span>
+        <strong class="operations-kpi__value">87%</strong>
+        <p>19 of 22 apartments are live, with 2 turnarounds in progress.</p>
+      </article>
+      <article class="operations-kpi">
+        <span class="operations-kpi__label">Arrivals today</span>
+        <strong class="operations-kpi__value">5</strong>
+        <p>Three arrivals are confirmed, two are in transfer coordination.</p>
+      </article>
+      <article class="operations-kpi">
+        <span class="operations-kpi__label">Transfer queue</span>
+        <strong class="operations-kpi__value">3</strong>
+        <p>Airport, marina and late-evening return routes are actively managed.</p>
+      </article>
+      <article class="operations-kpi">
+        <span class="operations-kpi__label">Concierge tickets</span>
+        <strong class="operations-kpi__value">3</strong>
+        <p>Late dining, extra linens and local recommendation requests are open.</p>
+      </article>
+    </section>
+
+    <section class="operations-dashboard" aria-label="Demo operational dashboard">
+      <div class="operations-dashboard__main">
+        <article class="operations-panel operations-panel--wide">
+          <div class="operations-panel__header">
+            <div>
+              <p class="operations-panel__eyebrow">Coastal operations overview</p>
+              <h2>Live command view for hospitality teams</h2>
+            </div>
+            <span class="operations-chip operations-chip--soft">SLA 94% on time</span>
+          </div>
+          <div class="operations-overview">
+            <div class="operations-overview__ring">
+              <div class="operations-overview__ring-core">
+                <span>Occupancy</span>
+                <strong>87%</strong>
+                <small>Premium portfolio</small>
+              </div>
+            </div>
+            <div class="operations-overview__list">
+              <div class="operations-overview__item">
+                <span>Active guest arrivals</span>
+                <strong>14:45 - Marina gate arrival</strong>
+                <time datetime="2026-06-06T14:28:00+02:00">Updated 14:28</time>
+              </div>
+              <div class="operations-overview__item">
+                <span>Cleaning workflow</span>
+                <strong>A-302 ready, Villa Azure in final pass</strong>
+                <time datetime="2026-06-06T13:42:00+02:00">Updated 13:42</time>
+              </div>
+              <div class="operations-overview__item">
+                <span>Trusted local operators</span>
+                <strong>Harbor Electric, Blue Linen House, Coastal Transfer Desk</strong>
+                <time datetime="2026-06-06T12:58:00+02:00">Updated 12:58</time>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="operations-grid">
+          <article class="operations-panel">
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Transfer queue</p>
+                <h3>Airport and marina coordination</h3>
+              </div>
+              <span class="operations-status-pill operations-status-pill--soft">3 active</span>
+            </div>
+            <div class="operations-list">
+              <div class="operations-list__item">
+                <span class="operations-list__time">14:50</span>
+                <div>
+                  <strong>Terminal 2 pickup confirmed</strong>
+                  <p>Driver assigned and guest ETA set for the marina handoff.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__time">15:30</span>
+                <div>
+                  <strong>Dock Gate 3 transfer awaiting luggage update</strong>
+                  <p>Concierge is staying on the line until the guest leaves the lounge.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__time">19:10</span>
+                <div>
+                  <strong>Return transfer pending approval</strong>
+                  <p>Evening route is held as a soft option for the guest's preference.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="operations-panel">
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Concierge queue</p>
+                <h3>Live guest requests</h3>
+              </div>
+              <span class="operations-status-pill">3 tickets</span>
+            </div>
+            <div class="operations-list operations-list--compact">
+              <div class="operations-list__item">
+                <span class="operations-list__badge">Open</span>
+                <div>
+                  <strong>Late terrace dining</strong>
+                  <p>Table request for two, with local wine pairing preference.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__badge operations-list__badge--soft">Queued</span>
+                <div>
+                  <strong>Extra linens</strong>
+                  <p>Housekeeping already notified; ETA 12 minutes.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__badge operations-list__badge--attention">SLA 8m</span>
+                <div>
+                  <strong>Local recommendation</strong>
+                  <p>Curated beach club and private chef options are being matched.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="operations-panel">
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Cleaning workflow</p>
+                <h3>Apartment readiness</h3>
+              </div>
+              <span class="operations-chip operations-chip--soft">2 teams on shift</span>
+            </div>
+            <div class="operations-workflow">
+              <div class="operations-workflow__step operations-workflow__step--done">
+                <strong>A-302</strong>
+                <span>Ready for arrival</span>
+              </div>
+              <div class="operations-workflow__step">
+                <strong>Villa Azure</strong>
+                <span>Final inspection in 18 min</span>
+              </div>
+              <div class="operations-workflow__step">
+                <strong>Boutique Residence</strong>
+                <span>Linen refill completed 10 min ago</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="operations-panel">
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Active incidents</p>
+                <h3>Escalation control</h3>
+              </div>
+              <span class="operations-status-pill operations-status-pill--warning">2 under review</span>
+            </div>
+            <div class="operations-list operations-list--compact">
+              <div class="operations-list__item">
+                <span class="operations-list__badge operations-list__badge--warning">Water</span>
+                <div>
+                  <strong>Water pressure check</strong>
+                  <p>Harbor Electric assigned. SLA target: 18 minutes.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__badge">Noise</span>
+                <div>
+                  <strong>Quiet hours reminder</strong>
+                  <p>Guest coordination sent to the on-site concierge desk.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <aside class="operations-dashboard__rail">
+        <article class="operations-panel operations-panel--ambient">
+          <p class="operations-panel__eyebrow">Operational notifications</p>
+          <h3>Calm live feed</h3>
+          <div class="operations-notifications">
+            <div class="operations-notification">
+              <time datetime="2026-06-06T14:22:00+02:00">14:22</time>
+              <p>Guest arrival was confirmed with a marina handoff and chilled water setup.</p>
+            </div>
+            <div class="operations-notification">
+              <time datetime="2026-06-06T13:51:00+02:00">13:51</time>
+              <p>Cleaning team reported the suite as guest-ready after the final quality pass.</p>
+            </div>
+            <div class="operations-notification">
+              <time datetime="2026-06-06T13:12:00+02:00">13:12</time>
+              <p>Trusted local operator accepted the incident assignment and confirmed arrival.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="operations-panel operations-panel--ambient">
+          <p class="operations-panel__eyebrow">SLA indicators</p>
+          <h3>Service health</h3>
+          <div class="operations-sla">
+            <div class="operations-sla__item">
+              <span>Concierge response</span>
+              <strong>4m 18s</strong>
+            </div>
+            <div class="operations-sla__item">
+              <span>Cleaning turnaround</span>
+              <strong>22m average</strong>
+            </div>
+            <div class="operations-sla__item">
+              <span>Incident acknowledgement</span>
+              <strong>94%</strong>
+            </div>
+            <div class="operations-sla__item">
+              <span>Transfer punctuality</span>
+              <strong>98%</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="operations-panel operations-panel--ambient">
+          <p class="operations-panel__eyebrow">Premium onboarding</p>
+          <h3>Request pilot access</h3>
+          <p class="operations-panel__copy">Position your property for a calm concierge-grade rollout with a short onboarding flow.</p>
+          <button class="operations-button operations-button--primary operations-button--full" type="button" data-open-pilot-modal>Request pilot access</button>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <div class="operations-mobile-dock" aria-label="Mobile operations actions">
+    <button class="operations-mobile-dock__button" type="button" data-open-pilot-modal>Pilot access</button>
+    <a class="operations-mobile-dock__button operations-mobile-dock__button--secondary" href="#operations-overview">Quick status</a>
+    <button class="operations-mobile-dock__button" type="button">Concierge queue</button>
+  </div>
+
+  <button class="operations-floating-cta" type="button" data-open-pilot-modal>Concierge pilot</button>
+
+  <section class="operations-modal" aria-hidden="true" role="dialog" aria-labelledby="pilot-access-title" data-pilot-modal>
+    <div class="operations-modal__backdrop" data-close-pilot-modal></div>
+    <div class="operations-modal__dialog" role="document">
+      <button class="operations-modal__close" type="button" aria-label="Close" data-close-pilot-modal>×</button>
+      <p class="operations-modal__eyebrow">Premium onboarding</p>
+      <h2 id="pilot-access-title">Request pilot access</h2>
+      <p class="operations-modal__copy">Tell us about the property and the concierge layer you want to pilot.</p>
+
+      <form class="operations-form" data-pilot-form>
+        <label>
+          <span>Property type</span>
+          <select name="property_type" required>
+            <option value="">Select property type</option>
+            <option>Luxury apartment</option>
+            <option>Boutique hotel</option>
+            <option>Villa / residence</option>
+            <option>Mixed portfolio</option>
+          </select>
+        </label>
+        <label>
+          <span>Apartment count</span>
+          <input name="apartment_count" type="number" min="1" placeholder="e.g. 18" required>
+        </label>
+        <label>
+          <span>City / location</span>
+          <input name="location" type="text" placeholder="e.g. Varna Marina" required>
+        </label>
+        <label>
+          <span>Concierge needs</span>
+          <textarea name="concierge_needs" rows="4" placeholder="Arrivals, cleaning, transfers, guest services, incident response" required></textarea>
+        </label>
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" placeholder="name@company.com" required>
+        </label>
+        <button class="operations-button operations-button--primary operations-button--full" type="submit">Request pilot access</button>
+        <p class="operations-form__response" data-pilot-response aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const modal = document.querySelector("[data-pilot-modal]");
+      const openButtons = document.querySelectorAll("[data-open-pilot-modal]");
+      const closeButtons = document.querySelectorAll("[data-close-pilot-modal]");
+      const form = document.querySelector("[data-pilot-form]");
+      const response = document.querySelector("[data-pilot-response]");
+      const body = document.body;
+
+      function openModal() {
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        body.classList.add("operations-modal-open");
+        const firstField = form.querySelector("select, input, textarea");
+        if (firstField) {
+          firstField.focus();
+        }
+      }
+
+      function closeModal() {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        body.classList.remove("operations-modal-open");
+      }
+
+      openButtons.forEach((button) => {
+        button.addEventListener("click", openModal);
+      });
+
+      closeButtons.forEach((button) => {
+        button.addEventListener("click", closeModal);
+      });
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("is-open")) {
+          closeModal();
+        }
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        response.textContent = "Pilot request queued. A hospitality operations lead will follow up shortly.";
+        form.querySelector("button[type='submit']").disabled = true;
+      });
+    }());
+  </script>
+</body>
+</html>

@@ -13,5 +13,10 @@ def guest_portal_a302():
     return render_template("guest_portal.html")
 
 
+@app.route("/demo/operations")
+def demo_operations():
+    return render_template("demo_operations.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
