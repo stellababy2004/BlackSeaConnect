@@ -4,8 +4,11 @@
   const LINE_BREAK = "\n";
   const SELECTOR = "[data-pilot-select]";
   const selectInstances = new Set();
+  let openSelectWrapper = null;
+  let selectIdCounter = 0;
   let documentListenerBound = false;
   let languageListenerBound = false;
+  let scrollListenerBound = false;
 
   function getFieldLabel(field) {
     const label = field.closest("label");
@@ -55,9 +58,49 @@
     trigger.setAttribute("aria-expanded", "false");
     panel.hidden = true;
 
+    if (openSelectWrapper === wrapper) {
+      openSelectWrapper = null;
+    }
+
     if (focusTrigger) {
       trigger.focus();
     }
+  }
+
+  function closeAllSelects(focusTrigger) {
+    const wrapperToFocus = openSelectWrapper;
+    selectInstances.forEach((wrapper) => {
+      if (wrapper.classList.contains("is-open")) {
+        closeSelect(wrapper, false);
+      }
+    });
+
+    if (focusTrigger && wrapperToFocus) {
+      const trigger = wrapperToFocus.querySelector("[data-pilot-select-trigger]");
+      if (trigger) {
+        trigger.focus();
+      }
+    }
+
+    openSelectWrapper = null;
+  }
+
+  function getSelectLabel(wrapper) {
+    return wrapper.closest("label");
+  }
+
+  function isEventInsideAnySelect(target) {
+    if (!(target instanceof Node)) {
+      return false;
+    }
+
+    for (const wrapper of selectInstances) {
+      if (wrapper.contains(target)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   function updateSelectState(wrapper) {
@@ -117,15 +160,12 @@
       return;
     }
 
-    selectInstances.forEach((openWrapper) => {
-      if (openWrapper !== wrapper) {
-        closeSelect(openWrapper, false);
-      }
-    });
+    closeAllSelects(false);
 
     wrapper.classList.add("is-open");
     trigger.setAttribute("aria-expanded", "true");
     panel.hidden = false;
+    openSelectWrapper = wrapper;
     updateSelectState(wrapper);
 
     if (typeof focusIndex === "number") {
@@ -167,6 +207,7 @@
     const trigger = wrapper.querySelector("[data-pilot-select-trigger]");
     const panel = wrapper.querySelector("[data-pilot-select-panel]");
     const options = Array.from(wrapper.querySelectorAll("[data-pilot-select-option]"));
+    const label = getSelectLabel(wrapper);
 
     if (!trigger || !panel || !options.length) {
       return;
@@ -175,9 +216,16 @@
     wrapper.dataset.pilotSelectBound = "true";
     selectInstances.add(wrapper);
 
+    selectIdCounter += 1;
+    const panelId = `pilot-select-panel-${selectIdCounter}`;
+
     trigger.setAttribute("aria-haspopup", "listbox");
     trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-controls", panelId);
+    panel.id = panelId;
     panel.hidden = true;
+    panel.setAttribute("role", "listbox");
+    panel.setAttribute("aria-label", wrapper.closest("label")?.querySelector("span")?.textContent?.trim() || "Property type");
 
     trigger.addEventListener("click", function () {
       toggleSelect(wrapper);
@@ -196,12 +244,20 @@
       } else if (event.key === "Escape") {
         event.preventDefault();
         closeSelect(wrapper, true);
+      } else if (event.key === "Tab") {
+        closeSelect(wrapper, false);
       }
     });
 
     options.forEach((option, index) => {
       option.addEventListener("click", function () {
         selectOption(wrapper, option);
+      });
+
+      option.addEventListener("keydown", function (event) {
+        if (event.key === "Tab") {
+          closeSelect(wrapper, false);
+        }
       });
 
       option.addEventListener("keydown", function (event) {
@@ -225,8 +281,31 @@
 
       option.setAttribute("tabindex", "0");
       option.setAttribute("role", "option");
-      option.setAttribute("aria-selected", index === 0 ? "false" : "false");
+      option.setAttribute("aria-selected", "false");
     });
+
+    wrapper.addEventListener("focusout", function (event) {
+      const nextTarget = event.relatedTarget;
+      if (!nextTarget || !wrapper.contains(nextTarget)) {
+        closeSelect(wrapper, false);
+      }
+    });
+
+    if (label) {
+      label.addEventListener("click", function (event) {
+        if (!wrapper.classList.contains("is-open")) {
+          return;
+        }
+
+        if (wrapper.contains(event.target)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        closeSelect(wrapper, false);
+      }, true);
+    }
 
     updateSelectState(wrapper);
   }
@@ -241,8 +320,36 @@
     });
   }
 
+  function bindScrollListener() {
+    if (scrollListenerBound) {
+      return;
+    }
+
+    const closeOnScroll = function () {
+      if (openSelectWrapper) {
+        closeSelect(openSelectWrapper, false);
+      }
+    };
+
+    window.addEventListener("scroll", closeOnScroll, { passive: true, capture: true });
+    document.addEventListener("scroll", closeOnScroll, { passive: true, capture: true });
+    scrollListenerBound = true;
+  }
+
   function bindDocumentListeners() {
     if (!documentListenerBound) {
+      document.addEventListener("pointerdown", function (event) {
+        if (!openSelectWrapper) {
+          return;
+        }
+
+        if (isEventInsideAnySelect(event.target)) {
+          return;
+        }
+
+        closeAllSelects(false);
+      }, true);
+
       document.addEventListener("click", function (event) {
         selectInstances.forEach((wrapper) => {
           if (wrapper.classList.contains("is-open") && !wrapper.contains(event.target)) {
@@ -256,11 +363,7 @@
           return;
         }
 
-        selectInstances.forEach((wrapper) => {
-          if (wrapper.classList.contains("is-open")) {
-            closeSelect(wrapper, true);
-          }
-        });
+        closeAllSelects(true);
       });
 
       documentListenerBound = true;
@@ -268,11 +371,14 @@
 
     if (!languageListenerBound) {
       window.addEventListener("blacksea:languagechange", function () {
+        closeAllSelects(false);
         refreshCustomSelects();
       });
 
       languageListenerBound = true;
     }
+
+    bindScrollListener();
   }
 
   function buildMailto(form) {
@@ -316,6 +422,7 @@
   }
 
   function submitForm(form) {
+    closeAllSelects(false);
     const response = getResponseNode(form);
     const successMessage = response && response.textContent.trim()
       ? response.textContent.trim()
@@ -337,11 +444,13 @@
     form.dataset.pilotBound = "true";
     form.addEventListener("submit", function (event) {
       event.preventDefault();
+      closeAllSelects(false);
       submitForm(form);
     });
   }
 
   function init() {
+    closeAllSelects(false);
     bindDocumentListeners();
     document.querySelectorAll("form[data-pilot-form]").forEach(attach);
     initCustomSelects();
