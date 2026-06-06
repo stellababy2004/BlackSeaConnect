@@ -48,6 +48,10 @@
         button.classList.toggle("is-active", isActive);
         button.setAttribute("aria-pressed", isActive ? "true" : "false");
       });
+
+      window.dispatchEvent(new CustomEvent("blacksea:languagechange", {
+        detail: { lang: activeLang }
+      }));
     }
 
     buttons.forEach((button) => {

@@ -357,13 +357,19 @@
       <form class="operations-form" data-pilot-form>
         <label>
           <span data-i18n="formPropertyType">Property type</span>
-          <select name="property_type" required>
-            <option value="" data-i18n="formPropertyOptionEmpty">Select property type</option>
-            <option data-i18n="formPropertyOption1">Luxury apartment</option>
-            <option data-i18n="formPropertyOption2">Boutique hotel</option>
-            <option data-i18n="formPropertyOption3">Villa / residence</option>
-            <option data-i18n="formPropertyOption4">Mixed portfolio</option>
-          </select>
+          <div class="pilot-select" data-pilot-select>
+            <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
+              <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="formPropertyOptionEmpty">Select property type</span>
+              <span class="pilot-select__value" data-pilot-select-value hidden></span>
+            </button>
+            <input type="hidden" name="property_type" value="" data-pilot-select-input>
+            <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="formPropertyOption1" data-i18n="formPropertyOption1">Luxury apartment</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="formPropertyOption2" data-i18n="formPropertyOption2">Boutique hotel</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="formPropertyOption3" data-i18n="formPropertyOption3">Villa / residence</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="formPropertyOption4" data-i18n="formPropertyOption4">Mixed portfolio</button>
+            </div>
+          </div>
         </label>
         <label>
           <span data-i18n="formApartmentCount">Apartment count</span>

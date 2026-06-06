@@ -582,13 +582,19 @@
         </label>
         <label class="pilot-form__field">
           <span data-i18n="pilotPropertyLabel">Тип имот / Property type</span>
-          <select name="property_type" required>
-            <option value="" data-i18n="pilotPropertyPlaceholder">Избери тип имот</option>
-            <option data-i18n="pilotPropertyOption1">Луксозен апартамент</option>
-            <option data-i18n="pilotPropertyOption2">Boutique хотел</option>
-            <option data-i18n="pilotPropertyOption3">Вила / резиденция</option>
-            <option data-i18n="pilotPropertyOption4">Смесено портфолио</option>
-          </select>
+          <div class="pilot-select" data-pilot-select>
+            <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
+              <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="pilotPropertyPlaceholder">Избери тип имот</span>
+              <span class="pilot-select__value" data-pilot-select-value hidden></span>
+            </button>
+            <input type="hidden" name="property_type" value="" data-pilot-select-input>
+            <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption1" data-i18n="pilotPropertyOption1">Луксозен апартамент</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption2" data-i18n="pilotPropertyOption2">Boutique хотел</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption3" data-i18n="pilotPropertyOption3">Вила / резиденция</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption4" data-i18n="pilotPropertyOption4">Смесено портфолио</button>
+            </div>
+          </div>
         </label>
         <label class="pilot-form__field">
           <span data-i18n="pilotLocationLabel">Локация / Location</span>
