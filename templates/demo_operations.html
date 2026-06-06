@@ -47,10 +47,11 @@
         </div>
 
         <div class="operations-signal-row" aria-label="Operational signals">
-          <span class="operations-chip operations-chip--soft" data-i18n="signal1">Occupancy 87%</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="signal2">5 arrivals today</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="signal3">3 concierge tickets</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="signal4">2 incidents in review</span>
+          <span class="operations-chip operations-chip--soft">Delayed guest arrival</span>
+          <span class="operations-chip operations-chip--soft">Cleaning escalation</span>
+          <span class="operations-chip operations-chip--soft">Concierge overload</span>
+          <span class="operations-chip operations-chip--soft">Transfer waiting</span>
+          <span class="operations-chip operations-chip--soft">Marina traffic</span>
         </div>
       </section>
 
@@ -88,15 +89,15 @@
           <div class="operations-preview-card__notes">
             <div>
               <span data-i18n="note1Time">14:05</span>
-              <strong data-i18n="note1Text">Guest transfer confirmed for Dock Gate 3.</strong>
+              <strong>Guest arrival delayed by 18 min because of marina traffic.</strong>
             </div>
             <div>
               <span data-i18n="note2Time">13:42</span>
-              <strong data-i18n="note2Text">Cleaning team cleared A-302 for arrival.</strong>
+              <strong>Cleaning escalation opened for Villa Azure after final inspection.</strong>
             </div>
             <div>
               <span data-i18n="note3Time">12:58</span>
-              <strong data-i18n="note3Text">Trusted local operator assigned for water pressure check.</strong>
+              <strong>Wi-Fi reset completed for A-302 and verified by concierge.</strong>
             </div>
           </div>
         </div>
@@ -168,118 +169,163 @@
 
         <div class="operations-grid">
           <article class="operations-panel">
-          <div class="operations-panel__header">
-            <div>
-                <p class="operations-panel__eyebrow" data-i18n="transferEyebrow">Transfer queue</p>
-                <h3 data-i18n="transferTitle">Airport and marina coordination</h3>
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Guest movement</p>
+                <h3>Arrivals, marina traffic and transfer waiting</h3>
               </div>
-              <span class="operations-status-pill operations-status-pill--soft" data-i18n="transferChip">3 active</span>
+              <span class="operations-status-pill operations-status-pill--soft">4 active</span>
             </div>
             <div class="operations-list">
               <div class="operations-list__item">
-                <span class="operations-list__time" data-i18n="transfer1Time">14:50</span>
+                <span class="operations-list__time">14:50</span>
                 <div>
-                  <strong data-i18n="transfer1Title">Terminal 2 pickup confirmed</strong>
-                  <p data-i18n="transfer1Body">Driver assigned and guest ETA set for the marina handoff.</p>
+                  <strong>Delayed guest arrival</strong>
+                  <p>ETA moved by 18 minutes because of marina traffic. Assigned operator: Coastal Transfer Desk.</p>
                 </div>
               </div>
               <div class="operations-list__item">
-                <span class="operations-list__time" data-i18n="transfer2Time">15:30</span>
+                <span class="operations-list__time">15:12</span>
                 <div>
-                  <strong data-i18n="transfer2Title">Dock Gate 3 transfer awaiting luggage update</strong>
-                  <p data-i18n="transfer2Body">Concierge is staying on the line until the guest leaves the lounge.</p>
+                  <strong>Transfer waiting at dock</strong>
+                  <p>Driver is holding at Dock Gate 3 until luggage handoff clears. Last synced 4 min ago.</p>
                 </div>
               </div>
               <div class="operations-list__item">
-                <span class="operations-list__time" data-i18n="transfer3Time">19:10</span>
+                <span class="operations-list__time">19:10</span>
                 <div>
-                  <strong data-i18n="transfer3Title">Return transfer pending approval</strong>
-                  <p data-i18n="transfer3Body">Evening route is held as a soft option for the guest's preference.</p>
+                  <strong>VIP arrival flow</strong>
+                  <p>Private car on standby, concierge updated, quiet route through the marina confirmed.</p>
                 </div>
               </div>
+            </div>
+            <div class="operations-empty-state">
+              <span class="operations-empty-state__eyebrow">Shift active</span>
+              <strong>All arrivals are being coordinated with discreet, low-noise handoffs.</strong>
             </div>
           </article>
 
           <article class="operations-panel">
-          <div class="operations-panel__header">
-            <div>
-                <p class="operations-panel__eyebrow" data-i18n="conciergeEyebrow">Concierge queue</p>
-                <h3 data-i18n="conciergeTitle">Live guest requests</h3>
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Staff presence</p>
+                <h3>Concierge load and operator activity</h3>
               </div>
-              <span class="operations-status-pill" data-i18n="conciergeChip">3 tickets</span>
+              <span class="operations-status-pill">3 online</span>
             </div>
             <div class="operations-list operations-list--compact">
               <div class="operations-list__item">
-                <span class="operations-list__badge" data-i18n="concierge1Badge">Open</span>
+                <span class="operations-list__badge operations-list__badge--soft">Online</span>
                 <div>
-                  <strong data-i18n="concierge1Title">Late terrace dining</strong>
-                  <p data-i18n="concierge1Body">Table request for two, with local wine pairing preference.</p>
+                  <strong>Concierge online</strong>
+                  <p>Front desk responds in under 5 minutes. Last activity: 2 min ago.</p>
                 </div>
               </div>
               <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--soft" data-i18n="concierge2Badge">Queued</span>
+                <span class="operations-list__badge">Active now</span>
                 <div>
-                  <strong data-i18n="concierge2Title">Extra linens</strong>
-                  <p data-i18n="concierge2Body">Housekeeping already notified; ETA 12 minutes.</p>
+                  <strong>Operator active now</strong>
+                  <p>Harbor Electric is on-site for maintenance follow-up. Shift active until 22:00.</p>
                 </div>
               </div>
               <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--attention" data-i18n="concierge3Badge">SLA 8m</span>
+                <span class="operations-list__badge operations-list__badge--soft">Dispatched</span>
                 <div>
-                  <strong data-i18n="concierge3Title">Local recommendation</strong>
-                  <p data-i18n="concierge3Body">Curated beach club and private chef options are being matched.</p>
+                  <strong>Cleaning crew dispatched</strong>
+                  <p>Housekeeping Team B is working the escalation queue. Last update: 7 min ago.</p>
+                </div>
+              </div>
+              <div class="operations-list__item">
+                <span class="operations-list__badge operations-list__badge--soft">Assigned</span>
+                <div>
+                  <strong>Local partner assigned</strong>
+                  <p>Coastal Transfer Desk holds the guest routing handoff and marina arrival sequence.</p>
                 </div>
               </div>
             </div>
           </article>
 
           <article class="operations-panel">
-          <div class="operations-panel__header">
-            <div>
-                <p class="operations-panel__eyebrow" data-i18n="cleaningEyebrow">Cleaning workflow</p>
-                <h3 data-i18n="cleaningTitle">Apartment readiness</h3>
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Cleaning queue</p>
+                <h3>Readiness, escalation and Wi-Fi reset</h3>
               </div>
-              <span class="operations-chip operations-chip--soft" data-i18n="cleaningChip">2 teams on shift</span>
+              <span class="operations-chip operations-chip--soft">1 escalation</span>
             </div>
             <div class="operations-workflow">
               <div class="operations-workflow__step operations-workflow__step--done">
-                <strong data-i18n="cleaning1Title">A-302</strong>
-                <span data-i18n="cleaning1Body">Ready for arrival</span>
+                <strong>A-302</strong>
+                <span>Ready for arrival · last synced 3 min ago</span>
               </div>
               <div class="operations-workflow__step">
-                <strong data-i18n="cleaning2Title">Villa Azure</strong>
-                <span data-i18n="cleaning2Body">Final inspection in 18 min</span>
+                <strong>Villa Azure</strong>
+                <span>Cleaning escalation · second pass in progress</span>
+              </div>
+              <div class="operations-workflow__step operations-workflow__step--done">
+                <strong>Wi-Fi reset completed</strong>
+                <span>Portal restored and verified by concierge</span>
               </div>
               <div class="operations-workflow__step">
-                <strong data-i18n="cleaning3Title">Boutique Residence</strong>
-                <span data-i18n="cleaning3Body">Linen refill completed 10 min ago</span>
+                <strong>Boutique Residence</strong>
+                <span>Cleaning queue stable · no overdue tasks</span>
               </div>
             </div>
           </article>
 
           <article class="operations-panel">
-          <div class="operations-panel__header">
-            <div>
-                <p class="operations-panel__eyebrow" data-i18n="incidentEyebrow">Active incidents</p>
-                <h3 data-i18n="incidentTitle">Escalation control</h3>
+            <div class="operations-panel__header">
+              <div>
+                <p class="operations-panel__eyebrow">Incident surface</p>
+                <h3>Priority issues, SLA countdowns and escalation state</h3>
               </div>
-              <span class="operations-status-pill operations-status-pill--warning" data-i18n="incidentChip">2 under review</span>
+              <span class="operations-status-pill operations-status-pill--warning">2 open</span>
             </div>
-            <div class="operations-list operations-list--compact">
-              <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--warning" data-i18n="incident1Badge">Water</span>
-                <div>
-                  <strong data-i18n="incident1Title">Water pressure check</strong>
-                  <p data-i18n="incident1Body">Harbor Electric assigned. SLA target: 18 minutes.</p>
+            <div class="operations-incident-grid">
+              <article class="operations-incident-card operations-incident-card--critical">
+                <div class="operations-incident-card__topline">
+                  <span class="operations-incident-card__priority">P1</span>
+                  <span class="operations-incident-card__sla">SLA 18 min</span>
                 </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__badge" data-i18n="incident2Badge">Noise</span>
-                <div>
-                  <strong data-i18n="incident2Title">Quiet hours reminder</strong>
-                  <p data-i18n="incident2Body">Guest coordination sent to the on-site concierge desk.</p>
+                <strong>Water pressure issue</strong>
+                <p>Assigned to Harbor Electric. Escalation active, acknowledged, en route.</p>
+                <div class="operations-incident-card__timeline">
+                  <span>12:40 reported</span>
+                  <span>12:44 acknowledged</span>
+                  <span>12:52 en route</span>
                 </div>
-              </div>
+              </article>
+              <article class="operations-incident-card">
+                <div class="operations-incident-card__topline">
+                  <span class="operations-incident-card__priority">P2</span>
+                  <span class="operations-incident-card__sla">SLA 26 min</span>
+                </div>
+                <strong>Concierge overload</strong>
+                <p>Assigned to front desk concierge. Escalation queued, guest callback pending.</p>
+                <div class="operations-incident-card__timeline">
+                  <span>13:08 reported</span>
+                  <span>13:16 triaged</span>
+                  <span>13:22 routed</span>
+                </div>
+              </article>
+              <article class="operations-incident-card">
+                <div class="operations-incident-card__topline">
+                  <span class="operations-incident-card__priority">P3</span>
+                  <span class="operations-incident-card__sla">SLA 42 min</span>
+                </div>
+                <strong>Maintenance issue</strong>
+                <p>Assigned to local operator. Monitoring quiet hours and confirming arrival window.</p>
+                <div class="operations-incident-card__timeline">
+                  <span>13:40 reported</span>
+                  <span>13:49 assigned</span>
+                  <span>13:58 waiting</span>
+                </div>
+              </article>
+            </div>
+            <div class="operations-empty-state">
+              <span class="operations-empty-state__eyebrow">Stable window</span>
+              <strong>No unresolved incidents after review.</strong>
+              <p>Calm alert colors, discreet escalation and a quiet timeline keep the queue readable at a glance.</p>
             </div>
           </article>
         </div>
@@ -291,16 +337,16 @@
           <h3 data-i18n="feedTitle">Calm live feed</h3>
           <div class="operations-notifications">
             <div class="operations-notification">
-              <time datetime="2026-06-06T14:22:00+02:00" data-i18n="feed1Time">14:22</time>
-              <p data-i18n="feed1Body">Guest arrival was confirmed with a marina handoff and chilled water setup.</p>
+              <time datetime="2026-06-06T14:22:00+02:00">14:22</time>
+              <p>Delayed arrival moved into the holding flow while marina traffic cleared.</p>
             </div>
             <div class="operations-notification">
-              <time datetime="2026-06-06T13:51:00+02:00" data-i18n="feed2Time">13:51</time>
-              <p data-i18n="feed2Body">Cleaning team reported the suite as guest-ready after the final quality pass.</p>
+              <time datetime="2026-06-06T13:51:00+02:00">13:51</time>
+              <p>Cleaning escalation was dispatched and the queue stayed stable after review.</p>
             </div>
             <div class="operations-notification">
-              <time datetime="2026-06-06T13:12:00+02:00" data-i18n="feed3Time">13:12</time>
-              <p data-i18n="feed3Body">Trusted local operator accepted the incident assignment and confirmed arrival.</p>
+              <time datetime="2026-06-06T13:12:00+02:00">13:12</time>
+              <p>Wi-Fi reset was completed, verified, and synced to the guest portal.</p>
             </div>
           </div>
         </article>
@@ -327,6 +373,56 @@
             </div>
           </div>
         </article>
+
+        <article class="operations-panel operations-panel--ambient">
+          <p class="operations-panel__eyebrow">Trusted local network</p>
+          <h3>Curated coastal partner ecosystem</h3>
+          <div class="operations-network-grid">
+            <div class="operations-network-card">
+              <span>Transfers</span>
+              <strong>Coastal Transfer Desk</strong>
+              <p>Airport and marina handoffs · last activity 6 min ago</p>
+            </div>
+            <div class="operations-network-card">
+              <span>Marina support</span>
+              <strong>Harbor Operations</strong>
+              <p>Dock coordination and traffic windows · shift active</p>
+            </div>
+            <div class="operations-network-card">
+              <span>Restaurants</span>
+              <strong>Riviera Table</strong>
+              <p>Curated reservations only · trusted hospitality partner</p>
+            </div>
+            <div class="operations-network-card">
+              <span>Maintenance</span>
+              <strong>Harbor Electric</strong>
+              <p>On-call issue handling · last arrival 9 min ago</p>
+            </div>
+            <div class="operations-network-card">
+              <span>Housekeeping</span>
+              <strong>Blue Linen House</strong>
+              <p>Cleaning crew dispatched · 2 properties active</p>
+            </div>
+            <div class="operations-network-card">
+              <span>Local operators</span>
+              <strong>Curated coastal network</strong>
+              <p>Discreet support partners · private access only</p>
+            </div>
+          </div>
+        </article>
+
+        <div class="operations-empty-stack">
+          <div class="operations-empty-state">
+            <span class="operations-empty-state__eyebrow">Arrivals</span>
+            <strong>All arrivals coordinated.</strong>
+            <p>The guest movement queue stays quiet, predictable and easy to scan.</p>
+          </div>
+          <div class="operations-empty-state">
+            <span class="operations-empty-state__eyebrow">Cleaning</span>
+            <strong>Cleaning queue stable.</strong>
+            <p>Only active escalations remain in view; the rest stay intentionally out of the way.</p>
+          </div>
+        </div>
 
         <article class="operations-panel operations-panel--ambient">
           <p class="operations-panel__eyebrow" data-i18n="pilotEyebrow">Premium onboarding</p>
