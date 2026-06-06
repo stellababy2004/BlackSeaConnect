@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
 
@@ -16,6 +16,11 @@ def guest_portal_a302():
 @app.route("/demo/operations")
 def demo_operations():
     return render_template("demo_operations.html")
+
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True, "service": "blackseaconnect"})
 
 
 if __name__ == "__main__":
