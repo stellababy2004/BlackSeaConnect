@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Pilot Access</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/">Home</a>
+          <a class="site-nav__link" href="/services">Services</a>
+          <a class="site-nav__link" href="/demo/operations">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302">Guest Portal</a>
+          <a class="site-nav__link" href="/partners">Partners</a>
+          <a class="site-nav__link is-active" href="/pilot-access">Pilot Access</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="/demo/operations">View demo</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow">Pilot access</p>
+        <h1>Request a quiet pilot and we'll reply with a practical rollout step.</h1>
+        <p class="hero__text">
+          Share the property type, region and operating needs. We'll use that context to judge fit and respond with a realistic next step, not a sales flood.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="#pilot-request">Open request form</a>
+          <a class="button button--secondary" href="/services">Review services</a>
+          <a class="button button--tertiary" href="/partners">Meet the partner network</a>
+        </div>
+        <div class="trust-strip" aria-label="Pilot expectations">
+          <span class="trust-strip__chip">private pilot</span>
+          <span class="trust-strip__chip">response in 1 business day</span>
+          <span class="trust-strip__chip">no public listing</span>
+          <span class="trust-strip__chip">operational fit check</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="cta-panel cta-panel--pilot" id="pilot-request" aria-labelledby="pilot-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Onboarding</p>
+        <h2 id="pilot-title">Tell us about the property and the way the team works.</h2>
+        <p class="cta-panel__copy">We keep the request short: enough context to understand the property, the region and the operational fit, without turning it into a heavy onboarding flow.</p>
+        <p class="cta-panel__trust">Private pilot | No public listing | Response within 1 business day</p>
+      </div>
+
+      <form class="pilot-form" data-pilot-form data-pilot-subject="BlackSea Connect pilot access request">
+        <div class="pilot-form__grid">
+          <label class="pilot-form__field">
+            <span>Name</span>
+            <input name="name" type="text" required placeholder="Your name">
+          </label>
+          <label class="pilot-form__field">
+            <span>Email</span>
+            <input name="email" type="email" required placeholder="name@company.com">
+          </label>
+          <label class="pilot-form__field">
+            <span>Property type</span>
+            <div class="pilot-select" data-pilot-select>
+              <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
+                <span class="pilot-select__placeholder" data-pilot-select-placeholder>Select property type</span>
+                <span class="pilot-select__value" data-pilot-select-value hidden></span>
+              </button>
+              <input type="hidden" name="property_type" value="" data-pilot-select-input>
+              <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption1">Luxury apartment</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption2">Boutique hotel</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption3">Villa / residence</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption4">Mixed portfolio</button>
+              </div>
+            </div>
+          </label>
+          <label class="pilot-form__field">
+            <span>Region</span>
+            <input name="location" type="text" required placeholder="Varna Marina">
+          </label>
+          <label class="pilot-form__field">
+            <span>Property count</span>
+            <input name="apartment_count" type="number" min="1" required placeholder="18">
+          </label>
+          <label class="pilot-form__field pilot-form__field--full">
+            <span>Operational needs</span>
+            <textarea name="needs" rows="4" required placeholder="Arrivals, cleaning, transfers, guest services"></textarea>
+          </label>
+        </div>
+        <div class="pilot-form__footer">
+          <button class="button button--primary" type="submit">Send pilot request</button>
+          <p class="pilot-form__hint" data-pilot-response>Your email client will open with a prepared request.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p>Calm hospitality operations for coastal properties.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="/demo/operations">Demo</a>
+      <a href="/guest/a-302">Guest Portal</a>
+      <a href="/pilot-access">Pilot Access</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:blackseaconnect@orange.fr">blackseaconnect@orange.fr</a>
+      <p>We use the pilot request to judge fit and suggest the smallest useful next step.</p>
+    </div>
+  </footer>
+
+  <script>
+    window.BLACKSEA_I18N = {
+      translations: { bg: {}, en: {}, fr: {}, ru: {} },
+      defaultLang: "bg"
+    };
+  </script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/pilot-form.js"></script>
+</body>
+</html>

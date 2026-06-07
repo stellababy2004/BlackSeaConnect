@@ -13,9 +13,24 @@ def guest_portal_a302():
     return render_template("guest_portal.html")
 
 
+@app.route("/services")
+def services():
+    return render_template("services.html")
+
+
 @app.route("/demo/operations")
 def demo_operations():
     return render_template("demo_operations.html")
+
+
+@app.route("/partners")
+def partners():
+    return render_template("partners.html")
+
+
+@app.route("/pilot-access")
+def pilot_access():
+    return render_template("pilot_access.html")
 
 
 @app.route("/health")
