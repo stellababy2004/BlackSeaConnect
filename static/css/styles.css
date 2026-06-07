@@ -216,15 +216,16 @@ a {
 }
 
 .hero__horizon {
+  /* Removed stray hero divider line */
+  display: none;
   left: -4%;
   right: -4%;
   bottom: 26%;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 220, 167, 0.12) 18%, rgba(151, 216, 241, 0.32) 50%, rgba(255, 220, 167, 0.12) 82%, transparent 100%);
-  box-shadow:
-    0 0 24px rgba(141, 224, 255, 0.08),
-    0 0 44px rgba(255, 191, 126, 0.04);
-  opacity: 0.56;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  opacity: 0;
 }
 
 .hero__horizon::before {
