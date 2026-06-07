@@ -1,25 +1,78 @@
 (function () {
   const STORAGE_KEY = "blacksea-language";
+  const DEFAULT_LANG = "bg";
+  const PAGE_NAMESPACE_BY_PATH = {
+    "/": "home",
+    "/services": "services",
+    "/partners": "partners",
+    "/pilot-access": "pilot",
+    "/demo/operations": "demo",
+    "/guest/a-302": "guest"
+  };
+  const warnedKeys = new Set();
 
-  function init(config) {
-    if (!config || !config.translations) {
+  function getPageNamespace() {
+    return PAGE_NAMESPACE_BY_PATH[window.location.pathname] || "home";
+  }
+
+  function resolvePath(dictionary, keyPath) {
+    if (!dictionary || !keyPath) {
+      return undefined;
+    }
+
+    return keyPath.split(".").reduce((value, segment) => {
+      if (value && Object.prototype.hasOwnProperty.call(value, segment)) {
+        return value[segment];
+      }
+      return undefined;
+    }, dictionary);
+  }
+
+  function resolveTranslation(dictionary, key, pageNamespace) {
+    if (!key) {
+      return undefined;
+    }
+
+    const namespacedKey = key.includes(".") ? key : `${pageNamespace}.${key}`;
+    return resolvePath(dictionary, namespacedKey) || resolvePath(dictionary, key);
+  }
+
+  function warnMissing(key, lang) {
+    const warningKey = `${lang}:${key}`;
+    if (warnedKeys.has(warningKey)) {
       return;
     }
 
-    const translations = config.translations;
-    const defaultLang = config.defaultLang || "bg";
-    const nodes = document.querySelectorAll("[data-i18n]");
-    const attrNodes = document.querySelectorAll("[data-i18n-attr]");
+    warnedKeys.add(warningKey);
+    const isLocalhost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+    if (isLocalhost && window.console && typeof window.console.warn === "function") {
+      window.console.warn(`[BlackSeaI18N] Missing translation for "${key}" in "${lang}".`);
+    }
+  }
+
+  function init(config) {
+    if (!config) {
+      return;
+    }
+
+    const translations = config;
+    const defaultLang = DEFAULT_LANG;
+    const pageNamespace = getPageNamespace();
     const buttons = document.querySelectorAll("[data-lang-switch]");
 
     function applyLanguage(lang) {
       const activeLang = translations[lang] ? lang : defaultLang;
       const dictionary = translations[activeLang] || translations[defaultLang] || {};
+      const nodes = document.querySelectorAll("[data-i18n]");
+      const attrNodes = document.querySelectorAll("[data-i18n-attr]");
 
       nodes.forEach((node) => {
         const key = node.getAttribute("data-i18n");
-        if (dictionary[key]) {
-          node.textContent = dictionary[key];
+        const value = resolveTranslation(dictionary, key, pageNamespace);
+        if (value !== undefined && value !== null) {
+          node.textContent = value;
+        } else {
+          warnMissing(key, activeLang);
         }
       });
 
@@ -29,8 +82,15 @@
           const parts = mapping.split(":");
           const attr = parts[0] && parts[0].trim();
           const key = parts[1] && parts[1].trim();
-          if (attr && key && dictionary[key]) {
-            node.setAttribute(attr, dictionary[key]);
+          if (!attr || !key) {
+            return;
+          }
+
+          const value = resolveTranslation(dictionary, key, pageNamespace);
+          if (value !== undefined && value !== null) {
+            node.setAttribute(attr, value);
+          } else {
+            warnMissing(key, activeLang);
           }
         });
       });
@@ -72,7 +132,7 @@
 
   window.BlackSeaI18n = window.BlackSeaI18n || { init };
 
-  if (window.BLACKSEA_I18N) {
-    init(window.BLACKSEA_I18N);
+  if (window.BlackSeaI18N) {
+    init(window.BlackSeaI18N);
   }
 }());

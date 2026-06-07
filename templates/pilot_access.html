@@ -12,12 +12,12 @@
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/">Home</a>
-          <a class="site-nav__link" href="/services">Services</a>
-          <a class="site-nav__link" href="/demo/operations">Demo</a>
-          <a class="site-nav__link" href="/guest/a-302">Guest Portal</a>
-          <a class="site-nav__link" href="/partners">Partners</a>
-          <a class="site-nav__link is-active" href="/pilot-access">Pilot Access</a>
+          <a class="site-nav__link" href="/" data-i18n="navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Partners</a>
+          <a class="site-nav__link is-active" href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -28,27 +28,27 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/demo/operations">View demo</a>
+        <a class="button button--ghost topbar__portal" href="/demo/operations" data-i18n="pilotDemoCta">View demo</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow">Pilot access</p>
-        <h1>Request a quiet pilot and we'll reply with a practical rollout step.</h1>
-        <p class="hero__text">
+        <p class="eyebrow" data-i18n="pilotEyebrow">Pilot access</p>
+        <h1 data-i18n="pilotTitle">Request a quiet pilot and we'll reply with a practical rollout step.</h1>
+        <p class="hero__text" data-i18n="pilotIntro">
           Share the property type, region and operating needs. We'll use that context to judge fit and respond with a realistic next step, not a sales flood.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#pilot-request">Open request form</a>
-          <a class="button button--secondary" href="/services">Review services</a>
-          <a class="button button--tertiary" href="/partners">Meet the partner network</a>
+          <a class="button button--primary" href="#pilot-request" data-i18n="pilotPrimaryCta">Open request form</a>
+          <a class="button button--secondary" href="/services" data-i18n="pilotSecondaryCta">Review services</a>
+          <a class="button button--tertiary" href="/partners" data-i18n="pilotTertiaryCta">Meet the partner network</a>
         </div>
         <div class="trust-strip" aria-label="Pilot expectations">
-          <span class="trust-strip__chip">private pilot</span>
-          <span class="trust-strip__chip">response in 1 business day</span>
-          <span class="trust-strip__chip">no public listing</span>
-          <span class="trust-strip__chip">operational fit check</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip1">private pilot</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip2">response in 1 business day</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip3">no public listing</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip4">operational fit check</span>
         </div>
       </div>
     </div>
@@ -57,54 +57,54 @@
   <main>
     <section class="cta-panel cta-panel--pilot" id="pilot-request" aria-labelledby="pilot-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Onboarding</p>
-        <h2 id="pilot-title">Tell us about the property and the way the team works.</h2>
-        <p class="cta-panel__copy">We keep the request short: enough context to understand the property, the region and the operational fit, without turning it into a heavy onboarding flow.</p>
-        <p class="cta-panel__trust">Private pilot | No public listing | Response within 1 business day</p>
+        <p class="section-heading__eyebrow" data-i18n="pilotSectionEyebrow">Onboarding</p>
+        <h2 id="pilot-title" data-i18n="pilotSectionTitle">Tell us about the property and the way the team works.</h2>
+        <p class="cta-panel__copy" data-i18n="pilotSectionCopy">We keep the request short: enough context to understand the property, the region and the operational fit, without turning it into a heavy onboarding flow.</p>
+        <p class="cta-panel__trust" data-i18n="pilotTrust">Private pilot | No public listing | Response within 1 business day</p>
       </div>
 
       <form class="pilot-form" data-pilot-form data-pilot-subject="BlackSea Connect pilot access request">
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
-            <span>Name</span>
-            <input name="name" type="text" required placeholder="Your name">
+            <span data-i18n="formName">Name</span>
+            <input name="name" type="text" required placeholder="Your name" data-i18n-attr="placeholder:formNamePlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span>Email</span>
-            <input name="email" type="email" required placeholder="name@company.com">
+            <span data-i18n="formEmail">Email</span>
+            <input name="email" type="email" required placeholder="name@company.com" data-i18n-attr="placeholder:formEmailPlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span>Property type</span>
+            <span data-i18n="formPropertyType">Property type</span>
             <div class="pilot-select" data-pilot-select>
               <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
-                <span class="pilot-select__placeholder" data-pilot-select-placeholder>Select property type</span>
+                <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="formPropertyTypePlaceholder">Select property type</span>
                 <span class="pilot-select__value" data-pilot-select-value hidden></span>
               </button>
               <input type="hidden" name="property_type" value="" data-pilot-select-input>
               <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption1">Luxury apartment</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption2">Boutique hotel</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption3">Villa / residence</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption4">Mixed portfolio</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption1" data-i18n="pilotPropertyOption1">Luxury apartment</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption2" data-i18n="pilotPropertyOption2">Boutique hotel</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption3" data-i18n="pilotPropertyOption3">Villa / residence</button>
+                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption4" data-i18n="pilotPropertyOption4">Mixed portfolio</button>
               </div>
             </div>
           </label>
           <label class="pilot-form__field">
-            <span>Region</span>
-            <input name="location" type="text" required placeholder="Varna Marina">
+            <span data-i18n="formRegion">Region</span>
+            <input name="location" type="text" required placeholder="Varna Marina" data-i18n-attr="placeholder:formRegionPlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span>Property count</span>
-            <input name="apartment_count" type="number" min="1" required placeholder="18">
+            <span data-i18n="formPropertyCount">Property count</span>
+            <input name="apartment_count" type="number" min="1" required placeholder="18" data-i18n-attr="placeholder:formPropertyCountPlaceholder">
           </label>
           <label class="pilot-form__field pilot-form__field--full">
-            <span>Operational needs</span>
-            <textarea name="needs" rows="4" required placeholder="Arrivals, cleaning, transfers, guest services"></textarea>
+            <span data-i18n="formNeeds">Operational needs</span>
+            <textarea name="needs" rows="4" required placeholder="Arrivals, cleaning, transfers, guest services" data-i18n-attr="placeholder:formNeedsPlaceholder"></textarea>
           </label>
         </div>
         <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit">Send pilot request</button>
-          <p class="pilot-form__hint" data-pilot-response>Your email client will open with a prepared request.</p>
+          <button class="button button--primary" type="submit" data-i18n="formSubmit">Send pilot request</button>
+          <p class="pilot-form__hint" data-pilot-response data-i18n="formHint">Your email client will open with a prepared request.</p>
         </div>
       </form>
     </section>
@@ -113,26 +113,195 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p>Calm hospitality operations for coastal properties.</p>
+      <p data-i18n="footerDescription">Calm hospitality operations for coastal properties.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services">Services</a>
-      <a href="/partners">Partners</a>
-      <a href="/demo/operations">Demo</a>
-      <a href="/guest/a-302">Guest Portal</a>
-      <a href="/pilot-access">Pilot Access</a>
+      <a href="/services" data-i18n="navServices">Services</a>
+      <a href="/partners" data-i18n="navPartners">Partners</a>
+      <a href="/demo/operations" data-i18n="navDemo">Demo</a>
+      <a href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:blackseaconnect@orange.fr">blackseaconnect@orange.fr</a>
-      <p>We use the pilot request to judge fit and suggest the smallest useful next step.</p>
+      <a href="mailto:blackseaconnect@orange.fr" data-i18n="footerEmail">blackseaconnect@orange.fr</a>
+      <p data-i18n="footerMeta">We use the pilot request to judge fit and suggest the smallest useful next step.</p>
     </div>
   </footer>
 
   <script>
     window.BLACKSEA_I18N = {
-      translations: { bg: {}, en: {}, fr: {}, ru: {} },
+      translations: {
+        bg: {
+          navHome: "Начало",
+          navServices: "Услуги",
+          navDemo: "Демо",
+          navGuestPortal: "Портал за гости",
+          navPartners: "Партньори",
+          navPilotAccess: "Пилотен достъп",
+          pilotDemoCta: "Виж демото",
+          pilotEyebrow: "Пилотен достъп",
+          pilotTitle: "Заявете тих пилот и ще отговорим с практична стъпка за внедряване.",
+          pilotIntro: "Споделете типа имот, региона и нуждите от работа. Ще използваме този контекст, за да преценим подходящостта и да върнем реалистична следваща стъпка, не търговски натиск.",
+          pilotPrimaryCta: "Отвори формата",
+          pilotSecondaryCta: "Прегледай услугите",
+          pilotTertiaryCta: "Виж партньорската мрежа",
+          pilotChip1: "частен пилот",
+          pilotChip2: "отговор до 1 работен ден",
+          pilotChip3: "без публичен списък",
+          pilotChip4: "проверка на оперативния fit",
+          pilotSectionEyebrow: "Онбординг",
+          pilotSectionTitle: "Разкажете ни за имота и начина, по който работи екипът.",
+          pilotSectionCopy: "Запитването е кратко: достатъчно контекст, за да разберем имота, региона и оперативния fit, без да го превръщаме в тежък процес.",
+          pilotTrust: "Частен пилот | Без публичен списък | Отговор до 1 работен ден",
+          formName: "Име",
+          formEmail: "Имейл",
+          formPropertyType: "Тип имот",
+          formPropertyTypePlaceholder: "Изберете тип имот",
+          pilotPropertyOption1: "Луксозен апартамент",
+          pilotPropertyOption2: "Бутиков хотел",
+          pilotPropertyOption3: "Вила / резиденция",
+          pilotPropertyOption4: "Смесено портфолио",
+          formRegion: "Регион",
+          formRegionPlaceholder: "Марина Варна",
+          formPropertyCount: "Брой имоти",
+          formPropertyCountPlaceholder: "18",
+          formNeeds: "Оперативни нужди",
+          formNeedsPlaceholder: "Пристигания, почистване, трансфери, услуги за гости",
+          formSubmit: "Изпрати заявката",
+          formHint: "Вашият имейл клиент ще се отвори с подготвена заявка.",
+          footerDescription: "Спокойни оперативни решения за имоти по крайбрежието.",
+          footerEmail: "blackseaconnect@orange.fr",
+          footerMeta: "Използваме пилотната заявка, за да преценим fit и да предложим най-малката полезна следваща стъпка."
+        },
+        en: {
+          navHome: "Home",
+          navServices: "Services",
+          navDemo: "Demo",
+          navGuestPortal: "Guest Portal",
+          navPartners: "Partners",
+          navPilotAccess: "Pilot Access",
+          pilotDemoCta: "View demo",
+          pilotEyebrow: "Pilot access",
+          pilotTitle: "Request a quiet pilot and we'll reply with a practical rollout step.",
+          pilotIntro: "Share the property type, region and operating needs. We'll use that context to judge fit and respond with a realistic next step, not a sales flood.",
+          pilotPrimaryCta: "Open request form",
+          pilotSecondaryCta: "Review services",
+          pilotTertiaryCta: "Meet the partner network",
+          pilotChip1: "private pilot",
+          pilotChip2: "response in 1 business day",
+          pilotChip3: "no public listing",
+          pilotChip4: "operational fit check",
+          pilotSectionEyebrow: "Onboarding",
+          pilotSectionTitle: "Tell us about the property and the way the team works.",
+          pilotSectionCopy: "We keep the request short: enough context to understand the property, the region and the operational fit, without turning it into a heavy onboarding flow.",
+          pilotTrust: "Private pilot | No public listing | Response within 1 business day",
+          formName: "Name",
+          formEmail: "Email",
+          formPropertyType: "Property type",
+          formPropertyTypePlaceholder: "Select property type",
+          pilotPropertyOption1: "Luxury apartment",
+          pilotPropertyOption2: "Boutique hotel",
+          pilotPropertyOption3: "Villa / residence",
+          pilotPropertyOption4: "Mixed portfolio",
+          formRegion: "Region",
+          formRegionPlaceholder: "Varna Marina",
+          formPropertyCount: "Property count",
+          formPropertyCountPlaceholder: "18",
+          formNeeds: "Operational needs",
+          formNeedsPlaceholder: "Arrivals, cleaning, transfers, guest services",
+          formSubmit: "Send pilot request",
+          formHint: "Your email client will open with a prepared request.",
+          footerDescription: "Calm hospitality operations for coastal properties.",
+          footerEmail: "blackseaconnect@orange.fr",
+          footerMeta: "We use the pilot request to judge fit and suggest the smallest useful next step."
+        },
+        fr: {
+          navHome: "Accueil",
+          navServices: "Services",
+          navDemo: "Démo",
+          navGuestPortal: "Portail client",
+          navPartners: "Partenaires",
+          navPilotAccess: "Accès pilote",
+          pilotDemoCta: "Voir la démo",
+          pilotEyebrow: "Accès pilote",
+          pilotTitle: "Demandez un pilote discret et nous répondrons avec une étape de déploiement pratique.",
+          pilotIntro: "Partagez le type de bien, la région et les besoins opérationnels. Nous utiliserons ce contexte pour juger l'adéquation et renvoyer une prochaine étape réaliste, sans pression commerciale.",
+          pilotPrimaryCta: "Ouvrir le formulaire",
+          pilotSecondaryCta: "Voir les services",
+          pilotTertiaryCta: "Découvrir le réseau de partenaires",
+          pilotChip1: "pilote privé",
+          pilotChip2: "réponse sous 1 jour ouvré",
+          pilotChip3: "pas de listing public",
+          pilotChip4: "vérification de l'adéquation",
+          pilotSectionEyebrow: "Intégration",
+          pilotSectionTitle: "Parlez-nous du bien et de la façon dont l'équipe travaille.",
+          pilotSectionCopy: "Nous gardons la demande courte: assez de contexte pour comprendre le bien, la région et l'adéquation opérationnelle, sans en faire un long onboarding.",
+          pilotTrust: "Pilote privé | Pas de listing public | Réponse sous 1 jour ouvré",
+          formName: "Nom",
+          formEmail: "Email",
+          formPropertyType: "Type de bien",
+          formPropertyTypePlaceholder: "Choisir un type de bien",
+          pilotPropertyOption1: "Appartement de luxe",
+          pilotPropertyOption2: "Hôtel boutique",
+          pilotPropertyOption3: "Villa / résidence",
+          pilotPropertyOption4: "Portefeuille mixte",
+          formRegion: "Région",
+          formRegionPlaceholder: "Marina de Varna",
+          formPropertyCount: "Nombre de biens",
+          formPropertyCountPlaceholder: "18",
+          formNeeds: "Besoins opérationnels",
+          formNeedsPlaceholder: "Arrivées, ménage, transferts, services clients",
+          formSubmit: "Envoyer la demande",
+          formHint: "Votre client email s'ouvrira avec une demande préparée.",
+          footerDescription: "Des opérations hôtelières calmes pour les propriétés côtières.",
+          footerEmail: "blackseaconnect@orange.fr",
+          footerMeta: "Nous utilisons la demande pilote pour juger l'adéquation et proposer la plus petite prochaine étape utile."
+        },
+        ru: {
+          navHome: "Главная",
+          navServices: "Услуги",
+          navDemo: "Демо",
+          navGuestPortal: "Портал гостя",
+          navPartners: "Партнеры",
+          navPilotAccess: "Пилотный доступ",
+          pilotDemoCta: "Смотреть демо",
+          pilotEyebrow: "Пилотный доступ",
+          pilotTitle: "Запросите спокойный пилот, и мы ответим практичным шагом для запуска.",
+          pilotIntro: "Поделитесь типом объекта, регионом и операционными потребностями. Мы используем этот контекст, чтобы оценить fit и вернуть реалистичный следующий шаг, без продажного шума.",
+          pilotPrimaryCta: "Открыть форму",
+          pilotSecondaryCta: "Изучить услуги",
+          pilotTertiaryCta: "Познакомиться с партнерами",
+          pilotChip1: "частный пилот",
+          pilotChip2: "ответ в течение 1 рабочего дня",
+          pilotChip3: "без публичного листинга",
+          pilotChip4: "проверка операционного fit",
+          pilotSectionEyebrow: "Онбординг",
+          pilotSectionTitle: "Расскажите об объекте и о том, как работает команда.",
+          pilotSectionCopy: "Мы держим запрос коротким: достаточно контекста, чтобы понять объект, регион и операционный fit, без тяжелого онбординга.",
+          pilotTrust: "Частный пилот | Без публичного листинга | Ответ в течение 1 рабочего дня",
+          formName: "Имя",
+          formEmail: "Email",
+          formPropertyType: "Тип объекта",
+          formPropertyTypePlaceholder: "Выберите тип объекта",
+          pilotPropertyOption1: "Люкс-апартамент",
+          pilotPropertyOption2: "Бутик-отель",
+          pilotPropertyOption3: "Вилла / резиденция",
+          pilotPropertyOption4: "Смешанный портфель",
+          formRegion: "Регион",
+          formRegionPlaceholder: "Марина Варна",
+          formPropertyCount: "Количество объектов",
+          formPropertyCountPlaceholder: "18",
+          formNeeds: "Операционные потребности",
+          formNeedsPlaceholder: "Заезды, уборка, трансферы, услуги для гостей",
+          formSubmit: "Отправить запрос",
+          formHint: "Ваш почтовый клиент откроется с подготовленным запросом.",
+          footerDescription: "Спокойные операционные решения для прибрежных объектов.",
+          footerEmail: "blackseaconnect@orange.fr",
+          footerMeta: "Мы используем пилотный запрос, чтобы оценить fit и предложить самый полезный следующий шаг."
+        }
+      },
       defaultLang: "bg"
     };
   </script>

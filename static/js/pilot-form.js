@@ -36,6 +36,7 @@
 
   function getSelectOptionKey(option) {
     return (
+      option.getAttribute("data-value") ||
       option.getAttribute("data-value-key") ||
       option.getAttribute("data-i18n") ||
       (option.dataset && option.dataset.value) ||
@@ -125,7 +126,7 @@
 
     if (selectedOption) {
       const selectedText = getSelectOptionText(selectedOption);
-      input.value = selectedText;
+      input.value = selectedOption.getAttribute("data-value") || getSelectOptionKey(selectedOption);
       placeholder.hidden = true;
       valueNode.hidden = false;
       valueNode.textContent = selectedText;

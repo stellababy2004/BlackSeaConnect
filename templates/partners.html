@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,12 +12,12 @@
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/">Home</a>
-          <a class="site-nav__link" href="/services">Services</a>
-          <a class="site-nav__link" href="/demo/operations">Demo</a>
-          <a class="site-nav__link" href="/guest/a-302">Guest Portal</a>
-          <a class="site-nav__link is-active" href="/partners">Partners</a>
-          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
+          <a class="site-nav__link" href="/" data-i18n="partners.navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="partners.navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="partners.navDemo">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="partners.navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link is-active" href="/partners" data-i18n="partners.navPartners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="partners.navPilotAccess">Pilot Access</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -28,27 +28,27 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/pilot-access">Request pilot access</a>
+        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="partners.requestPilotCta">Request pilot access</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow">Trusted local network</p>
-        <h1>Reliable partners for coastal operations, guest support and daily follow-through.</h1>
-        <p class="hero__text">
+        <p class="eyebrow" data-i18n="partners.partnersEyebrow">Trusted local network</p>
+        <h1 data-i18n="partners.partnersTitle">Reliable partners for coastal operations, guest support and daily follow-through.</h1>
+        <p class="hero__text" data-i18n="partners.partnersIntro">
           A quieter way to work with local transfer desks, marina support, maintenance crews, cleaning teams and hospitality operators who understand the pace of property operations.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/services">See services</a>
-          <a class="button button--secondary" href="/guest/a-302">Open guest portal</a>
-          <a class="button button--tertiary" href="/pilot-access">Pilot access</a>
+          <a class="button button--primary" href="/services" data-i18n="partners.partnersPrimaryCta">See services</a>
+          <a class="button button--secondary" href="/guest/a-302" data-i18n="partners.partnersSecondaryCta">Open guest portal</a>
+          <a class="button button--tertiary" href="/pilot-access" data-i18n="partners.partnersTertiaryCta">Pilot access</a>
         </div>
         <div class="trust-strip" aria-label="Partner highlights">
-          <span class="trust-strip__chip">transfers</span>
-          <span class="trust-strip__chip">marina support</span>
-          <span class="trust-strip__chip">restaurants</span>
-          <span class="trust-strip__chip">maintenance</span>
+          <span class="trust-strip__chip" data-i18n="partners.partnerChip1">transfers</span>
+          <span class="trust-strip__chip" data-i18n="partners.partnerChip2">marina support</span>
+          <span class="trust-strip__chip" data-i18n="partners.partnerChip3">restaurants</span>
+          <span class="trust-strip__chip" data-i18n="partners.partnerChip4">maintenance</span>
         </div>
       </div>
     </div>
@@ -57,82 +57,76 @@
   <main>
     <section class="trust-layer" aria-labelledby="partners-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Partner network</p>
-        <h2 id="partners-title">The network stays focused, local and easy to trust.</h2>
+        <p class="section-heading__eyebrow" data-i18n="partners.partnersSectionEyebrow">Partner network</p>
+        <h2 id="partners-title" data-i18n="partners.partnersSectionTitle">The network stays focused, local and easy to trust.</h2>
       </div>
 
       <div class="trust-grid">
         <article class="trust-card">
-          <h3>Transfers</h3>
-          <p>Airport, marina and private car partners with predictable handoff timing and clear updates.</p>
+          <h3 data-i18n="partners.partner1Title">Transfers</h3>
+          <p data-i18n="partners.partner1Body">Airport, marina and private car partners with predictable handoff timing and clear updates.</p>
         </article>
         <article class="trust-card">
-          <h3>Marina support</h3>
-          <p>Local help for dock coordination, luggage flow and late arrival adjustments.</p>
+          <h3 data-i18n="partners.partner2Title">Marina support</h3>
+          <p data-i18n="partners.partner2Body">Local help for dock coordination, luggage flow and late arrival adjustments.</p>
         </article>
         <article class="trust-card">
-          <h3>Restaurants</h3>
-          <p>Dining partners chosen for consistency, calm service and dependable reservations.</p>
+          <h3 data-i18n="partners.partner3Title">Restaurants</h3>
+          <p data-i18n="partners.partner3Body">Dining partners chosen for consistency, calm service and dependable reservations.</p>
         </article>
         <article class="trust-card">
-          <h3>Maintenance</h3>
-          <p>Responsive repair and service partners for small issues that should not interrupt guests.</p>
+          <h3 data-i18n="partners.partner4Title">Maintenance</h3>
+          <p data-i18n="partners.partner4Body">Responsive repair and service partners for small issues that should not interrupt guests.</p>
         </article>
         <article class="trust-card">
-          <h3>Housekeeping</h3>
-          <p>Turnover teams and readiness checks that keep the property feeling steady and prepared.</p>
+          <h3 data-i18n="partners.partner5Title">Housekeeping</h3>
+          <p data-i18n="partners.partner5Body">Turnover teams and readiness checks that keep the property feeling steady and prepared.</p>
         </article>
         <article class="trust-card">
-          <h3>Local operators</h3>
-          <p>Trusted local support for guest requests, special arrangements and operational follow-through.</p>
+          <h3 data-i18n="partners.partner6Title">Local operators</h3>
+          <p data-i18n="partners.partner6Body">Trusted local support for guest requests, special arrangements and operational follow-through.</p>
         </article>
       </div>
 
       <div class="trust-strip" aria-label="Partner indicators">
-        <span class="trust-strip__chip">vetted operators</span>
-        <span class="trust-strip__chip">quiet handoffs</span>
-        <span class="trust-strip__chip">service reliability</span>
-        <span class="trust-strip__chip">local accountability</span>
+        <span class="trust-strip__chip" data-i18n="partners.partnerIndicator1">vetted operators</span>
+        <span class="trust-strip__chip" data-i18n="partners.partnerIndicator2">quiet handoffs</span>
+        <span class="trust-strip__chip" data-i18n="partners.partnerIndicator3">service reliability</span>
+        <span class="trust-strip__chip" data-i18n="partners.partnerIndicator4">local accountability</span>
       </div>
     </section>
 
     <section class="cta-panel" aria-labelledby="partners-cta-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Operational fit</p>
-        <h2 id="partners-cta-title">Make the partner network visible in the same calm system.</h2>
-        <p class="cta-panel__copy">Use the services page to see how these partners connect to guest arrivals, cleaning, transfers and concierge support.</p>
+        <p class="section-heading__eyebrow" data-i18n="partners.partnersNextEyebrow">Operational fit</p>
+        <h2 id="partners-cta-title" data-i18n="partners.partnersNextTitle">Make the partner network visible in the same calm system.</h2>
+        <p class="cta-panel__copy" data-i18n="partners.partnersNextCopy">Use the services page to see how these partners connect to guest arrivals, cleaning, transfers and concierge support.</p>
       </div>
-      <a class="button button--primary" href="/services">View services</a>
-      <a class="button button--secondary" href="/pilot-access">Request pilot access</a>
+      <a class="button button--primary" href="/services" data-i18n="partners.partnersNextPrimary">View services</a>
+      <a class="button button--secondary" href="/pilot-access" data-i18n="partners.partnersNextSecondary">Request pilot access</a>
     </section>
   </main>
 
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p>Calm hospitality operations for coastal properties.</p>
+      <p data-i18n="partners.footerDescription">Calm hospitality operations for coastal properties.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services">Services</a>
-      <a href="/partners">Partners</a>
-      <a href="/demo/operations">Demo</a>
-      <a href="/guest/a-302">Guest Portal</a>
-      <a href="/pilot-access">Pilot Access</a>
+      <a href="/services" data-i18n="partners.navServices">Services</a>
+      <a href="/partners" data-i18n="partners.navPartners">Partners</a>
+      <a href="/demo/operations" data-i18n="partners.navDemo">Demo</a>
+      <a href="/guest/a-302" data-i18n="partners.navGuestPortal">Guest Portal</a>
+      <a href="/pilot-access" data-i18n="partners.navPilotAccess">Pilot Access</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:blackseaconnect@orange.fr">blackseaconnect@orange.fr</a>
-      <p>Trusted local operators for hospitality teams that value quiet coordination.</p>
+      <a href="mailto:blackseaconnect@orange.fr" data-i18n="partners.footerEmail">blackseaconnect@orange.fr</a>
+      <p data-i18n="partners.footerMeta">Trusted local operators for hospitality teams that value quiet coordination.</p>
     </div>
   </footer>
-
-  <script>
-    window.BLACKSEA_I18N = {
-      translations: { bg: {}, en: {}, fr: {}, ru: {} },
-      defaultLang: "bg"
-    };
-  </script>
+<script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
