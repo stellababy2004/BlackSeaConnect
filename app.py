@@ -1,6 +1,16 @@
 from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
+app.json.ensure_ascii = False
+
+
+@app.after_request
+def force_utf8_charset(response):
+    mimetype = response.mimetype or ""
+    if mimetype.startswith("text/") or mimetype == "application/json" or mimetype == "application/javascript":
+        if "charset=" not in (response.headers.get("Content-Type", "") or "").lower():
+            response.headers["Content-Type"] = f"{mimetype}; charset=utf-8"
+    return response
 
 
 @app.route("/")

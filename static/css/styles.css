@@ -41,7 +41,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   background:
     radial-gradient(circle at 50% 14%, rgba(255, 225, 185, 0.06), transparent 16%),
     radial-gradient(circle at 50% -8%, rgba(255, 198, 139, 0.14), transparent 26%),
@@ -7017,6 +7017,1864 @@ body::after {
 .site-footer__links {
     gap: 14px;
     flex-wrap: wrap;
+}
+
+/* Cyrillic-safe typography fallbacks for editorial headings and body copy. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.section-heading,
+.section-heading h2,
+.operations-panel h2,
+.operations-panel h3 {
+    font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, "Times New Roman", "Noto Serif", serif;
+}
+
+.hero__copy .hero__text,
+.operations-hero__text,
+.operations-panel__copy,
+.operations-modal__copy,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p,
+.guest-portal-page .guest-portal-timeline__time,
+.guest-portal-page .guest-portal-timeline__tag,
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p,
+.site-footer__links a {
+    font-family: "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Final premium clarity pass: keep the marina cinematic, but let it breathe. */
+body::before {
+    opacity: 0.30 !important;
+    filter: saturate(1.03) contrast(1.05) brightness(1.02) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 250, 244, 0.06), rgba(244, 239, 230, 0.02) 34%, transparent 100%),
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.05), transparent 22%),
+        radial-gradient(circle at 50% 62%, rgba(108, 166, 189, 0.03), transparent 30%);
+}
+
+body::after {
+    opacity: 0.09 !important;
+    mix-blend-mode: screen;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(248, 243, 236, 0.015) 38%, transparent),
+        radial-gradient(circle at 18% 18%, rgba(236, 206, 156, 0.03), transparent 26%),
+        radial-gradient(circle at 80% 16%, rgba(159, 224, 230, 0.025), transparent 24%);
+}
+
+.hero__copy,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact {
+    backdrop-filter: blur(16px) saturate(118%) !important;
+}
+
+.hero__copy,
+.guest-portal-page .guest-portal-header {
+    position: relative;
+    isolation: isolate;
+}
+
+.hero__copy::before,
+.guest-portal-page .guest-portal-header::before {
+    content: "";
+    position: absolute;
+    inset: -10px -8px;
+    z-index: -1;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(255, 251, 244, 0.52), rgba(255, 251, 244, 0.12) 42%, transparent 72%),
+        linear-gradient(180deg, rgba(255, 250, 242, 0.24), rgba(248, 242, 233, 0.04));
+    filter: blur(10px);
+    opacity: 0.72;
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.18),
+        0 10px 24px rgba(16, 31, 45, 0.08);
+}
+
+.hero__copy .hero__text,
+.operations-hero__text,
+.operations-panel__copy,
+.operations-modal__copy,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p,
+.guest-portal-page .guest-portal-timeline__time,
+.guest-portal-page .guest-portal-timeline__tag {
+    color: rgba(28, 43, 56, 0.95) !important;
+}
+
+.guest-portal-page .guest-qr-visual,
+.guest-portal-page .guest-access-card__qr,
+.guest-portal-page .guest-portal-qr__code {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(243, 246, 246, 0.88)) !important;
+    border: 1px solid rgba(18, 32, 46, 0.12) !important;
+    box-shadow:
+        0 18px 32px rgba(16, 31, 45, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+.guest-portal-page .guest-qr-visual {
+    width: 126px;
+    padding: 14px 13px 12px;
+    border-radius: 24px;
+}
+
+.guest-portal-page .qr-tile__label {
+    color: rgba(19, 33, 46, 0.72) !important;
+    letter-spacing: 0.11em;
+}
+
+.guest-portal-page .qr-tile__surface {
+    max-width: 92px;
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 242, 0.92)) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(18, 32, 46, 0.08),
+        inset 0 8px 16px rgba(18, 32, 46, 0.04);
+}
+
+.guest-portal-page .qr-tile__surface::before {
+    opacity: 0.22 !important;
+    background-size: 9px 9px;
+}
+
+.guest-portal-page .qr-tile__finder {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: #102030;
+}
+
+.guest-portal-page .qr-tile__finder::before {
+    inset: 4px;
+    background: rgba(247, 248, 245, 0.98);
+}
+
+.guest-portal-page .qr-tile__finder::after {
+    inset: 7px;
+    background: #102030;
+}
+
+.guest-portal-page .qr-tile__module {
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    background: #102030;
+}
+
+.guest-portal-page .guest-qr-visual .qr-tile__label + .qr-tile__surface {
+    margin-top: 8px;
+}
+
+.site-footer {
+    padding-block: 28px;
+    border-top: 1px solid rgba(18, 32, 46, 0.08);
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p,
+.site-footer__links a {
+    color: rgba(33, 49, 61, 0.82) !important;
+    font-weight: 500;
+}
+
+/* Marina clarity pass: preserve atmosphere, let the photography breathe. */
+body::before {
+    opacity: 0.18 !important;
+    filter: saturate(1.08) contrast(1.06) brightness(1.01) !important;
+    background:
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.08), transparent 18%),
+        radial-gradient(circle at 20% 18%, rgba(176, 194, 210, 0.05), transparent 22%),
+        radial-gradient(circle at 80% 20%, rgba(206, 176, 219, 0.045), transparent 20%),
+        linear-gradient(180deg, rgba(255, 252, 247, 0.06), rgba(247, 242, 234, 0.02) 38%, transparent 100%);
+}
+
+body::after {
+    opacity: 0.06 !important;
+    mix-blend-mode: screen;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(248, 243, 236, 0.01) 42%, rgba(242, 237, 229, 0.008)),
+        radial-gradient(circle at 18% 18%, rgba(236, 206, 156, 0.03), transparent 26%),
+        radial-gradient(circle at 80% 16%, rgba(159, 224, 230, 0.025), transparent 24%);
+}
+
+main::before {
+    opacity: 0.24 !important;
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.18) 0%, rgba(250, 246, 238, 0.06) 18%, transparent 36%, transparent 64%, rgba(247, 242, 233, 0.08) 100%),
+        radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.08), transparent 22%),
+        radial-gradient(circle at 50% 76%, rgba(17, 38, 58, 0.03), transparent 26%);
+}
+
+.hero::before,
+.operations-demo-page::before,
+.guest-portal-page::before {
+    opacity: 0.16 !important;
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.08), rgba(250, 246, 238, 0.025) 18%, transparent 46%, rgba(244, 240, 232, 0.05) 100%),
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.06), transparent 22%),
+        linear-gradient(90deg, rgba(250, 246, 238, 0.03), transparent 20%, transparent 80%, rgba(15, 34, 48, 0.02));
+}
+
+.hero__backdrop::before,
+.hero__backdrop::after {
+    opacity: 0.14 !important;
+}
+
+.hero__glow--sunset,
+.hero__glow--sea,
+.hero__glow--mist,
+.hero__reflection,
+.hero__rays,
+.hero__harbor-lights {
+    opacity: 0.12 !important;
+}
+
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+    backdrop-filter: blur(6px) saturate(108%) !important;
+}
+
+.hero__copy,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel {
+    backdrop-filter: blur(4px) saturate(104%) !important;
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid {
+    gap: 18px !important;
+}
+
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 14px !important;
+}
+
+.feature-grid > .feature-card:nth-child(2n),
+.trust-grid > .trust-card:nth-child(3n+2),
+.operations-grid > .operations-panel:nth-child(2n) {
+    transform: translateY(6px);
+}
+
+.feature-grid > .feature-card:nth-child(3n),
+.trust-grid > .trust-card:nth-child(3n),
+.operations-grid > .operations-panel:nth-child(3n) {
+    transform: translateY(10px);
+}
+
+.feature-card:hover,
+.trust-card:hover,
+.cta-panel:hover,
+.operations-panel:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover,
+.operations-hero__preview:hover {
+    transform: translateY(-2px);
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12), 0 6px 12px rgba(16, 31, 44, 0.025) !important;
+}
+
+.site-footer {
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.68), rgba(247, 242, 234, 0.58)) !important;
+}
+
+@media (max-width: 768px) {
+    .feature-grid > .feature-card:nth-child(2n),
+    .trust-grid > .trust-card:nth-child(3n+2),
+    .operations-grid > .operations-panel:nth-child(2n),
+    .feature-grid > .feature-card:nth-child(3n),
+    .trust-grid > .trust-card:nth-child(3n) {
+        transform: none;
+    }
+
+    .topbar,
+    .guest-portal-topbar,
+    .operations-topbar,
+    .hero--home .topbar {
+        backdrop-filter: blur(4px) saturate(106%) !important;
+    }
+}
+
+/* Final luxury art-direction pass: quieter shadows, richer depth, less demo-grid symmetry. */
+body {
+    font-family: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+h1, h2, h3, .brand, .operations-brand,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.operations-hero h1,
+.preview-card h2,
+.preview-card h3 {
+    font-family: "Iowan Old Style", "Georgia", "Times New Roman", serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.035em;
+}
+
+body::before {
+    opacity: 0.36 !important;
+    background:
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.12), transparent 22%),
+        radial-gradient(circle at 18% 18%, rgba(180, 195, 210, 0.08), transparent 26%),
+        radial-gradient(circle at 80% 20%, rgba(198, 173, 214, 0.07), transparent 24%),
+        linear-gradient(180deg, rgba(255, 252, 247, 0.1), rgba(247, 242, 234, 0.04) 34%, transparent 100%);
+}
+
+body::after {
+    opacity: 0.1 !important;
+}
+
+main::before {
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.46) 0%, rgba(250, 246, 238, 0.18) 16%, transparent 34%, transparent 62%, rgba(247, 242, 234, 0.14) 100%),
+        radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.16), transparent 28%),
+        radial-gradient(circle at 50% 76%, rgba(17, 38, 58, 0.045), transparent 32%);
+    opacity: 0.95;
+}
+
+.hero::before,
+.operations-demo-page::before,
+.guest-portal-page::before {
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.16), rgba(250, 246, 238, 0.06) 18%, transparent 46%, rgba(244, 240, 232, 0.08) 100%),
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.1), transparent 26%),
+        linear-gradient(90deg, rgba(250, 246, 238, 0.06), transparent 20%, transparent 80%, rgba(15, 34, 48, 0.045));
+}
+
+.hero__copy,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel {
+    box-shadow:
+        0 18px 40px rgba(24, 42, 61, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(5px) saturate(104%) !important;
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    color: rgba(14, 32, 50, 0.96) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18), 0 8px 14px rgba(16, 31, 44, 0.03) !important;
+}
+
+.operations-hero__text,
+.hero__text,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.operations-panel__copy,
+.operations-modal__copy,
+.operations-notification p,
+.operations-list__item p,
+.operations-kpi p,
+.operations-overview__item strong + time,
+.operations-workflow__step span,
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    color: rgba(20, 37, 50, 0.88) !important;
+    line-height: 1.72 !important;
+}
+
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+    padding: 8px 12px !important;
+    gap: 12px !important;
+    border-color: rgba(255, 255, 255, 0.34) !important;
+    box-shadow: 0 12px 32px rgba(24, 42, 61, 0.09) !important;
+}
+
+.site-nav {
+    gap: 6px !important;
+}
+
+.site-nav__link {
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.71rem !important;
+    letter-spacing: 0.05em !important;
+}
+
+.language-switcher {
+    padding: 5px 9px !important;
+}
+
+.language-switcher__button {
+    font-size: 0.76rem !important;
+}
+
+.button,
+.operations-button,
+.guest-action,
+.guest-action-danger,
+.operations-floating-cta {
+    min-height: 44px !important;
+    padding-inline: 17px !important;
+}
+
+.hero__cta,
+.operations-hero__cta-row {
+    gap: 10px !important;
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid {
+    gap: 18px !important;
+}
+
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 14px !important;
+}
+
+.feature-grid > .feature-card:nth-child(2n),
+.trust-grid > .trust-card:nth-child(3n+2),
+.operations-grid > .operations-panel:nth-child(2n) {
+    transform: translateY(8px);
+}
+
+.feature-grid > .feature-card:nth-child(3n),
+.trust-grid > .trust-card:nth-child(3n),
+.operations-grid > .operations-panel:nth-child(3n) {
+    transform: translateY(14px);
+}
+
+.feature-card,
+.trust-card,
+.cta-panel,
+.operations-panel,
+.operations-hero__preview,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card {
+    transition: transform 420ms ease, box-shadow 420ms ease, border-color 420ms ease, background 420ms ease;
+}
+
+.feature-card:hover,
+.trust-card:hover,
+.cta-panel:hover,
+.operations-panel:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover,
+.operations-hero__preview:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 22px 52px rgba(24, 42, 61, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
+}
+
+.site-footer {
+    padding: 14px 0 20px !important;
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.72), rgba(247, 242, 234, 0.64)) !important;
+    border-top: 1px solid rgba(17, 48, 73, 0.08) !important;
+}
+
+.site-footer__brand strong {
+    font-weight: 650 !important;
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    font-weight: 400 !important;
+}
+
+.site-footer__links a {
+    font-weight: 500 !important;
+}
+
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    background: rgba(255, 252, 247, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-timeline__item,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+}
+
+@media (max-width: 768px) {
+    .feature-grid > .feature-card:nth-child(2n),
+    .trust-grid > .trust-card:nth-child(3n+2),
+    .operations-grid > .operations-panel:nth-child(2n),
+    .feature-grid > .feature-card:nth-child(3n),
+    .trust-grid > .trust-card:nth-child(3n) {
+        transform: none;
+    }
+
+    .topbar,
+    .guest-portal-topbar,
+    .operations-topbar,
+    .hero--home .topbar {
+        padding: 8px 10px !important;
+    }
+}
+
+/* High-end realism pass: softer title depth, quieter background, less grid-like rhythm. */
+body::before {
+    opacity: 0.44 !important;
+}
+
+body::after {
+    opacity: 0.12 !important;
+}
+
+main {
+    position: relative;
+}
+
+main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.42) 0%, rgba(250, 246, 238, 0.14) 18%, transparent 36%, transparent 64%, rgba(246, 241, 232, 0.14) 100%),
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.14), transparent 26%),
+        radial-gradient(circle at 50% 76%, rgba(16, 40, 60, 0.05), transparent 30%);
+    opacity: 0.92;
+    z-index: 0;
+}
+
+main > * {
+    position: relative;
+    z-index: 1;
+}
+
+.hero::before,
+.operations-demo-page::before,
+.guest-portal-page::before {
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.22), rgba(250, 246, 238, 0.06) 18%, transparent 44%, rgba(244, 240, 232, 0.1) 100%),
+        radial-gradient(circle at 50% 16%, rgba(255, 255, 255, 0.12), transparent 30%),
+        linear-gradient(90deg, rgba(250, 246, 238, 0.08), transparent 18%, transparent 82%, rgba(15, 34, 48, 0.06));
+}
+
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+    padding: 9px 12px !important;
+    gap: 12px !important;
+}
+
+.topbar__actions {
+    gap: 10px !important;
+}
+
+.site-nav {
+    gap: 6px !important;
+}
+
+.site-nav__link {
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.71rem !important;
+}
+
+.language-switcher {
+    padding: 5px 9px !important;
+}
+
+.language-switcher__button {
+    font-size: 0.76rem !important;
+}
+
+.button,
+.operations-button,
+.guest-action,
+.guest-action-danger,
+.operations-floating-cta {
+    min-height: 44px !important;
+    padding-inline: 17px !important;
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    color: rgba(14, 32, 50, 0.97) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.24), 0 8px 18px rgba(16, 31, 44, 0.04) !important;
+}
+
+.section-heading,
+.section-heading--trust,
+.section-heading--product,
+.credibility-layer,
+.trust-layer,
+.operator-presence,
+.pilot-contact,
+.cta-panel,
+.site-footer {
+    margin-bottom: 18px !important;
+}
+
+.hero__cta,
+.operations-hero__cta-row {
+    gap: 10px !important;
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid {
+    gap: 18px !important;
+}
+
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 14px !important;
+}
+
+.feature-grid > .feature-card:nth-child(2n),
+.trust-grid > .trust-card:nth-child(3n+2),
+.operations-grid > .operations-panel:nth-child(2n),
+.guest-portal-page .guest-card:nth-of-type(2n) {
+    transform: translateY(6px);
+}
+
+.feature-grid > .feature-card:nth-child(3n),
+.trust-grid > .trust-card:nth-child(3n),
+.operations-grid > .operations-panel:nth-child(3n) {
+    transform: translateY(10px);
+}
+
+.hero__copy,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel {
+    backdrop-filter: blur(6px) saturate(106%) !important;
+}
+
+.site-footer {
+    padding: 14px 0 20px !important;
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.74), rgba(247, 242, 234, 0.66)) !important;
+}
+
+.site-footer__brand strong {
+    font-weight: 650 !important;
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+.site-footer__links a {
+    font-weight: 500 !important;
+}
+
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    background: rgba(255, 252, 247, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-timeline__item,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+
+@media (max-width: 768px) {
+    .feature-grid > .feature-card:nth-child(2n),
+    .trust-grid > .trust-card:nth-child(3n+2),
+    .operations-grid > .operations-panel:nth-child(2n),
+    .feature-grid > .feature-card:nth-child(3n),
+    .trust-grid > .trust-card:nth-child(3n) {
+        transform: none;
+    }
+}
+
+/* Final realism pass: tighter nav, quieter background, more product-like rhythm. */
+body::before {
+    opacity: 0.52 !important;
+}
+
+body::after {
+    opacity: 0.16 !important;
+}
+
+main {
+    position: relative;
+}
+
+main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(250, 246, 238, 0.38) 0%, rgba(250, 246, 238, 0.18) 18%, transparent 34%, transparent 68%, rgba(247, 242, 233, 0.12) 100%),
+        radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 76%, rgba(23, 56, 83, 0.06), transparent 28%);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+main > * {
+    position: relative;
+    z-index: 1;
+}
+
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+    padding: 10px 14px !important;
+    gap: 14px !important;
+}
+
+.topbar__actions {
+    gap: 10px !important;
+}
+
+.site-nav {
+    gap: 6px !important;
+}
+
+.site-nav__link {
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 0.72rem !important;
+}
+
+.language-switcher {
+    padding: 6px 10px !important;
+}
+
+.language-switcher__button {
+    font-size: 0.78rem !important;
+}
+
+.button,
+.operations-button,
+.guest-action,
+.guest-action-danger,
+.operations-floating-cta {
+    min-height: 46px !important;
+    padding: 0 18px !important;
+}
+
+.hero__copy,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel {
+    backdrop-filter: blur(6px) saturate(108%) !important;
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    color: rgba(14, 32, 50, 0.98) !important;
+    text-shadow: 0 1px 12px rgba(255, 255, 255, 0.16), 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+}
+
+.hero__text,
+.operations-hero__text,
+.guest-portal-page .guest-portal-header__text {
+    max-width: 60ch;
+}
+
+.section-heading,
+.section-heading--trust,
+.section-heading--product,
+.trust-layer,
+.credibility-layer,
+.operator-presence,
+.pilot-contact,
+.cta-panel,
+.site-footer {
+    margin-bottom: 20px !important;
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid,
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 16px !important;
+}
+
+.hero__cta,
+.operations-hero__cta-row {
+    gap: 10px !important;
+}
+
+.site-footer {
+    padding: 14px 0 20px !important;
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.76), rgba(247, 242, 234, 0.68)) !important;
+}
+
+.site-footer__brand strong {
+    font-weight: 650 !important;
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+.site-footer__links a {
+    font-weight: 500 !important;
+}
+
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    background: rgba(255, 252, 247, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-timeline__item,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Final premium refinement: cleaner glass, clearer hero, lighter footer rhythm. */
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+    backdrop-filter: blur(8px) saturate(112%) !important;
+    background: rgba(255, 255, 255, 0.76) !important;
+}
+
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel,
+.pilot-contact,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    backdrop-filter: blur(8px) saturate(112%) !important;
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    color: rgba(17, 38, 58, 0.98) !important;
+    text-shadow: 0 1px 14px rgba(255, 255, 255, 0.12), 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+}
+
+.hero__text,
+.operations-hero__text,
+.guest-portal-page .guest-portal-header__text {
+    max-width: 62ch;
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid,
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 18px !important;
+}
+
+.hero__cta,
+.operations-hero__cta-row,
+.cta-panel,
+.site-footer {
+    gap: 12px !important;
+}
+
+.section-heading,
+.section-heading--trust,
+.section-heading--product,
+.trust-layer,
+.credibility-layer,
+.operator-presence,
+.pilot-contact,
+.cta-panel,
+.site-footer {
+    margin-bottom: 22px !important;
+}
+
+.site-footer {
+    padding: 18px 0 24px !important;
+    border-top: 1px solid rgba(17, 48, 73, 0.08) !important;
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.8), rgba(247, 242, 234, 0.72)) !important;
+}
+
+.site-footer__brand strong {
+    font-weight: 650 !important;
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    font-weight: 400 !important;
+    line-height: 1.55 !important;
+}
+
+.site-footer__links a {
+    font-weight: 500 !important;
+}
+
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    background: rgba(255, 252, 247, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-timeline__item,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+}
+
+/* Guest portal readability fix: keep the ivory/glass look, but force dark text. */
+.guest-portal-page .guest-portal-hero *,
+.guest-portal-page .guest-card *,
+.guest-portal-page .guest-portal-header *,
+.guest-portal-page .guest-portal-card *,
+.guest-portal-page .guest-status-item *,
+.guest-portal-page .guest-access-box *,
+.guest-portal-page .guest-arrival-step *,
+.guest-portal-page .guest-digital-welcome *,
+.guest-portal-page .guest-welcome-card *,
+.guest-portal-page .guest-service-item *,
+.guest-portal-page .guest-network-note *,
+.guest-portal-page .guest-qr-block *,
+.guest-portal-page .guest-qr-visual *,
+.guest-portal-page .guest-action,
+.guest-portal-page .guest-action-danger,
+.guest-portal-page .guest-live-chip,
+.guest-portal-page .guest-trust-chip {
+    color: rgba(15, 36, 58, 0.96) !important;
+    text-shadow: none !important;
+}
+
+.guest-portal-page .guest-eyebrow,
+.guest-portal-page .guest-card-top span:first-child,
+.guest-portal-page .guest-portal-header__eyebrow,
+.guest-portal-page .guest-portal-card__label,
+.guest-portal-page .guest-arrival-pill,
+.guest-portal-page .guest-live-chip--live,
+.guest-portal-page .guest-trust-chip,
+.guest-portal-page .guest-portal-status span,
+.guest-portal-page .guest-portal-info span,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-timeline__tag,
+.guest-portal-page .guest-portal-timeline__time {
+    color: rgba(184, 138, 63, 0.92) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-status strong,
+.guest-portal-page .guest-portal-info strong,
+.guest-portal-page .guest-portal-service strong,
+.guest-portal-page .guest-portal-timeline__body strong,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p {
+    color: rgba(15, 36, 58, 0.96) !important;
+}
+
+/* Guest portal contrast correction for the Riviera light theme */
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(248, 242, 233, 0.92)) !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-status strong,
+.guest-portal-page .guest-portal-info strong,
+.guest-portal-page .guest-portal-service strong,
+.guest-portal-page .guest-portal-timeline__body strong,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p,
+.guest-portal-page .guest-portal-timeline__time,
+.guest-portal-page .guest-portal-timeline__tag {
+    color: rgba(15, 36, 58, 0.96) !important;
+    text-shadow: none !important;
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    letter-spacing: -0.055em;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-timeline__item,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(18, 48, 73, 0.08) !important;
+}
+
+.guest-portal-page .guest-action,
+.guest-portal-page .guest-action-danger {
+    background: rgba(255, 255, 255, 0.76) !important;
+    color: rgba(15, 36, 58, 0.92) !important;
+}
+
+.guest-portal-page .guest-action-danger {
+    background: linear-gradient(135deg, rgba(255, 241, 220, 0.96), rgba(240, 220, 181, 0.84)) !important;
+}
+
+/* ==========================================================================
+   Luxury Riviera refinement layer
+   Keeps structure intact while shifting the system to a brighter, calmer,
+   premium coastal hospitality aesthetic.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --bg: #f3efe7;
+  --bg-deep: #dfe7ec;
+  --sea-abyss: #13324b;
+  --sea-deep: #1c5474;
+  --sea-mid: #4a86a8;
+  --sea-surface: #acd3e3;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.82);
+  --surface-soft: rgba(255, 255, 255, 0.56);
+  --surface-line: rgba(22, 48, 72, 0.1);
+  --text: #10263d;
+  --muted: rgba(16, 38, 61, 0.72);
+  --accent: #2f7ea3;
+  --accent-strong: #1e5f84;
+  --sand: #d8b56d;
+  --sunset: #b68bdf;
+  --sunset-soft: rgba(182, 139, 223, 0.22);
+  --marina-light: rgba(240, 219, 182, 0.28);
+  --success: #2f8f72;
+  --shadow: 0 24px 72px rgba(20, 39, 58, 0.14);
+  --shadow-lux: 0 32px 96px rgba(20, 39, 58, 0.16);
+  --shadow-lift: 0 18px 42px rgba(20, 39, 58, 0.1);
+}
+
+html {
+  background: #edf1ee;
+}
+
+body {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  background:
+    linear-gradient(180deg, rgba(249, 245, 236, 0.78), rgba(239, 244, 246, 0.7) 32%, rgba(226, 235, 240, 0.8) 100%),
+    url("/static/img/saint-vlas.jpg") center center / cover fixed no-repeat;
+  color: var(--text);
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.42), transparent 16%),
+    radial-gradient(circle at 72% 20%, rgba(255, 232, 192, 0.28), transparent 20%),
+    radial-gradient(circle at 56% 58%, rgba(134, 190, 219, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.08));
+  opacity: 0.78;
+}
+
+body::after {
+  background:
+    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.2), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 20%, transparent 80%, rgba(17, 35, 53, 0.08));
+  opacity: 0.6;
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+h1, h2, h3, .brand, .operations-brand {
+  font-family: "Cormorant Garamond", "Iowan Old Style", "Baskerville", Georgia, serif;
+  font-weight: 700;
+}
+
+main {
+  padding-bottom: 54px;
+}
+
+.hero,
+.hero--home {
+  background:
+    linear-gradient(180deg, rgba(248, 243, 233, 0.22), rgba(242, 247, 249, 0.08) 24%, rgba(237, 243, 246, 0.04) 68%, rgba(224, 233, 238, 0.1) 100%),
+    url("/static/img/saint-vlas.jpg") center center / cover no-repeat;
+}
+
+.hero::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 18%, transparent 88%, rgba(19, 40, 57, 0.08)),
+    radial-gradient(circle at 50% 16%, rgba(255, 235, 206, 0.16), transparent 26%),
+    linear-gradient(90deg, rgba(245, 246, 248, 0.12), transparent 14%, transparent 86%, rgba(17, 35, 53, 0.08));
+}
+
+.hero__backdrop::before,
+.hero__backdrop::after {
+  opacity: 0.42;
+}
+
+.hero__glow--sunset {
+  background: radial-gradient(circle, rgba(255, 208, 155, 0.22) 0%, rgba(255, 208, 155, 0.11) 30%, rgba(255, 218, 179, 0.04) 54%, transparent 80%);
+}
+
+.hero__glow--sea {
+  background: radial-gradient(circle, rgba(100, 178, 210, 0.16) 0%, rgba(100, 178, 210, 0.07) 34%, transparent 72%);
+}
+
+.hero__glow--mist {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+}
+
+.topbar,
+.guest-portal-topbar,
+.operations-topbar,
+.hero--home .topbar {
+  border-color: rgba(255, 255, 255, 0.32);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.58)),
+    rgba(248, 250, 251, 0.46);
+  box-shadow: 0 18px 48px rgba(21, 39, 58, 0.14);
+  backdrop-filter: blur(24px) saturate(122%);
+}
+
+.topbar:hover,
+.guest-portal-topbar:hover,
+.operations-topbar:hover,
+.hero--home .topbar:hover {
+  box-shadow: 0 24px 58px rgba(21, 39, 58, 0.16);
+}
+
+.brand,
+.operations-brand {
+  color: #10314f;
+  letter-spacing: 0.12em;
+}
+
+.site-nav__link {
+  border-color: rgba(17, 48, 73, 0.08);
+  background: rgba(255, 255, 255, 0.54);
+  color: rgba(16, 38, 61, 0.72);
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  border-color: rgba(26, 92, 130, 0.16);
+  background: rgba(255, 255, 255, 0.84);
+  color: #0f2d47;
+  box-shadow: 0 10px 26px rgba(31, 68, 96, 0.08);
+}
+
+.site-nav__link.is-active {
+  border-color: rgba(196, 161, 87, 0.26);
+  background: linear-gradient(135deg, rgba(255, 247, 232, 0.96), rgba(246, 234, 211, 0.86));
+  color: #8d6a20;
+}
+
+.language-switcher {
+  border-color: rgba(17, 48, 73, 0.08);
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.language-switcher__button {
+  color: rgba(16, 38, 61, 0.64);
+}
+
+.language-switcher__button:hover,
+.language-switcher__button:focus-visible,
+.language-switcher__button.is-active {
+  color: #7e5b14;
+  text-shadow: none;
+}
+
+.hero__copy,
+.hero--home .hero__copy,
+.hero__content--home .hero__copy {
+  color: var(--text);
+}
+
+.hero--home .hero__copy,
+.hero__copy {
+  max-width: 760px;
+  padding: 46px 50px 40px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.7)),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 26px 70px rgba(28, 46, 62, 0.12);
+  backdrop-filter: blur(24px) saturate(120%);
+}
+
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+  color: #10263d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hero h1 {
+  font-size: clamp(2.6rem, 4.8vw, 4.7rem);
+  line-height: 0.96;
+  letter-spacing: -0.065em;
+  max-width: 12ch;
+}
+
+.hero__text,
+.feature-card p,
+.trust-card p,
+.cta-panel__copy,
+.operations-hero__text,
+.operations-panel__copy,
+.operations-modal__copy,
+.operations-notification p,
+.operations-list__item p,
+.operations-kpi p,
+.operations-overview__item strong + time,
+.operations-workflow__step span,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p,
+.guest-portal-page .guest-portal-timeline__time,
+.guest-portal-page .guest-portal-timeline__tag,
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+  color: rgba(16, 38, 61, 0.72);
+}
+
+.eyebrow,
+.section-heading__eyebrow,
+.preview-card__label,
+.operations-eyebrow,
+.operations-panel__eyebrow,
+.operations-modal__eyebrow,
+.guest-eyebrow,
+.guest-card-top span:first-child,
+.guest-portal-page .guest-portal-header__eyebrow,
+.guest-portal-page .guest-portal-card__label,
+.site-footer__links a {
+  color: #9a741e !important;
+}
+
+.eyebrow::before,
+.section-heading__eyebrow::before {
+  background: linear-gradient(90deg, rgba(192, 152, 69, 0.9), rgba(52, 128, 164, 0.78));
+}
+
+.button,
+.operations-button,
+.guest-action,
+.guest-action-danger,
+.operations-floating-cta {
+  border-radius: 999px;
+  box-shadow: 0 14px 34px rgba(27, 81, 114, 0.14);
+}
+
+.button--primary,
+.operations-button--primary,
+.operations-floating-cta {
+  background: linear-gradient(135deg, #f7dfb0 0%, #d4e8f0 52%, #86bfd9 100%);
+  color: #10314f;
+  box-shadow:
+    0 16px 32px rgba(110, 162, 188, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.button--primary:hover,
+.button--primary:focus-visible,
+.operations-button--primary:hover,
+.operations-button--primary:focus-visible,
+.operations-floating-cta:hover,
+.operations-floating-cta:focus-visible {
+  box-shadow:
+    0 20px 40px rgba(110, 162, 188, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.34) inset;
+}
+
+.button--secondary,
+.button--ghost,
+.operations-button--secondary,
+.operations-button--ghost,
+.guest-action,
+.guest-action-danger {
+  border-color: rgba(17, 48, 73, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: #10263d;
+}
+
+.button--tertiary {
+  color: rgba(16, 38, 61, 0.78);
+}
+
+.button--secondary:hover,
+.button--ghost:hover,
+.button--secondary:focus-visible,
+.button--ghost:focus-visible,
+.operations-button--secondary:hover,
+.operations-button--secondary:focus-visible,
+.operations-button--ghost:hover,
+.operations-button--ghost:focus-visible,
+.guest-action:hover,
+.guest-action:focus-visible,
+.guest-action-danger:hover,
+.guest-action-danger:focus-visible {
+  border-color: rgba(26, 92, 130, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.feature-card,
+.trust-card,
+.cta-panel,
+.preview-card,
+.showcase-console,
+.showcase-panel,
+.operator-presence__item,
+.pilot-contact,
+.operations-panel,
+.operations-hero__preview,
+.operations-modal__dialog,
+.operations-kpi,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-incident-card,
+.operations-network-card,
+.operations-empty-state,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.guest-device,
+.guest-sidecard,
+.guest-access-card,
+.guest-portal-shell {
+  border-color: rgba(255, 255, 255, 0.6);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.72)),
+    rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 26px 70px rgba(24, 42, 61, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(24px) saturate(118%);
+}
+
+.feature-card::before,
+.trust-card::before,
+.cta-panel::before,
+.preview-card::before,
+.showcase-console::before,
+.showcase-panel::before,
+.pilot-contact::before,
+.operations-panel::before,
+.operations-hero__preview::before,
+.guest-portal-page .guest-portal-header::before,
+.guest-portal-page .guest-card::before,
+.guest-portal-page .guest-portal-card::before,
+.guest-portal-page .portal-card::before,
+.guest-portal-page .access-card::before,
+.guest-portal-page .concierge-card::before {
+  background:
+    linear-gradient(145deg, rgba(255, 247, 234, 0.68), transparent 22%),
+    radial-gradient(circle at 86% 10%, rgba(165, 220, 238, 0.16), transparent 20%);
+}
+
+.feature-card::after,
+.trust-card::after,
+.cta-panel::after,
+.preview-card::after,
+.showcase-console::after,
+.showcase-panel::after,
+.pilot-contact::after,
+.operations-panel::after,
+.operations-hero__preview::after {
+  background: radial-gradient(circle, rgba(255, 228, 186, 0.18) 0%, rgba(140, 192, 214, 0.1) 30%, transparent 72%);
+}
+
+.feature-card h3,
+.trust-card h3,
+.cta-panel h2,
+.preview-card h2,
+.showcase-console h3,
+.showcase-panel h3,
+.pilot-contact h2,
+.operations-panel h2,
+.operations-panel h3,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.guest-portal-page .guest-card h2 {
+  color: #0f2740;
+}
+
+.feature-card:hover,
+.trust-card:hover,
+.cta-panel:hover,
+.preview-card:hover,
+.showcase-panel:hover,
+.operations-panel:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 34px 84px rgba(24, 42, 61, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+}
+
+.feature-grid,
+.trust-grid,
+.operations-kpis,
+.operations-grid,
+.guest-status-grid,
+.guest-action-grid,
+.guest-service-list,
+.guest-support-list {
+  gap: 22px;
+}
+
+.section-heading h2,
+.cta-panel h2,
+.operations-panel h2,
+.operations-panel h3,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+  letter-spacing: -0.05em;
+}
+
+.section-heading h2,
+.cta-panel h2 {
+  max-width: 13ch;
+}
+
+.site-footer {
+  border-top-color: rgba(17, 48, 73, 0.08);
+}
+
+.site-footer__brand strong {
+  color: #10314f;
+}
+
+.site-footer__links a:hover,
+.site-footer__links a:focus-visible {
+  color: #8d6a20;
+}
+
+.operations-demo-page,
+.guest-portal-page {
+  background:
+    linear-gradient(180deg, rgba(248, 244, 235, 0.76), rgba(238, 244, 247, 0.72) 34%, rgba(227, 235, 240, 0.8) 100%),
+    url("/static/img/saint-vlas.jpg") center center / cover fixed no-repeat;
+}
+
+.operations-demo-page__ambient {
+  opacity: 0.7;
+  filter: blur(6px);
+}
+
+.operations-demo-page__orb--gold {
+  background: radial-gradient(circle, rgba(244, 213, 154, 0.34) 0%, rgba(244, 213, 154, 0.08) 36%, transparent 72%);
+}
+
+.operations-demo-page__orb--sea {
+  background: radial-gradient(circle, rgba(107, 186, 214, 0.26) 0%, rgba(107, 186, 214, 0.08) 36%, transparent 72%);
+}
+
+.operations-demo-page__marina-blur,
+.operations-demo-page__grain {
+  opacity: 0.22;
+}
+
+.operations-chip,
+.operations-status-pill,
+.operations-list__badge,
+.guest-live-chip,
+.guest-trust-chip,
+.guest-arrival-pill,
+.guest-trust-strip,
+.guest-live-strip {
+  border-color: rgba(17, 48, 73, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+  color: rgba(16, 38, 61, 0.78);
+}
+
+.operations-chip--live,
+.operations-status-pill--warning,
+.operations-list__badge--warning,
+.guest-action-danger {
+  border-color: rgba(180, 128, 57, 0.18);
+  background: linear-gradient(135deg, rgba(255, 241, 220, 0.96), rgba(240, 220, 181, 0.78));
+  color: #8a6418;
+}
+
+.operations-chip--soft,
+.operations-status-pill--soft,
+.operations-list__badge--soft,
+.guest-live-chip--live {
+  border-color: rgba(40, 126, 162, 0.14);
+  background: linear-gradient(135deg, rgba(232, 244, 248, 0.98), rgba(222, 237, 243, 0.84));
+  color: #245c77;
+}
+
+.guest-portal-page .guest-portal-shell::before {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.76), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.12));
+  opacity: 0.5;
+}
+
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+  color: #10263d;
+}
+
+.guest-portal-page .guest-qr-visual,
+.guest-portal-page .guest-access-card__qr,
+.guest-portal-page .guest-portal-qr__code {
+  border-color: rgba(17, 48, 73, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 247, 249, 0.76));
+}
+
+.guest-portal-page .qr-tile__surface {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(229, 239, 244, 0.88));
+}
+
+.guest-portal-page .guest-action,
+.guest-portal-page .guest-action-danger {
+  box-shadow: 0 14px 34px rgba(24, 42, 61, 0.12);
+}
+
+.guest-portal-page .guest-action:hover,
+.guest-portal-page .guest-action:focus-visible,
+.guest-portal-page .guest-action-danger:hover,
+.guest-portal-page .guest-action-danger:focus-visible {
+  transform: translateY(-2px);
+}
+
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.operations-hero h1,
+.hero h1,
+.feature-card,
+.trust-card,
+.cta-panel,
+.operations-panel,
+.operations-hero__preview,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card {
+  animation: premiumFadeUp 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.feature-card,
+.trust-card,
+.cta-panel,
+.operations-panel,
+.operations-hero__preview,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-device,
+.guest-sidecard,
+.guest-access-card {
+  animation-name: premiumFadeUp, luxuryFloat;
+  animation-duration: 900ms, 12s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-in-out;
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both;
+}
+
+@keyframes premiumFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes luxuryFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .hero--home {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .topbar,
+  .guest-portal-topbar,
+  .operations-topbar {
+    border-radius: 28px;
+    padding: 14px 16px;
+  }
+
+  .hero__copy,
+  .hero--home .hero__copy {
+    padding: 34px 30px 30px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 8vw, 3.7rem);
+  }
+
+  .feature-grid,
+  .trust-grid,
+  .operations-kpis,
+  .operations-grid,
+  .guest-status-grid,
+  .guest-action-grid {
+    gap: 16px;
+  }
+
+  .feature-card,
+  .trust-card,
+  .cta-panel,
+  .operations-panel,
+  .guest-portal-page .guest-card,
+  .guest-portal-page .guest-portal-header,
+  .guest-portal-page .guest-portal-card {
+    backdrop-filter: blur(20px) saturate(118%);
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hero__cta,
+  .operations-hero__cta-row {
+    gap: 10px;
+  }
+
+  .button,
+  .operations-button,
+  .guest-action {
+    min-height: 48px;
+    padding-inline: 18px;
+  }
+
+  .hero--home .hero__copy,
+  .hero__copy {
+    padding: 28px 22px 24px;
+    border-radius: 26px;
+  }
+
+  .site-nav {
+    gap: 6px;
+  }
+
+  .site-nav__link {
+    min-height: 34px;
+    padding: 0 10px;
+  }
+
+  .guest-portal-page .guest-floating-actions,
+  .guest-floating-actions,
+  .operations-mobile-dock {
+    backdrop-filter: blur(20px) saturate(120%);
+  }
 }
 
 .site-footer__brand p,
