@@ -1,7 +1,7 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BlackSea Connect | Demo Operations</title>
   <link rel="stylesheet" href="/static/css/styles.css">
@@ -55,11 +55,11 @@
         </div>
 
         <div class="operations-signal-row" aria-label="Guest flow signals">
-          <span class="operations-chip operations-chip--soft">Delayed guest arrival</span>
-          <span class="operations-chip operations-chip--soft">Cleaning escalation</span>
-          <span class="operations-chip operations-chip--soft">Concierge overload</span>
-          <span class="operations-chip operations-chip--soft">Transfer waiting</span>
-          <span class="operations-chip operations-chip--soft">Marina traffic</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal1">Delayed guest arrival</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal2">Cleaning escalation</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal3">Concierge overload</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal4">Transfer waiting</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal5">Marina traffic</span>
         </div>
       </section>
 
@@ -72,7 +72,7 @@
           <div class="operations-preview-card__headline">
             <div>
               <p class="operations-preview-card__label" data-i18n="demo.boardLabel">Guest coordination overview</p>
-              <h2>Villa Marina One</h2>
+              <h2 data-i18n="demo.boardProperty">Villa Marina One</h2>
             </div>
             <span class="operations-status-pill" data-i18n="demo.boardStatus">Steady service</span>
           </div>
@@ -97,15 +97,15 @@
           <div class="operations-preview-card__notes">
             <div>
               <span data-i18n="demo.note1Time">14:05</span>
-              <strong>Guest arrival delayed by 18 min because of marina traffic.</strong>
+              <strong data-i18n="demo.note1Text">Guest arrival delayed by 18 min because of marina traffic.</strong>
             </div>
             <div>
               <span data-i18n="demo.note2Time">13:42</span>
-              <strong>Cleaning follow-up opened for Villa Azure after the final inspection.</strong>
+              <strong data-i18n="demo.note2Text">Cleaning follow-up opened for Villa Azure after the final inspection.</strong>
             </div>
             <div>
               <span data-i18n="demo.note3Time">12:58</span>
-              <strong>Wi-Fi reset completed for A-302 and checked by concierge.</strong>
+              <strong data-i18n="demo.note3Text">Wi-Fi reset completed for A-302 and checked by concierge.</strong>
             </div>
           </div>
         </div>
@@ -497,8 +497,8 @@
       </form>
     </div>
   </section>
-<script src="/static/js/translations.js"></script>
-  <script src="/static/js/i18n.js"></script>
+<script src="/static/js/translations.js?v=20260608"></script>
+  <script src="/static/js/i18n.js?v=20260608"></script>
   <script src="/static/js/pilot-form.js"></script>
 
   <script>
