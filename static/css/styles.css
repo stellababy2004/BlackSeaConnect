@@ -13622,3 +13622,135 @@ body::after,
     border: 1px solid rgba(255,255,255,0.08) !important;
 }
 
+
+/* ===== ULTRA PREMIUM OPERATIONAL POLISH ===== */
+
+/* Smaller + cleaner operational feed panel */
+.operations-preview-panel,
+.live-operations-panel,
+.demo-operations-panel {
+    max-width: 620px !important;
+    background: rgba(255,255,255,0.58) !important;
+    backdrop-filter: blur(12px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(145%) !important;
+    border: 1px solid rgba(255,255,255,0.20) !important;
+    box-shadow:
+        0 20px 60px rgba(7, 16, 32, 0.16),
+        inset 0 1px 0 rgba(255,255,255,0.42) !important;
+}
+
+/* Softer KPI chips */
+.metric-chip,
+.status-chip,
+.live-chip,
+.signal-chip,
+.operations-chip {
+    background: rgba(255,255,255,0.42) !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    backdrop-filter: blur(10px) saturate(135%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(135%) !important;
+    box-shadow:
+        0 8px 24px rgba(12, 20, 38, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.35) !important;
+}
+
+/* Cleaner typography hierarchy */
+.hero-title,
+.operations-hero-title,
+.demo-title {
+    letter-spacing: -0.045em !important;
+    line-height: 0.92 !important;
+    text-shadow:
+        0 2px 10px rgba(0,0,0,0.18) !important;
+}
+
+/* Better readability on marina image */
+.hero-description,
+.operations-description,
+.demo-description {
+    color: rgba(255,255,255,0.92) !important;
+    text-shadow:
+        0 1px 4px rgba(0,0,0,0.18) !important;
+}
+
+/* Reduce visual noise */
+.live-feed-item,
+.timeline-item,
+.activity-row {
+    background: rgba(255,255,255,0.18) !important;
+    border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* Footer refinement */
+.site-footer {
+    border-radius: 34px 34px 0 0 !important;
+    overflow: hidden !important;
+    box-shadow:
+        0 -10px 40px rgba(0,0,0,0.20) !important;
+}
+
+
+/* ===== SUBTRACTIVE PREMIUM CLARITY PASS ===== */
+
+/* Let the marina image breathe: reduce milky large panels */
+.luxury-panel,
+.hero-card,
+.page-card,
+.section-card,
+.pilot-access-panel,
+.partners-hero,
+.services-hero,
+.guest-hero,
+.operations-overview,
+.operations-preview-panel,
+.live-operations-panel,
+.demo-operations-panel {
+    background: rgba(255,255,255,0.52) !important;
+    backdrop-filter: blur(8px) saturate(128%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(128%) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+}
+
+/* Cards: less fog, more premium glass */
+.feature-card,
+.operations-card,
+.partner-card,
+.trust-card,
+.dashboard-card,
+.guest-card,
+.service-card {
+    background: rgba(255,255,255,0.58) !important;
+    backdrop-filter: blur(8px) saturate(132%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(132%) !important;
+    border-color: rgba(255,255,255,0.20) !important;
+}
+
+/* Reduce overly pale chips */
+.metric-chip,
+.status-chip,
+.live-chip,
+.signal-chip,
+.operations-chip,
+.hero-chip,
+.service-chip {
+    background: rgba(255,255,255,0.34) !important;
+    backdrop-filter: blur(8px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(125%) !important;
+}
+
+/* Slightly tighter vertical rhythm */
+.section,
+.page-section,
+.luxury-section,
+.operations-section,
+.guest-section {
+    padding-top: clamp(3.5rem, 6vw, 6rem) !important;
+    padding-bottom: clamp(3.5rem, 6vw, 6rem) !important;
+}
+
+/* Footer: keep premium, less heavy */
+.site-footer {
+    background: rgba(8,12,18,0.66) !important;
+    border-radius: 36px 36px 0 0 !important;
+}
+
