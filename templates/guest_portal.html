@@ -170,35 +170,34 @@
             </div>
 
             <div class="guest-qr-block">
+                <div class="guest-qr-pass">
+                    <div class="guest-qr-pass__header">
+                        <span class="guest-qr-pass__eyebrow" data-i18n="guest.qrTitle">Secure guest access</span>
+                        <span class="guest-qr-pass__meta">Apartment A-302</span>
+                    </div>
 
-                <div class="guest-qr-visual" aria-hidden="true">
-                    <span class="qr-tile__label" data-i18n="guest.qrTitle">Guest access QR</span>
-                    <span class="qr-tile__surface" aria-hidden="true">
-                        <span class="qr-tile__finder qr-tile__finder--tl"></span>
-                        <span class="qr-tile__finder qr-tile__finder--tr"></span>
-                        <span class="qr-tile__finder qr-tile__finder--bl"></span>
-                        <span class="qr-tile__module qr-tile__module--1"></span>
-                        <span class="qr-tile__module qr-tile__module--2"></span>
-                        <span class="qr-tile__module qr-tile__module--3"></span>
-                        <span class="qr-tile__module qr-tile__module--4"></span>
-                        <span class="qr-tile__module qr-tile__module--5"></span>
-                        <span class="qr-tile__module qr-tile__module--6"></span>
-                        <span class="qr-tile__module qr-tile__module--7"></span>
-                        <span class="qr-tile__module qr-tile__module--8"></span>
-                        <span class="qr-tile__module qr-tile__module--9"></span>
-                        <span class="qr-tile__module qr-tile__module--10"></span>
-                        <span class="qr-tile__module qr-tile__module--11"></span>
-                        <span class="qr-tile__module qr-tile__module--12"></span>
-                        <span class="qr-tile__module qr-tile__module--13"></span>
-                        <span class="qr-tile__module qr-tile__module--14"></span>
-                        <span class="qr-tile__module qr-tile__module--15"></span>
-                        <span class="qr-tile__module qr-tile__module--16"></span>
-                        <span class="qr-tile__module qr-tile__module--17"></span>
-                        <span class="qr-tile__module qr-tile__module--18"></span>
-                    </span>
+                    <div class="guest-credential" aria-hidden="true">
+                        <div class="guest-credential__badge">
+                            <span class="guest-credential__pulse"></span>
+                            <span class="guest-credential__wave guest-credential__wave--1"></span>
+                            <span class="guest-credential__wave guest-credential__wave--2"></span>
+                            <span class="guest-credential__wave guest-credential__wave--3"></span>
+                            <span class="guest-credential__nfc"></span>
+                        </div>
+
+                        <div class="guest-credential__copy">
+                            <span class="guest-credential__status">Arrival verified</span>
+                            <strong class="guest-credential__title">Private digital credential</strong>
+                            <span class="guest-credential__note">NFC-ready access for the residence and Wi-Fi guidance.</span>
+                            <span class="guest-credential__stamp" data-i18n="guest.arrivalStatusTime">Today · 16:00</span>
+                        </div>
+                    </div>
+
+                    <div class="guest-credential__ledger">
+                        <span>Apartment A-302</span>
+                        <span data-i18n="guest.wifiQrCaption">Wi-Fi & arrival instructions</span>
+                    </div>
                 </div>
-
-                <span data-i18n="guest.wifiQrCaption">QR access and quick instructions</span>
 
             </div>
 
@@ -277,6 +276,25 @@
 
 </section>
 
+<footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+        <strong>BlackSea Connect</strong>
+        <p data-i18n="footerDescription">Calm hospitality operations for coastal properties.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+        <a href="/services" data-i18n="navServices">Services</a>
+        <a href="/partners" data-i18n="navPartners">Partners</a>
+        <a href="/demo/operations" data-i18n="navDemo">Demo</a>
+        <a href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+        <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+    </nav>
+
+    <div class="site-footer__meta">
+        <a href="mailto:blackseaconnect@orange.fr" data-i18n="footerEmail">blackseaconnect@orange.fr</a>
+        <p data-i18n="footerMeta">Operational software for guest coordination, property teams and trusted local service partners.</p>
+    </div>
+</footer>
 
 <script src="/static/js/translations.js?v=20260608"></script>
   <script src="/static/js/i18n.js?v=20260608"></script>

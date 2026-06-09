@@ -13579,3 +13579,46 @@ main {
     border-color: rgba(255, 255, 255, 0.18) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36) !important;
 }
+
+/* ===== FINAL BACKGROUND STABILIZATION ===== */
+
+body::before,
+body::after,
+.site-shell::before,
+.site-shell::after {
+    display: none !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+}
+
+.hero-overlay,
+.marina-overlay,
+.page-overlay,
+.glass-haze,
+.fog-layer,
+.visual-haze {
+    display: none !important;
+    opacity: 0 !important;
+    backdrop-filter: none !important;
+}
+
+.feature-card,
+.operations-card,
+.partner-card,
+.trust-card,
+.dashboard-card,
+.guest-card {
+    background: rgba(255,255,255,0.72) !important;
+    backdrop-filter: blur(10px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
+    border: 1px solid rgba(255,255,255,0.28) !important;
+}
+
+.site-footer {
+    background: rgba(8,12,18,0.72) !important;
+    backdrop-filter: blur(18px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
