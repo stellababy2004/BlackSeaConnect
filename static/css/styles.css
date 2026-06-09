@@ -4116,30 +4116,107 @@ main::after {
 .guest-qr-block {
     display: grid;
     justify-items: center;
-    gap: 14px;
+    gap: 0;
+    width: 100%;
+    max-width: 332px;
     color: rgba(235,244,250,.7);
     text-align: center;
 }
 
-.guest-qr-visual {
+.guest-qr-pass {
     position: relative;
     display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 8px;
-    width: 112px;
-    padding: 10px 10px 9px;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 24px;
+    justify-items: stretch;
+    gap: 12px;
+    width: min(100%, 320px);
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 28px;
     background:
-        linear-gradient(180deg, rgba(255,255,255,.96), rgba(245,248,241,.94)),
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(245,248,241,.90)),
         linear-gradient(180deg, rgba(255,255,255,.16), transparent);
     box-shadow:
-        0 18px 34px rgba(4,11,17,.2),
-        inset 0 1px 0 rgba(255,255,255,.7),
-        inset 0 -12px 18px rgba(16,23,30,.04);
-    backdrop-filter: blur(12px) saturate(120%);
+        0 22px 44px rgba(4,11,17,.18),
+        inset 0 1px 0 rgba(255,255,255,.72),
+        inset 0 -12px 18px rgba(16,23,30,.03);
+    backdrop-filter: blur(14px) saturate(118%);
     overflow: hidden;
+}
+
+.guest-qr-pass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,.3), transparent 44%),
+        radial-gradient(circle at top right, rgba(191, 202, 213, .18), transparent 42%);
+    pointer-events: none;
+}
+
+.guest-qr-pass__header,
+.guest-qr-pass__footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.guest-qr-pass__header {
+    color: rgba(18, 30, 42, .80);
+}
+
+.guest-qr-pass__eyebrow {
+    font-size: .74rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(20, 34, 47, .78);
+}
+
+.guest-qr-pass__meta {
+    flex: 0 0 auto;
+    font-size: .72rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(126, 91, 23, .88);
+}
+
+.guest-qr-visual {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    padding: 14px;
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(240,244,238,.95));
+    border: 1px solid rgba(18, 32, 46, 0.09);
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.58),
+        inset 0 10px 18px rgba(13,19,26,.03);
+}
+
+.guest-qr-visual .qr-tile__surface {
+    max-width: 160px;
+    box-shadow:
+        inset 0 0 0 1px rgba(13, 19, 26, 0.10),
+        inset 0 10px 18px rgba(13, 19, 26, 0.03);
+}
+
+.guest-qr-pass__caption {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-size: .78rem;
+    line-height: 1.45;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: rgba(20, 34, 47, .76);
 }
 
 .guest-qr-visual .qr-tile__surface {
@@ -7019,6 +7096,1245 @@ body::after {
     flex-wrap: wrap;
 }
 
+/* EOF premium balance lock */
+
+/* EOF override: final premium hospitality balance, guest credential clarity, and operations rhythm. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14),
+        0 8px 20px rgba(18, 42, 58, 0.04) !important;
+}
+
+.operations-shell {
+    padding: 6px 0 92px !important;
+}
+
+.operations-dashboard__main,
+.operations-kpis,
+.operations-grid,
+.operations-overview__list {
+    gap: 14px !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog {
+    padding: 18px !important;
+    border-radius: 26px !important;
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease;
+}
+
+.operations-panel--wide {
+    padding: 20px !important;
+}
+
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover {
+    transform: translateY(-2px);
+}
+
+.operations-kpi {
+    padding: 16px !important;
+    border-radius: 22px !important;
+}
+
+.operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 30px !important;
+}
+
+.operations-overview {
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.operations-overview__ring {
+    width: 200px !important;
+}
+
+.operations-preview-card__headline {
+    margin-top: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.operations-preview-card__notes {
+    margin-top: 14px !important;
+    gap: 10px !important;
+}
+
+.operations-preview-card__notes > div,
+.operations-overview__item,
+.operations-list__item,
+.operations-notification,
+.operations-workflow__step {
+    border-radius: 20px !important;
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+
+.guest-portal-page .guest-qr-block {
+    max-width: none !important;
+}
+
+.guest-portal-page .guest-qr-pass {
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 16px !important;
+    gap: 14px !important;
+    border-radius: 28px !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    box-shadow:
+        0 18px 36px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(45, 58, 69, 0.03) !important;
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    opacity: 0.84 !important;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background: rgba(255, 255, 255, 0.56) !important;
+    color: rgba(32, 49, 62, 0.86) !important;
+    font-size: 0.74rem !important;
+    letter-spacing: 0.10em !important;
+    text-transform: uppercase !important;
+}
+
+.guest-portal-page .guest-credential {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__badge {
+    width: 72px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__copy {
+    gap: 4px !important;
+}
+
+.guest-portal-page .guest-credential__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-credential__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.88);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.12);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__title {
+    line-height: 1.16 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.guest-portal-page .guest-credential__note {
+    color: rgba(56, 68, 76, 0.84) !important;
+}
+
+.guest-portal-page .guest-credential__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(32, 49, 62, 0.78);
+    font-size: 0.70rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential__stamp::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.88);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.12);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    margin-top: 2px !important;
+    padding-top: 12px !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-credential__ledger span {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 900px) {
+    .operations-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .operations-modal__dialog {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .guest-portal-page .guest-credential__badge {
+        width: 66px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+/* Final luxury hospitality refinement: curated service network, softer surfaces, calmer rhythm. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2,
+.section-heading h2,
+.trust-card h3,
+.feature-card h3,
+.operations-panel h3,
+.partner-card h3 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+}
+
+.hero__copy .hero__text,
+.cta-panel__copy,
+.operations-panel__copy,
+.operations-list__item p,
+.operations-empty-state strong,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.trust-card p,
+.feature-card p,
+.partner-card p {
+    max-width: 58ch;
+    line-height: 1.58;
+}
+
+.trust-grid,
+.feature-grid,
+.partner-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 16px !important;
+}
+
+.trust-card,
+.feature-card,
+.partner-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 100%;
+    padding: 18px 18px 17px;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(248, 244, 236, 0.90)),
+        rgba(255, 255, 255, 0.62) !important;
+    box-shadow:
+        0 18px 40px rgba(56, 68, 76, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.90),
+        inset 0 -10px 18px rgba(45, 58, 69, 0.03) !important;
+    backdrop-filter: blur(12px) saturate(112%);
+    -webkit-backdrop-filter: blur(12px) saturate(112%);
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.trust-card::before,
+.feature-card::before,
+.partner-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(184, 138, 63, 0.18), rgba(255, 255, 255, 0.52), transparent);
+    opacity: 0.95;
+}
+
+.trust-card::after,
+.feature-card::after,
+.partner-card::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.72);
+    box-shadow: 0 0 0 5px rgba(184, 138, 63, 0.10);
+    opacity: 0.88;
+}
+
+.trust-card:hover,
+.feature-card:hover,
+.partner-card:hover,
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.guest-portal-page .guest-portal-card:hover,
+.guest-portal-page .guest-portal-service:hover,
+.guest-portal-page .guest-portal-status:hover,
+.guest-portal-page .guest-portal-info:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 22px 48px rgba(56, 68, 76, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        inset 0 -10px 18px rgba(45, 58, 69, 0.03) !important;
+}
+
+.trust-card h3,
+.feature-card h3,
+.partner-card h3 {
+    margin-bottom: 8px;
+}
+
+.trust-card p,
+.feature-card p,
+.partner-card p {
+    color: rgba(32, 49, 62, 0.84) !important;
+}
+
+.trust-strip {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.trust-strip__chip {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    background: rgba(255, 255, 255, 0.58);
+    color: rgba(32, 49, 62, 0.82);
+    box-shadow:
+        0 8px 18px rgba(56, 68, 76, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.operations-shell {
+    padding-top: 4px !important;
+}
+
+.operations-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+}
+
+.operations-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview {
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.80), rgba(248, 244, 236, 0.90)),
+        rgba(255, 255, 255, 0.66) !important;
+    box-shadow:
+        0 20px 44px rgba(56, 68, 76, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.94),
+        inset 0 -10px 18px rgba(45, 58, 69, 0.03) !important;
+    backdrop-filter: blur(12px) saturate(112%);
+    -webkit-backdrop-filter: blur(12px) saturate(112%);
+}
+
+.operations-panel__header {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(20, 36, 50, 0.08);
+}
+
+.operations-list,
+.operations-workflow,
+.operations-notifications,
+.operations-sla {
+    gap: 10px;
+}
+
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state {
+    padding: 12px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background: rgba(255, 255, 255, 0.60) !important;
+    box-shadow:
+        0 10px 22px rgba(56, 68, 76, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+.operations-list__item p,
+.operations-empty-state strong {
+    max-width: 46ch;
+    line-height: 1.52;
+}
+
+.operations-status-pill,
+.operations-chip,
+.operations-list__badge {
+    min-height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 138, 63, 0.12);
+    background: rgba(255, 255, 255, 0.55);
+    color: rgba(32, 49, 62, 0.86);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 12px;
+}
+
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.80), rgba(248, 244, 236, 0.92)),
+        rgba(255, 255, 255, 0.64) !important;
+    box-shadow:
+        0 14px 32px rgba(56, 68, 76, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+.guest-portal-page .guest-portal-service {
+    display: grid;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-portal-service span {
+    max-width: 38ch;
+}
+
+.guest-portal-page .guest-portal-card h2,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-service strong {
+    text-wrap: balance;
+}
+
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-instructions p {
+    line-height: 1.58;
+}
+
+@media (max-width: 900px) {
+    .trust-grid,
+    .feature-grid,
+    .partner-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-grid,
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-portal-status-grid,
+    .guest-portal-page .guest-portal-actions,
+    .guest-portal-page .guest-portal-services {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* EOF override: final premium hospitality balance, guest credential clarity, and operations rhythm. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14),
+        0 8px 20px rgba(18, 42, 58, 0.04) !important;
+}
+
+.operations-shell {
+    padding: 6px 0 92px !important;
+}
+
+.operations-dashboard__main,
+.operations-kpis,
+.operations-grid,
+.operations-overview__list {
+    gap: 14px !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog {
+    padding: 18px !important;
+    border-radius: 26px !important;
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease;
+}
+
+.operations-panel--wide {
+    padding: 20px !important;
+}
+
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover {
+    transform: translateY(-2px);
+}
+
+.operations-kpi {
+    padding: 16px !important;
+    border-radius: 22px !important;
+}
+
+.operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 30px !important;
+}
+
+.operations-overview {
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.operations-overview__ring {
+    width: 200px !important;
+}
+
+.operations-preview-card__headline {
+    margin-top: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.operations-preview-card__notes {
+    margin-top: 14px !important;
+    gap: 10px !important;
+}
+
+.operations-preview-card__notes > div,
+.operations-overview__item,
+.operations-list__item,
+.operations-notification,
+.operations-workflow__step {
+    border-radius: 20px !important;
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+
+.guest-portal-page .guest-qr-block {
+    max-width: none !important;
+}
+
+.guest-portal-page .guest-qr-pass {
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 16px !important;
+    gap: 14px !important;
+    border-radius: 28px !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    box-shadow:
+        0 18px 36px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(45, 58, 69, 0.03) !important;
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    opacity: 0.84 !important;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background: rgba(255, 255, 255, 0.56) !important;
+    color: rgba(32, 49, 62, 0.86) !important;
+    font-size: 0.74rem !important;
+    letter-spacing: 0.10em !important;
+    text-transform: uppercase !important;
+}
+
+.guest-portal-page .guest-credential {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__badge {
+    width: 72px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__copy {
+    gap: 4px !important;
+}
+
+.guest-portal-page .guest-credential__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-credential__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.88);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.12);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__title {
+    line-height: 1.16 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.guest-portal-page .guest-credential__note {
+    color: rgba(56, 68, 76, 0.84) !important;
+}
+
+.guest-portal-page .guest-credential__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(32, 49, 62, 0.78);
+    font-size: 0.70rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential__stamp::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.88);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.12);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    margin-top: 2px !important;
+    padding-top: 12px !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-credential__ledger span {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 900px) {
+    .operations-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .operations-modal__dialog {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .guest-portal-page .guest-credential__badge {
+        width: 66px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+/* Final hospitality refinement pass: calmer spacing, premium balance, and a more credible guest credential. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.16),
+        0 10px 24px rgba(18, 42, 58, 0.05) !important;
+}
+
+.operations-shell,
+.guest-portal-shell {
+    padding-top: 8px !important;
+}
+
+.operations-shell {
+    padding-bottom: 96px !important;
+}
+
+.operations-kpis,
+.operations-grid,
+.operations-dashboard__main,
+.operations-overview__list {
+    gap: 14px !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-qr-pass,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card {
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease,
+        background-color 0.28s ease;
+}
+
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.guest-portal-page .guest-qr-pass:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover,
+.guest-portal-page .guest-portal-header:hover {
+    transform: translateY(-2px);
+}
+
+.operations-panel {
+    padding: 18px !important;
+    border-radius: 26px !important;
+}
+
+.operations-panel--wide {
+    padding: 20px !important;
+}
+
+.operations-kpi {
+    padding: 16px !important;
+    border-radius: 22px !important;
+}
+
+.operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 30px !important;
+}
+
+.operations-overview {
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.operations-overview__ring {
+    width: 200px !important;
+}
+
+.operations-preview-card__headline {
+    margin-top: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.operations-preview-card__notes {
+    margin-top: 14px !important;
+    gap: 10px !important;
+}
+
+.operations-preview-card__notes > div,
+.operations-overview__item,
+.operations-list__item,
+.operations-notification,
+.operations-workflow__step {
+    border-radius: 20px !important;
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+
+.guest-portal-page .guest-qr-block {
+    max-width: none !important;
+}
+
+.guest-portal-page .guest-qr-pass {
+    padding: 16px !important;
+    gap: 14px !important;
+    border-radius: 28px !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    box-shadow:
+        0 18px 36px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(45, 58, 69, 0.03) !important;
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    opacity: 0.84 !important;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    background: rgba(255, 255, 255, 0.56);
+    color: rgba(32, 49, 62, 0.86);
+    font-size: 0.74rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__badge {
+    width: 72px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__copy {
+    gap: 4px !important;
+}
+
+.guest-portal-page .guest-credential__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-credential__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.88);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.12);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__title {
+    line-height: 1.16 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.guest-portal-page .guest-credential__note {
+    color: rgba(56, 68, 76, 0.84) !important;
+}
+
+.guest-portal-page .guest-credential__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(32, 49, 62, 0.78);
+    font-size: 0.70rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential__stamp::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.88);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.12);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    margin-top: 2px !important;
+    padding-top: 12px !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-credential__ledger span {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 900px) {
+    .operations-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .guest-portal-page .guest-qr-pass {
+        padding: 14px !important;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .guest-portal-page .guest-credential__badge {
+        width: 66px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    align-items: stretch;
+}
+
+.guest-portal-page .guest-qr-block {
+    align-self: stretch;
+    display: flex;
+    justify-content: flex-start;
+    max-width: none;
+}
+
+.guest-portal-page .guest-qr-pass {
+    width: 100%;
+    min-height: 100%;
+    justify-content: space-between;
+    padding: 18px;
+    gap: 16px;
+    border-radius: 30px;
+    border-color: rgba(20, 36, 50, 0.10) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(245, 242, 233, 0.90)),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 42%) !important;
+    box-shadow:
+        0 22px 44px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        inset 0 -10px 18px rgba(45, 58, 69, 0.04) !important;
+    backdrop-filter: blur(16px) saturate(112%);
+    -webkit-backdrop-filter: blur(16px) saturate(112%);
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 48%),
+        radial-gradient(circle at 82% 8%, rgba(161, 189, 210, 0.14), transparent 34%);
+    opacity: 0.9;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start;
+}
+
+.guest-portal-page .guest-credential {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 243, 234, 0.88));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(42, 54, 64, 0.03);
+}
+
+.guest-portal-page .guest-credential__badge {
+    position: relative;
+    width: 76px;
+    aspect-ratio: 1;
+    border-radius: 24px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(159, 187, 207, 0.22), transparent 38%),
+        linear-gradient(145deg, rgba(15, 33, 49, 0.96), rgba(8, 20, 33, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 18px 28px rgba(14, 24, 34, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -10px 18px rgba(87, 152, 188, 0.06);
+}
+
+.guest-portal-page .guest-credential__badge::before,
+.guest-portal-page .guest-credential__badge::after {
+    content: "";
+    position: absolute;
+    inset: 13px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(229, 240, 246, 0.84);
+    opacity: 0.62;
+}
+
+.guest-portal-page .guest-credential__badge::after {
+    inset: 20px;
+    opacity: 0.36;
+}
+
+.guest-portal-page .guest-credential__pulse {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    transform: translate(-50%, -50%);
+    background: rgba(240, 247, 251, 0.96);
+    box-shadow:
+        0 0 0 10px rgba(255, 255, 255, 0.08),
+        0 0 18px rgba(170, 208, 227, 0.20);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__wave {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 999px;
+    border: 1.5px solid rgba(234, 243, 248, 0.92);
+    transform: translate(-50%, -50%);
+}
+
+.guest-portal-page .guest-credential__wave--1 {
+    width: 34px;
+    height: 34px;
+    opacity: 0.88;
+}
+
+.guest-portal-page .guest-credential__wave--2 {
+    width: 48px;
+    height: 48px;
+    opacity: 0.58;
+}
+
+.guest-portal-page .guest-credential__wave--3 {
+    width: 62px;
+    height: 62px;
+    opacity: 0.28;
+}
+
+.guest-portal-page .guest-credential__nfc {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.guest-portal-page .guest-credential__copy {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.guest-portal-page .guest-credential__status {
+    font-size: 0.72rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(141, 104, 40, 0.96);
+}
+
+.guest-portal-page .guest-credential__title {
+    font-size: 1rem;
+    line-height: 1.35;
+    font-weight: 700;
+    color: rgba(17, 31, 45, 0.96);
+}
+
+.guest-portal-page .guest-credential__note {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: rgba(26, 41, 56, 0.78);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(24, 37, 49, 0.72);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-qr-visual,
+.guest-portal-page .qr-tile__surface,
+.guest-portal-page .qr-tile__finder,
+.guest-portal-page .qr-tile__module {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .guest-portal-page .guest-qr-block {
+        max-width: none;
+    }
+
+    .guest-portal-page .guest-qr-pass {
+        min-height: 0;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+}
+
+@keyframes guestCredentialPulse {
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(0.92);
+        opacity: 0.72;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.08);
+        opacity: 1;
+    }
+}
+
 /* Cyrillic-safe typography fallbacks for editorial headings and body copy. */
 .hero h1,
 .operations-hero h1,
@@ -7140,20 +8456,35 @@ body::after {
         inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
 }
 
-.guest-portal-page .guest-qr-visual {
-    width: 126px;
-    padding: 14px 13px 12px;
-    border-radius: 24px;
+.guest-portal-page .guest-qr-pass {
+    width: min(100%, 340px);
+    padding: 18px;
+    gap: 14px;
+    border-radius: 30px;
 }
 
-.guest-portal-page .qr-tile__label {
-    color: rgba(19, 33, 46, 0.72) !important;
-    letter-spacing: 0.11em;
+.guest-portal-page .guest-qr-pass__header,
+.guest-portal-page .guest-qr-pass__footer {
+    color: rgba(18, 30, 42, 0.82);
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    color: rgba(126, 91, 23, 0.86);
+}
+
+.guest-portal-page .guest-qr-pass__caption {
+    color: rgba(24, 37, 49, 0.80);
+}
+
+.guest-portal-page .guest-qr-visual {
+    width: 100%;
+    padding: 14px;
+    border-radius: 22px;
 }
 
 .guest-portal-page .qr-tile__surface {
-    max-width: 92px;
-    border-radius: 16px;
+    max-width: 94px;
+    border-radius: 14px;
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 242, 0.92)) !important;
     box-shadow:
@@ -7162,36 +8493,32 @@ body::after {
 }
 
 .guest-portal-page .qr-tile__surface::before {
-    opacity: 0.22 !important;
-    background-size: 9px 9px;
+    opacity: 0.12 !important;
+    background-size: 10px 10px;
 }
 
 .guest-portal-page .qr-tile__finder {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
     background: #102030;
 }
 
 .guest-portal-page .qr-tile__finder::before {
-    inset: 4px;
+    inset: 3px;
     background: rgba(247, 248, 245, 0.98);
 }
 
 .guest-portal-page .qr-tile__finder::after {
-    inset: 7px;
+    inset: 6px;
     background: #102030;
 }
 
 .guest-portal-page .qr-tile__module {
     width: 4px;
     height: 4px;
-    border-radius: 1px;
+    border-radius: 0;
     background: #102030;
-}
-
-.guest-portal-page .guest-qr-visual .qr-tile__label + .qr-tile__surface {
-    margin-top: 8px;
 }
 
 .site-footer {
@@ -7225,6 +8552,246 @@ body::after {
         linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(248, 243, 236, 0.01) 42%, rgba(242, 237, 229, 0.008)),
         radial-gradient(circle at 18% 18%, rgba(236, 206, 156, 0.03), transparent 26%),
         radial-gradient(circle at 80% 16%, rgba(159, 224, 230, 0.025), transparent 24%);
+}
+
+/* Final product-realism overrides: keep the guest credential premium, calm, and readable. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14),
+        0 8px 20px rgba(18, 42, 58, 0.04) !important;
+}
+
+.operations-shell {
+    padding: 6px 0 92px !important;
+}
+
+.operations-dashboard__main,
+.operations-kpis,
+.operations-grid,
+.operations-overview__list {
+    gap: 14px !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog {
+    padding: 18px !important;
+    border-radius: 26px !important;
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease;
+}
+
+.operations-panel--wide {
+    padding: 20px !important;
+}
+
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover {
+    transform: translateY(-2px);
+}
+
+.operations-kpi {
+    padding: 16px !important;
+    border-radius: 22px !important;
+}
+
+.operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 30px !important;
+}
+
+.operations-overview {
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.operations-overview__ring {
+    width: 200px !important;
+}
+
+.operations-preview-card__headline {
+    margin-top: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.operations-preview-card__notes {
+    margin-top: 14px !important;
+    gap: 10px !important;
+}
+
+.operations-preview-card__notes > div,
+.operations-overview__item,
+.operations-list__item,
+.operations-notification,
+.operations-workflow__step {
+    border-radius: 20px !important;
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+
+.guest-portal-page .guest-qr-block {
+    max-width: none !important;
+}
+
+.guest-portal-page .guest-qr-pass {
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 16px !important;
+    gap: 14px !important;
+    border-radius: 28px !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    box-shadow:
+        0 18px 36px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(45, 58, 69, 0.03) !important;
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    opacity: 0.84 !important;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background: rgba(255, 255, 255, 0.56) !important;
+    color: rgba(32, 49, 62, 0.86) !important;
+    font-size: 0.74rem !important;
+    letter-spacing: 0.10em !important;
+    text-transform: uppercase !important;
+}
+
+.guest-portal-page .guest-credential {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__badge {
+    width: 72px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__copy {
+    gap: 4px !important;
+}
+
+.guest-portal-page .guest-credential__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-credential__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.88);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.12);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__title {
+    line-height: 1.16 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.guest-portal-page .guest-credential__note {
+    color: rgba(56, 68, 76, 0.84) !important;
+}
+
+.guest-portal-page .guest-credential__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(32, 49, 62, 0.78);
+    font-size: 0.70rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential__stamp::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.88);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.12);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    margin-top: 2px !important;
+    padding-top: 12px !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-credential__ledger span {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 900px) {
+    .operations-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .operations-modal__dialog {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .guest-portal-page .guest-credential__badge {
+        width: 66px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
 }
 
 main::before {
@@ -10560,3 +12127,1455 @@ body::after {
     flex-wrap: wrap;
 }
 
+/* TRUE EOF override: final premium hospitality balance, guest credential clarity, and operations rhythm. */
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14),
+        0 8px 20px rgba(18, 42, 58, 0.04) !important;
+}
+
+.operations-shell {
+    padding: 6px 0 92px !important;
+}
+
+.operations-dashboard__main,
+.operations-kpis,
+.operations-grid,
+.operations-overview__list {
+    gap: 14px !important;
+}
+
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog {
+    padding: 18px !important;
+    border-radius: 26px !important;
+    transition:
+        transform 0.28s ease,
+        box-shadow 0.28s ease,
+        border-color 0.28s ease;
+}
+
+.operations-panel--wide {
+    padding: 20px !important;
+}
+
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover {
+    transform: translateY(-2px);
+}
+
+.operations-kpi {
+    padding: 16px !important;
+    border-radius: 22px !important;
+}
+
+.operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 30px !important;
+}
+
+.operations-overview {
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.operations-overview__ring {
+    width: 200px !important;
+}
+
+.operations-preview-card__headline {
+    margin-top: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.operations-preview-card__notes {
+    margin-top: 14px !important;
+    gap: 10px !important;
+}
+
+.operations-preview-card__notes > div,
+.operations-overview__item,
+.operations-list__item,
+.operations-notification,
+.operations-workflow__step {
+    border-radius: 20px !important;
+}
+
+.guest-portal-page .guest-access-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+
+.guest-portal-page .guest-qr-block {
+    max-width: none !important;
+}
+
+.guest-portal-page .guest-qr-pass {
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 16px !important;
+    gap: 14px !important;
+    border-radius: 28px !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    box-shadow:
+        0 18px 36px rgba(17, 29, 41, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(45, 58, 69, 0.03) !important;
+}
+
+.guest-portal-page .guest-qr-pass::before {
+    opacity: 0.84 !important;
+}
+
+.guest-portal-page .guest-qr-pass__header {
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-qr-pass__meta {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(20, 36, 50, 0.08) !important;
+    background: rgba(255, 255, 255, 0.56) !important;
+    color: rgba(32, 49, 62, 0.86) !important;
+    font-size: 0.74rem !important;
+    letter-spacing: 0.10em !important;
+    text-transform: uppercase !important;
+}
+
+.guest-portal-page .guest-credential {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__badge {
+    width: 72px !important;
+    border-radius: 22px !important;
+}
+
+.guest-portal-page .guest-credential__copy {
+    gap: 4px !important;
+}
+
+.guest-portal-page .guest-credential__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guest-portal-page .guest-credential__status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(184, 138, 63, 0.88);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.12);
+    animation: guestCredentialPulse 4.8s ease-in-out infinite;
+}
+
+.guest-portal-page .guest-credential__title {
+    line-height: 1.16 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.guest-portal-page .guest-credential__note {
+    color: rgba(56, 68, 76, 0.84) !important;
+}
+
+.guest-portal-page .guest-credential__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    color: rgba(32, 49, 62, 0.78);
+    font-size: 0.70rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+.guest-portal-page .guest-credential__stamp::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.88);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.12);
+}
+
+.guest-portal-page .guest-credential__ledger {
+    margin-top: 2px !important;
+    padding-top: 12px !important;
+    gap: 10px !important;
+}
+
+.guest-portal-page .guest-credential__ledger span {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 900px) {
+    .operations-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .operations-modal__dialog {
+        padding: 16px !important;
+    }
+
+    .guest-portal-page .guest-access-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .guest-portal-page .guest-credential {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .guest-portal-page .guest-credential__badge {
+        width: 66px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+/* Living hospitality intelligence pass: subtle motion, ambient status, curated service rhythm. */
+body::before {
+    opacity: 0.16 !important;
+    filter: saturate(1.05) contrast(1.03) brightness(1.02) !important;
+    animation: marinaDrift 88s ease-in-out infinite;
+}
+
+body::after {
+    opacity: 0.07 !important;
+    mix-blend-mode: screen;
+}
+
+.hero__backdrop::before,
+.hero__backdrop::after,
+.operations-panel::before,
+.guest-portal-page .guest-portal-card::before,
+.guest-portal-page .guest-portal-status::before,
+.guest-portal-page .guest-portal-info::before,
+.guest-portal-page .guest-portal-service::before {
+    opacity: 0.10;
+}
+
+.hero__backdrop::after {
+    animation: ambientPulse 44s ease-in-out infinite;
+}
+
+.hero__copy,
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.trust-card,
+.feature-card,
+.partner-card,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state {
+    box-shadow:
+        0 18px 42px rgba(56, 68, 76, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        inset 0 -12px 18px rgba(45, 58, 69, 0.03) !important;
+}
+
+.hero__copy:hover,
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover,
+.guest-portal-page .guest-portal-header:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover,
+.guest-portal-page .portal-card:hover,
+.guest-portal-page .access-card:hover,
+.guest-portal-page .concierge-card:hover,
+.pilot-contact:hover,
+.trust-card:hover,
+.feature-card:hover,
+.partner-card:hover,
+.guest-portal-page .guest-portal-status:hover,
+.guest-portal-page .guest-portal-info:hover,
+.guest-portal-page .guest-portal-service:hover,
+.guest-portal-page .guest-portal-access:hover,
+.guest-portal-page .guest-portal-qr:hover,
+.guest-portal-page .guest-portal-instructions:hover,
+.operations-list__item:hover,
+.operations-workflow__step:hover,
+.operations-notification:hover,
+.operations-sla__item:hover,
+.operations-empty-state:hover {
+    transform: translateY(-2px);
+}
+
+.hero__copy,
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.trust-card,
+.feature-card,
+.partner-card {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.hero__copy::after,
+.operations-panel::after,
+.operations-panel--wide::after,
+.operations-hero__preview::after,
+.guest-portal-page .guest-portal-header::after,
+.guest-portal-page .guest-card::after,
+.guest-portal-page .guest-portal-card::after,
+.guest-portal-page .portal-card::after,
+.guest-portal-page .access-card::after,
+.guest-portal-page .concierge-card::after,
+.trust-card::after,
+.feature-card::after,
+.partner-card::after {
+    content: "";
+    position: absolute;
+    inset: auto 14px 12px 14px;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(184, 138, 63, 0.28), transparent);
+    opacity: 0.88;
+    pointer-events: none;
+}
+
+.trust-grid,
+.feature-grid,
+.partner-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 16px !important;
+}
+
+.trust-card,
+.feature-card,
+.partner-card,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    border-color: rgba(20, 36, 50, 0.08) !important;
+}
+
+.trust-card::before,
+.feature-card::before,
+.partner-card::before,
+.guest-portal-page .guest-portal-service::before,
+.guest-portal-page .guest-portal-status::before,
+.guest-portal-page .guest-portal-info::before,
+.guest-portal-page .guest-portal-access::before,
+.guest-portal-page .guest-portal-qr::before,
+.guest-portal-page .guest-portal-instructions::before,
+.operations-list__item::before,
+.operations-workflow__step::before,
+.operations-notification::before,
+.operations-sla__item::before,
+.operations-empty-state::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.26), transparent 42%),
+        radial-gradient(circle at 18% 12%, rgba(159, 187, 207, 0.10), transparent 28%);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.trust-strip,
+.guest-trust-strip {
+    gap: 10px;
+}
+
+.trust-strip__chip,
+.guest-trust-chip,
+.operations-status-pill,
+.operations-chip,
+.operations-list__badge {
+    position: relative;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 36, 50, 0.08);
+    background: rgba(255, 255, 255, 0.56) !important;
+    box-shadow:
+        0 8px 18px rgba(56, 68, 76, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.trust-strip__chip::before,
+.guest-trust-chip::before,
+.operations-status-pill::before,
+.operations-chip::before,
+.operations-list__badge::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 8px;
+    border-radius: 999px;
+    vertical-align: middle;
+    background: rgba(184, 138, 63, 0.82);
+    box-shadow: 0 0 0 4px rgba(184, 138, 63, 0.10);
+    animation: conciergePulse 6.2s ease-in-out infinite;
+}
+
+.operations-status-pill--soft::before,
+.operations-list__badge--soft::before,
+.guest-portal-page .guest-portal-status span::before,
+.guest-portal-page .guest-portal-info span::before,
+.guest-portal-page .guest-portal-service span::before {
+    background: rgba(80, 130, 150, 0.80);
+    box-shadow: 0 0 0 4px rgba(80, 130, 150, 0.10);
+}
+
+.operations-status-pill--warning::before,
+.operations-chip--soft::before {
+    background: rgba(184, 138, 63, 0.72);
+}
+
+.operations-panel__header,
+.guest-portal-page .guest-portal-card__topline,
+.guest-portal-page .guest-portal-header__topline,
+.operations-preview-card__topline {
+    border-bottom: 1px solid rgba(20, 36, 50, 0.08);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.operations-panel__copy,
+.hero__copy .hero__text,
+.cta-panel__copy,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.operations-list__item p,
+.operations-empty-state strong,
+.operations-empty-state p,
+.feature-card p,
+.partner-card p,
+.trust-card p {
+    max-width: 60ch;
+}
+
+.operations-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+}
+
+.operations-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+}
+
+.operations-shell {
+    padding-top: 4px !important;
+}
+
+.operations-dashboard__rail {
+    display: grid;
+    gap: 14px;
+}
+
+.operations-list,
+.operations-workflow,
+.operations-notifications,
+.operations-sla,
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-services {
+    gap: 12px !important;
+}
+
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions {
+    padding: 13px 14px;
+    border-radius: 18px;
+}
+
+.operations-list__item strong,
+.operations-workflow__step strong,
+.operations-empty-state strong,
+.guest-portal-page .guest-portal-status strong,
+.guest-portal-page .guest-portal-info strong,
+.guest-portal-page .guest-portal-service strong {
+    letter-spacing: -0.01em;
+}
+
+.operations-list__item p,
+.operations-workflow__step span,
+.operations-empty-state p,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p {
+    line-height: 1.56;
+}
+
+.guest-portal-page .guest-portal-timeline__time,
+.operations-overview__item time,
+.operations-notification time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.guest-portal-page .guest-portal-timeline__time::before,
+.operations-overview__item time::before,
+.operations-notification time::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(80, 130, 150, 0.72);
+    box-shadow: 0 0 0 3px rgba(80, 130, 150, 0.10);
+}
+
+.operations-panel h3,
+.guest-portal-page .guest-portal-card h2,
+.section-heading h2,
+.feature-card h3,
+.partner-card h3,
+.trust-card h3 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+@media (max-width: 900px) {
+    .trust-grid,
+    .feature-grid,
+    .partner-grid,
+    .operations-grid,
+    .operations-kpis,
+    .guest-portal-page .guest-portal-status-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .hero__copy,
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .guest-portal-page .guest-portal-header,
+    .guest-portal-page .guest-portal-card,
+    .guest-portal-page .guest-card,
+    .guest-portal-page .portal-card,
+    .guest-portal-page .access-card,
+    .guest-portal-page .concierge-card {
+        padding: 16px !important;
+    }
+
+    .operations-shell {
+        padding-bottom: 84px !important;
+    }
+
+    .guest-portal-page .guest-portal-services,
+    .guest-portal-page .guest-portal-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .trust-strip,
+    .guest-trust-strip {
+        gap: 8px;
+    }
+
+    .trust-strip__chip,
+    .guest-trust-chip,
+    .operations-status-pill,
+    .operations-chip,
+    .operations-list__badge {
+        min-height: 28px;
+        padding: 0 11px;
+    }
+
+    .operations-list__item,
+    .operations-workflow__step,
+    .operations-notification,
+    .operations-sla__item,
+    .operations-empty-state,
+    .guest-portal-page .guest-portal-status,
+    .guest-portal-page .guest-portal-info,
+    .guest-portal-page .guest-portal-service,
+    .guest-portal-page .guest-portal-access,
+    .guest-portal-page .guest-portal-qr,
+    .guest-portal-page .guest-portal-instructions {
+        padding: 12px 13px;
+    }
+}
+
+@keyframes marinaDrift {
+    0%,
+    100% {
+        transform: scale(1) translate3d(0, 0, 0);
+        background-position: 50% 50%;
+    }
+    50% {
+        transform: scale(1.01) translate3d(0, -4px, 0);
+        background-position: 48% 52%;
+    }
+}
+
+@keyframes conciergePulse {
+    0%,
+    100% {
+        transform: scale(0.92);
+        opacity: 0.72;
+    }
+    50% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+}
+
+/* High-end visual polish: sharper marina, quieter glass, integrated footer. */
+html,
+body {
+    background:
+        linear-gradient(180deg, rgba(255, 250, 243, 0.03), rgba(244, 238, 228, 0.02)),
+        url("/static/img/saint-vlas.jpg") center center / cover fixed no-repeat !important;
+    background-color: #f4efe7 !important;
+}
+
+body::before {
+    opacity: 0.07 !important;
+    filter: none !important;
+    animation: none !important;
+    mix-blend-mode: normal !important;
+    background:
+        linear-gradient(180deg, rgba(255, 249, 239, 0.08), transparent 28%, rgba(18, 35, 48, 0.04) 100%),
+        linear-gradient(90deg, rgba(255, 249, 239, 0.04), transparent 24%, transparent 76%, rgba(20, 40, 54, 0.04)) !important;
+}
+
+body::after {
+    opacity: 0.08 !important;
+    filter: none !important;
+    animation: none !important;
+    mix-blend-mode: normal !important;
+    background:
+        radial-gradient(circle at 50% 8%, rgba(255, 244, 224, 0.10), transparent 22%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%, rgba(16, 34, 48, 0.04)) !important;
+}
+
+.hero {
+    background:
+        linear-gradient(180deg, rgba(255, 247, 236, 0.08), rgba(246, 240, 232, 0.03) 36%, rgba(18, 35, 48, 0.05) 100%),
+        url("/static/img/saint-vlas.jpg") center center / cover no-repeat !important;
+}
+
+.hero__backdrop::before,
+.hero__backdrop::after,
+.hero__glow,
+.hero__rays,
+.hero__reflection,
+.hero__harbor-lights,
+.hero--home .hero__backdrop::before,
+.hero--home .hero__backdrop::after,
+.hero--home::before {
+    opacity: 0.08 !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+.hero__copy,
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact,
+.trust-card,
+.feature-card,
+.partner-card,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state {
+    border-color: rgba(23, 40, 54, 0.09) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 253, 248, 0.86), rgba(247, 241, 232, 0.80)),
+        rgba(255, 252, 246, 0.72) !important;
+    box-shadow:
+        0 18px 40px rgba(22, 38, 51, 0.09),
+        0 1px 0 rgba(255, 255, 255, 0.62),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(2px) saturate(104%) !important;
+    -webkit-backdrop-filter: blur(2px) saturate(104%) !important;
+}
+
+.hero__copy::after,
+.operations-panel::after,
+.operations-panel--wide::after,
+.operations-hero__preview::after,
+.guest-portal-page .guest-portal-header::after,
+.guest-portal-page .guest-card::after,
+.guest-portal-page .guest-portal-card::after,
+.guest-portal-page .portal-card::after,
+.guest-portal-page .access-card::after,
+.guest-portal-page .concierge-card::after,
+.trust-card::after,
+.feature-card::after,
+.partner-card::after {
+    display: none !important;
+}
+
+.operations-panel::before,
+.guest-portal-page .guest-portal-card::before,
+.guest-portal-page .guest-portal-status::before,
+.guest-portal-page .guest-portal-info::before,
+.guest-portal-page .guest-portal-service::before,
+.guest-portal-page .guest-portal-access::before,
+.guest-portal-page .guest-portal-qr::before,
+.guest-portal-page .guest-portal-instructions::before,
+.trust-card::before,
+.feature-card::before,
+.partner-card::before,
+.operations-list__item::before,
+.operations-workflow__step::before,
+.operations-notification::before,
+.operations-sla__item::before,
+.operations-empty-state::before {
+    opacity: 0.12 !important;
+    filter: none !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 44%) !important;
+}
+
+.hero__copy:hover,
+.operations-panel:hover,
+.operations-panel--wide:hover,
+.operations-hero__preview:hover,
+.operations-modal__dialog:hover,
+.guest-portal-page .guest-portal-header:hover,
+.guest-portal-page .guest-card:hover,
+.guest-portal-page .guest-portal-card:hover,
+.guest-portal-page .portal-card:hover,
+.guest-portal-page .access-card:hover,
+.guest-portal-page .concierge-card:hover,
+.pilot-contact:hover,
+.trust-card:hover,
+.feature-card:hover,
+.partner-card:hover {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        0 22px 46px rgba(22, 38, 51, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.64),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+.trust-strip__chip::before,
+.guest-trust-chip::before,
+.operations-status-pill::before,
+.operations-chip::before,
+.operations-list__badge::before,
+.guest-portal-page .guest-credential__status::before,
+.guest-portal-page .guest-credential__stamp::before {
+    animation: none !important;
+}
+
+.operations-panel__header,
+.guest-portal-page .guest-portal-card__topline,
+.guest-portal-page .guest-portal-header__topline,
+.operations-preview-card__topline {
+    border-bottom-color: rgba(23, 40, 54, 0.06) !important;
+}
+
+.operations-grid {
+    gap: 16px !important;
+}
+
+.operations-kpis,
+.trust-grid,
+.feature-grid,
+.partner-grid {
+    gap: 15px !important;
+}
+
+.site-footer {
+    position: relative;
+    margin: 64px auto 0;
+    max-width: min(1160px, calc(100% - 32px));
+    padding: 30px 34px !important;
+    border: 1px solid rgba(23, 40, 54, 0.08) !important;
+    border-bottom: 0 !important;
+    border-radius: 30px 30px 0 0;
+    background:
+        linear-gradient(180deg, rgba(255, 252, 247, 0.88), rgba(246, 239, 229, 0.78)),
+        rgba(255, 250, 243, 0.70) !important;
+    box-shadow:
+        0 -18px 44px rgba(22, 38, 51, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+    backdrop-filter: blur(2px) saturate(104%) !important;
+    -webkit-backdrop-filter: blur(2px) saturate(104%) !important;
+}
+
+.site-footer::before {
+    content: "";
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(184, 138, 63, 0.20), transparent);
+    opacity: 0.72;
+}
+
+.site-footer__links {
+    gap: 12px 16px !important;
+}
+
+@media (max-width: 900px) {
+    html,
+    body {
+        background-attachment: scroll !important;
+    }
+
+    .hero {
+        background-attachment: scroll !important;
+    }
+
+    .site-footer {
+        max-width: calc(100% - 20px);
+        margin-top: 42px;
+        padding: 24px 20px !important;
+        border-radius: 24px 24px 0 0;
+    }
+}
+
+/* Photo-first luxury correction: one sharp marina scene, no milky hero/footer slabs. */
+html,
+body {
+    background:
+        linear-gradient(180deg, rgba(4, 16, 27, 0.10), rgba(4, 16, 27, 0.04) 42%, rgba(4, 16, 27, 0.16)),
+        url("/static/img/saint-vlas.jpg") center center / cover fixed no-repeat !important;
+    background-color: #071622 !important;
+}
+
+body::before {
+    opacity: 0.025 !important;
+    filter: none !important;
+    animation: none !important;
+    background: linear-gradient(180deg, rgba(255, 246, 232, 0.06), transparent 30%, rgba(3, 16, 29, 0.08)) !important;
+}
+
+body::after {
+    opacity: 0.045 !important;
+    filter: none !important;
+    animation: none !important;
+    background: linear-gradient(90deg, rgba(3, 13, 24, 0.18), transparent 18%, transparent 78%, rgba(3, 13, 24, 0.14)) !important;
+    mix-blend-mode: normal !important;
+}
+
+.hero,
+.hero--home,
+.operations-hero,
+.guest-portal-page,
+.operations-demo-page,
+.guest-portal-shell,
+.operations-shell,
+main {
+    background: transparent !important;
+}
+
+.hero {
+    min-height: 92vh;
+    padding-bottom: 108px;
+}
+
+.hero__backdrop,
+.hero__backdrop::before,
+.hero__backdrop::after,
+.hero__glow,
+.hero__rays,
+.hero__reflection,
+.hero__harbor-lights,
+.hero__horizon,
+.hero--home::before,
+main::before,
+main::after {
+    opacity: 0 !important;
+    display: none !important;
+    animation: none !important;
+    filter: none !important;
+}
+
+.hero__content,
+.hero__content--home {
+    width: min(1180px, calc(100% - 48px));
+    margin-inline: auto;
+    min-height: calc(92vh - 120px);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 34px;
+}
+
+.hero__copy,
+.hero__content--home .hero__copy {
+    max-width: 760px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.hero__copy::before,
+.hero__copy::after,
+.hero__content::before,
+.hero__content::after {
+    display: none !important;
+}
+
+.hero h1,
+.hero--home h1 {
+    max-width: 11ch;
+    color: rgba(255, 246, 231, 0.96) !important;
+    text-shadow: 0 2px 20px rgba(3, 13, 24, 0.48) !important;
+}
+
+.hero__copy .hero__text,
+.hero__copy .eyebrow,
+.hero__copy .section-heading__eyebrow {
+    color: rgba(255, 248, 238, 0.92) !important;
+    text-shadow: 0 1px 16px rgba(3, 13, 24, 0.42) !important;
+}
+
+.hero__cta,
+.trust-strip {
+    margin-top: 24px !important;
+}
+
+.trust-strip__chip,
+.guest-trust-chip {
+    background: rgba(255, 250, 241, 0.70) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+    backdrop-filter: blur(1px) saturate(104%) !important;
+    -webkit-backdrop-filter: blur(1px) saturate(104%) !important;
+}
+
+.credibility-layer,
+.trust-layer {
+    padding-block: 72px !important;
+}
+
+.section-heading {
+    margin-bottom: 24px !important;
+}
+
+.section-heading h2 {
+    color: rgba(255, 246, 231, 0.94) !important;
+    text-shadow: 0 2px 18px rgba(3, 13, 24, 0.34);
+}
+
+.section-heading__eyebrow,
+.eyebrow {
+    color: rgba(224, 173, 82, 0.94) !important;
+}
+
+.feature-card,
+.trust-card,
+.partner-card,
+.cta-panel,
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.pilot-contact {
+    background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.82), rgba(246, 240, 230, 0.74)),
+        rgba(255, 249, 239, 0.66) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+    box-shadow:
+        0 18px 42px rgba(3, 13, 24, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(1px) saturate(104%) !important;
+    -webkit-backdrop-filter: blur(1px) saturate(104%) !important;
+}
+
+.feature-card::before,
+.trust-card::before,
+.partner-card::before,
+.cta-panel::before,
+.operations-panel::before,
+.guest-portal-page .guest-portal-card::before {
+    opacity: 0.08 !important;
+    filter: none !important;
+}
+
+.feature-grid,
+.trust-grid,
+.partner-grid,
+.operations-grid {
+    gap: 18px !important;
+}
+
+.cta-panel {
+    margin-block: 64px !important;
+}
+
+.site-footer {
+    max-width: min(1180px, calc(100% - 48px)) !important;
+    margin: 72px auto 0 !important;
+    padding: 30px 34px !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-bottom: 0 !important;
+    border-radius: 28px 28px 0 0 !important;
+    background:
+        linear-gradient(180deg, rgba(8, 24, 37, 0.70), rgba(8, 24, 37, 0.58)),
+        rgba(8, 24, 37, 0.54) !important;
+    box-shadow: 0 -18px 44px rgba(3, 13, 24, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(1px) saturate(104%) !important;
+    -webkit-backdrop-filter: blur(1px) saturate(104%) !important;
+}
+
+.site-footer::before {
+    opacity: 0.42 !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 226, 176, 0.42), transparent) !important;
+}
+
+.site-footer__brand strong,
+.site-footer__links a,
+.site-footer__meta a {
+    color: rgba(255, 232, 188, 0.94) !important;
+}
+
+.site-footer__brand p,
+.site-footer__meta,
+.site-footer__meta p {
+    color: rgba(255, 248, 238, 0.82) !important;
+}
+
+@media (max-width: 900px) {
+    html,
+    body {
+        background-attachment: scroll !important;
+    }
+
+    .hero {
+        min-height: 86vh;
+        padding-bottom: 62px;
+    }
+
+    .hero__content,
+    .hero__content--home {
+        width: min(100% - 28px, 720px);
+        min-height: calc(86vh - 110px);
+        padding-bottom: 22px;
+    }
+
+    .hero h1,
+    .hero--home h1 {
+        max-width: 12ch;
+    }
+
+    .credibility-layer,
+    .trust-layer {
+        padding-block: 46px !important;
+    }
+
+    .site-footer {
+        max-width: calc(100% - 20px) !important;
+        margin-top: 42px !important;
+        padding: 24px 20px !important;
+    }
+}
+
+/* New high-resolution marina asset: keep the photography crisp and dominant. */
+html,
+body {
+    background:
+        linear-gradient(180deg, rgba(3, 13, 24, 0.04), rgba(3, 13, 24, 0.02) 44%, rgba(3, 13, 24, 0.08)),
+        url("/static/img/blacksea-marina-hero.png") center center / cover fixed no-repeat !important;
+    background-color: #071522 !important;
+}
+
+body::before,
+body::after,
+main::before,
+main::after,
+.hero__backdrop,
+.hero__backdrop::before,
+.hero__backdrop::after,
+.hero__glow,
+.hero__rays,
+.hero__reflection,
+.hero__harbor-lights,
+.hero__horizon {
+    opacity: 0 !important;
+    display: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+.hero,
+.hero--home,
+.operations-hero,
+.operations-demo-page,
+.guest-portal-page,
+.guest-portal-shell,
+.operations-shell,
+main {
+    background: transparent !important;
+}
+
+.feature-card,
+.trust-card,
+.partner-card,
+.cta-panel,
+.operations-panel,
+.operations-panel--wide,
+.operations-hero__preview,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-header,
+.guest-portal-page .guest-card,
+.guest-portal-page .guest-portal-card,
+.guest-portal-page .portal-card,
+.guest-portal-page .access-card,
+.guest-portal-page .concierge-card,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-access,
+.guest-portal-page .guest-portal-qr,
+.guest-portal-page .guest-portal-instructions,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state,
+.pilot-contact {
+    background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.72), rgba(246, 240, 230, 0.62)),
+        rgba(255, 250, 242, 0.54) !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
+    box-shadow:
+        0 18px 42px rgba(3, 13, 24, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.60) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.hero__copy,
+.hero__content--home .hero__copy {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.hero h1,
+.hero--home h1 {
+    color: rgba(255, 247, 232, 0.98) !important;
+    text-shadow:
+        0 2px 18px rgba(3, 13, 24, 0.62),
+        0 1px 1px rgba(3, 13, 24, 0.38) !important;
+}
+
+.hero__copy .hero__text,
+.hero__copy .eyebrow,
+.hero__copy .section-heading__eyebrow {
+    color: rgba(255, 250, 241, 0.94) !important;
+    text-shadow: 0 1px 14px rgba(3, 13, 24, 0.58) !important;
+}
+
+.section-heading h2 {
+    color: rgba(255, 247, 232, 0.96) !important;
+    text-shadow: 0 2px 16px rgba(3, 13, 24, 0.44) !important;
+}
+
+.site-footer {
+    background:
+        linear-gradient(180deg, rgba(7, 22, 34, 0.74), rgba(7, 22, 34, 0.64)),
+        rgba(7, 22, 34, 0.58) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    box-shadow:
+        0 -18px 42px rgba(3, 13, 24, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 900px) {
+    html,
+    body {
+        background:
+            linear-gradient(180deg, rgba(3, 13, 24, 0.04), rgba(3, 13, 24, 0.02) 44%, rgba(3, 13, 24, 0.08)),
+            url("/static/img/blacksea-marina-hero.png") center center / cover scroll no-repeat !important;
+    }
+}
+
+/* Operations hero editorial contrast: warm ivory text over the marina image. */
+.operations-hero h1 {
+    color: rgba(255, 247, 232, 0.98) !important;
+    text-shadow:
+        0 2px 18px rgba(3, 13, 24, 0.52),
+        0 1px 1px rgba(3, 13, 24, 0.28) !important;
+}
+
+.operations-hero__text {
+    color: rgba(255, 250, 241, 0.90) !important;
+    text-shadow: 0 1px 12px rgba(3, 13, 24, 0.42) !important;
+}
+
+.operations-eyebrow {
+    color: rgba(255, 225, 176, 0.94) !important;
+    text-shadow: 0 1px 10px rgba(3, 13, 24, 0.36) !important;
+}
+
+.operations-hero__copy {
+    color: rgba(255, 248, 236, 0.92) !important;
+}
+
+/* Operations containment fix: prevent localized copy from escaping narrow cards. */
+.operations-panel,
+.operations-panel *,
+.operations-hero__preview,
+.operations-hero__preview * {
+    min-width: 0;
+}
+
+.operations-panel__header {
+    flex-wrap: wrap;
+    align-items: flex-start !important;
+}
+
+.operations-panel__header > div {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.operations-panel__header .operations-status-pill,
+.operations-panel__header .operations-chip,
+.operations-incident-card__priority,
+.operations-incident-card__sla,
+.operations-list__badge {
+    max-width: 100%;
+    height: auto;
+    min-height: 30px;
+    padding: 7px 11px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.22;
+    text-align: left;
+}
+
+.operations-incident-grid,
+.operations-network-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+}
+
+.operations-incident-card,
+.operations-network-card,
+.operations-list__item,
+.operations-workflow__step,
+.operations-notification,
+.operations-sla__item,
+.operations-empty-state,
+.operations-preview-stat,
+.operations-overview__item {
+    overflow: hidden;
+    min-width: 0;
+}
+
+.operations-incident-card__topline {
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.operations-incident-card strong,
+.operations-incident-card p,
+.operations-incident-card__timeline span,
+.operations-list__item strong,
+.operations-list__item p,
+.operations-workflow__step strong,
+.operations-workflow__step span,
+.operations-network-card strong,
+.operations-network-card p,
+.operations-notification p,
+.operations-empty-state strong,
+.operations-empty-state p {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.operations-incident-card__timeline {
+    align-items: flex-start;
+}
+
+.operations-incident-card__timeline span {
+    height: auto;
+    min-height: 28px;
+    padding-block: 6px;
+    line-height: 1.25;
+}
+
+@media (max-width: 1180px) {
+    .operations-dashboard {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .operations-dashboard__rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .operations-dashboard__rail {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .operations-panel__header > div {
+        flex-basis: 100%;
+    }
+}
+
+/* Guest portal photo-gap cleanup: keep cards ivory, but let the marina show between them. */
+.guest-portal-page .guest-portal-shell {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+.guest-portal-page .guest-portal-shell::before,
+.guest-portal-page .guest-portal-shell::after {
+    content: none !important;
+    display: none !important;
+    opacity: 0 !important;
+    background: transparent !important;
+}
+
+.guest-portal-page .guest-action-helper,
+.guest-portal-page .guest-trust-strip {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Final luxury polish: lighter editorial hero type and clearer Apple-grade operations glass. */
+.hero h1,
+.hero--home h1,
+.operations-hero h1 {
+    text-shadow:
+        0 1px 10px rgba(3, 13, 24, 0.30),
+        0 1px 1px rgba(3, 13, 24, 0.18) !important;
+}
+
+.hero__copy .hero__text,
+.operations-hero__text {
+    color: rgba(255, 251, 244, 0.96) !important;
+    text-shadow:
+        0 1px 8px rgba(3, 13, 24, 0.34),
+        0 1px 1px rgba(3, 13, 24, 0.18) !important;
+}
+
+.operations-hero__preview {
+    background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.48), rgba(246, 240, 230, 0.34)),
+        rgba(255, 250, 242, 0.28) !important;
+    border-color: rgba(255, 255, 255, 0.20) !important;
+    box-shadow:
+        0 18px 40px rgba(3, 13, 24, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.44) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.operations-hero__preview .operations-preview-stat,
+.operations-hero__preview .operations-preview-card__notes > div {
+    background: rgba(255, 250, 242, 0.34) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36) !important;
+}
