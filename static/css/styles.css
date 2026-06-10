@@ -14254,3 +14254,69 @@ body::after,
     }
 }
 
+
+/* ===== ADMIN PILOT REQUESTS ===== */
+.admin-pilot-page {
+    min-height: 100vh;
+    padding: 6rem 1.25rem;
+    background:
+        linear-gradient(180deg, rgba(8, 12, 18, 0.62), rgba(8, 12, 18, 0.82)),
+        url("/static/img/saint-vlas.jpg") center center / cover fixed no-repeat;
+}
+
+.admin-pilot-shell {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+}
+
+.admin-pilot-header,
+.admin-pilot-card {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 32px;
+    padding: 2rem;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+}
+
+.admin-pilot-header {
+    margin-bottom: 1.25rem;
+}
+
+.admin-pilot-header h1 {
+    margin: .25rem 0 .75rem;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    line-height: .92;
+}
+
+.admin-pilot-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.admin-pilot-card h2 {
+    margin: .25rem 0 1rem;
+}
+
+.admin-pilot-card p {
+    margin: .45rem 0;
+}
+
+.admin-pilot-card a {
+    color: #113b5c;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .admin-pilot-page {
+        padding: 4.5rem .9rem;
+    }
+
+    .admin-pilot-header,
+    .admin-pilot-card {
+        padding: 1.35rem;
+        border-radius: 26px;
+    }
+}
+

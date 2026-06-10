@@ -1,0 +1,44 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Pilot Requests</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="admin-pilot-page">
+    <section class="admin-pilot-shell">
+      <div class="admin-pilot-header">
+        <p class="eyebrow">Private intake</p>
+        <h1>Pilot requests</h1>
+        <p>{{ requests|length }} request(s) received</p>
+        <a class="button button--secondary" href="/pilot-access">Back to pilot access</a>
+      </div>
+
+      <div class="admin-pilot-list">
+        {% if requests %}
+          {% for item in requests %}
+            <article class="admin-pilot-card">
+              <div>
+                <p class="eyebrow">{{ item.created_at }}</p>
+                <h2>{{ item.name }}</h2>
+                <p><strong>Email:</strong> <a href="mailto:{{ item.email }}">{{ item.email }}</a></p>
+                <p><strong>Type:</strong> {{ item.property_type }}</p>
+                <p><strong>Region:</strong> {{ item.location }}</p>
+                <p><strong>Properties:</strong> {{ item.apartment_count }}</p>
+                <p><strong>Needs:</strong> {{ item.needs }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          <article class="admin-pilot-card">
+            <h2>No pilot requests yet.</h2>
+            <p>When someone submits the pilot form, the request will appear here.</p>
+          </article>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

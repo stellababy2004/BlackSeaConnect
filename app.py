@@ -83,3 +83,20 @@ def api_pilot_request():
 
     return jsonify({"ok": True, "message": "Pilot request received"})
 
+@app.get("/admin/pilot-requests")
+def admin_pilot_requests():
+    path = Path("data") / "pilot_requests.jsonl"
+    requests_list = []
+
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    requests_list.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+    requests_list = list(reversed(requests_list))
+
+    return render_template("admin_pilot_requests.html", requests=requests_list)
+
