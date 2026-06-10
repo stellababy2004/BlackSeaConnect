@@ -14320,3 +14320,33 @@ body::after,
     }
 }
 
+
+/* ===== PILOT SELECT LAYOUT OVERFLOW FIX ===== */
+.pilot-select__trigger {
+    width: 100% !important;
+    min-height: 72px !important;
+    padding: 0 72px 0 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.pilot-select__value {
+    display: block !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    padding-right: 12px !important;
+}
+
+.pilot-select__trigger::after {
+    content: "?" !important;
+    position: absolute !important;
+    right: 24px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+}
+

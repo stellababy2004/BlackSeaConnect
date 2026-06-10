@@ -88,7 +88,9 @@
     });
 
     options.forEach((option) => {
-      option.addEventListener("click", () => {
+      option.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         const selectedText = option.textContent.trim();
         input.value = selectedText;
 
@@ -114,3 +116,4 @@
     });
   });
 });
+
