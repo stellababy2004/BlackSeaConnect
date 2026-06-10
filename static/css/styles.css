@@ -14819,3 +14819,127 @@ body::after,
     }
 }
 
+
+@media (max-width: 768px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .navbar,
+  .topbar,
+  .header-shell {
+    padding: 14px 16px !important;
+    border-radius: 0 0 26px 26px !important;
+  }
+
+  .navbar-links,
+  .nav-links {
+    gap: 8px !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navbar-links a,
+  .nav-links a {
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+    border-radius: 999px;
+  }
+
+  .brand,
+  .logo-text {
+    font-size: 18px !important;
+    letter-spacing: 0.08em;
+  }
+
+  .hero,
+  .hero-section {
+    min-height: auto !important;
+    padding: 120px 22px 72px !important;
+  }
+
+  .hero h1,
+  .hero-title {
+    font-size: clamp(2.6rem, 9vw, 4.4rem) !important;
+    line-height: 0.93 !important;
+    max-width: 100% !important;
+    letter-spacing: -0.04em;
+  }
+
+  .hero p,
+  .hero-subtitle {
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    max-width: 100% !important;
+    margin-top: 18px;
+  }
+
+  .hero-actions,
+  .cta-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .hero-actions a,
+  .cta-group a,
+  .hero-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .glass-card,
+  .pilot-card,
+  .service-card {
+    padding: 22px !important;
+    border-radius: 26px !important;
+  }
+
+  .pilot-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  .pilot-access-float {
+    right: 14px !important;
+    bottom: 16px !important;
+
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 50% !important;
+
+    padding: 0 !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    backdrop-filter: blur(18px);
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  .pilot-access-float span {
+    display: none !important;
+  }
+
+  .pilot-access-float svg,
+  .pilot-access-float img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  section {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+}
+
