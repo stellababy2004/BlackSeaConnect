@@ -1,0 +1,35 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Concierge Requests · BlackSea Connect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="guest-portal-page">
+  <section class="guest-portal-shell">
+    <div class="guest-card">
+      <div class="guest-card-top">
+        <span>ADMIN</span>
+        <span>Concierge Requests</span>
+      </div>
+
+      <h1>Concierge Requests</h1>
+
+      {% if requests %}
+        <div class="guest-service-list">
+          {% for item in requests %}
+            <div class="guest-service-item">
+              <strong>{{ item.service_type }}</strong>
+              <span>{{ item.name }} · {{ item.email }}</span>
+              <span>{{ item.message }}</span>
+              <small>{{ item.created_at }}</small>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No concierge requests yet.</p>
+      {% endif %}
+    </div>
+  </section>
+</body>
+</html>

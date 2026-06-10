@@ -137,7 +137,25 @@ def api_concierge():
 
     return jsonify({"ok": True, "message": "Concierge request received"})
 
+
+@app.get("/admin/concierge-requests")
+def admin_concierge_requests():
+    path = Path("data") / "concierge_requests.jsonl"
+    requests_list = []
+
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    requests_list.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+    requests_list = list(reversed(requests_list))
+
+    return render_template("admin_concierge_requests.html", requests=requests_list)
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
+
 
 
