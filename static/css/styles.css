@@ -15007,3 +15007,79 @@ body::after,
   }
 }
 
+
+/* Concierge request form */
+.guest-concierge-form-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-concierge-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.guest-concierge-form textarea,
+.guest-concierge-form button,
+#concierge-status {
+  grid-column: 1 / -1;
+}
+
+.guest-concierge-form input,
+.guest-concierge-form select,
+.guest-concierge-form textarea {
+  width: 100%;
+  border: 1px solid rgba(180, 132, 42, 0.28);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #10233f;
+  font: inherit;
+  outline: none;
+  box-shadow: 0 12px 28px rgba(15, 35, 65, 0.08);
+}
+
+.guest-concierge-form input::placeholder,
+.guest-concierge-form textarea::placeholder {
+  color: rgba(180, 132, 42, 0.68);
+}
+
+.guest-concierge-form input:focus,
+.guest-concierge-form select:focus,
+.guest-concierge-form textarea:focus {
+  border-color: rgba(180, 132, 42, 0.72);
+  box-shadow: 0 0 0 4px rgba(180, 132, 42, 0.12);
+}
+
+.guest-concierge-form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #10233f, #1d385d);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 18px 38px rgba(16, 35, 63, 0.24);
+}
+
+.guest-concierge-form button:hover {
+  transform: translateY(-1px);
+}
+
+#concierge-status {
+  margin: 4px 0 0;
+  color: #10233f;
+  font-weight: 600;
+}
+
+@media (max-width: 820px) {
+  .guest-concierge-form {
+    grid-template-columns: 1fr;
+  }
+}
+
