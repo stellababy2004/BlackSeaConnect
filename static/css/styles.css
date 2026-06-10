@@ -14502,3 +14502,51 @@ body::after,
     }
 }
 
+
+/* ===== OPERATIONAL TRUST STRIP ===== */
+
+.ops-trust-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin:48px 0 24px;
+}
+
+.ops-trust-card{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.12);
+    backdrop-filter:blur(18px);
+    border-radius:24px;
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.ops-trust-card:hover{
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.12);
+}
+
+.ops-trust-card__kpi{
+    color:#f3c76a;
+    font-size:1.3rem;
+    font-weight:700;
+    letter-spacing:.04em;
+}
+
+.ops-trust-card__label{
+    color:rgba(255,255,255,.82);
+    line-height:1.5;
+    font-size:.95rem;
+}
+
+@media (max-width: 900px){
+
+    .ops-trust-strip{
+        grid-template-columns:1fr;
+    }
+
+}
+
