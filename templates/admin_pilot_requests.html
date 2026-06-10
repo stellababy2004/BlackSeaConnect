@@ -42,3 +42,22 @@
   </main>
 </body>
 </html>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const search = document.getElementById("pilot-admin-search");
+  const cards = Array.from(document.querySelectorAll("[data-pilot-request-card]"));
+
+  if (!search || !cards.length) return;
+
+  search.addEventListener("input", () => {
+    const query = search.value.trim().toLowerCase();
+
+    cards.forEach((card) => {
+      const text = card.textContent.toLowerCase();
+      card.hidden = query && !text.includes(query);
+    });
+  });
+});
+</script>
+
