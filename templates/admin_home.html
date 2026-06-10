@@ -1,0 +1,38 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin · BlackSea Connect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="guest-portal-page">
+  <section class="guest-portal-shell">
+    <div class="guest-card">
+      <div class="guest-card-top">
+        <span>BLACKSEA CONNECT</span>
+        <span>Admin cockpit</span>
+      </div>
+
+      <h1>Admin cockpit</h1>
+      <p>Operational entry point for guest concierge and pilot access requests.</p>
+
+      <div class="guest-service-list">
+        <a class="guest-service-item" href="/admin/concierge-requests">
+          <strong>Concierge requests</strong>
+          <span>View guest service requests from the Guest Portal.</span>
+        </a>
+
+        <a class="guest-service-item" href="/admin/pilot-requests">
+          <strong>Pilot access requests</strong>
+          <span>View owner, agency and property operator pilot leads.</span>
+        </a>
+
+        <a class="guest-service-item" href="/guest/a-302">
+          <strong>Guest Portal A-302</strong>
+          <span>Open the live guest portal demo.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

@@ -154,8 +154,13 @@ def admin_concierge_requests():
     requests_list = list(reversed(requests_list))
 
     return render_template("admin_concierge_requests.html", requests=requests_list)
+
+@app.get("/admin")
+def admin_home():
+    return render_template("admin_home.html")
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
+
 
 
 
