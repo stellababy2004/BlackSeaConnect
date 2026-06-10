@@ -205,6 +205,36 @@
 
     </div>
 
+    <div class="guest-card guest-concierge-form-card">
+
+        <div class="guest-card-top">
+            <span>CONCIERGE REQUEST</span>
+            <span>24/7 assistance</span>
+        </div>
+
+        <h2>Request assistance</h2>
+
+        <form id="concierge-form" class="guest-concierge-form">
+            <input type="text" name="name" placeholder="Your name" required>
+            <input type="email" name="email" placeholder="Your email" required>
+
+            <select name="service_type" required>
+                <option value="">Select service</option>
+                <option value="airport_transfer">Airport transfer</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="restaurant_booking">Restaurant booking</option>
+                <option value="local_recommendation">Local recommendation</option>
+                <option value="other">Other</option>
+            </select>
+
+            <textarea name="message" placeholder="Describe your request..." rows="5" required></textarea>
+
+            <button type="submit">Send request</button>
+            <p id="concierge-status"></p>
+        </form>
+
+    </div>
     <div class="guest-floating-actions" aria-label="Guest quick actions" data-i18n-attr="aria-label:guest.guestActionsAria">
 
         <a
@@ -316,5 +346,44 @@
   <span class="whatsapp-float__label">Pilot access</span>
 </a>
 
+<script>
+document.getElementById("concierge-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const status = document.getElementById("concierge-status");
+
+  const payload = {
+    name: form.name.value,
+    email: form.email.value,
+    service_type: form.service_type.value,
+    message: form.message.value
+  };
+
+  status.textContent = "Sending request...";
+
+  try {
+    const response = await fetch("/api/concierge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (data.ok) {
+      status.textContent = "Request sent successfully.";
+      form.reset();
+    } else {
+      status.textContent = "Please complete all required fields.";
+    }
+  } catch (error) {
+    status.textContent = "Connection error. Please try again.";
+  }
+});
+</script>
 </body>
 </html>
+
