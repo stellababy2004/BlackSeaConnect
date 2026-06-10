@@ -1,471 +1,93 @@
-(function () {
-  const DEFAULT_TO = "blackseaconnect@orange.fr";
-  const DEFAULT_SUBJECT = "BlackSea Connect pilot access request";
-  const LINE_BREAK = "\n";
-  const SELECTOR = "[data-pilot-select]";
-  const selectInstances = new Set();
-  let openSelectWrapper = null;
-  let selectIdCounter = 0;
-  let documentListenerBound = false;
-  let languageListenerBound = false;
-  let scrollListenerBound = false;
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("[data-pilot-form]");
+  const response = document.querySelector("[data-pilot-response]");
 
-  function getFieldLabel(field) {
-    const label = field.closest("label");
-    if (!label) {
-      return field.name || field.id || "Field";
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+
+    const name = formData.get("name") || "";
+    const email = formData.get("email") || "";
+    const propertyType = formData.get("property_type") || "";
+    const location = formData.get("location") || "";
+    const apartmentCount = formData.get("apartment_count") || "";
+    const needs = formData.get("needs") || "";
+
+    const subject = "BlackSea Connect Pilot Request";
+
+    const body = `
+Name: ${name}
+
+Email: ${email}
+
+Property Type: ${propertyType}
+
+Region: ${location}
+
+Property Count: ${apartmentCount}
+
+Operational Needs:
+${needs}
+    `.trim();
+
+    const mailto = `mailto:blackseaconnect@orange.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailto;
+
+    if (response) {
+      response.textContent =
+        "Pilot request prepared successfully.";
     }
 
-    const labelNode = label.querySelector("span, label");
-    const text = labelNode ? labelNode.textContent : label.textContent;
-    return (text || field.name || field.id || "Field").trim();
-  }
+    form.reset();
+  });
+});(function () {
+  function initPilotSelect() {
+    document.querySelectorAll("[data-pilot-select]").forEach((select) => {
+      const trigger = select.querySelector("[data-pilot-select-trigger]");
+      const panel = select.querySelector("[data-pilot-select-panel]");
+      const valueEl = select.querySelector("[data-pilot-select-value]");
+      const placeholder = select.querySelector("[data-pilot-select-placeholder]");
+      const input = select.querySelector("[data-pilot-select-input]");
+      const options = select.querySelectorAll("[data-pilot-select-option]");
 
-  function getFieldValue(field) {
-    if (field.tagName === "SELECT") {
-      const selected = field.options[field.selectedIndex];
-      return selected ? selected.textContent.trim() : "";
-    }
+      if (!trigger || !panel || !input) return;
 
-    if (field.type === "checkbox") {
-      return field.checked ? "Yes" : "No";
-    }
-
-    return (field.value || "").trim();
-  }
-
-  function getSelectOptionKey(option) {
-    return (
-      option.getAttribute("data-value") ||
-      option.getAttribute("data-value-key") ||
-      option.getAttribute("data-i18n") ||
-      (option.dataset && option.dataset.value) ||
-      option.textContent.trim()
-    );
-  }
-
-  function getSelectOptionText(option) {
-    return (option.textContent || "").trim();
-  }
-
-  function closeSelect(wrapper, focusTrigger) {
-    const trigger = wrapper.querySelector("[data-pilot-select-trigger]");
-    const panel = wrapper.querySelector("[data-pilot-select-panel]");
-    if (!trigger || !panel) {
-      return;
-    }
-
-    wrapper.classList.remove("is-open");
-    trigger.setAttribute("aria-expanded", "false");
-    panel.hidden = true;
-
-    if (openSelectWrapper === wrapper) {
-      openSelectWrapper = null;
-    }
-
-    if (focusTrigger) {
-      trigger.focus();
-    }
-  }
-
-  function closeAllSelects(focusTrigger) {
-    const wrapperToFocus = openSelectWrapper;
-    selectInstances.forEach((wrapper) => {
-      if (wrapper.classList.contains("is-open")) {
-        closeSelect(wrapper, false);
-      }
-    });
-
-    if (focusTrigger && wrapperToFocus) {
-      const trigger = wrapperToFocus.querySelector("[data-pilot-select-trigger]");
-      if (trigger) {
-        trigger.focus();
-      }
-    }
-
-    openSelectWrapper = null;
-  }
-
-  function getSelectLabel(wrapper) {
-    return wrapper.closest("label");
-  }
-
-  function isEventInsideAnySelect(target) {
-    if (!(target instanceof Node)) {
-      return false;
-    }
-
-    for (const wrapper of selectInstances) {
-      if (wrapper.contains(target)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  function updateSelectState(wrapper) {
-    const trigger = wrapper.querySelector("[data-pilot-select-trigger]");
-    const panel = wrapper.querySelector("[data-pilot-select-panel]");
-    const input = wrapper.querySelector("[data-pilot-select-input]");
-    const placeholder = wrapper.querySelector("[data-pilot-select-placeholder]");
-    const valueNode = wrapper.querySelector("[data-pilot-select-value]");
-    const options = Array.from(wrapper.querySelectorAll("[data-pilot-select-option]"));
-    const selectedKey = wrapper.getAttribute("data-selected-key") || "";
-    const selectedOption = options.find((option) => getSelectOptionKey(option) === selectedKey);
-
-    if (!trigger || !panel || !input || !placeholder || !valueNode) {
-      return;
-    }
-
-    options.forEach((option) => {
-      const isSelected = getSelectOptionKey(option) === selectedKey;
-      option.classList.toggle("is-selected", isSelected);
-      option.setAttribute("aria-selected", isSelected ? "true" : "false");
-    });
-
-    if (selectedOption) {
-      const selectedText = getSelectOptionText(selectedOption);
-      input.value = selectedOption.getAttribute("data-value") || getSelectOptionKey(selectedOption);
-      placeholder.hidden = true;
-      valueNode.hidden = false;
-      valueNode.textContent = selectedText;
-      trigger.classList.add("is-selected");
-      trigger.setAttribute("aria-label", selectedText);
-    } else {
-      input.value = "";
-      placeholder.hidden = false;
-      valueNode.hidden = true;
-      valueNode.textContent = "";
-      trigger.classList.remove("is-selected");
-      trigger.removeAttribute("aria-label");
-    }
-
-    panel.hidden = !wrapper.classList.contains("is-open");
-  }
-
-  function focusOption(wrapper, index) {
-    const options = Array.from(wrapper.querySelectorAll("[data-pilot-select-option]"));
-    if (!options.length) {
-      return;
-    }
-
-    const nextIndex = Math.max(0, Math.min(index, options.length - 1));
-    options[nextIndex].focus();
-  }
-
-  function openSelect(wrapper, focusIndex) {
-    const trigger = wrapper.querySelector("[data-pilot-select-trigger]");
-    const panel = wrapper.querySelector("[data-pilot-select-panel]");
-    if (!trigger || !panel) {
-      return;
-    }
-
-    closeAllSelects(false);
-
-    wrapper.classList.add("is-open");
-    trigger.setAttribute("aria-expanded", "true");
-    panel.hidden = false;
-    openSelectWrapper = wrapper;
-    updateSelectState(wrapper);
-
-    if (typeof focusIndex === "number") {
-      focusOption(wrapper, focusIndex);
-    }
-  }
-
-  function toggleSelect(wrapper) {
-    if (wrapper.classList.contains("is-open")) {
-      closeSelect(wrapper, true);
-      return;
-    }
-
-    openSelect(wrapper);
-  }
-
-  function selectOption(wrapper, option) {
-    wrapper.setAttribute("data-selected-key", getSelectOptionKey(option));
-    updateSelectState(wrapper);
-    closeSelect(wrapper, true);
-  }
-
-  function moveFocus(wrapper, currentOption, direction) {
-    const options = Array.from(wrapper.querySelectorAll("[data-pilot-select-option]"));
-    const currentIndex = options.indexOf(currentOption);
-    if (currentIndex === -1) {
-      return;
-    }
-
-    const nextIndex = Math.max(0, Math.min(options.length - 1, currentIndex + direction));
-    options[nextIndex].focus();
-  }
-
-  function attachCustomSelect(wrapper) {
-    if (wrapper.dataset.pilotSelectBound === "true") {
-      return;
-    }
-
-    const trigger = wrapper.querySelector("[data-pilot-select-trigger]");
-    const panel = wrapper.querySelector("[data-pilot-select-panel]");
-    const options = Array.from(wrapper.querySelectorAll("[data-pilot-select-option]"));
-    const label = getSelectLabel(wrapper);
-
-    if (!trigger || !panel || !options.length) {
-      return;
-    }
-
-    wrapper.dataset.pilotSelectBound = "true";
-    selectInstances.add(wrapper);
-
-    selectIdCounter += 1;
-    const panelId = `pilot-select-panel-${selectIdCounter}`;
-
-    trigger.setAttribute("aria-haspopup", "listbox");
-    trigger.setAttribute("aria-expanded", "false");
-    trigger.setAttribute("aria-controls", panelId);
-    panel.id = panelId;
-    panel.hidden = true;
-    panel.setAttribute("role", "listbox");
-    panel.setAttribute("aria-label", wrapper.closest("label")?.querySelector("span")?.textContent?.trim() || "Property type");
-
-    trigger.addEventListener("click", function () {
-      toggleSelect(wrapper);
-    });
-
-    trigger.addEventListener("keydown", function (event) {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        openSelect(wrapper, 0);
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        openSelect(wrapper, options.length - 1);
-      } else if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        toggleSelect(wrapper);
-      } else if (event.key === "Escape") {
-        event.preventDefault();
-        closeSelect(wrapper, true);
-      } else if (event.key === "Tab") {
-        closeSelect(wrapper, false);
-      }
-    });
-
-    options.forEach((option, index) => {
-      option.addEventListener("click", function () {
-        selectOption(wrapper, option);
+      trigger.addEventListener("click", () => {
+        const isOpen = trigger.getAttribute("aria-expanded") === "true";
+        trigger.setAttribute("aria-expanded", String(!isOpen));
+        panel.hidden = isOpen;
       });
 
-      option.addEventListener("keydown", function (event) {
-        if (event.key === "Tab") {
-          closeSelect(wrapper, false);
-        }
-      });
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          input.value = option.textContent.trim();
 
-      option.addEventListener("keydown", function (event) {
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          moveFocus(wrapper, option, 1);
-        } else if (event.key === "ArrowUp") {
-          event.preventDefault();
-          moveFocus(wrapper, option, -1);
-        } else if (event.key === "Home") {
-          event.preventDefault();
-          focusOption(wrapper, 0);
-        } else if (event.key === "End") {
-          event.preventDefault();
-          focusOption(wrapper, options.length - 1);
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-          closeSelect(wrapper, true);
-        }
-      });
-
-      option.setAttribute("tabindex", "0");
-      option.setAttribute("role", "option");
-      option.setAttribute("aria-selected", "false");
-    });
-
-    wrapper.addEventListener("focusout", function (event) {
-      const nextTarget = event.relatedTarget;
-      if (!nextTarget || !wrapper.contains(nextTarget)) {
-        closeSelect(wrapper, false);
-      }
-    });
-
-    if (label) {
-      label.addEventListener("click", function (event) {
-        if (!wrapper.classList.contains("is-open")) {
-          return;
-        }
-
-        if (wrapper.contains(event.target)) {
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-        closeSelect(wrapper, false);
-      }, true);
-    }
-
-    updateSelectState(wrapper);
-  }
-
-  function initCustomSelects() {
-    document.querySelectorAll(SELECTOR).forEach(attachCustomSelect);
-  }
-
-  function refreshCustomSelects() {
-    selectInstances.forEach((wrapper) => {
-      updateSelectState(wrapper);
-    });
-  }
-
-  function bindScrollListener() {
-    if (scrollListenerBound) {
-      return;
-    }
-
-    const closeOnScroll = function () {
-      if (openSelectWrapper) {
-        closeSelect(openSelectWrapper, false);
-      }
-    };
-
-    window.addEventListener("scroll", closeOnScroll, { passive: true, capture: true });
-    document.addEventListener("scroll", closeOnScroll, { passive: true, capture: true });
-    scrollListenerBound = true;
-  }
-
-  function bindDocumentListeners() {
-    if (!documentListenerBound) {
-      document.addEventListener("pointerdown", function (event) {
-        if (!openSelectWrapper) {
-          return;
-        }
-
-        if (isEventInsideAnySelect(event.target)) {
-          return;
-        }
-
-        closeAllSelects(false);
-      }, true);
-
-      document.addEventListener("click", function (event) {
-        selectInstances.forEach((wrapper) => {
-          if (wrapper.classList.contains("is-open") && !wrapper.contains(event.target)) {
-            closeSelect(wrapper, false);
+          if (valueEl) {
+            valueEl.textContent = option.textContent.trim();
+            valueEl.hidden = false;
           }
+
+          if (placeholder) {
+            placeholder.hidden = true;
+          }
+
+          trigger.setAttribute("aria-expanded", "false");
+          panel.hidden = true;
         });
       });
 
-      document.addEventListener("keydown", function (event) {
-        if (event.key !== "Escape") {
-          return;
+      document.addEventListener("click", (event) => {
+        if (!select.contains(event.target)) {
+          trigger.setAttribute("aria-expanded", "false");
+          panel.hidden = true;
         }
-
-        closeAllSelects(true);
       });
-
-      documentListenerBound = true;
-    }
-
-    if (!languageListenerBound) {
-      window.addEventListener("blacksea:languagechange", function () {
-        closeAllSelects(false);
-        refreshCustomSelects();
-      });
-
-      languageListenerBound = true;
-    }
-
-    bindScrollListener();
-  }
-
-  function buildMailto(form) {
-    const to = form.getAttribute("data-pilot-to") || DEFAULT_TO;
-    const subject = form.getAttribute("data-pilot-subject") || DEFAULT_SUBJECT;
-    const fields = Array.from(form.querySelectorAll("input, select, textarea"))
-      .filter((field) => field.name && !field.disabled);
-    const lines = fields
-      .map((field) => {
-        const value = getFieldValue(field);
-        const label = getFieldLabel(field);
-        return value ? `${label}: ${value}` : null;
-      })
-      .filter(Boolean);
-
-    const bodyPrefix = form.getAttribute("data-pilot-body-prefix");
-    const bodySuffix = form.getAttribute("data-pilot-body-suffix");
-    const bodyParts = [];
-
-    if (bodyPrefix) {
-      bodyParts.push(bodyPrefix);
-    }
-
-    bodyParts.push(...lines);
-
-    if (bodySuffix) {
-      bodyParts.push("");
-      bodyParts.push(bodySuffix);
-    }
-
-    const body = encodeURIComponent(bodyParts.join(LINE_BREAK));
-    return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${body}`;
-  }
-
-  function getResponseNode(form) {
-    return (
-      form.querySelector("[data-pilot-response]") ||
-      form.querySelector("[data-pilot-success]") ||
-      null
-    );
-  }
-
-  function submitForm(form) {
-    closeAllSelects(false);
-    const response = getResponseNode(form);
-    const successMessage = response && response.textContent.trim()
-      ? response.textContent.trim()
-      : "Ще се отвори вашият email клиент с подготвена заявка.";
-
-    if (response) {
-      response.textContent = successMessage;
-    }
-
-    const mailto = buildMailto(form);
-    window.location.href = mailto;
-  }
-
-  function attach(form) {
-    if (form.dataset.pilotBound === "true") {
-      return;
-    }
-
-    form.dataset.pilotBound = "true";
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      closeAllSelects(false);
-      submitForm(form);
     });
   }
 
-  function init() {
-    closeAllSelects(false);
-    bindDocumentListeners();
-    document.querySelectorAll("form[data-pilot-form]").forEach(attach);
-    initCustomSelects();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
-
-  window.BlackSeaPilotForm = {
-    init: init,
-    attach: attach,
-    submitForm: submitForm
-  };
-}());
+  document.addEventListener("DOMContentLoaded", initPilotSelect);
+})();
