@@ -14376,3 +14376,31 @@ body::after,
     min-width: 0 !important;
 }
 
+
+/* ===== PILOT SELECT TEXT CLEANUP ===== */
+.pilot-select__trigger {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+.pilot-select__placeholder,
+.pilot-select__value {
+    display: block !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.pilot-select__value:not([hidden]) + .pilot-select__placeholder {
+    display: none !important;
+}
+
+.pilot-select__icon {
+    flex: 0 0 auto !important;
+}
+
