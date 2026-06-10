@@ -52,9 +52,6 @@ def health():
     return jsonify({"ok": True, "service": "blackseaconnect"})
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5010)
-
 @app.post("/api/pilot-request")
 def api_pilot_request():
     payload = request.get_json(silent=True) or {}
@@ -142,4 +139,5 @@ def api_concierge():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
+
 
