@@ -75,19 +75,13 @@
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formPropertyType">Property type</span>
-            <div class="pilot-select" data-pilot-select>
-              <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
-                <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="formPropertyTypePlaceholder">Select property type</span>
-                <span class="pilot-select__value" data-pilot-select-value hidden></span>
-              </button>
-              <input type="hidden" name="property_type" value="" data-pilot-select-input>
-              <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption1" data-i18n="pilotPropertyOption1">Luxury apartment</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption2" data-i18n="pilotPropertyOption2">Boutique hotel</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption3" data-i18n="pilotPropertyOption3">Villa / residence</button>
-                <button class="pilot-select__option" type="button" data-pilot-select-option data-value-key="pilotPropertyOption4" data-i18n="pilotPropertyOption4">Mixed portfolio</button>
-              </div>
-            </div>
+            <select class="pilot-form__input" name="property_type" required>
+                <option value="">Choisir un type de bien</option>
+                <option value="Appartement de luxe">Appartement de luxe</option>
+                <option value="H?tel boutique">H?tel boutique</option>
+                <option value="Villa / r?sidence">Villa / r?sidence</option>
+                <option value="Portefeuille mixte">Portefeuille mixte</option>
+              </select>
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formRegion">Region</span>
