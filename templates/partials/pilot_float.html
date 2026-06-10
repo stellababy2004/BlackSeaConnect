@@ -1,10 +1,13 @@
+<!-- Luxury floating pilot access button -->
 <a
-  href="#pilot-form"
+  href="/pilot-access#pilot-form"
   class="pilot-access-float"
-  aria-label="Pilot access"
+  aria-label="Open pilot access form"
 >
   <img
     src="{{ url_for('static', filename='img/concierge-icon.png') }}"
-    alt="Pilot access"
+    alt=""
+    aria-hidden="true"
   >
+  <span class="sr-only">Pilot access</span>
 </a>
