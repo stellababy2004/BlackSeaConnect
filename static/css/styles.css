@@ -14580,3 +14580,34 @@ body::after,
     }
 }
 
+
+/* ===== FINAL PILOT FLOAT CTA ===== */
+
+.whatsapp-float{
+    min-width: 184px;
+    height: 58px;
+    padding: 10px 16px;
+}
+
+.whatsapp-float__icon{
+    color:#d6a54b;
+}
+
+.whatsapp-float__icon svg{
+    display:block;
+}
+
+.whatsapp-float__label{
+    font-size:13px;
+    letter-spacing:.12em;
+}
+
+@media (max-width: 640px){
+    .whatsapp-float{
+        min-width:auto;
+        width:58px;
+        height:58px;
+        border-radius:999px;
+        justify-content:center;
+    }
+}
