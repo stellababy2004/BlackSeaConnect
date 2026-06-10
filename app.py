@@ -1,4 +1,8 @@
-from flask import Flask, jsonify, render_template
+from datetime import datetime, timezone
+from pathlib import Path
+import json
+
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
@@ -50,3 +54,32 @@ def health():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
+
+@app.post("/api/pilot-request")
+def api_pilot_request():
+    payload = request.get_json(silent=True) or {}
+
+    required = ["name", "email", "property_type", "location", "apartment_count", "needs"]
+    missing = [field for field in required if not str(payload.get(field, "")).strip()]
+
+    if missing:
+        return jsonify({"ok": False, "error": "missing_fields", "missing": missing}), 400
+
+    record = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "name": payload.get("name", "").strip(),
+        "email": payload.get("email", "").strip(),
+        "property_type": payload.get("property_type", "").strip(),
+        "location": payload.get("location", "").strip(),
+        "apartment_count": payload.get("apartment_count", "").strip(),
+        "needs": payload.get("needs", "").strip(),
+    }
+
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+
+    with (data_dir / "pilot_requests.jsonl").open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    return jsonify({"ok": True, "message": "Pilot request received"})
+
