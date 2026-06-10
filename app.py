@@ -99,4 +99,45 @@ def admin_pilot_requests():
     requests_list = list(reversed(requests_list))
 
     return render_template("admin_pilot_requests.html", requests=requests_list)
+# create concierge endpoint
+@app.route("/api/concierge", methods=["POST"])
+def api_concierge():
+    payload = request.get_json(silent=True) or {}
+
+    required = ["name", "email", "service_type", "message"]
+    missing = [field for field in required if not str(payload.get(field, "")).strip()]
+
+    if missing:
+        return jsonify({"ok": False, "error": "missing_fields", "missing": missing}), 400
+
+    allowed_services = {
+        "airport_transfer",
+        "cleaning",
+        "maintenance",
+        "restaurant_booking",
+        "local_recommendation",
+        "other",
+    }
+
+    service_type = payload.get("service_type", "").strip()
+
+    if service_type not in allowed_services:
+        return jsonify({"ok": False, "error": "invalid_service_type"}), 400
+
+    record = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "name": payload.get("name", "").strip(),
+        "email": payload.get("email", "").strip(),
+        "service_type": service_type,
+        "message": payload.get("message", "").strip(),
+    }
+
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+
+    with (data_dir / "concierge_requests.jsonl").open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    return jsonify({"ok": True, "message": "Concierge request received"})
+
 
