@@ -52,7 +52,7 @@
         const placeholder = select.querySelector("[data-pilot-select-placeholder]");
         const valueEl = select.querySelector("[data-pilot-select-value]");
         const input = select.querySelector("[data-pilot-select-input]");
-        if (placeholder) placeholder.hidden = false;
+        if (placeholder) placeholder.style.display = "inline";
         if (valueEl) {
           valueEl.textContent = "";
           valueEl.hidden = true;
@@ -100,7 +100,7 @@
         }
 
         if (placeholder) {
-          placeholder.hidden = true;
+          placeholder.style.display = "none";
         }
 
         trigger.setAttribute("aria-expanded", "false");
@@ -116,4 +116,5 @@
     });
   });
 });
+
 
