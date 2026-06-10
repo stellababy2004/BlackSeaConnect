@@ -14550,3 +14550,33 @@ body::after,
 
 }
 
+
+/* ===== CONCIERGE CTA POLISH ===== */
+
+.whatsapp-float{
+    right: 26px;
+    bottom: 26px;
+    padding: 12px 18px;
+    transform: translateZ(0);
+}
+
+.whatsapp-float:hover{
+    transform: translateY(-3px) scale(1.015);
+    box-shadow:
+        0 18px 55px rgba(0,0,0,.34),
+        0 0 0 1px rgba(214,165,75,.18),
+        inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+.whatsapp-float__icon{
+    background: linear-gradient(135deg, rgba(214,165,75,.22), rgba(126,217,210,.16));
+}
+
+@media (max-width: 640px){
+    .whatsapp-float{
+        right: 14px;
+        bottom: 14px;
+        padding: 11px;
+    }
+}
+
