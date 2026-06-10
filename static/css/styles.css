@@ -14638,3 +14638,86 @@ body::after,
     display: none !important;
 }
 
+
+/* ===== PILOT SUCCESS TOAST ===== */
+
+.pilot-toast{
+    position: fixed;
+    right: 28px;
+    bottom: 110px;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    min-width: 320px;
+    padding: 18px 22px;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(19,28,44,.96),
+            rgba(33,45,68,.92)
+        );
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        0 24px 80px rgba(0,0,0,.34),
+        0 0 0 1px rgba(255,255,255,.03) inset;
+
+    backdrop-filter: blur(18px);
+
+    animation: pilotToastIn .45s ease;
+}
+
+.pilot-toast[hidden]{
+    display:none !important;
+}
+
+.pilot-toast__icon{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background: linear-gradient(135deg,#d7b46a,#f4e2a7);
+
+    color:#14243c;
+    font-weight:700;
+    font-size:18px;
+}
+
+.pilot-toast__content{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.pilot-toast__content strong{
+    color:#fff;
+    font-size:15px;
+}
+
+.pilot-toast__content span{
+    color:rgba(255,255,255,.72);
+    font-size:13px;
+}
+
+@keyframes pilotToastIn{
+    from{
+        opacity:0;
+        transform:translateY(14px) scale(.96);
+    }
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
