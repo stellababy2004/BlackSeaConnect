@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+﻿from datetime import datetime, timezone
 from pathlib import Path
 import json
 
@@ -140,4 +140,6 @@ def api_concierge():
 
     return jsonify({"ok": True, "message": "Concierge request received"})
 
+if __name__ == "__main__":
+    app.run(debug=True, port=5010)
 
