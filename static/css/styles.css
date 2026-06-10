@@ -14350,3 +14350,29 @@ body::after,
     pointer-events: none !important;
 }
 
+
+/* ===== HARD FIX PILOT SELECT WIDTH ===== */
+.pilot-form__grid {
+    align-items: start !important;
+}
+
+.pilot-select {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.pilot-select__trigger {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.pilot-select__panel {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.pilot-form__field {
+    min-width: 0 !important;
+}
+
