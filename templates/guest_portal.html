@@ -1,389 +1,431 @@
-﻿<!doctype html>
-<html lang="bg">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlackSea Connect Guest Portal</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect Guest Portal</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="guest-portal-page">
+<body class="guest-homepage-page">
+  <header class="hero hero--home guest-homepage-hero" id="top">
+    <div class="hero__backdrop" aria-hidden="true">
+      <div class="hero__glow hero__glow--sunset"></div>
+      <div class="hero__glow hero__glow--sea"></div>
+      <div class="hero__glow hero__glow--mist"></div>
+      <div class="hero__rays hero__rays--left"></div>
+      <div class="hero__rays hero__rays--right"></div>
+      <div class="hero__horizon"></div>
+      <div class="hero__reflection"></div>
+      <div class="hero__harbor-lights">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
 
-<section class="guest-portal-shell">
-
-    <nav class="topbar guest-portal-topbar" aria-label="Primary">
-        <a class="brand" href="/">BlackSea Connect</a>
-        <div class="topbar__actions">
-            <nav class="site-nav" aria-label="Site">
-                <a class="site-nav__link" href="/">Home</a>
-                <a class="site-nav__link" href="/services">Services</a>
-                <a class="site-nav__link" href="/demo/operations">Demo</a>
-                <a class="site-nav__link is-active" href="/guest/a-302">Guest Portal</a>
-                <a class="site-nav__link" href="/partners">Partners</a>
-                <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
-            </nav>
-            <div class="language-switcher" aria-label="Language switcher">
-                <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
-                <span class="language-switcher__divider" aria-hidden="true">|</span>
-                <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
-                <span class="language-switcher__divider" aria-hidden="true">|</span>
-                <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
-                <span class="language-switcher__divider" aria-hidden="true">|</span>
-                <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
-            </div>
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/" data-i18n="home.navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="home.navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="home.navDemo">Demo</a>
+          <a class="site-nav__link is-active" href="/guest/a-302" data-i18n="home.navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="/partners" data-i18n="home.navPartners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="home.navPilotAccess">Pilot Access</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
+        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="home.homeRequestPilotCta">Request pilot access</a>
+      </div>
     </nav>
 
-    <div class="guest-portal-hero">
-        <span class="guest-eyebrow" data-i18n="guest.guestEyebrow">BLACKSEA CONNECT</span>
-
-        <h1 data-i18n="guest.guestTitle">Apartment A-302</h1>
-
-        <p data-i18n="guest.guestIntro">
-            Calm companion portal for your arrival,
-            access and concierge support.
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy guest-hero__copy">
+        <p class="eyebrow">Premium coastal welcome</p>
+        <h1>Apartment A-302</h1>
+        <p class="hero__text">
+          Welcome to a refined stay by the sea. Your residence, concierge support,
+          and trusted local services now follow the same calm BlackSea Connect visual language as the homepage.
         </p>
-
-        <div class="guest-arrival-pill" data-i18n="guest.guestArrivalPill">
-            Arrival confirmed
+        <div class="hero__cta">
+          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer">WhatsApp concierge</a>
+          <a class="button button--secondary" href="#wifi-access">Stay dashboard</a>
+          <a class="button button--tertiary" href="#concierge-form">Request assistance</a>
         </div>
-
-        <div class="guest-live-strip" aria-label="Guest arrival status" data-i18n-attr="aria-label:guest.guestLiveAria">
-            <span class="guest-live-chip guest-live-chip--live" data-i18n="guest.guestLiveFlow">2 arrivals in progress</span>
-            <span class="guest-live-chip" data-i18n="guest.guestLiveCleaned">Cleaning completed 14 min ago</span>
-            <span class="guest-live-chip" data-i18n="guest.guestLiveConcierge">Concierge available</span>
-            <span class="guest-live-chip" data-i18n="guest.guestLiveTransfer">Transfer route confirmed</span>
-            <span class="guest-live-chip" data-i18n="guest.guestLiveWifi">Wi-Fi QR updated</span>
-            <span class="guest-live-chip" data-i18n="guest.guestLiveOperator">Local operator assigned</span>
+        <div class="trust-strip" aria-label="Stay highlights">
+          <span class="trust-strip__chip">Current stay active</span>
+          <span class="trust-strip__chip">Check-in 16 June, 16:00</span>
+          <span class="trust-strip__chip">Check-out 23 June, 11:00</span>
+          <span class="trust-strip__chip">Concierge live</span>
         </div>
+      </div>
     </div>
+  </header>
 
-    <div id="wifi-access" class="guest-card">
-        <div class="guest-card-top">
-            <span data-i18n="guest.arrivalStatusEyebrow">ARRIVAL STATUS</span>
-            <span data-i18n="guest.arrivalStatusTime">Today · 16:00</span>
-        </div>
+  <main class="guest-homepage-main">
+    <section class="credibility-layer" id="wifi-access" aria-labelledby="guest-dashboard-title">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow">Stay dashboard</p>
+        <h2 id="guest-dashboard-title">Everything important at a glance.</h2>
+      </div>
 
-        <h2 data-i18n="guest.arrivalTitle">Everything for the welcome is ready.</h2>
+      <div class="feature-grid guest-kpi-grid">
+        <article class="feature-card guest-kpi-card">
+          <span class="feature-card__icon">01</span>
+          <p class="guest-kpi-card__label">Stay status</p>
+          <strong class="guest-kpi-card__value">Active</strong>
+          <p>Arrived and supported by concierge throughout the current stay.</p>
+        </article>
 
-        <div class="guest-status-grid">
+        <article class="feature-card guest-kpi-card">
+          <span class="feature-card__icon">02</span>
+          <p class="guest-kpi-card__label">Check-in date</p>
+          <strong class="guest-kpi-card__value">16 Jun</strong>
+          <p>Arrival window confirmed for 16:00 with access ready on arrival.</p>
+        </article>
 
-            <div class="guest-status-item">
-                <label data-i18n="guest.checkinLabel">Check-in</label>
-                <strong data-i18n="guest.checkinValue">Today 16:00</strong>
-            </div>
+        <article class="feature-card guest-kpi-card">
+          <span class="feature-card__icon">03</span>
+          <p class="guest-kpi-card__label">Check-out date</p>
+          <strong class="guest-kpi-card__value">23 Jun</strong>
+          <p>Departure window coordinated for 11:00 with support available.</p>
+        </article>
 
-            <div class="guest-status-item">
-                <label data-i18n="guest.apartmentLabel">Apartment</label>
-                <strong data-i18n="guest.apartmentValue">Ready for arrival</strong>
-            </div>
+        <article class="feature-card guest-kpi-card">
+          <span class="feature-card__icon">04</span>
+          <p class="guest-kpi-card__label">Concierge line</p>
+          <strong class="guest-kpi-card__value">Live</strong>
+          <p>WhatsApp, phone, and written requests are monitored for guest needs.</p>
+        </article>
+      </div>
 
-            <div class="guest-status-item">
-                <label data-i18n="guest.transferLabel">Transfer</label>
-                <strong data-i18n="guest.transferValue">Confirmed</strong>
-            </div>
+      <div class="feature-grid guest-dashboard-grid">
+        <article class="feature-card guest-dashboard-card">
+          <span class="feature-card__icon">WF</span>
+          <h3>WiFi information</h3>
+          <p>Network: <strong>BlackSea-Guest-A302</strong><br>Password: <strong>MarinaCalm24</strong></p>
+          <div class="guest-card__pills">
+            <span class="guest-pill">Private access</span>
+            <span class="guest-pill">Instant connection</span>
+          </div>
+        </article>
 
-            <div class="guest-status-item">
-                <label data-i18n="guest.conciergeLabel">Concierge</label>
-                <strong data-i18n="guest.conciergeValue">Available now</strong>
-            </div>
+        <article class="feature-card guest-dashboard-card">
+          <span class="feature-card__icon">PL</span>
+          <h3>Pool access</h3>
+          <p>Reserved resident access from <strong>08:00 to 20:00</strong> with a calm resort policy.</p>
+          <div class="guest-card__pills">
+            <span class="guest-pill">Towels available</span>
+            <span class="guest-pill">Quiet hours respected</span>
+          </div>
+        </article>
 
-        </div>
+        <article class="feature-card guest-dashboard-card">
+          <span class="feature-card__icon">PK</span>
+          <h3>Parking information</h3>
+          <p>Underground bay <strong>B-14</strong> is assigned for guest vehicles and private transfers.</p>
+          <div class="guest-card__pills">
+            <span class="guest-pill">Secure garage</span>
+            <span class="guest-pill">24/7 access</span>
+          </div>
+        </article>
 
-        <div class="guest-arrival-steps" aria-label="Arrival instructions">
-            <div class="guest-arrival-step">
-                <span>01</span>
-                <strong data-i18n="guest.arrivalStep1">Scan the QR at the entrance</strong>
-            </div>
-            <div class="guest-arrival-step">
-                <span>02</span>
-                <strong data-i18n="guest.arrivalStep2">Follow the quiet path to the residence desk</strong>
-            </div>
-            <div class="guest-arrival-step">
-                <span>03</span>
-                <strong data-i18n="guest.arrivalStep3">Message concierge if your transfer or luggage timing changes</strong>
-            </div>
-        </div>
+        <article class="feature-card guest-dashboard-card">
+          <span class="feature-card__icon">EM</span>
+          <h3>Emergency contact</h3>
+          <p>Call <strong>+359 899 111 019</strong> for urgent property or guest concerns requiring immediate response.</p>
+          <div class="guest-card__pills">
+            <span class="guest-pill">Urgent line</span>
+            <span class="guest-pill">Priority support</span>
+          </div>
+        </article>
 
-        <div class="guest-digital-welcome">
-            <div class="guest-digital-welcome__header">
-                <span class="guest-digital-welcome__eyebrow" data-i18n="guest.arrivalDetailsEyebrow">Arrival details</span>
-                <span class="guest-digital-welcome__meta" data-i18n="guest.arrivalDetailsMeta">Last synced 4 min ago</span>
-            </div>
-            <div class="guest-digital-welcome__grid">
-                <article class="guest-welcome-card">
-                    <span data-i18n="guest.arrivalCard1Title">Arrival confirmed</span>
-                    <strong data-i18n="guest.arrivalCard1Body">Quiet marina handoff is coordinated.</strong>
-                </article>
-                <article class="guest-welcome-card">
-                    <span data-i18n="guest.arrivalCard2Title">Check-in instructions</span>
-                    <strong data-i18n="guest.arrivalCard2Body">Follow the calm route from the entrance to residence access.</strong>
-                </article>
-                <article class="guest-welcome-card">
-                    <span data-i18n="guest.arrivalCard3Title">Transfer tracking</span>
-                    <strong data-i18n="guest.arrivalCard3Body">The car, dock handoff and baggage timing are visible in one flow.</strong>
-                </article>
-                <article class="guest-welcome-card">
-                    <span data-i18n="guest.arrivalCard4Title">Concierge assistance</span>
-                    <strong data-i18n="guest.arrivalCard4Body">Private concierge support is online with discreet response timing.</strong>
-                </article>
-                <article class="guest-welcome-card">
-                    <span data-i18n="guest.arrivalCard5Title">Trusted recommendations</span>
-                    <strong data-i18n="guest.arrivalCard5Body">Curated restaurants, marina support and local operators only.</strong>
-                </article>
-                <article class="guest-welcome-card guest-welcome-card--alert">
-                    <span data-i18n="guest.arrivalCard6Title">Emergency support</span>
-                    <strong data-i18n="guest.arrivalCard6Body">Call or message immediately if the arrival sequence changes.</strong>
-                </article>
-            </div>
-        </div>
-    </div>
+        <article class="feature-card guest-dashboard-card">
+          <span class="feature-card__icon">HC</span>
+          <h3>Host contact</h3>
+          <p>Reach the concierge desk by WhatsApp, phone, or concierge form throughout the stay.</p>
+          <div class="guest-card__pills">
+            <span class="guest-pill">WhatsApp first</span>
+            <span class="guest-pill">Fast reply</span>
+          </div>
+        </article>
+      </div>
+    </section>
 
-    <div class="guest-card">
+    <section class="trust-layer" aria-labelledby="guest-services-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Concierge services</p>
+        <h2 id="guest-services-title">Curated support with the same calm hospitality rhythm.</h2>
+      </div>
 
-        <div class="guest-card-top">
-            <span data-i18n="guest.wifiEyebrow">WI-FI & ACCESS</span>
-            <span data-i18n="guest.wifiMeta">QR access</span>
-        </div>
+      <div class="feature-grid guest-unified-grid">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">AT</span>
+          <h3>Airport transfer</h3>
+          <p>Private airport pickup with luggage support and a smooth door-to-door arrival flow.</p>
+        </article>
 
-        <h2 data-i18n="guest.wifiTitle">Wi-Fi and building access</h2>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">PD</span>
+          <h3>Private driver</h3>
+          <p>Professional driver service for evening dining, local visits, and relaxed coastal movement.</p>
+        </article>
 
-        <div class="guest-access-layout">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">BR</span>
+          <h3>Boat rental</h3>
+          <p>Private yacht and speedboat options coordinated through trusted local charter partners.</p>
+        </article>
 
-            <div class="guest-access-left">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">RR</span>
+          <h3>Restaurant reservations</h3>
+          <p>Discreet table bookings at nearby coastal dining destinations chosen for service quality.</p>
+        </article>
 
-                <div class="guest-access-box">
-                    <label data-i18n="guest.wifiNameLabel">WI-FI NAME</label>
-                    <strong>BlackSea-Guest-A302</strong>
-                </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">HK</span>
+          <h3>Housekeeping</h3>
+          <p>Optional refresh service with timing that respects privacy, routine, and arrival priorities.</p>
+        </article>
 
-                <div class="guest-access-box">
-                    <label data-i18n="guest.wifiPassLabel">WI-FI PASSWORD</label>
-                    <strong>MarinaCalm24</strong>
-                </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">LX</span>
+          <h3>Local experiences</h3>
+          <p>Handpicked excursions, marina plans, and scenic coastal experiences for a memorable stay.</p>
+        </article>
+      </div>
+    </section>
 
-                <div class="guest-instructions">
-                    <p data-i18n="guest.wifiInstructions1">1. Enter through the main entrance and use the code panel on the right.</p>
-                    <p data-i18n="guest.wifiInstructions2">2. Take floor 3 and follow the sign for A-302.</p>
-                    <p data-i18n="guest.wifiInstructions3">3. If you need help, concierge responds within minutes.</p>
-                </div>
+    <section class="trust-layer" aria-labelledby="guest-partners-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Trusted local partners</p>
+        <h2 id="guest-partners-title">A focused local network for support, wellbeing, and daily comfort.</h2>
+      </div>
 
-            </div>
+      <div class="feature-grid guest-unified-grid">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">RS</span>
+          <h3>Restaurants</h3>
+          <p>Curated dining partners for memorable seaside lunches, elegant dinners, and marina evenings.</p>
+        </article>
 
-            <div class="guest-qr-block">
-                <div class="guest-qr-pass">
-                    <div class="guest-qr-pass__header">
-                        <span class="guest-qr-pass__eyebrow" data-i18n="guest.qrTitle">Secure guest access</span>
-                        <span class="guest-qr-pass__meta">Apartment A-302</span>
-                    </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">PH</span>
+          <h3>Pharmacy</h3>
+          <p>Reliable nearby pharmacy options for essentials, wellness items, and quick practical assistance.</p>
+        </article>
 
-                    <div class="guest-credential" aria-hidden="true">
-                        <div class="guest-credential__badge">
-                            <span class="guest-credential__pulse"></span>
-                            <span class="guest-credential__wave guest-credential__wave--1"></span>
-                            <span class="guest-credential__wave guest-credential__wave--2"></span>
-                            <span class="guest-credential__wave guest-credential__wave--3"></span>
-                            <span class="guest-credential__nfc"></span>
-                        </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">MD</span>
+          <h3>Medical assistance</h3>
+          <p>Escalation-ready support for medical guidance, local response coordination, and next-step help.</p>
+        </article>
 
-                        <div class="guest-credential__copy">
-                            <span class="guest-credential__status">Arrival verified</span>
-                            <strong class="guest-credential__title">Private digital credential</strong>
-                            <span class="guest-credential__note">NFC-ready access for the residence and Wi-Fi guidance.</span>
-                            <span class="guest-credential__stamp" data-i18n="guest.arrivalStatusTime">Today · 16:00</span>
-                        </div>
-                    </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">TX</span>
+          <h3>Taxi</h3>
+          <p>Prompt city-to-marina transfers for spontaneous movement, errands, and evening plans.</p>
+        </article>
 
-                    <div class="guest-credential__ledger">
-                        <span>Apartment A-302</span>
-                        <span data-i18n="guest.wifiQrCaption">Wi-Fi & arrival instructions</span>
-                    </div>
-                </div>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">PM</span>
+          <h3>Property maintenance</h3>
+          <p>Fast-response technical support for access, comfort, or property issues that need expert attention.</p>
+        </article>
+      </div>
+    </section>
 
-            </div>
+    <section class="trust-layer" aria-labelledby="guest-actions-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Quick actions</p>
+        <h2 id="guest-actions-title">Fast guest actions in the same polished interaction flow.</h2>
+      </div>
 
-        </div>
+      <div class="feature-grid guest-unified-grid">
+        <article class="feature-card guest-unified-card guest-action-card">
+          <span class="feature-card__icon">WA</span>
+          <h3>WhatsApp concierge</h3>
+          <p>Start the fastest support flow for guest questions, arrival timing changes, or concierge requests.</p>
+          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer">Open WhatsApp</a>
+        </article>
 
-    </div>
+        <article class="feature-card guest-unified-card guest-action-card">
+          <span class="feature-card__icon">CL</span>
+          <h3>Call concierge</h3>
+          <p>Reach the concierge desk directly for urgent help, arrival issues, or immediate coordination.</p>
+          <a class="button button--secondary" href="tel:+359899111019">Call now</a>
+        </article>
 
-    <div class="guest-card guest-concierge-form-card">
+        <article class="feature-card guest-unified-card guest-action-card">
+          <span class="feature-card__icon">RQ</span>
+          <h3>Request assistance</h3>
+          <p>Use email if you prefer a written request before opening the detailed concierge form.</p>
+          <a class="button button--tertiary" href="mailto:concierge@blackseaconnect.com?subject=Assistance%20request%20-%20Apartment%20A-302&body=Hello%2C%20I%20need%20assistance%20for%20Apartment%20A-302.">Email concierge</a>
+        </article>
 
-        <div class="guest-card-top">
-            <span>CONCIERGE REQUEST</span>
-            <span>24/7 assistance</span>
-        </div>
+        <article class="feature-card guest-unified-card guest-action-card">
+          <span class="feature-card__icon">RP</span>
+          <h3>Report issue</h3>
+          <p>Flag a property, access, or maintenance issue so the team can respond quickly and clearly.</p>
+          <a class="button button--secondary" href="#concierge-form">Open form</a>
+        </article>
+      </div>
+    </section>
 
-        <h2>Request assistance</h2>
+    <section class="cta-panel guest-form-panel" aria-labelledby="guest-form-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Request assistance</p>
+        <h2 id="guest-form-title">Send a concierge request in the same quiet BlackSea Connect flow.</h2>
+        <p class="cta-panel__copy">Use the form below for detailed support, bookings, housekeeping, maintenance, or local recommendations.</p>
+      </div>
 
-        <form id="concierge-form" class="guest-concierge-form">
-            <input type="text" name="name" placeholder="Your name" required>
-            <input type="email" name="email" placeholder="Your email" required>
+      <form id="concierge-form" class="guest-concierge-form" method="post" action="/api/concierge">
+        <input type="text" name="name" placeholder="Your name" required>
+        <input type="email" name="email" placeholder="Your email" required>
+        <select name="service_type" required>
+          <option value="">Select service</option>
+          <option value="airport_transfer">Airport transfer</option>
+          <option value="private_driver">Private driver</option>
+          <option value="boat_rental">Boat rental</option>
+          <option value="restaurant_reservations">Restaurant reservations</option>
+          <option value="housekeeping">Housekeeping</option>
+          <option value="local_experiences">Local experiences</option>
+          <option value="other">Other</option>
+        </select>
+        <textarea name="message" placeholder="Describe your request..." rows="5" required></textarea>
+        <button class="button button--primary" type="submit">Send request</button>
+        <p id="concierge-status"></p>
+      </form>
+    </section>
 
-            <select name="service_type" required>
-                <option value="">Select service</option>
-                <option value="airport_transfer">Airport transfer</option>
-                <option value="cleaning">Cleaning</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="restaurant_booking">Restaurant booking</option>
-                <option value="local_recommendation">Local recommendation</option>
-                <option value="other">Other</option>
-            </select>
+    <section class="trust-layer" aria-labelledby="guest-guide-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Area guide</p>
+        <h2 id="guest-guide-title">A curated coastal guide for where guests go next.</h2>
+      </div>
 
-            <textarea name="message" placeholder="Describe your request..." rows="5" required></textarea>
+      <div class="feature-grid guest-unified-grid">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">SV</span>
+          <h3>Sveti Vlas</h3>
+          <p>Elegant coastal atmosphere, marina views, and a calm pace ideal for a refined seaside stay.</p>
+        </article>
 
-            <button type="submit">Send request</button>
-            <p id="concierge-status"></p>
-        </form>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">MR</span>
+          <h3>Marina Dinevi</h3>
+          <p>Designer marina dining, dockside promenades, and an upscale setting for evening plans.</p>
+        </article>
 
-    </div>
-    <div class="guest-floating-actions" aria-label="Guest quick actions" data-i18n-attr="aria-label:guest.guestActionsAria">
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">SB</span>
+          <h3>Sunny Beach</h3>
+          <p>Lively seaside energy, beach clubs, and easy access to daytime leisure and nightlife.</p>
+        </article>
 
-        <a
-            class="guest-action"
-            href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5."
-            rel="noreferrer"
-            data-i18n="guest.actionConcierge"
-        >Concierge</a>
-        <a class="guest-action" href="#wifi-access" data-i18n="guest.actionQr">QR access</a>
-        <a
-            class="guest-action"
-            href="mailto:blackseaconnect@orange.fr?subject=Transfer%20request%20-%20Apartment%20A-302&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B1%D0%B8%D1%85%20%D0%B8%D1%81%D0%BA%D0%B0%D0%BB%2F%D0%B0%20%D0%B4%D0%B0%20%D0%B7%D0%B0%D1%8F%D0%B2%D1%8F%20%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%84%D0%B5%D1%80%20%D0%B7%D0%B0%20Apartment%20A-302."
-            data-i18n="guest.actionTransfer"
-        >Transfer</a>
-        <a class="guest-action guest-action-danger" href="tel:+359899111019" data-i18n="guest.actionSos">Call support</a>
+        <article class="feature-card guest-unified-card">
+          <span class="feature-card__icon">NS</span>
+          <h3>Nessebar</h3>
+          <p>Historic streets, boutique dining, and a scenic old-town atmosphere for slower discovery.</p>
+        </article>
+      </div>
 
-    </div>
+      <div class="trust-strip" aria-label="Guest trust indicators">
+        <span class="trust-strip__chip">Encrypted guest access</span>
+        <span class="trust-strip__chip">Quiet arrival coordination</span>
+        <span class="trust-strip__chip">Trusted coastal partners</span>
+        <span class="trust-strip__chip">Private concierge support</span>
+      </div>
+    </section>
+  </main>
 
-    <p class="guest-action-helper" data-i18n="guest.actionHelper">
-        Quick guest actions - no install, directly from the phone.
-    </p>
-
-    <div class="guest-trust-strip" aria-label="Trust indicators" data-i18n-attr="aria-label:guest.trustAria">
-        <span class="guest-trust-chip" data-i18n="guest.trustChip1">encrypted guest access</span>
-        <span class="guest-trust-chip" data-i18n="guest.trustChip2">verified local partners</span>
-        <span class="guest-trust-chip" data-i18n="guest.trustChip3">quiet arrival coordination</span>
-        <span class="guest-trust-chip" data-i18n="guest.trustChip4">private concierge support</span>
-    </div>
-
-    <div class="guest-card">
-
-        <div class="guest-card-top">
-            <span data-i18n="guest.servicesEyebrow">TRUSTED LOCAL SERVICES</span>
-            <span data-i18n="guest.servicesMeta">Verified operators</span>
-        </div>
-
-        <h2 data-i18n="guest.servicesTitle">Local services ready when needed</h2>
-
-        <div class="guest-service-list">
-
-            <div class="guest-service-item">
-                <strong data-i18n="guest.service1Title">Marina Transfer Desk</strong>
-                <span data-i18n="guest.service1Body">Transfers · 16:10 confirmed</span>
-            </div>
-
-            <div class="guest-service-item">
-                <strong data-i18n="guest.service2Title">Riviera Table</strong>
-                <span data-i18n="guest.service2Body">Restaurants · Quiet reservations</span>
-            </div>
-
-            <div class="guest-service-item">
-                <strong data-i18n="guest.service3Title">Pharma Coast</strong>
-                <span data-i18n="guest.service3Body">Pharmacy · On-call partner</span>
-            </div>
-
-            <div class="guest-service-item">
-                <strong data-i18n="guest.service4Title">Blue Horizon Charters</strong>
-                <span data-i18n="guest.service4Body">Marine activities · Private outings</span>
-            </div>
-
-        </div>
-
-        <div class="guest-network-note">
-            <span class="guest-network-note__eyebrow" data-i18n="guest.networkEyebrow">Curated network</span>
-            <p data-i18n="guest.networkBody">Transfers, marina support, restaurants, maintenance, housekeeping and local operators are presented as a curated hospitality network, not a marketplace.</p>
-        </div>
-
-    </div>
-
-</section>
-
-<footer class="site-footer" aria-label="Site footer">
+  <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
-        <strong>BlackSea Connect</strong>
-        <p data-i18n="footerDescription">Calm hospitality operations for coastal properties.</p>
+      <strong>BlackSea Connect</strong>
+      <p data-i18n="home.footerDescription">Calm hospitality operations for coastal properties.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-        <a href="/services" data-i18n="navServices">Services</a>
-        <a href="/partners" data-i18n="navPartners">Partners</a>
-        <a href="/demo/operations" data-i18n="navDemo">Demo</a>
-        <a href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
-        <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+      <a href="/services" data-i18n="home.navServices">Services</a>
+      <a href="/partners" data-i18n="home.navPartners">Partners</a>
+      <a href="/demo/operations" data-i18n="home.navDemo">Demo</a>
+      <a href="/guest/a-302" data-i18n="home.navGuestPortal">Guest Portal</a>
+      <a href="/pilot-access" data-i18n="home.navPilotAccess">Pilot Access</a>
     </nav>
 
     <div class="site-footer__meta">
-        <a href="mailto:blackseaconnect@orange.fr" data-i18n="footerEmail">blackseaconnect@orange.fr</a>
-        <p data-i18n="footerMeta">Operational software for guest coordination, property teams and trusted local service partners.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="home.footerEmail">concierge@blackseaconnect.com</a>
+      <p data-i18n="home.footerMeta">Operational software for guest coordination, property teams and trusted local service partners.</p>
     </div>
-</footer>
+  </footer>
 
-<script src="/static/js/translations.js?v=20260608"></script>
+  <script src="/static/js/translations.js?v=20260608"></script>
   <script src="/static/js/i18n.js?v=20260608"></script>
 
+  <!-- ===== PILOT ACCESS FLOAT ===== -->
+  <a
+    href="/pilot-access#pilot-form"
+    class="whatsapp-float"
+    aria-label="Pilot access concierge"
+  >
+    <span class="whatsapp-float__pulse"></span>
+    <span class="whatsapp-float__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3.5c3.2 0 5.8 2.35 5.8 5.25 0 1.68-.86 3.17-2.2 4.13l.52 2.62-2.72-1.34c-.45.1-.92.15-1.4.15-3.2 0-5.8-2.35-5.8-5.25S8.8 3.5 12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="whatsapp-float__label">Pilot access</span>
+  </a>
 
-<!-- ===== PILOT ACCESS FLOAT ===== -->
-<a
-  href="/pilot-access#pilot-form"
-  class="whatsapp-float"
-  aria-label="Pilot access concierge"
->
-  <span class="whatsapp-float__pulse"></span>
-  <span class="whatsapp-float__icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3.5c3.2 0 5.8 2.35 5.8 5.25 0 1.68-.86 3.17-2.2 4.13l.52 2.62-2.72-1.34c-.45.1-.92.15-1.4.15-3.2 0-5.8-2.35-5.8-5.25S8.8 3.5 12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-      <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="whatsapp-float__label">Pilot access</span>
-</a>
+  <script>
+  document.getElementById("concierge-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-<script>
-document.getElementById("concierge-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+    const form = e.target;
+    const status = document.getElementById("concierge-status");
 
-  const form = e.target;
-  const status = document.getElementById("concierge-status");
+    const payload = {
+      name: form.name.value,
+      email: form.email.value,
+      service_type: form.service_type.value,
+      message: form.message.value
+    };
 
-  const payload = {
-    name: form.name.value,
-    email: form.email.value,
-    service_type: form.service_type.value,
-    message: form.message.value
-  };
+    status.textContent = "Sending request...";
 
-  status.textContent = "Sending request...";
+    try {
+      const response = await fetch("/api/concierge", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-  try {
-    const response = await fetch("/api/concierge", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (data.ok) {
-      status.textContent = "Request sent successfully.";
-      form.reset();
-    } else {
-      status.textContent = "Please complete all required fields.";
+      if (data.ok) {
+        status.textContent = "Request sent successfully.";
+        form.reset();
+      } else {
+        status.textContent = "Please complete all required fields.";
+      }
+    } catch (error) {
+      status.textContent = "Connection error. Please try again.";
     }
-  } catch (error) {
-    status.textContent = "Connection error. Please try again.";
-  }
-});
-</script>
+  });
+  </script>
 </body>
 </html>
-

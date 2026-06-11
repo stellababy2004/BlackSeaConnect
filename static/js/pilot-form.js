@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("[data-pilot-form]");
   const response = document.querySelector("[data-pilot-response]");
 
@@ -81,9 +81,10 @@
       if (response) response.textContent = "Request received. We’ll reply within 1 business day.";
       form.reset();
     } catch (error) {
-      if (response) response.textContent = "The request could not be sent. Please email blackseaconnect@orange.fr.";
+      if (response) response.textContent = "The request could not be sent. Please email concierge@blackseaconnect.com.";
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
   });
 });
+
