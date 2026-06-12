@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import smtplib
+from threading import Thread
 
 from flask import Flask, jsonify, render_template, request
 
@@ -123,11 +124,15 @@ def _send_pilot_request_email(record):
                 smtp.login(smtp_username, smtp_password)
 
             smtp.send_message(message)
-    except Exception:
-        app.logger.exception("Pilot request email send failed.")
+    except Exception as exc:
+        app.logger.warning("Pilot request email send failed: %s", exc)
         return False, "smtp_send_failed"
 
     return True, None
+
+
+def _queue_pilot_request_email(record):
+    Thread(target=_send_pilot_request_email, args=(record,), daemon=True).start()
 
 
 @app.post("/api/pilot-request")
@@ -154,16 +159,17 @@ def api_pilot_request():
     if missing:
         return jsonify({"ok": False, "error": "missing_fields"}), 400
 
-    emailed, error_code = _send_pilot_request_email(record)
-    if not emailed:
-        status_code = 503 if error_code in {"smtp_not_configured", "smtp_invalid_port"} else 502
-        return jsonify({"ok": False, "error": error_code}), status_code
-
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
 
-    with (data_dir / "pilot_requests.jsonl").open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        with (data_dir / "pilot_requests.jsonl").open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        app.logger.exception("Pilot request save failed.")
+        return jsonify({"ok": False, "error": "save_failed"}), 500
+
+    _queue_pilot_request_email(record)
 
     return jsonify({"ok": True}), 200
 

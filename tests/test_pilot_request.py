@@ -2,6 +2,7 @@ import os
 import shutil
 import unittest
 from pathlib import Path
+import uuid
 from unittest.mock import patch
 
 from app import app
@@ -35,10 +36,21 @@ class FakeSMTP:
         FakeSMTP.sent_messages.append(message)
 
 
+class ImmediateThread:
+    def __init__(self, target=None, args=(), kwargs=None, daemon=None):
+        self.target = target
+        self.args = args
+        self.kwargs = kwargs or {}
+
+    def start(self):
+        if self.target:
+            self.target(*self.args, **self.kwargs)
+
+
 class PilotRequestApiTests(unittest.TestCase):
     def setUp(self):
         self._cwd = os.getcwd()
-        self._tmpdir = Path(self._cwd) / ".tmp_pilot_request_tests"
+        self._tmpdir = Path(self._cwd) / f".tmp_pilot_request_tests_{uuid.uuid4().hex}"
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
         app.config["TESTING"] = True
@@ -80,7 +92,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
-        with patch.dict(os.environ, env, clear=True), patch("app.smtplib.SMTP", FakeSMTP):
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP):
             response = self.client.post("/api/pilot-request", json=payload)
 
         self.assertEqual(response.status_code, 200)
@@ -98,7 +110,7 @@ class PilotRequestApiTests(unittest.TestCase):
         record_path = Path("data") / "pilot_requests.jsonl"
         self.assertTrue(record_path.exists())
 
-    def test_missing_smtp_config_returns_controlled_failure(self):
+    def test_valid_payload_returns_200_when_smtp_times_out(self):
         payload = {
             "property_type": "villa_residence",
             "apartment_count": "12",
@@ -107,11 +119,29 @@ class PilotRequestApiTests(unittest.TestCase):
             "email": "owner@example.com",
         }
 
-        with patch.dict(os.environ, {}, clear=True):
+        env = {
+            "SMTP_HOST": "smtp.zoho.eu",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")):
             response = self.client.post("/api/pilot-request", json=payload)
 
-        self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.get_json(), {"ok": False, "error": "smtp_not_configured"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+
+        record_path = Path("data") / "pilot_requests.jsonl"
+        self.assertTrue(record_path.exists())
+
+        with record_path.open("r", encoding="utf-8") as f:
+            saved_lines = [line.strip() for line in f if line.strip()]
+
+        self.assertEqual(len(saved_lines), 1)
+        saved_record = saved_lines[0]
+        self.assertIn('"city": "Varna Marina"', saved_record)
 
 
 if __name__ == "__main__":
