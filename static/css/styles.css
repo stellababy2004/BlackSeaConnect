@@ -2736,6 +2736,14 @@ main::after {
   box-shadow: 0 28px 50px rgba(2, 8, 14, 0.38);
 }
 
+.pilot-select:not(.is-open) .pilot-select__panel {
+  display: none !important;
+}
+
+.pilot-select.is-open .pilot-select__panel {
+  display: grid !important;
+}
+
 .pilot-select__panel[hidden] {
   display: none !important;
 }
@@ -5424,6 +5432,16 @@ body.operations-demo-page.operations-modal-open {
     pointer-events: auto;
 }
 
+body.operations-demo-page .operations-modal {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 32px 24px !important;
+    min-height: 100dvh !important;
+    overflow: auto !important;
+    box-sizing: border-box;
+}
+
 .operations-modal__backdrop {
     position: absolute;
     inset: 0;
@@ -5433,13 +5451,36 @@ body.operations-demo-page.operations-modal-open {
 
 .operations-modal__dialog {
     position: relative;
-    width: min(680px, 100%);
-    max-height: min(88vh, 860px);
+    width: 100%;
+    max-width: min(920px, calc(100vw - 48px));
+    max-height: 90vh;
+    max-height: 90dvh;
+    height: auto;
     border-radius: 30px;
     padding: 26px;
+    padding-bottom: max(96px, calc(env(safe-area-inset-bottom) + 24px));
     z-index: 1;
     overflow: auto;
     overscroll-behavior: contain;
+    box-sizing: border-box;
+}
+
+body.operations-demo-page .operations-modal__dialog {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: auto !important;
+    width: min(920px, calc(100vw - 48px)) !important;
+    max-width: min(920px, calc(100vw - 48px)) !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    margin: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.operations-demo-page .operations-modal__dialog:hover {
+    transform: none !important;
 }
 
 .operations-modal__close {
@@ -5460,6 +5501,78 @@ body.operations-demo-page.operations-modal-open {
     display: grid;
     gap: 14px;
     margin-top: 22px;
+    padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 8px));
+}
+
+body.operations-demo-page .operations-form {
+    padding-bottom: 96px;
+}
+
+@media (min-width: 900px) {
+  body.operations-demo-page .operations-modal__dialog {
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    padding: 22px 24px 24px !important;
+  }
+
+  body.operations-demo-page .operations-form {
+    gap: 12px !important;
+    padding-bottom: 24px !important;
+  }
+
+  body.operations-demo-page .operations-form label {
+    gap: 6px;
+  }
+
+  body.operations-demo-page .operations-form input,
+  body.operations-demo-page .operations-form select,
+  body.operations-demo-page .operations-form textarea {
+    min-height: 44px;
+    padding: 11px 14px;
+  }
+
+  body.operations-demo-page .operations-form textarea {
+    min-height: 96px;
+  }
+
+  body.operations-demo-page .operations-form__trust,
+  body.operations-demo-page .operations-form__response {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  body.operations-demo-page .operations-modal__dialog {
+    overflow-y: visible !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+  }
+
+  body.operations-demo-page .operations-form {
+    overflow-y: visible !important;
+    gap: 10px !important;
+    padding-bottom: 12px !important;
+  }
+
+  body.operations-demo-page .operations-form label {
+    gap: 5px;
+  }
+
+  body.operations-demo-page .operations-form textarea {
+    min-height: 88px;
+  }
+
+  body.operations-demo-page .operations-form input,
+  body.operations-demo-page .operations-form select,
+  body.operations-demo-page .operations-form textarea {
+    min-height: 42px;
+    padding: 10px 14px;
+  }
+
+  body.operations-demo-page .operations-modal__dialog .operations-form__trust,
+  body.operations-demo-page .operations-modal__dialog .operations-form__response {
+    margin-top: 0;
+  }
 }
 
 .operations-form label {
@@ -5509,14 +5622,23 @@ body.operations-demo-page.operations-modal-open {
 }
 
 .operations-mobile-dock,
-.operations-floating-cta {
+.operations-floating-cta,
+.pilot-access-float {
     position: fixed;
-    z-index: 12;
+    z-index: 9999;
+}
+
+.operations-floating-cta,
+.pilot-access-float {
+    right: 32px;
+    bottom: 32px;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin: 0;
 }
 
 .operations-floating-cta {
-    right: 18px;
-    bottom: 18px;
     min-height: 54px;
     padding: 0 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -5645,8 +5767,11 @@ body.operations-demo-page.operations-modal-open {
     }
 
     .operations-floating-cta {
-        right: 12px;
-        bottom: 90px;
+        right: 32px;
+        bottom: 32px;
+        left: auto;
+        top: auto;
+        transform: none;
         min-height: 50px;
     }
 
@@ -7140,6 +7265,97 @@ body::after {
 .operations-hero__preview:hover,
 .operations-modal__dialog:hover {
     transform: translateY(-2px);
+}
+
+/* Pilot select readability fix: keep the property type field on the same ivory/glass surface as the other modal inputs. */
+.operations-modal .pilot-select__trigger {
+    border-color: rgba(23, 48, 64, 0.08) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.68)),
+        rgba(255, 255, 255, 0.58) !important;
+    color: rgba(24, 50, 66, 0.92) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.84) !important,
+        0 10px 24px rgba(51, 70, 78, 0.06) !important;
+}
+
+.operations-modal .pilot-select__trigger:hover,
+.operations-modal .pilot-select__trigger:focus-visible {
+    border-color: rgba(23, 48, 64, 0.12) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.74)),
+        rgba(255, 255, 255, 0.64) !important;
+    color: rgba(24, 50, 66, 0.94) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important,
+        0 12px 26px rgba(51, 70, 78, 0.08) !important;
+    transform: translateY(-1px) !important;
+}
+
+.operations-modal .pilot-select__placeholder {
+    color: rgba(93, 112, 125, 0.82) !important;
+}
+
+.operations-modal .pilot-select__value {
+    color: rgba(24, 50, 66, 0.94) !important;
+}
+
+.operations-modal .pilot-select__trigger::after {
+    border-right-color: rgba(24, 50, 66, 0.68) !important;
+    border-bottom-color: rgba(24, 50, 66, 0.68) !important;
+}
+
+.operations-modal .pilot-select {
+    position: relative !important;
+    z-index: 60 !important;
+}
+
+.operations-modal .pilot-select__panel {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    display: none !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    max-height: min(300px, 56vh) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    border: 1px solid rgba(14, 35, 60, 0.12) !important;
+    border-radius: 24px !important;
+    background: rgba(255, 252, 246, 0.98) !important;
+    backdrop-filter: blur(24px) saturate(112%) !important;
+    box-shadow: 0 24px 60px rgba(14, 35, 60, 0.18) !important;
+}
+
+.operations-modal .pilot-select.is-open .pilot-select__panel {
+    display: grid !important;
+}
+
+.operations-modal .pilot-select__option {
+    color: #24344d !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    border: 1px solid rgba(14, 35, 60, 0.06) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.operations-modal .pilot-select__option:hover,
+.operations-modal .pilot-select__option:focus-visible {
+    background: rgba(236, 243, 247, 0.96) !important;
+    border-color: rgba(14, 35, 60, 0.1) !important;
+    color: #24344d !important;
+}
+
+.operations-modal .pilot-select__option.is-selected {
+    background: linear-gradient(135deg, rgba(243, 211, 154, 0.22), rgba(201, 233, 241, 0.18)) !important;
+    border-color: rgba(184, 138, 63, 0.2) !important;
+    color: #24344d !important;
+}
+
+.operations-modal .pilot-select.is-open {
+    margin-bottom: 18px;
+    z-index: 70 !important;
 }
 
 .operations-kpi {
@@ -14497,6 +14713,15 @@ body::after,
         padding: 12px 14px;
     }
 
+    .operations-floating-cta,
+    .pilot-access-float {
+        right: 16px !important;
+        bottom: 16px !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+    }
+
     .whatsapp-float__label {
         display: none;
     }
@@ -15959,10 +16184,8 @@ body.operations-demo-page .site-footer {
 
 /* Demo Operations should share the same lighter marina atmosphere as the other public pages. */
 body.operations-demo-page {
-  background:
-    linear-gradient(180deg, rgba(255, 250, 241, 0.18), rgba(255, 250, 241, 0.08) 34%, rgba(255, 250, 241, 0.05) 72%, rgba(7, 21, 34, 0.02)),
-    var(--bsc-page-photo) 70% 12% / cover fixed no-repeat !important;
-  background-color: #071522 !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 body.operations-demo-page > * {
@@ -15976,66 +16199,70 @@ body.operations-demo-page::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 1 !important;
-  mix-blend-mode: screen !important;
-  background:
-    radial-gradient(ellipse at 18% 60%, rgba(255, 250, 241, 0.14), transparent 46%),
-    radial-gradient(circle at 24% 14%, rgba(155, 210, 221, 0.18), transparent 30%),
-    radial-gradient(circle at 78% 12%, rgba(235, 186, 197, 0.18), transparent 24%),
-    radial-gradient(circle at 84% 18%, rgba(197, 151, 61, 0.12), transparent 22%),
-    linear-gradient(180deg, rgba(255, 250, 241, 0.16), rgba(255, 250, 241, 0.04) 28%, rgba(7, 21, 34, 0.05)) !important;
+  opacity: 0.02 !important;
+  mix-blend-mode: normal !important;
+  background: linear-gradient(180deg, rgba(255, 246, 232, 0.06), transparent 30%, rgba(3, 16, 29, 0.06)) !important;
 }
 
 body.operations-demo-page::after {
   z-index: 0;
   display: block !important;
-  opacity: 0.24 !important;
+  opacity: 0.03 !important;
   mix-blend-mode: normal !important;
-  background:
-    linear-gradient(90deg, rgba(7, 21, 34, 0.04), transparent 18%, transparent 82%, rgba(7, 21, 34, 0.04)),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.04), transparent 24%, rgba(7, 21, 34, 0.02)) !important;
+  background: linear-gradient(90deg, rgba(3, 13, 24, 0.08), transparent 18%, transparent 82%, rgba(3, 13, 24, 0.08)) !important;
 }
 
 body.operations-demo-page .operations-hero::before {
-  background:
-    radial-gradient(ellipse at 18% 64%, rgba(255, 250, 241, 0.10), transparent 44%),
-    linear-gradient(180deg, rgba(6, 19, 31, 0.08) 0%, rgba(6, 19, 31, 0.015) 30%, rgba(6, 19, 31, 0.08) 100%),
-    linear-gradient(90deg, rgba(255, 250, 241, 0.03), transparent 18%, transparent 82%, rgba(7, 21, 34, 0.04)) !important;
+  opacity: 0 !important;
+  display: none !important;
 }
 
 body.operations-demo-page .operations-hero {
   width: min(var(--bsc-content-width), calc(100% - 48px)) !important;
-  min-height: clamp(760px, 92vh, 980px);
-  padding-top: 0 !important;
-  padding-bottom: 40px !important;
+  min-height: 100vh;
+  padding: 24px 24px 188px !important;
+  background: transparent !important;
 }
 
 body.operations-demo-page .operations-hero__grid {
-  min-height: calc(clamp(760px, 92vh, 980px) - 348px);
-  align-items: flex-end !important;
-  padding: 0 0 16px !important;
+  min-height: 0;
+  align-items: center !important;
+  padding: 132px 0 12px !important;
 }
 
 body.operations-demo-page .operations-shell {
   width: min(var(--bsc-content-width), calc(100% - 48px)) !important;
+  padding-bottom: 144px !important;
 }
 
 body.operations-demo-page .operations-hero__copy {
-  margin-top: -12px !important;
+  margin-top: 0 !important;
+  max-width: 720px;
+  padding: 42px 46px 36px;
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 24px 60px rgba(32, 51, 61, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(18px) saturate(110%);
 }
 
 body.operations-demo-page .operations-hero h1 {
   max-width: 10.2ch !important;
-  font-size: clamp(2.45rem, 3.92vw, 4.03rem) !important;
-  text-shadow:
-    0 3px 24px rgba(3, 13, 24, 0.56),
-    0 1px 1px rgba(3, 13, 24, 0.36) !important;
+  font-size: clamp(2rem, 3.08vw, 2.92rem) !important;
+  color: #163244 !important;
+  text-shadow: 0 1px 14px rgba(255, 255, 255, 0.12), 0 1px 0 rgba(255, 255, 255, 0.38) !important;
 }
 
 body.operations-demo-page .operations-eyebrow,
 body.operations-demo-page .operations-hero__text {
-  color: rgba(255, 248, 238, 0.94) !important;
-  text-shadow: 0 1px 14px rgba(3, 13, 24, 0.42) !important;
+  color: rgba(37, 58, 70, 0.76) !important;
+  text-shadow: none !important;
+}
+
+body.operations-demo-page .operations-eyebrow {
+  color: rgba(134, 103, 48, 0.9) !important;
 }
 
 body.operations-demo-page .operations-hero__preview {
@@ -16061,10 +16288,26 @@ body.operations-demo-page .operations-preview-stat strong {
 }
 
 body.operations-demo-page .operations-floating-cta {
+  position: fixed !important;
+  right: 32px !important;
+  bottom: 32px !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  z-index: 9999 !important;
+  width: fit-content !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
   min-height: 46px !important;
   padding: 0 15px !important;
   font-size: 0.82rem !important;
   letter-spacing: 0.04em;
+}
+
+body.operations-demo-page.operations-modal-open .operations-floating-cta {
+  display: none !important;
 }
 
 body.operations-demo-page .whatsapp-float {
@@ -16111,8 +16354,182 @@ body.operations-demo-page .operations-demo-page__grain {
 
   body.operations-demo-page .operations-floating-cta,
   body.operations-demo-page .whatsapp-float {
-    transform: scale(0.9);
-    transform-origin: right bottom;
+    transform: none;
+  }
+
+  body.operations-demo-page .operations-floating-cta {
+    right: 16px !important;
+    bottom: 16px !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    z-index: 9999 !important;
+    width: fit-content !important;
+  }
+
+  body.operations-demo-page .operations-shell {
+    padding-bottom: 112px !important;
+  }
+
+  .operations-modal {
+    padding: 12px;
+  }
+
+  body.operations-demo-page .operations-modal {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    min-height: 100dvh !important;
+    overflow: auto !important;
+  }
+
+  .operations-modal__dialog {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px);
+    padding: 20px 18px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .operations-form {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Language QA pass: keep long BG/FR/RU labels readable without shrinking the brand voice. */
+.topbar__actions,
+.site-nav,
+.hero__content,
+.hero__cta,
+.operations-hero__grid,
+.operations-hero__cta-row,
+.operations-signal-row,
+.feature-grid,
+.trust-grid,
+.operations-grid,
+.operations-preview-grid,
+.operations-overview__list,
+.operations-incident-grid,
+.operations-network-grid,
+.guest-portal-page .guest-portal-services,
+.guest-portal-page .guest-portal-actions,
+.guest-portal-page .guest-portal-status-grid,
+.guest-portal-page .guest-portal-info-grid,
+.guest-portal-page .guest-portal-card__chips {
+  min-width: 0;
+}
+
+.site-nav__link,
+.language-switcher__button,
+.button,
+.operations-button,
+.operations-mobile-dock__button,
+.operations-chip,
+.operations-status-pill,
+.trust-strip__chip,
+.guest-live-chip,
+.guest-trust-chip,
+.guest-portal-page .guest-portal-service,
+.guest-portal-page .guest-portal-info,
+.guest-portal-page .guest-portal-status,
+.guest-portal-page .guest-portal-action,
+.operations-floating-cta,
+.pilot-access-float,
+.whatsapp-float {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.18;
+  text-align: center;
+}
+
+.feature-card,
+.trust-card,
+.cta-panel,
+.pilot-contact,
+.operations-panel,
+.operations-panel--wide,
+.operations-modal__dialog,
+.guest-portal-page .guest-portal-card {
+  height: 100%;
+  min-width: 0;
+}
+
+body.operations-demo-page .operations-modal__dialog {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.feature-card h3,
+.trust-card h3,
+.cta-panel h2,
+.operations-panel h2,
+.operations-panel h3,
+.operations-modal h2,
+.hero h1,
+.operations-hero h1,
+.guest-portal-page .guest-portal-header h1,
+.guest-portal-page .guest-portal-card h2 {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  text-wrap: balance;
+}
+
+.feature-card p,
+.trust-card p,
+.cta-panel__copy,
+.hero__text,
+.operations-hero__text,
+.operations-panel__copy,
+.operations-modal__copy,
+.operations-notification p,
+.operations-list__item p,
+.operations-kpi p,
+.operations-overview__item strong + time,
+.operations-workflow__step span,
+.guest-portal-page .guest-portal-header__text,
+.guest-portal-page .guest-portal-card p,
+.guest-portal-page .guest-portal-timeline__body p,
+.guest-portal-page .guest-portal-service span,
+.guest-portal-page .guest-portal-status strong,
+.guest-portal-page .guest-portal-info strong,
+.guest-portal-page .guest-portal-service strong,
+.guest-portal-page .guest-portal-timeline__body strong,
+.guest-portal-page .guest-portal-action,
+.guest-portal-page .guest-portal-instructions p,
+.guest-portal-page .guest-portal-qr p,
+.guest-portal-page .guest-portal-timeline__time,
+.guest-portal-page .guest-portal-timeline__tag {
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  line-height: 1.78;
+}
+
+@media (min-width: 641px) {
+  .operations-floating-cta,
+  .pilot-access-float,
+  .whatsapp-float {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body:not(.operations-demo-page) main {
+    padding-bottom: 96px !important;
+  }
+
+  .operations-floating-cta,
+  .pilot-access-float,
+  .whatsapp-float {
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    z-index: 9999 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }
 
