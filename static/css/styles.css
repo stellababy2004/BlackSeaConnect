@@ -14511,6 +14511,119 @@ body::after,
     gap: 1rem;
 }
 
+.admin-pilot-card--link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-pilot-card--link:hover,
+.admin-pilot-card--link:focus-visible {
+    transform: translateY(-2px);
+}
+
+.admin-pilot-card__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.admin-pilot-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(17, 59, 92, 0.1);
+    color: #113b5c;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-status--new {
+    background: rgba(17, 59, 92, 0.1);
+}
+
+.admin-pilot-status--contacted {
+    background: rgba(15, 106, 128, 0.14);
+}
+
+.admin-pilot-status--qualified {
+    background: rgba(48, 119, 72, 0.14);
+}
+
+.admin-pilot-status--rejected {
+    background: rgba(143, 58, 58, 0.14);
+}
+
+.admin-pilot-status--converted {
+    background: rgba(153, 109, 42, 0.14);
+}
+
+.admin-pilot-details {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 20px;
+}
+
+.admin-pilot-details div {
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.admin-pilot-details dt {
+    margin-bottom: 4px;
+    color: rgba(17, 59, 92, 0.68);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-details dd {
+    margin: 0;
+    color: #113b5c;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.admin-pilot-status-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: end;
+}
+
+.admin-pilot-status-form label {
+    display: grid;
+    gap: 8px;
+    min-width: min(280px, 100%);
+}
+
+.admin-pilot-status-form span {
+    color: rgba(17, 59, 92, 0.68);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-status-form select {
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid rgba(17, 59, 92, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #113b5c;
+    font: inherit;
+}
+
 .admin-pilot-card h2 {
     margin: .25rem 0 1rem;
 }

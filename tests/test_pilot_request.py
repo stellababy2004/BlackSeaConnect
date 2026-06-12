@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import unittest
@@ -61,6 +62,26 @@ class PilotRequestApiTests(unittest.TestCase):
         shutil.rmtree(self._tmpdir, ignore_errors=True)
         FakeSMTP.sent_messages.clear()
 
+    def _read_requests(self):
+        path = Path("data") / "pilot_requests.jsonl"
+        if not path.exists():
+            return []
+
+        records = []
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    records.append(json.loads(line))
+        return records
+
+    def _seed_requests(self, records):
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        path = data_dir / "pilot_requests.jsonl"
+        with path.open("w", encoding="utf-8") as f:
+            for record in records:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
     def test_missing_fields_returns_400(self):
         payload = {
             "email": "owner@example.com",
@@ -81,7 +102,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("No pilot requests yet.", html)
         self.assertIn("Submitted requests will appear here", html)
 
-    def test_valid_payload_returns_200(self):
+    def test_valid_payload_returns_200_and_saves_id_and_status(self):
         payload = {
             "property_type": "villa_residence",
             "apartment_count": "12",
@@ -106,6 +127,12 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"ok": True})
 
+        records = self._read_requests()
+        self.assertEqual(len(records), 1)
+        self.assertTrue(records[0]["id"])
+        self.assertEqual(records[0]["status"], "new")
+        self.assertEqual(records[0]["city"], "Varna Marina")
+
         self.assertTrue(FakeSMTP.sent_messages)
         message = FakeSMTP.sent_messages[0]
         self.assertEqual(message["Subject"], "New BlackSea Connect pilot request")
@@ -114,9 +141,6 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("City / location: Varna Marina", body)
         self.assertIn("Concierge needs: Arrivals, cleaning, transfers", body)
         self.assertIn("Language: en", body)
-
-        record_path = Path("data") / "pilot_requests.jsonl"
-        self.assertTrue(record_path.exists())
 
     def test_valid_payload_returns_200_when_smtp_times_out(self):
         payload = {
@@ -140,36 +164,131 @@ class PilotRequestApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(len(self._read_requests()), 1)
 
-        record_path = Path("data") / "pilot_requests.jsonl"
-        self.assertTrue(record_path.exists())
+    def test_list_page_shows_saved_requests_newest_first(self):
+        older = {
+            "id": "older-id",
+            "created_at": "2026-01-01T10:00:00Z",
+            "status": "new",
+            "name": "Old Request",
+            "email": "old@example.com",
+            "property_type": "apartment",
+            "apartment_count": "3",
+            "city": "Old Port",
+            "concierge_needs": "Cleaning",
+            "current_language": "en",
+            "submitted_from": "/pilot-access",
+            "location": "Old Port",
+            "needs": "Cleaning",
+        }
+        newer = {
+            "id": "newer-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "contacted",
+            "name": "New Request",
+            "email": "new@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "New Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "New Marina",
+            "needs": "Arrivals",
+        }
 
-        with record_path.open("r", encoding="utf-8") as f:
-            saved_lines = [line.strip() for line in f if line.strip()]
-
-        self.assertEqual(len(saved_lines), 1)
-        saved_record = saved_lines[0]
-        self.assertIn('"city": "Varna Marina"', saved_record)
-
-    def test_admin_route_shows_latest_request_first(self):
-        data_dir = Path("data")
-        data_dir.mkdir(exist_ok=True)
-        record_path = data_dir / "pilot_requests.jsonl"
-
-        older = '{"created_at": "2026-01-01T10:00:00Z", "name": "Old Request", "email": "old@example.com", "property_type": "apartment", "apartment_count": "3", "city": "Old Port", "concierge_needs": "Cleaning", "current_language": "en", "submitted_from": "/pilot-access", "location": "Old Port", "needs": "Cleaning"}'
-        newer = '{"created_at": "2026-01-02T10:00:00Z", "name": "New Request", "email": "new@example.com", "property_type": "villa", "apartment_count": "7", "city": "New Marina", "concierge_needs": "Arrivals", "current_language": "en", "submitted_from": "/demo/operations", "location": "New Marina", "needs": "Arrivals"}'
-
-        with record_path.open("w", encoding="utf-8") as f:
-            f.write(older + "\n")
-            f.write(newer + "\n")
+        self._seed_requests([older, newer])
 
         response = self.client.get("/admin/pilot-requests")
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
+        self.assertIn("/admin/pilot-requests/newer-id", html)
+        self.assertIn("/admin/pilot-requests/older-id", html)
         self.assertLess(html.index("New Request"), html.index("Old Request"))
-        self.assertIn("New Marina", html)
-        self.assertIn("Old Port", html)
+        self.assertIn("contacted", html)
+
+    def test_detail_page_works(self):
+        record = {
+            "id": "detail-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "qualified",
+            "name": "Detail Request",
+            "email": "detail@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Detail Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Detail Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        response = self.client.get("/admin/pilot-requests/detail-id")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Detail Request", html)
+        self.assertIn("qualified", html)
+        self.assertIn("Detail Marina", html)
+        self.assertIn("detail@example.com", html)
+
+    def test_status_update_works(self):
+        record = {
+            "id": "status-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "new",
+            "name": "Status Request",
+            "email": "status@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Status Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Status Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        response = self.client.post("/admin/pilot-requests/status-id/status", data={"status": "contacted"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/pilot-requests/status-id", response.headers["Location"])
+
+        updated = self._read_requests()[0]
+        self.assertEqual(updated["status"], "contacted")
+
+    def test_invalid_status_returns_400(self):
+        record = {
+            "id": "invalid-status-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "new",
+            "name": "Invalid Status Request",
+            "email": "status@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Status Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Status Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        response = self.client.post("/admin/pilot-requests/invalid-status-id/status", data={"status": "invalid"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {"ok": False, "error": "invalid_status"})
+
+    def test_missing_request_returns_404(self):
+        response = self.client.get("/admin/pilot-requests/missing-id")
+
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == "__main__":

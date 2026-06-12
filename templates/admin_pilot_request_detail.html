@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Pilot Request</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="admin-pilot-page">
+    <section class="admin-pilot-shell">
+      <div class="admin-pilot-header">
+        <p class="eyebrow">Private intake</p>
+        <h1>Pilot request detail</h1>
+        <a class="button button--secondary" href="/admin/pilot-requests">Back to requests</a>
+      </div>
+
+      <article class="admin-pilot-card">
+        <div class="admin-pilot-card__topline">
+          <p class="eyebrow">{{ item.created_at|e }}</p>
+          <span class="admin-pilot-status admin-pilot-status--{{ item.status|e }}">{{ item.status|e }}</span>
+        </div>
+
+        <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
+
+        <dl class="admin-pilot-details">
+          <div>
+            <dt>ID</dt>
+            <dd>{{ item.id|e }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ item.status|e }}</dd>
+          </div>
+          <div>
+            <dt>Property type</dt>
+            <dd>{{ item.property_type|e }}</dd>
+          </div>
+          <div>
+            <dt>Apartment count</dt>
+            <dd>{{ item.apartment_count|e }}</dd>
+          </div>
+          <div>
+            <dt>City / location</dt>
+            <dd>{{ item.city|e }}</dd>
+          </div>
+          <div>
+            <dt>Concierge needs</dt>
+            <dd>{{ item.concierge_needs|e }}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ item.email|e }}</dd>
+          </div>
+          <div>
+            <dt>Language</dt>
+            <dd>{{ item.current_language|e if item.current_language else "n/a" }}</dd>
+          </div>
+          <div>
+            <dt>Submitted from</dt>
+            <dd>{{ item.submitted_from|e }}</dd>
+          </div>
+        </dl>
+
+        <form class="admin-pilot-status-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/status">
+          <label>
+            <span>Update status</span>
+            <select name="status" required>
+              <option value="new" {% if item.status == "new" %}selected{% endif %}>new</option>
+              <option value="contacted" {% if item.status == "contacted" %}selected{% endif %}>contacted</option>
+              <option value="qualified" {% if item.status == "qualified" %}selected{% endif %}>qualified</option>
+              <option value="rejected" {% if item.status == "rejected" %}selected{% endif %}>rejected</option>
+              <option value="converted" {% if item.status == "converted" %}selected{% endif %}>converted</option>
+            </select>
+          </label>
+          <button class="button button--primary" type="submit">Save status</button>
+        </form>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

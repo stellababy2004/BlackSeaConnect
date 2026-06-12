@@ -1,12 +1,14 @@
 ﻿from datetime import datetime, timezone
 from email.message import EmailMessage
+import hashlib
 from pathlib import Path
 import json
 import os
 import smtplib
 from threading import Thread
+from uuid import uuid4
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
@@ -135,6 +137,40 @@ def _queue_pilot_request_email(record):
     Thread(target=_send_pilot_request_email, args=(record,), daemon=True).start()
 
 
+def _fallback_pilot_request_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("property_type", "")),
+        str(record.get("apartment_count", "")),
+        str(record.get("city", record.get("location", ""))),
+        str(record.get("concierge_needs", record.get("needs", ""))),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"legacy-{digest[:16]}"
+
+
+def _normalize_pilot_request(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _fallback_pilot_request_id(normalized)
+    normalized["status"] = str(normalized.get("status", "")).strip() or "new"
+    normalized.setdefault("name", "")
+    normalized.setdefault("email", "")
+    normalized.setdefault("property_type", "")
+    normalized.setdefault("apartment_count", "")
+    normalized.setdefault("city", normalized.get("location", ""))
+    normalized.setdefault("concierge_needs", normalized.get("needs", ""))
+    normalized.setdefault("current_language", "")
+    normalized.setdefault("submitted_from", "")
+    normalized.setdefault("created_at", "")
+    normalized["location"] = normalized.get("city", "")
+    normalized["needs"] = normalized.get("concierge_needs", "")
+    return normalized
+
+
 def _load_pilot_requests():
     path = Path("data") / "pilot_requests.jsonl"
     requests_list = []
@@ -149,11 +185,28 @@ def _load_pilot_requests():
             except json.JSONDecodeError:
                 continue
 
-            if isinstance(record, dict):
-                requests_list.append(record)
+            normalized = _normalize_pilot_request(record)
+            if normalized:
+                requests_list.append(normalized)
 
     requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return requests_list
+
+
+def _save_pilot_requests(requests_list):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    path = data_dir / "pilot_requests.jsonl"
+    with path.open("w", encoding="utf-8") as f:
+        for record in requests_list:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _find_pilot_request(request_id):
+    for record in _load_pilot_requests():
+        if str(record.get("id", "")) == str(request_id):
+            return record
+    return None
 
 
 @app.post("/api/pilot-request")
@@ -161,6 +214,7 @@ def api_pilot_request():
     payload = request.get_json(silent=True) or {}
 
     record = {
+        "id": uuid4().hex,
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "name": _clean_payload_value(payload, "name"),
         "email": _clean_payload_value(payload, "email"),
@@ -170,6 +224,7 @@ def api_pilot_request():
         "concierge_needs": _clean_payload_value(payload, "concierge_needs", "needs"),
         "current_language": _clean_payload_value(payload, "current_language"),
         "submitted_from": request.referrer or request.headers.get("Referer", "") or request.path,
+        "status": "new",
     }
     record["location"] = record["city"]
     record["needs"] = record["concierge_needs"]
@@ -198,6 +253,39 @@ def api_pilot_request():
 @app.get("/admin/pilot-requests")
 def admin_pilot_requests():
     return render_template("admin_pilot_requests.html", requests=_load_pilot_requests())
+
+
+@app.get("/admin/pilot-requests/<request_id>")
+def admin_pilot_request_detail(request_id):
+    record = _find_pilot_request(request_id)
+    if not record:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    return render_template("admin_pilot_request_detail.html", item=record)
+
+
+@app.post("/admin/pilot-requests/<request_id>/status")
+def admin_pilot_request_status(request_id):
+    allowed_statuses = {"new", "contacted", "qualified", "rejected", "converted"}
+    status = str(request.form.get("status", "")).strip()
+
+    if status not in allowed_statuses:
+        return jsonify({"ok": False, "error": "invalid_status"}), 400
+
+    requests_list = _load_pilot_requests()
+    updated = False
+
+    for record in requests_list:
+        if str(record.get("id", "")) == str(request_id):
+            record["status"] = status
+            updated = True
+            break
+
+    if not updated:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    _save_pilot_requests(requests_list)
+    return redirect(url_for("admin_pilot_request_detail", request_id=request_id))
 # create concierge endpoint
 @app.route("/api/concierge", methods=["POST"])
 def api_concierge():
