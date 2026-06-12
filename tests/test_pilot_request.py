@@ -73,6 +73,14 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.get_json(), {"ok": False, "error": "missing_fields"})
 
+    def test_admin_route_returns_200_when_jsonl_missing(self):
+        response = self.client.get("/admin/pilot-requests")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("No pilot requests yet.", html)
+        self.assertIn("Submitted requests will appear here", html)
+
     def test_valid_payload_returns_200(self):
         payload = {
             "property_type": "villa_residence",
@@ -142,6 +150,26 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(len(saved_lines), 1)
         saved_record = saved_lines[0]
         self.assertIn('"city": "Varna Marina"', saved_record)
+
+    def test_admin_route_shows_latest_request_first(self):
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        record_path = data_dir / "pilot_requests.jsonl"
+
+        older = '{"created_at": "2026-01-01T10:00:00Z", "name": "Old Request", "email": "old@example.com", "property_type": "apartment", "apartment_count": "3", "city": "Old Port", "concierge_needs": "Cleaning", "current_language": "en", "submitted_from": "/pilot-access", "location": "Old Port", "needs": "Cleaning"}'
+        newer = '{"created_at": "2026-01-02T10:00:00Z", "name": "New Request", "email": "new@example.com", "property_type": "villa", "apartment_count": "7", "city": "New Marina", "concierge_needs": "Arrivals", "current_language": "en", "submitted_from": "/demo/operations", "location": "New Marina", "needs": "Arrivals"}'
+
+        with record_path.open("w", encoding="utf-8") as f:
+            f.write(older + "\n")
+            f.write(newer + "\n")
+
+        response = self.client.get("/admin/pilot-requests")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertLess(html.index("New Request"), html.index("Old Request"))
+        self.assertIn("New Marina", html)
+        self.assertIn("Old Port", html)
 
 
 if __name__ == "__main__":

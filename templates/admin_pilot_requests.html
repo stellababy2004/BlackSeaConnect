@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -19,22 +19,25 @@
       <div class="admin-pilot-list">
         {% if requests %}
           {% for item in requests %}
-            <article class="admin-pilot-card">
+            <article class="admin-pilot-card" data-pilot-request-card>
               <div>
-                <p class="eyebrow">{{ item.created_at }}</p>
-                <h2>{{ item.name }}</h2>
-                <p><strong>Email:</strong> <a href="mailto:{{ item.email }}">{{ item.email }}</a></p>
-                <p><strong>Type:</strong> {{ item.property_type }}</p>
-                <p><strong>Region:</strong> {{ item.location }}</p>
-                <p><strong>Properties:</strong> {{ item.apartment_count }}</p>
-                <p><strong>Needs:</strong> {{ item.needs }}</p>
+                <p class="eyebrow">{{ item.created_at|e }}</p>
+                <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
+                <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
+                <p><strong>Apartment count:</strong> {{ item.apartment_count|e }}</p>
+                <p><strong>City / location:</strong> {{ item.city|e }}</p>
+                <p><strong>Concierge needs:</strong> {{ item.concierge_needs|e }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ item.email|e }}">{{ item.email|e }}</a></p>
+                {% if item.current_language %}
+                  <p><strong>Language:</strong> {{ item.current_language|e }}</p>
+                {% endif %}
               </div>
             </article>
           {% endfor %}
         {% else %}
           <article class="admin-pilot-card">
             <h2>No pilot requests yet.</h2>
-            <p>When someone submits the pilot form, the request will appear here.</p>
+            <p>Submitted requests will appear here as soon as the first pilot form is saved.</p>
           </article>
         {% endif %}
       </div>
@@ -42,22 +45,3 @@
   </main>
 </body>
 </html>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const search = document.getElementById("pilot-admin-search");
-  const cards = Array.from(document.querySelectorAll("[data-pilot-request-card]"));
-
-  if (!search || !cards.length) return;
-
-  search.addEventListener("input", () => {
-    const query = search.value.trim().toLowerCase();
-
-    cards.forEach((card) => {
-      const text = card.textContent.toLowerCase();
-      card.hidden = query && !text.includes(query);
-    });
-  });
-});
-</script>
-

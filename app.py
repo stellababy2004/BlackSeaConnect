@@ -135,6 +135,27 @@ def _queue_pilot_request_email(record):
     Thread(target=_send_pilot_request_email, args=(record,), daemon=True).start()
 
 
+def _load_pilot_requests():
+    path = Path("data") / "pilot_requests.jsonl"
+    requests_list = []
+
+    if not path.exists():
+        return requests_list
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if isinstance(record, dict):
+                requests_list.append(record)
+
+    requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return requests_list
+
+
 @app.post("/api/pilot-request")
 def api_pilot_request():
     payload = request.get_json(silent=True) or {}
@@ -176,20 +197,7 @@ def api_pilot_request():
 
 @app.get("/admin/pilot-requests")
 def admin_pilot_requests():
-    path = Path("data") / "pilot_requests.jsonl"
-    requests_list = []
-
-    if path.exists():
-        with path.open("r", encoding="utf-8") as f:
-            for line in f:
-                try:
-                    requests_list.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-
-    requests_list = list(reversed(requests_list))
-
-    return render_template("admin_pilot_requests.html", requests=requests_list)
+    return render_template("admin_pilot_requests.html", requests=_load_pilot_requests())
 # create concierge endpoint
 @app.route("/api/concierge", methods=["POST"])
 def api_concierge():
