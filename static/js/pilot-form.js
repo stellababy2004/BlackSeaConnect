@@ -99,13 +99,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitButton = form.querySelector('button[type="submit"]');
     const formData = new FormData(form);
 
+    const getValue = (...names) => {
+      for (const name of names) {
+        const value = formData.get(name);
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (trimmed) return trimmed;
+        }
+      }
+      return "";
+    };
+
     const payload = {
-      name: String(formData.get("name") || "").trim(),
-      email: String(formData.get("email") || "").trim(),
-      property_type: String(formData.get("property_type") || "").trim(),
-      location: String(formData.get("location") || "").trim(),
-      apartment_count: String(formData.get("apartment_count") || "").trim(),
-      needs: String(formData.get("needs") || "").trim(),
+      name: getValue("name"),
+      email: getValue("email"),
+      property_type: getValue("property_type"),
+      apartment_count: getValue("apartment_count"),
+      city: getValue("city", "location", "region"),
+      concierge_needs: getValue("concierge_needs", "needs"),
+      current_language: document.documentElement.lang || "",
+      location: getValue("location", "city", "region"),
+      needs: getValue("needs", "concierge_needs"),
     };
 
     if (submitButton) submitButton.disabled = true;
@@ -122,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.ok) throw new Error(data.error || "Request failed");
 
-      if (response) response.textContent = "Request received. We’ll reply within 1 business day.";
+      if (response) response.textContent = "Request received. We will contact you shortly.";
       form.reset();
     } catch (error) {
       if (response) response.textContent = "The request could not be sent. Please email concierge@blackseaconnect.com.";
@@ -131,4 +145,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
