@@ -1,8 +1,43 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("[data-pilot-form]");
   const response = document.querySelector("[data-pilot-response]");
+  const selects = Array.from(document.querySelectorAll("[data-pilot-select]"));
+  let activeSelect = null;
 
-  document.querySelectorAll("[data-pilot-select]").forEach((select) => {
+  const closeSelect = (select) => {
+    if (!select) return;
+
+    const trigger = select.querySelector("[data-pilot-select-trigger]");
+    const panel = select.querySelector("[data-pilot-select-panel]");
+    if (!trigger || !panel) return;
+
+    select.classList.remove("is-open");
+    trigger.setAttribute("aria-expanded", "false");
+    panel.hidden = true;
+
+    if (activeSelect === select) {
+      activeSelect = null;
+    }
+  };
+
+  const openSelect = (select) => {
+    if (!select) return;
+
+    if (activeSelect && activeSelect !== select) {
+      closeSelect(activeSelect);
+    }
+
+    const trigger = select.querySelector("[data-pilot-select-trigger]");
+    const panel = select.querySelector("[data-pilot-select-panel]");
+    if (!trigger || !panel) return;
+
+    select.classList.add("is-open");
+    trigger.setAttribute("aria-expanded", "true");
+    panel.hidden = false;
+    activeSelect = select;
+  };
+
+  selects.forEach((select) => {
     const trigger = select.querySelector("[data-pilot-select-trigger]");
     const panel = select.querySelector("[data-pilot-select-panel]");
     const valueEl = select.querySelector("[data-pilot-select-value]");
@@ -12,39 +47,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!trigger || !panel || !input) return;
 
-    const close = () => {
-      trigger.setAttribute("aria-expanded", "false");
-      panel.hidden = true;
-    };
-
     trigger.addEventListener("click", (event) => {
       event.preventDefault();
-      event.stopPropagation();
-      const open = trigger.getAttribute("aria-expanded") === "true";
-      trigger.setAttribute("aria-expanded", String(!open));
-      panel.hidden = open;
+
+      const isOpen = select.classList.contains("is-open");
+      if (isOpen) {
+        closeSelect(select);
+      } else {
+        openSelect(select);
+      }
     });
 
     options.forEach((option) => {
       option.addEventListener("click", (event) => {
         event.preventDefault();
-        event.stopPropagation();
 
         const selectedText = option.textContent.trim();
-        input.value = selectedText;
+        const selectedValue = option.dataset.value || selectedText;
 
-        if (placeholder) placeholder.style.display = "none";
+        input.value = selectedValue;
+
+        if (placeholder) placeholder.hidden = true;
         if (valueEl) {
           valueEl.textContent = selectedText;
           valueEl.hidden = false;
-          valueEl.style.display = "inline";
         }
 
-        close();
+        closeSelect(select);
       });
     });
+  });
 
-    document.addEventListener("click", close);
+  document.addEventListener("click", (event) => {
+    if (!activeSelect) return;
+    if (activeSelect.contains(event.target)) return;
+    closeSelect(activeSelect);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !activeSelect) return;
+    const trigger = activeSelect.querySelector("[data-pilot-select-trigger]");
+    closeSelect(activeSelect);
+    if (trigger) trigger.focus();
   });
 
   if (!form) return;
