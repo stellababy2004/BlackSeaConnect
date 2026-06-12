@@ -1,6 +1,8 @@
 ﻿from datetime import datetime, timezone
 from email.message import EmailMessage
 import hashlib
+import hmac
+from functools import wraps
 from pathlib import Path
 import json
 import os
@@ -8,7 +10,7 @@ import smtplib
 from threading import Thread
 from uuid import uuid4
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
@@ -56,6 +58,37 @@ def pilot_access():
 @app.route("/health")
 def health():
     return jsonify({"ok": True, "service": "blackseaconnect"})
+
+
+def _admin_auth_response(status_code, message):
+    response = Response(message, status=status_code, mimetype="text/plain")
+    if status_code == 401:
+        response.headers["WWW-Authenticate"] = 'Basic realm="BlackSea Connect Admin"'
+    return response
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+
+        if not admin_username or not admin_password:
+            app.logger.warning("Admin access disabled: ADMIN_USERNAME or ADMIN_PASSWORD is missing.")
+            return _admin_auth_response(503, "Admin access is not configured.")
+
+        auth = request.authorization
+        if not auth or not auth.username or not auth.password:
+            return _admin_auth_response(401, "Unauthorized")
+
+        username_ok = hmac.compare_digest(str(auth.username), admin_username)
+        password_ok = hmac.compare_digest(str(auth.password), admin_password)
+        if not (username_ok and password_ok):
+            return _admin_auth_response(401, "Unauthorized")
+
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def _clean_payload_value(payload, *keys):
@@ -251,11 +284,13 @@ def api_pilot_request():
 
 
 @app.get("/admin/pilot-requests")
+@admin_required
 def admin_pilot_requests():
     return render_template("admin_pilot_requests.html", requests=_load_pilot_requests())
 
 
 @app.get("/admin/pilot-requests/<request_id>")
+@admin_required
 def admin_pilot_request_detail(request_id):
     record = _find_pilot_request(request_id)
     if not record:
@@ -265,6 +300,7 @@ def admin_pilot_request_detail(request_id):
 
 
 @app.post("/admin/pilot-requests/<request_id>/status")
+@admin_required
 def admin_pilot_request_status(request_id):
     allowed_statuses = {"new", "contacted", "qualified", "rejected", "converted"}
     status = str(request.form.get("status", "")).strip()
@@ -329,6 +365,7 @@ def api_concierge():
 
 
 @app.get("/admin/concierge-requests")
+@admin_required
 def admin_concierge_requests():
     path = Path("data") / "concierge_requests.jsonl"
     requests_list = []
@@ -346,6 +383,7 @@ def admin_concierge_requests():
     return render_template("admin_concierge_requests.html", requests=requests_list)
 
 @app.get("/admin")
+@admin_required
 def admin_home():
     return render_template("admin_home.html")
 if __name__ == "__main__":

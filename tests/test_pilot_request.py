@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import shutil
@@ -49,6 +50,11 @@ class ImmediateThread:
 
 
 class PilotRequestApiTests(unittest.TestCase):
+    ADMIN_ENV = {
+        "ADMIN_USERNAME": "admin",
+        "ADMIN_PASSWORD": "secret",
+    }
+
     def setUp(self):
         self._cwd = os.getcwd()
         self._tmpdir = Path(self._cwd) / f".tmp_pilot_request_tests_{uuid.uuid4().hex}"
@@ -82,6 +88,10 @@ class PilotRequestApiTests(unittest.TestCase):
             for record in records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
+    def _auth_headers(self):
+        token = base64.b64encode(f"{self.ADMIN_ENV['ADMIN_USERNAME']}:{self.ADMIN_ENV['ADMIN_PASSWORD']}".encode("utf-8")).decode("ascii")
+        return {"Authorization": f"Basic {token}"}
+
     def test_missing_fields_returns_400(self):
         payload = {
             "email": "owner@example.com",
@@ -95,12 +105,32 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.get_json(), {"ok": False, "error": "missing_fields"})
 
     def test_admin_route_returns_200_when_jsonl_missing(self):
-        response = self.client.get("/admin/pilot-requests")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("No pilot requests yet.", html)
         self.assertIn("Submitted requests will appear here", html)
+
+    def test_admin_route_returns_503_when_admin_env_missing(self):
+        response = self.client.get("/admin/pilot-requests")
+
+        self.assertEqual(response.status_code, 503)
+
+    def test_admin_route_returns_401_without_credentials(self):
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("WWW-Authenticate", response.headers)
+
+    def test_admin_route_returns_200_with_valid_credentials(self):
+        self._seed_requests([])
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
 
     def test_valid_payload_returns_200_and_saves_id_and_status(self):
         payload = {
@@ -166,6 +196,21 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.get_json(), {"ok": True})
         self.assertEqual(len(self._read_requests()), 1)
 
+    def test_api_pilot_request_remains_public(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+        }
+
+        with patch.dict(os.environ, {}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+
     def test_list_page_shows_saved_requests_newest_first(self):
         older = {
             "id": "older-id",
@@ -200,7 +245,8 @@ class PilotRequestApiTests(unittest.TestCase):
 
         self._seed_requests([older, newer])
 
-        response = self.client.get("/admin/pilot-requests")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
@@ -227,7 +273,8 @@ class PilotRequestApiTests(unittest.TestCase):
         }
         self._seed_requests([record])
 
-        response = self.client.get("/admin/pilot-requests/detail-id")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests/detail-id", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
@@ -254,7 +301,8 @@ class PilotRequestApiTests(unittest.TestCase):
         }
         self._seed_requests([record])
 
-        response = self.client.post("/admin/pilot-requests/status-id/status", data={"status": "contacted"})
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.post("/admin/pilot-requests/status-id/status", data={"status": "contacted"}, headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/admin/pilot-requests/status-id", response.headers["Location"])
@@ -280,13 +328,39 @@ class PilotRequestApiTests(unittest.TestCase):
         }
         self._seed_requests([record])
 
-        response = self.client.post("/admin/pilot-requests/invalid-status-id/status", data={"status": "invalid"})
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.post("/admin/pilot-requests/invalid-status-id/status", data={"status": "invalid"}, headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.get_json(), {"ok": False, "error": "invalid_status"})
 
+    def test_status_update_route_is_protected(self):
+        record = {
+            "id": "protected-status-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "new",
+            "name": "Protected Status Request",
+            "email": "status@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Status Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Status Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.post("/admin/pilot-requests/protected-status-id/status", data={"status": "contacted"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("WWW-Authenticate", response.headers)
+
     def test_missing_request_returns_404(self):
-        response = self.client.get("/admin/pilot-requests/missing-id")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests/missing-id", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 404)
 
