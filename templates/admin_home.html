@@ -1,38 +1,99 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin · BlackSea Connect</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="guest-portal-page">
-  <section class="guest-portal-shell">
-    <div class="guest-card">
-      <div class="guest-card-top">
-        <span>BLACKSEA CONNECT</span>
-        <span>Admin cockpit</span>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero">
+      <div>
+        <p class="eyebrow">BLACKSEA CONNECT</p>
+        <h1>Admin cockpit</h1>
+        <p>Premium operational view for concierge and pilot demand. Built directly from the JSONL intake stream.</p>
       </div>
 
-      <h1>Admin cockpit</h1>
-      <p>Operational entry point for guest concierge and pilot access requests.</p>
-
-      <div class="guest-service-list">
-        <a class="guest-service-item" href="/admin/concierge-requests">
-          <strong>Concierge requests</strong>
-          <span>View guest service requests from the Guest Portal.</span>
-        </a>
-
-        <a class="guest-service-item" href="/admin/pilot-requests">
-          <strong>Pilot access requests</strong>
-          <span>View owner, agency and property operator pilot leads.</span>
-        </a>
-
-        <a class="guest-service-item" href="/guest/a-302">
-          <strong>Guest Portal A-302</strong>
-          <span>Open the live guest portal demo.</span>
-        </a>
+      <div class="admin-cockpit-actions">
+        <a class="button button--primary" href="/admin/pilot-requests">View Pilot Leads</a>
+        <a class="button button--secondary" href="/admin/concierge-requests">View Concierge Requests</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export">Export Leads CSV</a>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="admin-kpi-grid" aria-label="Key metrics">
+      <article class="admin-kpi-card">
+        <span>Total Pilot Requests</span>
+        <strong>{{ total_pilot_requests }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>New Leads</span>
+        <strong>{{ new_leads }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Qualified Leads</span>
+        <strong>{{ qualified_leads }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Converted Leads</span>
+        <strong>{{ converted_leads }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Concierge Requests</span>
+        <strong>{{ concierge_requests }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-cockpit-grid">
+      <article class="admin-cockpit-panel">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Lead pipeline</p>
+            <h2>Operational stages</h2>
+          </div>
+        </div>
+        <div class="admin-pipeline-grid">
+          {% for stage in pipeline %}
+            <div class="admin-pipeline-card">
+              <span>{{ stage.label }}</span>
+              <strong>{{ stage.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="admin-cockpit-panel">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Recent activity</p>
+            <h2>Last 10 events</h2>
+          </div>
+        </div>
+
+        {% if recent_activity %}
+          <div class="admin-activity-list">
+            {% for event in recent_activity %}
+              <div class="admin-activity-item">
+                <div class="admin-activity-meta">
+                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or 'new')|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <time>{{ event.created_at|e }}</time>
+                </div>
+                <strong>{{ event.title|e }}</strong>
+                {% if event.detail %}
+                  <p>{{ event.detail|e }}</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <h3>No activity yet.</h3>
+            <p>Once a lead is saved or a concierge request arrives, it will appear here automatically.</p>
+          </div>
+        {% endif %}
+      </article>
+    </section>
+  </main>
 </body>
 </html>

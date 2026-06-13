@@ -111,7 +111,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("No pilot requests yet.", html)
-        self.assertIn("Submitted requests will appear here", html)
+        self.assertIn("As soon as a pilot form is saved", html)
 
     def test_admin_route_returns_503_when_admin_env_missing(self):
         response = self.client.get("/admin/pilot-requests")
@@ -131,6 +131,117 @@ class PilotRequestApiTests(unittest.TestCase):
             response = self.client.get("/admin/pilot-requests", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_dashboard_calculates_kpis(self):
+        pilot_records = [
+            {
+                "id": "p1",
+                "created_at": "2026-01-03T10:00:00Z",
+                "status": "new",
+                "name": "Lead One",
+                "email": "one@example.com",
+                "property_type": "villa",
+                "apartment_count": "4",
+                "city": "Varna",
+                "concierge_needs": "Arrivals",
+                "current_language": "en",
+                "submitted_from": "/demo/operations",
+                "location": "Varna",
+                "needs": "Arrivals",
+            },
+            {
+                "id": "p2",
+                "created_at": "2026-01-04T10:00:00Z",
+                "status": "qualified",
+                "name": "Lead Two",
+                "email": "two@example.com",
+                "property_type": "hotel",
+                "apartment_count": "8",
+                "city": "Burgas",
+                "concierge_needs": "Cleaning",
+                "current_language": "en",
+                "submitted_from": "/demo/operations",
+                "location": "Burgas",
+                "needs": "Cleaning",
+            },
+            {
+                "id": "p3",
+                "created_at": "2026-01-05T10:00:00Z",
+                "status": "converted",
+                "name": "Lead Three",
+                "email": "three@example.com",
+                "property_type": "apartment",
+                "apartment_count": "12",
+                "city": "Sofia",
+                "concierge_needs": "Transfers",
+                "current_language": "bg",
+                "submitted_from": "/demo/operations",
+                "location": "Sofia",
+                "needs": "Transfers",
+            },
+        ]
+        concierge_records = [
+            {
+                "created_at": "2026-01-06T09:00:00Z",
+                "name": "Guest One",
+                "email": "guest@example.com",
+                "service_type": "cleaning",
+                "message": "Need cleaning",
+            }
+        ]
+        self._seed_requests(pilot_records)
+        concierge_dir = Path("data")
+        concierge_dir.mkdir(exist_ok=True)
+        with (concierge_dir / "concierge_requests.jsonl").open("w", encoding="utf-8") as f:
+            for record in concierge_records:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Total Pilot Requests", html)
+        self.assertIn("3", html)
+        self.assertIn("New", html)
+        self.assertIn("Qualified", html)
+        self.assertIn("Converted", html)
+        self.assertIn("Concierge Requests", html)
+
+    def test_export_route_is_protected(self):
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests/export")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("WWW-Authenticate", response.headers)
+
+    def test_csv_export_downloads_requested_columns(self):
+        record = {
+            "id": "csv-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "contacted",
+            "name": "CSV Request",
+            "email": "csv@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "CSV Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "CSV Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests/export", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response.headers.get("Content-Type", ""))
+        csv_body = response.get_data(as_text=True)
+        self.assertIn("id,created_at,status,name,email,property_type,apartment_count,city,concierge_needs", csv_body)
+        self.assertIn("csv-id", csv_body)
+        self.assertIn("CSV Marina", csv_body)
 
     def test_valid_payload_returns_200_and_saves_id_and_status(self):
         payload = {

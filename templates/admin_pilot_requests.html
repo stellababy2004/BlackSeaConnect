@@ -6,43 +6,82 @@
   <title>BlackSea Connect | Pilot Requests</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body>
-  <main class="admin-pilot-page">
-    <section class="admin-pilot-shell">
-      <div class="admin-pilot-header">
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
         <p class="eyebrow">Private intake</p>
         <h1>Pilot requests</h1>
-        <p>{{ requests|length }} request(s) received</p>
-        <a class="button button--secondary" href="/pilot-access">Back to pilot access</a>
+        <p>Lead pipeline for property owners, agencies and operators.</p>
       </div>
-
-      <div class="admin-pilot-list">
-        {% if requests %}
-          {% for item in requests %}
-            <a class="admin-pilot-card admin-pilot-card--link" href="/admin/pilot-requests/{{ item.id|e }}" data-pilot-request-card>
-              <div class="admin-pilot-card__topline">
-                <p class="eyebrow">{{ item.created_at|e }}</p>
-                <span class="admin-pilot-status admin-pilot-status--{{ item.status|e }}">{{ item.status|e }}</span>
-              </div>
-              <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
-              <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
-              <p><strong>Apartment count:</strong> {{ item.apartment_count|e }}</p>
-              <p><strong>City / location:</strong> {{ item.city|e }}</p>
-              <p><strong>Concierge needs:</strong> {{ item.concierge_needs|e }}</p>
-              <p><strong>Email:</strong> {{ item.email|e }}</p>
-              {% if item.current_language %}
-                <p><strong>Language:</strong> {{ item.current_language|e }}</p>
-              {% endif %}
-            </a>
-          {% endfor %}
-        {% else %}
-          <article class="admin-pilot-card">
-            <h2>No pilot requests yet.</h2>
-            <p>Submitted requests will appear here as soon as the first pilot form is saved.</p>
-          </article>
-        {% endif %}
+      <div class="admin-cockpit-actions">
+        <a class="button button--secondary" href="/admin">Back to cockpit</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export">Export Leads CSV</a>
       </div>
     </section>
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header admin-panel-header--stack">
+        <div>
+          <p class="eyebrow">Lead search</p>
+          <h2>Filter requests</h2>
+        </div>
+        <label class="admin-search">
+          <span>Search</span>
+          <input type="search" id="pilot-request-search" placeholder="Search name, email, city or property type">
+        </label>
+      </div>
+    </section>
+
+    <section class="admin-pilot-list">
+      {% if requests %}
+        {% for item in requests %}
+          <a
+            class="admin-pilot-card admin-pilot-card--link"
+            href="/admin/pilot-requests/{{ item.id|e }}"
+            data-pilot-request-card
+            data-search="{{ (item.name ~ ' ' ~ item.email ~ ' ' ~ item.city ~ ' ' ~ item.property_type)|lower|e }}"
+          >
+            <div class="admin-pilot-card__topline">
+              <p class="eyebrow">{{ item.created_at|e }}</p>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|e }}">{{ item.status|e }}</span>
+            </div>
+            <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
+            <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
+            <p><strong>Apartment count:</strong> {{ item.apartment_count|e }}</p>
+            <p><strong>City / location:</strong> {{ item.city|e }}</p>
+            <p><strong>Concierge needs:</strong> {{ item.concierge_needs|e }}</p>
+            <p><strong>Email:</strong> {{ item.email|e }}</p>
+            {% if item.current_language %}
+              <p><strong>Language:</strong> {{ item.current_language|e }}</p>
+            {% endif %}
+          </a>
+        {% endfor %}
+      {% else %}
+        <article class="admin-pilot-card admin-empty-state">
+          <h2>No pilot requests yet.</h2>
+          <p>As soon as a pilot form is saved, it will appear here in the operational queue.</p>
+        </article>
+      {% endif %}
+    </section>
   </main>
+
+  <script>
+    (function () {
+      const search = document.getElementById("pilot-request-search");
+      const cards = Array.from(document.querySelectorAll("[data-pilot-request-card]"));
+
+      if (!search || !cards.length) return;
+
+      search.addEventListener("input", () => {
+        const query = search.value.trim().toLowerCase();
+
+        cards.forEach((card) => {
+          const text = (card.getAttribute("data-search") || "").toLowerCase();
+          card.hidden = query && !text.includes(query);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

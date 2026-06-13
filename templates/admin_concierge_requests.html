@@ -1,35 +1,45 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Concierge Requests · BlackSea Connect</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Concierge Requests</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="guest-portal-page">
-  <section class="guest-portal-shell">
-    <div class="guest-card">
-      <div class="guest-card-top">
-        <span>ADMIN</span>
-        <span>Concierge Requests</span>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow">ADMIN</p>
+        <h1>Concierge requests</h1>
+        <p>Guest service requests captured from the operational portal.</p>
       </div>
+      <div class="admin-cockpit-actions">
+        <a class="button button--secondary" href="/admin">Back to cockpit</a>
+        <a class="button button--ghost" href="/admin/pilot-requests">View Pilot Leads</a>
+      </div>
+    </section>
 
-      <h1>Concierge Requests</h1>
-
-      {% if requests %}
-        <div class="guest-service-list">
-          {% for item in requests %}
-            <div class="guest-service-item">
-              <strong>{{ item.service_type }}</strong>
-              <span>{{ item.name }} · {{ item.email }}</span>
-              <span>{{ item.message }}</span>
-              <small>{{ item.created_at }}</small>
+    {% if requests %}
+      <section class="admin-pilot-list">
+        {% for item in requests %}
+          <article class="admin-pilot-card">
+            <div class="admin-pilot-card__topline">
+              <p class="eyebrow">{{ item.created_at|e }}</p>
+              <span class="admin-pilot-status admin-pilot-status--contacted">{{ item.service_type|e }}</span>
             </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p>No concierge requests yet.</p>
-      {% endif %}
-    </div>
-  </section>
+            <h2>{{ item.name|e }}</h2>
+            <p><strong>Email:</strong> {{ item.email|e }}</p>
+            <p><strong>Message:</strong> {{ item.message|e }}</p>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="admin-cockpit-panel admin-empty-state">
+        <h2>No concierge requests yet.</h2>
+        <p>When a guest submits a service request, it will appear here in reverse chronological order.</p>
+      </section>
+    {% endif %}
+  </main>
 </body>
 </html>
