@@ -38,6 +38,18 @@ class FakeSMTP:
         FakeSMTP.sent_messages.append(message)
 
 
+class FakeResendResponse:
+    def __init__(self, status=202):
+        self.status = status
+        self.code = status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
 class ImmediateThread:
     def __init__(self, target=None, args=(), kwargs=None, daemon=None):
         self.target = target
@@ -278,11 +290,19 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "RESEND_API_KEY": "re_test_key",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
-        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP):
+        captured_requests = []
+
+        def fake_resend_urlopen(req, timeout=10):
+            captured_requests.append(req)
+            return FakeResendResponse(status=202)
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
             response = self.client.post("/api/pilot-request", json=payload)
 
         self.assertEqual(response.status_code, 200)
@@ -307,12 +327,14 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("Concierge needs: Arrivals, cleaning, transfers", body)
         self.assertIn("Language: en", body)
 
-        internal_message = FakeSMTP.sent_messages[1]
-        self.assertEqual(internal_message["Subject"], "[BlackSea Connect] New Pilot Lead Received")
-        self.assertEqual(internal_message["From"], "noreply@example.com")
-        self.assertEqual(internal_message["To"], "stoyanova@orange.fr")
-        self.assertEqual(internal_message["Reply-To"], "noreply@example.com")
-        self.assertNotIn("contact@blackseaconnect.com", str(internal_message))
+        self.assertEqual(len(captured_requests), 1)
+        resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(resend_payload["from"], "BlackSea Connect <onboarding@resend.dev>")
+        self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
+        self.assertEqual(resend_payload["subject"], "[BlackSea Connect] New Pilot Lead Received")
+        self.assertIn("Admin Detail URL:", resend_payload["text"])
+        self.assertIn("/admin/pilot-requests/", resend_payload["text"])
+        self.assertNotIn("contact@blackseaconnect.com", resend_payload["text"])
 
     def test_valid_payload_returns_200_when_smtp_times_out(self):
         payload = {
@@ -329,9 +351,12 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
         }
 
-        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")):
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
         self.assertEqual(response.status_code, 200)
@@ -347,7 +372,16 @@ class PilotRequestApiTests(unittest.TestCase):
             "email": "owner@example.com",
         }
 
-        with patch.dict(os.environ, {}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")):
+        with patch.dict(os.environ, {
+            "SMTP_HOST": "smtp.zoho.eu",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
         self.assertEqual(response.status_code, 200)
@@ -578,6 +612,76 @@ class PilotRequestApiTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("NEW", html)
         self.assertIn("Unassigned", html)
+
+    def test_internal_notification_uses_resend_configuration(self):
+        record = {
+            "id": "resend-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "qualified",
+            "name": "Resend Lead",
+            "email": "lead@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Resend Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "fr",
+            "submitted_from": "/demo/operations",
+            "location": "Resend Marina",
+            "needs": "Arrivals",
+        }
+
+        captured_requests = []
+
+        def fake_resend_urlopen(req, timeout=10):
+            captured_requests.append(req)
+            return FakeResendResponse(status=202)
+
+        with patch.dict(os.environ, {
+            "RESEND_API_KEY": "re_test_key",
+            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
+            from app import _send_internal_pilot_notification
+
+            ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/resend-id")
+
+        self.assertTrue(ok)
+        self.assertIsNone(reason)
+        self.assertEqual(len(captured_requests), 1)
+        resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(resend_payload["from"], "BlackSea Connect <onboarding@resend.dev>")
+        self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
+        self.assertIn("Admin Detail URL: https://example.com/admin/pilot-requests/resend-id", resend_payload["text"])
+        self.assertNotIn("contact@blackseaconnect.com", resend_payload["text"])
+
+    def test_internal_notification_failure_is_best_effort(self):
+        record = {
+            "id": "resend-fail-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "new",
+            "name": "Resend Lead",
+            "email": "lead@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Resend Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "fr",
+            "submitted_from": "/demo/operations",
+            "location": "Resend Marina",
+            "needs": "Arrivals",
+        }
+
+        with patch.dict(os.environ, {
+            "RESEND_API_KEY": "re_test_key",
+            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.urllib.request.urlopen", side_effect=TimeoutError("connect timeout")):
+            from app import _send_internal_pilot_notification
+
+            ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/resend-fail-id")
+
+        self.assertFalse(ok)
+        self.assertEqual(reason, "resend_send_failed")
 
 
 if __name__ == "__main__":

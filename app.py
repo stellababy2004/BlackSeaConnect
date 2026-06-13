@@ -9,6 +9,8 @@ from pathlib import Path
 import json
 import os
 import smtplib
+import urllib.error
+import urllib.request
 from threading import Thread
 from uuid import uuid4
 
@@ -244,7 +246,7 @@ def _send_pilot_request_email(record):
     return True, None
 
 
-def _build_internal_pilot_notification_body(record):
+def _build_internal_pilot_notification_body(record, admin_detail_url):
     lines = [
         f"Lead ID: {record.get('id', '')}",
         f"Created At: {record.get('created_at', '')}",
@@ -255,63 +257,63 @@ def _build_internal_pilot_notification_body(record):
         f"Email Address: {record.get('email', '')}",
         f"Language: {record.get('current_language') or 'n/a'}",
         f"Current CRM Status: {_normalize_pilot_status(record.get('status', 'new')).upper()}",
+        f"Admin Detail URL: {admin_detail_url}",
     ]
     return "\n".join(lines)
 
 
-def _send_internal_pilot_notification(record):
-    smtp_host = os.getenv("SMTP_HOST", "").strip()
-    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
-    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
-    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
-    smtp_from = os.getenv("SMTP_FROM", "").strip()
+def _send_internal_pilot_notification(record, admin_detail_url):
+    resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
+    from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <onboarding@resend.dev>"
     admin_email = os.getenv("ADMIN_EMAIL", "").strip()
 
-    if not smtp_host or not smtp_port_raw or not smtp_from:
-        app.logger.warning("Internal pilot notification skipped: SMTP configuration is missing for %s.", _smtp_endpoint_label(smtp_host or "unknown", smtp_port_raw or "unknown"))
-        return False, "smtp_not_configured"
+    if not resend_api_key:
+        app.logger.warning("Internal pilot notification skipped: RESEND_API_KEY is missing.")
+        return False, "resend_not_configured"
 
     if not admin_email:
-        app.logger.warning("Internal pilot notification skipped: ADMIN_EMAIL is missing for %s.", _smtp_endpoint_label(smtp_host, smtp_port_raw))
-        return False, "smtp_not_configured"
-
-    try:
-        smtp_port = int(smtp_port_raw)
-    except ValueError:
-        app.logger.warning("Internal pilot notification skipped: SMTP_PORT is invalid for %s.", _smtp_endpoint_label(smtp_host, smtp_port_raw))
-        return False, "smtp_invalid_port"
+        app.logger.warning("Internal pilot notification skipped: ADMIN_EMAIL is missing.")
+        return False, "admin_email_missing"
 
     message = EmailMessage()
     message["Subject"] = "[BlackSea Connect] New Pilot Lead Received"
-    message["From"] = smtp_from
+    message["From"] = from_email
     message["To"] = admin_email
-    message["Reply-To"] = smtp_from
-    message.set_content(_build_internal_pilot_notification_body(record))
+    message["Reply-To"] = from_email
+    message.set_content(_build_internal_pilot_notification_body(record, admin_detail_url))
+
+    payload = {
+        "from": from_email,
+        "to": [admin_email],
+        "subject": message["Subject"],
+        "text": message.get_content(),
+    }
+
+    request = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {resend_api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
 
     try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Internal pilot notification: SMTP STARTTLS was unavailable.")
-
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response_status = getattr(response, "status", getattr(response, "code", None))
+            if response_status not in (200, 201, 202):
+                app.logger.warning("Internal pilot notification send failed via Resend: unexpected status %s.", response_status)
+                return False, "resend_bad_status"
     except Exception as exc:
-        app.logger.warning("Internal pilot notification send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
-        return False, "smtp_send_failed"
+        app.logger.warning("Internal pilot notification send failed via Resend: %s", exc)
+        return False, "resend_send_failed"
 
     return True, None
 
 
-def _queue_internal_pilot_notification(record):
-    Thread(target=_send_internal_pilot_notification, args=(record,), daemon=True).start()
+def _queue_internal_pilot_notification(record, admin_detail_url):
+    Thread(target=_send_internal_pilot_notification, args=(record, admin_detail_url), daemon=True).start()
 
 
 def _queue_pilot_request_email(record):
@@ -549,8 +551,9 @@ def api_pilot_request():
         app.logger.exception("Pilot request save failed.")
         return jsonify({"ok": False, "error": "save_failed"}), 500
 
+    admin_detail_url = url_for("admin_pilot_request_detail", request_id=record["id"], _external=True)
     _queue_pilot_request_email(record)
-    _queue_internal_pilot_notification(record)
+    _queue_internal_pilot_notification(record, admin_detail_url)
 
     return jsonify({"ok": True}), 200
 
