@@ -114,331 +114,183 @@
   </header>
 
   <main class="operations-shell" id="operations-overview">
-    <section class="operations-kpis" aria-label="Operational quick status cards">
-      <article class="operations-kpi">
-        <span class="operations-kpi__label" data-i18n="demo.kpi1Label">Occupancy</span>
-        <strong class="operations-kpi__value">87%</strong>
-        <p data-i18n="demo.kpi1Body">19 of 22 apartments are occupied, with 2 turnarounds in progress.</p>
+    <section class="operations-stack" aria-label="Operational experience">
+      <article class="operations-panel operations-panel--wide">
+        <div class="operations-panel__header">
+          <div>
+            <p class="operations-panel__eyebrow" data-i18n="demo.arrivalEyebrow">Arrival Flow</p>
+            <h2 data-i18n="demo.arrivalTitle">Chaque arrivée suit un flux opérationnel simple et traçable.</h2>
+          </div>
+          <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.arrivalStatus">5 steps tracked</span>
+        </div>
+        <p class="operations-panel__copy" data-i18n="demo.arrivalCopy">Le suivi reste lisible pour les équipes terrain, du dossier confirmé jusqu’au séjour actif.</p>
+        <div class="operations-arrival-flow" aria-label="Arrival workflow timeline">
+          <article class="operations-arrival-step operations-arrival-step--done">
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep1Status">Confirmé</span>
+            <strong data-i18n="demo.arrivalStep1Title">Réservation confirmée</strong>
+            <p><time datetime="2026-06-12T09:12:00+02:00">09:12</time> <span data-i18n="demo.arrivalStep1Owner">Réservations</span></p>
+          </article>
+          <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
+          <article class="operations-arrival-step operations-arrival-step--done">
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep2Status">Assigné</span>
+            <strong data-i18n="demo.arrivalStep2Title">Transfert assigné</strong>
+            <p><time datetime="2026-06-12T09:38:00+02:00">09:38</time> <span data-i18n="demo.arrivalStep2Owner">Transferts</span></p>
+          </article>
+          <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
+          <article class="operations-arrival-step operations-arrival-step--done">
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep3Status">Vérifié</span>
+            <strong data-i18n="demo.arrivalStep3Title">Ménage confirmé</strong>
+            <p><time datetime="2026-06-12T10:05:00+02:00">10:05</time> <span data-i18n="demo.arrivalStep3Owner">Housekeeping</span></p>
+          </article>
+          <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
+          <article class="operations-arrival-step operations-arrival-step--done">
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep4Status">Effectué</span>
+            <strong data-i18n="demo.arrivalStep4Title">Check-in effectué</strong>
+            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep4Owner">Conciergerie</span></p>
+          </article>
+          <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
+          <article class="operations-arrival-step operations-arrival-step--active">
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep5Status">Actif</span>
+            <strong data-i18n="demo.arrivalStep5Title">Séjour actif</strong>
+            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep5Owner">Opérations</span></p>
+          </article>
+        </div>
       </article>
-      <article class="operations-kpi">
-        <span class="operations-kpi__label" data-i18n="demo.kpi2Label">Arrivals today</span>
-        <strong class="operations-kpi__value">5</strong>
-        <p data-i18n="demo.kpi2Body">Three arrivals are confirmed, two are still in transfer coordination.</p>
-      </article>
-      <article class="operations-kpi">
-        <span class="operations-kpi__label" data-i18n="demo.kpi3Label">Transfer queue</span>
-        <strong class="operations-kpi__value">3</strong>
-        <p data-i18n="demo.kpi3Body">Airport, marina and late-evening return routes are being handled quietly.</p>
-      </article>
-      <article class="operations-kpi">
-        <span class="operations-kpi__label" data-i18n="demo.kpi4Label">Concierge tickets</span>
-        <strong class="operations-kpi__value">3</strong>
-        <p data-i18n="demo.kpi4Body">Late dining, extra linens and local recommendation requests are open.</p>
-      </article>
-    </section>
 
-    <section class="operations-dashboard" aria-label="Demo operational dashboard">
-      <div class="operations-dashboard__main">
-        <article class="operations-panel operations-panel--wide">
+      <section class="operations-grid" aria-label="Operations summary">
+        <article class="operations-panel operations-panel--feed">
           <div class="operations-panel__header">
             <div>
-              <p class="operations-panel__eyebrow" data-i18n="demo.overviewEyebrow">Daily guest coordination</p>
-              <h2 data-i18n="demo.overviewTitle">A practical view for hospitality teams</h2>
+              <p class="operations-panel__eyebrow" data-i18n="demo.feedEyebrow">Operations timeline</p>
+              <h3 data-i18n="demo.feedTitle">Live operations feed</h3>
             </div>
-            <span class="operations-chip operations-chip--soft" data-i18n="demo.overviewChip">94% on schedule</span>
+            <span class="operations-status-pill" data-i18n="demo.feedStatus">Live</span>
           </div>
-          <div class="operations-overview">
-            <div class="operations-overview__ring">
-              <div class="operations-overview__ring-core">
-                <span data-i18n="demo.ringLabel">Occupancy</span>
-                <strong>87%</strong>
-                <small data-i18n="demo.ringMeta">Premium portfolio</small>
+          <div class="operations-feed" role="list" aria-label="Live operations feed">
+            <article class="operations-feed__item" role="listitem">
+              <time datetime="2026-06-12T14:05:00+02:00">14:05</time>
+              <div>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory1">Transferts</span>
+                <strong data-i18n="demo.feedItem1">Transfert invité confirmé.</strong>
               </div>
-            </div>
-            <div class="operations-overview__list">
-              <div class="operations-overview__item">
-                <span data-i18n="demo.overviewItem1Label">Active guest arrivals</span>
-                <strong data-i18n="demo.overviewItem1Value">14:45 - Marina gate arrival</strong>
-                <time datetime="2026-06-06T14:28:00+02:00" data-i18n="demo.overviewItem1Time">Updated 14:28</time>
+            </article>
+            <article class="operations-feed__item" role="listitem">
+              <time datetime="2026-06-12T13:42:00+02:00">13:42</time>
+              <div>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory2">Ménage</span>
+                <strong data-i18n="demo.feedItem2">Appartement A-302 prêt.</strong>
               </div>
-              <div class="operations-overview__item">
-                <span data-i18n="demo.overviewItem2Label">Cleaning workflow</span>
-                <strong data-i18n="demo.overviewItem2Value">A-302 ready, Villa Azure in final pass</strong>
-                <time datetime="2026-06-06T13:42:00+02:00" data-i18n="demo.overviewItem2Time">Updated 13:42</time>
+            </article>
+            <article class="operations-feed__item" role="listitem">
+              <time datetime="2026-06-12T12:58:00+02:00">12:58</time>
+              <div>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory3">Opérations</span>
+                <strong data-i18n="demo.feedItem3">Opérateur local assigné.</strong>
               </div>
-              <div class="operations-overview__item">
-                <span data-i18n="demo.overviewItem3Label">Trusted local partners</span>
-                <strong data-i18n="demo.overviewItem3Value">Harbor Electric, Blue Linen House, Coastal Transfer Desk</strong>
-                <time datetime="2026-06-06T12:58:00+02:00" data-i18n="demo.overviewItem3Time">Updated 12:58</time>
+            </article>
+            <article class="operations-feed__item" role="listitem">
+              <time datetime="2026-06-12T11:20:00+02:00">11:20</time>
+              <div>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory4">Arrivées</span>
+                <strong data-i18n="demo.feedItem4">Check-in terminé.</strong>
               </div>
-            </div>
+            </article>
+            <article class="operations-feed__item" role="listitem">
+              <time datetime="2026-06-12T10:05:00+02:00">10:05</time>
+              <div>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory5">Conciergerie</span>
+                <strong data-i18n="demo.feedItem5">Demande concierge traitée.</strong>
+              </div>
+            </article>
           </div>
         </article>
 
-        <div class="operations-grid">
-          <article class="operations-panel">
-            <div class="operations-panel__header">
-              <div>
-                <p class="operations-panel__eyebrow" data-i18n="demo.movementEyebrow">Guest movement</p>
-                <h3 data-i18n="demo.movementTitle">Arrivals, transfer timing and marina handoffs</h3>
-              </div>
-              <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.movementStatus">4 active</span>
+        <article class="operations-panel operations-property-card">
+          <div class="operations-panel__header">
+            <div>
+              <p class="operations-panel__eyebrow" data-i18n="demo.propertyEyebrow">Property overview</p>
+              <h3 data-i18n="demo.propertyTitle">Premium operations summary</h3>
             </div>
-            <div class="operations-list">
-              <div class="operations-list__item">
-                <span class="operations-list__time">14:50</span>
-                <div>
-                  <strong data-i18n="demo.movementItem1Title">Delayed guest arrival</strong>
-                  <p data-i18n="demo.movementItem1Body">ETA moved by 18 minutes because of marina traffic. Assigned partner: Coastal Transfer Desk.</p>
-                </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__time">15:12</span>
-                <div>
-                  <strong data-i18n="demo.movementItem2Title">Transfer waiting at dock</strong>
-                  <p data-i18n="demo.movementItem2Body">Driver is holding at Dock Gate 3 until luggage handoff clears. Last synced 4 min ago.</p>
-                </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__time">19:10</span>
-                <div>
-                  <strong data-i18n="demo.movementItem3Title">VIP arrival flow</strong>
-                  <p data-i18n="demo.movementItem3Body">Private car on standby, concierge updated, quiet route through the marina confirmed.</p>
-                </div>
-              </div>
+            <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.propertyStatus">Today</span>
+          </div>
+          <div class="operations-property-card__name">
+            <span data-i18n="demo.propertyNameLabel">Property</span>
+            <strong data-i18n="demo.propertyName">Villa Marina One</strong>
+          </div>
+          <div class="operations-property-card__metrics">
+            <div class="operations-property-card__metric">
+              <span data-i18n="demo.propertyMetric1Label">Occupation</span>
+              <strong>87%</strong>
             </div>
-            <div class="operations-empty-state">
-              <span class="operations-empty-state__eyebrow" data-i18n="demo.movementEmptyEyebrow">Shift active</span>
-              <strong data-i18n="demo.movementEmptyTitle">All arrivals are being coordinated with discreet, low-noise handoffs.</strong>
+            <div class="operations-property-card__metric">
+              <span data-i18n="demo.propertyMetric2Label">Arrivées aujourd’hui</span>
+              <strong>5</strong>
             </div>
-          </article>
+            <div class="operations-property-card__metric">
+              <span data-i18n="demo.propertyMetric3Label">Turnarounds</span>
+              <strong>2</strong>
+            </div>
+            <div class="operations-property-card__metric">
+              <span data-i18n="demo.propertyMetric4Label">SLA</span>
+              <strong>94%</strong>
+            </div>
+          </div>
+          <div class="operations-property-card__manager">
+            <span data-i18n="demo.propertyManagerLabel">Responsable local</span>
+            <strong data-i18n="demo.propertyManagerValue">Maria Petrova</strong>
+          </div>
+        </article>
+      </section>
 
-          <article class="operations-panel">
-            <div class="operations-panel__header">
-              <div>
-                <p class="operations-panel__eyebrow" data-i18n="demo.teamEyebrow">Team presence</p>
-                <h3 data-i18n="demo.teamTitle">Concierge, operators and active partners</h3>
-              </div>
-              <span class="operations-status-pill" data-i18n="demo.teamStatus">3 active</span>
-            </div>
-            <div class="operations-list operations-list--compact">
-              <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--soft" data-i18n="demo.teamItem1Status">Online</span>
-                <div>
-                  <strong data-i18n="demo.teamItem1Title">Concierge available</strong>
-                  <p data-i18n="demo.teamItem1Body">Front desk responds in under 5 minutes. Last activity: 2 min ago.</p>
-                </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__badge" data-i18n="demo.teamItem2Status">Active now</span>
-                <div>
-                  <strong data-i18n="demo.teamItem2Title">Operator on site</strong>
-                  <p data-i18n="demo.teamItem2Body">Harbor Electric is on-site for maintenance follow-up. Shift active until 22:00.</p>
-                </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--soft" data-i18n="demo.teamItem3Status">Dispatched</span>
-                <div>
-                  <strong data-i18n="demo.teamItem3Title">Cleaning crew dispatched</strong>
-                  <p data-i18n="demo.teamItem3Body">Housekeeping Team B is working the follow-up list. Last update: 7 min ago.</p>
-                </div>
-              </div>
-              <div class="operations-list__item">
-                <span class="operations-list__badge operations-list__badge--soft" data-i18n="demo.teamItem4Status">Assigned</span>
-                <div>
-                  <strong data-i18n="demo.teamItem4Title">Local partner assigned</strong>
-                  <p data-i18n="demo.teamItem4Body">Coastal Transfer Desk holds the guest handoff and marina arrival sequence.</p>
-                </div>
-              </div>
-            </div>
+      <article class="operations-panel operations-panel--wide">
+        <div class="operations-panel__header">
+          <div>
+            <p class="operations-panel__eyebrow" data-i18n="demo.teamEyebrow">Équipes et partenaires</p>
+            <h3 data-i18n="demo.teamTitle">Orchestration opérationnelle sur une seule couche</h3>
+          </div>
+          <span class="operations-status-pill" data-i18n="demo.teamStatus">5 visible</span>
+        </div>
+        <div class="operations-team-grid">
+          <article class="operations-team-card">
+            <span class="operations-team-card__status" data-i18n="demo.teamCard1Status">En ligne</span>
+            <strong data-i18n="demo.teamCard1Title">Conciergerie</strong>
+            <p data-i18n="demo.teamCard1Body">Réponses aux arrivées, confirmations et suivi invité en temps réel.</p>
           </article>
-
-          <article class="operations-panel">
-            <div class="operations-panel__header">
-              <div>
-                <p class="operations-panel__eyebrow" data-i18n="demo.cleaningEyebrow">Cleaning status</p>
-                <h3 data-i18n="demo.cleaningTitle">Readiness, follow-up and Wi-Fi reset</h3>
-              </div>
-              <span class="operations-chip operations-chip--soft" data-i18n="demo.cleaningChip">1 follow-up</span>
-            </div>
-            <div class="operations-workflow">
-              <div class="operations-workflow__step operations-workflow__step--done">
-                <strong data-i18n="demo.cleaningItem1Title">A-302</strong>
-                <span data-i18n="demo.cleaningItem1Body">Ready for arrival · last synced 3 min ago</span>
-              </div>
-              <div class="operations-workflow__step">
-                <strong data-i18n="demo.cleaningItem2Title">Villa Azure</strong>
-                <span data-i18n="demo.cleaningItem2Body">Cleaning escalation · second pass in progress</span>
-              </div>
-              <div class="operations-workflow__step operations-workflow__step--done">
-                <strong data-i18n="demo.cleaningItem3Title">Wi-Fi reset completed</strong>
-                <span data-i18n="demo.cleaningItem3Body">Portal restored and verified by concierge</span>
-              </div>
-              <div class="operations-workflow__step">
-                <strong data-i18n="demo.cleaningItem4Title">Boutique Residence</strong>
-                <span data-i18n="demo.cleaningItem4Body">Cleaning queue stable · no overdue tasks</span>
-              </div>
-            </div>
+          <article class="operations-team-card">
+            <span class="operations-team-card__status" data-i18n="demo.teamCard2Status">Actif</span>
+            <strong data-i18n="demo.teamCard2Title">Ménage</strong>
+            <p data-i18n="demo.teamCard2Body">2 équipes actives pour les remises en état et les vérifications finales.</p>
           </article>
-
-          <article class="operations-panel">
-            <div class="operations-panel__header">
-              <div>
-                <p class="operations-panel__eyebrow" data-i18n="demo.issuesEyebrow">Issue queue</p>
-                <h3 data-i18n="demo.issuesTitle">Priority issues, timing and follow-up</h3>
-              </div>
-              <span class="operations-status-pill operations-status-pill--warning" data-i18n="demo.issuesStatus">2 open</span>
-            </div>
-            <div class="operations-incident-grid">
-              <article class="operations-incident-card operations-incident-card--critical">
-                <div class="operations-incident-card__topline">
-                  <span class="operations-incident-card__priority" data-i18n="demo.issue1Priority">P1</span>
-                  <span class="operations-incident-card__sla" data-i18n="demo.issue1Sla">SLA 18 min</span>
-                </div>
-                <strong data-i18n="demo.issue1Title">Water pressure issue</strong>
-                <p data-i18n="demo.issue1Body">Assigned to Harbor Electric. Escalation active, acknowledged, en route.</p>
-                <div class="operations-incident-card__timeline">
-                  <span data-i18n="demo.issue1Timeline1">12:40 reported</span>
-                  <span data-i18n="demo.issue1Timeline2">12:44 acknowledged</span>
-                  <span data-i18n="demo.issue1Timeline3">12:52 en route</span>
-                </div>
-              </article>
-              <article class="operations-incident-card">
-                <div class="operations-incident-card__topline">
-                  <span class="operations-incident-card__priority" data-i18n="demo.issue2Priority">P2</span>
-                  <span class="operations-incident-card__sla" data-i18n="demo.issue2Sla">SLA 26 min</span>
-                </div>
-                <strong data-i18n="demo.issue2Title">Concierge overload</strong>
-                <p data-i18n="demo.issue2Body">Assigned to front desk concierge. Follow-up queued, guest callback pending.</p>
-                <div class="operations-incident-card__timeline">
-                  <span data-i18n="demo.issue2Timeline1">13:08 reported</span>
-                  <span data-i18n="demo.issue2Timeline2">13:16 triaged</span>
-                  <span data-i18n="demo.issue2Timeline3">13:22 routed</span>
-                </div>
-              </article>
-              <article class="operations-incident-card">
-                <div class="operations-incident-card__topline">
-                  <span class="operations-incident-card__priority" data-i18n="demo.issue3Priority">P3</span>
-                  <span class="operations-incident-card__sla" data-i18n="demo.issue3Sla">SLA 42 min</span>
-                </div>
-                <strong data-i18n="demo.issue3Title">Maintenance issue</strong>
-                <p data-i18n="demo.issue3Body">Assigned to local operator. Monitoring quiet hours and confirming arrival window.</p>
-                <div class="operations-incident-card__timeline">
-                  <span data-i18n="demo.issue3Timeline1">13:40 reported</span>
-                  <span data-i18n="demo.issue3Timeline2">13:49 assigned</span>
-                  <span data-i18n="demo.issue3Timeline3">13:58 waiting</span>
-                </div>
-              </article>
-            </div>
-            <div class="operations-empty-state">
-              <span class="operations-empty-state__eyebrow" data-i18n="demo.issuesEmptyEyebrow">Stable window</span>
-              <strong data-i18n="demo.issuesEmptyTitle">No unresolved issues after review.</strong>
-              <p data-i18n="demo.issuesEmptyBody">Calm alert colors, discreet follow-up and a quiet timeline keep the queue readable at a glance.</p>
-            </div>
+          <article class="operations-team-card">
+            <span class="operations-team-card__status" data-i18n="demo.teamCard3Status">Disponible</span>
+            <strong data-i18n="demo.teamCard3Title">Transferts</strong>
+            <p data-i18n="demo.teamCard3Body">3 véhicules disponibles pour les arrivées, départs et liaisons marina.</p>
+          </article>
+          <article class="operations-team-card">
+            <span class="operations-team-card__status" data-i18n="demo.teamCard4Status">Planifié</span>
+            <strong data-i18n="demo.teamCard4Title">Maintenance</strong>
+            <p data-i18n="demo.teamCard4Body">1 intervention planifiée, coordonnée sans interrompre le séjour.</p>
           </article>
         </div>
-      </div>
+      </article>
 
-      <aside class="operations-dashboard__rail">
-        <article class="operations-panel operations-panel--ambient">
-          <p class="operations-panel__eyebrow" data-i18n="demo.feedEyebrow">Activity feed</p>
-          <h3 data-i18n="demo.feedTitle">Quiet updates</h3>
-          <div class="operations-notifications">
-            <div class="operations-notification">
-              <time datetime="2026-06-06T14:22:00+02:00">14:22</time>
-              <p data-i18n="demo.note1Text">Delayed arrival moved into the holding flow while marina traffic cleared.</p>
-            </div>
-            <div class="operations-notification">
-              <time datetime="2026-06-06T13:51:00+02:00">13:51</time>
-              <p data-i18n="demo.note2Text">Cleaning escalation was dispatched and the queue stayed stable after review.</p>
-            </div>
-            <div class="operations-notification">
-              <time datetime="2026-06-06T13:12:00+02:00">13:12</time>
-              <p data-i18n="demo.note3Text">Wi-Fi reset was completed, verified, and synced to the guest portal.</p>
-            </div>
+      <article class="operations-panel operations-panel--wide">
+        <div class="operations-panel__header">
+          <div>
+            <p class="operations-panel__eyebrow" data-i18n="demo.commandEyebrow">Centre de commandement</p>
+            <h3 data-i18n="demo.commandTitle">Tout visible depuis une seule couche opérationnelle</h3>
           </div>
-        </article>
-
-        <article class="operations-panel operations-panel--ambient">
-          <p class="operations-panel__eyebrow" data-i18n="demo.slaEyebrow">Service levels</p>
-          <h3 data-i18n="demo.slaTitle">Service health</h3>
-          <div class="operations-sla">
-            <div class="operations-sla__item">
-              <span data-i18n="demo.sla1Label">Concierge response</span>
-              <strong data-i18n="demo.sla1Value">4m 18s</strong>
-            </div>
-            <div class="operations-sla__item">
-              <span data-i18n="demo.sla2Label">Cleaning turnaround</span>
-              <strong data-i18n="demo.sla2Value">22m average</strong>
-            </div>
-            <div class="operations-sla__item">
-              <span data-i18n="demo.sla3Label">Incident acknowledgement</span>
-              <strong data-i18n="demo.sla3Value">94%</strong>
-            </div>
-            <div class="operations-sla__item">
-              <span data-i18n="demo.sla4Label">Transfer punctuality</span>
-              <strong data-i18n="demo.sla4Value">98%</strong>
-            </div>
-          </div>
-        </article>
-
-        <article class="operations-panel operations-panel--ambient">
-          <p class="operations-panel__eyebrow" data-i18n="demo.networkEyebrow">Trusted local network</p>
-          <h3 data-i18n="demo.networkTitle">Curated coastal partner network</h3>
-          <div class="operations-network-grid">
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard1Label">Transfers</span>
-              <strong data-i18n="demo.networkCard1Title">Coastal Transfer Desk</strong>
-              <p data-i18n="demo.networkCard1Body">Airport and marina handoffs · last activity 6 min ago</p>
-            </div>
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard2Label">Marina support</span>
-              <strong data-i18n="demo.networkCard2Title">Harbor Operations</strong>
-              <p data-i18n="demo.networkCard2Body">Dock coordination and traffic windows · shift active</p>
-            </div>
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard3Label">Restaurants</span>
-              <strong data-i18n="demo.networkCard3Title">Riviera Table</strong>
-              <p data-i18n="demo.networkCard3Body">Curated reservations only · trusted hospitality partner</p>
-            </div>
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard4Label">Maintenance</span>
-              <strong data-i18n="demo.networkCard4Title">Harbor Electric</strong>
-              <p data-i18n="demo.networkCard4Body">On-call issue handling · last arrival 9 min ago</p>
-            </div>
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard5Label">Housekeeping</span>
-              <strong data-i18n="demo.networkCard5Title">Blue Linen House</strong>
-              <p data-i18n="demo.networkCard5Body">Cleaning crew dispatched · 2 properties active</p>
-            </div>
-            <div class="operations-network-card">
-              <span data-i18n="demo.networkCard6Label">Local operators</span>
-              <strong data-i18n="demo.networkCard6Title">Curated coastal network</strong>
-              <p data-i18n="demo.networkCard6Body">Discreet support partners · private access only</p>
-            </div>
-          </div>
-        </article>
-
-        <div class="operations-empty-stack">
-          <div class="operations-empty-state">
-            <span class="operations-empty-state__eyebrow" data-i18n="demo.arrivalsEmptyEyebrow">Arrivals</span>
-            <strong data-i18n="demo.arrivalsEmptyTitle">All arrivals coordinated.</strong>
-            <p data-i18n="demo.arrivalsEmptyBody">The guest movement queue stays quiet, predictable and easy to scan.</p>
-          </div>
-          <div class="operations-empty-state">
-            <span class="operations-empty-state__eyebrow" data-i18n="demo.cleaningEmptyEyebrow">Cleaning</span>
-            <strong data-i18n="demo.cleaningEmptyTitle">Cleaning queue stable.</strong>
-            <p data-i18n="demo.cleaningEmptyBody">Only active escalations remain in view; the rest stay intentionally out of the way.</p>
-          </div>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.commandStatus">Live</span>
         </div>
-
-        <article class="operations-panel operations-panel--ambient">
-          <p class="operations-panel__eyebrow" data-i18n="demo.pilotEyebrow">Premium onboarding</p>
-          <h3 data-i18n="demo.pilotTitle">Request pilot access</h3>
-          <p class="operations-panel__copy" data-i18n="demo.pilotCopy">Position your property for a calm concierge-grade rollout with a short onboarding flow.</p>
-          <button class="operations-button operations-button--primary operations-button--full" type="button" data-open-pilot-modal data-i18n="demo.pilotButton">Request pilot access</button>
-        </article>
-      </aside>
+        <p class="operations-panel__copy" data-i18n="demo.commandCopy">Occupation, arrivées, ménage, partenaires et SLA restent regroupés dans un même espace de pilotage.</p>
+        <ul class="operations-command-list" aria-label="Command center checklist">
+          <li data-i18n="demo.commandItem1">Occupation suivie en continu</li>
+          <li data-i18n="demo.commandItem2">Arrivées confirmées et horodatées</li>
+          <li data-i18n="demo.commandItem3">Ménage synchronisé avec l'état des logements</li>
+          <li data-i18n="demo.commandItem4">Partenaires visibles au bon moment</li>
+          <li data-i18n="demo.commandItem5">SLA surveillé depuis la même vue</li>
+        </ul>
+      </article>
     </section>
   </main>
 

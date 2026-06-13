@@ -1198,6 +1198,145 @@ main::after {
   pointer-events: none;
 }
 
+.home-product {
+  position: relative;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 28px 24px 8px;
+  overflow-x: clip;
+}
+
+.home-product::before {
+  content: "";
+  position: absolute;
+  inset: 8px 10% auto;
+  height: 124px;
+  background:
+    radial-gradient(ellipse at center, rgba(154, 214, 236, 0.05), transparent 70%),
+    linear-gradient(180deg, rgba(255, 236, 198, 0.03), transparent 62%);
+  filter: blur(30px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.home-product .section-heading--product {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 0 16px;
+}
+
+.home-product .section-heading--product h2 {
+  color: #f8f6f2 !important;
+  text-shadow: 0 1px 10px rgba(3, 13, 24, 0.2) !important;
+}
+
+.home-product .section-heading--product .section-heading__eyebrow {
+  color: rgba(245, 211, 143, 0.96) !important;
+}
+
+.home-product__copy {
+  max-width: 58ch;
+  margin: 8px 0 0;
+  color: rgba(231, 238, 246, 0.76);
+  line-height: 1.72;
+}
+
+.home-product__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.home-product__preview {
+  grid-column: 1 / -1;
+  min-height: 100%;
+  padding: 28px;
+}
+
+.home-product__preview .preview-card__header h2 {
+  max-width: 20ch;
+  color: #f8f6f2 !important;
+  text-shadow: 0 1px 10px rgba(3, 13, 24, 0.18) !important;
+}
+
+.home-product__kpis {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-product__kpi {
+  min-width: 0;
+  padding: 22px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.028)),
+    linear-gradient(160deg, rgba(10, 34, 52, 0.9), rgba(7, 24, 39, 0.74));
+  backdrop-filter: blur(30px) saturate(124%);
+  box-shadow:
+    0 24px 54px rgba(4, 14, 24, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.home-product__kpi-value {
+  display: block;
+  color: #f8f6f2;
+  font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.home-product__kpi-label {
+  display: block;
+  margin-top: 10px;
+  color: rgba(248, 246, 242, 0.82);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-product__preview .preview-card__header h2 {
+  max-width: 20ch;
+}
+
+.home-product__preview-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.home-product__preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.024);
+  color: rgba(248, 246, 242, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 28px rgba(4, 14, 24, 0.1);
+}
+
+.home-product__preview-row span {
+  color: rgba(248, 246, 242, 0.74);
+}
+
+.home-product__preview-row strong {
+  color: #f8f6f2;
+}
+
 .credibility-layer,
 .operator-presence,
 .pilot-contact,
@@ -14649,6 +14788,353 @@ body::after,
     }
 }
 
+.admin-cockpit-page {
+    min-height: 100vh;
+    padding: 4.5rem 1.25rem 5rem;
+    background:
+        radial-gradient(circle at top left, rgba(243, 211, 154, 0.16), transparent 24%),
+        radial-gradient(circle at top right, rgba(155, 210, 221, 0.14), transparent 22%),
+        linear-gradient(180deg, rgba(5, 14, 22, 0.94), rgba(8, 24, 36, 0.96));
+    color: #f6f8fb;
+}
+
+.admin-cockpit-shell {
+    width: min(1240px, 100%);
+    margin: 0 auto;
+}
+
+.admin-cockpit-hero,
+.admin-cockpit-panel,
+.admin-kpi-card,
+.admin-empty-state,
+.admin-pilot-card {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 30px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+        rgba(8, 18, 29, 0.74);
+    backdrop-filter: blur(24px) saturate(130%);
+    box-shadow: 0 24px 80px rgba(3, 10, 16, 0.24);
+}
+
+.admin-cockpit-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: end;
+    padding: 28px 30px;
+    margin-bottom: 18px;
+}
+
+.admin-cockpit-hero--compact {
+    align-items: center;
+}
+
+.admin-cockpit-hero h1,
+.admin-cockpit-panel h2,
+.admin-cockpit-panel h3 {
+    color: #f6f8fb;
+}
+
+.admin-cockpit-hero p,
+.admin-cockpit-panel p,
+.admin-empty-state p {
+    color: rgba(246, 248, 251, 0.78);
+}
+
+.admin-cockpit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.admin-kpi-card {
+    padding: 20px 22px;
+}
+
+.admin-kpi-card span,
+.admin-pipeline-card span,
+.admin-panel-header .eyebrow,
+.admin-search span,
+.admin-activity-meta time {
+    color: rgba(246, 248, 251, 0.66);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-kpi-card strong {
+    display: block;
+    margin-top: 10px;
+    color: #fff;
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
+    line-height: 1;
+}
+
+.admin-cockpit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.admin-cockpit-panel {
+    padding: 24px;
+}
+
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 18px;
+}
+
+.admin-panel-header--stack {
+    align-items: start;
+    flex-wrap: wrap;
+}
+
+.admin-pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-pipeline-card {
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-pipeline-card strong {
+    display: block;
+    margin-top: 10px;
+    color: #fff;
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+}
+
+.admin-activity-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-activity-item {
+    padding: 16px 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-activity-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.admin-activity-item strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.admin-activity-item p {
+    margin: 0;
+}
+
+.admin-search {
+    display: grid;
+    gap: 8px;
+    min-width: min(360px, 100%);
+}
+
+.admin-search input,
+.admin-pilot-status-form select {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f6f8fb;
+    font: inherit;
+}
+
+.admin-empty-state {
+    padding: 22px;
+}
+
+.admin-pilot-card--link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-pilot-card--link:hover,
+.admin-pilot-card--link:focus-visible {
+    transform: translateY(-2px);
+}
+
+.admin-pilot-card__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.admin-pilot-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-status--new {
+    background: rgba(82, 149, 255, 0.24);
+}
+
+.admin-pilot-status--contacted {
+    background: rgba(255, 171, 71, 0.24);
+}
+
+.admin-pilot-status--qualified {
+    background: rgba(92, 198, 126, 0.24);
+}
+
+.admin-pilot-status--converted {
+    background: rgba(74, 218, 160, 0.24);
+}
+
+.admin-pilot-status--rejected {
+    background: rgba(255, 101, 101, 0.24);
+}
+
+.admin-pilot-details {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 20px;
+}
+
+.admin-pilot-details div {
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-pilot-details dt {
+    margin-bottom: 4px;
+    color: rgba(246, 248, 251, 0.66);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-details dd {
+    margin: 0;
+    color: #f6f8fb;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.admin-pilot-status-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: end;
+}
+
+.admin-pilot-status-form label {
+    display: grid;
+    gap: 8px;
+    min-width: min(280px, 100%);
+}
+
+.admin-pilot-status-form span {
+    color: rgba(246, 248, 251, 0.66);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-pilot-status-form select {
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f6f8fb;
+    font: inherit;
+}
+
+.admin-pilot-card {
+    color: #f6f8fb;
+    padding: 22px 24px;
+}
+
+@media (max-width: 1100px) {
+    .admin-kpi-grid,
+    .admin-cockpit-grid,
+    .admin-pipeline-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-cockpit-page {
+        padding: 3.25rem 0.9rem 4rem;
+    }
+
+    .admin-cockpit-hero,
+    .admin-cockpit-panel {
+        padding: 20px;
+        border-radius: 24px;
+    }
+
+    .admin-cockpit-hero,
+    .admin-panel-header,
+    .admin-activity-meta,
+    .admin-pilot-card__topline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-kpi-grid,
+    .admin-cockpit-grid,
+    .admin-pipeline-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-pilot-status-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-search {
+        width: 100%;
+    }
+}
+
 
 /* ===== PILOT SELECT LAYOUT OVERFLOW FIX ===== */
 .pilot-select__trigger {
@@ -15565,14 +16051,14 @@ body:not(.operations-demo-page) .hero h1,
 body:not(.operations-demo-page) .hero--home h1 {
   margin: 0;
   max-width: var(--bsc-hero-title-max) !important;
-  color: var(--bsc-hero-text) !important;
+  color: #f8f6f2 !important;
   font-size: var(--bsc-hero-title-size) !important;
   line-height: var(--bsc-hero-title-line) !important;
   letter-spacing: var(--bsc-hero-title-track);
   text-wrap: balance;
   text-shadow:
-    0 2px 22px rgba(3, 13, 24, 0.44),
-    0 1px 1px rgba(3, 13, 24, 0.24) !important;
+    0 1px 10px rgba(3, 13, 24, 0.28),
+    0 1px 1px rgba(3, 13, 24, 0.16) !important;
 }
 
 body:not(.operations-demo-page) .hero__copy .hero__text,
@@ -16643,6 +17129,1412 @@ body.operations-demo-page .operations-modal__dialog {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+  }
+}
+
+/* Mobile luxury hospitality pass: calmer hierarchy, softer glass, single-column flow. */
+@media (max-width: 768px) {
+  body {
+    color: #f8f6f2;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :is(
+    .hero,
+    .operations-hero,
+    .guest-portal-page .guest-portal-app,
+    .admin-cockpit-page
+  ) {
+    padding-left: clamp(16px, 4.8vw, 22px) !important;
+    padding-right: clamp(16px, 4.8vw, 22px) !important;
+  }
+
+  main > * + * {
+    margin-top: 18px !important;
+  }
+
+  :is(
+    .hero h1,
+    .operations-hero h1,
+    .section-heading h2,
+    .cta-panel h2,
+    .feature-card h3,
+    .trust-card h3,
+    .operations-panel h2,
+    .operations-panel h3,
+    .operations-modal h2,
+    .admin-cockpit-hero h1,
+    .admin-cockpit-panel h2,
+    .admin-cockpit-panel h3,
+    .admin-pilot-card h2,
+    .guest-portal-page .guest-portal-header h1,
+    .guest-portal-page .guest-portal-card h2
+  ) {
+    color: #f8f6f2 !important;
+    text-shadow: 0 1px 16px rgba(4, 12, 20, 0.24);
+  }
+
+  :is(
+    .eyebrow,
+    .section-heading__eyebrow,
+    .operations-eyebrow,
+    .operations-panel__eyebrow,
+    .operations-modal__eyebrow,
+    .preview-card__label,
+    .admin-panel-header .eyebrow,
+    .admin-cockpit-hero .eyebrow,
+    .guest-portal-page .guest-portal-header__eyebrow,
+    .guest-portal-page .guest-portal-card__label
+  ) {
+    color: #c8a97e !important;
+  }
+
+  :is(
+    .hero__text,
+    .operations-hero__text,
+    .cta-panel__copy,
+    .feature-card p,
+    .trust-card p,
+    .operations-panel__copy,
+    .operations-modal__copy,
+    .admin-cockpit-hero p,
+    .admin-cockpit-panel p,
+    .admin-empty-state p,
+    .admin-pilot-card p,
+    .guest-portal-page .guest-portal-header__text,
+    .guest-portal-page .guest-portal-card p,
+    .guest-portal-page .guest-portal-timeline__body p,
+    .guest-portal-page .guest-portal-instructions p,
+    .guest-portal-page .guest-portal-qr p
+  ) {
+    color: rgba(248, 246, 242, 0.78) !important;
+  }
+
+  :is(
+    .hero__content,
+    .hero__content--home,
+    .operations-hero__grid,
+    .operations-dashboard,
+    .operations-grid,
+    .operations-kpis,
+    .operations-preview-grid,
+    .operations-overview__list,
+    .operations-incident-grid,
+    .operations-network-grid,
+    .operations-sla,
+    .guest-portal__stage,
+    .guest-portal-page .guest-portal-status-grid,
+    .guest-portal-page .guest-portal-actions,
+    .guest-portal-page .guest-portal-services,
+    .guest-portal-page .guest-portal-access,
+    .guest-portal-page .guest-portal-rail,
+    .admin-kpi-grid,
+    .admin-cockpit-grid,
+    .admin-pipeline-grid,
+    .admin-pilot-list
+  ) {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  :is(
+    .hero__content,
+    .hero__content--home,
+    .operations-hero__grid
+  ) {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding-top: 22px !important;
+  }
+
+  .hero {
+    min-height: auto !important;
+    padding-bottom: 96px !important;
+  }
+
+  .hero__content {
+    align-items: start !important;
+  }
+
+  :is(
+    .hero__copy,
+    .hero--home .hero__copy,
+    .operations-hero__copy,
+    .operations-hero__preview,
+    .preview-card,
+    .feature-card,
+    .trust-card,
+    .guest-device,
+    .guest-sidecard,
+    .operations-panel,
+    .operations-panel--wide,
+    .admin-cockpit-hero,
+    .admin-cockpit-panel,
+    .admin-kpi-card,
+    .admin-pipeline-card,
+    .admin-activity-item,
+    .admin-pilot-card,
+    .admin-empty-state,
+    .guest-portal-page .guest-portal-header,
+    .guest-portal-page .guest-portal-card
+  ) {
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+      linear-gradient(160deg, rgba(7, 18, 29, 0.86), rgba(9, 22, 34, 0.74)) !important;
+    box-shadow:
+      0 18px 48px rgba(2, 10, 18, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(18px) saturate(108%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(108%) !important;
+  }
+
+  .hero__copy,
+  .operations-hero__copy {
+    padding: 22px !important;
+    border-radius: 26px !important;
+  }
+
+  .hero h1,
+  .operations-hero h1,
+  .guest-portal-page .guest-portal-header h1 {
+    max-width: 12ch !important;
+    font-size: clamp(2rem, 9.5vw, 2.75rem) !important;
+    line-height: 1.04 !important;
+    text-wrap: balance;
+    hyphens: manual;
+  }
+
+  .hero__text,
+  .operations-hero__text,
+  .guest-portal-page .guest-portal-header__text {
+    max-width: 100% !important;
+    margin-top: 18px !important;
+    line-height: 1.78 !important;
+  }
+
+  .hero__cta,
+  .operations-hero__cta-row,
+  .admin-cockpit-actions,
+  .cta-panel {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .hero__cta .button,
+  .operations-hero__cta-row .button,
+  .admin-cockpit-actions .button,
+  .cta-panel > .button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .trust-strip,
+  .operations-signal-row {
+    gap: 8px !important;
+    margin-top: 18px !important;
+  }
+
+  :is(
+    .feature-card,
+    .trust-card,
+    .preview-card,
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-hero__preview,
+    .guest-device,
+    .guest-sidecard,
+    .guest-portal-page .guest-portal-header,
+    .guest-portal-page .guest-portal-card,
+    .admin-cockpit-hero,
+    .admin-cockpit-panel,
+    .admin-kpi-card,
+    .admin-pipeline-card,
+    .admin-activity-item,
+    .admin-pilot-card,
+    .admin-empty-state
+  ) {
+    padding: 20px !important;
+    border-radius: 24px !important;
+  }
+
+  .operations-hero__grid {
+    padding: 24px 0 8px !important;
+  }
+
+  .operations-hero__preview {
+    transform: none !important;
+    max-width: 100% !important;
+  }
+
+  .operations-dashboard,
+  .operations-dashboard__main,
+  .operations-shell,
+  .operations-grid,
+  .guest-portal-page .guest-portal-shell {
+    gap: 14px !important;
+  }
+
+  .operations-shell {
+    padding-bottom: 118px !important;
+  }
+
+  .admin-cockpit-page {
+    padding-top: 3rem !important;
+    padding-bottom: 4rem !important;
+  }
+
+  .admin-cockpit-hero,
+  .admin-panel-header,
+  .admin-activity-meta,
+  .admin-pilot-card__topline {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .admin-search {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .admin-pilot-status-form {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .admin-pilot-status-form label {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .admin-pilot-status-form select {
+    width: 100% !important;
+  }
+}
+
+/* Demo operations refresh: arrival flow, live feed and command-center layouts. */
+.operations-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.operations-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.operations-arrival-flow {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.operations-arrival-step {
+  padding: 18px 18px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(8, 28, 43, 0.52);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.operations-arrival-step__status,
+.operations-feed__badge,
+.operations-team-card__status,
+.operations-property-card__name span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 217, 247, 0.22);
+  background: rgba(136, 217, 247, 0.08);
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operations-arrival-step strong,
+.operations-property-card__name strong,
+.operations-team-card strong,
+.operations-feed__item strong,
+.operations-command-list li {
+  color: var(--text);
+}
+
+.operations-arrival-step p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.operations-arrival-step p time {
+  font-variant-numeric: tabular-nums;
+  color: var(--sand);
+}
+
+.operations-arrival-flow__arrow {
+  align-self: center;
+  justify-self: center;
+  color: rgba(245, 248, 252, 0.56);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.operations-feed {
+  display: grid;
+  gap: 0;
+  margin-top: 6px;
+}
+
+.operations-feed__item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.operations-feed__item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.operations-feed__item time {
+  color: var(--sand);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.operations-feed__item div {
+  min-width: 0;
+}
+
+.operations-feed__item strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.operations-property-card {
+  display: grid;
+  gap: 16px;
+}
+
+.operations-property-card__name {
+  display: grid;
+  gap: 10px;
+}
+
+.operations-property-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operations-property-card__metric {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.operations-property-card__metric span,
+.operations-property-card__manager span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-property-card__metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.operations-property-card__manager {
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.operations-team-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.operations-team-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)),
+    rgba(8, 28, 43, 0.5);
+}
+
+.operations-team-card strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 1.05rem;
+}
+
+.operations-team-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.operations-command-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.operations-command-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.04);
+  line-height: 1.55;
+}
+
+.operations-command-list li::before {
+  content: "✓";
+  flex: 0 0 auto;
+  color: var(--success);
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .operations-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .operations-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    align-items: start;
+  }
+
+  .operations-command-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  /* Home / Services */
+  .hero--home,
+  .hero,
+  .hero--home .hero__content,
+  .hero__content--home {
+    padding-top: 18px !important;
+  }
+
+  .hero--home .hero__content,
+  .hero__content--home {
+    gap: 16px !important;
+  }
+
+  .hero--home .hero__copy,
+  .hero__content--home .hero__copy {
+    padding: 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .hero--home h1,
+  .hero h1 {
+    max-width: 13ch !important;
+    font-size: clamp(1.8rem, 8vw, 2.35rem) !important;
+    line-height: 1.07 !important;
+  }
+
+  .hero--home .hero__text,
+  .hero__text {
+    margin-top: 14px !important;
+    font-size: 0.96rem !important;
+    line-height: 1.72 !important;
+  }
+
+  .hero--home .hero__cta,
+  .hero__cta {
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+
+  .hero--home .trust-strip,
+  .trust-strip {
+    margin-top: 14px !important;
+    gap: 7px !important;
+  }
+
+  .feature-grid,
+  .trust-grid,
+  .cta-panel {
+    gap: 12px !important;
+  }
+
+  /* Demo Operations */
+  .operations-demo-page .operations-hero__grid {
+    padding-top: 18px !important;
+    gap: 12px !important;
+  }
+
+  .operations-demo-page .operations-hero__copy,
+  .operations-demo-page .operations-hero__preview {
+    padding: 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .operations-demo-page .operations-hero h1 {
+    max-width: 13ch !important;
+    font-size: clamp(1.82rem, 8.2vw, 2.38rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  .operations-demo-page .operations-hero__text {
+    margin-top: 14px !important;
+    font-size: 0.96rem !important;
+    line-height: 1.74 !important;
+  }
+
+  .operations-demo-page .operations-hero__cta-row {
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+
+  .operations-demo-page .operations-kpis,
+  .operations-demo-page .operations-dashboard,
+  .operations-demo-page .operations-dashboard__main,
+  .operations-demo-page .operations-grid,
+  .operations-demo-page .operations-incident-grid,
+  .operations-demo-page .operations-network-grid,
+  .operations-demo-page .operations-sla,
+  .operations-demo-page .operations-preview-grid,
+  .operations-demo-page .operations-overview__list {
+    gap: 12px !important;
+  }
+
+  .operations-demo-page .operations-kpi,
+  .operations-demo-page .operations-panel,
+  .operations-demo-page .operations-panel--wide,
+  .operations-demo-page .operations-preview-stat,
+  .operations-demo-page .operations-list__item,
+  .operations-demo-page .operations-workflow__step,
+  .operations-demo-page .operations-notification,
+  .operations-demo-page .operations-sla__item,
+  .operations-demo-page .operations-empty-state,
+  .operations-demo-page .operations-incident-card,
+  .operations-demo-page .operations-network-card {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .operations-demo-page .operations-kpi__value {
+    font-size: clamp(1.55rem, 7vw, 2rem) !important;
+  }
+
+  .operations-demo-page .operations-panel h2,
+  .operations-demo-page .operations-panel h3,
+  .operations-demo-page .operations-preview-card h2 {
+    font-size: clamp(1.15rem, 5.4vw, 1.45rem) !important;
+  }
+
+  /* Guest Portal */
+  .guest-portal-page .guest-portal-app {
+    padding-top: 16px !important;
+    padding-bottom: 28px !important;
+  }
+
+  .guest-portal-page .guest-portal-shell {
+    gap: 12px !important;
+  }
+
+  .guest-portal-page .guest-portal-header {
+    padding: 18px !important;
+  }
+
+  .guest-portal-page .guest-portal-header h1 {
+    max-width: 14ch !important;
+    font-size: clamp(1.7rem, 7.6vw, 2.2rem) !important;
+    line-height: 1.06 !important;
+  }
+
+  .guest-portal-page .guest-portal-header__text {
+    margin-top: 10px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.7 !important;
+  }
+
+  .guest-portal-page .guest-portal-card,
+  .guest-portal-page .guest-portal-status,
+  .guest-portal-page .guest-portal-info,
+  .guest-portal-page .guest-portal-service,
+  .guest-portal-page .guest-portal-instructions,
+  .guest-portal-page .guest-portal-action,
+  .guest-portal-page .guest-portal-timeline__item {
+    padding: 13px !important;
+    border-radius: 18px !important;
+  }
+
+  .guest-portal-page .guest-portal-status-grid,
+  .guest-portal-page .guest-portal-actions,
+  .guest-portal-page .guest-portal-services,
+  .guest-portal-page .guest-portal-access,
+  .guest-portal-page .guest-portal-rail,
+  .guest-portal-page .guest-portal-timeline {
+    gap: 10px !important;
+  }
+
+  .guest-portal-page .guest-portal-card h2,
+  .guest-portal-page .guest-portal-timeline__body strong {
+    font-size: 0.98rem !important;
+    line-height: 1.38 !important;
+  }
+
+  .guest-portal-page .guest-portal-qr__code {
+    width: 96px !important;
+    height: 96px !important;
+  }
+
+  /* Admin Cockpit */
+  .admin-cockpit-page {
+    padding-top: 2.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  .admin-cockpit-shell {
+    width: min(1240px, calc(100% - 0px)) !important;
+  }
+
+  .admin-cockpit-hero,
+  .admin-cockpit-panel {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .admin-cockpit-hero h1 {
+    font-size: clamp(1.55rem, 7vw, 2.05rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  .admin-cockpit-hero p,
+  .admin-cockpit-panel p,
+  .admin-empty-state p {
+    font-size: 0.94rem !important;
+    line-height: 1.68 !important;
+  }
+
+  .admin-kpi-grid,
+  .admin-cockpit-grid,
+  .admin-pipeline-grid {
+    gap: 10px !important;
+  }
+
+  .admin-kpi-card,
+  .admin-pipeline-card,
+  .admin-activity-item,
+  .admin-pilot-card,
+  .admin-empty-state {
+    padding: 14px 15px !important;
+    border-radius: 18px !important;
+  }
+
+  .admin-kpi-card strong {
+    font-size: clamp(1.45rem, 6.4vw, 1.9rem) !important;
+    margin-top: 8px !important;
+  }
+
+  .admin-pipeline-card strong {
+    font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+  }
+
+  .admin-panel-header {
+    margin-bottom: 14px !important;
+  }
+
+  .admin-search input,
+  .admin-pilot-status-form select {
+    min-height: 46px !important;
+    padding: 11px 13px !important;
+  }
+
+  .admin-pilot-list {
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Final hero refinement: quiet luxury first screen */
+  .hero,
+  .operations-hero,
+  .guest-portal-page .guest-portal-app {
+    padding-left: clamp(16px, 4.8vw, 22px) !important;
+    padding-right: clamp(16px, 4.8vw, 22px) !important;
+  }
+
+  .hero--home,
+  .operations-hero {
+    padding-top: 14px !important;
+  }
+
+  .hero--home .hero__content,
+  .hero__content--home,
+  .operations-hero__grid,
+  .guest-portal-page .guest-portal-header {
+    padding-top: 12px !important;
+    gap: 12px !important;
+  }
+
+  .hero--home .hero__copy,
+  .hero__content--home .hero__copy,
+  .operations-hero__copy,
+  .guest-portal-page .guest-portal-header {
+    padding: 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .hero--home h1,
+  .hero h1,
+  .operations-hero h1,
+  .guest-portal-page .guest-portal-header h1 {
+    max-width: 12.5ch !important;
+    font-size: clamp(1.72rem, 7.6vw, 2.22rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.04em !important;
+    text-wrap: balance;
+  }
+
+  .hero--home .hero__text,
+  .hero__text,
+  .operations-hero__text,
+  .guest-portal-page .guest-portal-header__text {
+    max-width: 34ch !important;
+    margin-top: 12px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.7 !important;
+    letter-spacing: 0.01em !important;
+    color: rgba(248, 246, 242, 0.82) !important;
+  }
+
+  .hero--home .eyebrow,
+  .hero .eyebrow,
+  .operations-eyebrow,
+  .guest-portal-page .guest-portal-header__eyebrow,
+  .guest-portal-page .guest-portal-card__label {
+    margin-bottom: 12px !important;
+    letter-spacing: 0.15em !important;
+    color: #c8a97e !important;
+  }
+
+  .hero--home .hero__cta,
+  .hero__cta,
+  .operations-hero__cta-row,
+  .guest-portal-page .guest-portal-actions {
+    margin-top: 16px !important;
+    gap: 8px !important;
+  }
+
+  .hero--home .hero__cta .button,
+  .hero__cta .button,
+  .operations-hero__cta-row .button,
+  .guest-portal-page .guest-portal-action,
+  .guest-portal-page .button {
+    min-height: 46px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    border-radius: 999px !important;
+  }
+
+  .hero--home .trust-strip,
+  .trust-strip,
+  .operations-signal-row {
+    margin-top: 14px !important;
+    gap: 7px !important;
+  }
+
+  .hero--home .trust-strip__chip,
+  .trust-strip__chip,
+  .operations-chip,
+  .operations-status-pill,
+  .guest-trust-chip,
+  .guest-portal-page .guest-portal-badge {
+    min-height: 32px !important;
+    padding: 0 11px !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .hero__cta,
+  .operations-hero__cta-row,
+  .guest-portal-page .guest-portal-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero--home .hero__text,
+  .operations-hero__text,
+  .guest-portal-page .guest-portal-header__text {
+    text-wrap: pretty;
+    hyphens: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Final compact hero viewport: optimize above-the-fold conversion */
+  .hero--home,
+  .operations-hero,
+  .guest-portal-page .guest-portal-app {
+    padding-top: 4px !important;
+  }
+
+  .topbar,
+  .operations-topbar,
+  .guest-portal-topbar,
+  .hero--home .topbar {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+    border-radius: 20px !important;
+  }
+
+  .brand,
+  .operations-brand {
+    font-size: 0.76rem !important;
+    letter-spacing: 0.045em !important;
+    line-height: 1 !important;
+  }
+
+  .site-nav {
+    gap: 4px !important;
+  }
+
+  .site-nav__link {
+    min-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .language-switcher {
+    padding: 4px 7px !important;
+    gap: 4px !important;
+  }
+
+  .language-switcher__button {
+    font-size: 0.67rem !important;
+    letter-spacing: 0.05em !important;
+    line-height: 1 !important;
+  }
+
+  .topbar__portal,
+  .operations-topbar .operations-button {
+    min-height: 34px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .hero--home .hero__content,
+  .hero__content--home,
+  .operations-hero__grid,
+  .guest-portal-page .guest-portal-header {
+    padding-top: 4px !important;
+    gap: 8px !important;
+  }
+
+  .hero--home .hero__copy,
+  .hero__content--home .hero__copy,
+  .operations-hero__copy,
+  .guest-portal-page .guest-portal-header {
+    padding: 14px !important;
+  }
+
+  .hero--home h1,
+  .hero h1,
+  .operations-hero h1,
+  .guest-portal-page .guest-portal-header h1 {
+    max-width: 13ch !important;
+    font-size: clamp(1.28rem, 5.6vw, 1.66rem) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -0.045em !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hero--home .hero__text,
+  .hero__text,
+  .operations-hero__text,
+  .guest-portal-page .guest-portal-header__text {
+    max-width: 26ch !important;
+    margin-top: 8px !important;
+    font-size: 0.84rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .hero--home .hero__cta,
+  .hero__cta,
+  .operations-hero__cta-row,
+  .guest-portal-page .guest-portal-actions {
+    margin-top: 10px !important;
+    gap: 6px !important;
+  }
+
+  .hero--home .hero__cta .button,
+  .hero__cta .button,
+  .operations-hero__cta-row .button,
+  .guest-portal-page .guest-portal-action,
+  .guest-portal-page .button,
+  .topbar__portal,
+  .operations-topbar .operations-button {
+    min-height: 40px !important;
+    padding-inline: 14px !important;
+    border-radius: 999px !important;
+  }
+
+  .hero--home .trust-strip,
+  .trust-strip,
+  .operations-signal-row {
+    margin-top: 10px !important;
+    gap: 5px !important;
+  }
+
+  .hero--home .trust-strip__chip,
+  .trust-strip__chip,
+  .operations-chip,
+  .operations-status-pill,
+  .guest-trust-chip,
+  .guest-portal-page .guest-portal-badge {
+    min-height: 28px !important;
+    padding: 0 9px !important;
+    font-size: 0.64rem !important;
+  }
+
+  .hero--home::before,
+  .operations-hero::before {
+    background:
+      linear-gradient(180deg, rgba(5, 14, 22, 0.3) 0%, rgba(5, 14, 22, 0.15) 30%, rgba(5, 14, 22, 0.34) 100%),
+      linear-gradient(90deg, rgba(5, 14, 22, 0.16), transparent 16%, transparent 84%, rgba(5, 14, 22, 0.16)) !important;
+    opacity: 1 !important;
+  }
+
+  .hero--home .hero__copy,
+  .operations-hero__copy,
+  .guest-portal-page .guest-portal-header {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.018)),
+      linear-gradient(160deg, rgba(7, 18, 29, 0.8), rgba(9, 22, 34, 0.68)) !important;
+  }
+
+  .home-product {
+    padding: 12px 0 0 !important;
+  }
+
+  .home-product .section-heading--product {
+    margin: 14px 0 14px !important;
+  }
+
+  .home-product .section-heading--product h2 {
+    max-width: 12ch;
+  }
+
+  .home-product__copy {
+    max-width: 28ch !important;
+    font-size: 0.86rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .home-product__grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .home-product__kpis {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .home-product__kpi,
+  .home-product__preview {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .home-product__kpi-value {
+    font-size: 1.7rem !important;
+  }
+
+  .home-product__kpi-label {
+    font-size: 0.66rem !important;
+  }
+
+  .home-product__preview-grid {
+    margin-top: 16px !important;
+    gap: 8px !important;
+  }
+
+  .home-product__preview-row {
+    padding: 12px 14px !important;
+  }
+
+  .home-product__preview-row span {
+    font-size: 0.76rem !important;
+  }
+
+  .home-product__preview-row strong {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Demo Operations contrast fix: keep the glass look, but make dark cards readable on mobile and desktop. */
+body.operations-demo-page .operations-stack .operations-panel,
+body.operations-demo-page .operations-stack .operations-panel--wide,
+body.operations-demo-page .operations-stack .operations-kpi,
+body.operations-demo-page .operations-stack .operations-feed__item,
+body.operations-demo-page .operations-stack .operations-team-card,
+body.operations-demo-page .operations-stack .operations-property-card__metric,
+body.operations-demo-page .operations-stack .operations-arrival-step,
+body.operations-demo-page .operations-stack .operations-command-list li {
+  background:
+    linear-gradient(180deg, rgba(12, 28, 41, 0.86), rgba(8, 22, 33, 0.72)),
+    rgba(8, 28, 43, 0.76) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 18px 48px rgba(2, 10, 18, 0.22) !important;
+}
+
+body.operations-demo-page .operations-stack .operations-panel h2,
+body.operations-demo-page .operations-stack .operations-panel h3,
+body.operations-demo-page .operations-stack .operations-kpi__value,
+body.operations-demo-page .operations-stack .operations-property-card__metric strong,
+body.operations-demo-page .operations-stack .operations-feed__item strong,
+body.operations-demo-page .operations-stack .operations-team-card strong,
+body.operations-demo-page .operations-stack .operations-arrival-step strong,
+body.operations-demo-page .operations-stack .operations-command-list li {
+  color: #F8F6F2 !important;
+}
+
+body.operations-demo-page .operations-stack .operations-panel__eyebrow,
+body.operations-demo-page .operations-stack .operations-panel__copy,
+body.operations-demo-page .operations-stack .operations-kpi p,
+body.operations-demo-page .operations-stack .operations-feed__item time,
+body.operations-demo-page .operations-stack .operations-team-card p,
+body.operations-demo-page .operations-stack .operations-property-card__metric span,
+body.operations-demo-page .operations-stack .operations-property-card__manager span,
+body.operations-demo-page .operations-stack .operations-arrival-step p,
+body.operations-demo-page .operations-stack .operations-arrival-step p span,
+body.operations-demo-page .operations-stack .operations-command-list li,
+body.operations-demo-page .operations-stack .operations-command-list li span {
+  color: rgba(248, 246, 242, 0.82) !important;
+}
+
+body.operations-demo-page .operations-stack .operations-panel__copy,
+body.operations-demo-page .operations-stack .operations-kpi p,
+body.operations-demo-page .operations-stack .operations-team-card p,
+body.operations-demo-page .operations-stack .operations-property-card__metric span,
+body.operations-demo-page .operations-stack .operations-property-card__manager span,
+body.operations-demo-page .operations-stack .operations-arrival-step p {
+  color: rgba(248, 246, 242, 0.62) !important;
+}
+
+body.operations-demo-page .operations-stack .operations-kpi__value,
+body.operations-demo-page .operations-stack .operations-property-card__metric strong,
+body.operations-demo-page .operations-stack .operations-feed__item time,
+body.operations-demo-page .operations-stack .operations-arrival-step p time {
+  color: #E6D3B1 !important;
+}
+
+body.operations-demo-page .operations-stack .operations-arrival-step__status,
+body.operations-demo-page .operations-stack .operations-feed__badge,
+body.operations-demo-page .operations-stack .operations-team-card__status,
+body.operations-demo-page .operations-stack .operations-property-card__name span {
+  background: linear-gradient(180deg, rgba(255, 232, 190, 0.94), rgba(231, 212, 173, 0.88)) !important;
+  color: #1A2C3B !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+
+body.operations-demo-page .operations-stack .operations-command-list li::before {
+  color: #E6D3B1 !important;
+}
+
+body.operations-demo-page .operations-stack .operations-panel,
+body.operations-demo-page .operations-stack .operations-panel--wide,
+body.operations-demo-page .operations-stack .operations-kpi,
+body.operations-demo-page .operations-stack .operations-feed__item,
+body.operations-demo-page .operations-stack .operations-team-card,
+body.operations-demo-page .operations-stack .operations-property-card__metric,
+body.operations-demo-page .operations-stack .operations-arrival-step,
+body.operations-demo-page .operations-stack .operations-command-list li {
+  color: rgba(248, 246, 242, 0.82) !important;
+}
+
+@media (max-width: 640px) {
+  body.operations-demo-page .operations-stack .operations-panel,
+  body.operations-demo-page .operations-stack .operations-panel--wide,
+  body.operations-demo-page .operations-stack .operations-kpi,
+  body.operations-demo-page .operations-stack .operations-feed__item,
+  body.operations-demo-page .operations-stack .operations-team-card,
+  body.operations-demo-page .operations-stack .operations-property-card__metric,
+  body.operations-demo-page .operations-stack .operations-arrival-step,
+  body.operations-demo-page .operations-stack .operations-command-list li {
+    background:
+      linear-gradient(180deg, rgba(11, 26, 38, 0.92), rgba(7, 19, 29, 0.82)),
+      rgba(8, 28, 43, 0.84) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-panel h2,
+  body.operations-demo-page .operations-stack .operations-panel h3,
+  body.operations-demo-page .operations-stack .operations-kpi__value,
+  body.operations-demo-page .operations-stack .operations-property-card__metric strong,
+  body.operations-demo-page .operations-stack .operations-feed__item strong,
+  body.operations-demo-page .operations-stack .operations-team-card strong,
+  body.operations-demo-page .operations-stack .operations-arrival-step strong,
+  body.operations-demo-page .operations-stack .operations-command-list li {
+    color: #F8F6F2 !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-panel__eyebrow,
+  body.operations-demo-page .operations-stack .operations-panel__copy,
+  body.operations-demo-page .operations-stack .operations-kpi p,
+  body.operations-demo-page .operations-stack .operations-feed__item time,
+  body.operations-demo-page .operations-stack .operations-team-card p,
+  body.operations-demo-page .operations-stack .operations-property-card__metric span,
+  body.operations-demo-page .operations-stack .operations-property-card__manager span,
+  body.operations-demo-page .operations-stack .operations-arrival-step p,
+  body.operations-demo-page .operations-stack .operations-command-list li {
+    color: rgba(248, 246, 242, 0.82) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  body.operations-demo-page .operations-shell {
+    width: min(1240px, calc(100% - 64px)) !important;
+    margin-inline: auto !important;
+    padding-bottom: 120px !important;
+  }
+
+  body.operations-demo-page .operations-stack {
+    gap: 14px !important;
+  }
+
+  body.operations-demo-page .operations-stack > .operations-panel,
+  body.operations-demo-page .operations-stack > .operations-panel--wide,
+  body.operations-demo-page .operations-stack > .operations-grid {
+    padding-inline: 0 !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-panel,
+  body.operations-demo-page .operations-stack .operations-panel--wide,
+  body.operations-demo-page .operations-stack .operations-kpi,
+  body.operations-demo-page .operations-stack .operations-feed__item,
+  body.operations-demo-page .operations-stack .operations-team-card,
+  body.operations-demo-page .operations-stack .operations-property-card__metric,
+  body.operations-demo-page .operations-stack .operations-arrival-step,
+  body.operations-demo-page .operations-stack .operations-command-list li {
+    padding: 18px 20px !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-panel__header {
+    margin-bottom: 2px;
+  }
+
+  body.operations-demo-page .operations-stack .operations-panel__copy {
+    margin-top: 10px;
+    max-width: 68ch;
+  }
+
+  body.operations-demo-page .operations-stack .operations-arrival-flow {
+    max-width: 760px;
+    gap: 8px;
+  }
+
+  body.operations-demo-page .operations-stack .operations-arrival-step {
+    padding: 14px 16px !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-feed__item {
+    padding-inline: 0 !important;
+    padding-block: 10px !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-feed__item strong {
+    margin-top: 6px;
+  }
+
+  body.operations-demo-page .operations-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr) !important;
+    gap: 14px !important;
+    align-items: start;
+  }
+
+  body.operations-demo-page .operations-stack .operations-property-card {
+    align-self: start;
+  }
+
+  body.operations-demo-page .operations-stack .operations-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-team-card {
+    min-height: 0;
+  }
+
+  body.operations-demo-page .operations-stack > .operations-panel--wide:last-of-type {
+    max-width: 1040px;
+    margin-inline: auto;
+  }
+
+  body.operations-demo-page .operations-stack .operations-command-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 100%;
+  }
+
+  body.operations-demo-page .operations-stack .operations-command-list li {
+    min-height: 0;
+    align-items: center;
+  }
+}
+
+/* Home page product KPI readability fix: keep the premium glass, but force warm readable contrast. */
+.home-product .home-product__preview,
+.home-product .home-product__kpi,
+.home-product .home-product__preview-row {
+  background:
+    linear-gradient(180deg, rgba(12, 28, 41, 0.84), rgba(8, 22, 33, 0.70)),
+    rgba(8, 28, 43, 0.74) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 18px 42px rgba(2, 10, 18, 0.20) !important;
+}
+
+.home-product .home-product__preview .preview-card__label,
+.home-product .home-product__preview .preview-card__header h2,
+.home-product .home-product__kpi-value,
+.home-product .home-product__preview-row strong {
+  color: #F8F6F2 !important;
+}
+
+.home-product .home-product__kpi-label,
+.home-product .home-product__preview-row span,
+.home-product .home-product__copy,
+.home-product .preview-card__signal {
+  color: rgba(248, 246, 242, 0.78) !important;
+}
+
+.home-product .home-product__preview-row span {
+  color: rgba(248, 246, 242, 0.62) !important;
+}
+
+.home-product .home-product__kpi-value {
+  color: #E6D3B1 !important;
+}
+
+.home-product .home-product__preview .preview-card__topline .preview-card__signal {
+  background: linear-gradient(180deg, rgba(255, 232, 190, 0.94), rgba(231, 212, 173, 0.88)) !important;
+  color: #1A2C3B !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+
+@media (max-width: 640px) {
+  .home-product .home-product__preview,
+  .home-product .home-product__kpi,
+  .home-product .home-product__preview-row {
+    background:
+      linear-gradient(180deg, rgba(11, 26, 38, 0.90), rgba(7, 19, 29, 0.80)),
+      rgba(8, 28, 43, 0.82) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  .home-product .home-product__kpi-value,
+  .home-product .home-product__preview .preview-card__header h2,
+  .home-product .home-product__preview-row strong {
+    color: #F8F6F2 !important;
+  }
+
+  .home-product .home-product__kpi-label,
+  .home-product .home-product__preview-row span,
+  .home-product .home-product__copy {
+    color: rgba(248, 246, 242, 0.78) !important;
+  }
+}
+
+/* Final contrast cleanup: Demo hero title and Home KPI cards only. */
+body.operations-demo-page .operations-hero h1 {
+  color: #F8F6F2 !important;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.28) !important;
+}
+
+.home-product .home-product__kpi,
+.home-product .home-product__preview-row {
+  background:
+    linear-gradient(180deg, rgba(12, 28, 41, 0.86), rgba(8, 22, 33, 0.74)),
+    rgba(8, 28, 43, 0.78) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 18px 42px rgba(2, 10, 18, 0.20) !important;
+}
+
+.home-product .home-product__kpi-value,
+.home-product .home-product__preview-row strong {
+  color: #F8F6F2 !important;
+}
+
+.home-product .home-product__kpi-label,
+.home-product .home-product__preview-row span {
+  color: rgba(248, 246, 242, 0.78) !important;
+}
+
+.home-product .home-product__preview-row span {
+  color: rgba(248, 246, 242, 0.62) !important;
+}
+
+.home-product .home-product__kpi-value {
+  color: #E6D3B1 !important;
+}
+
+.home-product .home-product__preview .preview-card__header h2 {
+  color: #F8F6F2 !important;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.28) !important;
+}
+
+@media (max-width: 640px) {
+  .home-product .home-product__kpi,
+  .home-product .home-product__preview-row {
+    background:
+      linear-gradient(180deg, rgba(11, 26, 38, 0.92), rgba(7, 19, 29, 0.82)),
+      rgba(8, 28, 43, 0.84) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  .home-product .home-product__kpi-label,
+  .home-product .home-product__preview-row span {
+    color: rgba(248, 246, 242, 0.78) !important;
   }
 }
 
