@@ -179,6 +179,21 @@ class PilotRequestApiTests(unittest.TestCase):
                 "location": "Sofia",
                 "needs": "Transfers",
             },
+            {
+                "id": "p4",
+                "created_at": "2026-01-06T10:00:00Z",
+                "status": "lost",
+                "name": "Lead Four",
+                "email": "four@example.com",
+                "property_type": "apartment",
+                "apartment_count": "2",
+                "city": "Nessebar",
+                "concierge_needs": "Owner support",
+                "current_language": "en",
+                "submitted_from": "/demo/operations",
+                "location": "Nessebar",
+                "needs": "Owner support",
+            },
         ]
         concierge_records = [
             {
@@ -201,11 +216,13 @@ class PilotRequestApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Total Pilot Requests", html)
-        self.assertIn("3", html)
+        self.assertIn("Total Leads", html)
+        self.assertIn("4", html)
         self.assertIn("New", html)
+        self.assertIn("Contacted", html)
         self.assertIn("Qualified", html)
         self.assertIn("Converted", html)
+        self.assertIn("Lost", html)
         self.assertIn("Concierge Requests", html)
 
     def test_export_route_is_protected(self):
@@ -220,6 +237,8 @@ class PilotRequestApiTests(unittest.TestCase):
             "id": "csv-id",
             "created_at": "2026-01-02T10:00:00Z",
             "status": "contacted",
+            "owner": "Marina Team",
+            "notes": "Private note",
             "name": "CSV Request",
             "email": "csv@example.com",
             "property_type": "villa",
@@ -239,7 +258,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response.headers.get("Content-Type", ""))
         csv_body = response.get_data(as_text=True)
-        self.assertIn("id,created_at,status,name,email,property_type,apartment_count,city,concierge_needs", csv_body)
+        self.assertIn("id,created_at,status,owner,email,property_type,apartment_count,city,concierge_needs", csv_body)
         self.assertIn("csv-id", csv_body)
         self.assertIn("CSV Marina", csv_body)
 
@@ -272,6 +291,10 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(len(records), 1)
         self.assertTrue(records[0]["id"])
         self.assertEqual(records[0]["status"], "new")
+        self.assertEqual(records[0]["notes"], "")
+        self.assertEqual(records[0]["owner"], "")
+        self.assertEqual(len(records[0]["timeline"]), 1)
+        self.assertEqual(records[0]["timeline"][0]["type"], "lead_created")
         self.assertEqual(records[0]["city"], "Varna Marina")
 
         self.assertTrue(FakeSMTP.sent_messages)
@@ -371,6 +394,8 @@ class PilotRequestApiTests(unittest.TestCase):
             "id": "detail-id",
             "created_at": "2026-01-02T10:00:00Z",
             "status": "qualified",
+            "owner": "Concierge Desk",
+            "notes": "Call after 17:00.",
             "name": "Detail Request",
             "email": "detail@example.com",
             "property_type": "villa",
@@ -390,9 +415,13 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("Detail Request", html)
-        self.assertIn("qualified", html)
+        self.assertIn("QUALIFIED", html)
         self.assertIn("Detail Marina", html)
         self.assertIn("detail@example.com", html)
+        self.assertIn("Concierge Desk", html)
+        self.assertIn("Internal notes", html)
+        self.assertIn("Activity timeline", html)
+        self.assertIn("Lead created", html)
 
     def test_status_update_works(self):
         record = {
@@ -420,6 +449,48 @@ class PilotRequestApiTests(unittest.TestCase):
 
         updated = self._read_requests()[0]
         self.assertEqual(updated["status"], "contacted")
+        self.assertEqual(len(updated.get("timeline", [])), 1)
+        self.assertEqual(updated["timeline"][0]["type"], "status_changed")
+
+    def test_update_route_saves_notes_owner_and_status(self):
+        record = {
+            "id": "update-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "new",
+            "name": "Update Request",
+            "email": "update@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Update Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Update Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.post(
+                "/admin/pilot-requests/update-id/update",
+                data={
+                    "status": "qualified",
+                    "owner": "Marina Desk",
+                    "notes": "Follow up with the owner next week.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+        updated = self._read_requests()[0]
+        self.assertEqual(updated["status"], "qualified")
+        self.assertEqual(updated["owner"], "Marina Desk")
+        self.assertEqual(updated["notes"], "Follow up with the owner next week.")
+        self.assertEqual([event["type"] for event in updated.get("timeline", [])], [
+            "status_changed",
+            "owner_assigned",
+            "note_added",
+        ])
 
     def test_invalid_status_returns_400(self):
         record = {
@@ -474,6 +545,31 @@ class PilotRequestApiTests(unittest.TestCase):
             response = self.client.get("/admin/pilot-requests/missing-id", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 404)
+
+    def test_legacy_record_defaults_to_new_and_empty_fields(self):
+        record = {
+            "id": "legacy-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "name": "Legacy Request",
+            "email": "legacy@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Legacy Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "en",
+            "submitted_from": "/demo/operations",
+            "location": "Legacy Marina",
+            "needs": "Arrivals",
+        }
+        self._seed_requests([record])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/pilot-requests/legacy-id", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("NEW", html)
+        self.assertIn("Unassigned", html)
 
 
 if __name__ == "__main__":

@@ -14745,6 +14745,10 @@ body::after,
     min-width: min(280px, 100%);
 }
 
+.admin-pilot-status-form__notes {
+    width: 100%;
+}
+
 .admin-pilot-status-form span {
     color: rgba(17, 59, 92, 0.68);
     font-size: 0.8rem;
@@ -14761,6 +14765,49 @@ body::after,
     background: rgba(255, 255, 255, 0.78);
     color: #113b5c;
     font: inherit;
+}
+
+.admin-pilot-status-form input[type="text"],
+.admin-pilot-status-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(17, 59, 92, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #113b5c;
+    font: inherit;
+}
+
+.admin-pilot-status-form textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.admin-pilot-timeline {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-timeline-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-timeline-item {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-timeline-item strong {
+    display: block;
+    margin-top: 10px;
+}
+
+.admin-timeline-item p {
+    margin: 8px 0 0;
 }
 
 .admin-pilot-card h2 {

@@ -23,7 +23,7 @@
     <article class="admin-pilot-card">
       <div class="admin-pilot-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|e }}">{{ item.status|e }}</span>
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
       </div>
 
       <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
@@ -35,7 +35,11 @@
         </div>
         <div>
           <dt>Status</dt>
-          <dd>{{ item.status|e }}</dd>
+          <dd>{{ item.status|upper|e }}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{{ item.owner|e if item.owner else "Unassigned" }}</dd>
         </div>
         <div>
           <dt>Property type</dt>
@@ -67,19 +71,56 @@
         </div>
       </dl>
 
-      <form class="admin-pilot-status-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/status">
+      <form class="admin-pilot-status-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/update">
         <label>
           <span>Update status</span>
           <select name="status" required>
-            <option value="new" {% if item.status == "new" %}selected{% endif %}>new</option>
-            <option value="contacted" {% if item.status == "contacted" %}selected{% endif %}>contacted</option>
-            <option value="qualified" {% if item.status == "qualified" %}selected{% endif %}>qualified</option>
-            <option value="rejected" {% if item.status == "rejected" %}selected{% endif %}>rejected</option>
-            <option value="converted" {% if item.status == "converted" %}selected{% endif %}>converted</option>
+            {% for option in status_options %}
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+            {% endfor %}
           </select>
         </label>
-        <button class="button button--primary" type="submit">Save status</button>
+        <label>
+          <span>Owner</span>
+          <input type="text" name="owner" value="{{ item.owner|e }}" placeholder="Optional owner">
+        </label>
+        <label class="admin-pilot-status-form__notes">
+          <span>Internal notes</span>
+          <textarea name="notes" rows="6" placeholder="Private notes for the admin team">{{ item.notes|e }}</textarea>
+        </label>
+        <button class="button button--primary" type="submit">Save lead</button>
       </form>
+
+      <div class="admin-pilot-timeline">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Activity timeline</p>
+            <h3>Newest first</h3>
+          </div>
+        </div>
+
+        {% if timeline %}
+          <div class="admin-timeline-list">
+            {% for event in timeline %}
+              <article class="admin-timeline-item">
+                <div class="admin-pilot-card__topline">
+                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <time>{{ event.created_at|e }}</time>
+                </div>
+                <strong>{{ event.title|e }}</strong>
+                {% if event.detail %}
+                  <p>{{ event.detail|e }}</p>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <h3>No timeline entries yet.</h3>
+            <p>This lead will start collecting events after the next save.</p>
+          </div>
+        {% endif %}
+      </div>
     </article>
   </main>
 </body>

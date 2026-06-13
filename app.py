@@ -17,6 +17,11 @@ from flask import Flask, Response, jsonify, redirect, render_template, request, 
 app = Flask(__name__)
 app.json.ensure_ascii = False
 
+PILOT_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
+PILOT_STATUS_ALIASES = {
+    "rejected": "lost",
+}
+
 
 @app.after_request
 def force_utf8_charset(response):
@@ -100,6 +105,73 @@ def _clean_payload_value(payload, *keys):
         if text:
             return text
     return ""
+
+
+def _utc_now_iso():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _normalize_pilot_status(status):
+    normalized = str(status or "").strip().lower()
+    normalized = PILOT_STATUS_ALIASES.get(normalized, normalized)
+    return normalized if normalized in PILOT_STATUS_VALUES else "new"
+
+
+def _normalize_pilot_timeline(timeline):
+    if not isinstance(timeline, list):
+        return []
+
+    normalized_timeline = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+
+        normalized_entry = dict(entry)
+        normalized_entry["type"] = str(normalized_entry.get("type", "")).strip() or "lead_created"
+        normalized_entry["created_at"] = str(normalized_entry.get("created_at", "")).strip()
+        normalized_entry["title"] = str(normalized_entry.get("title", "")).strip()
+        normalized_entry["detail"] = str(normalized_entry.get("detail", "")).strip()
+        if "status" in normalized_entry:
+            normalized_entry["status"] = _normalize_pilot_status(normalized_entry.get("status"))
+        else:
+            normalized_entry["status"] = ""
+        normalized_timeline.append(normalized_entry)
+
+    return normalized_timeline
+
+
+def _pilot_status_label(status):
+    return _normalize_pilot_status(status).upper()
+
+
+def _append_pilot_timeline_event(record, event_type, title, detail="", status=None):
+    timeline = list(record.get("timeline") or [])
+    timeline.append({
+        "type": event_type,
+        "created_at": _utc_now_iso(),
+        "title": title,
+        "detail": detail,
+        "status": _normalize_pilot_status(status or record.get("status", "new")),
+    })
+    record["timeline"] = timeline
+
+
+def _pilot_request_timeline_events(record):
+    timeline = _normalize_pilot_timeline(record.get("timeline"))
+    if timeline:
+        return timeline
+
+    created_at = str(record.get("created_at", "")).strip()
+    if not created_at:
+        return []
+
+    return [{
+        "type": "lead_created",
+        "created_at": created_at,
+        "title": f"Lead created: {record.get('name') or record.get('email') or 'Anonymous request'}",
+        "detail": f"{record.get('property_type', '')} · {record.get('city', '')}",
+        "status": _normalize_pilot_status(record.get("status", "new")),
+    }]
 
 
 def _build_pilot_email_body(record):
@@ -191,16 +263,21 @@ def _normalize_pilot_request(record):
 
     normalized = dict(record)
     normalized["id"] = str(normalized.get("id", "")).strip() or _fallback_pilot_request_id(normalized)
-    normalized["status"] = str(normalized.get("status", "")).strip() or "new"
+    normalized["status"] = _normalize_pilot_status(normalized.get("status", "new"))
     normalized.setdefault("name", "")
     normalized.setdefault("email", "")
     normalized.setdefault("property_type", "")
     normalized.setdefault("apartment_count", "")
     normalized.setdefault("city", normalized.get("location", ""))
     normalized.setdefault("concierge_needs", normalized.get("needs", ""))
+    normalized.setdefault("notes", "")
+    normalized.setdefault("owner", "")
     normalized.setdefault("current_language", "")
     normalized.setdefault("submitted_from", "")
     normalized.setdefault("created_at", "")
+    normalized["notes"] = str(normalized.get("notes", "")).strip()
+    normalized["owner"] = str(normalized.get("owner", "")).strip()
+    normalized["timeline"] = _normalize_pilot_timeline(normalized.get("timeline", []))
     normalized["location"] = normalized.get("city", "")
     normalized["needs"] = normalized.get("concierge_needs", "")
     return normalized
@@ -250,9 +327,9 @@ def _load_concierge_requests():
 
 
 def _pilot_status_counts(requests_list):
-    counts = {"new": 0, "contacted": 0, "qualified": 0, "converted": 0, "rejected": 0}
+    counts = {status: 0 for status in PILOT_STATUS_VALUES}
     for record in requests_list:
-        status = str(record.get("status", "new")).strip() or "new"
+        status = _normalize_pilot_status(record.get("status", "new"))
         if status in counts:
             counts[status] += 1
     return counts
@@ -262,22 +339,9 @@ def _admin_pilot_activity_feed(pilot_requests, concierge_requests):
     events = []
 
     for record in pilot_requests:
-        events.append({
-            "type": "lead_created",
-            "created_at": record.get("created_at", ""),
-            "title": f"Lead created: {record.get('name') or record.get('email') or 'Anonymous request'}",
-            "detail": f"{record.get('property_type', '')} · {record.get('city', '')}",
-            "status": record.get("status", "new"),
-        })
-        status = str(record.get("status", "new")).strip()
-        if status and status != "new":
-            events.append({
-                "type": "status_changed",
-                "created_at": record.get("created_at", ""),
-                "title": f"Status changed to {status}",
-                "detail": record.get("email", ""),
-                "status": status,
-            })
+        timeline_events = _pilot_request_timeline_events(record)
+        if timeline_events:
+            events.extend(timeline_events)
 
     for record in concierge_requests:
         events.append({
@@ -298,29 +362,33 @@ def _build_admin_dashboard():
     pilot_counts = _pilot_status_counts(pilot_requests)
 
     return {
+        "total_leads": len(pilot_requests),
         "total_pilot_requests": len(pilot_requests),
         "new_leads": pilot_counts["new"],
+        "contacted_leads": pilot_counts["contacted"],
         "qualified_leads": pilot_counts["qualified"],
         "converted_leads": pilot_counts["converted"],
+        "lost_leads": pilot_counts["lost"],
         "concierge_requests": len(concierge_requests),
         "pipeline": [
             {"key": "new", "label": "New", "count": pilot_counts["new"]},
             {"key": "contacted", "label": "Contacted", "count": pilot_counts["contacted"]},
             {"key": "qualified", "label": "Qualified", "count": pilot_counts["qualified"]},
             {"key": "converted", "label": "Converted", "count": pilot_counts["converted"]},
+            {"key": "lost", "label": "Lost", "count": pilot_counts["lost"]},
         ],
         "recent_activity": _admin_pilot_activity_feed(pilot_requests, concierge_requests),
     }
 
 
 def _export_pilot_requests_csv(requests_list):
-    buffer = io.StringIO()
-    writer = csv.writer(buffer)
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, delimiter=";", quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
     writer.writerow([
         "id",
         "created_at",
         "status",
-        "name",
+        "owner",
         "email",
         "property_type",
         "apartment_count",
@@ -332,8 +400,8 @@ def _export_pilot_requests_csv(requests_list):
         writer.writerow([
             record.get("id", ""),
             record.get("created_at", ""),
-            record.get("status", "new"),
-            record.get("name", ""),
+            _normalize_pilot_status(record.get("status", "new")),
+            record.get("owner", ""),
             record.get("email", ""),
             record.get("property_type", ""),
             record.get("apartment_count", ""),
@@ -341,7 +409,7 @@ def _export_pilot_requests_csv(requests_list):
             record.get("concierge_needs", ""),
         ])
 
-    return buffer.getvalue()
+    return "\ufeff" + buffer.getvalue()
 
 
 def _save_pilot_requests(requests_list):
@@ -366,7 +434,7 @@ def api_pilot_request():
 
     record = {
         "id": uuid4().hex,
-        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "created_at": _utc_now_iso(),
         "name": _clean_payload_value(payload, "name"),
         "email": _clean_payload_value(payload, "email"),
         "property_type": _clean_payload_value(payload, "property_type"),
@@ -376,6 +444,9 @@ def api_pilot_request():
         "current_language": _clean_payload_value(payload, "current_language"),
         "submitted_from": request.referrer or request.headers.get("Referer", "") or request.path,
         "status": "new",
+        "notes": "",
+        "owner": "",
+        "timeline": [],
     }
     record["location"] = record["city"]
     record["needs"] = record["concierge_needs"]
@@ -385,6 +456,14 @@ def api_pilot_request():
 
     if missing:
         return jsonify({"ok": False, "error": "missing_fields"}), 400
+
+    _append_pilot_timeline_event(
+        record,
+        "lead_created",
+        f"Lead created: {record.get('name') or record.get('email') or 'Anonymous request'}",
+        f"{record.get('property_type', '')} · {record.get('city', '')}",
+        status="new",
+    )
 
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
@@ -428,26 +507,98 @@ def admin_pilot_request_detail(request_id):
     if not record:
         return jsonify({"ok": False, "error": "not_found"}), 404
 
-    return render_template("admin_pilot_request_detail.html", item=record)
+    return render_template(
+        "admin_pilot_request_detail.html",
+        item=record,
+        status_options=[{"value": status, "label": _pilot_status_label(status)} for status in PILOT_STATUS_VALUES],
+        timeline=list(reversed(_pilot_request_timeline_events(record))),
+    )
 
 
 @app.post("/admin/pilot-requests/<request_id>/status")
 @admin_required
 def admin_pilot_request_status(request_id):
-    allowed_statuses = {"new", "contacted", "qualified", "rejected", "converted"}
-    status = str(request.form.get("status", "")).strip()
+    return _update_pilot_request_from_form(request_id, update_notes=False, update_owner=False, require_status=True)
 
-    if status not in allowed_statuses:
-        return jsonify({"ok": False, "error": "invalid_status"}), 400
 
+@app.post("/admin/pilot-requests/<request_id>/update")
+@admin_required
+def admin_pilot_request_update(request_id):
+    return _update_pilot_request_from_form(request_id, update_notes=True, update_owner=True, require_status=False)
+
+
+def _coerce_pilot_status_input(raw_status):
+    normalized = str(raw_status or "").strip().lower()
+    if not normalized:
+        return None
+
+    normalized = PILOT_STATUS_ALIASES.get(normalized, normalized)
+    return normalized if normalized in PILOT_STATUS_VALUES else None
+
+
+def _update_pilot_request_from_form(request_id, update_notes, update_owner, require_status):
     requests_list = _load_pilot_requests()
     updated = False
 
     for record in requests_list:
-        if str(record.get("id", "")) == str(request_id):
-            record["status"] = status
-            updated = True
-            break
+        if str(record.get("id", "")) != str(request_id):
+            continue
+
+        original_status = _normalize_pilot_status(record.get("status", "new"))
+        raw_status = request.form.get("status", "").strip()
+        if raw_status:
+            new_status = _coerce_pilot_status_input(raw_status)
+            if new_status is None:
+                return jsonify({"ok": False, "error": "invalid_status"}), 400
+        else:
+            new_status = original_status
+
+        if require_status and not raw_status:
+            return jsonify({"ok": False, "error": "invalid_status"}), 400
+
+        original_owner = str(record.get("owner", "")).strip()
+        new_owner = original_owner
+        original_notes = str(record.get("notes", "")).strip()
+        new_notes = original_notes
+
+        if new_status != original_status:
+            record["status"] = new_status
+            _append_pilot_timeline_event(
+                record,
+                "status_changed",
+                f"Status changed from {_pilot_status_label(original_status)} to {_pilot_status_label(new_status)}",
+                record.get("email", ""),
+                status=new_status,
+            )
+
+        if update_owner:
+            new_owner = str(request.form.get("owner", original_owner)).strip()
+            if new_owner != original_owner:
+                record["owner"] = new_owner
+                if new_owner:
+                    _append_pilot_timeline_event(
+                        record,
+                        "owner_assigned",
+                        f"Owner assigned: {new_owner}",
+                        original_owner or "Unassigned",
+                        status=record.get("status", "new"),
+                    )
+
+        if update_notes:
+            new_notes = str(request.form.get("notes", original_notes)).strip()
+            if new_notes != original_notes:
+                record["notes"] = new_notes
+                if new_notes:
+                    _append_pilot_timeline_event(
+                        record,
+                        "note_added",
+                        "Note added",
+                        new_notes,
+                        status=record.get("status", "new"),
+                    )
+
+        updated = True
+        break
 
     if not updated:
         return jsonify({"ok": False, "error": "not_found"}), 404

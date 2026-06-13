@@ -40,17 +40,20 @@
             class="admin-pilot-card admin-pilot-card--link"
             href="/admin/pilot-requests/{{ item.id|e }}"
             data-pilot-request-card
-            data-search="{{ (item.name ~ ' ' ~ item.email ~ ' ' ~ item.city ~ ' ' ~ item.property_type)|lower|e }}"
+            data-search="{{ (item.name ~ ' ' ~ item.email ~ ' ' ~ item.city ~ ' ' ~ item.property_type ~ ' ' ~ item.owner)|lower|e }}"
           >
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|e }}">{{ item.status|e }}</span>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
             </div>
             <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
             <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
             <p><strong>Apartment count:</strong> {{ item.apartment_count|e }}</p>
             <p><strong>City / location:</strong> {{ item.city|e }}</p>
             <p><strong>Concierge needs:</strong> {{ item.concierge_needs|e }}</p>
+            {% if item.owner %}
+              <p><strong>Owner:</strong> {{ item.owner|e }}</p>
+            {% endif %}
             <p><strong>Email:</strong> {{ item.email|e }}</p>
             {% if item.current_language %}
               <p><strong>Language:</strong> {{ item.current_language|e }}</p>
