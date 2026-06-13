@@ -18538,3 +18538,75 @@ body.operations-demo-page .operations-hero h1 {
   }
 }
 
+/* Final polish pass: Demo hero paragraph, Home product preview/KPI panel, floating CTA. */
+body.operations-demo-page .operations-hero__text {
+  max-width: 700px !important;
+  color: rgba(248, 246, 242, 0.88) !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+.home-product .home-product__preview {
+  background: rgba(248, 246, 242, 0.82) !important;
+  backdrop-filter: blur(16px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(118%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow:
+    0 12px 40px rgba(10, 25, 50, 0.12),
+    0 2px 8px rgba(10, 25, 50, 0.06) !important;
+}
+
+.home-product .home-product__kpi {
+  background: rgba(248, 246, 242, 0.82) !important;
+  backdrop-filter: blur(16px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(118%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow:
+    0 12px 40px rgba(10, 25, 50, 0.12),
+    0 2px 8px rgba(10, 25, 50, 0.06) !important;
+}
+
+.home-product .home-product__preview .preview-card__label,
+.home-product .home-product__preview .preview-card__header h2,
+.home-product .home-product__kpi-value,
+.home-product .home-product__preview-row strong {
+  color: #102847 !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+.home-product .home-product__kpi-label,
+.home-product .home-product__preview-row span,
+.home-product .home-product__copy,
+.home-product .preview-card__signal {
+  color: rgba(16, 40, 71, 0.68) !important;
+}
+
+.home-product .home-product__preview-row {
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+  background: rgba(255, 255, 255, 0.52) !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.home-product .home-product__preview-row:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(15, 35, 60, 0.08) !important;
+}
+
+body.operations-demo-page .operations-floating-cta {
+  right: 24px !important;
+  bottom: 24px !important;
+  padding: 0.85rem 1.3rem !important;
+  border-radius: 999px !important;
+  font-size: 0.95rem !important;
+  opacity: 0.94 !important;
+}
+
+@media (max-width: 640px) {
+  body.operations-demo-page .operations-floating-cta {
+    right: 16px !important;
+    bottom: 16px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
