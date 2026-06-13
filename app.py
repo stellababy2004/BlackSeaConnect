@@ -194,6 +194,10 @@ def _build_pilot_email_body(record):
     return "\n".join(lines)
 
 
+def _smtp_endpoint_label(smtp_host, smtp_port):
+    return f"{smtp_host}:{smtp_port}"
+
+
 def _send_pilot_request_email(record):
     smtp_host = os.getenv("SMTP_HOST", "").strip()
     smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
@@ -203,13 +207,13 @@ def _send_pilot_request_email(record):
     smtp_to = os.getenv("PILOT_REQUEST_TO", "").strip() or "concierge@blackseaconnect.com"
 
     if not smtp_host or not smtp_port_raw or not smtp_from:
-        app.logger.warning("Pilot request email skipped: SMTP configuration is missing.")
+        app.logger.warning("Pilot request email skipped: SMTP configuration is missing for %s.", _smtp_endpoint_label(smtp_host or "unknown", smtp_port_raw or "unknown"))
         return False, "smtp_not_configured"
 
     try:
         smtp_port = int(smtp_port_raw)
     except ValueError:
-        app.logger.warning("Pilot request email skipped: SMTP_PORT is invalid.")
+        app.logger.warning("Pilot request email skipped: SMTP_PORT is invalid for %s.", _smtp_endpoint_label(smtp_host, smtp_port_raw))
         return False, "smtp_invalid_port"
 
     message = EmailMessage()
@@ -234,7 +238,7 @@ def _send_pilot_request_email(record):
 
             smtp.send_message(message)
     except Exception as exc:
-        app.logger.warning("Pilot request email send failed: %s", exc)
+        app.logger.warning("Pilot request email send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
         return False, "smtp_send_failed"
 
     return True, None
@@ -260,22 +264,28 @@ def _send_internal_pilot_notification(record):
     smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
     smtp_username = os.getenv("SMTP_USERNAME", "").strip()
     smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
 
-    if not smtp_host or not smtp_port_raw:
-        app.logger.warning("Internal pilot notification skipped: SMTP configuration is missing.")
+    if not smtp_host or not smtp_port_raw or not smtp_from:
+        app.logger.warning("Internal pilot notification skipped: SMTP configuration is missing for %s.", _smtp_endpoint_label(smtp_host or "unknown", smtp_port_raw or "unknown"))
+        return False, "smtp_not_configured"
+
+    if not admin_email:
+        app.logger.warning("Internal pilot notification skipped: ADMIN_EMAIL is missing for %s.", _smtp_endpoint_label(smtp_host, smtp_port_raw))
         return False, "smtp_not_configured"
 
     try:
         smtp_port = int(smtp_port_raw)
     except ValueError:
-        app.logger.warning("Internal pilot notification skipped: SMTP_PORT is invalid.")
+        app.logger.warning("Internal pilot notification skipped: SMTP_PORT is invalid for %s.", _smtp_endpoint_label(smtp_host, smtp_port_raw))
         return False, "smtp_invalid_port"
 
     message = EmailMessage()
     message["Subject"] = "[BlackSea Connect] New Pilot Lead Received"
-    message["From"] = "contact@blackseaconnect.com"
-    message["To"] = "stoyanova@orange.fr"
-    message["Reply-To"] = "contact@blackseaconnect.com"
+    message["From"] = smtp_from
+    message["To"] = admin_email
+    message["Reply-To"] = smtp_from
     message.set_content(_build_internal_pilot_notification_body(record))
 
     try:
@@ -294,7 +304,7 @@ def _send_internal_pilot_notification(record):
 
             smtp.send_message(message)
     except Exception as exc:
-        app.logger.warning("Internal pilot notification send failed: %s", exc)
+        app.logger.warning("Internal pilot notification send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
         return False, "smtp_send_failed"
 
     return True, None

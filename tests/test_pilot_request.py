@@ -258,7 +258,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response.headers.get("Content-Type", ""))
         csv_body = response.get_data(as_text=True)
-        self.assertIn("id,created_at,status,owner,email,property_type,apartment_count,city,concierge_needs", csv_body)
+        self.assertIn("id;created_at;status;owner;email;property_type;apartment_count;city;concierge_needs", csv_body)
         self.assertIn("csv-id", csv_body)
         self.assertIn("CSV Marina", csv_body)
 
@@ -278,6 +278,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
@@ -305,6 +306,13 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("City / location: Varna Marina", body)
         self.assertIn("Concierge needs: Arrivals, cleaning, transfers", body)
         self.assertIn("Language: en", body)
+
+        internal_message = FakeSMTP.sent_messages[1]
+        self.assertEqual(internal_message["Subject"], "[BlackSea Connect] New Pilot Lead Received")
+        self.assertEqual(internal_message["From"], "noreply@example.com")
+        self.assertEqual(internal_message["To"], "stoyanova@orange.fr")
+        self.assertEqual(internal_message["Reply-To"], "noreply@example.com")
+        self.assertNotIn("contact@blackseaconnect.com", str(internal_message))
 
     def test_valid_payload_returns_200_when_smtp_times_out(self):
         payload = {
