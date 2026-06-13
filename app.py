@@ -240,6 +240,70 @@ def _send_pilot_request_email(record):
     return True, None
 
 
+def _build_internal_pilot_notification_body(record):
+    lines = [
+        f"Lead ID: {record.get('id', '')}",
+        f"Created At: {record.get('created_at', '')}",
+        f"Property Type: {record.get('property_type', '')}",
+        f"Apartment Count: {record.get('apartment_count', '')}",
+        f"City: {record.get('city', '')}",
+        f"Concierge Needs: {record.get('concierge_needs', '')}",
+        f"Email Address: {record.get('email', '')}",
+        f"Language: {record.get('current_language') or 'n/a'}",
+        f"Current CRM Status: {_normalize_pilot_status(record.get('status', 'new')).upper()}",
+    ]
+    return "\n".join(lines)
+
+
+def _send_internal_pilot_notification(record):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+
+    if not smtp_host or not smtp_port_raw:
+        app.logger.warning("Internal pilot notification skipped: SMTP configuration is missing.")
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning("Internal pilot notification skipped: SMTP_PORT is invalid.")
+        return False, "smtp_invalid_port"
+
+    message = EmailMessage()
+    message["Subject"] = "[BlackSea Connect] New Pilot Lead Received"
+    message["From"] = "contact@blackseaconnect.com"
+    message["To"] = "stoyanova@orange.fr"
+    message["Reply-To"] = "contact@blackseaconnect.com"
+    message.set_content(_build_internal_pilot_notification_body(record))
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    app.logger.warning("Internal pilot notification: SMTP STARTTLS was unavailable.")
+
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Internal pilot notification send failed: %s", exc)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+def _queue_internal_pilot_notification(record):
+    Thread(target=_send_internal_pilot_notification, args=(record,), daemon=True).start()
+
+
 def _queue_pilot_request_email(record):
     Thread(target=_send_pilot_request_email, args=(record,), daemon=True).start()
 
@@ -476,6 +540,7 @@ def api_pilot_request():
         return jsonify({"ok": False, "error": "save_failed"}), 500
 
     _queue_pilot_request_email(record)
+    _queue_internal_pilot_notification(record)
 
     return jsonify({"ok": True}), 200
 
