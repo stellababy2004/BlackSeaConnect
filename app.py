@@ -264,7 +264,7 @@ def _build_internal_pilot_notification_body(record, admin_detail_url):
 
 def _send_internal_pilot_notification(record, admin_detail_url):
     resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
-    from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <onboarding@resend.dev>"
+    from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <concierge@blackseaconnect.com>"
     admin_email = os.getenv("ADMIN_EMAIL", "").strip()
 
     if not resend_api_key:
@@ -305,6 +305,19 @@ def _send_internal_pilot_notification(record, admin_detail_url):
             if response_status not in (200, 201, 202):
                 app.logger.warning("Internal pilot notification send failed via Resend: unexpected status %s.", response_status)
                 return False, "resend_bad_status"
+    except urllib.error.HTTPError as exc:
+        response_body = ""
+        try:
+            response_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            response_body = "<unreadable>"
+        app.logger.warning(
+            "Internal pilot notification send failed via Resend: HTTP %s %s. Body: %s",
+            exc.code,
+            exc.reason,
+            response_body,
+        )
+        return False, "resend_send_failed"
     except Exception as exc:
         app.logger.warning("Internal pilot notification send failed via Resend: %s", exc)
         return False, "resend_send_failed"

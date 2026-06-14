@@ -1,10 +1,12 @@
 import base64
+import io
 import json
 import os
 import shutil
 import unittest
 from pathlib import Path
 import uuid
+import urllib.error
 from unittest.mock import patch
 
 from app import app
@@ -290,7 +292,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
-            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
@@ -329,7 +331,7 @@ class PilotRequestApiTests(unittest.TestCase):
 
         self.assertEqual(len(captured_requests), 1)
         resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
-        self.assertEqual(resend_payload["from"], "BlackSea Connect <onboarding@resend.dev>")
+        self.assertEqual(resend_payload["from"], "BlackSea Connect <concierge@blackseaconnect.com>")
         self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
         self.assertEqual(resend_payload["subject"], "[BlackSea Connect] New Pilot Lead Received")
         self.assertIn("Admin Detail URL:", resend_payload["text"])
@@ -351,7 +353,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
-            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
         }
@@ -378,7 +380,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_USERNAME": "user",
             "SMTP_PASSWORD": "secret",
             "SMTP_FROM": "noreply@example.com",
-            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
         }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
@@ -638,7 +640,7 @@ class PilotRequestApiTests(unittest.TestCase):
 
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
-            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
             from app import _send_internal_pilot_notification
@@ -649,10 +651,47 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIsNone(reason)
         self.assertEqual(len(captured_requests), 1)
         resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
-        self.assertEqual(resend_payload["from"], "BlackSea Connect <onboarding@resend.dev>")
+        self.assertEqual(resend_payload["from"], "BlackSea Connect <concierge@blackseaconnect.com>")
         self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
         self.assertIn("Admin Detail URL: https://example.com/admin/pilot-requests/resend-id", resend_payload["text"])
         self.assertNotIn("contact@blackseaconnect.com", resend_payload["text"])
+
+    def test_internal_notification_uses_concierge_fallback_sender_when_from_email_missing(self):
+        record = {
+            "id": "resend-fallback-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "qualified",
+            "name": "Resend Lead",
+            "email": "lead@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Resend Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "fr",
+            "submitted_from": "/demo/operations",
+            "location": "Resend Marina",
+            "needs": "Arrivals",
+        }
+
+        captured_requests = []
+
+        def fake_resend_urlopen(req, timeout=10):
+            captured_requests.append(req)
+            return FakeResendResponse(status=202)
+
+        with patch.dict(os.environ, {
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
+            from app import _send_internal_pilot_notification
+
+            ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/resend-fallback-id")
+
+        self.assertTrue(ok)
+        self.assertIsNone(reason)
+        self.assertEqual(len(captured_requests), 1)
+        resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(resend_payload["from"], "BlackSea Connect <concierge@blackseaconnect.com>")
 
     def test_internal_notification_failure_is_best_effort(self):
         record = {
@@ -673,7 +712,7 @@ class PilotRequestApiTests(unittest.TestCase):
 
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
-            "FROM_EMAIL": "BlackSea Connect <onboarding@resend.dev>",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=TimeoutError("connect timeout")):
             from app import _send_internal_pilot_notification
@@ -682,6 +721,92 @@ class PilotRequestApiTests(unittest.TestCase):
 
         self.assertFalse(ok)
         self.assertEqual(reason, "resend_send_failed")
+
+    def test_internal_notification_logs_resend_http_error_body(self):
+        record = {
+            "id": "resend-error-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "qualified",
+            "name": "Resend Lead",
+            "email": "lead@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Resend Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "fr",
+            "submitted_from": "/demo/operations",
+            "location": "Resend Marina",
+            "needs": "Arrivals",
+        }
+
+        http_error = urllib.error.HTTPError(
+            "https://api.resend.com/emails",
+            403,
+            "Forbidden",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"from domain is not verified"}'),
+        )
+
+        with patch.dict(os.environ, {
+            "RESEND_API_KEY": "re_test_key",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.urllib.request.urlopen", side_effect=http_error), patch.object(app.logger, "warning") as warning_mock:
+            from app import _send_internal_pilot_notification
+
+            ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/resend-error-id")
+
+        self.assertFalse(ok)
+        self.assertEqual(reason, "resend_send_failed")
+        rendered_messages = []
+        for call in warning_mock.call_args_list:
+            if not call.args:
+                continue
+            template = call.args[0]
+            fmt_args = call.args[1:]
+            try:
+                rendered_messages.append(template % fmt_args if fmt_args else template)
+            except Exception:
+                rendered_messages.append(" ".join(str(arg) for arg in call.args))
+        logged_text = " ".join(rendered_messages)
+        self.assertIn("HTTP 403", logged_text)
+        self.assertIn("from domain is not verified", logged_text)
+
+    def test_lead_save_still_succeeds_when_resend_returns_403(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+            "current_language": "en",
+        }
+
+        error = urllib.error.HTTPError(
+            "https://api.resend.com/emails",
+            403,
+            "Forbidden",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"from is not verified"}'),
+        )
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=error):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(len(self._read_requests()), 1)
 
 
 if __name__ == "__main__":
