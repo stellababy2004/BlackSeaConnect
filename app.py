@@ -279,6 +279,23 @@ def _build_internal_pilot_notification_payload(record, admin_detail_url):
     }
 
 
+def _build_internal_pilot_telegram_text(record, admin_detail_url):
+    lines = [
+        "New Pilot Lead",
+        f"lead_id: {record.get('id', '')}",
+        f"created_at: {record.get('created_at', '')}",
+        f"property_type: {record.get('property_type', '')}",
+        f"apartment_count: {record.get('apartment_count', '')}",
+        f"city: {record.get('city', '')}",
+        f"concierge_needs: {record.get('concierge_needs', '')}",
+        f"email: {record.get('email', '')}",
+        f"language: {record.get('current_language') or 'n/a'}",
+        f"status: {_normalize_pilot_status(record.get('status', 'new')).upper()}",
+        f"admin_detail_url: {admin_detail_url}",
+    ]
+    return "\n".join(lines)
+
+
 def _send_internal_pilot_notification_via_resend(record, admin_detail_url, resend_api_key, from_email, admin_email):
     message = EmailMessage()
     message["Subject"] = "[BlackSea Connect] New Pilot Lead Received"
@@ -367,11 +384,57 @@ def _send_internal_pilot_notification_via_formspree(record, admin_detail_url, fo
     return True, None
 
 
+def _send_internal_pilot_notification_via_telegram(record, admin_detail_url, telegram_bot_token, telegram_chat_id):
+    telegram_text = _build_internal_pilot_telegram_text(record, admin_detail_url)
+    telegram_url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": telegram_text,
+        "disable_web_page_preview": "true",
+    }
+
+    request = urllib.request.Request(
+        telegram_url,
+        data=urllib.parse.urlencode(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response_status = getattr(response, "status", getattr(response, "code", None))
+            if response_status not in (200, 201, 202):
+                app.logger.warning("Internal pilot notification send failed via Telegram: unexpected status %s.", response_status)
+                return False, "telegram_bad_status"
+    except urllib.error.HTTPError as exc:
+        response_body = ""
+        try:
+            response_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            response_body = "<unreadable>"
+        app.logger.warning(
+            "Internal pilot notification send failed via Telegram: HTTP %s %s. Body: %s",
+            exc.code,
+            exc.reason,
+            response_body,
+        )
+        return False, "telegram_send_failed"
+    except Exception as exc:
+        app.logger.warning("Internal pilot notification send failed via Telegram: %s", type(exc).__name__)
+        return False, "telegram_send_failed"
+
+    return True, None
+
+
 def _send_internal_pilot_notification(record, admin_detail_url):
     resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
     from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <concierge@blackseaconnect.com>"
     admin_email = os.getenv("ADMIN_EMAIL", "").strip()
     formspree_endpoint = os.getenv("FORMSPREE_ADMIN_ENDPOINT", "").strip()
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
     resend_attempted = False
     resend_ok = False
@@ -403,12 +466,44 @@ def _send_internal_pilot_notification(record, admin_detail_url):
         )
         if formspree_ok:
             return True, None
+        if telegram_bot_token and telegram_chat_id:
+            telegram_ok, telegram_reason = _send_internal_pilot_notification_via_telegram(
+                record,
+                admin_detail_url,
+                telegram_bot_token,
+                telegram_chat_id,
+            )
+            if telegram_ok:
+                return True, None
+            return False, telegram_reason
         return False, formspree_reason
 
     if resend_attempted and not resend_ok:
+        if telegram_bot_token and telegram_chat_id:
+            telegram_ok, telegram_reason = _send_internal_pilot_notification_via_telegram(
+                record,
+                admin_detail_url,
+                telegram_bot_token,
+                telegram_chat_id,
+            )
+            if telegram_ok:
+                return True, None
+            return False, telegram_reason
+
         return False, resend_reason
 
     app.logger.warning("Internal pilot notification skipped: FORMSPREE_ADMIN_ENDPOINT is missing.")
+    if telegram_bot_token and telegram_chat_id:
+        telegram_ok, telegram_reason = _send_internal_pilot_notification_via_telegram(
+            record,
+            admin_detail_url,
+            telegram_bot_token,
+            telegram_chat_id,
+        )
+        if telegram_ok:
+            return True, None
+        return False, telegram_reason
+
     return False, "formspree_not_configured"
 
 

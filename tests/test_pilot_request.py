@@ -828,6 +828,116 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertNotIn("formspree.io", response_text)
         self.assertEqual(len(self._read_requests()), 1)
 
+    def test_telegram_notification_is_attempted_after_lead_save_when_env_vars_are_present(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+            "current_language": "en",
+        }
+
+        telegram_token = "telegram-test-token"
+        telegram_chat_id = "123456789"
+        captured_requests = []
+
+        def fake_urlopen(req, timeout=10):
+            if req.full_url == "https://api.resend.com/emails":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    403,
+                    "Forbidden",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"message":"from is not verified"}'),
+                )
+            if req.full_url == f"https://api.telegram.org/bot{telegram_token}/sendMessage":
+                captured_requests.append(req)
+                return FakeResendResponse(status=200)
+            raise AssertionError(f"Unexpected URL: {req.full_url}")
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "TELEGRAM_BOT_TOKEN": telegram_token,
+            "TELEGRAM_CHAT_ID": telegram_chat_id,
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(len(self._read_requests()), 1)
+        self.assertEqual(len(captured_requests), 1)
+        telegram_payload = urllib.parse.parse_qs(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(telegram_payload["chat_id"], [telegram_chat_id])
+        self.assertEqual(telegram_payload["disable_web_page_preview"], ["true"])
+        self.assertIn("New Pilot Lead", telegram_payload["text"][0])
+        self.assertIn("lead_id: ", telegram_payload["text"][0])
+        self.assertIn("admin_detail_url: ", telegram_payload["text"][0])
+
+    def test_lead_save_still_succeeds_if_telegram_fails(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+            "current_language": "en",
+        }
+
+        telegram_token = "telegram-test-token"
+
+        def fake_urlopen(req, timeout=10):
+            if req.full_url == "https://api.resend.com/emails":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    403,
+                    "Forbidden",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"message":"from is not verified"}'),
+                )
+            if req.full_url == f"https://api.telegram.org/bot{telegram_token}/sendMessage":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    500,
+                    "Internal Server Error",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"error":"telegram failure"}'),
+                )
+            raise AssertionError(f"Unexpected URL: {req.full_url}")
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "TELEGRAM_BOT_TOKEN": telegram_token,
+            "TELEGRAM_CHAT_ID": "123456789",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(len(self._read_requests()), 1)
+        response_text = response.get_data(as_text=True)
+        self.assertNotIn("telegram-test-token", response_text)
+        self.assertNotIn("telegram failure", response_text)
+        self.assertNotIn("admin_detail_url", response_text)
+
     def test_internal_notification_logs_resend_http_error_body(self):
         record = {
             "id": "resend-error-id",
