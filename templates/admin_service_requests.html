@@ -10,9 +10,9 @@
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="heroEyebrow">Service request network</p>
-        <h1 data-i18n="heroTitle">Public service requests</h1>
-        <p data-i18n="heroCopy">Requests from owners are stored privately and routed to approved providers.</p>
+        <p class="eyebrow" data-i18n="heroEyebrow">Мрежа от заявки за услуги</p>
+        <h1 data-i18n="heroTitle">Публични заявки за услуги</h1>
+        <p data-i18n="heroCopy">Заявките от собственици се пазят поверително и се насочват към одобрени доставчици.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -24,26 +24,26 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">Back to cockpit</a>
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+        <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">Назад към кокпита</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Отвори публичната форма</a>
       </div>
     </section>
 
     <section class="admin-kpi-grid" aria-label="Service request metrics">
       <article class="admin-kpi-card">
-        <span data-i18n="metricTotal">Total requests</span>
+        <span data-i18n="metricTotal">Общо заявки</span>
         <strong>{{ requests|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricNew">New</span>
+        <span data-i18n="metricNew">Нови</span>
         <strong>{{ counts.new }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricAssigned">Assigned</span>
+        <span data-i18n="metricAssigned">Възложени</span>
         <strong>{{ counts.assigned }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricCompleted">Completed</span>
+        <span data-i18n="metricCompleted">Завършени</span>
         <strong>{{ counts.completed }}</strong>
       </article>
     </section>
@@ -54,21 +54,21 @@
           <a class="admin-pilot-card admin-pilot-card--link" href="/admin/service-requests/{{ item.id|e }}" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.service_category ~ ' ' ~ item.status)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</span>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'НОВА' if item.status == 'new' else 'ВЪЗЛОЖЕНА' if item.status == 'assigned' else 'ЗАВЪРШЕНА' }}</span>
             </div>
             <h2>{{ item.name|e }}</h2>
-            <p><strong data-i18n="cardCity">City:</strong> {{ item.property_city|e }}</p>
-            <p><strong data-i18n="cardType">Property:</strong> {{ item.property_type|e }}</p>
-            <p><strong data-i18n="cardCategory">Category:</strong> {{ item.service_category|e }}</p>
-            <p><strong data-i18n="cardDate">Preferred date:</strong> {{ item.preferred_date|e }}</p>
-            <p><strong data-i18n="cardAssigned">Assigned:</strong> <span data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "n/a" }}</span></p>
+            <p><strong data-i18n="cardCity">Град:</strong> {{ item.property_city|e }}</p>
+            <p><strong data-i18n="cardType">Имот:</strong> {{ item.property_type|e }}</p>
+            <p><strong data-i18n="cardCategory">Категория:</strong> {{ item.service_category|e }}</p>
+            <p><strong data-i18n="cardDate">Желана дата:</strong> {{ item.preferred_date|e }}</p>
+            <p><strong data-i18n="cardAssigned">Възложено:</strong> <span data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "няма" }}</span></p>
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2 data-i18n="emptyTitle">No service requests yet.</h2>
-        <p data-i18n="emptyCopy">Once a property owner sends a request, it will appear here in reverse chronological order.</p>
+        <h2 data-i18n="emptyTitle">Все още няма заявки за услуги.</h2>
+        <p data-i18n="emptyCopy">След като собственик изпрати заявка, тя ще се появи тук в обратен хронологичен ред.</p>
       </section>
     {% endif %}
   </main>

@@ -46,6 +46,7 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self._tmpdir = Path(self._cwd) / f".tmp_professional_tests_{uuid.uuid4().hex}"
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
+        self._repo_root = Path(__file__).resolve().parents[1]
         app.config["TESTING"] = True
         self.client = app.test_client()
 
@@ -546,6 +547,55 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('/request-service', html)
         self.assertIn('/network', html)
 
+    def test_request_service_template_uses_translation_hooks(self):
+        template = self._repo_root / "templates" / "request_service.html"
+        content = template.read_text(encoding="utf-8")
+
+        self.assertIn('data-i18n="navRequestService"', content)
+        self.assertIn('data-i18n="heroTitle"', content)
+        self.assertIn('data-i18n-attr="placeholder:namePlaceholder"', content)
+        self.assertIn('data-i18n="serviceCategoryEmpty"', content)
+        self.assertIn('data-i18n="submitCta"', content)
+
+    def test_admin_service_request_templates_use_translation_hooks(self):
+        list_template = self._repo_root / "templates" / "admin_service_requests.html"
+        detail_template = self._repo_root / "templates" / "admin_service_request_detail.html"
+
+        list_content = list_template.read_text(encoding="utf-8")
+        detail_content = detail_template.read_text(encoding="utf-8")
+
+        self.assertIn('data-i18n="backToCockpit"', list_content)
+        self.assertIn('data-i18n="publicFormCta"', list_content)
+        self.assertIn('serviceRequestStatusNew', list_content)
+        self.assertIn('data-i18n="backToList"', detail_content)
+        self.assertIn('data-i18n-attr="placeholder:internalNotesPlaceholder"', detail_content)
+        self.assertIn('serviceRequestEventCreated', detail_content)
+
+    def test_i18n_bootstrap_prefers_query_language_over_storage(self):
+        content = self._repo_root / "static" / "js" / "i18n.js"
+        text = content.read_text(encoding="utf-8")
+
+        self.assertIn('const urlLanguage = getLanguageFromUrl();', text)
+        self.assertIn('initialLanguage = getStoredLanguage();', text)
+        self.assertIn('localStorage.getItem(STORAGE_KEY)', text)
+        self.assertIn('window.history.replaceState', text)
+        self.assertIn('applyLanguage(initialLanguage, { syncUrl: false });', text)
+
+    def test_public_templates_do_not_keep_obvious_english_fallbacks(self):
+        expectations = {
+            "templates/index.html": ["Live now", "Guest operations"],
+            "templates/network.html": ["Featured providers</p>", "Featured providers</h3>", "{{ total_providers }} approved providers"],
+            "templates/network_detail.html": ["<span class=\"trust-strip__chip\">Featured</span>", "Available for requests\"", "Requests paused\""],
+            "templates/request_service.html": ["View providers", "Status: new"],
+            "templates/admin_service_requests.html": ["Back to cockpit", "Open public form", "No service requests yet."],
+            "templates/admin_service_request_detail.html": ["Back to requests", "Open public form", "No provider selected", "Private notes for the admin team"],
+        }
+
+        for relative_path, forbidden_strings in expectations.items():
+            content = (self._repo_root / relative_path).read_text(encoding="utf-8")
+            for forbidden in forbidden_strings:
+                self.assertNotIn(forbidden, content, msg=f"{relative_path} still contains {forbidden!r}")
+
     def test_service_request_public_response_does_not_leak_internal_details(self):
         payload = self._service_request_payload()
 
@@ -635,8 +685,8 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Public service requests", html)
-        self.assertIn("Total requests", html)
+        self.assertIn("Публични заявки за услуги", html)
+        self.assertIn("Общо заявки", html)
         self.assertIn("Maria Dimitrova", html)
         self.assertIn("Ivan Petrov", html)
         self.assertIn("Elena Georgieva", html)
@@ -681,10 +731,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Request detail", html)
+        self.assertIn("Подробности за заявката", html)
         self.assertIn("Petya Ivanova", html)
         self.assertIn("Urgent before arrival.", html)
-        self.assertIn("Activity timeline", html)
+        self.assertIn("Хронология на активността", html)
         self.assertIn('data-i18n="backToList"', html)
         self.assertIn('data-i18n="serviceRequestStatusNew"', html)
         self.assertIn('data-lang-switch="bg"', html)
@@ -777,7 +827,7 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
-        self.assertIn("Featured providers", html)
+        self.assertIn("Избрани доставчици", html)
         self.assertIn("Sea Breeze Cleaning", html)
         self.assertIn("Black Sea Transfers", html)
         self.assertIn("Premium", html)

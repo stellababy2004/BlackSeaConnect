@@ -16,6 +16,44 @@
   };
   const warnedKeys = new Set();
 
+  function normalizeLanguage(lang) {
+    if (!lang) {
+      return "";
+    }
+
+    return String(lang).trim().toLowerCase();
+  }
+
+  function getLanguageFromUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const candidate = normalizeLanguage(params.get("lang"));
+      return candidate;
+    } catch (error) {
+      void error;
+      return "";
+    }
+  }
+
+  function getStoredLanguage() {
+    try {
+      return normalizeLanguage(localStorage.getItem(STORAGE_KEY));
+    } catch (error) {
+      void error;
+      return "";
+    }
+  }
+
+  function setLanguageInUrl(lang) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", lang);
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch (error) {
+      void error;
+    }
+  }
+
   function getPageNamespace() {
     if (window.location.pathname.startsWith("/network/")) {
       return "network";
@@ -71,7 +109,8 @@
     const pageNamespace = getPageNamespace();
     const buttons = document.querySelectorAll("[data-lang-switch]");
 
-    function applyLanguage(lang) {
+    function applyLanguage(lang, options) {
+      const settings = options || {};
       const activeLang = translations[lang] ? lang : defaultLang;
       const dictionary = translations[activeLang] || translations[defaultLang] || {};
       const nodes = document.querySelectorAll("[data-i18n]");
@@ -125,6 +164,10 @@
         void error;
       }
 
+      if (settings.syncUrl !== false) {
+        setLanguageInUrl(activeLang);
+      }
+
       buttons.forEach((button) => {
         const isActive = button.getAttribute("data-lang-switch") === activeLang;
         button.classList.toggle("is-active", isActive);
@@ -138,18 +181,20 @@
 
     buttons.forEach((button) => {
       button.addEventListener("click", function () {
-        applyLanguage(this.getAttribute("data-lang-switch"));
+        applyLanguage(this.getAttribute("data-lang-switch"), { syncUrl: true });
       });
     });
 
-    let storedLanguage = defaultLang;
-    try {
-      storedLanguage = localStorage.getItem(STORAGE_KEY) || defaultLang;
-    } catch (error) {
-      void error;
+    const urlLanguage = getLanguageFromUrl();
+    let initialLanguage = urlLanguage;
+    if (!initialLanguage) {
+      initialLanguage = getStoredLanguage();
+    }
+    if (!translations[initialLanguage]) {
+      initialLanguage = defaultLang;
     }
 
-    applyLanguage(storedLanguage);
+    applyLanguage(initialLanguage, { syncUrl: false });
   }
 
   window.BlackSeaI18n = window.BlackSeaI18n || { init };

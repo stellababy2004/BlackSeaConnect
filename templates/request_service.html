@@ -28,7 +28,7 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/network" data-i18n="topNetworkCta">View providers</a>
+        <a class="button button--ghost topbar__portal" href="/network" data-i18n="topNetworkCta">Виж доставчици</a>
       </div>
     </nav>
 
@@ -40,8 +40,8 @@
           Tell us what you need and we will save your request, send the team a notification, and surface matching approved providers when available.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">Open request form</a>
-          <a class="button button--secondary" href="/network" data-i18n="heroSecondaryCta">Browse providers</a>
+          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">Отвори формата</a>
+          <a class="button button--secondary" href="/network" data-i18n="heroSecondaryCta">Разгледай доставчиците</a>
         </div>
         <div class="trust-strip" aria-label="Request highlights">
           <span class="trust-strip__chip" data-i18n="highlightSaved">Saved in JSONL</span>
@@ -62,7 +62,7 @@
           <p class="cta-panel__copy" data-i18n="successCopy">We will review the request and surface matching providers for the selected category.</p>
         </div>
         <div class="trust-strip" aria-label="Request status">
-          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Status: new</span>
+          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Статус: нова</span>
           <span class="trust-strip__chip">{{ request_record.property_city|e }}</span>
           <span class="trust-strip__chip">{{ request_record.service_category|e }}</span>
         </div>
@@ -155,20 +155,20 @@
               {% endif %}
               <div class="trust-strip" aria-label="Provider badges">
                 {% if provider.featured %}
-                  <span class="trust-strip__chip" data-i18n="featuredBadge">Featured</span>
-                {% endif %}
-                <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+                <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
+              {% endif %}
+                <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
                 {% for badge in provider.badges %}
                   <span class="trust-strip__chip">{{ badge|e }}</span>
                 {% endfor %}
               </div>
-              <span data-i18n="providerCompanyLabel">Company</span>
+              <span data-i18n="providerCompanyLabel">Фирма</span>
               <strong>{{ provider.company_name|e }}</strong>
-              <p><strong data-i18n="providerCityLabel">City:</strong> {{ provider.city|e }}</p>
-              <p><strong data-i18n="providerServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
-              <p><strong data-i18n="providerLanguagesLabel">Languages:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">n/a</span>{% endif %}</p>
+              <p><strong data-i18n="providerCityLabel">Град:</strong> {{ provider.city|e }}</p>
+              <p><strong data-i18n="providerServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
+              <p><strong data-i18n="providerLanguagesLabel">Езици:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">няма</span>{% endif %}</p>
               <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-              <span class="button button--ghost" data-i18n="providerViewDetails">View details</span>
+              <span class="button button--ghost" data-i18n="providerViewDetails">Виж детайли</span>
             </a>
           {% endfor %}
         </div>

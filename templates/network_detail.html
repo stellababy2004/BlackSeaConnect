@@ -50,23 +50,23 @@
           </div>
         {% endif %}
         <div class="hero__cta">
-          <a class="button button--primary" href="/network" data-i18n="heroPrimaryCta">Back to directory</a>
-          <a class="button button--secondary" href="/professionals/apply" data-i18n="heroSecondaryCta">Join the network</a>
+          <a class="button button--primary" href="/network" data-i18n="heroPrimaryCta">Назад към директорията</a>
+          <a class="button button--secondary" href="/professionals/apply" data-i18n="heroSecondaryCta">Присъедини се към мрежата</a>
         </div>
         <div class="trust-strip" aria-label="Provider highlights">
-          <span class="trust-strip__chip" data-i18n="highlightApproved">Approved provider</span>
+          <span class="trust-strip__chip" data-i18n="highlightApproved">Одобрен доставчик</span>
           <span class="trust-strip__chip">{{ provider.city|e }}</span>
           <span class="trust-strip__chip" data-i18n="{{ provider.category_key|e }}">{{ provider.category|e }}</span>
           {% if provider.available_for_requests %}
-            <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+            <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
           {% else %}
-            <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+            <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
           {% endif %}
           {% for badge in provider.badges %}
             <span class="trust-strip__chip">{{ badge|e }}</span>
           {% endfor %}
           {% if provider.featured %}
-            <span class="trust-strip__chip">Featured</span>
+            <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
           {% endif %}
         </div>
       </div>
@@ -85,20 +85,20 @@
 
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="detailCompanyLabel">Company</h3>
-          <p>{{ provider.company_name|e or "n/a" }}</p>
+          <h3 data-i18n="detailCompanyLabel">Фирма</h3>
+          <p>{{ provider.company_name|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailCityLabel">City</h3>
-          <p>{{ provider.city|e or "n/a" }}</p>
+          <h3 data-i18n="detailCityLabel">Град</h3>
+          <p>{{ provider.city|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailServiceLabel">Service type</h3>
-          <p>{{ provider.service_type|e or "n/a" }}</p>
+          <h3 data-i18n="detailServiceLabel">Тип услуга</h3>
+          <p>{{ provider.service_type|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailLanguagesLabel">Languages</h3>
-          <p>{{ provider.languages|e or "n/a" }}</p>
+          <h3 data-i18n="detailLanguagesLabel">Езици</h3>
+          <p>{{ provider.languages|e or "няма" }}</p>
         </article>
       </div>
     </section>
@@ -111,22 +111,22 @@
       </div>
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="detailContactLabel">Contact</h3>
-          <p>{{ provider.phone|e or "n/a" }}</p>
-          <p>{{ provider.email|e or "n/a" }}</p>
+          <h3 data-i18n="detailContactLabel">Контакт</h3>
+          <p>{{ provider.phone|e or "няма" }}</p>
+          <p>{{ provider.email|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailWebsiteLabel">Website or social</h3>
-          <p>{{ provider.website_or_social|e or "n/a" }}</p>
+          <h3 data-i18n="detailWebsiteLabel">Уебсайт или социален профил</h3>
+          <p>{{ provider.website_or_social|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailStatusLabel">Status</h3>
-          <p data-i18n="detailStatusValue">Approved</p>
+          <h3 data-i18n="detailStatusLabel">Статус</h3>
+          <p data-i18n="detailStatusValue">Одобрен</p>
         </article>
-        <article class="trust-card">
-          <h3 data-i18n="detailAvailabilityLabel">Requests</h3>
-          <p data-i18n="{{ 'availableBadge' if provider.available_for_requests else 'requestsPausedBadge' }}">
-            {{ "Available for requests" if provider.available_for_requests else "Requests paused" }}
+          <article class="trust-card">
+            <h3 data-i18n="detailAvailabilityLabel">Заявки</h3>
+            <p data-i18n="{{ 'availableBadge' if provider.available_for_requests else 'requestsPausedBadge' }}">
+            {{ "Наличен за заявки" if provider.available_for_requests else "Заявките са паузирани" }}
           </p>
         </article>
       </div>

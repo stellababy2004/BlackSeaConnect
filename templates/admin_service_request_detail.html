@@ -10,9 +10,9 @@
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="heroEyebrow">Service request</p>
-        <h1 data-i18n="heroTitle">Request detail</h1>
-        <p data-i18n="heroCopy">Assign the request to an approved provider or mark it complete.</p>
+        <p class="eyebrow" data-i18n="heroEyebrow">Заявка за услуга</p>
+        <h1 data-i18n="heroTitle">Подробности за заявката</h1>
+        <p data-i18n="heroCopy">Възложете заявката на одобрен доставчик или я отбележете като завършена.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -24,15 +24,15 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Назад към заявките</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Отвори публичната форма</a>
       </div>
     </section>
 
     <article class="admin-pilot-card">
       <div class="admin-pilot-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</span>
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'НОВА' if item.status == 'new' else 'ВЪЗЛОЖЕНА' if item.status == 'assigned' else 'ЗАВЪРШЕНА' }}</span>
       </div>
 
       <h2>{{ item.name|e }}</h2>
@@ -42,18 +42,18 @@
         <div><dt data-i18n="detailStatus">Status</dt><dd data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</dd></div>
         <div><dt data-i18n="detailEmail">Email</dt><dd>{{ item.email|e }}</dd></div>
         <div><dt data-i18n="detailPhone">Phone</dt><dd>{{ item.phone|e }}</dd></div>
-        <div><dt data-i18n="detailCity">Property city</dt><dd>{{ item.property_city|e }}</dd></div>
-        <div><dt data-i18n="detailType">Property type</dt><dd>{{ item.property_type|e }}</dd></div>
-        <div><dt data-i18n="detailCategory">Service category</dt><dd>{{ item.service_category|e }}</dd></div>
-        <div><dt data-i18n="detailDate">Preferred date</dt><dd>{{ item.preferred_date|e }}</dd></div>
-        <div><dt data-i18n="detailAssigned">Assigned provider</dt><dd data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "n/a" }}</dd></div>
+        <div><dt data-i18n="detailCity">Град на имота</dt><dd>{{ item.property_city|e }}</dd></div>
+        <div><dt data-i18n="detailType">Тип имот</dt><dd>{{ item.property_type|e }}</dd></div>
+        <div><dt data-i18n="detailCategory">Категория услуга</dt><dd>{{ item.service_category|e }}</dd></div>
+        <div><dt data-i18n="detailDate">Желана дата</dt><dd>{{ item.preferred_date|e }}</dd></div>
+        <div><dt data-i18n="detailAssigned">Възложен доставчик</dt><dd data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "няма" }}</dd></div>
       </dl>
 
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="descriptionEyebrow">Request description</p>
-            <h3 data-i18n="descriptionTitle">What the owner needs</h3>
+            <p class="eyebrow" data-i18n="descriptionEyebrow">Описание на заявката</p>
+            <h3 data-i18n="descriptionTitle">Какво е необходимо на собственика</h3>
           </div>
         </div>
         <p>{{ item.description|e }}</p>
@@ -61,52 +61,52 @@
 
       <form class="admin-pilot-status-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
         <label>
-          <span data-i18n="statusLabel">Update status</span>
+          <span data-i18n="statusLabel">Обнови статус</span>
           <select name="status" required>
             {% for option in status_options %}
-              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %} data-i18n="{{ 'serviceRequestStatusNew' if option.value == 'new' else 'serviceRequestStatusAssigned' if option.value == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ option.label|e }}</option>
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %} data-i18n="{{ 'serviceRequestStatusNew' if option.value == 'new' else 'serviceRequestStatusAssigned' if option.value == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'НОВА' if option.value == 'new' else 'ВЪЗЛОЖЕНА' if option.value == 'assigned' else 'ЗАВЪРШЕНА' }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span data-i18n="providerLabel">Assign provider</span>
+          <span data-i18n="providerLabel">Възложи доставчик</span>
           <select name="assigned_provider_id">
-            <option value="" data-i18n="providerEmpty">No provider selected</option>
+            <option value="" data-i18n="providerEmpty">Няма избран доставчик</option>
             {% for provider in matching_providers %}
               <option value="{{ provider.id|e }}" {% if item.assigned_provider_id == provider.id %}selected{% endif %}>{{ provider.company_name|e }} · {{ provider.city|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="notesLabel">Internal notes</span>
-          <textarea name="internal_notes" rows="6" placeholder="Private notes for the admin team" data-i18n-attr="placeholder:internalNotesPlaceholder">{{ item.internal_notes|e }}</textarea>
+          <span data-i18n="notesLabel">Вътрешни бележки</span>
+          <textarea name="internal_notes" rows="6" placeholder="Поверителни бележки за админ екипа" data-i18n-attr="placeholder:internalNotesPlaceholder">{{ item.internal_notes|e }}</textarea>
         </label>
-        <button class="button button--primary" type="submit" data-i18n="saveCta">Save request</button>
+        <button class="button button--primary" type="submit" data-i18n="saveCta">Запази заявката</button>
       </form>
 
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="matchingEyebrow">Matching providers</p>
-            <h3 data-i18n="matchingTitle">Approved providers for this category</h3>
+            <p class="eyebrow" data-i18n="matchingEyebrow">Съвпадащи доставчици</p>
+            <h3 data-i18n="matchingTitle">Одобрени доставчици за тази категория</h3>
           </div>
         </div>
         {% if matching_providers %}
           <div class="partner-grid">
             {% for provider in matching_providers %}
               <a class="partner-card" href="/network/{{ provider.id|e }}">
-                <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
-                {% if provider.featured %}<span class="trust-strip__chip" data-i18n="featuredBadge">Featured</span>{% endif %}
+                <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                {% if provider.featured %}<span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>{% endif %}
                 <strong>{{ provider.company_name|e }}</strong>
-                <p><strong data-i18n="providerCityLabel">City:</strong> {{ provider.city|e }}</p>
-                <p><strong data-i18n="providerServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
+                <p><strong data-i18n="providerCityLabel">Град:</strong> {{ provider.city|e }}</p>
+                <p><strong data-i18n="providerServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
               </a>
             {% endfor %}
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="matchingEmptyTitle">No matching providers are available yet.</h3>
-            <p data-i18n="matchingEmptyCopy">Approve and enable providers in the network layer to surface matches here.</p>
+            <h3 data-i18n="matchingEmptyTitle">Все още няма съвпадащи доставчици.</h3>
+            <p data-i18n="matchingEmptyCopy">Одобрете и активирайте доставчици в мрежовия слой, за да се покажат съвпадения тук.</p>
           </div>
         {% endif %}
       </section>
@@ -114,8 +114,8 @@
       <div class="admin-pilot-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="timelineEyebrow">Activity timeline</p>
-            <h3 data-i18n="timelineTitle">Newest first</h3>
+            <p class="eyebrow" data-i18n="timelineEyebrow">Хронология на активността</p>
+            <h3 data-i18n="timelineTitle">Най-новите първи</h3>
           </div>
         </div>
 
@@ -136,8 +136,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="timelineEmptyTitle">No timeline entries yet.</h3>
-            <p data-i18n="timelineEmptyCopy">This request will start collecting events after the next save.</p>
+            <h3 data-i18n="timelineEmptyTitle">Все още няма записи в хронологията.</h3>
+            <p data-i18n="timelineEmptyCopy">Тази заявка ще започне да събира събития след следващото записване.</p>
           </div>
         {% endif %}
       </div>

@@ -3954,4 +3954,56 @@ Object.assign(window.BlackSeaI18N.ru.adminServiceRequests, {
   internalNotesPlaceholder: "Конфиденциальные заметки для админ-команды"
 });
 
+Object.assign(window.BlackSeaI18N.bg.home, {
+  homeLiveNow: "Сега на живо",
+  homeGuestOperations: "Операции за гости"
+});
+
+Object.assign(window.BlackSeaI18N.en.home, {
+  homeLiveNow: "Live now",
+  homeGuestOperations: "Guest operations"
+});
+
+Object.assign(window.BlackSeaI18N.fr.home, {
+  homeLiveNow: "En direct",
+  homeGuestOperations: "Opérations clients"
+});
+
+Object.assign(window.BlackSeaI18N.ru.home, {
+  homeLiveNow: "Сейчас в эфире",
+  homeGuestOperations: "Гостевые операции"
+});
+
+Object.assign(window.BlackSeaI18N.bg.network, {
+  featuredEyebrow: "Избрани доставчици",
+  featuredTitle: "Избрани доставчици",
+  featuredBadge: "Препоръчано",
+  approvedProvidersLabel: "одобрени доставчици",
+  notAvailable: "няма"
+});
+
+Object.assign(window.BlackSeaI18N.en.network, {
+  featuredEyebrow: "Featured providers",
+  featuredTitle: "Featured providers",
+  featuredBadge: "Featured",
+  approvedProvidersLabel: "approved providers",
+  notAvailable: "n/a"
+});
+
+Object.assign(window.BlackSeaI18N.fr.network, {
+  featuredEyebrow: "Prestataires sélectionnés",
+  featuredTitle: "Prestataires sélectionnés",
+  featuredBadge: "Sélectionné",
+  approvedProvidersLabel: "prestataires approuvés",
+  notAvailable: "n/d"
+});
+
+Object.assign(window.BlackSeaI18N.ru.network, {
+  featuredEyebrow: "Избранные поставщики",
+  featuredTitle: "Избранные поставщики",
+  featuredBadge: "Избранный",
+  approvedProvidersLabel: "одобренные поставщики",
+  notAvailable: "н/д"
+});
+
 

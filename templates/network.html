@@ -41,8 +41,8 @@
           Only approved providers appear here. Search by city or filter by service category to find trusted local support along the Bulgarian Black Sea coast.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">Join the network</a>
-          <a class="button button--secondary" href="#network-search" data-i18n="heroSecondaryCta">Search providers</a>
+          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">Присъедини се към мрежата</a>
+          <a class="button button--secondary" href="#network-search" data-i18n="heroSecondaryCta">Търси доставчици</a>
         </div>
         <div class="trust-strip" aria-label="Directory highlights">
           <span class="trust-strip__chip" data-i18n="highlightApproved">Approved only</span>
@@ -83,7 +83,7 @@
         <div class="pilot-form__footer">
           <button class="button button--primary" type="submit" data-i18n="searchCta">Search</button>
           <a class="button button--secondary" href="/network" data-i18n="resetCta">Reset</a>
-          <p class="pilot-form__hint">{{ total_providers }} approved providers</p>
+          <p class="pilot-form__hint"><strong>{{ total_providers }}</strong> <span data-i18n="approvedProvidersLabel">одобрени доставчици</span></p>
         </div>
       </form>
     </section>
@@ -98,8 +98,8 @@
         {% if featured_providers %}
           <section class="network-category-block" aria-labelledby="network-featured-title">
             <div class="section-heading section-heading--trust">
-              <p class="section-heading__eyebrow">Featured providers</p>
-              <h3 id="network-featured-title">Featured providers</h3>
+              <p class="section-heading__eyebrow" data-i18n="featuredEyebrow">Избрани доставчици</p>
+              <h3 id="network-featured-title" data-i18n="featuredTitle">Избрани доставчици</h3>
             </div>
 
             <div class="partner-grid">
@@ -116,21 +116,21 @@
                   {% endif %}
                   <div class="trust-strip" aria-label="Provider badges">
                     {% if provider.available_for_requests %}
-                      <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+                      <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
                     {% else %}
-                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
                     {% endif %}
                     {% for badge in provider.display_badges %}
                       <span class="trust-strip__chip">{{ badge|e }}</span>
                     {% endfor %}
                   </div>
-                  <span data-i18n="cardCompanyLabel">Company</span>
+                  <span data-i18n="cardCompanyLabel">Фирма</span>
                   <strong>{{ provider.company_name|e }}</strong>
-                  <p><strong data-i18n="cardCityLabel">City:</strong> {{ provider.city|e }}</p>
-                  <p><strong data-i18n="cardServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
-                  <p><strong data-i18n="cardLanguagesLabel">Languages:</strong> {{ provider.languages|e or "n/a" }}</p>
+                  <p><strong data-i18n="cardCityLabel">Град:</strong> {{ provider.city|e }}</p>
+                  <p><strong data-i18n="cardServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
+                  <p><strong data-i18n="cardLanguagesLabel">Езици:</strong> {{ provider.languages|e or "няма" }}</p>
                   <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-                  <span class="button button--ghost" data-i18n="cardViewDetails">View details</span>
+                      <span class="button button--ghost" data-i18n="cardViewDetails">Виж детайли</span>
                 </a>
               {% endfor %}
             </div>
@@ -158,22 +158,22 @@
                     </div>
                   {% endif %}
                     <div class="trust-strip" aria-label="Provider badges">
-                      {% if provider.available_for_requests %}
-                        <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
-                      {% else %}
-                        <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+                    {% if provider.available_for_requests %}
+                      <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                    {% else %}
+                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
                       {% endif %}
                       {% for badge in provider.display_badges %}
                         <span class="trust-strip__chip">{{ badge|e }}</span>
                       {% endfor %}
                     </div>
-                    <span data-i18n="cardCompanyLabel">Company</span>
+                    <span data-i18n="cardCompanyLabel">Фирма</span>
                     <strong>{{ provider.company_name|e }}</strong>
-                    <p><strong data-i18n="cardCityLabel">City:</strong> {{ provider.city|e }}</p>
-                    <p><strong data-i18n="cardServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
-                    <p><strong data-i18n="cardLanguagesLabel">Languages:</strong> {{ provider.languages|e or "n/a" }}</p>
+                    <p><strong data-i18n="cardCityLabel">Град:</strong> {{ provider.city|e }}</p>
+                    <p><strong data-i18n="cardServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
+                    <p><strong data-i18n="cardLanguagesLabel">Езици:</strong> {{ provider.languages|e or "няма" }}</p>
                     <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-                    <span class="button button--ghost" data-i18n="cardViewDetails">View details</span>
+                    <span class="button button--ghost" data-i18n="cardViewDetails">Виж детайли</span>
                   </a>
                 {% endfor %}
               </div>
@@ -189,7 +189,7 @@
               Try a different city or remove the category filter to see the full approved directory.
             </p>
           </div>
-          <a class="button button--primary" href="/network" data-i18n="emptyPrimaryCta">Clear filters</a>
+          <a class="button button--primary" href="/network" data-i18n="emptyPrimaryCta">Изчисти филтрите</a>
         </section>
       {% endif %}
     </section>
