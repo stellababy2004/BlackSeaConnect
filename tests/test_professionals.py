@@ -515,6 +515,15 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Maria Dimitrova", telegram_payload["text"][0])
         self.assertIn("/admin/service-requests/", telegram_payload["text"][0])
 
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            admin_response = self.client.get("/admin/service-requests", headers=self._auth_headers())
+
+        self.assertEqual(admin_response.status_code, 200)
+        admin_html = admin_response.get_data(as_text=True)
+        self.assertIn("Maria Dimitrova", admin_html)
+        self.assertIn("Varna", admin_html)
+        self.assertIn('data-i18n="backToCockpit"', admin_html)
+
     def test_service_request_required_fields_are_validated(self):
         response = self.client.post("/request-service", data={})
 
@@ -532,6 +541,8 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
         self.assertIn('data-lang-switch="ru"', html)
+        self.assertIn('data-i18n="navRequestService"', html)
+        self.assertIn('data-i18n="heroTitle"', html)
         self.assertIn('/request-service', html)
         self.assertIn('/network', html)
 
@@ -629,6 +640,7 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Maria Dimitrova", html)
         self.assertIn("Ivan Petrov", html)
         self.assertIn("Elena Georgieva", html)
+        self.assertIn('data-i18n="backToCockpit"', html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
@@ -673,6 +685,8 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Petya Ivanova", html)
         self.assertIn("Urgent before arrival.", html)
         self.assertIn("Activity timeline", html)
+        self.assertIn('data-i18n="backToList"', html)
+        self.assertIn('data-i18n="serviceRequestStatusNew"', html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)

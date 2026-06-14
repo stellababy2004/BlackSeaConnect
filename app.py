@@ -75,6 +75,7 @@ SERVICE_REQUEST_STATUS_TRANSITIONS = {
     "assigned": "assigned",
     "completed": "completed",
 }
+SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
 
 
 def _professional_service_category_items():
@@ -250,10 +251,11 @@ def _normalize_service_request(record):
 
 
 def _load_service_requests():
-    path = Path("data") / "service_requests.jsonl"
+    path = SERVICE_REQUESTS_JSONL_PATH
     requests_list = []
 
     if not path.exists():
+        app.logger.info("Loaded service requests: %s", len(requests_list))
         return requests_list
 
     with path.open("r", encoding="utf-8") as f:
@@ -268,13 +270,14 @@ def _load_service_requests():
                 requests_list.append(normalized)
 
     requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    app.logger.info("Loaded service requests: %s", len(requests_list))
     return requests_list
 
 
 def _save_service_requests(requests_list):
-    data_dir = Path("data")
+    data_dir = SERVICE_REQUESTS_JSONL_PATH.parent
     data_dir.mkdir(exist_ok=True)
-    path = data_dir / "service_requests.jsonl"
+    path = SERVICE_REQUESTS_JSONL_PATH
     with path.open("w", encoding="utf-8") as f:
         for record in requests_list:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -564,10 +567,9 @@ def request_service():
                 status="new",
             )
 
-            data_dir = Path("data")
-            data_dir.mkdir(exist_ok=True)
+            SERVICE_REQUESTS_JSONL_PATH.parent.mkdir(exist_ok=True)
             try:
-                with (data_dir / "service_requests.jsonl").open("a", encoding="utf-8") as f:
+                with SERVICE_REQUESTS_JSONL_PATH.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
             except Exception:
                 return render_template(
@@ -581,6 +583,7 @@ def request_service():
                 ), 500
 
             submitted = True
+            app.logger.info("Saved service request: %s", request_record["id"])
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_notification(request_record, admin_detail_url)
 

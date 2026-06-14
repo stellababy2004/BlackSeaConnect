@@ -62,7 +62,7 @@
           <p class="cta-panel__copy" data-i18n="successCopy">We will review the request and surface matching providers for the selected category.</p>
         </div>
         <div class="trust-strip" aria-label="Request status">
-          <span class="trust-strip__chip" data-i18n="successStatus">Status: new</span>
+          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Status: new</span>
           <span class="trust-strip__chip">{{ request_record.property_city|e }}</span>
           <span class="trust-strip__chip">{{ request_record.service_category|e }}</span>
         </div>
@@ -166,7 +166,7 @@
               <strong>{{ provider.company_name|e }}</strong>
               <p><strong data-i18n="providerCityLabel">City:</strong> {{ provider.city|e }}</p>
               <p><strong data-i18n="providerServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
-              <p><strong data-i18n="providerLanguagesLabel">Languages:</strong> {{ provider.languages|e or "n/a" }}</p>
+              <p><strong data-i18n="providerLanguagesLabel">Languages:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">n/a</span>{% endif %}</p>
               <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
               <span class="button button--ghost" data-i18n="providerViewDetails">View details</span>
             </a>

@@ -3374,6 +3374,12 @@ Object.assign(window.BlackSeaI18N.bg, {
     successTitle: "Благодарим ви. Вашата заявка за услуга е запазена.",
     successCopy: "Ще прегледаме заявката и ще покажем подходящи доставчици за избраната категория.",
     successStatus: "Статус: new",
+    serviceRequestStatusNew: "Нова",
+    serviceRequestStatusAssigned: "Възложена",
+    serviceRequestStatusCompleted: "Завършена",
+    serviceRequestEventCreated: "Създадена заявка",
+    serviceRequestEventStatusUpdated: "Статусът е обновен",
+    serviceRequestEventCompleted: "Заявката е завършена",
     formEyebrow: "Форма за заявка",
     formTitle: "Споделете детайлите за имота и услугата, която ви е нужна.",
     formCopy: "Поддържаме заявката кратка, за да е лесна за изпращане и преглед.",
@@ -3432,6 +3438,7 @@ Object.assign(window.BlackSeaI18N.bg, {
     heroEyebrow: "Мрежа от заявки за услуги",
     heroTitle: "Публични заявки за услуги",
     heroCopy: "Заявките от собственици се пазят поверително и се насочват към одобрени доставчици.",
+    backToCockpit: "Назад към кокпита",
     publicFormCta: "Отвори публичната форма",
     metricTotal: "Общо заявки",
     metricNew: "Нови",
@@ -3475,7 +3482,13 @@ Object.assign(window.BlackSeaI18N.bg, {
     timelineEyebrow: "Хронология на действията",
     timelineTitle: "Най-нови първи",
     timelineEmptyTitle: "Все още няма записи в хронологията.",
-    timelineEmptyCopy: "Тази заявка ще започне да събира събития след следващото записване."
+    timelineEmptyCopy: "Тази заявка ще започне да събира събития след следващото записване.",
+    serviceRequestStatusNew: "Нова",
+    serviceRequestStatusAssigned: "Възложена",
+    serviceRequestStatusCompleted: "Завършена",
+    serviceRequestEventCreated: "Създадена заявка",
+    serviceRequestEventStatusUpdated: "Статусът е обновен",
+    serviceRequestEventCompleted: "Заявката е завършена"
   }
 });
 
@@ -3502,6 +3515,12 @@ Object.assign(window.BlackSeaI18N.en, {
     successTitle: "Thank you. Your service request has been saved.",
     successCopy: "We will review the request and surface matching providers for the selected category.",
     successStatus: "Status: new",
+    serviceRequestStatusNew: "New",
+    serviceRequestStatusAssigned: "Assigned",
+    serviceRequestStatusCompleted: "Completed",
+    serviceRequestEventCreated: "Request created",
+    serviceRequestEventStatusUpdated: "Status updated",
+    serviceRequestEventCompleted: "Request completed",
     formEyebrow: "Service request form",
     formTitle: "Share the property details and the service you need.",
     formCopy: "We keep the request short so it is easy to send and easy to review.",
@@ -3545,6 +3564,7 @@ Object.assign(window.BlackSeaI18N.en, {
     matchingEmptyEyebrow: "No matching providers yet",
     matchingEmptyTitle: "Choose a category to see matching approved providers.",
     matchingEmptyCopy: "Once you select a service category, we show the providers that can take that work.",
+    notAvailable: "n/a",
     footerDescription: "Calm hospitality operations for coastal properties.",
     footerEmail: "concierge@blackseaconnect.com",
     footerMeta: "Service requests are reviewed privately and matched with approved providers when possible."
@@ -3560,6 +3580,7 @@ Object.assign(window.BlackSeaI18N.en, {
     heroEyebrow: "Service request network",
     heroTitle: "Public service requests",
     heroCopy: "Requests from owners are stored privately and routed to approved providers.",
+    backToCockpit: "Back to cockpit",
     publicFormCta: "Open public form",
     metricTotal: "Total requests",
     metricNew: "New",
@@ -3600,10 +3621,18 @@ Object.assign(window.BlackSeaI18N.en, {
     providerServiceLabel: "Service:",
     matchingEmptyTitle: "No matching providers are available yet.",
     matchingEmptyCopy: "Approve and enable providers in the network layer to surface matches here.",
+    notAvailable: "n/a",
+    internalNotesPlaceholder: "Private notes for the admin team",
     timelineEyebrow: "Activity timeline",
     timelineTitle: "Newest first",
     timelineEmptyTitle: "No timeline entries yet.",
-    timelineEmptyCopy: "This request will start collecting events after the next save."
+    timelineEmptyCopy: "This request will start collecting events after the next save.",
+    serviceRequestStatusNew: "New",
+    serviceRequestStatusAssigned: "Assigned",
+    serviceRequestStatusCompleted: "Completed",
+    serviceRequestEventCreated: "Request created",
+    serviceRequestEventStatusUpdated: "Status updated",
+    serviceRequestEventCompleted: "Request completed"
   }
 });
 
@@ -3630,6 +3659,12 @@ Object.assign(window.BlackSeaI18N.fr, {
     successTitle: "Merci. Votre demande de service a été enregistrée.",
     successCopy: "Nous examinerons la demande et afficherons les prestataires correspondant à la catégorie choisie.",
     successStatus: "Statut : new",
+    serviceRequestStatusNew: "Nouvelle",
+    serviceRequestStatusAssigned: "Attribuée",
+    serviceRequestStatusCompleted: "Terminée",
+    serviceRequestEventCreated: "Demande créée",
+    serviceRequestEventStatusUpdated: "Statut mis à jour",
+    serviceRequestEventCompleted: "Demande terminée",
     formEyebrow: "Formulaire de demande",
     formTitle: "Partagez les détails du bien et le service souhaité.",
     formCopy: "Nous gardons la demande courte pour qu'elle soit facile à envoyer et à examiner.",
@@ -3688,6 +3723,7 @@ Object.assign(window.BlackSeaI18N.fr, {
     heroEyebrow: "Réseau de demandes de service",
     heroTitle: "Demandes de service publiques",
     heroCopy: "Les demandes des propriétaires sont stockées en privé et dirigées vers des prestataires approuvés.",
+    backToCockpit: "Retour au cockpit",
     publicFormCta: "Ouvrir le formulaire public",
     metricTotal: "Demandes totales",
     metricNew: "Nouvelles",
@@ -3731,7 +3767,13 @@ Object.assign(window.BlackSeaI18N.fr, {
     timelineEyebrow: "Chronologie des actions",
     timelineTitle: "Les plus récents d'abord",
     timelineEmptyTitle: "Aucune entrée dans la chronologie pour le moment.",
-    timelineEmptyCopy: "Cette demande commencera à collecter des événements après la prochaine sauvegarde."
+    timelineEmptyCopy: "Cette demande commencera à collecter des événements après la prochaine sauvegarde.",
+    serviceRequestStatusNew: "Nouvelle",
+    serviceRequestStatusAssigned: "Attribuée",
+    serviceRequestStatusCompleted: "Terminée",
+    serviceRequestEventCreated: "Demande créée",
+    serviceRequestEventStatusUpdated: "Statut mis à jour",
+    serviceRequestEventCompleted: "Demande terminée"
   }
 });
 
@@ -3758,6 +3800,12 @@ Object.assign(window.BlackSeaI18N.ru, {
     successTitle: "Спасибо. Ваш запрос на услугу сохранён.",
     successCopy: "Мы рассмотрим запрос и покажем подходящих поставщиков для выбранной категории.",
     successStatus: "Статус: new",
+    serviceRequestStatusNew: "Новая",
+    serviceRequestStatusAssigned: "Назначена",
+    serviceRequestStatusCompleted: "Завершена",
+    serviceRequestEventCreated: "Запрос создан",
+    serviceRequestEventStatusUpdated: "Статус обновлён",
+    serviceRequestEventCompleted: "Запрос завершён",
     formEyebrow: "Форма запроса",
     formTitle: "Поделитесь данными об объекте и нужной услуге.",
     formCopy: "Мы держим запрос коротким, чтобы его было легко отправить и проверить.",
@@ -3816,6 +3864,7 @@ Object.assign(window.BlackSeaI18N.ru, {
     heroEyebrow: "Сеть запросов услуг",
     heroTitle: "Публичные запросы на услуги",
     heroCopy: "Запросы от владельцев хранятся конфиденциально и направляются одобренным поставщикам.",
+    backToCockpit: "Назад к кокпиту",
     publicFormCta: "Открыть публичную форму",
     metricTotal: "Всего запросов",
     metricNew: "Новые",
@@ -3859,8 +3908,50 @@ Object.assign(window.BlackSeaI18N.ru, {
     timelineEyebrow: "Лента событий",
     timelineTitle: "Сначала новые",
     timelineEmptyTitle: "Пока нет записей в ленте.",
-    timelineEmptyCopy: "Этот запрос начнёт собирать события после следующего сохранения."
+    timelineEmptyCopy: "Этот запрос начнёт собирать события после следующего сохранения.",
+    serviceRequestStatusNew: "Новая",
+    serviceRequestStatusAssigned: "Назначена",
+    serviceRequestStatusCompleted: "Завершена",
+    serviceRequestEventCreated: "Запрос создан",
+    serviceRequestEventStatusUpdated: "Статус обновлён",
+    serviceRequestEventCompleted: "Запрос завершён"
   }
+});
+
+Object.assign(window.BlackSeaI18N.bg.requestService, {
+  notAvailable: "н/а"
+});
+
+Object.assign(window.BlackSeaI18N.bg.adminServiceRequests, {
+  notAvailable: "н/а",
+  internalNotesPlaceholder: "Поверителни бележки за админ екипа"
+});
+
+Object.assign(window.BlackSeaI18N.en.requestService, {
+  notAvailable: "n/a"
+});
+
+Object.assign(window.BlackSeaI18N.en.adminServiceRequests, {
+  notAvailable: "n/a",
+  internalNotesPlaceholder: "Private notes for the admin team"
+});
+
+Object.assign(window.BlackSeaI18N.fr.requestService, {
+  notAvailable: "n/d"
+});
+
+Object.assign(window.BlackSeaI18N.fr.adminServiceRequests, {
+  notAvailable: "n/d",
+  internalNotesPlaceholder: "Notes privées pour l'équipe admin"
+});
+
+Object.assign(window.BlackSeaI18N.ru.requestService, {
+  notAvailable: "н/д"
+});
+
+Object.assign(window.BlackSeaI18N.ru.adminServiceRequests, {
+  notAvailable: "н/д",
+  internalNotesPlaceholder: "Конфиденциальные заметки для админ-команды"
 });
 
 
