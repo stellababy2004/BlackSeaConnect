@@ -108,6 +108,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
                 "experience_years": 8,
                 "description": "Premium coastal cleaning and turnaround support for villas and apartments.",
                 "website_or_social": "https://example.com",
+                "featured": True,
+                "badges": ["Premium", "Verified"],
+                "photo_url": "https://example.com/sea-breeze.jpg",
+                "logo_url": "",
                 "consent": True,
                 "internal_notes": "",
                 "timeline": [],
@@ -126,6 +130,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
                 "experience_years": 6,
                 "description": "Reliable airport and marina transfers across the coast.",
                 "website_or_social": "",
+                "featured": False,
+                "badges": ["Fast response"],
+                "photo_url": "",
+                "logo_url": "https://example.com/transfers-logo.png",
                 "consent": True,
                 "internal_notes": "",
                 "timeline": [],
@@ -144,6 +152,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
                 "experience_years": 4,
                 "description": "Laundry support for short-stay properties.",
                 "website_or_social": "",
+                "featured": False,
+                "badges": [],
+                "photo_url": "",
+                "logo_url": "",
                 "consent": True,
                 "internal_notes": "",
                 "timeline": [],
@@ -162,6 +174,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
                 "experience_years": 11,
                 "description": "Electrical maintenance for coastal properties.",
                 "website_or_social": "",
+                "featured": False,
+                "badges": [],
+                "photo_url": "",
+                "logo_url": "",
                 "consent": True,
                 "internal_notes": "",
                 "timeline": [],
@@ -352,7 +368,14 @@ class ProfessionalApplicationTests(unittest.TestCase):
         with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
             response = self.client.post(
                 "/admin/professionals/prof-3/update",
-                data={"status": "approved", "internal_notes": "Approved after review."},
+                data={
+                    "status": "approved",
+                    "internal_notes": "Approved after review.",
+                    "featured": "1",
+                    "badges": "Premium, Verified",
+                    "photo_url": "https://example.com/laundry.jpg",
+                    "logo_url": "https://example.com/laundry-logo.png",
+                },
                 headers=self._auth_headers(),
             )
 
@@ -360,6 +383,10 @@ class ProfessionalApplicationTests(unittest.TestCase):
         updated = self._read_applications()[0]
         self.assertEqual(updated["status"], "approved")
         self.assertEqual(updated["internal_notes"], "Approved after review.")
+        self.assertTrue(updated["featured"])
+        self.assertEqual(updated["badges"], ["Premium", "Verified"])
+        self.assertEqual(updated["photo_url"], "https://example.com/laundry.jpg")
+        self.assertEqual(updated["logo_url"], "https://example.com/laundry-logo.png")
         self.assertEqual(len(updated["timeline"]), 1)
         self.assertEqual(updated["timeline"][0]["type"], "PROFESSIONAL_APPLICATION_STATUS_UPDATED")
 
@@ -425,8 +452,11 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn("Featured providers", html)
         self.assertIn("Sea Breeze Cleaning", html)
         self.assertIn("Black Sea Transfers", html)
+        self.assertIn("Premium", html)
+        self.assertIn("Verified", html)
         self.assertNotIn("Blue Coast Laundry", html)
         self.assertNotIn("Coastal Electric", html)
         self.assertIn("Cleaning", html)
@@ -465,6 +495,8 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Black Sea Transfers", html)
         self.assertIn("Burgas", html)
         self.assertIn("Airport transfer", html)
+        self.assertIn("Fast response", html)
+        self.assertIn("https://example.com/transfers-logo.png", html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)

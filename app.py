@@ -91,6 +91,28 @@ def _network_service_category_items():
     ]
 
 
+def _normalize_professional_badges(raw_badges):
+    if isinstance(raw_badges, list):
+        items = raw_badges
+    elif isinstance(raw_badges, str):
+        items = raw_badges.replace("\r", "\n").replace("|", "\n").replace(",", "\n").split("\n")
+    else:
+        items = []
+
+    badges = []
+    for item in items:
+        badge = str(item or "").strip()
+        if badge and badge not in badges:
+            badges.append(badge)
+    return badges
+
+
+def _normalize_bool_field(value):
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
 def _normalize_network_service_category(service_type):
     normalized = str(service_type or "").strip().lower()
     if normalized in {"cleaning"}:
@@ -123,6 +145,8 @@ def _build_network_provider(record):
     provider = dict(record)
     provider["category"] = _normalize_network_service_category(provider.get("service_type"))
     provider["category_key"] = NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS[provider["category"]]
+    provider["badges"] = _normalize_professional_badges(provider.get("badges", []))
+    provider["display_badges"] = [badge for badge in ([provider["category"]] + provider["badges"] + (["Featured"] if provider.get("featured") else [])) if badge]
     provider["short_description"] = _shorten_public_description(provider.get("description", ""))
     return provider
 
@@ -133,6 +157,8 @@ def _load_network_providers():
         if _normalize_professional_status(record.get("status")) != "approved":
             continue
         providers.append(_build_network_provider(record))
+    providers.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    providers.sort(key=lambda item: bool(item.get("featured")), reverse=True)
     return providers
 
 
@@ -223,10 +249,12 @@ def network_directory():
     category = str(request.args.get("category", "")).strip()
     valid_category = category if category in NETWORK_SERVICE_CATEGORIES else ""
     providers = _filter_network_providers(_load_network_providers(), city=city, category=valid_category)
+    featured_providers = [provider for provider in providers if provider.get("featured")]
     grouped_providers = _group_network_providers(providers)
     return render_template(
         "network.html",
         providers=providers,
+        featured_providers=featured_providers,
         grouped_providers=grouped_providers,
         service_categories=_network_service_category_items(),
         city_query=city,
@@ -1025,10 +1053,12 @@ def _normalize_professional_application(record):
         normalized["experience_years"] = str(experience_years).strip()
 
     consent_value = normalized.get("consent", False)
-    if isinstance(consent_value, str):
-        normalized["consent"] = consent_value.strip().lower() in {"1", "true", "yes", "on"}
-    else:
-        normalized["consent"] = bool(consent_value)
+    normalized["consent"] = _normalize_bool_field(consent_value)
+
+    normalized["featured"] = _normalize_bool_field(normalized.get("featured", False))
+    normalized["badges"] = _normalize_professional_badges(normalized.get("badges", []))
+    normalized["photo_url"] = str(normalized.get("photo_url", "")).strip()
+    normalized["logo_url"] = str(normalized.get("logo_url", "")).strip()
 
     normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
     return normalized
@@ -1566,6 +1596,13 @@ def admin_professional_update(application_id):
 
         original_notes = str(record.get("internal_notes", "")).strip()
         new_notes = str(request.form.get("internal_notes", original_notes)).strip()
+        original_badges = _normalize_professional_badges(record.get("badges", []))
+        original_photo_url = str(record.get("photo_url", "")).strip()
+        original_logo_url = str(record.get("logo_url", "")).strip()
+        new_featured = request.form.get("featured") in {"1", "true", "yes", "on"}
+        new_badges = _normalize_professional_badges(request.form.get("badges", original_badges))
+        new_photo_url = str(request.form.get("photo_url", original_photo_url)).strip()
+        new_logo_url = str(request.form.get("logo_url", original_logo_url)).strip()
 
         if new_status != original_status:
             record["status"] = new_status
@@ -1578,6 +1615,10 @@ def admin_professional_update(application_id):
             )
 
         record["internal_notes"] = new_notes
+        record["featured"] = new_featured
+        record["badges"] = new_badges
+        record["photo_url"] = new_photo_url
+        record["logo_url"] = new_logo_url
         updated = True
         break
 

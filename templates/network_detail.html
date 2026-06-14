@@ -40,6 +40,15 @@
         <p class="hero__text" data-i18n="heroIntro">
           This provider is approved for the BlackSeaConnect network and is visible in the public directory.
         </p>
+        {% if provider.photo_url or provider.logo_url %}
+          <div class="network-detail__media">
+            {% if provider.photo_url %}
+              <img src="{{ provider.photo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-width:640px;max-height:280px;object-fit:cover;border-radius:28px;display:block;margin:1.5rem 0 1rem;">
+            {% else %}
+              <img src="{{ provider.logo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-width:320px;max-height:200px;object-fit:contain;border-radius:28px;display:block;margin:1.5rem 0 1rem;background:rgba(255,255,255,0.04);padding:16px;">
+            {% endif %}
+          </div>
+        {% endif %}
         <div class="hero__cta">
           <a class="button button--primary" href="/network" data-i18n="heroPrimaryCta">Back to directory</a>
           <a class="button button--secondary" href="/professionals/apply" data-i18n="heroSecondaryCta">Join the network</a>
@@ -48,6 +57,12 @@
           <span class="trust-strip__chip" data-i18n="highlightApproved">Approved provider</span>
           <span class="trust-strip__chip">{{ provider.city|e }}</span>
           <span class="trust-strip__chip" data-i18n="{{ provider.category_key|e }}">{{ provider.category|e }}</span>
+          {% for badge in provider.badges %}
+            <span class="trust-strip__chip">{{ badge|e }}</span>
+          {% endfor %}
+          {% if provider.featured %}
+            <span class="trust-strip__chip">Featured</span>
+          {% endif %}
         </div>
       </div>
     </div>

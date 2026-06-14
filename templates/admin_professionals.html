@@ -59,6 +59,14 @@
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
             </div>
             <h2>{{ item.full_name|e }}</h2>
+            <div class="trust-strip" aria-label="Provider badges">
+              {% if item.featured %}
+                <span class="trust-strip__chip">Featured</span>
+              {% endif %}
+              {% for badge in item.badges %}
+                <span class="trust-strip__chip">{{ badge|e }}</span>
+              {% endfor %}
+            </div>
             <p><strong>Company:</strong> {{ item.company_name|e }}</p>
             <p><strong>Service type:</strong> {{ item.service_type|e }}</p>
             <p><strong>City:</strong> {{ item.city|e }}</p>

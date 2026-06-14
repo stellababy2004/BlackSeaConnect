@@ -92,6 +92,28 @@
         <p>{{ item.description|e }}</p>
       </section>
 
+      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Public profile</p>
+            <h3>Badges and media</h3>
+          </div>
+        </div>
+        <div class="trust-strip" aria-label="Provider badges">
+          {% if item.featured %}
+            <span class="trust-strip__chip">Featured</span>
+          {% endif %}
+          {% for badge in item.badges %}
+            <span class="trust-strip__chip">{{ badge|e }}</span>
+          {% endfor %}
+          {% if not item.badges and not item.featured %}
+            <span class="trust-strip__chip">No badges set</span>
+          {% endif %}
+        </div>
+        <p><strong>Photo URL:</strong> {{ item.photo_url|e if item.photo_url else "n/a" }}</p>
+        <p><strong>Logo URL:</strong> {{ item.logo_url|e if item.logo_url else "n/a" }}</p>
+      </section>
+
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
         <label>
           <span>Update status</span>
@@ -104,6 +126,22 @@
         <label class="admin-pilot-status-form__notes">
           <span>Internal notes</span>
           <textarea name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+        </label>
+        <label>
+          <span>Featured provider</span>
+          <input type="checkbox" name="featured" value="1" {% if item.featured %}checked{% endif %}>
+        </label>
+        <label class="admin-pilot-status-form__notes">
+          <span>Badges</span>
+          <textarea name="badges" rows="3" placeholder="Premium, Fast response, Verified">{{ item.badges|join(', ')|e }}</textarea>
+        </label>
+        <label>
+          <span>Photo URL</span>
+          <input type="url" name="photo_url" value="{{ item.photo_url|e }}" placeholder="https://...">
+        </label>
+        <label>
+          <span>Logo URL</span>
+          <input type="url" name="logo_url" value="{{ item.logo_url|e }}" placeholder="https://...">
         </label>
         <button class="button button--primary" type="submit">Save application</button>
       </form>

@@ -95,6 +95,43 @@
       </div>
 
       {% if total_providers %}
+        {% if featured_providers %}
+          <section class="network-category-block" aria-labelledby="network-featured-title">
+            <div class="section-heading section-heading--trust">
+              <p class="section-heading__eyebrow">Featured providers</p>
+              <h3 id="network-featured-title">Featured providers</h3>
+            </div>
+
+            <div class="partner-grid">
+              {% for provider in featured_providers %}
+                <a class="partner-card" href="/network/{{ provider.id|e }}">
+                  {% if provider.photo_url or provider.logo_url %}
+                    <div class="partner-card__media">
+                      {% if provider.photo_url %}
+                        <img src="{{ provider.photo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-height:180px;object-fit:cover;border-radius:18px;display:block;margin-bottom:1rem;">
+                      {% else %}
+                        <img src="{{ provider.logo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-height:180px;object-fit:contain;border-radius:18px;display:block;margin-bottom:1rem;background:rgba(255,255,255,0.04);padding:12px;">
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                  <div class="trust-strip" aria-label="Provider badges">
+                    {% for badge in provider.display_badges %}
+                      <span class="trust-strip__chip">{{ badge|e }}</span>
+                    {% endfor %}
+                  </div>
+                  <span data-i18n="cardCompanyLabel">Company</span>
+                  <strong>{{ provider.company_name|e }}</strong>
+                  <p><strong data-i18n="cardCityLabel">City:</strong> {{ provider.city|e }}</p>
+                  <p><strong data-i18n="cardServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
+                  <p><strong data-i18n="cardLanguagesLabel">Languages:</strong> {{ provider.languages|e or "n/a" }}</p>
+                  <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
+                  <span class="button button--ghost" data-i18n="cardViewDetails">View details</span>
+                </a>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
         {% for group in grouped_providers %}
           {% if group.providers %}
             <section class="network-category-block" aria-labelledby="network-category-{{ loop.index }}">
@@ -106,6 +143,20 @@
               <div class="partner-grid">
                 {% for provider in group.providers %}
                   <a class="partner-card" href="/network/{{ provider.id|e }}">
+                  {% if provider.photo_url or provider.logo_url %}
+                    <div class="partner-card__media">
+                      {% if provider.photo_url %}
+                        <img src="{{ provider.photo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-height:180px;object-fit:cover;border-radius:18px;display:block;margin-bottom:1rem;">
+                      {% else %}
+                        <img src="{{ provider.logo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-height:180px;object-fit:contain;border-radius:18px;display:block;margin-bottom:1rem;background:rgba(255,255,255,0.04);padding:12px;">
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                    <div class="trust-strip" aria-label="Provider badges">
+                      {% for badge in provider.display_badges %}
+                        <span class="trust-strip__chip">{{ badge|e }}</span>
+                      {% endfor %}
+                    </div>
                     <span data-i18n="cardCompanyLabel">Company</span>
                     <strong>{{ provider.company_name|e }}</strong>
                     <p><strong data-i18n="cardCityLabel">City:</strong> {{ provider.city|e }}</p>
