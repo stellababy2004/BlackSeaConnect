@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="pageTitle">BlackSea Connect | Provider Profile</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/" data-i18n="navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Professionals</a>
+          <a class="site-nav__link is-active" href="/network" data-i18n="navNetwork">Network</a>
+          <a class="site-nav__link" href="/professionals/apply" data-i18n="navApply">Apply</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="/professionals/apply" data-i18n="topApplyCta">Apply now</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="heroEyebrow">Approved provider profile</p>
+        <h1>{{ provider.company_name|e }}</h1>
+        <p class="hero__text" data-i18n="heroIntro">
+          This provider is approved for the BlackSeaConnect network and is visible in the public directory.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="/network" data-i18n="heroPrimaryCta">Back to directory</a>
+          <a class="button button--secondary" href="/professionals/apply" data-i18n="heroSecondaryCta">Join the network</a>
+        </div>
+        <div class="trust-strip" aria-label="Provider highlights">
+          <span class="trust-strip__chip" data-i18n="highlightApproved">Approved provider</span>
+          <span class="trust-strip__chip">{{ provider.city|e }}</span>
+          <span class="trust-strip__chip" data-i18n="{{ provider.category_key|e }}">{{ provider.category|e }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="cta-panel" aria-labelledby="network-detail-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow" data-i18n="detailEyebrow">Provider details</p>
+        <h2 id="network-detail-title" data-i18n="detailTitle">Information for owners and guests.</h2>
+        <p class="cta-panel__copy" data-i18n="detailCopy">
+          Public profiles help owners and guests understand who is available in the approved coastal network.
+        </p>
+      </div>
+
+      <div class="trust-grid">
+        <article class="trust-card">
+          <h3 data-i18n="detailCompanyLabel">Company</h3>
+          <p>{{ provider.company_name|e or "n/a" }}</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailCityLabel">City</h3>
+          <p>{{ provider.city|e or "n/a" }}</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailServiceLabel">Service type</h3>
+          <p>{{ provider.service_type|e or "n/a" }}</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailLanguagesLabel">Languages</h3>
+          <p>{{ provider.languages|e or "n/a" }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta-panel" aria-labelledby="network-description-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow" data-i18n="descriptionEyebrow">Short description</p>
+        <h2 id="network-description-title" data-i18n="descriptionTitle">What this provider offers.</h2>
+        <p class="cta-panel__copy">{{ provider.short_description|e or provider.description|e or "" }}</p>
+      </div>
+      <div class="trust-grid">
+        <article class="trust-card">
+          <h3 data-i18n="detailContactLabel">Contact</h3>
+          <p>{{ provider.phone|e or "n/a" }}</p>
+          <p>{{ provider.email|e or "n/a" }}</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailWebsiteLabel">Website or social</h3>
+          <p>{{ provider.website_or_social|e or "n/a" }}</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailStatusLabel">Status</h3>
+          <p data-i18n="detailStatusValue">Approved</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p data-i18n="footerDescription">Coastal service network for trusted local professionals.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services" data-i18n="navServices">Services</a>
+      <a href="/partners" data-i18n="navPartners">Partners</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+      <a href="/professionals" data-i18n="navProfessionals">Professionals</a>
+      <a href="/professionals/apply" data-i18n="navApply">Apply</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
+      <p data-i18n="footerMeta">Approved providers appear here once the admin team marks them as approved.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="pageTitle">BlackSea Connect | Network</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/" data-i18n="navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Professionals</a>
+          <a class="site-nav__link is-active" href="/network" data-i18n="navNetwork">Network</a>
+          <a class="site-nav__link" href="/professionals/apply" data-i18n="navApply">Apply</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="/professionals/apply" data-i18n="topApplyCta">Apply now</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="heroEyebrow">Approved provider directory</p>
+        <h1 data-i18n="heroTitle">A public directory of approved coastal providers.</h1>
+        <p class="hero__text" data-i18n="heroIntro">
+          Only approved providers appear here. Search by city or filter by service category to find trusted local support along the Bulgarian Black Sea coast.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">Join the network</a>
+          <a class="button button--secondary" href="#network-search" data-i18n="heroSecondaryCta">Search providers</a>
+        </div>
+        <div class="trust-strip" aria-label="Directory highlights">
+          <span class="trust-strip__chip" data-i18n="highlightApproved">Approved only</span>
+          <span class="trust-strip__chip" data-i18n="highlightCity">Search by city</span>
+          <span class="trust-strip__chip" data-i18n="highlightCategory">Filter by category</span>
+          <span class="trust-strip__chip" data-i18n="highlightCoast">Bulgarian Black Sea coast</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="cta-panel cta-panel--pilot" id="network-search" aria-labelledby="network-search-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow" data-i18n="searchEyebrow">Search and filter</p>
+        <h2 id="network-search-title" data-i18n="searchTitle">Find the right provider for each property and guest need.</h2>
+        <p class="cta-panel__copy" data-i18n="searchCopy">
+          Approved providers appear automatically when the admin team sets their status to approved.
+        </p>
+      </div>
+
+      <form class="pilot-form" method="get" action="/network">
+        <div class="pilot-form__grid">
+          <label class="pilot-form__field">
+            <span data-i18n="cityLabel">City</span>
+            <input name="city" type="text" value="{{ city_query|e }}" placeholder="Varna, Burgas, Nessebar..." data-i18n-attr="placeholder:cityPlaceholder">
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="categoryLabel">Service category</span>
+            <select name="category" class="pilot-form__input">
+              <option value="" {% if not category_filter %}selected{% endif %} data-i18n="categoryAll">All categories</option>
+              {% for category in service_categories %}
+                <option value="{{ category.label|e }}" {% if category_filter == category.label %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+        <div class="pilot-form__footer">
+          <button class="button button--primary" type="submit" data-i18n="searchCta">Search</button>
+          <a class="button button--secondary" href="/network" data-i18n="resetCta">Reset</a>
+          <p class="pilot-form__hint">{{ total_providers }} approved providers</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="trust-layer" aria-labelledby="network-list-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow" data-i18n="listEyebrow">Approved providers</p>
+        <h2 id="network-list-title" data-i18n="listTitle">Grouped by service category.</h2>
+      </div>
+
+      {% if total_providers %}
+        {% for group in grouped_providers %}
+          {% if group.providers %}
+            <section class="network-category-block" aria-labelledby="network-category-{{ loop.index }}">
+              <div class="section-heading section-heading--trust">
+                <p class="section-heading__eyebrow" data-i18n="{{ group.key }}">{{ group.category }}</p>
+                <h3 id="network-category-{{ loop.index }}" data-i18n="{{ group.key }}">{{ group.category }}</h3>
+              </div>
+
+              <div class="partner-grid">
+                {% for provider in group.providers %}
+                  <a class="partner-card" href="/network/{{ provider.id|e }}">
+                    <span data-i18n="cardCompanyLabel">Company</span>
+                    <strong>{{ provider.company_name|e }}</strong>
+                    <p><strong data-i18n="cardCityLabel">City:</strong> {{ provider.city|e }}</p>
+                    <p><strong data-i18n="cardServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
+                    <p><strong data-i18n="cardLanguagesLabel">Languages:</strong> {{ provider.languages|e or "n/a" }}</p>
+                    <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
+                    <span class="button button--ghost" data-i18n="cardViewDetails">View details</span>
+                  </a>
+                {% endfor %}
+              </div>
+            </section>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <section class="cta-panel">
+          <div class="cta-panel__content">
+            <p class="section-heading__eyebrow" data-i18n="emptyEyebrow">No matches yet</p>
+            <h2 data-i18n="emptyTitle">No approved providers match your search.</h2>
+            <p class="cta-panel__copy" data-i18n="emptyCopy">
+              Try a different city or remove the category filter to see the full approved directory.
+            </p>
+          </div>
+          <a class="button button--primary" href="/network" data-i18n="emptyPrimaryCta">Clear filters</a>
+        </section>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p data-i18n="footerDescription">Coastal service network for trusted local professionals.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services" data-i18n="navServices">Services</a>
+      <a href="/partners" data-i18n="navPartners">Partners</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+      <a href="/professionals" data-i18n="navProfessionals">Professionals</a>
+      <a href="/professionals/apply" data-i18n="navApply">Apply</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
+      <p data-i18n="footerMeta">Approved providers appear here once the admin team marks them as approved.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

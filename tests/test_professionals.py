@@ -92,6 +92,82 @@ class ProfessionalApplicationTests(unittest.TestCase):
             "consent": "1",
         }
 
+    def _network_seed_records(self):
+        return [
+            {
+                "id": "provider-1",
+                "created_at": "2026-01-05T10:00:00Z",
+                "status": "approved",
+                "full_name": "Elena Petrova",
+                "company_name": "Sea Breeze Cleaning",
+                "service_type": "Cleaning",
+                "city": "Varna",
+                "phone": "+359888123456",
+                "email": "elena@example.com",
+                "languages": "Bulgarian, English",
+                "experience_years": 8,
+                "description": "Premium coastal cleaning and turnaround support for villas and apartments.",
+                "website_or_social": "https://example.com",
+                "consent": True,
+                "internal_notes": "",
+                "timeline": [],
+            },
+            {
+                "id": "provider-2",
+                "created_at": "2026-01-06T10:00:00Z",
+                "status": "approved",
+                "full_name": "Nikolay Ivanov",
+                "company_name": "Black Sea Transfers",
+                "service_type": "Airport transfer",
+                "city": "Burgas",
+                "phone": "+359888654321",
+                "email": "nikolay@example.com",
+                "languages": "Bulgarian, English, Russian",
+                "experience_years": 6,
+                "description": "Reliable airport and marina transfers across the coast.",
+                "website_or_social": "",
+                "consent": True,
+                "internal_notes": "",
+                "timeline": [],
+            },
+            {
+                "id": "provider-3",
+                "created_at": "2026-01-07T10:00:00Z",
+                "status": "pending",
+                "full_name": "Marina Georgieva",
+                "company_name": "Blue Coast Laundry",
+                "service_type": "Laundry",
+                "city": "Nessebar",
+                "phone": "+359888111222",
+                "email": "marina@example.com",
+                "languages": "Bulgarian, English",
+                "experience_years": 4,
+                "description": "Laundry support for short-stay properties.",
+                "website_or_social": "",
+                "consent": True,
+                "internal_notes": "",
+                "timeline": [],
+            },
+            {
+                "id": "provider-4",
+                "created_at": "2026-01-08T10:00:00Z",
+                "status": "rejected",
+                "full_name": "Peter Dimitrov",
+                "company_name": "Coastal Electric",
+                "service_type": "Electrical",
+                "city": "Varna",
+                "phone": "+359888333444",
+                "email": "peter@example.com",
+                "languages": "Bulgarian",
+                "experience_years": 11,
+                "description": "Electrical maintenance for coastal properties.",
+                "website_or_social": "",
+                "consent": True,
+                "internal_notes": "",
+                "timeline": [],
+            },
+        ]
+
     def test_professional_application_saves_successfully(self):
         payload = self._valid_payload()
         telegram_token = "telegram-test-token"
@@ -338,6 +414,60 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertNotIn("telegram-test-token", html)
         self.assertNotIn("Internal Server Error", html)
         self.assertNotIn("data/", html)
+
+    def test_network_directory_loads_and_shows_only_approved_providers(self):
+        self._seed_applications(self._network_seed_records())
+
+        response = self.client.get("/network")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn("Sea Breeze Cleaning", html)
+        self.assertIn("Black Sea Transfers", html)
+        self.assertNotIn("Blue Coast Laundry", html)
+        self.assertNotIn("Coastal Electric", html)
+        self.assertIn("Cleaning", html)
+        self.assertIn("Transfers", html)
+
+    def test_network_directory_filters_by_city(self):
+        self._seed_applications(self._network_seed_records())
+
+        response = self.client.get("/network?city=Varna")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Sea Breeze Cleaning", html)
+        self.assertNotIn("Black Sea Transfers", html)
+        self.assertNotIn("Blue Coast Laundry", html)
+        self.assertNotIn("Coastal Electric", html)
+
+    def test_network_directory_filters_by_category(self):
+        self._seed_applications(self._network_seed_records())
+
+        response = self.client.get("/network?category=Transfers")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Black Sea Transfers", html)
+        self.assertNotIn("Sea Breeze Cleaning", html)
+        self.assertNotIn("Blue Coast Laundry", html)
+
+    def test_network_detail_page_loads(self):
+        self._seed_applications(self._network_seed_records())
+
+        response = self.client.get("/network/provider-2")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Black Sea Transfers", html)
+        self.assertIn("Burgas", html)
+        self.assertIn("Airport transfer", html)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
 
 
 if __name__ == "__main__":

@@ -9,11 +9,15 @@
     "/demo/operations": "demo",
     "/guest/a-302": "guest",
     "/professionals": "professionals",
-    "/professionals/apply": "professionalsApply"
+    "/professionals/apply": "professionalsApply",
+    "/network": "network"
   };
   const warnedKeys = new Set();
 
   function getPageNamespace() {
+    if (window.location.pathname.startsWith("/network/")) {
+      return "network";
+    }
     return PAGE_NAMESPACE_BY_PATH[window.location.pathname] || "home";
   }
 

@@ -49,6 +49,26 @@ PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS = {
     "Photography": "professionals.professionalsServicePhotography",
     "Real estate support": "professionals.professionalsServiceRealEstateSupport",
 }
+NETWORK_SERVICE_CATEGORIES = (
+    "Cleaning",
+    "Property Management",
+    "Concierge",
+    "Transfers",
+    "Laundry",
+    "Plumbing",
+    "Electrical",
+    "Photography",
+)
+NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
+    "Cleaning": "network.networkCategoryCleaning",
+    "Property Management": "network.networkCategoryPropertyManagement",
+    "Concierge": "network.networkCategoryConcierge",
+    "Transfers": "network.networkCategoryTransfers",
+    "Laundry": "network.networkCategoryLaundry",
+    "Plumbing": "network.networkCategoryPlumbing",
+    "Electrical": "network.networkCategoryElectrical",
+    "Photography": "network.networkCategoryPhotography",
+}
 
 
 def _professional_service_category_items():
@@ -59,6 +79,95 @@ def _professional_service_category_items():
         }
         for category in PROFESSIONAL_SERVICE_CATEGORIES
     ]
+
+
+def _network_service_category_items():
+    return [
+        {
+            "label": category,
+            "key": NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+        }
+        for category in NETWORK_SERVICE_CATEGORIES
+    ]
+
+
+def _normalize_network_service_category(service_type):
+    normalized = str(service_type or "").strip().lower()
+    if normalized in {"cleaning"}:
+        return "Cleaning"
+    if normalized in {"property management", "maintenance", "real estate support"}:
+        return "Property Management"
+    if normalized in {"concierge"}:
+        return "Concierge"
+    if normalized in {"airport transfer", "transfer", "transfers"}:
+        return "Transfers"
+    if normalized in {"laundry"}:
+        return "Laundry"
+    if normalized in {"plumbing"}:
+        return "Plumbing"
+    if normalized in {"electrical"}:
+        return "Electrical"
+    if normalized in {"photography"}:
+        return "Photography"
+    return "Property Management"
+
+
+def _shorten_public_description(description, limit=160):
+    text = str(description or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 1)].rstrip() + "…"
+
+
+def _build_network_provider(record):
+    provider = dict(record)
+    provider["category"] = _normalize_network_service_category(provider.get("service_type"))
+    provider["category_key"] = NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS[provider["category"]]
+    provider["short_description"] = _shorten_public_description(provider.get("description", ""))
+    return provider
+
+
+def _load_network_providers():
+    providers = []
+    for record in _load_professional_applications():
+        if _normalize_professional_status(record.get("status")) != "approved":
+            continue
+        providers.append(_build_network_provider(record))
+    return providers
+
+
+def _find_network_provider(provider_id):
+    for record in _load_network_providers():
+        if str(record.get("id", "")) == str(provider_id):
+            return record
+    return None
+
+
+def _filter_network_providers(providers, city="", category=""):
+    city_filter = str(city or "").strip().lower()
+    category_filter = str(category or "").strip()
+    filtered = []
+
+    for provider in providers:
+        if city_filter and city_filter not in str(provider.get("city", "")).strip().lower():
+            continue
+        if category_filter and provider.get("category") != category_filter:
+            continue
+        filtered.append(provider)
+
+    return filtered
+
+
+def _group_network_providers(providers):
+    grouped = []
+    for category in NETWORK_SERVICE_CATEGORIES:
+        category_providers = [provider for provider in providers if provider.get("category") == category]
+        grouped.append({
+            "category": category,
+            "providers": category_providers,
+            "key": NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+        })
+    return grouped
 
 
 @app.after_request
@@ -105,6 +214,37 @@ def professionals():
     return render_template(
         "professionals.html",
         service_categories=_professional_service_category_items(),
+    )
+
+
+@app.route("/network")
+def network_directory():
+    city = str(request.args.get("city", "")).strip()
+    category = str(request.args.get("category", "")).strip()
+    valid_category = category if category in NETWORK_SERVICE_CATEGORIES else ""
+    providers = _filter_network_providers(_load_network_providers(), city=city, category=valid_category)
+    grouped_providers = _group_network_providers(providers)
+    return render_template(
+        "network.html",
+        providers=providers,
+        grouped_providers=grouped_providers,
+        service_categories=_network_service_category_items(),
+        city_query=city,
+        category_filter=valid_category,
+        total_providers=len(providers),
+    )
+
+
+@app.route("/network/<provider_id>")
+def network_provider_detail(provider_id):
+    provider = _find_network_provider(provider_id)
+    if not provider:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    return render_template(
+        "network_detail.html",
+        provider=provider,
+        service_categories=_network_service_category_items(),
     )
 
 
