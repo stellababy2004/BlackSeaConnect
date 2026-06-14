@@ -69,6 +69,12 @@ NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
     "Electrical": "network.networkCategoryElectrical",
     "Photography": "network.networkCategoryPhotography",
 }
+SERVICE_REQUEST_STATUS_VALUES = ("new", "assigned", "completed")
+SERVICE_REQUEST_STATUS_TRANSITIONS = {
+    "new": "new",
+    "assigned": "assigned",
+    "completed": "completed",
+}
 
 
 def _professional_service_category_items():
@@ -89,6 +95,18 @@ def _network_service_category_items():
         }
         for category in NETWORK_SERVICE_CATEGORIES
     ]
+
+
+def _service_request_fallback_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("name", "")),
+        str(record.get("property_city", "")),
+        str(record.get("service_category", "")),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"service-request-{digest[:16]}"
 
 
 def _normalize_professional_badges(raw_badges):
@@ -146,6 +164,7 @@ def _build_network_provider(record):
     provider["category"] = _normalize_network_service_category(provider.get("service_type"))
     provider["category_key"] = NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS[provider["category"]]
     provider["badges"] = _normalize_professional_badges(provider.get("badges", []))
+    provider["available_for_requests"] = _normalize_bool_field(provider.get("available_for_requests", True))
     provider["display_badges"] = [badge for badge in ([provider["category"]] + provider["badges"] + (["Featured"] if provider.get("featured") else [])) if badge]
     provider["short_description"] = _shorten_public_description(provider.get("description", ""))
     return provider
@@ -196,6 +215,235 @@ def _group_network_providers(providers):
     return grouped
 
 
+def _normalize_service_request_status(status):
+    normalized = str(status or "").strip().lower()
+    return normalized if normalized in SERVICE_REQUEST_STATUS_VALUES else "new"
+
+
+def _normalize_service_request(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _service_request_fallback_id(normalized)
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+    normalized["status"] = _normalize_service_request_status(normalized.get("status", "new"))
+
+    for field in (
+        "name",
+        "email",
+        "phone",
+        "property_city",
+        "property_type",
+        "service_category",
+        "preferred_date",
+        "description",
+        "assigned_provider_id",
+        "assigned_provider_name",
+        "assigned_provider_company",
+        "internal_notes",
+    ):
+        normalized[field] = str(normalized.get(field, "")).strip()
+
+    normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
+    return normalized
+
+
+def _load_service_requests():
+    path = Path("data") / "service_requests.jsonl"
+    requests_list = []
+
+    if not path.exists():
+        return requests_list
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_service_request(record)
+            if normalized:
+                requests_list.append(normalized)
+
+    requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return requests_list
+
+
+def _save_service_requests(requests_list):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    path = data_dir / "service_requests.jsonl"
+    with path.open("w", encoding="utf-8") as f:
+        for record in requests_list:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _find_service_request(request_id):
+    for record in _load_service_requests():
+        if str(record.get("id", "")) == str(request_id):
+            return record
+    return None
+
+
+def _service_request_status_counts(requests_list):
+    counts = {status: 0 for status in SERVICE_REQUEST_STATUS_VALUES}
+    for record in requests_list:
+        status = _normalize_service_request_status(record.get("status", "new"))
+        if status in counts:
+            counts[status] += 1
+    return counts
+
+
+def _append_service_request_timeline_event(record, event_type, title, detail="", status=None):
+    timeline = list(record.get("timeline") or [])
+    timeline.append({
+        "type": event_type,
+        "created_at": _utc_now_iso(),
+        "title": title,
+        "detail": detail,
+        "status": _normalize_service_request_status(status or record.get("status", "new")),
+    })
+    record["timeline"] = timeline
+
+
+def _service_request_timeline_events(record):
+    timeline = _normalize_professional_application_timeline(record.get("timeline"))
+    if timeline:
+        return timeline
+
+    created_at = str(record.get("created_at", "")).strip()
+    if not created_at:
+        return []
+
+    return [{
+        "type": "SERVICE_REQUEST_CREATED",
+        "created_at": created_at,
+        "title": f"Service request created: {record.get('name') or record.get('property_city') or 'Unnamed request'}",
+        "detail": f"{record.get('service_category', '')} · {record.get('property_city', '')}",
+        "status": _normalize_service_request_status(record.get("status", "new")),
+    }]
+
+
+def _service_request_matching_providers(service_category):
+    category = str(service_category or "").strip()
+    if category not in NETWORK_SERVICE_CATEGORIES:
+        return []
+
+    providers = [
+        provider
+        for provider in _load_network_providers()
+        if provider.get("category") == category and _normalize_bool_field(provider.get("available_for_requests", True))
+    ]
+    providers.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    providers.sort(key=lambda item: bool(item.get("featured")), reverse=True)
+    return providers
+
+
+def _build_service_request_telegram_text(record, admin_detail_url):
+    lines = [
+        "New Service Request",
+        f"name: {record.get('name', '')}",
+        f"email: {record.get('email', '')}",
+        f"phone: {record.get('phone', '')}",
+        f"property_city: {record.get('property_city', '')}",
+        f"property_type: {record.get('property_type', '')}",
+        f"service_category: {record.get('service_category', '')}",
+        f"preferred_date: {record.get('preferred_date', '')}",
+        f"status: {_normalize_service_request_status(record.get('status', 'new')).upper()}",
+        f"admin_detail_url: {admin_detail_url}",
+    ]
+    return "\n".join(lines)
+
+
+def _send_service_request_via_telegram(record, admin_detail_url, telegram_bot_token, telegram_chat_id):
+    telegram_text = _build_service_request_telegram_text(record, admin_detail_url)
+    telegram_url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": telegram_text,
+        "disable_web_page_preview": "true",
+    }
+
+    request = urllib.request.Request(
+        telegram_url,
+        data=urllib.parse.urlencode(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response_status = getattr(response, "status", getattr(response, "code", None))
+            if response_status not in (200, 201, 202):
+                app.logger.warning("Service request notification send failed via Telegram: unexpected status %s.", response_status)
+                return False, "telegram_bad_status"
+    except urllib.error.HTTPError as exc:
+        response_body = ""
+        try:
+            response_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            response_body = "<unreadable>"
+        app.logger.warning(
+            "Service request notification send failed via Telegram: HTTP %s %s. Body: %s",
+            exc.code,
+            exc.reason,
+            response_body,
+        )
+        return False, "telegram_send_failed"
+    except Exception as exc:
+        app.logger.warning("Service request notification send failed via Telegram: %s", type(exc).__name__)
+        return False, "telegram_send_failed"
+
+    return True, None
+
+
+def _send_service_request_notification(record, admin_detail_url):
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+
+    if not telegram_bot_token or not telegram_chat_id:
+        return False, "telegram_not_configured"
+
+    return _send_service_request_via_telegram(
+        record,
+        admin_detail_url,
+        telegram_bot_token,
+        telegram_chat_id,
+    )
+
+
+def _queue_service_request_notification(record, admin_detail_url):
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if not telegram_bot_token or not telegram_chat_id:
+        return
+
+    Thread(
+        target=_send_service_request_notification,
+        args=(record, admin_detail_url),
+        daemon=True,
+    ).start()
+
+
+def _build_home_counters():
+    providers = _load_network_providers()
+    service_requests = _load_service_requests()
+    cities = {
+        str(provider.get("city", "")).strip().lower()
+        for provider in providers
+        if str(provider.get("city", "")).strip()
+    }
+    return {
+        "providers": len(providers),
+        "cities": len(cities),
+        "service_requests": len(service_requests),
+    }
+
+
 @app.after_request
 def force_utf8_charset(response):
     mimetype = response.mimetype or ""
@@ -207,7 +455,7 @@ def force_utf8_charset(response):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", home_counters=_build_home_counters())
 
 
 @app.route("/guest/a-302")
@@ -241,6 +489,111 @@ def professionals():
         "professionals.html",
         service_categories=_professional_service_category_items(),
     )
+
+
+@app.route("/request-service", methods=["GET", "POST"])
+def request_service():
+    form_values = {
+        "name": "",
+        "email": "",
+        "phone": "",
+        "property_city": "",
+        "property_type": "",
+        "service_category": str(request.args.get("service_category", "")).strip(),
+        "preferred_date": "",
+        "description": "",
+    }
+    errors = {}
+    request_record = None
+    submitted = False
+
+    if request.method == "POST":
+        form_values.update({
+            "name": str(request.form.get("name", "")).strip(),
+            "email": str(request.form.get("email", "")).strip(),
+            "phone": str(request.form.get("phone", "")).strip(),
+            "property_city": str(request.form.get("property_city", "")).strip(),
+            "property_type": str(request.form.get("property_type", "")).strip(),
+            "service_category": str(request.form.get("service_category", "")).strip(),
+            "preferred_date": str(request.form.get("preferred_date", "")).strip(),
+            "description": str(request.form.get("description", "")).strip(),
+        })
+
+        required_fields = {
+            "name": "nameRequiredError",
+            "email": "emailRequiredError",
+            "phone": "phoneRequiredError",
+            "property_city": "propertyCityRequiredError",
+            "property_type": "propertyTypeRequiredError",
+            "service_category": "serviceCategoryRequiredError",
+            "preferred_date": "preferredDateRequiredError",
+            "description": "descriptionRequiredError",
+        }
+
+        for field, error_key in required_fields.items():
+            if not form_values[field]:
+                errors[field] = error_key
+
+        if form_values["service_category"] and form_values["service_category"] not in NETWORK_SERVICE_CATEGORIES:
+            errors["service_category"] = "serviceCategoryInvalidError"
+
+        if not errors:
+            request_record = {
+                "id": uuid4().hex,
+                "created_at": _utc_now_iso(),
+                "status": "new",
+                "name": form_values["name"],
+                "email": form_values["email"],
+                "phone": form_values["phone"],
+                "property_city": form_values["property_city"],
+                "property_type": form_values["property_type"],
+                "service_category": form_values["service_category"],
+                "preferred_date": form_values["preferred_date"],
+                "description": form_values["description"],
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "internal_notes": "",
+                "timeline": [],
+            }
+            _append_service_request_timeline_event(
+                request_record,
+                "SERVICE_REQUEST_CREATED",
+                f"Service request created: {request_record.get('name') or request_record.get('property_city') or 'Unnamed request'}",
+                f"{request_record.get('service_category', '')} · {request_record.get('property_city', '')}",
+                status="new",
+            )
+
+            data_dir = Path("data")
+            data_dir.mkdir(exist_ok=True)
+            try:
+                with (data_dir / "service_requests.jsonl").open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
+            except Exception:
+                return render_template(
+                    "request_service.html",
+                    form_values=form_values,
+                    errors={"general": "saveError"},
+                    service_categories=_network_service_category_items(),
+                    matching_providers=_service_request_matching_providers(form_values["service_category"]),
+                    submitted=False,
+                    request_record=None,
+                ), 500
+
+            submitted = True
+            admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
+            _queue_service_request_notification(request_record, admin_detail_url)
+
+    matching_providers = _service_request_matching_providers(form_values["service_category"])
+    return render_template(
+        "request_service.html",
+        form_values=form_values,
+        errors=errors,
+        service_categories=_network_service_category_items(),
+        matching_providers=matching_providers,
+        submitted=submitted,
+        request_record=request_record,
+    ), (400 if errors else 200)
 
 
 @app.route("/network")
@@ -1059,6 +1412,7 @@ def _normalize_professional_application(record):
     normalized["badges"] = _normalize_professional_badges(normalized.get("badges", []))
     normalized["photo_url"] = str(normalized.get("photo_url", "")).strip()
     normalized["logo_url"] = str(normalized.get("logo_url", "")).strip()
+    normalized["available_for_requests"] = _normalize_bool_field(normalized.get("available_for_requests", True))
 
     normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
     return normalized
@@ -1599,10 +1953,12 @@ def admin_professional_update(application_id):
         original_badges = _normalize_professional_badges(record.get("badges", []))
         original_photo_url = str(record.get("photo_url", "")).strip()
         original_logo_url = str(record.get("logo_url", "")).strip()
+        original_available_for_requests = _normalize_bool_field(record.get("available_for_requests", True))
         new_featured = request.form.get("featured") in {"1", "true", "yes", "on"}
         new_badges = _normalize_professional_badges(request.form.get("badges", original_badges))
         new_photo_url = str(request.form.get("photo_url", original_photo_url)).strip()
         new_logo_url = str(request.form.get("logo_url", original_logo_url)).strip()
+        new_available_for_requests = request.form.get("available_for_requests") in {"1", "true", "yes", "on"}
 
         if new_status != original_status:
             record["status"] = new_status
@@ -1619,6 +1975,7 @@ def admin_professional_update(application_id):
         record["badges"] = new_badges
         record["photo_url"] = new_photo_url
         record["logo_url"] = new_logo_url
+        record["available_for_requests"] = new_available_for_requests
         updated = True
         break
 
@@ -1627,6 +1984,105 @@ def admin_professional_update(application_id):
 
     _save_professional_applications(applications)
     return redirect(url_for("admin_professional_detail", application_id=application_id))
+
+
+@app.get("/admin/service-requests")
+@admin_required
+def admin_service_requests():
+    requests_list = _load_service_requests()
+    counts = _service_request_status_counts(requests_list)
+    return render_template(
+        "admin_service_requests.html",
+        requests=requests_list,
+        counts=counts,
+    )
+
+
+@app.get("/admin/service-requests/<request_id>")
+@admin_required
+def admin_service_request_detail(request_id):
+    record = _find_service_request(request_id)
+    if not record:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    matching_providers = _service_request_matching_providers(record.get("service_category"))
+    return render_template(
+        "admin_service_request_detail.html",
+        item=record,
+        matching_providers=matching_providers,
+        status_options=[{"value": status, "label": status.upper()} for status in SERVICE_REQUEST_STATUS_VALUES],
+        timeline=list(reversed(_service_request_timeline_events(record))),
+    )
+
+
+@app.post("/admin/service-requests/<request_id>/update")
+@admin_required
+def admin_service_request_update(request_id):
+    requests_list = _load_service_requests()
+    updated = False
+
+    for record in requests_list:
+        if str(record.get("id", "")) != str(request_id):
+            continue
+
+        raw_status = str(request.form.get("status", "")).strip()
+        original_status = _normalize_service_request_status(record.get("status", "new"))
+        if raw_status:
+            new_status = _normalize_service_request_status(raw_status)
+            if new_status != raw_status.lower():
+                return jsonify({"ok": False, "error": "invalid_status"}), 400
+        else:
+            new_status = original_status
+
+        original_notes = str(record.get("internal_notes", "")).strip()
+        new_notes = str(request.form.get("internal_notes", original_notes)).strip()
+        original_provider_id = str(record.get("assigned_provider_id", "")).strip()
+        selected_provider_id = str(request.form.get("assigned_provider_id", original_provider_id)).strip()
+
+        selected_provider = None
+        if selected_provider_id:
+            for provider in _load_network_providers():
+                if str(provider.get("id", "")) == selected_provider_id:
+                    selected_provider = provider
+                    break
+
+        if new_status == "assigned" and selected_provider_id and not selected_provider:
+            return jsonify({"ok": False, "error": "invalid_provider"}), 400
+
+        if selected_provider:
+            record["assigned_provider_id"] = selected_provider_id
+            record["assigned_provider_name"] = selected_provider.get("full_name", "")
+            record["assigned_provider_company"] = selected_provider.get("company_name", "")
+
+        record["internal_notes"] = new_notes
+
+        if new_status != original_status:
+            record["status"] = new_status
+            _append_service_request_timeline_event(
+                record,
+                "SERVICE_REQUEST_STATUS_UPDATED",
+                f"Status changed from {original_status.upper()} to {new_status.upper()}",
+                new_notes or record.get("service_category", ""),
+                status=new_status,
+            )
+
+        if new_status == "completed":
+            _append_service_request_timeline_event(
+                record,
+                "SERVICE_REQUEST_COMPLETED",
+                "Service request completed",
+                new_notes or record.get("assigned_provider_company", "") or record.get("service_category", ""),
+                status=new_status,
+            )
+
+        updated = True
+        break
+
+    if not updated:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    _save_service_requests(requests_list)
+    return redirect(url_for("admin_service_request_detail", request_id=request_id))
 
 @app.get("/admin")
 @admin_required

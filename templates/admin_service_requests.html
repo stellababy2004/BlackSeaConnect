@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="pageTitle">BlackSea Connect | Service Requests</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow" data-i18n="heroEyebrow">Service request network</p>
+        <h1 data-i18n="heroTitle">Public service requests</h1>
+        <p data-i18n="heroCopy">Requests from owners are stored privately and routed to approved providers.</p>
+      </div>
+      <div class="admin-cockpit-actions">
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--secondary" href="/admin">Back to cockpit</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+      </div>
+    </section>
+
+    <section class="admin-kpi-grid" aria-label="Service request metrics">
+      <article class="admin-kpi-card">
+        <span data-i18n="metricTotal">Total requests</span>
+        <strong>{{ requests|length }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span data-i18n="metricNew">New</span>
+        <strong>{{ counts.new }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span data-i18n="metricAssigned">Assigned</span>
+        <strong>{{ counts.assigned }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span data-i18n="metricCompleted">Completed</span>
+        <strong>{{ counts.completed }}</strong>
+      </article>
+    </section>
+
+    {% if requests %}
+      <section class="admin-pilot-list">
+        {% for item in requests %}
+          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/service-requests/{{ item.id|e }}" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.service_category ~ ' ' ~ item.status)|lower|e }}">
+            <div class="admin-pilot-card__topline">
+              <p class="eyebrow">{{ item.created_at|e }}</p>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+            </div>
+            <h2>{{ item.name|e }}</h2>
+            <p><strong data-i18n="cardCity">City:</strong> {{ item.property_city|e }}</p>
+            <p><strong data-i18n="cardType">Property:</strong> {{ item.property_type|e }}</p>
+            <p><strong data-i18n="cardCategory">Category:</strong> {{ item.service_category|e }}</p>
+            <p><strong data-i18n="cardDate">Preferred date:</strong> {{ item.preferred_date|e }}</p>
+            <p><strong data-i18n="cardAssigned">Assigned:</strong> {{ item.assigned_provider_company|e if item.assigned_provider_company else "n/a" }}</p>
+          </a>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="admin-cockpit-panel admin-empty-state">
+        <h2 data-i18n="emptyTitle">No service requests yet.</h2>
+        <p data-i18n="emptyCopy">Once a property owner sends a request, it will appear here in reverse chronological order.</p>
+      </section>
+    {% endif %}
+  </main>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

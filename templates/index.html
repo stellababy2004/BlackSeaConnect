@@ -35,6 +35,7 @@
           <a class="site-nav__link" href="/guest/a-302" data-i18n="home.navGuestPortal">Guest Portal</a>
           <a class="site-nav__link" href="/partners" data-i18n="home.navPartners">Partners</a>
           <a class="site-nav__link" href="/professionals" data-i18n="home.navProfessionals">Professionals</a>
+          <a class="site-nav__link" href="/professionals/apply" data-i18n="home.navApply">Apply</a>
           <a class="site-nav__link" href="/pilot-access" data-i18n="home.navPilotAccess">Pilot Access</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
@@ -60,6 +61,7 @@
         <div class="hero__cta">
           <a class="button button--primary" href="/demo/operations" data-i18n="home.homePrimaryCta">View the platform</a>
           <a class="button button--secondary" href="/services" data-i18n="home.homeSecondaryCta">Discover services</a>
+          <a class="button button--tertiary" href="/request-service" data-i18n="home.homeRequestServiceCta">Request service</a>
         </div>
         <div class="trust-strip" aria-label="Platform highlights">
           <span class="trust-strip__chip" data-i18n="home.homeChip1">guest coordination</span>
@@ -72,6 +74,31 @@
   </header>
 
   <main>
+    <section class="credibility-layer" aria-labelledby="home-counters-title">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow" data-i18n="home.homeCountersEyebrow">Live network snapshot</p>
+        <h2 id="home-counters-title" data-i18n="home.homeCountersTitle">A quiet system with active provider and request volume.</h2>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-card__icon">PR</span>
+          <h3><span data-i18n="home.homeCounterProvidersLabel">Providers</span></h3>
+          <p><strong>{{ home_counters.providers }}</strong></p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-card__icon">CT</span>
+          <h3><span data-i18n="home.homeCounterCitiesLabel">Cities</span></h3>
+          <p><strong>{{ home_counters.cities }}</strong></p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-card__icon">SR</span>
+          <h3><span data-i18n="home.homeCounterServiceRequestsLabel">Service requests</span></h3>
+          <p><strong>{{ home_counters.service_requests }}</strong></p>
+        </article>
+      </div>
+    </section>
+
     <section class="home-product" aria-labelledby="home-product-title">
       <div class="section-heading section-heading--product">
         <p class="section-heading__eyebrow" data-i18n="home.homeProductEyebrow">Live operations</p>

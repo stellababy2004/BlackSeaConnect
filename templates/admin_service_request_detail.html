@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="pageTitle">BlackSea Connect | Service Request Detail</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="admin-cockpit-page admin-pilot-detail-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow" data-i18n="heroEyebrow">Service request</p>
+        <h1 data-i18n="heroTitle">Request detail</h1>
+        <p data-i18n="heroCopy">Assign the request to an approved provider or mark it complete.</p>
+      </div>
+      <div class="admin-cockpit-actions">
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+      </div>
+    </section>
+
+    <article class="admin-pilot-card">
+      <div class="admin-pilot-card__topline">
+        <p class="eyebrow">{{ item.created_at|e }}</p>
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+      </div>
+
+      <h2>{{ item.name|e }}</h2>
+
+      <dl class="admin-pilot-details">
+        <div><dt data-i18n="detailId">ID</dt><dd>{{ item.id|e }}</dd></div>
+        <div><dt data-i18n="detailStatus">Status</dt><dd>{{ item.status|upper|e }}</dd></div>
+        <div><dt data-i18n="detailEmail">Email</dt><dd>{{ item.email|e }}</dd></div>
+        <div><dt data-i18n="detailPhone">Phone</dt><dd>{{ item.phone|e }}</dd></div>
+        <div><dt data-i18n="detailCity">Property city</dt><dd>{{ item.property_city|e }}</dd></div>
+        <div><dt data-i18n="detailType">Property type</dt><dd>{{ item.property_type|e }}</dd></div>
+        <div><dt data-i18n="detailCategory">Service category</dt><dd>{{ item.service_category|e }}</dd></div>
+        <div><dt data-i18n="detailDate">Preferred date</dt><dd>{{ item.preferred_date|e }}</dd></div>
+        <div><dt data-i18n="detailAssigned">Assigned provider</dt><dd>{{ item.assigned_provider_company|e if item.assigned_provider_company else "n/a" }}</dd></div>
+      </dl>
+
+      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow" data-i18n="descriptionEyebrow">Request description</p>
+            <h3 data-i18n="descriptionTitle">What the owner needs</h3>
+          </div>
+        </div>
+        <p>{{ item.description|e }}</p>
+      </section>
+
+      <form class="admin-pilot-status-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
+        <label>
+          <span data-i18n="statusLabel">Update status</span>
+          <select name="status" required>
+            {% for option in status_options %}
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span data-i18n="providerLabel">Assign provider</span>
+          <select name="assigned_provider_id">
+            <option value="" data-i18n="providerEmpty">No provider selected</option>
+            {% for provider in matching_providers %}
+              <option value="{{ provider.id|e }}" {% if item.assigned_provider_id == provider.id %}selected{% endif %}>{{ provider.company_name|e }} · {{ provider.city|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-pilot-status-form__notes">
+          <span data-i18n="notesLabel">Internal notes</span>
+          <textarea name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+        </label>
+        <button class="button button--primary" type="submit" data-i18n="saveCta">Save request</button>
+      </form>
+
+      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow" data-i18n="matchingEyebrow">Matching providers</p>
+            <h3 data-i18n="matchingTitle">Approved providers for this category</h3>
+          </div>
+        </div>
+        {% if matching_providers %}
+          <div class="partner-grid">
+            {% for provider in matching_providers %}
+              <a class="partner-card" href="/network/{{ provider.id|e }}">
+                <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+                {% if provider.featured %}<span class="trust-strip__chip" data-i18n="featuredBadge">Featured</span>{% endif %}
+                <strong>{{ provider.company_name|e }}</strong>
+                <p><strong data-i18n="providerCityLabel">City:</strong> {{ provider.city|e }}</p>
+                <p><strong data-i18n="providerServiceLabel">Service:</strong> {{ provider.service_type|e }}</p>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <h3 data-i18n="matchingEmptyTitle">No matching providers are available yet.</h3>
+            <p data-i18n="matchingEmptyCopy">Approve and enable providers in the network layer to surface matches here.</p>
+          </div>
+        {% endif %}
+      </section>
+
+      <div class="admin-pilot-timeline">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow" data-i18n="timelineEyebrow">Activity timeline</p>
+            <h3 data-i18n="timelineTitle">Newest first</h3>
+          </div>
+        </div>
+
+        {% if timeline %}
+          <div class="admin-timeline-list">
+            {% for event in timeline %}
+              <article class="admin-timeline-item">
+                <div class="admin-pilot-card__topline">
+                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <time>{{ event.created_at|e }}</time>
+                </div>
+                <strong>{{ event.title|e }}</strong>
+                {% if event.detail %}
+                  <p>{{ event.detail|e }}</p>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <h3 data-i18n="timelineEmptyTitle">No timeline entries yet.</h3>
+            <p data-i18n="timelineEmptyCopy">This request will start collecting events after the next save.</p>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </main>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

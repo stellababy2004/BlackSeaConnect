@@ -57,6 +57,11 @@
           <span class="trust-strip__chip" data-i18n="highlightApproved">Approved provider</span>
           <span class="trust-strip__chip">{{ provider.city|e }}</span>
           <span class="trust-strip__chip" data-i18n="{{ provider.category_key|e }}">{{ provider.category|e }}</span>
+          {% if provider.available_for_requests %}
+            <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+          {% else %}
+            <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+          {% endif %}
           {% for badge in provider.badges %}
             <span class="trust-strip__chip">{{ badge|e }}</span>
           {% endfor %}
@@ -117,6 +122,12 @@
         <article class="trust-card">
           <h3 data-i18n="detailStatusLabel">Status</h3>
           <p data-i18n="detailStatusValue">Approved</p>
+        </article>
+        <article class="trust-card">
+          <h3 data-i18n="detailAvailabilityLabel">Requests</h3>
+          <p data-i18n="{{ 'availableBadge' if provider.available_for_requests else 'requestsPausedBadge' }}">
+            {{ "Available for requests" if provider.available_for_requests else "Requests paused" }}
+          </p>
         </article>
       </div>
     </section>

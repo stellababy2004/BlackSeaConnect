@@ -10,13 +10,18 @@
     "/guest/a-302": "guest",
     "/professionals": "professionals",
     "/professionals/apply": "professionalsApply",
-    "/network": "network"
+    "/network": "network",
+    "/request-service": "requestService",
+    "/admin/service-requests": "adminServiceRequests"
   };
   const warnedKeys = new Set();
 
   function getPageNamespace() {
     if (window.location.pathname.startsWith("/network/")) {
       return "network";
+    }
+    if (window.location.pathname.startsWith("/admin/service-requests/")) {
+      return "adminServiceRequests";
     }
     return PAGE_NAMESPACE_BY_PATH[window.location.pathname] || "home";
   }

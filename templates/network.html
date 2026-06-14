@@ -115,6 +115,11 @@
                     </div>
                   {% endif %}
                   <div class="trust-strip" aria-label="Provider badges">
+                    {% if provider.available_for_requests %}
+                      <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+                    {% else %}
+                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+                    {% endif %}
                     {% for badge in provider.display_badges %}
                       <span class="trust-strip__chip">{{ badge|e }}</span>
                     {% endfor %}
@@ -153,6 +158,11 @@
                     </div>
                   {% endif %}
                     <div class="trust-strip" aria-label="Provider badges">
+                      {% if provider.available_for_requests %}
+                        <span class="trust-strip__chip" data-i18n="availableBadge">Available for requests</span>
+                      {% else %}
+                        <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Requests paused</span>
+                      {% endif %}
                       {% for badge in provider.display_badges %}
                         <span class="trust-strip__chip">{{ badge|e }}</span>
                       {% endfor %}

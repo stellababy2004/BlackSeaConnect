@@ -77,6 +77,26 @@ class ProfessionalApplicationTests(unittest.TestCase):
                     records.append(json.loads(line))
         return records
 
+    def _seed_service_requests(self, records):
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        path = data_dir / "service_requests.jsonl"
+        with path.open("w", encoding="utf-8") as f:
+            for record in records:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    def _read_service_requests(self):
+        path = Path("data") / "service_requests.jsonl"
+        if not path.exists():
+            return []
+
+        records = []
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    records.append(json.loads(line))
+        return records
+
     def _valid_payload(self):
         return {
             "full_name": "Elena Petrova",
@@ -90,6 +110,18 @@ class ProfessionalApplicationTests(unittest.TestCase):
             "description": "Premium coastal cleaning and turnaround support.",
             "website_or_social": "https://example.com",
             "consent": "1",
+        }
+
+    def _service_request_payload(self):
+        return {
+            "name": "Maria Dimitrova",
+            "email": "maria@example.com",
+            "phone": "+359888777666",
+            "property_city": "Varna",
+            "property_type": "Villa",
+            "service_category": "Cleaning",
+            "preferred_date": "2026-07-15",
+            "description": "Turnover cleaning and linen setup before arrival.",
         }
 
     def _network_seed_records(self):
@@ -441,6 +473,285 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertNotIn("telegram-test-token", html)
         self.assertNotIn("Internal Server Error", html)
         self.assertNotIn("data/", html)
+
+    def test_service_request_saves_successfully(self):
+        self._seed_applications(self._network_seed_records())
+        payload = self._service_request_payload()
+        telegram_token = "telegram-test-token"
+        telegram_chat_id = "123456789"
+        captured_requests = []
+
+        def fake_urlopen(req, timeout=10):
+            if req.full_url == f"https://api.telegram.org/bot{telegram_token}/sendMessage":
+                captured_requests.append(req)
+                return FakeTelegramResponse(status=200)
+            raise AssertionError(f"Unexpected URL: {req.full_url}")
+
+        env = {
+            "TELEGRAM_BOT_TOKEN": telegram_token,
+            "TELEGRAM_CHAT_ID": telegram_chat_id,
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            response = self.client.post("/request-service", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("service request has been saved", html.lower())
+        self.assertIn("Sea Breeze Cleaning", html)
+        self.assertNotIn("Black Sea Transfers", html)
+
+        records = self._read_service_requests()
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["status"], "new")
+        self.assertEqual(records[0]["name"], "Maria Dimitrova")
+        self.assertEqual(records[0]["service_category"], "Cleaning")
+        self.assertEqual(len(records[0]["timeline"]), 1)
+        self.assertEqual(records[0]["timeline"][0]["type"], "SERVICE_REQUEST_CREATED")
+        self.assertEqual(len(captured_requests), 1)
+        telegram_payload = urllib.parse.parse_qs(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(telegram_payload["chat_id"], [telegram_chat_id])
+        self.assertIn("New Service Request", telegram_payload["text"][0])
+        self.assertIn("Maria Dimitrova", telegram_payload["text"][0])
+        self.assertIn("/admin/service-requests/", telegram_payload["text"][0])
+
+    def test_service_request_required_fields_are_validated(self):
+        response = self.client.post("/request-service", data={})
+
+        self.assertEqual(response.status_code, 400)
+        html = response.get_data(as_text=True)
+        self.assertIn("This field is required.", html)
+        self.assertEqual(self._read_service_requests(), [])
+
+    def test_service_request_page_loads_with_language_buttons(self):
+        response = self.client.get("/request-service")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('data-lang-switch="ru"', html)
+        self.assertIn('/request-service', html)
+        self.assertIn('/network', html)
+
+    def test_service_request_public_response_does_not_leak_internal_details(self):
+        payload = self._service_request_payload()
+
+        def fake_urlopen(req, timeout=10):
+            raise urllib.error.HTTPError(
+                req.full_url,
+                500,
+                "Internal Server Error",
+                hdrs=None,
+                fp=None,
+            )
+
+        env = {
+            "TELEGRAM_BOT_TOKEN": "telegram-test-token",
+            "TELEGRAM_CHAT_ID": "123456789",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            response = self.client.post("/request-service", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertNotIn("telegram-test-token", html)
+        self.assertNotIn("Internal Server Error", html)
+        self.assertNotIn("data/", html)
+
+    def test_admin_service_requests_page_loads(self):
+        self._seed_service_requests([
+            {
+                "id": "req-1",
+                "created_at": "2026-02-01T10:00:00Z",
+                "status": "new",
+                "name": "Maria Dimitrova",
+                "email": "maria@example.com",
+                "phone": "+359888777666",
+                "property_city": "Varna",
+                "property_type": "Villa",
+                "service_category": "Cleaning",
+                "preferred_date": "2026-07-15",
+                "description": "Turnover cleaning and linen setup before arrival.",
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "internal_notes": "",
+                "timeline": [],
+            },
+            {
+                "id": "req-2",
+                "created_at": "2026-02-02T10:00:00Z",
+                "status": "assigned",
+                "name": "Ivan Petrov",
+                "email": "ivan@example.com",
+                "phone": "+359888111222",
+                "property_city": "Burgas",
+                "property_type": "Apartment",
+                "service_category": "Transfers",
+                "preferred_date": "2026-07-20",
+                "description": "Airport pickup.",
+                "assigned_provider_id": "provider-2",
+                "assigned_provider_name": "Nikolay Ivanov",
+                "assigned_provider_company": "Black Sea Transfers",
+                "internal_notes": "",
+                "timeline": [],
+            },
+            {
+                "id": "req-3",
+                "created_at": "2026-02-03T10:00:00Z",
+                "status": "completed",
+                "name": "Elena Georgieva",
+                "email": "elena@example.com",
+                "phone": "+359888333444",
+                "property_city": "Nessebar",
+                "property_type": "House",
+                "service_category": "Plumbing",
+                "preferred_date": "2026-07-22",
+                "description": "Urgent plumbing support.",
+                "assigned_provider_id": "provider-1",
+                "assigned_provider_name": "Elena Petrova",
+                "assigned_provider_company": "Sea Breeze Cleaning",
+                "internal_notes": "",
+                "timeline": [],
+            },
+        ])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/service-requests", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Public service requests", html)
+        self.assertIn("Total requests", html)
+        self.assertIn("Maria Dimitrova", html)
+        self.assertIn("Ivan Petrov", html)
+        self.assertIn("Elena Georgieva", html)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('data-lang-switch="ru"', html)
+
+    def test_admin_service_request_detail_page_loads(self):
+        self._seed_service_requests([
+            {
+                "id": "req-4",
+                "created_at": "2026-02-04T10:00:00Z",
+                "status": "new",
+                "name": "Petya Ivanova",
+                "email": "petya@example.com",
+                "phone": "+359888555444",
+                "property_city": "Varna",
+                "property_type": "Villa",
+                "service_category": "Cleaning",
+                "preferred_date": "2026-07-25",
+                "description": "Weekly turnover cleaning.",
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "internal_notes": "Urgent before arrival.",
+                "timeline": [
+                    {
+                        "type": "SERVICE_REQUEST_CREATED",
+                        "created_at": "2026-02-04T10:00:00Z",
+                        "title": "Service request created: Petya Ivanova",
+                        "detail": "Cleaning · Varna",
+                        "status": "new",
+                    }
+                ],
+            }
+        ])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/service-requests/req-4", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Request detail", html)
+        self.assertIn("Petya Ivanova", html)
+        self.assertIn("Urgent before arrival.", html)
+        self.assertIn("Activity timeline", html)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('data-lang-switch="ru"', html)
+
+    def test_service_request_status_update_works(self):
+        self._seed_applications(self._network_seed_records())
+        self._seed_service_requests([
+            {
+                "id": "req-5",
+                "created_at": "2026-02-05T10:00:00Z",
+                "status": "new",
+                "name": "Maya Nikolova",
+                "email": "maya@example.com",
+                "phone": "+359888222333",
+                "property_city": "Varna",
+                "property_type": "Apartment",
+                "service_category": "Cleaning",
+                "preferred_date": "2026-07-26",
+                "description": "Mid-stay cleaning and linen change.",
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "internal_notes": "",
+                "timeline": [],
+            }
+        ])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.post(
+                "/admin/service-requests/req-5/update",
+                data={
+                    "status": "assigned",
+                    "assigned_provider_id": "provider-1",
+                    "internal_notes": "Assigned to featured cleaning partner.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+        updated = self._read_service_requests()[0]
+        self.assertEqual(updated["status"], "assigned")
+        self.assertEqual(updated["assigned_provider_id"], "provider-1")
+        self.assertEqual(updated["assigned_provider_company"], "Sea Breeze Cleaning")
+        self.assertEqual(updated["internal_notes"], "Assigned to featured cleaning partner.")
+        self.assertGreaterEqual(len(updated["timeline"]), 1)
+        self.assertEqual(updated["timeline"][0]["type"], "SERVICE_REQUEST_STATUS_UPDATED")
+
+    def test_homepage_counters_loads(self):
+        self._seed_applications(self._network_seed_records())
+        self._seed_service_requests([
+            {
+                "id": "req-6",
+                "created_at": "2026-02-06T10:00:00Z",
+                "status": "new",
+                "name": "Viktor Kolev",
+                "email": "viktor@example.com",
+                "phone": "+359888444555",
+                "property_city": "Varna",
+                "property_type": "Villa",
+                "service_category": "Laundry",
+                "preferred_date": "2026-07-28",
+                "description": "Laundry support.",
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "internal_notes": "",
+                "timeline": [],
+            }
+        ])
+
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Providers", html)
+        self.assertIn("Cities", html)
+        self.assertIn("Service requests", html)
+        self.assertIn(">2<", html)
 
     def test_network_directory_loads_and_shows_only_approved_providers(self):
         self._seed_applications(self._network_seed_records())

@@ -112,6 +112,7 @@
         </div>
         <p><strong>Photo URL:</strong> {{ item.photo_url|e if item.photo_url else "n/a" }}</p>
         <p><strong>Logo URL:</strong> {{ item.logo_url|e if item.logo_url else "n/a" }}</p>
+        <p><strong>Available for requests:</strong> {{ "Yes" if item.available_for_requests else "No" }}</p>
       </section>
 
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
@@ -130,6 +131,10 @@
         <label>
           <span>Featured provider</span>
           <input type="checkbox" name="featured" value="1" {% if item.featured %}checked{% endif %}>
+        </label>
+        <label>
+          <span>Available for requests</span>
+          <input type="checkbox" name="available_for_requests" value="1" {% if item.available_for_requests %}checked{% endif %}>
         </label>
         <label class="admin-pilot-status-form__notes">
           <span>Badges</span>
