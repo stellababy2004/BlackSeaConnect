@@ -152,6 +152,30 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Consent is required.", html)
         self.assertEqual(self._read_applications(), [])
 
+    def test_professionals_page_loads_with_language_buttons(self):
+        response = self.client.get("/professionals")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('/professionals', html)
+        self.assertIn('/professionals/apply', html)
+        self.assertIn('Professionals', html)
+
+    def test_professionals_apply_page_loads_with_language_buttons(self):
+        response = self.client.get("/professionals/apply")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('/professionals', html)
+        self.assertIn('/professionals/apply', html)
+        self.assertIn('Registration', html)
+
     def test_admin_professionals_page_loads(self):
         record = {
             "id": "prof-1",
@@ -182,6 +206,9 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Elena Petrova", html)
         self.assertIn("Sea Breeze Services", html)
         self.assertIn("PENDING", html)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
 
     def test_admin_detail_page_loads(self):
         record = {
@@ -221,6 +248,9 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Black Sea Transfers", html)
         self.assertIn("Priority candidate.", html)
         self.assertIn("Activity timeline", html)
+        self.assertIn('data-lang-switch="bg"', html)
+        self.assertIn('data-lang-switch="en"', html)
+        self.assertIn('data-lang-switch="fr"', html)
 
     def test_status_update_works(self):
         record = {

@@ -7,7 +7,9 @@
     "/partners": "partners",
     "/pilot-access": "pilot",
     "/demo/operations": "demo",
-    "/guest/a-302": "guest"
+    "/guest/a-302": "guest",
+    "/professionals": "professionals",
+    "/professionals/apply": "professionalsApply"
   };
   const warnedKeys = new Set();
 
@@ -65,6 +67,7 @@
       const dictionary = translations[activeLang] || translations[defaultLang] || {};
       const nodes = document.querySelectorAll("[data-i18n]");
       const attrNodes = document.querySelectorAll("[data-i18n-attr]");
+      const titleNode = document.querySelector("title[data-i18n]");
 
       nodes.forEach((node) => {
         const key = node.getAttribute("data-i18n");
@@ -94,6 +97,16 @@
           }
         });
       });
+
+      if (titleNode) {
+        const titleKey = titleNode.getAttribute("data-i18n");
+        const titleValue = resolveTranslation(dictionary, titleKey, pageNamespace);
+        if (titleValue !== undefined && titleValue !== null) {
+          titleNode.textContent = titleValue;
+        } else {
+          warnMissing(titleKey, activeLang);
+        }
+      }
 
       document.documentElement.lang = activeLang;
 

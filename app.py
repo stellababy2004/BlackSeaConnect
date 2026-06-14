@@ -37,6 +37,28 @@ PROFESSIONAL_SERVICE_CATEGORIES = (
     "Photography",
     "Real estate support",
 )
+PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS = {
+    "Cleaning": "professionals.professionalsServiceCleaning",
+    "Maintenance": "professionals.professionalsServiceMaintenance",
+    "Plumbing": "professionals.professionalsServicePlumbing",
+    "Electrical": "professionals.professionalsServiceElectrical",
+    "Laundry": "professionals.professionalsServiceLaundry",
+    "Airport transfer": "professionals.professionalsServiceAirportTransfer",
+    "Concierge": "professionals.professionalsServiceConcierge",
+    "Property management": "professionals.professionalsServicePropertyManagement",
+    "Photography": "professionals.professionalsServicePhotography",
+    "Real estate support": "professionals.professionalsServiceRealEstateSupport",
+}
+
+
+def _professional_service_category_items():
+    return [
+        {
+            "label": category,
+            "key": PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+        }
+        for category in PROFESSIONAL_SERVICE_CATEGORIES
+    ]
 
 
 @app.after_request
@@ -82,7 +104,7 @@ def pilot_access():
 def professionals():
     return render_template(
         "professionals.html",
-        service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+        service_categories=_professional_service_category_items(),
     )
 
 
@@ -118,30 +140,30 @@ def professionals_apply():
             "consent": request.form.get("consent") in {"1", "on", "true", "yes"},
         })
 
-        required_fields = (
-            "full_name",
-            "company_name",
-            "service_type",
-            "city",
-            "phone",
-            "email",
-            "languages",
-            "experience_years",
-            "description",
-        )
+        required_field_error_keys = {
+            "full_name": "fullNameRequiredError",
+            "company_name": "companyNameRequiredError",
+            "service_type": "serviceTypeRequiredError",
+            "city": "cityRequiredError",
+            "phone": "phoneRequiredError",
+            "email": "emailRequiredError",
+            "languages": "languagesRequiredError",
+            "experience_years": "experienceRequiredError",
+            "description": "descriptionRequiredError",
+        }
 
-        for field in required_fields:
+        for field, error_key in required_field_error_keys.items():
             if not form_values[field]:
-                errors[field] = "This field is required."
+                errors[field] = error_key
 
         if form_values["service_type"] and form_values["service_type"] not in PROFESSIONAL_SERVICE_CATEGORIES:
-            errors["service_type"] = "Choose a valid service category."
+            errors["service_type"] = "serviceTypeInvalidError"
 
         if form_values["experience_years"] and not form_values["experience_years"].isdigit():
-            errors["experience_years"] = "Enter a whole number."
+            errors["experience_years"] = "experienceInvalidError"
 
         if not form_values["consent"]:
-            errors["consent"] = "Consent is required."
+            errors["consent"] = "consentRequiredError"
 
         if not errors:
             try:
@@ -185,7 +207,7 @@ def professionals_apply():
                 app.logger.exception("Professional application save failed.")
                 return render_template(
                     "professionals_apply.html",
-                    service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+                    service_categories=_professional_service_category_items(),
                     form_values=form_values,
                     errors={},
                     submitted=False,
@@ -197,7 +219,7 @@ def professionals_apply():
 
             return render_template(
                 "professionals_apply.html",
-                service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+                service_categories=_professional_service_category_items(),
                 submitted=True,
                 application_id=record["id"],
                 form_values=form_values,
@@ -207,7 +229,7 @@ def professionals_apply():
 
         return render_template(
             "professionals_apply.html",
-            service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+            service_categories=_professional_service_category_items(),
             form_values=form_values,
             errors=errors,
             submitted=False,
@@ -216,7 +238,7 @@ def professionals_apply():
 
     return render_template(
         "professionals_apply.html",
-        service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+        service_categories=_professional_service_category_items(),
         submitted=False,
         form_values=form_values,
         errors=errors,

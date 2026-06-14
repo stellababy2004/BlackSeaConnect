@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,13 @@
         <p>One record in the professional registration layer.</p>
       </div>
       <div class="admin-cockpit-actions">
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+        </div>
         <a class="button button--secondary" href="/admin/professionals">Back to applications</a>
         <a class="button button--ghost" href="/professionals/apply">Open public form</a>
       </div>
@@ -133,5 +140,8 @@
       </div>
     </article>
   </main>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
 </body>
 </html>
