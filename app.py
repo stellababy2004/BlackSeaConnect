@@ -24,6 +24,19 @@ PILOT_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 PILOT_STATUS_ALIASES = {
     "rejected": "lost",
 }
+PROFESSIONAL_STATUS_VALUES = ("pending", "approved", "rejected")
+PROFESSIONAL_SERVICE_CATEGORIES = (
+    "Cleaning",
+    "Maintenance",
+    "Plumbing",
+    "Electrical",
+    "Laundry",
+    "Airport transfer",
+    "Concierge",
+    "Property management",
+    "Photography",
+    "Real estate support",
+)
 
 
 @app.after_request
@@ -63,6 +76,152 @@ def partners():
 @app.route("/pilot-access")
 def pilot_access():
     return render_template("pilot_access.html")
+
+
+@app.route("/professionals")
+def professionals():
+    return render_template(
+        "professionals.html",
+        service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+    )
+
+
+@app.route("/professionals/apply", methods=["GET", "POST"])
+def professionals_apply():
+    form_values = {
+        "full_name": "",
+        "company_name": "",
+        "service_type": "",
+        "city": "",
+        "phone": "",
+        "email": "",
+        "languages": "",
+        "experience_years": "",
+        "description": "",
+        "website_or_social": "",
+        "consent": False,
+    }
+    errors = {}
+
+    if request.method == "POST":
+        form_values.update({
+            "full_name": str(request.form.get("full_name", "")).strip(),
+            "company_name": str(request.form.get("company_name", "")).strip(),
+            "service_type": str(request.form.get("service_type", "")).strip(),
+            "city": str(request.form.get("city", "")).strip(),
+            "phone": str(request.form.get("phone", "")).strip(),
+            "email": str(request.form.get("email", "")).strip(),
+            "languages": str(request.form.get("languages", "")).strip(),
+            "experience_years": str(request.form.get("experience_years", "")).strip(),
+            "description": str(request.form.get("description", "")).strip(),
+            "website_or_social": str(request.form.get("website_or_social", "")).strip(),
+            "consent": request.form.get("consent") in {"1", "on", "true", "yes"},
+        })
+
+        required_fields = (
+            "full_name",
+            "company_name",
+            "service_type",
+            "city",
+            "phone",
+            "email",
+            "languages",
+            "experience_years",
+            "description",
+        )
+
+        for field in required_fields:
+            if not form_values[field]:
+                errors[field] = "This field is required."
+
+        if form_values["service_type"] and form_values["service_type"] not in PROFESSIONAL_SERVICE_CATEGORIES:
+            errors["service_type"] = "Choose a valid service category."
+
+        if form_values["experience_years"] and not form_values["experience_years"].isdigit():
+            errors["experience_years"] = "Enter a whole number."
+
+        if not form_values["consent"]:
+            errors["consent"] = "Consent is required."
+
+        if not errors:
+            try:
+                experience_years = int(form_values["experience_years"])
+            except ValueError:
+                experience_years = form_values["experience_years"]
+
+            record = {
+                "id": uuid4().hex,
+                "created_at": _utc_now_iso(),
+                "status": "pending",
+                "full_name": form_values["full_name"],
+                "company_name": form_values["company_name"],
+                "service_type": form_values["service_type"],
+                "city": form_values["city"],
+                "phone": form_values["phone"],
+                "email": form_values["email"],
+                "languages": form_values["languages"],
+                "experience_years": experience_years,
+                "description": form_values["description"],
+                "website_or_social": form_values["website_or_social"],
+                "consent": True,
+                "internal_notes": "",
+                "timeline": [],
+            }
+            _append_professional_timeline_event(
+                record,
+                "PROFESSIONAL_APPLICATION_CREATED",
+                f"Professional application created: {record.get('full_name') or record.get('company_name') or 'Unnamed application'}",
+                f"{record.get('service_type', '')} · {record.get('city', '')}",
+                status="pending",
+            )
+
+            data_dir = Path("data")
+            data_dir.mkdir(exist_ok=True)
+
+            try:
+                with (data_dir / "professional_applications.jsonl").open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            except OSError:
+                app.logger.exception("Professional application save failed.")
+                return render_template(
+                    "professionals_apply.html",
+                    service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+                    form_values=form_values,
+                    errors={},
+                    submitted=False,
+                    save_error=True,
+                ), 500
+
+            admin_detail_url = url_for("admin_professional_detail", application_id=record["id"], _external=True)
+            _queue_professional_application_notification(record, admin_detail_url)
+
+            return render_template(
+                "professionals_apply.html",
+                service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+                submitted=True,
+                application_id=record["id"],
+                form_values=form_values,
+                errors={},
+                save_error=False,
+            )
+
+        return render_template(
+            "professionals_apply.html",
+            service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+            form_values=form_values,
+            errors=errors,
+            submitted=False,
+            save_error=False,
+        ), 400
+
+    return render_template(
+        "professionals_apply.html",
+        service_categories=PROFESSIONAL_SERVICE_CATEGORIES,
+        submitted=False,
+        form_values=form_values,
+        errors=errors,
+        save_error=False,
+    )
 
 
 @app.route("/health")
@@ -597,6 +756,267 @@ def _load_concierge_requests():
     return requests_list
 
 
+def _normalize_professional_status(status):
+    normalized = str(status or "").strip().lower()
+    return normalized if normalized in PROFESSIONAL_STATUS_VALUES else "pending"
+
+
+def _professional_status_label(status):
+    return _normalize_professional_status(status).upper()
+
+
+def _normalize_professional_application_timeline(timeline):
+    if not isinstance(timeline, list):
+        return []
+
+    normalized_timeline = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+
+        normalized_entry = dict(entry)
+        normalized_entry["type"] = str(normalized_entry.get("type", "")).strip() or "PROFESSIONAL_APPLICATION_CREATED"
+        normalized_entry["created_at"] = str(normalized_entry.get("created_at", "")).strip()
+        normalized_entry["title"] = str(normalized_entry.get("title", "")).strip()
+        normalized_entry["detail"] = str(normalized_entry.get("detail", "")).strip()
+        if "status" in normalized_entry:
+            normalized_entry["status"] = _normalize_professional_status(normalized_entry.get("status"))
+        else:
+            normalized_entry["status"] = ""
+        normalized_timeline.append(normalized_entry)
+
+    return normalized_timeline
+
+
+def _append_professional_timeline_event(record, event_type, title, detail="", status=None):
+    timeline = list(record.get("timeline") or [])
+    timeline.append({
+        "type": event_type,
+        "created_at": _utc_now_iso(),
+        "title": title,
+        "detail": detail,
+        "status": _normalize_professional_status(status or record.get("status", "pending")),
+    })
+    record["timeline"] = timeline
+
+
+def _professional_application_timeline_events(record):
+    timeline = _normalize_professional_application_timeline(record.get("timeline"))
+    if timeline:
+        return timeline
+
+    created_at = str(record.get("created_at", "")).strip()
+    if not created_at:
+        return []
+
+    return [{
+        "type": "PROFESSIONAL_APPLICATION_CREATED",
+        "created_at": created_at,
+        "title": f"Professional application created: {record.get('full_name') or record.get('company_name') or 'Unnamed application'}",
+        "detail": f"{record.get('service_type', '')} · {record.get('city', '')}",
+        "status": _normalize_professional_status(record.get("status", "pending")),
+    }]
+
+
+def _fallback_professional_application_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("company_name", "")),
+        str(record.get("service_type", "")),
+        str(record.get("city", "")),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"professional-{digest[:16]}"
+
+
+def _normalize_professional_application(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _fallback_professional_application_id(normalized)
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+    normalized["status"] = _normalize_professional_status(normalized.get("status", "pending"))
+
+    for field in (
+        "full_name",
+        "company_name",
+        "service_type",
+        "city",
+        "phone",
+        "email",
+        "languages",
+        "description",
+        "website_or_social",
+        "internal_notes",
+    ):
+        normalized[field] = str(normalized.get(field, "")).strip()
+
+    experience_years = normalized.get("experience_years", "")
+    if isinstance(experience_years, str):
+        experience_years = experience_years.strip()
+        normalized["experience_years"] = int(experience_years) if experience_years.isdigit() else experience_years
+    elif isinstance(experience_years, (int, float)):
+        normalized["experience_years"] = int(experience_years)
+    else:
+        normalized["experience_years"] = str(experience_years).strip()
+
+    consent_value = normalized.get("consent", False)
+    if isinstance(consent_value, str):
+        normalized["consent"] = consent_value.strip().lower() in {"1", "true", "yes", "on"}
+    else:
+        normalized["consent"] = bool(consent_value)
+
+    normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
+    return normalized
+
+
+def _load_professional_applications():
+    path = Path("data") / "professional_applications.jsonl"
+    applications = []
+
+    if not path.exists():
+        return applications
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_professional_application(record)
+            if normalized:
+                applications.append(normalized)
+
+    applications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return applications
+
+
+def _save_professional_applications(applications):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    path = data_dir / "professional_applications.jsonl"
+    with path.open("w", encoding="utf-8") as f:
+        for record in applications:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _find_professional_application(application_id):
+    for record in _load_professional_applications():
+        if str(record.get("id", "")) == str(application_id):
+            return record
+    return None
+
+
+def _professional_application_status_counts(applications):
+    counts = {status: 0 for status in PROFESSIONAL_STATUS_VALUES}
+    for record in applications:
+        status = _normalize_professional_status(record.get("status", "pending"))
+        if status in counts:
+            counts[status] += 1
+    return counts
+
+
+def _admin_professional_activity_feed(applications):
+    events = []
+    for record in applications:
+        timeline_events = _professional_application_timeline_events(record)
+        if timeline_events:
+            events.extend(timeline_events)
+
+    events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return events[:10]
+
+
+def _build_professional_telegram_text(record, admin_detail_url):
+    lines = [
+        "New Professional Application",
+        f"full_name: {record.get('full_name', '')}",
+        f"company_name: {record.get('company_name', '')}",
+        f"service_type: {record.get('service_type', '')}",
+        f"city: {record.get('city', '')}",
+        f"phone: {record.get('phone', '')}",
+        f"email: {record.get('email', '')}",
+        f"status: {_normalize_professional_status(record.get('status', 'pending')).upper()}",
+        f"admin_detail_url: {admin_detail_url}",
+    ]
+    return "\n".join(lines)
+
+
+def _send_professional_application_via_telegram(record, admin_detail_url, telegram_bot_token, telegram_chat_id):
+    telegram_text = _build_professional_telegram_text(record, admin_detail_url)
+    telegram_url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": telegram_text,
+        "disable_web_page_preview": "true",
+    }
+
+    request = urllib.request.Request(
+        telegram_url,
+        data=urllib.parse.urlencode(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response_status = getattr(response, "status", getattr(response, "code", None))
+            if response_status not in (200, 201, 202):
+                app.logger.warning("Professional application notification send failed via Telegram: unexpected status %s.", response_status)
+                return False, "telegram_bad_status"
+    except urllib.error.HTTPError as exc:
+        response_body = ""
+        try:
+            response_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            response_body = "<unreadable>"
+        app.logger.warning(
+            "Professional application notification send failed via Telegram: HTTP %s %s. Body: %s",
+            exc.code,
+            exc.reason,
+            response_body,
+        )
+        return False, "telegram_send_failed"
+    except Exception as exc:
+        app.logger.warning("Professional application notification send failed via Telegram: %s", type(exc).__name__)
+        return False, "telegram_send_failed"
+
+    return True, None
+
+
+def _send_professional_application_notification(record, admin_detail_url):
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+
+    if not telegram_bot_token or not telegram_chat_id:
+        return False, "telegram_not_configured"
+
+    return _send_professional_application_via_telegram(
+        record,
+        admin_detail_url,
+        telegram_bot_token,
+        telegram_chat_id,
+    )
+
+
+def _queue_professional_application_notification(record, admin_detail_url):
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if not telegram_bot_token or not telegram_chat_id:
+        return
+
+    Thread(
+        target=_send_professional_application_notification,
+        args=(record, admin_detail_url),
+        daemon=True,
+    ).start()
+
+
 def _pilot_status_counts(requests_list):
     counts = {status: 0 for status in PILOT_STATUS_VALUES}
     for record in requests_list:
@@ -627,9 +1047,18 @@ def _admin_pilot_activity_feed(pilot_requests, concierge_requests):
     return events[:10]
 
 
+def _admin_activity_feed(pilot_requests, concierge_requests, professional_applications):
+    events = []
+    events.extend(_admin_pilot_activity_feed(pilot_requests, concierge_requests))
+    events.extend(_admin_professional_activity_feed(professional_applications))
+    events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return events[:10]
+
+
 def _build_admin_dashboard():
     pilot_requests = _load_pilot_requests()
     concierge_requests = _load_concierge_requests()
+    professional_applications = _load_professional_applications()
     pilot_counts = _pilot_status_counts(pilot_requests)
 
     return {
@@ -641,6 +1070,7 @@ def _build_admin_dashboard():
         "converted_leads": pilot_counts["converted"],
         "lost_leads": pilot_counts["lost"],
         "concierge_requests": len(concierge_requests),
+        "professional_applications": len(professional_applications),
         "pipeline": [
             {"key": "new", "label": "New", "count": pilot_counts["new"]},
             {"key": "contacted", "label": "Contacted", "count": pilot_counts["contacted"]},
@@ -648,7 +1078,7 @@ def _build_admin_dashboard():
             {"key": "converted", "label": "Converted", "count": pilot_counts["converted"]},
             {"key": "lost", "label": "Lost", "count": pilot_counts["lost"]},
         ],
-        "recent_activity": _admin_pilot_activity_feed(pilot_requests, concierge_requests),
+        "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, professional_applications),
     }
 
 
@@ -924,6 +1354,76 @@ def api_concierge():
 @admin_required
 def admin_concierge_requests():
     return render_template("admin_concierge_requests.html", requests=_load_concierge_requests())
+
+
+@app.get("/admin/professionals")
+@admin_required
+def admin_professionals():
+    applications = _load_professional_applications()
+    counts = _professional_application_status_counts(applications)
+    return render_template(
+        "admin_professionals.html",
+        applications=applications,
+        counts=counts,
+    )
+
+
+@app.get("/admin/professionals/<application_id>")
+@admin_required
+def admin_professional_detail(application_id):
+    record = _find_professional_application(application_id)
+    if not record:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    return render_template(
+        "admin_professional_detail.html",
+        item=record,
+        status_options=[{"value": status, "label": _professional_status_label(status)} for status in PROFESSIONAL_STATUS_VALUES],
+        timeline=list(reversed(_professional_application_timeline_events(record))),
+    )
+
+
+@app.post("/admin/professionals/<application_id>/update")
+@admin_required
+def admin_professional_update(application_id):
+    applications = _load_professional_applications()
+    updated = False
+
+    for record in applications:
+        if str(record.get("id", "")) != str(application_id):
+            continue
+
+        raw_status = str(request.form.get("status", "")).strip()
+        original_status = _normalize_professional_status(record.get("status", "pending"))
+        if raw_status:
+            new_status = _normalize_professional_status(raw_status)
+            if new_status != raw_status.lower():
+                return jsonify({"ok": False, "error": "invalid_status"}), 400
+        else:
+            new_status = original_status
+
+        original_notes = str(record.get("internal_notes", "")).strip()
+        new_notes = str(request.form.get("internal_notes", original_notes)).strip()
+
+        if new_status != original_status:
+            record["status"] = new_status
+            _append_professional_timeline_event(
+                record,
+                "PROFESSIONAL_APPLICATION_STATUS_UPDATED",
+                f"Status changed from {_professional_status_label(original_status)} to {_professional_status_label(new_status)}",
+                new_notes or record.get("email", ""),
+                status=new_status,
+            )
+
+        record["internal_notes"] = new_notes
+        updated = True
+        break
+
+    if not updated:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    _save_professional_applications(applications)
+    return redirect(url_for("admin_professional_detail", application_id=application_id))
 
 @app.get("/admin")
 @admin_required

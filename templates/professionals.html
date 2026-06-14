@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professionals</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/">Home</a>
+          <a class="site-nav__link" href="/services">Services</a>
+          <a class="site-nav__link" href="/demo/operations">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302">Guest Portal</a>
+          <a class="site-nav__link" href="/partners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
+          <a class="site-nav__link is-active" href="/professionals">Professionals</a>
+        </nav>
+        <a class="button button--ghost topbar__portal" href="/professionals/apply">Apply now</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow">Coastal service network</p>
+        <h1>Join the BlackSeaConnect Professional Network</h1>
+        <p class="hero__text">
+          BlackSeaConnect is becoming a coastal service network connecting property owners, guests and trusted local professionals across the Bulgarian Black Sea coast.
+        </p>
+        <p class="hero__text">
+          We are opening the first professional registration layer so local providers can join early, help shape the network and receive demand from a premium coastal workflow.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="/professionals/apply">Open registration form</a>
+          <a class="button button--secondary" href="#services">View service categories</a>
+        </div>
+        <div class="trust-strip" aria-label="Network highlights">
+          <span class="trust-strip__chip">Early access is free</span>
+          <span class="trust-strip__chip">Pilot phase enrollment</span>
+          <span class="trust-strip__chip">Trusted local professionals</span>
+          <span class="trust-strip__chip">Bulgarian Black Sea coast</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="cta-panel" id="services" aria-labelledby="professionals-services-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">What we are building</p>
+        <h2 id="professionals-services-title">A calm intake layer for the local service teams that keep coastal properties running.</h2>
+        <p class="cta-panel__copy">
+          The network is designed for providers who support guest stays, property care and reliable on-the-ground execution. It keeps the experience premium for owners and simple for the professionals who serve them.
+        </p>
+        <p class="cta-panel__trust">Early access is free during the pilot phase.</p>
+      </div>
+
+      <div class="trust-strip" aria-label="Service categories">
+        {% for category in service_categories %}
+          <span class="trust-strip__chip">{{ category }}</span>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="cta-panel" aria-labelledby="professionals-join-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Join the network</p>
+        <h2 id="professionals-join-title">Register once and let us review your fit for the coastal network.</h2>
+        <p class="cta-panel__copy">
+          Share your service area, experience and contact details. We will review applications during the pilot phase and keep the process lightweight.
+        </p>
+      </div>
+      <a class="button button--primary" href="/professionals/apply">Go to registration</a>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p>Coastal service network for trusted local professionals.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="/pilot-access">Pilot Access</a>
+      <a href="/professionals">Professionals</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
+      <p>Early access is free during the pilot phase.</p>
+    </div>
+  </footer>
+</body>
+</html>

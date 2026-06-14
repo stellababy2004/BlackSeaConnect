@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professional Registration</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/">Home</a>
+          <a class="site-nav__link" href="/services">Services</a>
+          <a class="site-nav__link" href="/partners">Partners</a>
+          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
+          <a class="site-nav__link" href="/professionals">Professionals</a>
+          <a class="site-nav__link is-active" href="/professionals/apply">Apply</a>
+        </nav>
+        <a class="button button--ghost topbar__portal" href="/professionals">Back to network</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow">Professional registration</p>
+        <h1>Register your local service business for the BlackSeaConnect network.</h1>
+        <p class="hero__text">
+          Share your details and we will review your application for the Bulgarian Black Sea coast pilot phase.
+        </p>
+        <div class="trust-strip" aria-label="Registration highlights">
+          <span class="trust-strip__chip">Free during pilot phase</span>
+          <span class="trust-strip__chip">Simple application</span>
+          <span class="trust-strip__chip">Local coastal demand</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {% if submitted %}
+      <section class="cta-panel" aria-labelledby="professional-success-title">
+        <div class="cta-panel__content">
+          <p class="section-heading__eyebrow">Application received</p>
+          <h2 id="professional-success-title">Thank you. Your professional application is pending review.</h2>
+          <p class="cta-panel__copy">
+            We have saved your registration and will review it during the pilot phase. Early access remains free while the network is being shaped.
+          </p>
+          <p class="cta-panel__trust">Status: pending</p>
+        </div>
+        <div class="hero__cta">
+          <a class="button button--primary" href="/professionals">Return to the network page</a>
+          <a class="button button--secondary" href="/services">Explore services</a>
+        </div>
+      </section>
+    {% else %}
+      <section class="cta-panel cta-panel--pilot" aria-labelledby="professional-form-title">
+        <div class="cta-panel__content">
+          <p class="section-heading__eyebrow">Registration form</p>
+          <h2 id="professional-form-title">Tell us about your service, your area and how to reach you.</h2>
+          <p class="cta-panel__copy">
+            We only ask for the details needed to understand fit, location and capability. Early access is free during the pilot phase.
+          </p>
+        </div>
+
+        {% if save_error %}
+          <div class="admin-empty-state" style="margin-bottom: 1.5rem;">
+            <h3>We could not save your application right now.</h3>
+            <p>Please try again in a moment.</p>
+          </div>
+        {% endif %}
+
+        <form class="pilot-form" method="post" action="/professionals/apply">
+          <div class="pilot-form__grid">
+            <label class="pilot-form__field">
+              <span>Full name</span>
+              <input name="full_name" type="text" required value="{{ form_values.full_name|e }}" placeholder="Your full name">
+              {% if errors.full_name %}<small>{{ errors.full_name }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Company name</span>
+              <input name="company_name" type="text" required value="{{ form_values.company_name|e }}" placeholder="Company or trade name">
+              {% if errors.company_name %}<small>{{ errors.company_name }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Service type</span>
+              <select class="pilot-form__input" name="service_type" required>
+                <option value="">Select a category</option>
+                {% for category in service_categories %}
+                  <option value="{{ category|e }}" {% if form_values.service_type == category %}selected{% endif %}>{{ category|e }}</option>
+                {% endfor %}
+              </select>
+              {% if errors.service_type %}<small>{{ errors.service_type }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>City</span>
+              <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="Varna, Burgas, Nessebar...">
+              {% if errors.city %}<small>{{ errors.city }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Phone</span>
+              <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="+359 ...">
+              {% if errors.phone %}<small>{{ errors.phone }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Email</span>
+              <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="name@example.com">
+              {% if errors.email %}<small>{{ errors.email }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Languages</span>
+              <input name="languages" type="text" required value="{{ form_values.languages|e }}" placeholder="Bulgarian, English, Russian...">
+              {% if errors.languages %}<small>{{ errors.languages }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field">
+              <span>Experience years</span>
+              <input name="experience_years" type="number" min="0" step="1" required value="{{ form_values.experience_years|e }}" placeholder="5">
+              {% if errors.experience_years %}<small>{{ errors.experience_years }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field pilot-form__field--full">
+              <span>Description</span>
+              <textarea name="description" rows="5" required placeholder="Tell us about the service you offer, your coverage and your team.">{{ form_values.description|e }}</textarea>
+              {% if errors.description %}<small>{{ errors.description }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field pilot-form__field--full">
+              <span>Website or social profile</span>
+              <input name="website_or_social" type="text" value="{{ form_values.website_or_social|e }}" placeholder="Website, Instagram, Facebook or other profile">
+              {% if errors.website_or_social %}<small>{{ errors.website_or_social }}</small>{% endif %}
+            </label>
+            <label class="pilot-form__field pilot-form__field--full">
+              <span>
+                <input name="consent" type="checkbox" value="1" {% if form_values.consent %}checked{% endif %} required>
+                I consent to BlackSeaConnect reviewing and storing my application information.
+              </span>
+              {% if errors.consent %}<small>{{ errors.consent }}</small>{% endif %}
+            </label>
+          </div>
+
+          <div class="pilot-form__footer">
+            <button class="button button--primary" type="submit">Submit application</button>
+            <p class="pilot-form__hint">Your information is used only for the professional network review.</p>
+          </div>
+        </form>
+      </section>
+    {% endif %}
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p>Coastal service network for trusted local professionals.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/professionals">Professionals</a>
+      <a href="/services">Services</a>
+      <a href="/pilot-access">Pilot Access</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
+      <p>Early access is free during the pilot phase.</p>
+    </div>
+  </footer>
+</body>
+</html>

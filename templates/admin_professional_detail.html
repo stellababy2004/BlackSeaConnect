@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professional Detail</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="admin-cockpit-page admin-pilot-detail-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow">Coastal service network</p>
+        <h1>Professional application detail</h1>
+        <p>One record in the professional registration layer.</p>
+      </div>
+      <div class="admin-cockpit-actions">
+        <a class="button button--secondary" href="/admin/professionals">Back to applications</a>
+        <a class="button button--ghost" href="/professionals/apply">Open public form</a>
+      </div>
+    </section>
+
+    <article class="admin-pilot-card">
+      <div class="admin-pilot-card__topline">
+        <p class="eyebrow">{{ item.created_at|e }}</p>
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+      </div>
+
+      <h2>{{ item.full_name|e }}</h2>
+
+      <dl class="admin-pilot-details">
+        <div>
+          <dt>ID</dt>
+          <dd>{{ item.id|e }}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ item.status|upper|e }}</dd>
+        </div>
+        <div>
+          <dt>Company</dt>
+          <dd>{{ item.company_name|e }}</dd>
+        </div>
+        <div>
+          <dt>Service type</dt>
+          <dd>{{ item.service_type|e }}</dd>
+        </div>
+        <div>
+          <dt>City</dt>
+          <dd>{{ item.city|e }}</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>{{ item.phone|e }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ item.email|e }}</dd>
+        </div>
+        <div>
+          <dt>Languages</dt>
+          <dd>{{ item.languages|e }}</dd>
+        </div>
+        <div>
+          <dt>Experience years</dt>
+          <dd>{{ item.experience_years|e }}</dd>
+        </div>
+        <div>
+          <dt>Website or social</dt>
+          <dd>{{ item.website_or_social|e if item.website_or_social else "n/a" }}</dd>
+        </div>
+        <div>
+          <dt>Consent</dt>
+          <dd>{{ "Yes" if item.consent else "No" }}</dd>
+        </div>
+      </dl>
+
+      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Application summary</p>
+            <h3>Description</h3>
+          </div>
+        </div>
+        <p>{{ item.description|e }}</p>
+      </section>
+
+      <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
+        <label>
+          <span>Update status</span>
+          <select name="status" required>
+            {% for option in status_options %}
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-pilot-status-form__notes">
+          <span>Internal notes</span>
+          <textarea name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+        </label>
+        <button class="button button--primary" type="submit">Save application</button>
+      </form>
+
+      <div class="admin-pilot-timeline">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Activity timeline</p>
+            <h3>Newest first</h3>
+          </div>
+        </div>
+
+        {% if timeline %}
+          <div class="admin-timeline-list">
+            {% for event in timeline %}
+              <article class="admin-timeline-item">
+                <div class="admin-pilot-card__topline">
+                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <time>{{ event.created_at|e }}</time>
+                </div>
+                <strong>{{ event.title|e }}</strong>
+                {% if event.detail %}
+                  <p>{{ event.detail|e }}</p>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <h3>No timeline entries yet.</h3>
+            <p>This application will start collecting events after the next save.</p>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </main>
+</body>
+</html>
