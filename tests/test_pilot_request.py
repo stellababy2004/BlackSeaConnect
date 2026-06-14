@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 import uuid
 import urllib.error
+import urllib.parse
 from unittest.mock import patch
 
 from app import app
@@ -714,13 +715,118 @@ class PilotRequestApiTests(unittest.TestCase):
             "RESEND_API_KEY": "re_test_key",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "FORMSPREE_ADMIN_ENDPOINT": "https://formspree.io/f/testlead",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=TimeoutError("connect timeout")):
             from app import _send_internal_pilot_notification
 
             ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/resend-fail-id")
 
         self.assertFalse(ok)
-        self.assertEqual(reason, "resend_send_failed")
+        self.assertEqual(reason, "formspree_send_failed")
+
+    def test_formspree_fallback_is_called_when_resend_returns_failure(self):
+        record = {
+            "id": "fallback-id",
+            "created_at": "2026-01-02T10:00:00Z",
+            "status": "qualified",
+            "name": "Fallback Lead",
+            "email": "lead@example.com",
+            "property_type": "villa",
+            "apartment_count": "7",
+            "city": "Fallback Marina",
+            "concierge_needs": "Arrivals",
+            "current_language": "fr",
+            "submitted_from": "/demo/operations",
+            "location": "Fallback Marina",
+            "needs": "Arrivals",
+        }
+
+        captured_requests = []
+        formspree_endpoint = "https://formspree.io/f/testlead"
+
+        def fake_urlopen(req, timeout=10):
+            if req.full_url == "https://api.resend.com/emails":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    403,
+                    "Forbidden",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"message":"from is not verified"}'),
+                )
+            if req.full_url == formspree_endpoint:
+                captured_requests.append(req)
+                return FakeResendResponse(status=200)
+            raise AssertionError(f"Unexpected URL: {req.full_url}")
+
+        with patch.dict(os.environ, {
+            "RESEND_API_KEY": "re_test_key",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "FORMSPREE_ADMIN_ENDPOINT": formspree_endpoint,
+        }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            from app import _send_internal_pilot_notification
+
+            ok, reason = _send_internal_pilot_notification(record, "https://example.com/admin/pilot-requests/fallback-id")
+
+        self.assertTrue(ok)
+        self.assertIsNone(reason)
+        self.assertEqual(len(captured_requests), 1)
+        formspree_payload = urllib.parse.parse_qs(captured_requests[0].data.decode("utf-8"))
+        self.assertEqual(formspree_payload["subject"], ["[BlackSea Connect] New Pilot Lead Received"])
+        self.assertEqual(formspree_payload["lead_id"], ["fallback-id"])
+        self.assertEqual(formspree_payload["admin_detail_url"], ["https://example.com/admin/pilot-requests/fallback-id"])
+        self.assertEqual(formspree_payload["status"], ["QUALIFIED"])
+
+    def test_lead_save_still_succeeds_if_formspree_fails(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+            "current_language": "en",
+        }
+
+        def fake_urlopen(req, timeout=10):
+            if req.full_url == "https://api.resend.com/emails":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    403,
+                    "Forbidden",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"message":"from is not verified"}'),
+                )
+            if req.full_url == "https://formspree.io/f/testlead":
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    500,
+                    "Internal Server Error",
+                    hdrs=None,
+                    fp=io.BytesIO(b'{"error":"formspree failure"}'),
+                )
+            raise AssertionError(f"Unexpected URL: {req.full_url}")
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "FORMSPREE_ADMIN_ENDPOINT": "https://formspree.io/f/testlead",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        response_text = response.get_data(as_text=True)
+        self.assertNotIn("stoyanova@orange.fr", response_text)
+        self.assertNotIn("formspree.io", response_text)
+        self.assertEqual(len(self._read_requests()), 1)
 
     def test_internal_notification_logs_resend_http_error_body(self):
         record = {

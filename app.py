@@ -11,6 +11,7 @@ import os
 import smtplib
 import urllib.error
 import urllib.request
+import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
@@ -262,19 +263,23 @@ def _build_internal_pilot_notification_body(record, admin_detail_url):
     return "\n".join(lines)
 
 
-def _send_internal_pilot_notification(record, admin_detail_url):
-    resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
-    from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <concierge@blackseaconnect.com>"
-    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+def _build_internal_pilot_notification_payload(record, admin_detail_url):
+    return {
+        "subject": "[BlackSea Connect] New Pilot Lead Received",
+        "lead_id": record.get("id", ""),
+        "created_at": record.get("created_at", ""),
+        "property_type": record.get("property_type", ""),
+        "apartment_count": record.get("apartment_count", ""),
+        "city": record.get("city", ""),
+        "concierge_needs": record.get("concierge_needs", ""),
+        "email": record.get("email", ""),
+        "language": record.get("current_language") or "n/a",
+        "status": _normalize_pilot_status(record.get("status", "new")).upper(),
+        "admin_detail_url": admin_detail_url,
+    }
 
-    if not resend_api_key:
-        app.logger.warning("Internal pilot notification skipped: RESEND_API_KEY is missing.")
-        return False, "resend_not_configured"
 
-    if not admin_email:
-        app.logger.warning("Internal pilot notification skipped: ADMIN_EMAIL is missing.")
-        return False, "admin_email_missing"
-
+def _send_internal_pilot_notification_via_resend(record, admin_detail_url, resend_api_key, from_email, admin_email):
     message = EmailMessage()
     message["Subject"] = "[BlackSea Connect] New Pilot Lead Received"
     message["From"] = from_email
@@ -323,6 +328,88 @@ def _send_internal_pilot_notification(record, admin_detail_url):
         return False, "resend_send_failed"
 
     return True, None
+
+
+def _send_internal_pilot_notification_via_formspree(record, admin_detail_url, formspree_endpoint):
+    payload = _build_internal_pilot_notification_payload(record, admin_detail_url)
+    request = urllib.request.Request(
+        formspree_endpoint,
+        data=urllib.parse.urlencode(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response_status = getattr(response, "status", getattr(response, "code", None))
+            if response_status not in (200, 201, 202, 204):
+                app.logger.warning("Internal pilot notification send failed via Formspree: unexpected status %s.", response_status)
+                return False, "formspree_bad_status"
+    except urllib.error.HTTPError as exc:
+        response_body = ""
+        try:
+            response_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            response_body = "<unreadable>"
+        app.logger.warning(
+            "Internal pilot notification send failed via Formspree: HTTP %s %s. Body: %s",
+            exc.code,
+            exc.reason,
+            response_body,
+        )
+        return False, "formspree_send_failed"
+    except Exception as exc:
+        app.logger.warning("Internal pilot notification send failed via Formspree: %s", exc)
+        return False, "formspree_send_failed"
+
+    return True, None
+
+
+def _send_internal_pilot_notification(record, admin_detail_url):
+    resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
+    from_email = os.getenv("FROM_EMAIL", "").strip() or "BlackSea Connect <concierge@blackseaconnect.com>"
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+    formspree_endpoint = os.getenv("FORMSPREE_ADMIN_ENDPOINT", "").strip()
+
+    resend_attempted = False
+    resend_ok = False
+    resend_reason = "resend_not_configured"
+
+    if resend_api_key and admin_email:
+        resend_attempted = True
+        resend_ok, resend_reason = _send_internal_pilot_notification_via_resend(
+            record,
+            admin_detail_url,
+            resend_api_key,
+            from_email,
+            admin_email,
+        )
+        if resend_ok:
+            return True, None
+    else:
+        if not resend_api_key:
+            app.logger.warning("Internal pilot notification skipped via Resend: RESEND_API_KEY is missing.")
+        if not admin_email:
+            app.logger.warning("Internal pilot notification skipped via Resend: ADMIN_EMAIL is missing.")
+        resend_reason = "resend_not_configured" if not resend_api_key else "admin_email_missing"
+
+    if formspree_endpoint:
+        formspree_ok, formspree_reason = _send_internal_pilot_notification_via_formspree(
+            record,
+            admin_detail_url,
+            formspree_endpoint,
+        )
+        if formspree_ok:
+            return True, None
+        return False, formspree_reason
+
+    if resend_attempted and not resend_ok:
+        return False, resend_reason
+
+    app.logger.warning("Internal pilot notification skipped: FORMSPREE_ADMIN_ENDPOINT is missing.")
+    return False, "formspree_not_configured"
 
 
 def _queue_internal_pilot_notification(record, admin_detail_url):
