@@ -2876,6 +2876,11 @@ Object.assign(window.BlackSeaI18N.bg, {
   }
 });
 
+window.BlackSeaI18N.bg.network = window.BlackSeaI18N.bg.network || {};
+window.BlackSeaI18N.en.network = window.BlackSeaI18N.en.network || {};
+window.BlackSeaI18N.fr.network = window.BlackSeaI18N.fr.network || {};
+window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru || {};
+window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru.network || {};
 Object.assign(window.BlackSeaI18N.bg.network, {
   availableBadge: "Налично за заявки",
   requestsPausedBadge: "Заявките са паузирани",
@@ -4010,6 +4015,7 @@ Object.assign(window.BlackSeaI18N.ru.network, {
   approvedProvidersLabel: "одобренные поставщики",
   notAvailable: "н/д"
 });
+
 
 
 
