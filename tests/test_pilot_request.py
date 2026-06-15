@@ -464,8 +464,8 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("Detail Marina", html)
         self.assertIn("detail@example.com", html)
         self.assertIn("Concierge Desk", html)
-        self.assertIn("Internal notes", html)
-        self.assertIn("Activity timeline", html)
+        self.assertIn("Вътрешни бележки", html)
+        self.assertIn("История на действията", html)
         self.assertIn("Lead created", html)
 
     def test_status_update_works(self):
@@ -614,7 +614,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("NEW", html)
-        self.assertIn("Unassigned", html)
+        self.assertIn("Не е назначен", html)
 
     def test_internal_notification_uses_resend_configuration(self):
         record = {

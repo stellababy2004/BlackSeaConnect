@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect Guest Portal</title>
+  <title data-i18n="guest.pageTitle">BlackSea Connect | Портал за гости</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="guest-homepage-page">
@@ -29,13 +29,13 @@
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="home.navHome">Home</a>
-          <a class="site-nav__link" href="/services" data-i18n="home.navServices">Services</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="home.navDemo">Demo</a>
-          <a class="site-nav__link is-active" href="/guest/a-302" data-i18n="home.navGuestPortal">Guest Portal</a>
-          <a class="site-nav__link" href="/partners" data-i18n="home.navPartners">Partners</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="home.navProfessionals">Professionals</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="home.navPilotAccess">Pilot Access</a>
+          <a class="site-nav__link" href="/" data-i18n="home.navHome">Начало</a>
+          <a class="site-nav__link" href="/services" data-i18n="home.navServices">Услуги</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="home.navDemo">Демо</a>
+          <a class="site-nav__link is-active" href="/guest/a-302" data-i18n="home.navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="/partners" data-i18n="home.navPartners">Партньори</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="home.navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="home.navPilotAccess">Пилотен достъп</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -46,28 +46,27 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="home.homeRequestPilotCta">Request pilot access</a>
+        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="home.homeRequestPilotCta">Заяви пилотен достъп</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy guest-hero__copy">
-        <p class="eyebrow">Premium coastal welcome</p>
-        <h1>Apartment A-302</h1>
-        <p class="hero__text">
-          Welcome to a refined stay by the sea. Your residence, concierge support,
-          and trusted local services now follow the same calm BlackSea Connect visual language as the homepage.
+        <p class="eyebrow" data-i18n="guest.guestEyebrow">BLACKSEA CONNECT</p>
+        <h1 data-i18n="guest.guestTitle">Apartment A-302</h1>
+          <p class="hero__text" data-i18n="guest.guestIntro">
+          Спокоен портал-компаньон за вашето пристигане, достъп и консиерж поддръжка.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer">WhatsApp concierge</a>
-          <a class="button button--secondary" href="#wifi-access">Stay dashboard</a>
-          <a class="button button--tertiary" href="#concierge-form">Request assistance</a>
+          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer" data-i18n="guest.actionWhatsApp">WhatsApp консиерж</a>
+          <a class="button button--secondary" href="#wifi-access" data-i18n="guest.actionDashboard">Панел за престоя</a>
+          <a class="button button--tertiary" href="#concierge-form" data-i18n="guest.actionRequest">Поискай съдействие</a>
         </div>
-        <div class="trust-strip" aria-label="Stay highlights">
-          <span class="trust-strip__chip">Current stay active</span>
-          <span class="trust-strip__chip">Check-in 16 June, 16:00</span>
-          <span class="trust-strip__chip">Check-out 23 June, 11:00</span>
-          <span class="trust-strip__chip">Concierge live</span>
+        <div class="trust-strip" aria-label="Stay highlights" data-i18n="guest.trustAria">
+          <span class="trust-strip__chip" data-i18n="guest.guestArrivalPill">Пристигането е потвърдено</span>
+          <span class="trust-strip__chip" data-i18n="guest.guestLiveUpdated">обновено преди 2 мин.</span>
+          <span class="trust-strip__chip" data-i18n="guest.guestLiveFlow">жив гост поток</span>
+          <span class="trust-strip__chip" data-i18n="guest.guestLiveConcierge">консиерж онлайн</span>
         </div>
       </div>
     </div>
@@ -76,88 +75,88 @@
   <main class="guest-homepage-main">
     <section class="credibility-layer" id="wifi-access" aria-labelledby="guest-dashboard-title">
       <div class="section-heading">
-        <p class="section-heading__eyebrow">Stay dashboard</p>
-        <h2 id="guest-dashboard-title">Everything important at a glance.</h2>
+        <p class="section-heading__eyebrow" data-i18n="guest.arrivalStatusEyebrow">СТАТУС НА ПРИСТИГАНЕ</p>
+        <h2 id="guest-dashboard-title" data-i18n="guest.arrivalTitle">Всичко за посрещането е готово.</h2>
       </div>
 
       <div class="feature-grid guest-kpi-grid">
         <article class="feature-card guest-kpi-card">
           <span class="feature-card__icon">01</span>
-          <p class="guest-kpi-card__label">Stay status</p>
-          <strong class="guest-kpi-card__value">Active</strong>
-          <p>Arrived and supported by concierge throughout the current stay.</p>
+          <p class="guest-kpi-card__label" data-i18n="guest.conciergeLabel">Консиерж</p>
+          <strong class="guest-kpi-card__value" data-i18n="guest.conciergeValue">Наличен сега</strong>
+          <p data-i18n="guest.guestIntro">Спокоен портал-компаньон за вашето пристигане, достъп и консиерж поддръжка.</p>
         </article>
 
         <article class="feature-card guest-kpi-card">
           <span class="feature-card__icon">02</span>
-          <p class="guest-kpi-card__label">Check-in date</p>
-          <strong class="guest-kpi-card__value">16 Jun</strong>
-          <p>Arrival window confirmed for 16:00 with access ready on arrival.</p>
+          <p class="guest-kpi-card__label" data-i18n="guest.checkinLabel">Настаняване</p>
+          <strong class="guest-kpi-card__value" data-i18n="guest.checkinValue">Днес 16:00</strong>
+          <p data-i18n="guest.wifiInstructions3">При нужда от съдействие, консиержът отговаря в рамките на минути.</p>
         </article>
 
         <article class="feature-card guest-kpi-card">
           <span class="feature-card__icon">03</span>
-          <p class="guest-kpi-card__label">Check-out date</p>
-          <strong class="guest-kpi-card__value">23 Jun</strong>
-          <p>Departure window coordinated for 11:00 with support available.</p>
+          <p class="guest-kpi-card__label" data-i18n="guest.apartmentLabel">Апартамент</p>
+          <strong class="guest-kpi-card__value" data-i18n="guest.apartmentValue">Готов за пристигане</strong>
+          <p data-i18n="guest.transferValue">Потвърден</p>
         </article>
 
         <article class="feature-card guest-kpi-card">
           <span class="feature-card__icon">04</span>
-          <p class="guest-kpi-card__label">Concierge line</p>
-          <strong class="guest-kpi-card__value">Live</strong>
-          <p>WhatsApp, phone, and written requests are monitored for guest needs.</p>
+          <p class="guest-kpi-card__label" data-i18n="guest.transferLabel">Трансфер</p>
+          <strong class="guest-kpi-card__value" data-i18n="guest.transferValue">Потвърден</strong>
+          <p data-i18n="guest.actionHelper">Бързи действия за госта · без инсталиране, директно от телефона.</p>
         </article>
       </div>
 
       <div class="feature-grid guest-dashboard-grid">
         <article class="feature-card guest-dashboard-card">
           <span class="feature-card__icon">WF</span>
-          <h3>WiFi information</h3>
-          <p>Network: <strong>BlackSea-Guest-A302</strong><br>Password: <strong>MarinaCalm24</strong></p>
+          <h3 data-i18n="guest.wifiTitle">Wi-Fi и достъп до сградата</h3>
+          <p data-i18n="guest.wifiNetworkInfo">Мрежа: <strong>BlackSea-Guest-A302</strong><br>Парола: <strong>MarinaCalm24</strong></p>
           <div class="guest-card__pills">
-            <span class="guest-pill">Private access</span>
-            <span class="guest-pill">Instant connection</span>
+            <span class="guest-pill" data-i18n="guest.trustChip1">криптиран достъп за гости</span>
+            <span class="guest-pill" data-i18n="guest.trustChip2">проверени локални партньори</span>
           </div>
         </article>
 
         <article class="feature-card guest-dashboard-card">
           <span class="feature-card__icon">PL</span>
-          <h3>Pool access</h3>
-          <p>Reserved resident access from <strong>08:00 to 20:00</strong> with a calm resort policy.</p>
+          <h3 data-i18n="guest.actionQr">QR достъп</h3>
+          <p data-i18n="guest.reservedAccessInfo">Резервиран достъп за резиденти от <strong>08:00 до 20:00</strong> с тиха курортна политика.</p>
           <div class="guest-card__pills">
-            <span class="guest-pill">Towels available</span>
-            <span class="guest-pill">Quiet hours respected</span>
+            <span class="guest-pill" data-i18n="guest.trustChip3">сигурна координация на пристигането</span>
+            <span class="guest-pill" data-i18n="guest.trustChip4">частен консиерж поток</span>
           </div>
         </article>
 
         <article class="feature-card guest-dashboard-card">
           <span class="feature-card__icon">PK</span>
-          <h3>Parking information</h3>
-          <p>Underground bay <strong>B-14</strong> is assigned for guest vehicles and private transfers.</p>
+          <h3 data-i18n="guest.actionTransfer">Трансфер</h3>
+          <p data-i18n="guest.parkingInfo">Подземно място <strong>B-14</strong> е запазено за гостуващи автомобили и частни трансфери.</p>
           <div class="guest-card__pills">
-            <span class="guest-pill">Secure garage</span>
-            <span class="guest-pill">24/7 access</span>
+            <span class="guest-pill" data-i18n="guest.guestLiveArrivals">3 активни пристигания</span>
+            <span class="guest-pill" data-i18n="guest.guestLiveConcierge">консиерж онлайн</span>
           </div>
         </article>
 
         <article class="feature-card guest-dashboard-card">
           <span class="feature-card__icon">EM</span>
-          <h3>Emergency contact</h3>
-          <p>Call <strong>+359 899 111 019</strong> for urgent property or guest concerns requiring immediate response.</p>
+          <h3 data-i18n="guest.actionSos">Обади се за поддръжка</h3>
+          <p data-i18n="guest.urgentSupportInfo">Обадете се на <strong>+359 899 111 019</strong> при спешни въпроси за имота или госта, които изискват незабавен отговор.</p>
           <div class="guest-card__pills">
-            <span class="guest-pill">Urgent line</span>
-            <span class="guest-pill">Priority support</span>
+            <span class="guest-pill" data-i18n="guest.trustChip1">криптиран достъп за гости</span>
+            <span class="guest-pill" data-i18n="guest.trustChip2">проверени локални партньори</span>
           </div>
         </article>
 
         <article class="feature-card guest-dashboard-card">
           <span class="feature-card__icon">HC</span>
-          <h3>Host contact</h3>
-          <p>Reach the concierge desk by WhatsApp, phone, or concierge form throughout the stay.</p>
+          <h3 data-i18n="guest.actionConcierge">Консиерж</h3>
+          <p data-i18n="guest.conciergeDeskInfo">Свържете се с консиерж екипа чрез WhatsApp, телефон или формата за съдействие през целия престой.</p>
           <div class="guest-card__pills">
-            <span class="guest-pill">WhatsApp first</span>
-            <span class="guest-pill">Fast reply</span>
+            <span class="guest-pill" data-i18n="guest.actionHelper">Бързи действия за госта · без инсталиране, директно от телефона.</span>
+            <span class="guest-pill" data-i18n="guest.guestLiveUpdated">обновено преди 2 мин.</span>
           </div>
         </article>
       </div>
@@ -165,188 +164,188 @@
 
     <section class="trust-layer" aria-labelledby="guest-services-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Concierge services</p>
-        <h2 id="guest-services-title">Curated support with the same calm hospitality rhythm.</h2>
+        <p class="section-heading__eyebrow" data-i18n="guest.wifiEyebrow">WI-FI &amp; ACCESS</p>
+        <h2 id="guest-services-title" data-i18n="guest.wifiTitle">Wi-Fi и достъп до сградата</h2>
       </div>
 
       <div class="feature-grid guest-unified-grid">
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">AT</span>
-          <h3>Airport transfer</h3>
-          <p>Private airport pickup with luggage support and a smooth door-to-door arrival flow.</p>
+          <h3 data-i18n="guest.actionTransfer">Трансфер</h3>
+          <p data-i18n="guest.wifiInstructions1">1. Влезте през основния вход и използвайте кодовия панел вдясно.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">PD</span>
-          <h3>Private driver</h3>
-          <p>Professional driver service for evening dining, local visits, and relaxed coastal movement.</p>
+          <h3 data-i18n="guest.actionConcierge">Консиерж</h3>
+          <p data-i18n="guest.wifiInstructions2">2. Изберете етаж 3 и следвайте табелата за A-302.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">BR</span>
-          <h3>Boat rental</h3>
-          <p>Private yacht and speedboat options coordinated through trusted local charter partners.</p>
+          <h3 data-i18n="guest.actionQr">QR достъп</h3>
+          <p data-i18n="guest.wifiInstructions3">3. При нужда от съдействие, консиержът отговаря в рамките на минути.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">RR</span>
-          <h3>Restaurant reservations</h3>
-          <p>Discreet table bookings at nearby coastal dining destinations chosen for service quality.</p>
+          <h3 data-i18n="guest.arrivalStatusEyebrow">СТАТУС НА ПРИСТИГАНЕ</h3>
+          <p data-i18n="guest.arrivalStatusTime">Днес · 16:00</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">HK</span>
-          <h3>Housekeeping</h3>
-          <p>Optional refresh service with timing that respects privacy, routine, and arrival priorities.</p>
+          <h3 data-i18n="guest.trustChip1">криптиран достъп за гости</h3>
+          <p data-i18n="guest.trustChip2">проверени локални партньори</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">LX</span>
-          <h3>Local experiences</h3>
-          <p>Handpicked excursions, marina plans, and scenic coastal experiences for a memorable stay.</p>
+          <h3 data-i18n="guest.trustChip3">сигурна координация на пристигането</h3>
+          <p data-i18n="guest.trustChip4">частен консиерж поток</p>
         </article>
       </div>
     </section>
 
     <section class="trust-layer" aria-labelledby="guest-partners-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Trusted local partners</p>
-        <h2 id="guest-partners-title">A focused local network for support, wellbeing, and daily comfort.</h2>
+        <p class="section-heading__eyebrow" data-i18n="guest.guestActionsAria">Бързи действия за госта</p>
+        <h2 id="guest-partners-title" data-i18n="guest.actionHelper">Бързи действия за госта · без инсталиране, директно от телефона.</h2>
       </div>
 
       <div class="feature-grid guest-unified-grid">
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">RS</span>
-          <h3>Restaurants</h3>
-          <p>Curated dining partners for memorable seaside lunches, elegant dinners, and marina evenings.</p>
+          <h3 data-i18n="guest.actionConcierge">Консиерж</h3>
+          <p data-i18n="guest.guestLiveFlow">жив гост поток</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">PH</span>
-          <h3>Pharmacy</h3>
-          <p>Reliable nearby pharmacy options for essentials, wellness items, and quick practical assistance.</p>
+          <h3 data-i18n="guest.actionSos">Обади се за поддръжка</h3>
+          <p data-i18n="guest.trustChip2">проверени локални партньори</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">MD</span>
-          <h3>Medical assistance</h3>
-          <p>Escalation-ready support for medical guidance, local response coordination, and next-step help.</p>
+          <h3 data-i18n="guest.actionTransfer">Трансфер</h3>
+          <p data-i18n="guest.trustChip3">сигурна координация на пристигането</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">TX</span>
-          <h3>Taxi</h3>
-          <p>Prompt city-to-marina transfers for spontaneous movement, errands, and evening plans.</p>
+          <h3 data-i18n="guest.actionQr">QR достъп</h3>
+          <p data-i18n="guest.trustChip4">частен консиерж поток</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">PM</span>
-          <h3>Property maintenance</h3>
-          <p>Fast-response technical support for access, comfort, or property issues that need expert attention.</p>
+          <h3 data-i18n="guest.arrivalTitle">Всичко за посрещането е готово.</h3>
+          <p data-i18n="guest.arrivalStatusEyebrow">СТАТУС НА ПРИСТИГАНЕ</p>
         </article>
       </div>
     </section>
 
     <section class="trust-layer" aria-labelledby="guest-actions-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Quick actions</p>
-        <h2 id="guest-actions-title">Fast guest actions in the same polished interaction flow.</h2>
+        <p class="section-heading__eyebrow" data-i18n="guest.guestActionsAria">Бързи действия за госта</p>
+        <h2 id="guest-actions-title" data-i18n="guest.actionHelper">Бързи действия за госта · без инсталиране, директно от телефона.</h2>
       </div>
 
       <div class="feature-grid guest-unified-grid">
         <article class="feature-card guest-unified-card guest-action-card">
           <span class="feature-card__icon">WA</span>
-          <h3>WhatsApp concierge</h3>
-          <p>Start the fastest support flow for guest questions, arrival timing changes, or concierge requests.</p>
-          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer">Open WhatsApp</a>
+          <h3 data-i18n="guest.actionConcierge">Консиерж</h3>
+          <p data-i18n="guest.guestIntro">Спокоен портал-компаньон за вашето пристигане, достъп и консиерж поддръжка.</p>
+          <a class="button button--primary" href="https://wa.me/359899111019?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B0%D0%B7%20%D1%81%D1%8A%D0%BC%20%D0%B3%D0%BE%D1%81%D1%82%20%D0%BD%D0%B0%20Apartment%20A-302%20%D0%B8%20%D0%B8%D0%BC%D0%B0%D0%BC%20%D0%BD%D1%83%D0%B6%D0%B4%D0%B0%20%D0%BE%D1%82%20%D1%81%D1%8A%D0%B4%D0%B5%D0%B9%D1%81%D1%82%D0%B2%D0%B8%D0%B5." rel="noreferrer" data-i18n="guest.actionWhatsApp">Отвори WhatsApp</a>
         </article>
 
         <article class="feature-card guest-unified-card guest-action-card">
           <span class="feature-card__icon">CL</span>
-          <h3>Call concierge</h3>
-          <p>Reach the concierge desk directly for urgent help, arrival issues, or immediate coordination.</p>
-          <a class="button button--secondary" href="tel:+359899111019">Call now</a>
+          <h3 data-i18n="guest.actionSos">Обади се за поддръжка</h3>
+          <p data-i18n="guest.wifiInstructions3">3. При нужда от съдействие, консиержът отговаря в рамките на минути.</p>
+          <a class="button button--secondary" href="tel:+359899111019" data-i18n="guest.actionCallNow">Обади се</a>
         </article>
 
         <article class="feature-card guest-unified-card guest-action-card">
           <span class="feature-card__icon">RQ</span>
-          <h3>Request assistance</h3>
-          <p>Use email if you prefer a written request before opening the detailed concierge form.</p>
-          <a class="button button--tertiary" href="mailto:concierge@blackseaconnect.com?subject=Assistance%20request%20-%20Apartment%20A-302&body=Hello%2C%20I%20need%20assistance%20for%20Apartment%20A-302.">Email concierge</a>
+          <h3 data-i18n="guest.actionRequest">Поискай съдействие</h3>
+          <p data-i18n="guest.actionHelper">Бързи действия за госта · без инсталиране, директно от телефона.</p>
+          <a class="button button--tertiary" href="mailto:concierge@blackseaconnect.com?subject=Assistance%20request%20-%20Apartment%20A-302&body=Hello%2C%20I%20need%20assistance%20for%20Apartment%20A-302." data-i18n="guest.actionEmailConcierge">Пиши на консиерж</a>
         </article>
 
         <article class="feature-card guest-unified-card guest-action-card">
           <span class="feature-card__icon">RP</span>
-          <h3>Report issue</h3>
-          <p>Flag a property, access, or maintenance issue so the team can respond quickly and clearly.</p>
-          <a class="button button--secondary" href="#concierge-form">Open form</a>
+          <h3 data-i18n="guest.actionTransfer">Трансфер</h3>
+          <p data-i18n="guest.arrivalStatusEyebrow">СТАТУС НА ПРИСТИГАНЕ</p>
+          <a class="button button--secondary" href="#concierge-form" data-i18n="guest.actionOpenForm">Отвори формата</a>
         </article>
       </div>
     </section>
 
     <section class="cta-panel guest-form-panel" aria-labelledby="guest-form-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Request assistance</p>
-        <h2 id="guest-form-title">Send a concierge request in the same quiet BlackSea Connect flow.</h2>
-        <p class="cta-panel__copy">Use the form below for detailed support, bookings, housekeeping, maintenance, or local recommendations.</p>
+        <p class="section-heading__eyebrow" data-i18n="guest.requestTitle">Изпрати заявка към консиержа</p>
+        <h2 id="guest-form-title" data-i18n="guest.requestCopy">Използвайте формата за детайлна помощ, резервации, почистване, поддръжка или местни препоръки.</h2>
+        <p class="cta-panel__copy" data-i18n="guest.requestCopy">Използвайте формата за детайлна помощ, резервации, почистване, поддръжка или местни препоръки.</p>
       </div>
 
       <form id="concierge-form" class="guest-concierge-form" method="post" action="/api/concierge">
-        <input type="text" name="name" placeholder="Your name" required>
-        <input type="email" name="email" placeholder="Your email" required>
+        <input type="text" name="name" placeholder="Вашето име" data-i18n-attr="placeholder:guest.namePlaceholder" required>
+        <input type="email" name="email" placeholder="Вашият имейл" data-i18n-attr="placeholder:guest.emailPlaceholder" required>
         <select name="service_type" required>
-          <option value="">Select service</option>
-          <option value="airport_transfer">Airport transfer</option>
-          <option value="private_driver">Private driver</option>
-          <option value="boat_rental">Boat rental</option>
-          <option value="restaurant_reservations">Restaurant reservations</option>
-          <option value="housekeeping">Housekeeping</option>
-          <option value="local_experiences">Local experiences</option>
-          <option value="other">Other</option>
+          <option value="" data-i18n="guest.serviceEmpty">Изберете услуга</option>
+          <option value="airport_transfer" data-i18n="guest.serviceAirport">Летищен трансфер</option>
+          <option value="private_driver" data-i18n="guest.serviceDriver">Частен шофьор</option>
+          <option value="boat_rental" data-i18n="guest.serviceBoat">Наем на лодка</option>
+          <option value="restaurant_reservations" data-i18n="guest.serviceRestaurant">Ресторантски резервации</option>
+          <option value="housekeeping" data-i18n="guest.serviceHousekeeping">Почистване</option>
+          <option value="local_experiences" data-i18n="guest.serviceLocal">Местни преживявания</option>
+          <option value="other" data-i18n="guest.serviceOther">Друго</option>
         </select>
-        <textarea name="message" placeholder="Describe your request..." rows="5" required></textarea>
-        <button class="button button--primary" type="submit">Send request</button>
+        <textarea name="message" placeholder="Опишете заявката си..." data-i18n-attr="placeholder:guest.messagePlaceholder" rows="5" required></textarea>
+        <button class="button button--primary" type="submit" data-i18n="guest.submitRequest">Изпрати заявката</button>
         <p id="concierge-status"></p>
       </form>
     </section>
 
     <section class="trust-layer" aria-labelledby="guest-guide-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Area guide</p>
-        <h2 id="guest-guide-title">A curated coastal guide for where guests go next.</h2>
+        <p class="section-heading__eyebrow" data-i18n="guest.areaGuideEyebrow">Районен гид</p>
+        <h2 id="guest-guide-title" data-i18n="guest.areaGuideTitle">Подбран крайбрежен гид за следващата спирка на гостите.</h2>
       </div>
 
       <div class="feature-grid guest-unified-grid">
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">SV</span>
-          <h3>Sveti Vlas</h3>
-          <p>Elegant coastal atmosphere, marina views, and a calm pace ideal for a refined seaside stay.</p>
+          <h3 data-i18n="guest.area1Title">Св. Влас</h3>
+          <p data-i18n="guest.area1Body">Елегантна крайбрежна атмосфера, гледки към марината и спокоен ритъм за изискан престой.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">MR</span>
-          <h3>Marina Dinevi</h3>
-          <p>Designer marina dining, dockside promenades, and an upscale setting for evening plans.</p>
+          <h3 data-i18n="guest.area2Title">Марина Диневи</h3>
+          <p data-i18n="guest.area2Body">Дизайнерски ресторанти, крайбрежни алеи и изискано място за вечерни планове.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">SB</span>
-          <h3>Sunny Beach</h3>
-          <p>Lively seaside energy, beach clubs, and easy access to daytime leisure and nightlife.</p>
+          <h3 data-i18n="guest.area3Title">Слънчев бряг</h3>
+          <p data-i18n="guest.area3Body">Жива крайбрежна енергия, плажни клубове и лесен достъп до дневни забавления и нощен живот.</p>
         </article>
 
         <article class="feature-card guest-unified-card">
           <span class="feature-card__icon">NS</span>
-          <h3>Nessebar</h3>
-          <p>Historic streets, boutique dining, and a scenic old-town atmosphere for slower discovery.</p>
+          <h3 data-i18n="guest.area4Title">Несебър</h3>
+          <p data-i18n="guest.area4Body">Исторически улици, бутикови заведения и живописна атмосфера на стария град.</p>
         </article>
       </div>
 
       <div class="trust-strip" aria-label="Guest trust indicators">
-        <span class="trust-strip__chip">Encrypted guest access</span>
-        <span class="trust-strip__chip">Quiet arrival coordination</span>
-        <span class="trust-strip__chip">Trusted coastal partners</span>
-        <span class="trust-strip__chip">Private concierge support</span>
+        <span class="trust-strip__chip" data-i18n="guest.trustChip1">криптиран достъп за гости</span>
+        <span class="trust-strip__chip" data-i18n="guest.trustChip2">проверени локални партньори</span>
+        <span class="trust-strip__chip" data-i18n="guest.trustChip3">сигурна координация на пристигането</span>
+        <span class="trust-strip__chip" data-i18n="guest.trustChip4">частен консиерж поток</span>
       </div>
     </section>
   </main>
@@ -354,20 +353,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="home.footerDescription">Calm hospitality operations for coastal properties.</p>
+      <p data-i18n="home.footerDescription">Спокойни крайбрежни операции за имоти по Черноморието.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="home.navServices">Services</a>
-      <a href="/partners" data-i18n="home.navPartners">Partners</a>
-      <a href="/demo/operations" data-i18n="home.navDemo">Demo</a>
-      <a href="/guest/a-302" data-i18n="home.navGuestPortal">Guest Portal</a>
-      <a href="/pilot-access" data-i18n="home.navPilotAccess">Pilot Access</a>
+      <a href="/services" data-i18n="home.navServices">Услуги</a>
+      <a href="/partners" data-i18n="home.navPartners">Партньори</a>
+      <a href="/demo/operations" data-i18n="home.navDemo">Демо</a>
+      <a href="/guest/a-302" data-i18n="home.navGuestPortal">Портал за гости</a>
+      <a href="/pilot-access" data-i18n="home.navPilotAccess">Пилотен достъп</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="home.footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="home.footerMeta">Operational software for guest coordination, property teams and trusted local service partners.</p>
+      <p data-i18n="home.footerMeta">Оперативен софтуер за координация на гости, екипи и доверени местни партньори.</p>
     </div>
   </footer>
 
@@ -387,7 +386,7 @@
         <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
     </span>
-    <span class="whatsapp-float__label">Pilot access</span>
+    <span class="whatsapp-float__label" data-i18n="home.navPilotAccess">Пилотен достъп</span>
   </a>
 
   <script>
@@ -404,7 +403,7 @@
       message: form.message.value
     };
 
-    status.textContent = "Sending request...";
+    status.textContent = "Изпращане на заявката...";
 
     try {
       const response = await fetch("/api/concierge", {
@@ -418,13 +417,13 @@
       const data = await response.json();
 
       if (data.ok) {
-        status.textContent = "Request sent successfully.";
+        status.textContent = "Заявката е изпратена успешно.";
         form.reset();
       } else {
-        status.textContent = "Please complete all required fields.";
+        status.textContent = "Моля, попълнете всички задължителни полета.";
       }
     } catch (error) {
-      status.textContent = "Connection error. Please try again.";
+      status.textContent = "Грешка във връзката. Моля, опитайте отново.";
     }
   });
   </script>

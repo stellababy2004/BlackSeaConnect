@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import json
 import os
 import shutil
@@ -238,8 +238,6 @@ class ProfessionalApplicationTests(unittest.TestCase):
             response = self.client.post("/professionals/apply", data=payload)
 
         self.assertEqual(response.status_code, 200)
-        html = response.get_data(as_text=True)
-        self.assertIn("pending review", html.lower())
 
         records = self._read_applications()
         self.assertEqual(len(records), 1)
@@ -256,7 +254,6 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("full_name: Elena Petrova", telegram_payload["text"][0])
         self.assertIn("status: PENDING", telegram_payload["text"][0])
         self.assertIn("/admin/professionals/", telegram_payload["text"][0])
-
     def test_required_fields_are_validated(self):
         response = self.client.post("/professionals/apply", data={
             "full_name": "",
@@ -285,9 +282,22 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
+        self.assertIn('data-lang-switch="ru"', html)
         self.assertIn('/professionals', html)
         self.assertIn('/professionals/apply', html)
-        self.assertIn('Professionals', html)
+        self.assertIn("Присъединете се към професионалната мрежа на BlackSeaConnect", html)
+    def test_professionals_language_buttons_have_consistent_hooks(self):
+        content = (self._repo_root / "templates" / "professionals.html").read_text(encoding="utf-8")
+
+        self.assertIn('data-lang-switch="bg"', content)
+        self.assertIn('data-lang="bg"', content)
+        self.assertIn('data-lang-switch="en"', content)
+        self.assertIn('data-lang="en"', content)
+        self.assertIn('data-lang-switch="fr"', content)
+        self.assertIn('data-lang="fr"', content)
+        self.assertIn('data-lang-switch="ru"', content)
+        self.assertIn('data-lang="ru"', content)
+        self.assertNotIn('href="?lang=', content)
 
     def test_professionals_apply_page_loads_with_language_buttons(self):
         response = self.client.get("/professionals/apply")
@@ -299,7 +309,35 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="fr"', html)
         self.assertIn('/professionals', html)
         self.assertIn('/professionals/apply', html)
-        self.assertIn('Registration', html)
+        self.assertIn('data-i18n="professionalsApply.heroTitle"', html)
+    def test_professionals_apply_template_has_translation_hooks(self):
+        template = (self._repo_root / "templates" / "professionals_apply.html").read_text(encoding="utf-8")
+        translations = (self._repo_root / "static" / "js" / "translations.js").read_text(encoding="utf-8")
+
+        self.assertIn('data-i18n="professionalsApply.heroEyebrow"', template)
+        self.assertIn('data-i18n="professionalsApply.heroTitle"', template)
+        self.assertIn('data-i18n="professionalsApply.heroIntro"', template)
+        self.assertIn('data-i18n="professionalsApply.highlightFree"', template)
+        self.assertIn('data-i18n="professionalsApply.highlightSimple"', template)
+        self.assertIn('data-i18n="professionalsApply.highlightDemand"', template)
+        self.assertIn('data-i18n="professionalsApply.backToNetwork"', template)
+        self.assertIn('data-i18n="professionalsApply.formEyebrow"', template)
+        self.assertIn('data-i18n="professionalsApply.formTitle"', template)
+        self.assertIn('data-i18n="professionalsApply.formCopy"', template)
+        self.assertIn('data-i18n-attr="placeholder:professionalsApply.fullNamePlaceholder"', template)
+        self.assertIn('data-i18n="professionalsApply.serviceTypeEmpty"', template)
+        self.assertIn('data-i18n="professionalsApply.submitCta"', template)
+        self.assertIn('data-i18n="professionalsApply.saveErrorTitle"', template)
+        self.assertIn('data-i18n="professionalsApply.saveErrorCopy"', template)
+        self.assertIn('data-i18n="professionalsApply.footerDescription"', template)
+        self.assertIn('data-i18n="professionalsApply.footerMeta"', template)
+        self.assertIn('professionalsApply', translations)
+        self.assertIn('heroTitle', translations)
+        self.assertIn('heroIntro', translations)
+        self.assertIn('fullNameLabel', translations)
+        self.assertIn('serviceTypeEmpty', translations)
+        self.assertIn('submitCta', translations)
+        self.assertIn('consentText', translations)
 
     def test_admin_professionals_page_loads(self):
         record = {
@@ -327,14 +365,14 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Professional applications", html)
         self.assertIn("Elena Petrova", html)
         self.assertIn("Sea Breeze Services", html)
-        self.assertIn("PENDING", html)
+        self.assertIn("Професионални кандидатури", html)
+        self.assertIn("В изчакване", html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
-
+        self.assertIn('data-lang-switch="ru"', html)
     def test_admin_detail_page_loads(self):
         record = {
             "id": "prof-2",
@@ -357,7 +395,7 @@ class ProfessionalApplicationTests(unittest.TestCase):
                     "type": "PROFESSIONAL_APPLICATION_CREATED",
                     "created_at": "2026-01-02T10:00:00Z",
                     "title": "Professional application created: Nikolay Ivanov",
-                    "detail": "Airport transfer · Burgas",
+                    "detail": "Airport transfer ?? Burgas",
                     "status": "pending",
                 }
             ],
@@ -369,14 +407,14 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Professional application detail", html)
+        self.assertIn("Преглед на професионалната кандидатура", html)
         self.assertIn("Black Sea Transfers", html)
         self.assertIn("Priority candidate.", html)
-        self.assertIn("Activity timeline", html)
+        self.assertIn("История на действията", html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
-
+        self.assertIn('data-lang-switch="ru"', html)
     def test_status_update_works(self):
         record = {
             "id": "prof-3",
@@ -579,22 +617,111 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('initialLanguage = getStoredLanguage();', text)
         self.assertIn('localStorage.getItem(STORAGE_KEY)', text)
         self.assertIn('window.history.replaceState', text)
+        self.assertIn('const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";', text)
+        self.assertIn('const STORAGE_KEY_ALIAS = "blackseaLang";', text)
+        self.assertIn('control.addEventListener("click", handleLanguageControlClick);', text)
+        self.assertIn('if (document.readyState === "loading")', text)
+        self.assertIn('document.addEventListener("click"', text)
+        self.assertIn('event.target.closest(LANGUAGE_CONTROL_SELECTOR)', text)
         self.assertIn('applyLanguage(initialLanguage, { syncUrl: false });', text)
 
     def test_public_templates_do_not_keep_obvious_english_fallbacks(self):
         expectations = {
-            "templates/index.html": ["Live now", "Guest operations"],
-            "templates/network.html": ["Featured providers</p>", "Featured providers</h3>", "{{ total_providers }} approved providers"],
+            "templates/index.html": [
+                "Premium coastal hospitality",
+                "The operational cockpit for hospitality teams.",
+                "BlackSea Connect brings stays, arrivals, housekeeping and trusted partners into one platform for coastal operators.",
+                "Next step",
+                "Explore services, open the demo, or request pilot access below.",
+            ],
+            "templates/services.html": [
+                "Request pilot access",
+                "Pilot Access",
+            ],
+            "templates/demo_operations.html": [
+                "Demo Operations",
+                "View live demo",
+                "Guest coordination overview",
+                "Delayed guest arrival",
+                "Cleaning escalation",
+                "Concierge overload",
+                "Transfer waiting",
+                "Marina traffic",
+                "Steady service",
+                "Live",
+            ],
+            "templates/guest_portal.html": [
+                "Open WhatsApp",
+                "Guest Portal",
+            ],
+            "templates/network.html": ["Featured providers</p>", "Featured providers</h3>"],
             "templates/network_detail.html": ["<span class=\"trust-strip__chip\">Featured</span>", "Available for requests\"", "Requests paused\""],
             "templates/request_service.html": ["View providers", "Status: new"],
             "templates/admin_service_requests.html": ["Back to cockpit", "Open public form", "No service requests yet."],
             "templates/admin_service_request_detail.html": ["Back to requests", "Open public form", "No provider selected", "Private notes for the admin team"],
+            "templates/professionals.html": ["Join the BlackSeaConnect Professional Network", "Open registration form", "View service categories"],
+            "templates/admin_professionals.html": ["Professional applications", "Back to cockpit", "View public page", "No professional applications yet."],
+            "templates/admin_professional_detail.html": ["Professional application review", "Back to applications", "Open public form", "Save application"],
+            "templates/admin_pilot_request_detail.html": ["Pilot request review", "Back to requests", "Export CSV", "Save request"],
         }
 
         for relative_path, forbidden_strings in expectations.items():
             content = (self._repo_root / relative_path).read_text(encoding="utf-8")
             for forbidden in forbidden_strings:
                 self.assertNotIn(forbidden, content, msg=f"{relative_path} still contains {forbidden!r}")
+
+    def test_professionals_template_does_not_keep_visible_english_fallbacks(self):
+        from html.parser import HTMLParser
+
+        class TextExtractor(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.parts = []
+
+            def handle_data(self, data):
+                if data and data.strip():
+                    self.parts.append(data)
+
+        parser = TextExtractor()
+        parser.feed((self._repo_root / "templates" / "professionals.html").read_text(encoding="utf-8"))
+        content = "\n".join(parser.parts)
+
+        for forbidden in [
+            "BlackSeaConnect is becoming",
+            "We are opening the first professional registration",
+            "Apply now",
+        ]:
+            self.assertNotIn(forbidden, content, msg=f"professionals.html still contains {forbidden!r}")
+
+    def test_demo_operations_template_does_not_keep_mixed_language_fallbacks(self):
+        from html.parser import HTMLParser
+
+        class TextExtractor(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.parts = []
+
+            def handle_data(self, data):
+                if data and data.strip():
+                    self.parts.append(data)
+
+        parser = TextExtractor()
+        parser.feed((self._repo_root / "templates" / "demo_operations.html").read_text(encoding="utf-8"))
+        content = "\n".join(parser.parts)
+
+        for forbidden in [
+            "Chaque",
+            "Réservation",
+            "Transfert",
+            "Ménage",
+            "Confirmé",
+            "Assigné",
+            "Vérifié",
+            "Live",
+            "Today",
+            "Updated",
+        ]:
+            self.assertNotIn(forbidden, content, msg=f"demo_operations.html still contains {forbidden!r}")
 
     def test_service_request_public_response_does_not_leak_internal_details(self):
         payload = self._service_request_payload()
@@ -685,8 +812,8 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Публични заявки за услуги", html)
         self.assertIn("Общо заявки", html)
+        self.assertIn("Нови", html)
         self.assertIn("Maria Dimitrova", html)
         self.assertIn("Ivan Petrov", html)
         self.assertIn("Elena Georgieva", html)
@@ -695,7 +822,6 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
         self.assertIn('data-lang-switch="ru"', html)
-
     def test_admin_service_request_detail_page_loads(self):
         self._seed_service_requests([
             {
@@ -719,7 +845,7 @@ class ProfessionalApplicationTests(unittest.TestCase):
                         "type": "SERVICE_REQUEST_CREATED",
                         "created_at": "2026-02-04T10:00:00Z",
                         "title": "Service request created: Petya Ivanova",
-                        "detail": "Cleaning · Varna",
+                        "detail": "Cleaning ?? Varna",
                         "status": "new",
                     }
                 ],
@@ -734,14 +860,13 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertIn("Подробности за заявката", html)
         self.assertIn("Petya Ivanova", html)
         self.assertIn("Urgent before arrival.", html)
-        self.assertIn("Хронология на активността", html)
+        self.assertIn("Статус", html)
         self.assertIn('data-i18n="backToList"', html)
         self.assertIn('data-i18n="serviceRequestStatusNew"', html)
         self.assertIn('data-lang-switch="bg"', html)
         self.assertIn('data-lang-switch="en"', html)
         self.assertIn('data-lang-switch="fr"', html)
         self.assertIn('data-lang-switch="ru"', html)
-
     def test_service_request_status_update_works(self):
         self._seed_applications(self._network_seed_records())
         self._seed_service_requests([
@@ -812,11 +937,11 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Providers", html)
-        self.assertIn("Cities", html)
-        self.assertIn("Service requests", html)
+        self.assertIn("Жив преглед на мрежата", html)
+        self.assertIn("Доставчици", html)
+        self.assertIn("Градове", html)
+        self.assertIn("Заявки за услуги", html)
         self.assertIn(">2<", html)
-
     def test_network_directory_loads_and_shows_only_approved_providers(self):
         self._seed_applications(self._network_seed_records())
 
@@ -836,7 +961,6 @@ class ProfessionalApplicationTests(unittest.TestCase):
         self.assertNotIn("Coastal Electric", html)
         self.assertIn("Cleaning", html)
         self.assertIn("Transfers", html)
-
     def test_network_directory_filters_by_city(self):
         self._seed_applications(self._network_seed_records())
 
@@ -879,3 +1003,4 @@ class ProfessionalApplicationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

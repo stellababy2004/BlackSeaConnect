@@ -39,7 +39,7 @@
 
       <dl class="admin-pilot-details">
         <div><dt data-i18n="detailId">ID</dt><dd>{{ item.id|e }}</dd></div>
-        <div><dt data-i18n="detailStatus">Status</dt><dd data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</dd></div>
+        <div><dt data-i18n="detailStatus">Статус</dt><dd data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</dd></div>
         <div><dt data-i18n="detailEmail">Email</dt><dd>{{ item.email|e }}</dd></div>
         <div><dt data-i18n="detailPhone">Phone</dt><dd>{{ item.phone|e }}</dd></div>
         <div><dt data-i18n="detailCity">Град на имота</dt><dd>{{ item.property_city|e }}</dd></div>

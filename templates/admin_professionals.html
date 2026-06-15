@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professionals</title>
+  <title data-i18n="adminProfessionals.pageTitle">BlackSea Connect | Професионалисти</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Coastal service network</p>
-        <h1>Professional applications</h1>
-        <p>Registration layer for trusted local providers joining the BlackSeaConnect network.</p>
+        <p class="eyebrow" data-i18n="adminProfessionals.heroEyebrow">Панел на професионалистите</p>
+        <h1 data-i18n="adminProfessionals.heroTitle">Професионални кандидатури</h1>
+        <p data-i18n="adminProfessionals.heroCopy">Преглеждайте новите кандидатури за професионалната мрежа и одобрявайте подходящите партньори за BlackSeaConnect.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -21,27 +21,29 @@
           <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin">Back to cockpit</a>
-        <a class="button button--ghost" href="/professionals">View public page</a>
+        <a class="button button--secondary" href="/admin" data-i18n="adminProfessionals.backToCockpit">Назад към кокпита</a>
+        <a class="button button--ghost" href="/professionals" data-i18n="adminProfessionals.viewPublicPage">Виж публичната страница</a>
       </div>
     </section>
 
     <section class="admin-kpi-grid" aria-label="Professional application metrics">
       <article class="admin-kpi-card">
-        <span>Total Applications</span>
+        <span data-i18n="adminProfessionals.metricTotal">Общо кандидатури</span>
         <strong>{{ applications|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Pending</span>
+        <span data-i18n="adminProfessionals.metricPending">В изчакване</span>
         <strong>{{ counts.pending }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Approved</span>
+        <span data-i18n="adminProfessionals.metricApproved">Одобрени</span>
         <strong>{{ counts.approved }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Rejected</span>
+        <span data-i18n="adminProfessionals.metricRejected">Отхвърлени</span>
         <strong>{{ counts.rejected }}</strong>
       </article>
     </section>
@@ -56,29 +58,32 @@
           >
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+              {% set status_key = 'adminProfessionals.statusPending' if item.status|lower == 'pending' else 'adminProfessionals.statusApproved' if item.status|lower == 'approved' else 'adminProfessionals.statusRejected' %}
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ status_key }}">
+                {% if item.status|lower == 'pending' %}В изчакване{% elif item.status|lower == 'approved' %}Одобрени{% else %}Отхвърлени{% endif %}
+              </span>
             </div>
             <h2>{{ item.full_name|e }}</h2>
             <div class="trust-strip" aria-label="Provider badges">
               {% if item.featured %}
-                <span class="trust-strip__chip">Featured</span>
+                <span class="trust-strip__chip" data-i18n="adminProfessionals.featuredBadge">Избран</span>
               {% endif %}
               {% for badge in item.badges %}
                 <span class="trust-strip__chip">{{ badge|e }}</span>
               {% endfor %}
             </div>
-            <p><strong>Company:</strong> {{ item.company_name|e }}</p>
-            <p><strong>Service type:</strong> {{ item.service_type|e }}</p>
-            <p><strong>City:</strong> {{ item.city|e }}</p>
-            <p><strong>Phone:</strong> {{ item.phone|e }}</p>
-            <p><strong>Email:</strong> {{ item.email|e }}</p>
+            <p><strong data-i18n="adminProfessionals.companyLabel">Компания:</strong> {{ item.company_name|e }}</p>
+            <p><strong data-i18n="adminProfessionals.serviceLabel">Категория услуга:</strong> {{ item.service_type|e }}</p>
+            <p><strong data-i18n="adminProfessionals.cityLabel">Град:</strong> {{ item.city|e }}</p>
+            <p><strong data-i18n="adminProfessionals.phoneLabel">Телефон:</strong> {{ item.phone|e }}</p>
+            <p><strong data-i18n="adminProfessionals.emailLabel">Имейл:</strong> {{ item.email|e }}</p>
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>No professional applications yet.</h2>
-        <p>Once a provider submits the public registration form, it will appear here in reverse chronological order.</p>
+        <h2 data-i18n="adminProfessionals.emptyTitle">Все още няма професионални кандидатури.</h2>
+        <p data-i18n="adminProfessionals.emptyCopy">След като получим първата кандидатура, тя ще се покаже тук в обратен хронологичен ред.</p>
       </section>
     {% endif %}
   </main>

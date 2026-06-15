@@ -1,5 +1,6 @@
 (function () {
   const STORAGE_KEY = "blacksea-language";
+  const STORAGE_KEY_ALIAS = "blackseaLang";
   const DEFAULT_LANG = "bg";
   const PAGE_NAMESPACE_BY_PATH = {
     "/": "home",
@@ -14,6 +15,7 @@
     "/request-service": "requestService",
     "/admin/service-requests": "adminServiceRequests"
   };
+  const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
   const warnedKeys = new Set();
 
   function normalizeLanguage(lang) {
@@ -37,7 +39,7 @@
 
   function getStoredLanguage() {
     try {
-      return normalizeLanguage(localStorage.getItem(STORAGE_KEY));
+      return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_ALIAS));
     } catch (error) {
       void error;
       return "";
@@ -52,6 +54,52 @@
     } catch (error) {
       void error;
     }
+  }
+
+  function getLanguageFromControl(control) {
+    if (!control) {
+      return "";
+    }
+
+    const explicit = normalizeLanguage(control.getAttribute("data-lang-switch") || control.getAttribute("data-lang"));
+    if (explicit) {
+      return explicit;
+    }
+
+    if (control.tagName === "A") {
+      try {
+        const href = control.getAttribute("href") || "";
+        const url = new URL(href, window.location.href);
+        return normalizeLanguage(url.searchParams.get("lang"));
+      } catch (error) {
+        void error;
+      }
+    }
+
+    return "";
+  }
+
+  function getLanguageControls() {
+    return document.querySelectorAll(LANGUAGE_CONTROL_SELECTOR);
+  }
+
+  function syncLanguageControls(activeLang) {
+    getLanguageControls().forEach((control) => {
+      const controlLang = getLanguageFromControl(control);
+      const isActive = controlLang === activeLang;
+      control.classList.toggle("is-active", isActive);
+      control.setAttribute("aria-pressed", isActive ? "true" : "false");
+
+      if (control.tagName === "A" && controlLang) {
+        try {
+          const url = new URL(control.getAttribute("href") || window.location.href, window.location.href);
+          url.searchParams.set("lang", controlLang);
+          control.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
+        } catch (error) {
+          void error;
+        }
+      }
+    });
   }
 
   function getPageNamespace() {
@@ -107,8 +155,6 @@
     const translations = config;
     const defaultLang = DEFAULT_LANG;
     const pageNamespace = getPageNamespace();
-    const buttons = document.querySelectorAll("[data-lang-switch]");
-
     function applyLanguage(lang, options) {
       const settings = options || {};
       const activeLang = translations[lang] ? lang : defaultLang;
@@ -160,6 +206,7 @@
 
       try {
         localStorage.setItem(STORAGE_KEY, activeLang);
+        localStorage.setItem(STORAGE_KEY_ALIAS, activeLang);
       } catch (error) {
         void error;
       }
@@ -168,33 +215,79 @@
         setLanguageInUrl(activeLang);
       }
 
-      buttons.forEach((button) => {
-        const isActive = button.getAttribute("data-lang-switch") === activeLang;
-        button.classList.toggle("is-active", isActive);
-        button.setAttribute("aria-pressed", isActive ? "true" : "false");
-      });
+      syncLanguageControls(activeLang);
 
       window.dispatchEvent(new CustomEvent("blacksea:languagechange", {
         detail: { lang: activeLang }
       }));
     }
 
-    buttons.forEach((button) => {
-      button.addEventListener("click", function () {
-        applyLanguage(this.getAttribute("data-lang-switch"), { syncUrl: true });
+    function handleLanguageControlClick(event) {
+      const control = event.currentTarget || event.target.closest(LANGUAGE_CONTROL_SELECTOR);
+      if (!control) {
+        return;
+      }
+
+      const selectedLanguage = getLanguageFromControl(control);
+      if (!selectedLanguage) {
+        return;
+      }
+
+      if (window.console && typeof window.console.log === "function") {
+        window.console.log("language click", selectedLanguage);
+      }
+
+      if (control.tagName === "A") {
+        event.preventDefault();
+      }
+
+      applyLanguage(selectedLanguage, { syncUrl: true });
+    }
+
+    function bindLanguageControls() {
+      getLanguageControls().forEach((control) => {
+        if (control.dataset.blackseaLangBound === "1") {
+          return;
+        }
+
+        control.dataset.blackseaLangBound = "1";
+        control.addEventListener("click", handleLanguageControlClick);
       });
+    }
+
+    document.addEventListener("click", function (event) {
+      const control = event.target.closest(LANGUAGE_CONTROL_SELECTOR);
+      if (!control) {
+        return;
+      }
+
+      if (control.dataset.blackseaLangBound === "1") {
+        return;
+      }
+
+      handleLanguageControlClick.call(control, event);
     });
 
-    const urlLanguage = getLanguageFromUrl();
-    let initialLanguage = urlLanguage;
-    if (!initialLanguage) {
-      initialLanguage = getStoredLanguage();
-    }
-    if (!translations[initialLanguage]) {
-      initialLanguage = defaultLang;
+    function boot() {
+      bindLanguageControls();
+
+      const urlLanguage = getLanguageFromUrl();
+      let initialLanguage = urlLanguage;
+      if (!initialLanguage) {
+        initialLanguage = getStoredLanguage();
+      }
+      if (!translations[initialLanguage]) {
+        initialLanguage = defaultLang;
+      }
+
+      applyLanguage(initialLanguage, { syncUrl: false });
     }
 
-    applyLanguage(initialLanguage, { syncUrl: false });
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", boot, { once: true });
+    } else {
+      boot();
+    }
   }
 
   window.BlackSeaI18n = window.BlackSeaI18n || { init };

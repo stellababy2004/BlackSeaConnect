@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Demo Operations</title>
+  <title data-i18n="demo.pageTitle">BlackSea Connect | Демо операции</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="operations-demo-page">
@@ -18,13 +18,13 @@
     <nav class="operations-topbar" aria-label="Primary">
       <a class="operations-brand" href="/">BlackSea Connect</a>
       <nav class="site-nav" aria-label="Site">
-        <a class="site-nav__link" href="/">Home</a>
-        <a class="site-nav__link" href="/services">Services</a>
-        <a class="site-nav__link is-active" href="/demo/operations">Demo</a>
-          <a class="site-nav__link" href="/guest/a-302">Guest Portal</a>
-          <a class="site-nav__link" href="/partners">Partners</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="demo.navProfessionals">Professionals</a>
-          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
+        <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
+        <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
+        <a class="site-nav__link is-active" href="/demo/operations" data-i18n="navDemo">Демо</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="demo.navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
         </nav>
       <div class="language-switcher" aria-label="Language switcher">
         <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -36,77 +36,77 @@
         <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
       </div>
       <div class="operations-topbar__status">
-        <span class="operations-chip operations-chip--live" data-i18n="demo.topLiveChip">Demo operations live</span>
-        <span class="operations-chip" data-i18n="demo.topUpdatedChip">Updated 2 min ago</span>
+        <span class="operations-chip operations-chip--live" data-i18n="demo.topStatusChip">Демо операциите са на живо</span>
+        <span class="operations-chip" data-i18n="demo.topUpdatedChip">Обновено преди 2 мин.</span>
       </div>
-      <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="demo.topPilotCta">Request pilot access</button>
+      <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="demo.topPilotCta">Заяви пилотен достъп</button>
     </nav>
 
     <div class="operations-hero__grid">
       <section class="operations-hero__copy">
-        <p class="operations-eyebrow" data-i18n="demo.heroEyebrow">Calm hospitality software for coastal stays</p>
-        <h1 data-i18n="demo.heroTitle">Guest, property and service coordination in one calm view.</h1>
+        <p class="operations-eyebrow" data-i18n="demo.heroEyebrow">Спокоен софтуер за крайбрежно гостоприемство</p>
+        <h1 data-i18n="demo.heroTitle">Координация на гости, имоти и услуги в един спокоен изглед.</h1>
         <p class="operations-hero__text" data-i18n="demo.heroText">
-          A practical workspace for arrivals, cleaning, transfers, local support and guest follow-through.
+          Практическо работно пространство за пристигания, почистване, трансфери, местна подкрепа и последващи действия за гостите.
         </p>
 
         <div class="operations-hero__cta-row">
-          <button class="operations-button operations-button--primary" type="button" data-open-pilot-modal data-i18n="demo.heroPrimaryCta">Request pilot access</button>
-          <a class="operations-button operations-button--secondary" href="#operations-overview" data-i18n="demo.heroSecondaryCta">View live demo</a>
+          <button class="operations-button operations-button--primary" type="button" data-open-pilot-modal data-i18n="demo.heroPrimaryCta">Заяви пилотен достъп</button>
+          <a class="operations-button operations-button--secondary" href="#operations-overview" data-i18n="demo.heroSecondaryCta">Виж демо на живо</a>
         </div>
 
         <div class="operations-signal-row" aria-label="Guest flow signals">
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal1">Delayed guest arrival</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal2">Cleaning escalation</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal3">Concierge overload</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal4">Transfer waiting</span>
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal5">Marina traffic</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal1">Закъсняло пристигане на гост</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal2">Ескалация при почистване</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal3">Претоварен консиерж</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal4">Чакащ трансфер</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.signal5">Трафик в марината</span>
         </div>
       </section>
 
       <aside class="operations-hero__preview" aria-label="Coastal operations preview">
         <div class="operations-preview-card">
           <div class="operations-preview-card__topline">
-            <span class="operations-chip operations-chip--live" data-i18n="demo.boardLive">Today</span>
-            <span class="operations-preview-card__time" data-i18n="demo.boardTime">14:28 local time</span>
+            <span class="operations-chip operations-chip--live" data-i18n="demo.boardToday">Днес</span>
+            <span class="operations-preview-card__time" data-i18n="demo.boardTime">14:28 местно време</span>
           </div>
           <div class="operations-preview-card__headline">
             <div>
-              <p class="operations-preview-card__label" data-i18n="demo.boardLabel">Guest coordination overview</p>
+              <p class="operations-preview-card__label" data-i18n="demo.boardLabel">Преглед на координацията на гостите</p>
               <h2 data-i18n="demo.boardProperty">Villa Marina One</h2>
             </div>
-            <span class="operations-status-pill" data-i18n="demo.boardStatus">Steady service</span>
+            <span class="operations-status-pill" data-i18n="demo.boardStatus">Стабилна услуга</span>
           </div>
           <div class="operations-preview-grid">
             <div class="operations-preview-stat">
-              <span data-i18n="demo.boardStat1Label">Occupancy</span>
+            <span data-i18n="demo.boardStat1Label">Заетост</span>
               <strong>87%</strong>
             </div>
             <div class="operations-preview-stat">
-              <span data-i18n="demo.boardStat2Label">Arrivals today</span>
+            <span data-i18n="demo.boardStat2Label">Пристигания днес</span>
               <strong>5</strong>
             </div>
             <div class="operations-preview-stat">
-              <span data-i18n="demo.boardStat3Label">Open requests</span>
-              <strong data-i18n="demo.boardStat3Value">3 open</strong>
+            <span data-i18n="demo.boardStat3Label">Отворени заявки</span>
+              <strong data-i18n="demo.boardStat3Value">3 отворени</strong>
             </div>
             <div class="operations-preview-stat">
-              <span data-i18n="demo.boardStat4Label">Service level</span>
+            <span data-i18n="demo.boardStat4Label">Ниво на услуга</span>
               <strong>94%</strong>
             </div>
           </div>
           <div class="operations-preview-card__notes">
             <div>
               <span data-i18n="demo.note1Time">14:05</span>
-              <strong data-i18n="demo.note1Text">Guest arrival delayed by 18 min because of marina traffic.</strong>
+              <strong data-i18n="demo.note1Text">Пристигането на госта се забави с 18 минути заради трафика в марината.</strong>
             </div>
             <div>
               <span data-i18n="demo.note2Time">13:42</span>
-              <strong data-i18n="demo.note2Text">Cleaning follow-up opened for Villa Azure after the final inspection.</strong>
+              <strong data-i18n="demo.note2Text">Отворено е последващо действие за почистване на Villa Azure след финалната инспекция.</strong>
             </div>
             <div>
               <span data-i18n="demo.note3Time">12:58</span>
-              <strong data-i18n="demo.note3Text">Wi-Fi reset completed for A-302 and checked by concierge.</strong>
+              <strong data-i18n="demo.note3Text">Wi-Fi е рестартиран за A-302 и проверен от консиержа.</strong>
             </div>
           </div>
         </div>
@@ -119,41 +119,41 @@
       <article class="operations-panel operations-panel--wide">
         <div class="operations-panel__header">
           <div>
-            <p class="operations-panel__eyebrow" data-i18n="demo.arrivalEyebrow">Arrival Flow</p>
-            <h2 data-i18n="demo.arrivalTitle">Chaque arrivée suit un flux opérationnel simple et traçable.</h2>
+            <p class="operations-panel__eyebrow" data-i18n="demo.arrivalEyebrow">Поток на пристигане</p>
+            <h2 data-i18n="demo.arrivalTitle">Всяко пристигане минава през прост и проследим оперативен поток.</h2>
           </div>
-          <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.arrivalStatus">5 steps tracked</span>
+          <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.arrivalStatus">Проследени 5 стъпки</span>
         </div>
-        <p class="operations-panel__copy" data-i18n="demo.arrivalCopy">Le suivi reste lisible pour les équipes terrain, du dossier confirmé jusqu’au séjour actif.</p>
+        <p class="operations-panel__copy" data-i18n="demo.arrivalCopy">Проследяването остава ясно за екипите на терен, от потвърденото досие до активния престой.</p>
         <div class="operations-arrival-flow" aria-label="Arrival workflow timeline">
           <article class="operations-arrival-step operations-arrival-step--done">
-            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep1Status">Confirmé</span>
-            <strong data-i18n="demo.arrivalStep1Title">Réservation confirmée</strong>
-            <p><time datetime="2026-06-12T09:12:00+02:00">09:12</time> <span data-i18n="demo.arrivalStep1Owner">Réservations</span></p>
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep1Status">Потвърдено</span>
+            <strong data-i18n="demo.arrivalStep1Title">Резервацията е потвърдена</strong>
+            <p><time datetime="2026-06-12T09:12:00+02:00">09:12</time> <span data-i18n="demo.arrivalStep1Owner">Резервации</span></p>
           </article>
           <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
           <article class="operations-arrival-step operations-arrival-step--done">
-            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep2Status">Assigné</span>
-            <strong data-i18n="demo.arrivalStep2Title">Transfert assigné</strong>
-            <p><time datetime="2026-06-12T09:38:00+02:00">09:38</time> <span data-i18n="demo.arrivalStep2Owner">Transferts</span></p>
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep2Status">Назначено</span>
+            <strong data-i18n="demo.arrivalStep2Title">Трансферът е назначен</strong>
+            <p><time datetime="2026-06-12T09:38:00+02:00">09:38</time> <span data-i18n="demo.arrivalStep2Owner">Трансфери</span></p>
           </article>
           <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
           <article class="operations-arrival-step operations-arrival-step--done">
-            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep3Status">Vérifié</span>
-            <strong data-i18n="demo.arrivalStep3Title">Ménage confirmé</strong>
-            <p><time datetime="2026-06-12T10:05:00+02:00">10:05</time> <span data-i18n="demo.arrivalStep3Owner">Housekeeping</span></p>
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep3Status">Проверено</span>
+            <strong data-i18n="demo.arrivalStep3Title">Почистването е потвърдено</strong>
+            <p><time datetime="2026-06-12T10:05:00+02:00">10:05</time> <span data-i18n="demo.arrivalStep3Owner">Почистване</span></p>
           </article>
           <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
           <article class="operations-arrival-step operations-arrival-step--done">
-            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep4Status">Effectué</span>
-            <strong data-i18n="demo.arrivalStep4Title">Check-in effectué</strong>
-            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep4Owner">Conciergerie</span></p>
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep4Status">Извършено</span>
+            <strong data-i18n="demo.arrivalStep4Title">Настаняването е завършено</strong>
+            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep4Owner">Консиерж</span></p>
           </article>
           <div class="operations-arrival-flow__arrow" aria-hidden="true">↓</div>
           <article class="operations-arrival-step operations-arrival-step--active">
-            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep5Status">Actif</span>
-            <strong data-i18n="demo.arrivalStep5Title">Séjour actif</strong>
-            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep5Owner">Opérations</span></p>
+            <span class="operations-arrival-step__status" data-i18n="demo.arrivalStep5Status">Активен</span>
+            <strong data-i18n="demo.arrivalStep5Title">Активен престой</strong>
+            <p><time datetime="2026-06-12T10:18:00+02:00">10:18</time> <span data-i18n="demo.arrivalStep5Owner">Операции</span></p>
           </article>
         </div>
       </article>
@@ -162,45 +162,45 @@
         <article class="operations-panel operations-panel--feed">
           <div class="operations-panel__header">
             <div>
-              <p class="operations-panel__eyebrow" data-i18n="demo.feedEyebrow">Operations timeline</p>
-              <h3 data-i18n="demo.feedTitle">Live operations feed</h3>
+              <p class="operations-panel__eyebrow" data-i18n="demo.feedEyebrow">Оперативна времева линия</p>
+              <h3 data-i18n="demo.feedTitle">Оперативен поток на живо</h3>
             </div>
-            <span class="operations-status-pill" data-i18n="demo.feedStatus">Live</span>
+            <span class="operations-status-pill" data-i18n="demo.feedStatus">На живо</span>
           </div>
-          <div class="operations-feed" role="list" aria-label="Live operations feed">
+          <div class="operations-feed" role="list" aria-label="Оперативен поток на живо">
             <article class="operations-feed__item" role="listitem">
               <time datetime="2026-06-12T14:05:00+02:00">14:05</time>
               <div>
-                <span class="operations-feed__badge" data-i18n="demo.feedCategory1">Transferts</span>
-                <strong data-i18n="demo.feedItem1">Transfert invité confirmé.</strong>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory1">Трансфери</span>
+                <strong data-i18n="demo.feedItem1">Гостовият трансфер е потвърден.</strong>
               </div>
             </article>
             <article class="operations-feed__item" role="listitem">
               <time datetime="2026-06-12T13:42:00+02:00">13:42</time>
               <div>
-                <span class="operations-feed__badge" data-i18n="demo.feedCategory2">Ménage</span>
-                <strong data-i18n="demo.feedItem2">Appartement A-302 prêt.</strong>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory2">Почистване</span>
+                <strong data-i18n="demo.feedItem2">Апартамент A-302 е готов.</strong>
               </div>
             </article>
             <article class="operations-feed__item" role="listitem">
               <time datetime="2026-06-12T12:58:00+02:00">12:58</time>
               <div>
-                <span class="operations-feed__badge" data-i18n="demo.feedCategory3">Opérations</span>
-                <strong data-i18n="demo.feedItem3">Opérateur local assigné.</strong>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory3">Операции</span>
+                <strong data-i18n="demo.feedItem3">Назначен е местен оператор.</strong>
               </div>
             </article>
             <article class="operations-feed__item" role="listitem">
               <time datetime="2026-06-12T11:20:00+02:00">11:20</time>
               <div>
-                <span class="operations-feed__badge" data-i18n="demo.feedCategory4">Arrivées</span>
-                <strong data-i18n="demo.feedItem4">Check-in terminé.</strong>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory4">Пристигания</span>
+                <strong data-i18n="demo.feedItem4">Настаняването е завършено.</strong>
               </div>
             </article>
             <article class="operations-feed__item" role="listitem">
               <time datetime="2026-06-12T10:05:00+02:00">10:05</time>
               <div>
-                <span class="operations-feed__badge" data-i18n="demo.feedCategory5">Conciergerie</span>
-                <strong data-i18n="demo.feedItem5">Demande concierge traitée.</strong>
+                <span class="operations-feed__badge" data-i18n="demo.feedCategory5">Консиерж</span>
+                <strong data-i18n="demo.feedItem5">Заявката към консиерж е обработена.</strong>
               </div>
             </article>
           </div>
@@ -209,26 +209,26 @@
         <article class="operations-panel operations-property-card">
           <div class="operations-panel__header">
             <div>
-              <p class="operations-panel__eyebrow" data-i18n="demo.propertyEyebrow">Property overview</p>
-              <h3 data-i18n="demo.propertyTitle">Premium operations summary</h3>
+              <p class="operations-panel__eyebrow" data-i18n="demo.propertyEyebrow">Преглед на имота</p>
+              <h3 data-i18n="demo.propertyTitle">Премиум оперативно резюме</h3>
             </div>
-            <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.propertyStatus">Today</span>
+            <span class="operations-status-pill operations-status-pill--soft" data-i18n="demo.propertyStatus">Днес</span>
           </div>
           <div class="operations-property-card__name">
-            <span data-i18n="demo.propertyNameLabel">Property</span>
+            <span data-i18n="demo.propertyNameLabel">Имот</span>
             <strong data-i18n="demo.propertyName">Villa Marina One</strong>
           </div>
           <div class="operations-property-card__metrics">
             <div class="operations-property-card__metric">
-              <span data-i18n="demo.propertyMetric1Label">Occupation</span>
+              <span data-i18n="demo.propertyMetric1Label">Заетост</span>
               <strong>87%</strong>
             </div>
             <div class="operations-property-card__metric">
-              <span data-i18n="demo.propertyMetric2Label">Arrivées aujourd’hui</span>
+              <span data-i18n="demo.propertyMetric2Label">Пристигания днес</span>
               <strong>5</strong>
             </div>
             <div class="operations-property-card__metric">
-              <span data-i18n="demo.propertyMetric3Label">Turnarounds</span>
+              <span data-i18n="demo.propertyMetric3Label">Предавания</span>
               <strong>2</strong>
             </div>
             <div class="operations-property-card__metric">
@@ -249,28 +249,28 @@
             <p class="operations-panel__eyebrow" data-i18n="demo.teamEyebrow">Équipes et partenaires</p>
             <h3 data-i18n="demo.teamTitle">Orchestration opérationnelle sur une seule couche</h3>
           </div>
-          <span class="operations-status-pill" data-i18n="demo.teamStatus">5 visible</span>
+          <span class="operations-status-pill" data-i18n="demo.teamStatus">5 видими</span>
         </div>
         <div class="operations-team-grid">
           <article class="operations-team-card">
-            <span class="operations-team-card__status" data-i18n="demo.teamCard1Status">En ligne</span>
-            <strong data-i18n="demo.teamCard1Title">Conciergerie</strong>
-            <p data-i18n="demo.teamCard1Body">Réponses aux arrivées, confirmations et suivi invité en temps réel.</p>
+            <span class="operations-team-card__status" data-i18n="demo.teamCard1Status">Онлайн</span>
+            <strong data-i18n="demo.teamCard1Title">Консиерж</strong>
+            <p data-i18n="demo.teamCard1Body">Отговори за пристигания, потвърждения и проследяване на гости в реално време.</p>
           </article>
           <article class="operations-team-card">
-            <span class="operations-team-card__status" data-i18n="demo.teamCard2Status">Actif</span>
-            <strong data-i18n="demo.teamCard2Title">Ménage</strong>
-            <p data-i18n="demo.teamCard2Body">2 équipes actives pour les remises en état et les vérifications finales.</p>
+            <span class="operations-team-card__status" data-i18n="demo.teamCard2Status">Активен</span>
+            <strong data-i18n="demo.teamCard2Title">Почистване</strong>
+            <p data-i18n="demo.teamCard2Body">2 активни екипа за предавания и финални проверки.</p>
           </article>
           <article class="operations-team-card">
-            <span class="operations-team-card__status" data-i18n="demo.teamCard3Status">Disponible</span>
-            <strong data-i18n="demo.teamCard3Title">Transferts</strong>
-            <p data-i18n="demo.teamCard3Body">3 véhicules disponibles pour les arrivées, départs et liaisons marina.</p>
+            <span class="operations-team-card__status" data-i18n="demo.teamCard3Status">Налично</span>
+            <strong data-i18n="demo.teamCard3Title">Трансфери</strong>
+            <p data-i18n="demo.teamCard3Body">3 автомобила са налични за пристигания, отпътувания и връзки към марината.</p>
           </article>
           <article class="operations-team-card">
-            <span class="operations-team-card__status" data-i18n="demo.teamCard4Status">Planifié</span>
-            <strong data-i18n="demo.teamCard4Title">Maintenance</strong>
-            <p data-i18n="demo.teamCard4Body">1 intervention planifiée, coordonnée sans interrompre le séjour.</p>
+            <span class="operations-team-card__status" data-i18n="demo.teamCard4Status">Планирано</span>
+            <strong data-i18n="demo.teamCard4Title">Поддръжка</strong>
+            <p data-i18n="demo.teamCard4Body">1 планирана интервенция, координирана без да прекъсва престоя.</p>
           </article>
         </div>
       </article>
@@ -278,95 +278,95 @@
       <article class="operations-panel operations-panel--wide">
         <div class="operations-panel__header">
           <div>
-            <p class="operations-panel__eyebrow" data-i18n="demo.commandEyebrow">Centre de commandement</p>
-            <h3 data-i18n="demo.commandTitle">Tout visible depuis une seule couche opérationnelle</h3>
+            <p class="operations-panel__eyebrow" data-i18n="demo.commandEyebrow">Команден център</p>
+            <h3 data-i18n="demo.commandTitle">Всичко видимо от един оперативен слой</h3>
           </div>
-          <span class="operations-chip operations-chip--soft" data-i18n="demo.commandStatus">Live</span>
+          <span class="operations-chip operations-chip--soft" data-i18n="demo.commandStatus">На живо</span>
         </div>
-        <p class="operations-panel__copy" data-i18n="demo.commandCopy">Occupation, arrivées, ménage, partenaires et SLA restent regroupés dans un même espace de pilotage.</p>
+        <p class="operations-panel__copy" data-i18n="demo.commandCopy">Заетост, пристигания, почистване, партньори и SLA остават събрани в едно място за управление.</p>
         <ul class="operations-command-list" aria-label="Command center checklist">
-          <li data-i18n="demo.commandItem1">Occupation suivie en continu</li>
-          <li data-i18n="demo.commandItem2">Arrivées confirmées et horodatées</li>
-          <li data-i18n="demo.commandItem3">Ménage synchronisé avec l'état des logements</li>
-          <li data-i18n="demo.commandItem4">Partenaires visibles au bon moment</li>
-          <li data-i18n="demo.commandItem5">SLA surveillé depuis la même vue</li>
+          <li data-i18n="demo.commandItem1">Заетостта се следи непрекъснато</li>
+          <li data-i18n="demo.commandItem2">Пристиганията са потвърдени и отбелязани с час</li>
+          <li data-i18n="demo.commandItem3">Почистването е синхронизирано със състоянието на имотите</li>
+          <li data-i18n="demo.commandItem4">Партньорите са видими в точния момент</li>
+          <li data-i18n="demo.commandItem5">SLA се следи от същия изглед</li>
         </ul>
       </article>
     </section>
   </main>
 
   <div class="operations-mobile-dock" aria-label="Mobile operations actions">
-    <button class="operations-mobile-dock__button" type="button" data-open-pilot-modal data-i18n="demo.dockPilot">Pilot access</button>
-    <a class="operations-mobile-dock__button operations-mobile-dock__button--secondary" href="#operations-overview" data-i18n="demo.dockStatus">Quick status</a>
-    <button class="operations-mobile-dock__button" type="button" data-i18n="demo.dockQueue">Concierge queue</button>
+    <button class="operations-mobile-dock__button" type="button" data-open-pilot-modal data-i18n="demo.dockPilot">Пилотен достъп</button>
+    <a class="operations-mobile-dock__button operations-mobile-dock__button--secondary" href="#operations-overview" data-i18n="demo.dockStatus">Бърз статус</a>
+    <button class="operations-mobile-dock__button" type="button" data-i18n="demo.dockQueue">Опашка на консиержа</button>
   </div>
 
-  <button class="operations-floating-cta" type="button" data-open-pilot-modal data-i18n="demo.floatingPilot">Concierge pilot</button>
+  <button class="operations-floating-cta" type="button" data-open-pilot-modal data-i18n="demo.floatingPilot">Пилот за консиерж</button>
 
   <section class="operations-modal" aria-hidden="true" role="dialog" aria-labelledby="pilot-access-title" data-pilot-modal>
     <div class="operations-modal__backdrop" data-close-pilot-modal></div>
     <div class="operations-modal__dialog" role="document">
-      <button class="operations-modal__close" type="button" aria-label="Close" data-close-pilot-modal>×</button>
-      <p class="operations-modal__eyebrow" data-i18n="demo.modalEyebrow">Premium onboarding</p>
-      <h2 id="pilot-access-title" data-i18n="demo.modalTitle">Request pilot access</h2>
-      <p class="operations-modal__copy" data-i18n="demo.modalCopy">Tell us about the property and the concierge layer you want to pilot.</p>
+      <button class="operations-modal__close" type="button" aria-label="Затвори" data-close-pilot-modal>×</button>
+      <p class="operations-modal__eyebrow" data-i18n="demo.modalEyebrow">Премиум въвеждане</p>
+      <h2 id="pilot-access-title" data-i18n="demo.modalTitle">Заяви пилотен достъп</h2>
+      <p class="operations-modal__copy" data-i18n="demo.modalCopy">Кажете ни повече за имота и консиерж слоя, който искате да пилотирате.</p>
 
       <form class="operations-form" data-pilot-form>
         <label>
-          <span data-i18n="demo.formPropertyType">Property type</span>
+          <span data-i18n="demo.formPropertyType">Тип имот</span>
           <div class="pilot-select" data-pilot-select>
             <button class="pilot-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-pilot-select-trigger>
-              <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="demo.formPropertyOptionEmpty">Select property type</span>
+              <span class="pilot-select__placeholder" data-pilot-select-placeholder data-i18n="demo.formPropertyOptionEmpty">Изберете тип имот</span>
               <span class="pilot-select__value" data-pilot-select-value hidden></span>
             </button>
             <input type="hidden" name="property_type" value="" data-pilot-select-input>
             <div class="pilot-select__panel" data-pilot-select-panel role="listbox" hidden>
-              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="luxury_apartment" data-value-key="formPropertyOption1" data-i18n="demo.formPropertyOption1">Luxury apartment</button>
-              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="boutique_hotel" data-value-key="formPropertyOption2" data-i18n="demo.formPropertyOption2">Boutique hotel</button>
-              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="villa_residence" data-value-key="formPropertyOption3" data-i18n="demo.formPropertyOption3">Villa / residence</button>
-              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="mixed_portfolio" data-value-key="formPropertyOption4" data-i18n="demo.formPropertyOption4">Mixed portfolio</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="luxury_apartment" data-value-key="formPropertyOption1" data-i18n="demo.formPropertyOption1">Луксозен апартамент</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="boutique_hotel" data-value-key="formPropertyOption2" data-i18n="demo.formPropertyOption2">Бутиков хотел</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="villa_residence" data-value-key="formPropertyOption3" data-i18n="demo.formPropertyOption3">Вила / резиденция</button>
+              <button class="pilot-select__option" type="button" data-pilot-select-option data-value="mixed_portfolio" data-value-key="formPropertyOption4" data-i18n="demo.formPropertyOption4">Смесено портфолио</button>
             </div>
           </div>
         </label>
         <label>
-          <span data-i18n="demo.formApartmentCount">Apartment count</span>
-          <input name="apartment_count" type="number" min="1" placeholder="e.g. 18" data-i18n-attr="placeholder:demo.formApartmentPlaceholder" required>
+          <span data-i18n="demo.formApartmentCount">Брой апартаменти</span>
+          <input name="apartment_count" type="number" min="1" placeholder="напр. 18" data-i18n-attr="placeholder:demo.formApartmentPlaceholder" required>
         </label>
         <label>
-          <span data-i18n="demo.formLocation">City / location</span>
-          <input name="location" type="text" placeholder="e.g. Varna Marina" data-i18n-attr="placeholder:demo.formLocationPlaceholder" required>
+          <span data-i18n="demo.formLocation">Град / локация</span>
+          <input name="location" type="text" placeholder="напр. Варна Марина" data-i18n-attr="placeholder:demo.formLocationPlaceholder" required>
         </label>
         <label>
-          <span data-i18n="demo.formNeeds">Concierge needs</span>
-          <textarea name="concierge_needs" rows="4" placeholder="Arrivals, cleaning, transfers, guest services, incident response" data-i18n-attr="placeholder:demo.formNeedsPlaceholder" required></textarea>
+          <span data-i18n="demo.formNeeds">Нужди от консиерж</span>
+          <textarea name="concierge_needs" rows="4" placeholder="Пристигания, почистване, трансфери, услуги за гости, реакция при инциденти" data-i18n-attr="placeholder:demo.formNeedsPlaceholder" required></textarea>
         </label>
         <label>
-          <span data-i18n="demo.formEmail">Email</span>
-          <input name="email" type="email" placeholder="name@company.com" data-i18n-attr="placeholder:demo.formEmailPlaceholder" required>
+          <span data-i18n="demo.formEmail">Имейл</span>
+          <input name="email" type="email" placeholder="ime@firma.com" data-i18n-attr="placeholder:demo.formEmailPlaceholder" required>
         </label>
-        <p class="operations-form__trust" data-i18n="demo.pilotTrust">Private pilot · No public listing · Operational access only</p>
-        <button class="operations-button operations-button--primary operations-button--full" type="submit" data-i18n="demo.formSubmit">Submit pilot request</button>
-        <p class="operations-form__response" data-pilot-response data-i18n="demo.pilotSuccessHint" aria-live="polite">Your email client will open with a prepared request.</p>
+        <p class="operations-form__trust" data-i18n="demo.pilotTrust">Частен пилот · Без публичен списък · Само оперативен достъп</p>
+        <button class="operations-button operations-button--primary operations-button--full" type="submit" data-i18n="demo.formSubmit">Изпрати заявка за пилот</button>
+        <p class="operations-form__response" data-pilot-response data-i18n="demo.pilotSuccessHint" aria-live="polite">Имейл клиентът ви ще се отвори с подготвена заявка.</p>
       </form>
     </div>
   </section>
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Calm hospitality operations for coastal properties.</p>
+      <p data-i18n="footerDescription">Спокойни операции по гостоприемство за крайбрежни имоти.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Services</a>
-      <a href="/partners" data-i18n="navPartners">Partners</a>
-      <a href="/demo/operations" data-i18n="navDemo">Demo</a>
-      <a href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+      <a href="/services" data-i18n="navServices">Услуги</a>
+      <a href="/partners" data-i18n="navPartners">Партньори</a>
+      <a href="/demo/operations" data-i18n="navDemo">Демо</a>
+      <a href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Operational software for guest coordination, property teams and trusted local service partners.</p>
+      <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи по имоти и доверени местни партньори.</p>
     </div>
   </footer>
 <script src="/static/js/translations.js?v=20260608"></script>
@@ -432,7 +432,7 @@
       <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </span>
-  <span class="whatsapp-float__label">Pilot access</span>
+    <span class="whatsapp-float__label" data-i18n="navPilotAccess">Пилотен достъп</span>
 </a>
 
 </body>

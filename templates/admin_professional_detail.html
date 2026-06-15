@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Detail</title>
+  <title data-i18n="adminProfessionalDetail.pageTitle">BlackSea Connect | Професионална кандидатура</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Coastal service network</p>
-        <h1>Professional application detail</h1>
-        <p>One record in the professional registration layer.</p>
+        <p class="eyebrow" data-i18n="adminProfessionalDetail.heroEyebrow">Подробности за кандидатурата</p>
+        <h1 data-i18n="adminProfessionalDetail.heroTitle">Преглед на професионалната кандидатура</h1>
+        <p data-i18n="adminProfessionalDetail.heroCopy">Тук виждате пълния профил и вътрешните бележки.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -21,72 +21,77 @@
           <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin/professionals">Back to applications</a>
-        <a class="button button--ghost" href="/professionals/apply">Open public form</a>
+        <a class="button button--secondary" href="/admin/professionals" data-i18n="adminProfessionalDetail.backToApplications">Назад към кандидатурите</a>
+        <a class="button button--ghost" href="/professionals/apply" data-i18n="adminProfessionalDetail.openPublicForm">Отвори публичната форма</a>
       </div>
     </section>
 
     <article class="admin-pilot-card">
       <div class="admin-pilot-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+        {% set status_key = 'adminProfessionalDetail.statusPending' if item.status|lower == 'pending' else 'adminProfessionalDetail.statusApproved' if item.status|lower == 'approved' else 'adminProfessionalDetail.statusRejected' %}
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ status_key }}">
+          {% if item.status|lower == 'pending' %}В изчакване{% elif item.status|lower == 'approved' %}Одобрени{% else %}Отхвърлени{% endif %}
+        </span>
       </div>
 
       <h2>{{ item.full_name|e }}</h2>
 
       <dl class="admin-pilot-details">
         <div>
-          <dt>ID</dt>
+          <dt data-i18n="adminProfessionalDetail.detailId">ID</dt>
           <dd>{{ item.id|e }}</dd>
         </div>
         <div>
-          <dt>Status</dt>
+          <dt data-i18n="adminProfessionalDetail.detailStatus">Статус</dt>
           <dd>{{ item.status|upper|e }}</dd>
         </div>
         <div>
-          <dt>Company</dt>
+          <dt data-i18n="adminProfessionalDetail.detailCompany">Компания</dt>
           <dd>{{ item.company_name|e }}</dd>
         </div>
         <div>
-          <dt>Service type</dt>
+          <dt data-i18n="adminProfessionalDetail.detailService">Категория услуга</dt>
           <dd>{{ item.service_type|e }}</dd>
         </div>
         <div>
-          <dt>City</dt>
+          <dt data-i18n="adminProfessionalDetail.detailCity">Град</dt>
           <dd>{{ item.city|e }}</dd>
         </div>
         <div>
-          <dt>Phone</dt>
+          <dt data-i18n="adminProfessionalDetail.detailPhone">Телефон</dt>
           <dd>{{ item.phone|e }}</dd>
         </div>
         <div>
-          <dt>Email</dt>
+          <dt data-i18n="adminProfessionalDetail.detailEmail">Имейл</dt>
           <dd>{{ item.email|e }}</dd>
         </div>
         <div>
-          <dt>Languages</dt>
+          <dt data-i18n="adminProfessionalDetail.detailLanguages">Езици</dt>
           <dd>{{ item.languages|e }}</dd>
         </div>
         <div>
-          <dt>Experience years</dt>
+          <dt data-i18n="adminProfessionalDetail.detailExperience">Години опит</dt>
           <dd>{{ item.experience_years|e }}</dd>
         </div>
         <div>
-          <dt>Website or social</dt>
-          <dd>{{ item.website_or_social|e if item.website_or_social else "n/a" }}</dd>
+          <dt data-i18n="adminProfessionalDetail.detailWebsite">Уебсайт или социален профил</dt>
+        <dd>{{ item.website_or_social|e if item.website_or_social else "няма" }}</dd>
         </div>
         <div>
-          <dt>Consent</dt>
-          <dd>{{ "Yes" if item.consent else "No" }}</dd>
+          <dt data-i18n="adminProfessionalDetail.detailConsent">Съгласие</dt>
+          <dd data-i18n="{{ 'adminProfessionalDetail.consentYes' if item.consent else 'adminProfessionalDetail.consentNo' }}">{{ "Да" if item.consent else "Не" }}</dd>
         </div>
       </dl>
 
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Application summary</p>
-            <h3>Description</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.summaryEyebrow">Описание на кандидатурата</p>
+            <h3 data-i18n="adminProfessionalDetail.summaryTitle">Какво е изпратил кандидатът</h3>
           </div>
         </div>
         <p>{{ item.description|e }}</p>
@@ -95,29 +100,29 @@
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Public profile</p>
-            <h3>Badges and media</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.profileEyebrow">Профил и активи</p>
+            <h3 data-i18n="adminProfessionalDetail.profileTitle">Подробности за представянето</h3>
           </div>
         </div>
         <div class="trust-strip" aria-label="Provider badges">
           {% if item.featured %}
-            <span class="trust-strip__chip">Featured</span>
+            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.featuredBadge">Избран</span>
           {% endif %}
           {% for badge in item.badges %}
             <span class="trust-strip__chip">{{ badge|e }}</span>
           {% endfor %}
           {% if not item.badges and not item.featured %}
-            <span class="trust-strip__chip">No badges set</span>
+            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.noBadges">Все още няма значки</span>
           {% endif %}
         </div>
-        <p><strong>Photo URL:</strong> {{ item.photo_url|e if item.photo_url else "n/a" }}</p>
-        <p><strong>Logo URL:</strong> {{ item.logo_url|e if item.logo_url else "n/a" }}</p>
-        <p><strong>Available for requests:</strong> {{ "Yes" if item.available_for_requests else "No" }}</p>
+        <p><strong data-i18n="adminProfessionalDetail.photoLabel">URL на снимка:</strong> {% if item.photo_url %}{{ item.photo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">няма</span>{% endif %}</p>
+        <p><strong data-i18n="adminProfessionalDetail.logoLabel">URL на лого:</strong> {% if item.logo_url %}{{ item.logo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">няма</span>{% endif %}</p>
+        <p><strong data-i18n="adminProfessionalDetail.availableLabel">Достъпен за заявки:</strong> <span data-i18n="{{ 'adminProfessionalDetail.availableYes' if item.available_for_requests else 'adminProfessionalDetail.availableNo' }}">{{ "Да" if item.available_for_requests else "Не" }}</span></p>
       </section>
 
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
         <label>
-          <span>Update status</span>
+          <span data-i18n="adminProfessionalDetail.updateStatus">Обнови статуса</span>
           <select name="status" required>
             {% for option in status_options %}
               <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
@@ -125,37 +130,37 @@
           </select>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span>Internal notes</span>
-          <textarea name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+          <span data-i18n="adminProfessionalDetail.internalNotes">Вътрешни бележки</span>
+          <textarea name="internal_notes" rows="6" data-i18n-attr="placeholder:adminProfessionalDetail.internalNotesPlaceholder" placeholder="Поверителни бележки за админ екипа">{{ item.internal_notes|e }}</textarea>
         </label>
         <label>
-          <span>Featured provider</span>
+          <span data-i18n="adminProfessionalDetail.featuredProvider">Избран доставчик</span>
           <input type="checkbox" name="featured" value="1" {% if item.featured %}checked{% endif %}>
         </label>
         <label>
-          <span>Available for requests</span>
+          <span data-i18n="adminProfessionalDetail.availableToggle">Активен за заявки</span>
           <input type="checkbox" name="available_for_requests" value="1" {% if item.available_for_requests %}checked{% endif %}>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span>Badges</span>
-          <textarea name="badges" rows="3" placeholder="Premium, Fast response, Verified">{{ item.badges|join(', ')|e }}</textarea>
+          <span data-i18n="adminProfessionalDetail.badges">Значки</span>
+          <textarea name="badges" rows="3" data-i18n-attr="placeholder:adminProfessionalDetail.badgesPlaceholder" placeholder="Премиум, Проверен, Бърз отговор">{{ item.badges|join(', ')|e }}</textarea>
         </label>
         <label>
-          <span>Photo URL</span>
-          <input type="url" name="photo_url" value="{{ item.photo_url|e }}" placeholder="https://...">
+          <span data-i18n="adminProfessionalDetail.photoUrl">URL на снимка</span>
+          <input type="url" name="photo_url" value="{{ item.photo_url|e }}" data-i18n-attr="placeholder:adminProfessionalDetail.urlPlaceholder" placeholder="https://...">
         </label>
         <label>
-          <span>Logo URL</span>
-          <input type="url" name="logo_url" value="{{ item.logo_url|e }}" placeholder="https://...">
+          <span data-i18n="adminProfessionalDetail.logoUrl">URL на лого</span>
+          <input type="url" name="logo_url" value="{{ item.logo_url|e }}" data-i18n-attr="placeholder:adminProfessionalDetail.urlPlaceholder" placeholder="https://...">
         </label>
-        <button class="button button--primary" type="submit">Save application</button>
+        <button class="button button--primary" type="submit" data-i18n="adminProfessionalDetail.saveCta">Запази кандидатурата</button>
       </form>
 
       <div class="admin-pilot-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Activity timeline</p>
-            <h3>Newest first</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.timelineEyebrow">История на действията</p>
+            <h3 data-i18n="adminProfessionalDetail.timelineTitle">Най-новите първи</h3>
           </div>
         </div>
 
@@ -176,8 +181,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No timeline entries yet.</h3>
-            <p>This application will start collecting events after the next save.</p>
+            <h3 data-i18n="adminProfessionalDetail.timelineEmptyTitle">Все още няма събития в историята.</h3>
+            <p data-i18n="adminProfessionalDetail.timelineEmptyCopy">Тази кандидатура ще започне да събира събития след следващото запазване.</p>
           </div>
         {% endif %}
       </div>
