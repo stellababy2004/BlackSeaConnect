@@ -168,6 +168,9 @@
         const value = resolveTranslation(dictionary, key, pageNamespace);
         if (value !== undefined && value !== null) {
           node.textContent = value;
+          if (node.tagName === "OPTION") {
+            node.label = value;
+          }
         } else {
           warnMissing(key, activeLang);
         }
@@ -296,4 +299,5 @@
     init(window.BlackSeaI18N);
   }
 }());
+
 
