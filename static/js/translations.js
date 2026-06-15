@@ -2881,6 +2881,31 @@ window.BlackSeaI18N.en.network = window.BlackSeaI18N.en.network || {};
 window.BlackSeaI18N.fr.network = window.BlackSeaI18N.fr.network || {};
 window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru || {};
 window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru.network || {};
+window.BlackSeaI18N.bg.home = window.BlackSeaI18N.bg.home || {};
+window.BlackSeaI18N.en.home = window.BlackSeaI18N.en.home || {};
+window.BlackSeaI18N.fr.home = window.BlackSeaI18N.fr.home || {};
+window.BlackSeaI18N.ru.home = window.BlackSeaI18N.ru.home || {};
+
+Object.keys(window.BlackSeaI18N.bg).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.bg.home[key] = window.BlackSeaI18N.bg.home[key] || window.BlackSeaI18N.bg[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.en).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.en.home[key] = window.BlackSeaI18N.en.home[key] || window.BlackSeaI18N.en[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.fr).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.fr.home[key] = window.BlackSeaI18N.fr.home[key] || window.BlackSeaI18N.fr[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.ru).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.ru.home[key] = window.BlackSeaI18N.ru.home[key] || window.BlackSeaI18N.ru[key];
+  }
+});
 Object.assign(window.BlackSeaI18N.bg.network, {
   availableBadge: "Налично за заявки",
   requestsPausedBadge: "Заявките са паузирани",
@@ -3984,6 +4009,31 @@ window.BlackSeaI18N.en.network = window.BlackSeaI18N.en.network || {};
 window.BlackSeaI18N.fr.network = window.BlackSeaI18N.fr.network || {};
 window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru || {};
 window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru.network || {};
+window.BlackSeaI18N.bg.home = window.BlackSeaI18N.bg.home || {};
+window.BlackSeaI18N.en.home = window.BlackSeaI18N.en.home || {};
+window.BlackSeaI18N.fr.home = window.BlackSeaI18N.fr.home || {};
+window.BlackSeaI18N.ru.home = window.BlackSeaI18N.ru.home || {};
+
+Object.keys(window.BlackSeaI18N.bg).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.bg.home[key] = window.BlackSeaI18N.bg.home[key] || window.BlackSeaI18N.bg[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.en).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.en.home[key] = window.BlackSeaI18N.en.home[key] || window.BlackSeaI18N.en[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.fr).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.fr.home[key] = window.BlackSeaI18N.fr.home[key] || window.BlackSeaI18N.fr[key];
+  }
+});
+Object.keys(window.BlackSeaI18N.ru).forEach(function (key) {
+  if (key.indexOf("home") === 0 || key.indexOf("nav") === 0 || key.indexOf("footer") === 0) {
+    window.BlackSeaI18N.ru.home[key] = window.BlackSeaI18N.ru.home[key] || window.BlackSeaI18N.ru[key];
+  }
+});
 Object.assign(window.BlackSeaI18N.bg.network, {
   featuredEyebrow: "Избрани доставчици",
   featuredTitle: "Избрани доставчици",
@@ -4015,6 +4065,7 @@ Object.assign(window.BlackSeaI18N.ru.network, {
   approvedProvidersLabel: "одобренные поставщики",
   notAvailable: "н/д"
 });
+
 
 
 
