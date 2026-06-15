@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const STORAGE_KEY = "blacksea-language";
   const STORAGE_KEY_ALIAS = "blackseaLang";
   const DEFAULT_LANG = "bg";
@@ -296,3 +296,4 @@
     init(window.BlackSeaI18N);
   }
 }());
+
