@@ -1,4 +1,4 @@
-window.BlackSeaI18N = {
+﻿window.BlackSeaI18N = {
   "bg": {
     "home": {
       "navHome": "\u041d\u0430\u0447\u0430\u043b\u043e",
@@ -3974,6 +3974,11 @@ Object.assign(window.BlackSeaI18N.ru.home, {
   homeGuestOperations: "Гостевые операции"
 });
 
+window.BlackSeaI18N.bg.network = window.BlackSeaI18N.bg.network || {};
+window.BlackSeaI18N.en.network = window.BlackSeaI18N.en.network || {};
+window.BlackSeaI18N.fr.network = window.BlackSeaI18N.fr.network || {};
+window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru || {};
+window.BlackSeaI18N.ru.network = window.BlackSeaI18N.ru.network || {};
 Object.assign(window.BlackSeaI18N.bg.network, {
   featuredEyebrow: "Избрани доставчици",
   featuredTitle: "Избрани доставчици",
@@ -4005,5 +4010,7 @@ Object.assign(window.BlackSeaI18N.ru.network, {
   approvedProvidersLabel: "одобренные поставщики",
   notAvailable: "н/д"
 });
+
+
 
 
