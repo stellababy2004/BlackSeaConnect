@@ -19,6 +19,19 @@ from flask import Flask, Response, jsonify, redirect, render_template, request, 
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
+SITE_URL = os.environ.get("SITE_URL", "https://blackseaconnect.com").rstrip("/")
+PUBLIC_SITEMAP_PATHS = (
+    "/",
+    "/services",
+    "/demo/operations",
+    "/guest/a-302",
+    "/partners",
+    "/professionals",
+    "/professionals/apply",
+    "/network",
+    "/request-service",
+    "/pilot-access",
+)
 
 PILOT_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 PILOT_STATUS_ALIASES = {
@@ -447,6 +460,11 @@ def _build_home_counters():
     }
 
 
+@app.context_processor
+def inject_public_site_settings():
+    return {"site_url": SITE_URL}
+
+
 @app.after_request
 def force_utf8_charset(response):
     mimetype = response.mimetype or ""
@@ -454,6 +472,32 @@ def force_utf8_charset(response):
         if "charset=" not in (response.headers.get("Content-Type", "") or "").lower():
             response.headers["Content-Type"] = f"{mimetype}; charset=utf-8"
     return response
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        f"Sitemap: {SITE_URL}/sitemap.xml",
+        "",
+    ]
+    return Response("\n".join(lines), mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    urls = "\n".join(
+        f"  <url><loc>{SITE_URL}{path}</loc></url>"
+        for path in PUBLIC_SITEMAP_PATHS
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{urls}\n"
+        "</urlset>\n"
+    )
+    return Response(xml, mimetype="application/xml")
 
 
 @app.route("/")

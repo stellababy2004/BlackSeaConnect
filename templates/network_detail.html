@@ -8,7 +8,17 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Provider Profile</title>
+  <title data-i18n="pageTitle">{{ provider.company_name|e }} | Approved Coastal Provider Profile | BlackSea Connect</title>
+  <meta name="description" content="{{ (provider.short_description or provider.description or 'Approved coastal provider in the BlackSea Connect network.')|striptags|truncate(160, True, '') }}">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <meta property="og:title" content="{{ provider.company_name|e }} | Approved Coastal Provider Profile | BlackSea Connect">
+  <meta property="og:description" content="{{ (provider.short_description or provider.description or 'Approved coastal provider in the BlackSea Connect network.')|striptags|truncate(160, True, '') }}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ provider.company_name|e }} | Approved Coastal Provider Profile | BlackSea Connect">
+  <meta name="twitter:description" content="{{ (provider.short_description or provider.description or 'Approved coastal provider in the BlackSea Connect network.')|striptags|truncate(160, True, '') }}">
+  <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>

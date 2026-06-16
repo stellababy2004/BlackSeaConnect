@@ -8,8 +8,34 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Ð£ÑÐ»ÑƒÐ³Ð¸</title>
+  <title data-i18n="pageTitle">BlackSea Connect | Coastal Property Operations Services</title>
+  <meta name="description" content="Discover guest arrival coordination, housekeeping coordination, transfer coordination, concierge support and trusted local partner workflows for Black Sea property teams.">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <meta property="og:title" content="BlackSea Connect | Coastal Property Operations Services">
+  <meta property="og:description" content="Discover guest arrival coordination, housekeeping coordination, transfer coordination, concierge support and trusted local partner workflows for Black Sea property teams.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BlackSea Connect | Coastal Property Operations Services">
+  <meta name="twitter:description" content="Discover guest arrival coordination, housekeeping coordination, transfer coordination, concierge support and trusted local partner workflows for Black Sea property teams.">
+  <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
+  <script type="application/ld+json">
+    {{ {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "BlackSea Connect Coastal Property Operations",
+      "url": site_url ~ "/services",
+      "provider": {
+        "@type": "Organization",
+        "name": "BlackSea Connect",
+        "url": site_url ~ "/"
+      },
+      "areaServed": "Black Sea coast",
+      "serviceType": "Guest arrival coordination, housekeeping coordination, transfer coordination, concierge and local partner coordination",
+      "description": "BlackSea Connect supports coastal property teams with guest arrival coordination, housekeeping coordination, transfer coordination, concierge support and trusted local partner workflows."
+    } | tojson }}
+  </script>
 </head>
 <body>
   <header class="hero hero--home" id="top">

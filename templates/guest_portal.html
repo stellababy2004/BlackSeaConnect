@@ -8,7 +8,17 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="guest.pageTitle">BlackSea Connect | Портал за гости</title>
+  <title data-i18n="guest.pageTitle">BlackSea Connect | Guest Companion for Apartment A-302</title>
+  <meta name="description" content="Private stay companion for Apartment A-302 with arrival coordination, concierge support and trusted local partner access.">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <meta property="og:title" content="BlackSea Connect | Guest Companion for Apartment A-302">
+  <meta property="og:description" content="Private stay companion for Apartment A-302 with arrival coordination, concierge support and trusted local partner access.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BlackSea Connect | Guest Companion for Apartment A-302">
+  <meta name="twitter:description" content="Private stay companion for Apartment A-302 with arrival coordination, concierge support and trusted local partner access.">
+  <meta name="robots" content="noindex,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="guest-homepage-page">
@@ -65,7 +75,7 @@
           <a class="button button--secondary" href="#wifi-access" data-i18n="guest.actionDashboard">Панел за престоя</a>
           <a class="button button--tertiary" href="#concierge-form" data-i18n="guest.actionRequest">Поискай съдействие</a>
         </div>
-        <div class="trust-strip" aria-label="Stay highlights" data-i18n="guest.trustAria">Индикатори на доверие</span>
+        <div class="trust-strip" aria-label="Stay highlights" data-i18n="guest.trustAria">Индикатори на доверие
           <span class="trust-strip__chip" data-i18n="guest.guestLiveUpdated">обновено преди 2 мин.</span>
           <span class="trust-strip__chip" data-i18n="guest.guestLiveFlow">жив гост поток</span>
           <span class="trust-strip__chip" data-i18n="guest.guestLiveConcierge">консиерж онлайн</span>
