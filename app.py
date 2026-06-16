@@ -17,7 +17,7 @@ from uuid import uuid4
 
 from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 
-from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES
+from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
@@ -504,7 +504,10 @@ def sitemap_xml():
 
 
 def _render_seo_landing_page(path):
-    page = SEO_LANDING_PAGES[path]
+    lang = str(request.args.get("lang", "en")).strip().lower() or "en"
+    if lang not in SEO_SUPPORTED_LANGS:
+        lang = "en"
+    page = resolve_seo_landing_page(path, lang)
     return render_template("seo_longform_page.html", page=page)
 
 

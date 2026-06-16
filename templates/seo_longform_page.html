@@ -77,9 +77,9 @@
 
     <section class="cta-panel" aria-labelledby="related-resources-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Internal links</p>
-        <h2 id="related-resources-title">Related BlackSea Connect pages</h2>
-        <p class="cta-panel__copy">Use these pages to explore the wider operations model and move from research into action.</p>
+        <p class="section-heading__eyebrow">{{ page.related_eyebrow }}</p>
+        <h2 id="related-resources-title">{{ page.related_title }}</h2>
+        <p class="cta-panel__copy">{{ page.related_copy }}</p>
       </div>
 
       <div class="trust-grid">
@@ -94,19 +94,19 @@
 
     <section class="cta-panel" aria-labelledby="related-cta-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Next step</p>
-        <h2 id="related-cta-title">See the workflow in a practical operations request.</h2>
-        <p class="cta-panel__copy">If you are evaluating the fit for a coastal property, the fastest way to move from reading to action is to request a service workflow or open the demo.</p>
+        <p class="section-heading__eyebrow">{{ page.next_eyebrow }}</p>
+        <h2 id="related-cta-title">{{ page.next_title }}</h2>
+        <p class="cta-panel__copy">{{ page.next_copy }}</p>
       </div>
-      <a class="button button--primary" href="/request-service">Request service</a>
-      <a class="button button--secondary" href="/demo/operations">View demo</a>
+      <a class="button button--primary" href="/request-service">{{ page.request_service_label }}</a>
+      <a class="button button--secondary" href="/demo/operations">{{ page.view_demo_label }}</a>
     </section>
   </main>
 
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p>Coastal property operations for hospitality teams, guest concierge and trusted local partners.</p>
+      <p>{{ page.footer_description }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
@@ -119,7 +119,7 @@
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
-      <p>BlackSea Connect supports coastal hospitality teams with a calm, practical operations workflow.</p>
+      <p>{{ page.footer_note }}</p>
     </div>
   </footer>
 

@@ -1,4 +1,8 @@
+from copy import deepcopy
 from textwrap import dedent
+
+
+SEO_SUPPORTED_LANGS = ("bg", "en", "fr", "ru")
 
 
 SEO_LANDING_PAGE_ORDER = (
@@ -12,6 +16,58 @@ SEO_LANDING_PAGE_ORDER = (
 
 def _page(**kwargs):
     return kwargs
+
+
+_SEO_PAGE_UI_COPY = {
+    "en": {
+        "related_eyebrow": "Internal links",
+        "related_title": "Related BlackSea Connect pages",
+        "related_copy": "Use these pages to explore the wider operations model and move from research into action.",
+        "next_eyebrow": "Next step",
+        "next_title": "See the workflow in a practical operations request.",
+        "next_copy": "If you are evaluating the fit for a coastal property, the fastest way to move from reading to action is to request a service workflow or open the demo.",
+        "request_service_label": "Request service",
+        "view_demo_label": "View demo",
+        "footer_description": "Coastal property operations for hospitality teams, guest concierge and trusted local partners.",
+        "footer_note": "BlackSea Connect supports coastal hospitality teams with a calm, practical operations workflow.",
+    },
+    "bg": {
+        "related_eyebrow": "Вътрешни връзки",
+        "related_title": "Свързани страници на BlackSea Connect",
+        "related_copy": "Използвайте тези страници, за да разгледате по-широкия оперативен модел и да преминете от проучване към действие.",
+        "next_eyebrow": "Следваща стъпка",
+        "next_title": "Вижте работния поток в реална заявка за операции.",
+        "next_copy": "Ако преценявате дали решението е подходящо за крайбрежен имот, най-бързият път е да заявите работен поток за услуга или да отворите демото.",
+        "request_service_label": "Заявете услуга",
+        "view_demo_label": "Вижте демото",
+        "footer_description": "Оперативна платформа за крайбрежни имоти, гост-сървиз и доверени местни партньори.",
+        "footer_note": "BlackSea Connect помага на екипите по Черноморието с спокоен и практичен оперативен процес.",
+    },
+    "fr": {
+        "related_eyebrow": "Liens internes",
+        "related_title": "Pages associées BlackSea Connect",
+        "related_copy": "Consultez ces pages pour explorer le modèle opérationnel plus large et passer de la recherche à l’action.",
+        "next_eyebrow": "Étape suivante",
+        "next_title": "Découvrez le workflow dans une demande opérationnelle concrète.",
+        "next_copy": "Si vous évaluez l’adéquation pour un bien côtier, le moyen le plus rapide d’avancer est de demander un workflow de service ou d’ouvrir la démo.",
+        "request_service_label": "Demander un service",
+        "view_demo_label": "Voir la démo",
+        "footer_description": "Plateforme d’exploitation pour les biens côtiers, le guest concierge et les partenaires locaux de confiance.",
+        "footer_note": "BlackSea Connect aide les équipes hôtelières du littoral avec un workflow opérationnel calme et pratique.",
+    },
+    "ru": {
+        "related_eyebrow": "Внутренние ссылки",
+        "related_title": "Связанные страницы BlackSea Connect",
+        "related_copy": "Используйте эти страницы, чтобы изучить более широкий операционный модель и перейти от исследования к действию.",
+        "next_eyebrow": "Следующий шаг",
+        "next_title": "Посмотрите рабочий процесс в реальном операционном запросе.",
+        "next_copy": "Если вы оцениваете решение для прибрежного объекта, самый быстрый путь - запросить рабочий процесс обслуживания или открыть демо.",
+        "request_service_label": "Запросить услугу",
+        "view_demo_label": "Посмотреть демо",
+        "footer_description": "Операционная платформа для прибрежной недвижимости, гостевого сервиса и проверенных местных партнёров.",
+        "footer_note": "BlackSea Connect помогает командам на Черном море спокойным и практичным операционным процессом.",
+    },
+}
 
 
 SEO_LANDING_PAGES = {
@@ -561,3 +617,1502 @@ SEO_LANDING_PAGES = {
         },
     ),
 }
+
+
+SEO_LANDING_PAGE_LOCALES = {
+    "/concierge-bulgaria": {
+        "bg": {
+            "title": "BlackSea Connect | Консиерж услуги в България",
+            "description": "Консиерж услуги в България за крайбрежни екипи, които имат нужда от координация на пристиганията, доверени местни партньори, housekeeping подкрепа и ясен workflow за заявки за услуги.",
+            "h1": "Консиерж услуги в България за крайбрежни хотелиерски екипи",
+            "eyebrow": "SEO landing page",
+            "intro": "BlackSea Connect помага на хотелиерски екипи, property managers и крайбрежни оператори да подредят консиерж работата в един спокоен оперативен поток. Вместо да се разчита на хаотични обаждания и чатове, платформата свързва координацията на пристиганията, housekeeping обновленията, местните партньори и заявките за услуги в една видима система, на която екипът може да се довери.",
+            "keywords": [
+                "консиерж услуги България",
+                "гост-сървиз",
+                "операции за крайбрежни имоти",
+                "доверени местни партньори",
+                "workflow за заявки за услуги",
+            ],
+            "ctas": [
+                {"label": "Заявете консиерж подкрепа", "href": "/request-service", "class": "button--primary"},
+                {"label": "Вижте услугите", "href": "/services", "class": "button--secondary"},
+                {"label": "Разгледайте гост-сървиз", "href": "/guest-experience-services", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="concierge-bulgaria-what">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Какво означава консиерж на брега</p>
+                    <h2 id="concierge-bulgaria-what">Консиерж подкрепата трябва да маха триенето, а не да добавя нова поща.</h2>
+                  </div>
+                  <p>По Черноморието консиерж работата рядко е само за резервации или трансфери. Тя е връзката между госта, имота и хората, които правят престоя гладък. Закъсняло пристигане може да обърка housekeeping, пропуснат трансфер може да натовари рецепцията, а бавен отговор по Wi-Fi може да се превърне в лошо ревю. BlackSea Connect дава на екипа едно място, където заявката се вижда от началото до затварянето ѝ.</p>
+                  <p>Най-добрите консиерж операции не разчитат на памет или неформални чатове. Те използват последователен процес, който записва кой е попитал, какво е обещано, кой отговаря и кога трябва да има follow-up. Това е особено важно в българските крайбрежни пазари, където имотите обслужват международни гости, сезонни собственици и редовни посетители с различни очаквания.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="concierge-bulgaria-services">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Обхват на услугата</p>
+                    <h2 id="concierge-bulgaria-services">Консиерж workflow, който покрива целия гостски път.</h2>
+                  </div>
+                  <p>BlackSea Connect е създаден около задачите, които крайбрежните екипи реално изпълняват всеки ден: координация на пристиганията, housekeeping, доверени местни партньори и workflow за заявки за услуги. Ако гостът има нужда от шофьор, късна промяна на почистването, доставка на хранителни продукти или помощ с трансфер до марина, заявката минава по същия оперативен път.</p>
+                  <p>Платформата е полезна и за имоти, които работят в повече от един град. Екипът може да маршрутизира заявката към правилния човек, да вижда статуса на момента и да държи госта информиран, без той да повтаря едно и също. Това е важно за гост-сървиза, но и за property managers, които искат надежден запис за това какво е било поискано, какво е завършено и какво остава.</p>
+                  <ul>
+                    <li>Координация на пристиганията за летищни, марина и частни трансфери.</li>
+                    <li>Housekeeping координация за turnovers, инспекции и промени в последния момент.</li>
+                    <li>Доверени местни партньори за поддръжка, пране, шофьори и специализирана помощ.</li>
+                    <li>Workflow за заявки за услуги, който държи всяка задача видима до нейното приключване.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="concierge-bulgaria-workflow">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Оперативен поток</p>
+                    <h2 id="concierge-bulgaria-workflow">От заявката на госта до приключването, екипът запазва контрол.</h2>
+                  </div>
+                  <p>Практичният concierge системи започва с ясен intake. Екипът трябва да знае дали заявката идва от guest portal, телефонно обаждане, съобщение при настаняване или бележка от собственик. След като заявката е записана, тя може да бъде assign-ната, тагната и проследена без да се губи контекстът, който я прави важна.</p>
+                  <p>За българските крайбрежни имоти този поток помага и на сезонните екипи. В пиковите месеци един консиерж може да обработва десетки малки заявки, които сами по себе си изглеждат дребни, но силно влияят на гостското преживяване. В по-тихите периоди същият процес дава на мениджърите по-добра видимост към повтарящи се проблеми и модели на обслужване.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="concierge-bulgaria-fit">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Защо BlackSea Connect</p>
+                    <h2 id="concierge-bulgaria-fit">Създаден за екипи, които имат нужда от доверени партньори и по-малко handoffs.</h2>
+                  </div>
+                  <p>Много хотелиерски екипи започват със spreadsheet или чат и едва по-късно разбират, че service demand е надраснал инструмента. BlackSea Connect решава този gap, без да променя начина, по който бизнесът работи. Той държи тона към госта спокоен, но дава на оператора достатъчно структура за service levels, partner coordination и follow-up.</p>
+                  <p>Ако сравнявате консиерж услуги в България, истинският въпрос е дали процесът може да се мащабира без да става шумен. BlackSea Connect е проектиран да поддържа работата ясна, госта информиран и мениджъра уверен, че заявката ще бъде изпълнена.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="concierge-bulgaria-faq">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Често задавани въпроси</p>
+                    <h2 id="concierge-bulgaria-faq">Чести въпроси за консиерж услугите в България.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Консиерж подкрепата важи ли само за луксозни имоти?</h3>
+                      <p>Не. Всеки имот, който иска по-бързи отговори, по-чисти handoffs и по-добро гостско преживяване, може да спечели от консиерж workflow.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Могат ли задачите да включват housekeeping и трансфери?</h3>
+                      <p>Да. Най-силните hospitality operations свързват консиерж работата с housekeeping координация и guest arrival координация, за да не се губят заявки.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Полезно ли е за екипи, които работят само сезонно?</h3>
+                      <p>Абсолютно. Сезонните екипи имат най-голяма полза от повторяем процес, защото handoffs се променят бързо, а ясният workflow пази стандартите стабилни.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Управление на имоти в България", "description": "Вижте как платформата поддържа собственици, операции и поддръжка на крайбрежен портфейл."},
+                {"href": "/guest-experience-services", "label": "Услуги за гостско преживяване", "description": "Научете как пристигането и подкрепата по време на престоя оформят изживяването."},
+                {"href": "/request-service", "label": "Заявете workflow за услуга", "description": "Въведете заявка и я насочете през оперативния екип с ясен процес."},
+                {"href": "/services", "label": "Преглед на основните услуги", "description": "Разгледайте по-широката BlackSea Connect платформа за операции."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Консиерж услуги в България",
+                "url": "https://blackseaconnect.com/concierge-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "България",
+                "serviceType": [
+                    "coastal property operations",
+                    "guest concierge",
+                    "guest arrival coordination",
+                    "housekeeping coordination",
+                ],
+                "description": "Консиерж услуги в България за крайбрежни имоти, които имат нужда от координация на пристиганията, housekeeping подкрепа, доверени местни партньори и ясен workflow за заявки за услуги.",
+            },
+        },
+        "fr": {
+            "title": "BlackSea Connect | Services de conciergerie en Bulgarie",
+            "description": "Services de conciergerie en Bulgarie pour les équipes de biens côtiers qui ont besoin de coordination des arrivées, de partenaires locaux de confiance, de support housekeeping et d’un workflow clair de demandes de service.",
+            "h1": "Services de conciergerie en Bulgarie pour les équipes hôtelières côtières",
+            "eyebrow": "Page SEO",
+            "intro": "BlackSea Connect aide les équipes hôtelières, les property managers et les opérateurs côtiers à regrouper le travail de conciergerie dans un flux opérationnel calme. Au lieu de dépendre d’appels et de conversations dispersées, la plateforme relie la coordination des arrivées, les mises à jour housekeeping, les partenaires locaux et les demandes de service dans un seul workflow lisible.",
+            "keywords": [
+                "services de conciergerie Bulgarie",
+                "guest concierge",
+                "opérations de biens côtiers",
+                "partenaires locaux de confiance",
+                "workflow de demandes de service",
+            ],
+            "ctas": [
+                {"label": "Demander un support conciergerie", "href": "/request-service", "class": "button--primary"},
+                {"label": "Voir les services", "href": "/services", "class": "button--secondary"},
+                {"label": "Explorer l’expérience client", "href": "/guest-experience-services", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="concierge-bulgaria-what">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Ce que signifie la conciergerie sur la côte</p>
+                    <h2 id="concierge-bulgaria-what">Le support conciergerie doit supprimer les frictions, pas créer une nouvelle boîte mail.</h2>
+                  </div>
+                  <p>Sur la côte de la mer Noire, la conciergerie ne se limite presque jamais aux réservations de restaurant ou aux transferts aéroport. Elle relie le client, le bien et les personnes qui rendent le séjour fluide. Un retard d’arrivée peut perturber le housekeeping, un transfert manqué peut compliquer la réception, et une réponse lente sur le Wi‑Fi peut devenir un mauvais avis.</p>
+                  <p>Les meilleures opérations de conciergerie ne reposent ni sur la mémoire ni sur des groupes de discussion informels. Elles utilisent un processus cohérent qui enregistre la demande, la promesse, le responsable et le suivi attendu. C’est particulièrement important dans les marchés côtiers bulgares, où les biens accueillent des voyageurs internationaux, des propriétaires saisonniers et des clients récurrents aux attentes différentes.</p>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Gestion immobilière en Bulgarie", "description": "Découvrez comment la plateforme soutient les opérations et la maintenance d’un portefeuille côtier."},
+                {"href": "/guest-experience-services", "label": "Services d’expérience client", "description": "Voyez comment l’arrivée et l’assistance pendant le séjour structurent l’expérience."},
+                {"href": "/request-service", "label": "Demander un workflow", "description": "Enregistrez une demande et faites-la circuler dans l’équipe opérationnelle."},
+                {"href": "/services", "label": "Aperçu des services", "description": "Explorez la plateforme opérationnelle BlackSea Connect."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Services de conciergerie en Bulgarie",
+                "url": "https://blackseaconnect.com/concierge-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Bulgarie",
+                "serviceType": [
+                    "coastal property operations",
+                    "guest concierge",
+                    "guest arrival coordination",
+                    "housekeeping coordination",
+                ],
+                "description": "Services de conciergerie en Bulgarie pour les biens côtiers qui ont besoin de coordination des arrivées, de support housekeeping, de partenaires locaux de confiance et d’un workflow clair de demandes de service.",
+            },
+        },
+        "ru": {
+            "title": "BlackSea Connect | Консьерж-услуги в Болгарии",
+            "description": "Консьерж-услуги в Болгарии для команд прибрежной недвижимости, которым нужна координация прибытия гостей, проверенные местные партнёры, поддержка housekeeping и понятный workflow заявок на услуги.",
+            "h1": "Консьерж-услуги в Болгарии для прибрежных гостиничных команд",
+            "eyebrow": "SEO-страница",
+            "intro": "BlackSea Connect помогает гостиничным командам, управляющим недвижимостью и прибрежным операторам собрать консьерж-работу в спокойный операционный поток. Вместо хаотичных звонков и переписок платформа связывает координацию прибытия, обновления housekeeping, местных партнёров и заявки на услуги в одной понятной системе.",
+            "keywords": [
+                "консьерж-услуги Болгария",
+                "guest concierge",
+                "операции прибрежной недвижимости",
+                "проверенные местные партнёры",
+                "workflow заявок на услуги",
+            ],
+            "ctas": [
+                {"label": "Запросить поддержку консьержа", "href": "/request-service", "class": "button--primary"},
+                {"label": "Посмотреть услуги", "href": "/services", "class": "button--secondary"},
+                {"label": "Изучить guest experience", "href": "/guest-experience-services", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="concierge-bulgaria-what">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Что означает консьерж на побережье</p>
+                    <h2 id="concierge-bulgaria-what">Консьерж-поддержка должна убирать трение, а не добавлять новый inbox.</h2>
+                  </div>
+                  <p>На Черноморском побережье консьерж-работа редко ограничивается бронированием столика или трансфером из аэропорта. Она соединяет гостя, объект и людей, которые делают пребывание плавным. Позднее прибытие может повлиять на housekeeping, пропущенный трансфер - на ресепшен, а медленный ответ по Wi‑Fi - на отзывы.</p>
+                  <p>Лучшие консьерж-операции не полагаются на память или неформальные чаты. Они используют последовательный процесс, который фиксирует запрос, обещание, ответственного и срок follow-up. Это особенно важно на болгарских прибрежных рынках, где объекты принимают международных путешественников, сезонных владельцев и постоянных гостей с разными ожиданиями.</p>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Управление недвижимостью в Болгарии", "description": "Посмотрите, как платформа поддерживает операции и обслуживание прибрежного портфеля."},
+                {"href": "/guest-experience-services", "label": "Сервисы guest experience", "description": "Узнайте, как прибытие и поддержка во время проживания формируют впечатление гостя."},
+                {"href": "/request-service", "label": "Запросить workflow", "description": "Зафиксируйте запрос и проведите его через операционную команду."},
+                {"href": "/services", "label": "Обзор услуг", "description": "Изучите операционную платформу BlackSea Connect."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Консьерж-услуги в Болгарии",
+                "url": "https://blackseaconnect.com/concierge-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Болгария",
+                "serviceType": [
+                    "coastal property operations",
+                    "guest concierge",
+                    "guest arrival coordination",
+                    "housekeeping coordination",
+                ],
+                "description": "Консьерж-услуги в Болгарии для прибрежной недвижимости, которой нужна координация прибытия, поддержка housekeeping, проверенные местные партнёры и понятный workflow заявок на услуги.",
+            },
+        },
+    },
+    "/property-management-bulgaria": {
+        "bg": {
+            "title": "BlackSea Connect | Управление на имоти в България за крайбрежни екипи",
+            "description": "Управление на имоти в България за крайбрежни оператори, които имат нужда от housekeeping координация, guest arrival координация, проследяване на поддръжка и доверени местни партньори в една платформа.",
+            "h1": "Управление на имоти в България за крайбрежни портфейли",
+            "eyebrow": "SEO landing page",
+            "intro": "Управлението на имоти в България изглежда различно, когато активите са крайбрежни. Смените са по-стегнати, пристиганията са по-чувствителни към време, поддръжката често е сезонна, а очакванията на собствениците могат да се променят бързо с заетостта. BlackSea Connect помага на екипите да подредят housekeeping, трансфери, местни партньори и заявки за услуги в един спокоен workflow.",
+            "keywords": ["управление на имоти България", "операции за крайбрежни имоти", "housekeeping координация", "guest arrival координация", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Разгледайте operations", "href": "/services", "class": "button--primary"},
+                {"label": "Вижте директорията с партньори", "href": "/network", "class": "button--secondary"},
+                {"label": "Заявете workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "fr": {
+            "title": "BlackSea Connect | Gestion immobilière en Bulgarie pour les équipes côtières",
+            "description": "Gestion immobilière en Bulgarie pour les opérateurs côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de suivi de maintenance et de partenaires locaux de confiance dans une seule plateforme.",
+            "h1": "Gestion immobilière en Bulgarie pour les portefeuilles côtiers",
+            "eyebrow": "Page SEO",
+            "intro": "La gestion immobilière en Bulgarie change lorsque les actifs sont côtiers. Les turnovers sont plus serrés, les arrivées sont plus sensibles au timing, la maintenance est souvent saisonnière et les attentes des propriétaires évoluent vite avec le taux d’occupation.",
+            "keywords": ["gestion immobilière Bulgarie", "opérations de biens côtiers", "coordination housekeeping", "coordination des arrivées", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Découvrir les opérations", "href": "/services", "class": "button--primary"},
+                {"label": "Voir le réseau", "href": "/network", "class": "button--secondary"},
+                {"label": "Demander un workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "ru": {
+            "title": "BlackSea Connect | Управление недвижимостью в Болгарии для прибрежных команд",
+            "description": "Управление недвижимостью в Болгарии для прибрежных операторов, которым нужна координация housekeeping, координация прибытия гостей, учёт обслуживания и проверенные местные партнёры в одной платформе.",
+            "h1": "Управление недвижимостью в Болгарии для прибрежных портфелей",
+            "eyebrow": "SEO-страница",
+            "intro": "Управление недвижимостью в Болгарии меняется, когда активы находятся у моря. Смены становятся плотнее, прибытия чувствительнее к времени, обслуживание часто сезонное, а ожидания владельцев быстро меняются вместе с загрузкой.",
+            "keywords": ["управление недвижимостью Болгария", "операции прибрежной недвижимости", "координация housekeeping", "координация прибытия гостей", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Изучить operations", "href": "/services", "class": "button--primary"},
+                {"label": "Посмотреть сеть", "href": "/network", "class": "button--secondary"},
+                {"label": "Запросить workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+    },
+    "/guest-experience-services": {
+        "bg": {
+            "title": "BlackSea Connect | Услуги за guest experience за хотелиерски екипи",
+            "description": "Услуги за guest experience за хотелиерски екипи, които искат по-добри пристигания, по-ясна комуникация, по-плавен престой и практичен workflow за заявки.",
+            "h1": "Услуги за guest experience, които правят престоя лек",
+            "eyebrow": "SEO landing page",
+            "intro": "Guest experience често се описва като усещане, но зад това усещане стои последователност от оперативни решения. Дали пристигането е ясно? Дали housekeeping е приключил навреме? Дали гостът знае към кого да се обърне? BlackSea Connect помага на екипите да управляват тези моменти в спокоен workflow.",
+            "keywords": ["услуги за guest experience", "guest arrival координация", "hospitality operations platform", "guest concierge", "workflow за заявки"],
+            "ctas": [
+                {"label": "Вижте примери за guest portal", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Прегледайте услугите", "href": "/services", "class": "button--secondary"},
+                {"label": "Заявете подкрепа", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "fr": {
+            "title": "BlackSea Connect | Services d’expérience client pour les équipes hôtelières",
+            "description": "Services d’expérience client pour les équipes hôtelières qui veulent de meilleures arrivées, une communication plus claire, des séjours plus fluides et un workflow pratique de demandes de service.",
+            "h1": "Des services d’expérience client qui rendent le séjour simple",
+            "eyebrow": "Page SEO",
+            "intro": "L’expérience client est souvent décrite comme un ressenti, mais derrière ce ressenti il y a une suite de décisions opérationnelles. L’arrivée est-elle claire ? Le housekeeping a-t-il terminé à temps ? Le client sait-il à qui s’adresser ?",
+            "keywords": ["services d’expérience client", "coordination des arrivées", "plateforme d’opérations hôtelières", "guest concierge", "workflow de demandes"],
+            "ctas": [
+                {"label": "Voir des exemples de guest portal", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Consulter les services", "href": "/services", "class": "button--secondary"},
+                {"label": "Demander un support", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "ru": {
+            "title": "BlackSea Connect | Сервисы guest experience для гостиничных команд",
+            "description": "Сервисы guest experience для гостиничных команд, которым нужны лучшие прибытия, более понятная коммуникация, более плавное проживание и практичный workflow заявок на услуги.",
+            "h1": "Сервисы guest experience, которые делают пребывание лёгким",
+            "eyebrow": "SEO-страница",
+            "intro": "Guest experience часто описывают как чувство, но за этим чувством стоит последовательность операционных решений. Понятно ли прибытие? Успел ли housekeeping вовремя? Знает ли гость, к кому обратиться?",
+            "keywords": ["сервисы guest experience", "координация прибытия гостей", "платформа hospitality operations", "guest concierge", "workflow заявок"],
+            "ctas": [
+                {"label": "Посмотреть примеры guest portal", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Открыть услуги", "href": "/services", "class": "button--secondary"},
+                {"label": "Запросить поддержку", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+    },
+    "/vacation-rental-operations": {
+        "bg": {
+            "title": "BlackSea Connect | Операции за ваканционни наеми за крайбрежни портфейли",
+            "description": "Операции за ваканционни наеми за крайбрежни портфейли, които имат нужда от housekeeping координация, guest arrival координация, transfer management и доверени местни партньори в мащаб.",
+            "h1": "Операции за ваканционни наеми, създадени за крайбрежен мащаб",
+            "eyebrow": "SEO landing page",
+            "intro": "Операциите при ваканционни наеми лесно се подценяват, докато портфейлът не започне да расте. Това, което е било няколко имота, бързо се превръща във верига от turnovers, пристигания, проверки на housekeeping, въпроси за трансфери и отчети към собственици.",
+            "keywords": ["операции за ваканционни наеми", "housekeeping координация", "guest arrival координация", "операции за крайбрежни имоти", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Вижте демо потока", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Разгледайте партньорите", "href": "/network", "class": "button--secondary"},
+                {"label": "Заявете услуга", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "fr": {
+            "title": "BlackSea Connect | Opérations de locations saisonnières pour portefeuilles côtiers",
+            "description": "Opérations de locations saisonnières pour portefeuilles côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de gestion des transferts et de partenaires locaux de confiance à grande échelle.",
+            "h1": "Opérations de locations saisonnières pensées pour l’échelle côtière",
+            "eyebrow": "Page SEO",
+            "intro": "Les opérations de locations saisonnières sont faciles à sous-estimer jusqu’au moment où le portefeuille commence à grandir. Ce qui était quelques biens devient vite une chaîne de turnovers, d’arrivées, de contrôles housekeeping et de questions de transfert.",
+            "keywords": ["opérations locations saisonnières", "coordination housekeeping", "coordination des arrivées", "opérations de biens côtiers", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Voir la démo", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Parcourir le réseau", "href": "/network", "class": "button--secondary"},
+                {"label": "Demander un service", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+        "ru": {
+            "title": "BlackSea Connect | Операции vacation rental для прибрежных портфелей",
+            "description": "Операции vacation rental для прибрежных портфелей, которым нужна координация housekeeping, координация прибытия гостей, управление трансферами и проверенные местные партнёры в масштабе.",
+            "h1": "Операции vacation rental, созданные для прибрежного масштаба",
+            "eyebrow": "SEO-страница",
+            "intro": "Операции vacation rental легко недооценить, пока портфель не начнёт расти. То, что было несколькими объектами, быстро превращается в цепочку turnovers, прибытия гостей, проверок housekeeping и вопросов по трансферам.",
+            "keywords": ["операции vacation rental", "координация housekeeping", "координация прибытия гостей", "операции прибрежной недвижимости", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Посмотреть demo", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Открыть сеть", "href": "/network", "class": "button--secondary"},
+                {"label": "Запросить услугу", "href": "/request-service", "class": "button--tertiary"},
+            ],
+        },
+    },
+    "/sveti-vlas-concierge-services": {
+        "bg": {
+            "title": "BlackSea Connect | Консиерж услуги в Свети Влас",
+            "description": "Консиерж услуги в Свети Влас за крайбрежни имоти близо до марината, апартаменти на първа линия и вили по хълма, които имат нужда от надеждна гостоприемна подкрепа и локална координация.",
+            "h1": "Консиерж услуги в Свети Влас за крайбрежни имоти и марина престои",
+            "eyebrow": "SEO landing page",
+            "intro": "Консиерж услугите в Свети Влас трябва да разбират локалния ритъм на града. Гостите пристигат през марината, по крайбрежните пътища и през апартаментни комплекси, които обслужват семейства, яхтени пътешественици и редовни посетители.",
+            "keywords": ["консиерж услуги Свети Влас", "гост-сървиз", "Black Sea property management", "guest arrival координация", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Заявете подкрепа за Свети Влас", "href": "/request-service", "class": "button--primary"},
+                {"label": "Разгледайте консиерж услугите", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Вижте партньорите", "href": "/network", "class": "button--tertiary"},
+            ],
+        },
+        "fr": {
+            "title": "BlackSea Connect | Services de conciergerie à Sveti Vlas",
+            "description": "Services de conciergerie à Sveti Vlas pour les biens côtiers près de la marina, les appartements en front de mer et les villas sur les hauteurs qui ont besoin d’un support fiable et d’une coordination locale.",
+            "h1": "Services de conciergerie à Sveti Vlas pour biens côtiers et séjours marina",
+            "eyebrow": "Page SEO",
+            "intro": "Les services de conciergerie à Sveti Vlas doivent refléter le rythme local de la ville. Les clients arrivent par la marina, par les routes côtières et par les ensembles résidentiels qui accueillent familles, voyageurs nautiques et visiteurs réguliers.",
+            "keywords": ["services de conciergerie Sveti Vlas", "guest concierge", "gestion immobilière mer Noire", "coordination des arrivées", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Demander un support Sveti Vlas", "href": "/request-service", "class": "button--primary"},
+                {"label": "Explorer la conciergerie", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Voir les partenaires", "href": "/network", "class": "button--tertiary"},
+            ],
+        },
+        "ru": {
+            "title": "BlackSea Connect | Консьерж-услуги в Свети-Власе",
+            "description": "Консьерж-услуги в Свети-Власе для прибрежных объектов рядом с мариной, апартаментов у моря и вилл на холмах, которым нужна надёжная поддержка гостей и локальная координация.",
+            "h1": "Консьерж-услуги в Свети-Власе для прибрежной недвижимости и марина-пребываний",
+            "eyebrow": "SEO-страница",
+            "intro": "Консьерж-услуги в Свети-Власе должны отражать местный ритм города. Гости приезжают через марину, по прибрежным дорогам и в апартаментные комплексы, которые принимают семьи, яхтенных путешественников и постоянных гостей.",
+            "keywords": ["консьерж-услуги Свети-Влас", "guest concierge", "управление недвижимостью Чёрное море", "координация прибытия", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Запросить поддержку Свети-Влас", "href": "/request-service", "class": "button--primary"},
+                {"label": "Изучить консьерж-сервисы", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Посмотреть партнёров", "href": "/network", "class": "button--tertiary"},
+            ],
+        },
+    },
+}
+
+
+SEO_LANDING_PAGE_LOCALE_OVERRIDES = {
+    "/guest-experience-services": {
+        "bg": {
+            "title": "BlackSea Connect | Услуги за гостско преживяване",
+            "description": "Услуги за гостско преживяване за хотелиерски екипи, които искат по-лесни пристигания, по-ясна комуникация, по-плавен престой и ясен workflow за заявки за услуги.",
+            "h1": "Услуги за гостско преживяване, които правят престоя лесен",
+            "eyebrow": "SEO landing page",
+            "intro": "Гостското преживяване е усещане, но това усещане се изгражда от последователни оперативни решения. Дали пристигането е ясно? Дали housekeeping е готов навреме? Дали гостът знае към кого да се обърне, когато нещо се промени?",
+            "keywords": [
+                "услуги за гостско преживяване",
+                "координация на пристиганията",
+                "платформа за хотелски операции",
+                "гост-сървиз",
+                "workflow за заявки",
+            ],
+            "ctas": [
+                {"label": "Вижте примери за гост-портал", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Прегледайте услугите", "href": "/services", "class": "button--secondary"},
+                {"label": "Заявете подкрепа", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="guest-experience-journey-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Пътят на госта</p>
+                    <h2 id="guest-experience-journey-bg">Гостското преживяване започва преди пристигането и продължава след заминаването.</h2>
+                  </div>
+                  <p>Добрата хотелска операция не започва на входа. Тя започва в момента, в който гостът резервира, зададе въпрос, поиска трансфер или отвори гостския портал. Тогава екипът вече трябва да знае имота, времето, езиковото предпочитание и вероятните нужди.</p>
+                  <p>Когато този контекст е част от оперативния запис, гостът не трябва да повтаря едно и също при всяка следваща стъпка. Това прави престоя по-спокоен, а екипа - по-уверен.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="guest-experience-touchpoints-bg">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Ключови моменти</p>
+                    <h2 id="guest-experience-touchpoints-bg">Моментите, които оформят запомнящ се престой.</h2>
+                  </div>
+                  <p>Услугите за гостско преживяване работят най-добре, когато покриват целия престой: преди пристигане, по време на настаняването, при housekeeping готовността, при подкрепата на място и при следващия контакт след заминаването.</p>
+                  <p>Същият подход помага и при специални заявки - препоръки, доставки, късно напускане, частен шофьор или местен проблем. Вместо да се губят в обща поща, тези заявки се виждат, разпределят и затварят навреме.</p>
+                  <ul>
+                    <li>Координация на пристиганията за безпроблемно настаняване и трансфери.</li>
+                    <li>Housekeeping координация, така че имотът да е готов когато гостът очаква.</li>
+                    <li>Гост-сървиз за препоръки, резервации и локална помощ.</li>
+                    <li>Workflow за заявки, който пази всяка заявка видима до приключване.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-ops-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Оперативен дизайн</p>
+                    <h2 id="guest-experience-ops-bg">Операциите трябва да работят тихо, за да не ги мисли гостът.</h2>
+                  </div>
+                  <p>Когато процесите са фрагментирани, гостът го усеща. Когато са свързани, той просто се чувства подкрепен. BlackSea Connect е изграден около тази логика: ясни обновления, ясно ownership и ясно follow-through.</p>
+                  <p>Това дава повече време на екипа за онова, което прави гостоприемството премиум - тон, темпо и внимание. Ако изграждате guest-facing модел за крайбрежни имоти, най-ценната технология е тази, която изчезва в преживяването, но прави работата по-лесна.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-faq-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Често задавани въпроси</p>
+                    <h2 id="guest-experience-faq-bg">Въпроси, които екипите си задават, когато подобряват гостския път.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Гостското преживяване само комуникация ли е?</h3>
+                      <p>Не. Комуникацията е важна, но качеството на престоя обикновено се решава от тайминга, координацията и добрия follow-through.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Може ли да работи с различни типове имоти?</h3>
+                      <p>Да. Същият workflow работи за вили, апартаменти и бутикови имоти с различен оперативен ритъм.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Помага ли платформата при повтарящи се заявки?</h3>
+                      <p>Да. Повтарящите се заявки се виждат по-лесно, насочват се по-бързо и се затварят по-надеждно.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Консиерж услуги в България", "description": "Вижте консиерж workflow-а, който поддържа гостската помощ и локалната координация."},
+                {"href": "/property-management-bulgaria", "label": "Управление на имоти в България", "description": "Свържете гостския път с по-широкия оперативен модел за крайбрежен портфейл."},
+                {"href": "/guest/a-302", "label": "Пример за гостски портал", "description": "Прегледайте гостско изживяване, създадено за пристигания и помощ на място."},
+                {"href": "/services", "label": "Преглед на услугите", "description": "Вижте цялата BlackSea Connect платформа за операции."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Услуги за гостско преживяване",
+                "url": "https://blackseaconnect.com/guest-experience-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Черноморският бряг",
+                "serviceType": [
+                    "услуги за гостско преживяване",
+                    "координация на пристиганията",
+                    "гост-сървиз",
+                    "workflow за заявки за услуги",
+                ],
+                "description": "Услуги за гостско преживяване за хотелиерски екипи, които искат по-добри пристигания, по-ясна комуникация, по-плавен престой и практичен workflow за заявки за услуги.",
+            },
+        },
+        "fr": {
+            "title": "BlackSea Connect | Services d’expérience client",
+            "description": "Services d’expérience client pour les équipes hôtelières qui veulent des arrivées plus fluides, une communication plus claire, des séjours plus simples et un workflow pratique de demandes de service.",
+            "h1": "Des services d’expérience client qui rendent le séjour fluide",
+            "eyebrow": "Page SEO",
+            "intro": "L’expérience client est une impression, mais cette impression naît de décisions opérationnelles précises. L’arrivée est-elle claire ? Le housekeeping est-il prêt à temps ? Le client sait-il qui contacter si quelque chose change ?",
+            "keywords": ["services d’expérience client", "coordination des arrivées", "plateforme d’opérations hôtelières", "guest concierge", "workflow de demandes"],
+            "ctas": [
+                {"label": "Voir des exemples de guest portal", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Consulter les services", "href": "/services", "class": "button--secondary"},
+                {"label": "Demander un support", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="guest-experience-journey-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Le parcours client</p>
+                    <h2 id="guest-experience-journey-fr">L’expérience client commence avant l’arrivée et continue après le départ.</h2>
+                  </div>
+                  <p>Une bonne opération hôtelière ne commence pas à la porte d’entrée. Elle commence dès la réservation, la première question, la demande de transfert ou l’ouverture du guest portal. À ce moment-là, l’équipe doit déjà connaître le bien, le timing, la langue et les besoins probables.</p>
+                  <p>Quand ce contexte est conservé dans le dossier opérationnel, le client n’a pas besoin de répéter les mêmes informations. Le séjour paraît plus simple, et l’équipe travaille avec plus de calme.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="guest-experience-touchpoints-fr">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Points de contact</p>
+                    <h2 id="guest-experience-touchpoints-fr">Les moments qui façonnent un séjour mémorable.</h2>
+                  </div>
+                  <p>Les services d’expérience client sont plus efficaces lorsqu’ils couvrent tout le séjour : communication avant l’arrivée, timing du check-in, readiness housekeeping, support sur place et suivi après le départ.</p>
+                  <p>La même approche aide pour les demandes spéciales - recommandations de restaurants, livraison, départ tardif, chauffeur privé ou question locale. Au lieu de disparaître dans une boîte mail, la demande reste visible, assignable et facile à clôturer.</p>
+                  <ul>
+                    <li>Coordination des arrivées pour un check-in et des transferts sans friction.</li>
+                    <li>Coordination housekeeping pour que le bien soit prêt au bon moment.</li>
+                    <li>Support conciergerie pour les recommandations, réservations et l’aide locale.</li>
+                    <li>Workflow de demandes qui garde chaque requête visible jusqu’à la fin.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-ops-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Conception opérationnelle</p>
+                    <h2 id="guest-experience-ops-fr">Les opérations doivent rester discrètes pour que le client n’ait pas à y penser.</h2>
+                  </div>
+                  <p>Quand les opérations sont fragmentées, le client le remarque. Quand elles sont connectées, il se sent simplement accompagné. BlackSea Connect est construit autour de cette logique : mises à jour claires, responsabilité claire et suivi clair.</p>
+                  <p>Ce fonctionnement laisse plus de temps à l’équipe pour la dimension humaine de l’hospitalité - le ton, le rythme et l’attention. Pour un modèle guest-facing sur des biens côtiers, la meilleure technologie est celle qui disparaît dans l’expérience tout en rendant l’équipe plus efficace.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-faq-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Questions fréquentes</p>
+                    <h2 id="guest-experience-faq-fr">Questions des équipes hôtelières qui améliorent le parcours client.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>L’expérience client, c’est seulement la communication ?</h3>
+                      <p>Non. La communication compte, mais la qualité du séjour dépend surtout du timing, de la coordination et du bon suivi.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Le workflow peut-il couvrir plusieurs types de biens ?</h3>
+                      <p>Oui. Le même workflow fonctionne pour des villas, appartements et boutiques-hôtels avec des rythmes différents.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>La plateforme aide-t-elle avec les demandes récurrentes ?</h3>
+                      <p>Oui. Les demandes répétées deviennent plus faciles à repérer, à router et à résoudre.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Conciergerie en Bulgarie", "description": "Découvrez le workflow conciergerie qui soutient l’assistance client et la coordination locale."},
+                {"href": "/property-management-bulgaria", "label": "Gestion immobilière en Bulgarie", "description": "Reliez le parcours client au modèle opérationnel du portefeuille côtier."},
+                {"href": "/guest/a-302", "label": "Exemple de guest portal", "description": "Prévisualisez une expérience client pensée pour les arrivées et l’assistance."},
+                {"href": "/services", "label": "Aperçu des services", "description": "Consultez la plateforme BlackSea Connect dans son ensemble."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Services d’expérience client",
+                "url": "https://blackseaconnect.com/guest-experience-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "littoral de la mer Noire",
+                "serviceType": [
+                    "services d’expérience client",
+                    "coordination des arrivées",
+                    "guest concierge",
+                    "workflow de demandes de service",
+                ],
+                "description": "Services d’expérience client pour les équipes hôtelières qui veulent des arrivées plus fluides, une communication plus claire, des séjours plus simples et un workflow pratique de demandes de service.",
+            },
+        },
+        "ru": {
+            "title": "BlackSea Connect | Сервисы guest experience",
+            "description": "Сервисы guest experience для гостиничных команд, которым нужны более плавные прибытия, более ясная коммуникация, более спокойное проживание и практичный workflow заявок на услуги.",
+            "h1": "Сервисы guest experience, которые делают пребывание лёгким",
+            "eyebrow": "SEO-страница",
+            "intro": "Guest experience часто описывают как ощущение, но за этим ощущением стоят конкретные операционные решения. Понятно ли прибытие? Успел ли housekeeping вовремя? Знает ли гость, к кому обратиться, если что-то меняется?",
+            "keywords": ["сервисы guest experience", "координация прибытия гостей", "платформа hospitality operations", "guest concierge", "workflow заявок"],
+            "ctas": [
+                {"label": "Посмотреть примеры guest portal", "href": "/guest/a-302", "class": "button--primary"},
+                {"label": "Открыть услуги", "href": "/services", "class": "button--secondary"},
+                {"label": "Запросить поддержку", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="guest-experience-journey-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Путь гостя</p>
+                    <h2 id="guest-experience-journey-ru">Guest experience начинается до прибытия и продолжается после выезда.</h2>
+                  </div>
+                  <p>Хорошая гостиничная операция не начинается у входа. Она начинается в момент бронирования, первого вопроса, запроса на трансфер или открытия guest portal. В этот момент команда уже должна знать объект, время, языковые предпочтения и вероятные потребности.</p>
+                  <p>Когда этот контекст есть в операционной записи, гостю не нужно повторять одно и то же на каждом шаге. Пребывание становится проще, а команда работает спокойнее.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="guest-experience-touchpoints-ru">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Ключевые точки</p>
+                    <h2 id="guest-experience-touchpoints-ru">Моменты, которые формируют запоминающееся пребывание.</h2>
+                  </div>
+                  <p>Сервисы guest experience работают лучше всего, когда покрывают весь путь гостя: до прибытия, во время check-in, при готовности housekeeping, при поддержке на месте и после выезда.</p>
+                  <p>Тот же подход помогает и со специальными запросами - рекомендации, доставка, поздний выезд, частный водитель или локальный вопрос. Вместо того чтобы теряться в общей почте, запрос виден, назначаем и закрывается вовремя.</p>
+                  <ul>
+                    <li>Координация прибытия для спокойного check-in и трансферов.</li>
+                    <li>Housekeeping-координация, чтобы объект был готов вовремя.</li>
+                    <li>Guest concierge для рекомендаций, бронирований и локальной помощи.</li>
+                    <li>Workflow заявок, который держит каждый запрос видимым до завершения.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-ops-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Операционный дизайн</p>
+                    <h2 id="guest-experience-ops-ru">Операции должны оставаться незаметными, чтобы гость не думал о них.</h2>
+                  </div>
+                  <p>Когда процессы фрагментированы, гость это замечает. Когда они связаны, он просто чувствует поддержку. BlackSea Connect построен вокруг этого принципа: понятные обновления, понятная ответственность и понятный follow-through.</p>
+                  <p>Это даёт команде больше времени на человеческую сторону гостеприимства - тон, ритм и внимание. Для guest-facing модели прибрежных объектов лучшая технология - та, которая исчезает в опыте, но делает команду сильнее.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="guest-experience-faq-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Частые вопросы</p>
+                    <h2 id="guest-experience-faq-ru">Вопросы команд, которые улучшают путь гостя.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Guest experience - это только коммуникация?</h3>
+                      <p>Нет. Коммуникация важна, но качество проживания чаще всего определяется таймингом, координацией и правильным follow-through.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Workflow может работать с разными типами объектов?</h3>
+                      <p>Да. Один и тот же workflow подходит для вилл, апартаментов и boutique-объектов с разным ритмом работы.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Платформа помогает с повторяющимися запросами?</h3>
+                      <p>Да. Повторяющиеся запросы легче заметить, направить и решить.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Консьерж-услуги в Болгарии", "description": "Посмотрите консьерж workflow, который поддерживает помощь гостям и локальную координацию."},
+                {"href": "/property-management-bulgaria", "label": "Управление недвижимостью в Болгарии", "description": "Свяжите путь гостя с более широким операционным моделью портфеля."},
+                {"href": "/guest/a-302", "label": "Пример guest portal", "description": "Посмотрите guest-facing опыт, созданный для прибытия и поддержки."},
+                {"href": "/services", "label": "Обзор услуг", "description": "Изучите платформу BlackSea Connect целиком."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Сервисы guest experience",
+                "url": "https://blackseaconnect.com/guest-experience-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "побережье Чёрного моря",
+                "serviceType": [
+                    "сервисы guest experience",
+                    "координация прибытия гостей",
+                    "guest concierge",
+                    "workflow заявок на услуги",
+                ],
+                "description": "Сервисы guest experience для гостиничных команд, которым нужны более плавные прибытия, более ясная коммуникация, более спокойное проживание и практичный workflow заявок на услуги.",
+            },
+        },
+    },
+    "/vacation-rental-operations": {
+        "bg": {
+            "title": "BlackSea Connect | Операции за ваканционни наеми",
+            "description": "Операции за ваканционни наеми за крайбрежни портфейли, които имат нужда от housekeeping координация, guest arrival координация, управление на трансфери и доверени местни партньори в мащаб.",
+            "h1": "Операции за ваканционни наеми, създадени за крайбрежен мащаб",
+            "eyebrow": "SEO landing page",
+            "intro": "Операциите при ваканционни наеми лесно се подценяват, докато портфейлът не започне да расте. Това, което е било няколко имота, бързо се превръща във верига от turnovers, пристигания, проверки на housekeeping, въпроси за трансфери и отчети към собственици.",
+            "keywords": ["операции за ваканционни наеми", "housekeeping координация", "guest arrival координация", "операции за крайбрежни имоти", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Вижте демо потока", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Разгледайте партньорите", "href": "/network", "class": "button--secondary"},
+                {"label": "Заявете услуга", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="vacation-rental-scale-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Мащаб без загуба на контрол</p>
+                    <h2 id="vacation-rental-scale-bg">Растящият портфейл има нужда от повторяем операционен систем.</h2>
+                  </div>
+                  <p>С разрастването на ваканционните наеми рисковете се променят. Една пропусната смяна може да повлияе на следващи пристигания. Един забавен трансфер може да обърка housekeeping графика. BlackSea Connect пази тези движещи се части видими, за да се защити качеството на услугата.</p>
+                  <p>Платформата не скрива работата, а я подрежда. Екипът вижда кой е отговорен, какво следва и кога задачата е приключена. Това помага на мениджърите да преминат от реактивно решаване към по-предвидим стандарт на грижа.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="vacation-rental-core-bg">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Основни потоци</p>
+                    <h2 id="vacation-rental-core-bg">Housekeeping, пристиганията и заявките са сърцето на портфейла.</h2>
+                  </div>
+                  <p>Ваканционните наеми успяват или се провалят в детайла. Чистото предаване е обещание към следващия гост. Навременният трансфер задава тон за целия престой. BlackSea Connect държи тези базови процеси подредени в една система.</p>
+                  <p>Същият workflow помага и с доверените местни партньори. Когато поддръжка, шофьори, почистващи екипи и concierge контакти са координирани, екипът работи по-бързо и с по-малко шум.</p>
+                  <ul>
+                    <li>Координация на checkout, turnover и same-day arrivals.</li>
+                    <li>Housekeeping координация между обекти, сгради и различни сезонни графици.</li>
+                    <li>Диспетчеризация на доверени местни партньори за трансфери и спешна поддръжка.</li>
+                    <li>Един workflow за заявки за гости, собственици и вътрешни екипи.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-owners-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Увереност на собственика</p>
+                    <h2 id="vacation-rental-owners-bg">Собствениците искат видимост, не само активност.</h2>
+                  </div>
+                  <p>Едно от най-големите предизвикателства е превръщането на ежедневната работа в нещо, което собственикът разбира. BlackSea Connect подрежда основната работа така, че комуникацията със собственика да бъде по-ясна, по-точна и по-надеждна.</p>
+                  <p>Когато екипът вижда кои заявки се повтарят, кои имоти изискват повече внимание и кои партньори са най-надеждни, управлението може да подобри staffing-а и да вземе по-добри решения за портфейла.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-faq-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Често задавани въпроси</p>
+                    <h2 id="vacation-rental-faq-bg">Въпроси от оператори, които мащабират ваканционни наеми по Черноморието.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Само за големи портфейли ли е?</h3>
+                      <p>Не. Същият workflow помага и на един оператор, и на растящ портфейл, защото проблемът е координацията.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Помага ли при same-day turnovers?</h3>
+                      <p>Да. Same-day turnover е един от най-силните случаи за структурирана housekeeping координация.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Може ли да намали забавянията пред госта?</h3>
+                      <p>Да. По-ясната координация на пристиганията и по-добрият dispatch намаляват малките забавяния, които дразнят госта най-много.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Управление на имоти в България", "description": "Научете как да държите крайбрежния портфейл организиран и видим."},
+                {"href": "/guest-experience-services", "label": "Услуги за гостско преживяване", "description": "Вижте как пътят на госта се свързва с back-office workflow-а."},
+                {"href": "/network", "label": "Мрежа от доставчици", "description": "Намерете одобрени местни партньори, които да поддържат операцията."},
+                {"href": "/demo/operations", "label": "Оперативно демо", "description": "Вижте работния поток на платформата в спокоен и практичен интерфейс."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Операции за ваканционни наеми",
+                "url": "https://blackseaconnect.com/vacation-rental-operations",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Черноморският бряг",
+                "serviceType": [
+                    "операции за ваканционни наеми",
+                    "housekeeping координация",
+                    "guest arrival координация",
+                    "доверени местни партньори",
+                ],
+                "description": "Операции за ваканционни наеми за крайбрежни портфейли, които имат нужда от housekeeping координация, guest arrival координация, управление на трансфери и доверени местни партньори в мащаб.",
+            },
+        },
+        "fr": {
+            "title": "BlackSea Connect | Opérations de locations saisonnières",
+            "description": "Opérations de locations saisonnières pour portefeuilles côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de gestion des transferts et de partenaires locaux de confiance à grande échelle.",
+            "h1": "Des opérations de locations saisonnières pensées pour l’échelle côtière",
+            "eyebrow": "Page SEO",
+            "intro": "Les opérations de locations saisonnières sont faciles à sous-estimer jusqu’au jour où le portefeuille commence à grandir. Quelques biens deviennent vite une chaîne de turnovers, d’arrivées, de contrôles housekeeping, de questions de transfert et de retours propriétaires.",
+            "keywords": ["opérations locations saisonnières", "coordination housekeeping", "coordination des arrivées", "opérations de biens côtiers", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Voir la démo", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Parcourir le réseau", "href": "/network", "class": "button--secondary"},
+                {"label": "Demander un service", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="vacation-rental-scale-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Grandir sans perdre le contrôle</p>
+                    <h2 id="vacation-rental-scale-fr">Un portefeuille en croissance a besoin d’un système répétable.</h2>
+                  </div>
+                  <p>À mesure que les locations saisonnières se développent, les risques changent. Un turnover manqué peut impacter la suite des arrivées. Un transfert retardé peut décaler le housekeeping. BlackSea Connect garde ces éléments visibles pour protéger la qualité de service.</p>
+                  <p>La plateforme ne cache pas le travail, elle l’organise. L’équipe voit qui est responsable, quelle est la prochaine étape et quand la tâche est terminée. Cela aide les managers à passer d’une logique réactive à un standard de soin plus prévisible.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="vacation-rental-core-fr">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Flux essentiels</p>
+                    <h2 id="vacation-rental-core-fr">Housekeeping, arrivées et demandes sont le cœur du portefeuille.</h2>
+                  </div>
+                  <p>Une location saisonnière réussit ou échoue souvent dans les détails. Un turnover propre est une promesse faite au prochain client. Un transfert à l’heure donne le ton du séjour. BlackSea Connect organise ces bases dans un workflow clair.</p>
+                  <p>Le même système aide aussi avec les partenaires locaux de confiance. Quand l’entretien, les chauffeurs, les équipes de nettoyage et la conciergerie sont coordonnés, l’équipe avance plus vite et avec moins de bruit.</p>
+                  <ul>
+                    <li>Coordination des check-out, turnovers et arrivées le jour même.</li>
+                    <li>Coordination housekeeping entre biens, bâtiments et saisons différentes.</li>
+                    <li>Dispatch des partenaires locaux pour transferts et maintenance urgente.</li>
+                    <li>Un seul workflow pour les demandes des clients, des propriétaires et de l’interne.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-owners-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Confiance propriétaire</p>
+                    <h2 id="vacation-rental-owners-fr">Les propriétaires veulent de la visibilité, pas seulement de l’activité.</h2>
+                  </div>
+                  <p>L’un des grands défis consiste à transformer le travail quotidien en quelque chose de compréhensible pour le propriétaire. BlackSea Connect organise ce travail pour rendre les échanges plus clairs, plus précis et plus fiables.</p>
+                  <p>Quand l’équipe voit les demandes récurrentes, les biens qui demandent plus d’attention et les partenaires les plus fiables, la gestion peut améliorer le staffing et faire de meilleurs choix pour le portefeuille.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-faq-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Questions fréquentes</p>
+                    <h2 id="vacation-rental-faq-fr">Questions des opérateurs qui développent des locations côtières.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Est-ce réservé aux grands portefeuilles ?</h3>
+                      <p>Non. Le même workflow aide un opérateur unique comme un portefeuille en croissance, car le vrai problème est la coordination.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Aide-t-il pour les turnovers le jour même ?</h3>
+                      <p>Oui. Le turnover le jour même est un cas idéal pour une coordination housekeeping structurée.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Peut-il réduire les retards côté client ?</h3>
+                      <p>Oui. Une coordination d’arrivées plus claire et un meilleur dispatch réduisent les petits retards qui frustrent le plus les clients.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Gestion immobilière en Bulgarie", "description": "Apprenez à garder un portefeuille côtier organisé et visible."},
+                {"href": "/guest-experience-services", "label": "Services d’expérience client", "description": "Voyez comment le parcours client se connecte au workflow back-office."},
+                {"href": "/network", "label": "Réseau de prestataires", "description": "Trouvez des partenaires locaux approuvés pour soutenir l’opération."},
+                {"href": "/demo/operations", "label": "Démo opérationnelle", "description": "Découvrez le workflow de la plateforme dans une interface calme et pratique."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Opérations de locations saisonnières",
+                "url": "https://blackseaconnect.com/vacation-rental-operations",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "littoral de la mer Noire",
+                "serviceType": [
+                    "opérations de locations saisonnières",
+                    "coordination housekeeping",
+                    "coordination des arrivées",
+                    "partenaires locaux de confiance",
+                ],
+                "description": "Opérations de locations saisonnières pour portefeuilles côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de gestion des transferts et de partenaires locaux de confiance à grande échelle.",
+            },
+        },
+        "ru": {
+            "title": "BlackSea Connect | Операции vacation rental",
+            "description": "Операции vacation rental для прибрежных портфелей, которым нужны координация housekeeping, координация прибытия гостей, управление трансферами и проверенные местные партнёры в масштабе.",
+            "h1": "Операции vacation rental, созданные для прибрежного масштаба",
+            "eyebrow": "SEO-страница",
+            "intro": "Операции vacation rental легко недооценить, пока портфель не начнёт расти. Несколько объектов быстро превращаются в цепочку turnovers, прибытия гостей, проверок housekeeping, вопросов по трансферам и отчётов владельцам.",
+            "keywords": ["операции vacation rental", "координация housekeeping", "координация прибытия гостей", "операции прибрежной недвижимости", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Посмотреть demo-поток", "href": "/demo/operations", "class": "button--primary"},
+                {"label": "Открыть сеть", "href": "/network", "class": "button--secondary"},
+                {"label": "Запросить услугу", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="vacation-rental-scale-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Рост без потери контроля</p>
+                    <h2 id="vacation-rental-scale-ru">Растущему портфелю нужна повторяемая система.</h2>
+                  </div>
+                  <p>По мере роста vacation rental риски меняются. Пропущенный turnover влияет на следующие прибытия. Задержанный трансфер сдвигает housekeeping. BlackSea Connect делает эти элементы видимыми, чтобы защищать качество сервиса.</p>
+                  <p>Платформа не прячет работу, а упорядочивает её. Команда видит, кто отвечает, что дальше и когда задача закрыта. Это помогает менеджерам перейти от реактивных решений к более предсказуемому стандарту ухода.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="vacation-rental-core-ru">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Основные потоки</p>
+                    <h2 id="vacation-rental-core-ru">Housekeeping, прибытия и заявки - сердце портфеля.</h2>
+                  </div>
+                  <p>Vacation rental часто выигрывает или проигрывает в деталях. Чистый turnover - это обещание следующему гостю. Прибытие вовремя задаёт тон всему проживанию. BlackSea Connect организует эти базовые процессы в понятный workflow.</p>
+                  <p>Та же система помогает с проверенными местными партнёрами. Когда обслуживание, водители, клининговые команды и concierge связаны, команда работает быстрее и спокойнее.</p>
+                  <ul>
+                    <li>Координация check-out, turnovers и same-day arrivals.</li>
+                    <li>Housekeeping-координация между объектами, зданиями и сезонными графиками.</li>
+                    <li>Dispatch местных партнёров для трансферов и срочного обслуживания.</li>
+                    <li>Один workflow для запросов гостей, владельцев и внутренней команды.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-owners-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Уверенность владельца</p>
+                    <h2 id="vacation-rental-owners-ru">Владельцам нужна видимость, а не просто активность.</h2>
+                  </div>
+                  <p>Одна из главных задач - превратить ежедневную работу в то, что понятно владельцу. BlackSea Connect упорядочивает работу так, чтобы коммуникация с владельцем была яснее, точнее и надёжнее.</p>
+                  <p>Когда команда видит повторяющиеся заявки, объекты, требующие большего внимания, и самых надёжных партнёров, управление может улучшить staffing и принимать лучшие решения по портфелю.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="vacation-rental-faq-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Частые вопросы</p>
+                    <h2 id="vacation-rental-faq-ru">Вопросы операторов, которые масштабируют прибрежные vacation rentals.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Это только для больших портфелей?</h3>
+                      <p>Нет. Один и тот же workflow помогает и одному оператору, и растущему портфелю, потому что проблема - это координация.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Помогает ли при same-day turnovers?</h3>
+                      <p>Да. Same-day turnover - отличный сценарий для структурированной housekeeping-координации.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Может ли уменьшить задержки для гостя?</h3>
+                      <p>Да. Более ясная координация прибытия и лучший dispatch уменьшают небольшие задержки, которые больше всего раздражают гостей.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/property-management-bulgaria", "label": "Управление недвижимостью в Болгарии", "description": "Узнайте, как держать прибрежный портфель организованным и видимым."},
+                {"href": "/guest-experience-services", "label": "Сервисы guest experience", "description": "Посмотрите, как путь гостя связан с back-office workflow."},
+                {"href": "/network", "label": "Сеть партнёров", "description": "Найдите проверенных местных партнёров для поддержки операции."},
+                {"href": "/demo/operations", "label": "Операционное демо", "description": "Посмотрите workflow платформы в спокойном и практичном интерфейсе."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Операции vacation rental",
+                "url": "https://blackseaconnect.com/vacation-rental-operations",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "побережье Чёрного моря",
+                "serviceType": [
+                    "операции vacation rental",
+                    "координация housekeeping",
+                    "координация прибытия гостей",
+                    "проверенные местные партнёры",
+                ],
+                "description": "Операции vacation rental для прибрежных портфелей, которым нужны координация housekeeping, координация прибытия гостей, управление трансферами и проверенные местные партнёры в масштабе.",
+            },
+        },
+    },
+    "/property-management-bulgaria": {
+        "bg": {
+            "title": "BlackSea Connect | Управление на имоти в България",
+            "description": "Управление на имоти в България за крайбрежни оператори, които имат нужда от housekeeping координация, guest arrival координация, проследяване на поддръжка и доверени местни партньори в една платформа.",
+            "h1": "Управление на имоти в България за крайбрежни портфейли",
+            "eyebrow": "SEO landing page",
+            "intro": "Управлението на имоти в България е различно, когато активите са крайбрежни. Смените са по-стегнати, пристиганията са по-чувствителни към време, поддръжката е сезонна, а очакванията на собствениците се променят бързо със заетостта.",
+            "keywords": ["управление на имоти България", "операции за крайбрежни имоти", "housekeeping координация", "guest arrival координация", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Разгледайте operations", "href": "/services", "class": "button--primary"},
+                {"label": "Вижте директорията с партньори", "href": "/network", "class": "button--secondary"},
+                {"label": "Заявете workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-context-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Реалността на крайбрежното управление</p>
+                    <h2 id="pm-bulgaria-context-bg">Управлението на имоти в България има нужда от повече от checklist.</h2>
+                  </div>
+                  <p>Крайбрежните портфейли се формират от сезонност, пътувания и темпото на turnover. Мениджърът координира housekeeping, check-in прозорци, maintenance посещения и отчети към собствениците в рамките на един ден.</p>
+                  <p>BlackSea Connect дава система за тази работа: място за заявката, място за assign и място за статуса, без да се гонят обновления из различни канали.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="pm-bulgaria-scope-bg">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Оперативен обхват</p>
+                    <h2 id="pm-bulgaria-scope-bg">Основната работа на крайбрежния property manager.</h2>
+                  </div>
+                  <p>Property management е поредица от малки решения: кой обект се инспектира, кое пристигане трябва да се актуализира, коя поддръжка трябва да се свърши преди следващия гост. BlackSea Connect държи тези решения видими.</p>
+                  <p>Платформата помага и с доверените местни партньори. Когато правилният човек е известен за конкретна задача, екипът работи по-бързо, без да губи отговорност.</p>
+                  <ul>
+                    <li>Координация на check-in, turnover и inspection timing за повече имоти.</li>
+                    <li>Проследяване на поддръжка, housekeeping и guest service заявки в един workflow.</li>
+                    <li>Управление на доверени местни партньори без загуба на контекст.</li>
+                    <li>По-спокоен оперативен преглед и по-последователни стандарти за собствениците.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-portfolio-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Контрол върху портфейла</p>
+                    <h2 id="pm-bulgaria-portfolio-bg">По-добър начин да управлявате вили, апартаменти и смесени портфейли.</h2>
+                  </div>
+                  <p>Собствениците искат увереност, че работата е планирана, разпределена и завършена. Това е особено важно, когато портфейлът включва различни типове сгради или няколко крайбрежни града.</p>
+                  <p>Платформата подпомага и преминаването от реактивно към проактивно управление. Когато екипът вижда модели в заявките, housekeeping тайминга и transfer delays, той взима по-добри решения за staffing и партньорите.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-faq-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Често задавани въпроси</p>
+                    <h2 id="pm-bulgaria-faq-bg">Въпроси от крайбрежни оператори за управлението на имоти.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Замества ли това property manager-а?</h3>
+                      <p>Не. Подпомага го, като държи координацията, guest requests и partner work видими в цялата операция.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Работи ли за вили и апартаменти заедно?</h3>
+                      <p>Да. Платформата е направена за смесени крайбрежни портфейли с общ оперативен модел.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Полезна ли е извън сезона?</h3>
+                      <p>Много. Тихите месеци са идеални за подобряване на workflow-ите и подготовка за следващия сезон.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/vacation-rental-operations", "label": "Операции за ваканционни наеми", "description": "Вижте модела за многoобектни портфейли, turnovers и повторяеми стандарти."},
+                {"href": "/concierge-bulgaria", "label": "Консиерж услуги в България", "description": "Разберете как гостската подкрепа и партньорите се вписват в операцията."},
+                {"href": "/guest-experience-services", "label": "Услуги за гостско преживяване", "description": "Разгледайте guest-facing страната на същата платформа."},
+                {"href": "/network", "label": "Одобрена мрежа от доставчици", "description": "Прегледайте доверената директория, която захранва workflow-а."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Управление на имоти в България",
+                "url": "https://blackseaconnect.com/property-management-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "България",
+                "serviceType": [
+                    "управление на имоти",
+                    "housekeeping координация",
+                    "guest arrival координация",
+                    "доверени местни партньори",
+                ],
+                "description": "Управление на имоти в България за крайбрежни оператори, които имат нужда от housekeeping координация, guest arrival координация, проследяване на поддръжка и доверени местни партньори в една платформа.",
+            },
+        },
+        "fr": {
+            "title": "BlackSea Connect | Gestion immobilière en Bulgarie",
+            "description": "Gestion immobilière en Bulgarie pour les opérateurs côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de suivi de maintenance et de partenaires locaux de confiance dans une seule plateforme.",
+            "h1": "Gestion immobilière en Bulgarie pour les portefeuilles côtiers",
+            "eyebrow": "Page SEO",
+            "intro": "La gestion immobilière en Bulgarie change lorsque les actifs sont côtiers. Les turnovers sont plus serrés, les arrivées sont plus sensibles au timing, la maintenance est saisonnière et les attentes des propriétaires évoluent vite avec l’occupation.",
+            "keywords": ["gestion immobilière Bulgarie", "opérations de biens côtiers", "coordination housekeeping", "coordination des arrivées", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Découvrir les opérations", "href": "/services", "class": "button--primary"},
+                {"label": "Voir le réseau", "href": "/network", "class": "button--secondary"},
+                {"label": "Demander un workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-context-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">La réalité de la côte</p>
+                    <h2 id="pm-bulgaria-context-fr">La gestion immobilière en Bulgarie a besoin de plus qu’une checklist.</h2>
+                  </div>
+                  <p>Les portefeuilles côtiers sont façonnés par la saison, les déplacements et le rythme des turnovers. Le manager coordonne housekeeping, fenêtres de check-in, visites de maintenance et reporting propriétaire dans la même journée.</p>
+                  <p>BlackSea Connect fournit un système pour ce travail : un endroit pour la demande, un endroit pour l’assignation et un endroit pour le statut, sans courir après les mises à jour dans plusieurs canaux.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="pm-bulgaria-scope-fr">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Champ opérationnel</p>
+                    <h2 id="pm-bulgaria-scope-fr">Le travail principal du property manager côtier.</h2>
+                  </div>
+                  <p>La gestion immobilière est une suite de petites décisions : quel bien inspecter, quelle arrivée doit être mise à jour, quelle maintenance doit être faite avant le prochain client. BlackSea Connect garde ces décisions visibles.</p>
+                  <p>La plateforme aide aussi avec les partenaires locaux de confiance. Quand la bonne personne est connue pour une tâche précise, l’équipe agit plus vite sans perdre la responsabilité.</p>
+                  <ul>
+                    <li>Coordination du check-in, du turnover et du timing d’inspection sur plusieurs biens.</li>
+                    <li>Suivi de la maintenance, du housekeeping et des demandes clients dans un workflow.</li>
+                    <li>Gestion des partenaires locaux de confiance sans perdre de contexte.</li>
+                    <li>Vue opérationnelle plus calme et standards plus cohérents pour les propriétaires.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-portfolio-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Contrôle du portefeuille</p>
+                    <h2 id="pm-bulgaria-portfolio-fr">Une meilleure façon de gérer villas, appartements et portefeuilles mixtes.</h2>
+                  </div>
+                  <p>Les propriétaires veulent la confiance que le travail est planifié, réparti et terminé. C’est particulièrement important lorsque le portefeuille couvre plusieurs types de bâtiments ou plusieurs villes côtières.</p>
+                  <p>La plateforme aide aussi à passer d’une gestion réactive à une gestion proactive. Quand l’équipe voit les tendances dans les demandes, le timing housekeeping et les retards de transfert, elle prend de meilleures décisions de staffing et de partenaires.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-faq-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Questions fréquentes</p>
+                    <h2 id="pm-bulgaria-faq-fr">Questions des opérateurs côtiers sur la gestion immobilière.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Est-ce que cela remplace le property manager ?</h3>
+                      <p>Non. Cela l’aide en gardant la coordination, les demandes clients et le travail des partenaires visibles.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Est-ce que ça marche pour villas et appartements ensemble ?</h3>
+                      <p>Oui. La plateforme est pensée pour des portefeuilles côtiers mixtes avec un modèle opérationnel commun.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Est-ce utile hors saison ?</h3>
+                      <p>Oui. Les mois calmes sont parfaits pour améliorer les workflows et préparer la haute saison.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/vacation-rental-operations", "label": "Opérations de locations saisonnières", "description": "Voir le modèle pour les portefeuilles multi-biens et les turnovers répétables."},
+                {"href": "/concierge-bulgaria", "label": "Conciergerie en Bulgarie", "description": "Comprendre comment l’assistance client et les partenaires s’intègrent à l’opération."},
+                {"href": "/guest-experience-services", "label": "Services d’expérience client", "description": "Explorer le côté client de la même plateforme côtière."},
+                {"href": "/network", "label": "Réseau approuvé", "description": "Parcourir le répertoire de partenaires de confiance qui alimente le workflow."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Gestion immobilière en Bulgarie",
+                "url": "https://blackseaconnect.com/property-management-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Bulgarie",
+                "serviceType": [
+                    "gestion immobilière",
+                    "coordination housekeeping",
+                    "coordination des arrivées",
+                    "partenaires locaux de confiance",
+                ],
+                "description": "Gestion immobilière en Bulgarie pour les opérateurs côtiers qui ont besoin de coordination housekeeping, de coordination des arrivées, de suivi de maintenance et de partenaires locaux de confiance dans une seule plateforme.",
+            },
+        },
+        "ru": {
+            "title": "BlackSea Connect | Управление недвижимостью в Болгарии",
+            "description": "Управление недвижимостью в Болгарии для прибрежных операторов, которым нужна координация housekeeping, координация прибытия гостей, учёт обслуживания и проверенные местные партнёры в одной платформе.",
+            "h1": "Управление недвижимостью в Болгарии для прибрежных портфелей",
+            "eyebrow": "SEO-страница",
+            "intro": "Управление недвижимостью в Болгарии меняется, когда активы находятся у моря. Смены плотнее, прибытия чувствительнее к времени, обслуживание сезонное, а ожидания владельцев быстро меняются вместе с загрузкой.",
+            "keywords": ["управление недвижимостью Болгария", "операции прибрежной недвижимости", "координация housekeeping", "координация прибытия гостей", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Изучить operations", "href": "/services", "class": "button--primary"},
+                {"label": "Посмотреть сеть", "href": "/network", "class": "button--secondary"},
+                {"label": "Запросить workflow", "href": "/request-service", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-context-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Реальность прибрежного управления</p>
+                    <h2 id="pm-bulgaria-context-ru">Управлению недвижимостью в Болгарии нужно больше, чем checklist.</h2>
+                  </div>
+                  <p>Прибрежные портфели определяются сезонностью, поездками и ритмом turnovers. Менеджер координирует housekeeping, окна check-in, maintenance-визиты и отчёты владельцам в один и тот же день.</p>
+                  <p>BlackSea Connect даёт систему для этой работы: место для запроса, место для назначения и место для статуса, без постоянной гонки за обновлениями.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="pm-bulgaria-scope-ru">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Операционный охват</p>
+                    <h2 id="pm-bulgaria-scope-ru">Основная работа прибрежного property manager-а.</h2>
+                  </div>
+                  <p>Управление недвижимостью - это цепочка маленьких решений: какой объект инспектировать, какое прибытие обновить, какое обслуживание сделать до следующего гостя. BlackSea Connect держит эти решения видимыми.</p>
+                  <p>Платформа помогает и с проверенными местными партнёрами. Когда нужный человек известен для конкретной задачи, команда работает быстрее, не теряя ответственности.</p>
+                  <ul>
+                    <li>Координация check-in, turnover и inspection timing для нескольких объектов.</li>
+                    <li>Учёт maintenance, housekeeping и guest service запросов в одном workflow.</li>
+                    <li>Управление проверенными местными партнёрами без потери контекста.</li>
+                    <li>Более спокойная операционная картина и более стабильные стандарты для владельцев.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-portfolio-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Контроль портфеля</p>
+                    <h2 id="pm-bulgaria-portfolio-ru">Лучший способ управлять виллами, квартирами и смешанными портфелями.</h2>
+                  </div>
+                  <p>Владельцы хотят уверенности, что работа спланирована, распределена и завершена. Это особенно важно, когда портфель охватывает разные типы зданий или несколько прибрежных городов.</p>
+                  <p>Платформа помогает перейти от реактивного к проактивному управлению. Когда команда видит тенденции в запросах, housekeeping-тайминге и transfer delays, она принимает лучшие решения по staffing и партнёрам.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="pm-bulgaria-faq-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Частые вопросы</p>
+                    <h2 id="pm-bulgaria-faq-ru">Вопросы прибрежных операторов об управлении недвижимостью.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Это заменяет property manager-а?</h3>
+                      <p>Нет. Это помогает ему, делая координацию, запросы гостей и работу партнёров видимыми во всей операции.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Подходит ли для вилл и апартаментов вместе?</h3>
+                      <p>Да. Платформа создана для смешанных прибрежных портфелей с общим операционным моделем.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Полезна ли она вне сезона?</h3>
+                      <p>Очень. Спокойные месяцы идеальны для улучшения workflow и подготовки к следующему сезону.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/vacation-rental-operations", "label": "Операции vacation rental", "description": "Посмотрите модель для многoобъектных портфелей и повторяемых turnovers."},
+                {"href": "/concierge-bulgaria", "label": "Консьерж-услуги в Болгарии", "description": "Поймите, как guest support и партнёры вписываются в операцию."},
+                {"href": "/guest-experience-services", "label": "Сервисы guest experience", "description": "Изучите клиентскую сторону той же прибрежной платформы."},
+                {"href": "/network", "label": "Одобренная сеть", "description": "Просмотрите каталог проверенных партнёров, который питает workflow."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Управление недвижимостью в Болгарии",
+                "url": "https://blackseaconnect.com/property-management-bulgaria",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Болгария",
+                "serviceType": [
+                    "управление недвижимостью",
+                    "координация housekeeping",
+                    "координация прибытия гостей",
+                    "проверенные местные партнёры",
+                ],
+                "description": "Управление недвижимостью в Болгарии для прибрежных операторов, которым нужна координация housekeeping, координация прибытия гостей, учёт обслуживания и проверенные местные партнёры в одной платформе.",
+            },
+        },
+    },
+    "/sveti-vlas-concierge-services": {
+        "bg": {
+            "title": "BlackSea Connect | Консиерж услуги в Свети Влас",
+            "description": "Консиерж услуги в Свети Влас за крайбрежни имоти близо до марината, апартаменти на първа линия и вили по хълма, които имат нужда от надеждна гостоприемна подкрепа и локална координация.",
+            "h1": "Консиерж услуги в Свети Влас за крайбрежни имоти и марина престои",
+            "eyebrow": "SEO landing page",
+            "intro": "Консиерж услугите в Свети Влас трябва да отразяват местния ритъм: движение в марината, крайбрежни маршрути и комплекси, които приемат семейства, яхтени пътешественици и редовни гости.",
+            "keywords": ["консиерж услуги Свети Влас", "гост-сървиз", "управление на имоти Черно море", "guest arrival координация", "доверени местни партньори"],
+            "ctas": [
+                {"label": "Заявете подкрепа за Свети Влас", "href": "/request-service", "class": "button--primary"},
+                {"label": "Разгледайте консиерж услугите", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Вижте партньорите", "href": "/network", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="sveti-vlas-local-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Локален контекст</p>
+                    <h2 id="sveti-vlas-local-bg">Свети Влас е място, където консиерж работата следва много специфичен крайбрежен ритъм.</h2>
+                  </div>
+                  <p>Марина трафикът, плажното темпо, сезонността и очакванията на гостите, които пристигат с кола, трансфер или лодка, изискват локално разбиране. BlackSea Connect управлява тази сложност в една оперативна система.</p>
+                  <p>Arrival координацията, housekeeping обновленията и партньорският dispatch се случват в един workflow, за да бъде престоят подреден и премиум.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="sveti-vlas-needs-bg">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Какво търсят гостите</p>
+                    <h2 id="sveti-vlas-needs-bg">Най-честите заявки са оперативни, не декоративни.</h2>
+                  </div>
+                  <p>В крайбрежна локация малките детайли доминират. Забавен трансфер променя началото на престоя. Късен housekeeping finish влияе на check-in прозореца. Пропусната локална препоръка кара госта да се чувства откъснат от мястото.</p>
+                  <p>BlackSea Connect държи тези моменти подредени чрез workflow за заявки, който насочва задачата към правилния човек и я пази видима до приключване.</p>
+                  <ul>
+                    <li>Координация на пристигания за марина пристигания, частни шофьори и късни check-in-и.</li>
+                    <li>Housekeeping координация за плажни апартаменти, вили по хълма и смесени обекти.</li>
+                    <li>Concierge support за хранене, транспорт, резервации и ориентация в дестинацията.</li>
+                    <li>Доверени местни партньори, които могат да реагират, когато таймингът е критичен.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-ops-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Оперативно предимство</p>
+                    <h2 id="sveti-vlas-ops-bg">Най-добрите консиерж услуги карат имота да изглежда подреден.</h2>
+                  </div>
+                  <p>Гостът рядко вижда координационния слой, но усеща резултата веднага. Когато пристигането е навреме, имотът е готов и локалната поддръжка реагира, престоят изглежда подреден.</p>
+                  <p>Същата система работи и при различни типове имоти - марина апартамент, вилa на хълма или семейно жилище. Общият стандарт остава, но детайлите се адаптират към мястото.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-faq-bg">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Често задавани въпроси</p>
+                    <h2 id="sveti-vlas-faq-bg">Въпроси от екипи и хостове в Свети Влас.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Може ли да поддържа имоти до марината?</h3>
+                      <p>Да. Марина пристиганията изискват прецизен тайминг и надеждна координация на партньори.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Полезно ли е за вили и апартаменти по хълма?</h3>
+                      <p>Да. Различните типове имоти могат да използват един и същ оперативен модел с различни бележки и нужди.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Помага ли при сезонно търсене?</h3>
+                      <p>Да. Сезонното търсене се управлява по-лесно, когато заявките и партньорите са видими в един workflow.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Консиерж услуги в България", "description": "Прочетете по-широката стратегия за консиерж услуги по Черноморието."},
+                {"href": "/guest-experience-services", "label": "Услуги за гостско преживяване", "description": "Вижте как Свети Влас се вписва в по-широкия гостски път."},
+                {"href": "/property-management-bulgaria", "label": "Управление на имоти в България", "description": "Свържете локалната операция с цялата портфейлна система."},
+                {"href": "/request-service", "label": "Заявете подкрепа", "description": "Започнете заявка и я проведете през оперативния workflow."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Консиерж услуги в Свети Влас",
+                "url": "https://blackseaconnect.com/sveti-vlas-concierge-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Свети Влас",
+                "serviceType": [
+                    "консиерж услуги",
+                    "гост-сървиз",
+                    "guest arrival координация",
+                    "доверени местни партньори",
+                ],
+                "description": "Консиерж услуги в Свети Влас за крайбрежни имоти близо до марината, апартаменти на първа линия и вили по хълма, които имат нужда от надеждна гостоприемна подкрепа и локална координация.",
+            },
+        },
+        "fr": {
+            "title": "BlackSea Connect | Services de conciergerie à Sveti Vlas",
+            "description": "Services de conciergerie à Sveti Vlas pour les biens côtiers près de la marina, les appartements en front de mer et les villas sur les hauteurs qui ont besoin d’un support fiable et d’une coordination locale.",
+            "h1": "Services de conciergerie à Sveti Vlas pour biens côtiers et séjours marina",
+            "eyebrow": "Page SEO",
+            "intro": "Les services de conciergerie à Sveti Vlas doivent refléter le rythme local : circulation autour de la marina, routes côtières et ensembles résidentiels pour familles, voyageurs nautiques et visiteurs réguliers.",
+            "keywords": ["services de conciergerie Sveti Vlas", "guest concierge", "gestion immobilière mer Noire", "coordination des arrivées", "partenaires locaux de confiance"],
+            "ctas": [
+                {"label": "Demander un support Sveti Vlas", "href": "/request-service", "class": "button--primary"},
+                {"label": "Explorer la conciergerie", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Voir les partenaires", "href": "/network", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="sveti-vlas-local-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Contexte local</p>
+                    <h2 id="sveti-vlas-local-fr">Sveti Vlas est un lieu où la conciergerie suit un rythme côtier très précis.</h2>
+                  </div>
+                  <p>Le trafic de marina, le rythme de la plage, la saisonnalité et les attentes des clients qui arrivent en voiture, en transfert ou en bateau demandent une vraie lecture locale. BlackSea Connect gère cette complexité dans un seul workflow.</p>
+                  <p>La coordination des arrivées, les mises à jour housekeeping et le dispatch des partenaires se font dans un flux opérationnel unique pour garder le séjour fluide et premium.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="sveti-vlas-needs-fr">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Ce que veulent les clients</p>
+                    <h2 id="sveti-vlas-needs-fr">Les demandes les plus fréquentes sont opérationnelles, pas décoratives.</h2>
+                  </div>
+                  <p>Dans une zone côtière, les détails pèsent lourd. Un transfert retardé modifie le début du séjour. Un housekeeping tardif affecte le check-in. Une recommandation locale manquée donne au client l’impression d’être coupé de la destination.</p>
+                  <p>BlackSea Connect garde ces moments organisés via un workflow de demandes qui envoie la tâche à la bonne personne et la maintient visible jusqu’à la fin.</p>
+                  <ul>
+                    <li>Coordination des arrivées pour les arrivées marina, chauffeurs privés et check-in tardifs.</li>
+                    <li>Coordination housekeeping pour appartements de plage, villas sur les hauteurs et biens mixtes.</li>
+                    <li>Support conciergerie pour les repas, transferts, réservations et conseils de destination.</li>
+                    <li>Partenaires locaux de confiance capables d’agir quand le timing est critique.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-ops-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Avantage opérationnel</p>
+                    <h2 id="sveti-vlas-ops-fr">Les meilleurs services de conciergerie donnent au bien une impression très composée.</h2>
+                  </div>
+                  <p>Le client ne voit généralement pas la couche de coordination, mais il ressent immédiatement son effet. Quand l’arrivée est bien synchronisée, que le bien est prêt et que le support local répond, le séjour paraît maîtrisé.</p>
+                  <p>Le même système fonctionne pour différents types de biens - appartement marina, villa sur les hauteurs ou logement familial - avec un standard commun et des détails adaptés au lieu.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-faq-fr">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Questions fréquentes</p>
+                    <h2 id="sveti-vlas-faq-fr">Questions des équipes et des hôtes à Sveti Vlas.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Peut-on soutenir des biens près de la marina ?</h3>
+                      <p>Oui. Les arrivées marina exigent un timing précis et une coordination fiable des partenaires.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Est-ce utile pour les villas et appartements sur les hauteurs ?</h3>
+                      <p>Oui. Les différents types de biens peuvent partager le même modèle opérationnel avec leurs propres besoins.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Aide-t-il à gérer la demande saisonnière ?</h3>
+                      <p>Oui. La demande saisonnière est plus simple à gérer lorsque les demandes et les partenaires sont visibles dans un seul workflow.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Conciergerie en Bulgarie", "description": "Lisez la stratégie plus large pour la conciergerie sur la mer Noire."},
+                {"href": "/guest-experience-services", "label": "Services d’expérience client", "description": "Voyez comment Sveti Vlas s’intègre dans le parcours client global."},
+                {"href": "/property-management-bulgaria", "label": "Gestion immobilière en Bulgarie", "description": "Reliez l’opération locale à l’ensemble du portefeuille."},
+                {"href": "/request-service", "label": "Demander un support", "description": "Lancez une demande et faites-la passer dans le workflow opérationnel."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Services de conciergerie à Sveti Vlas",
+                "url": "https://blackseaconnect.com/sveti-vlas-concierge-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Sveti Vlas",
+                "serviceType": [
+                    "services de conciergerie",
+                    "guest concierge",
+                    "coordination des arrivées",
+                    "partenaires locaux de confiance",
+                ],
+                "description": "Services de conciergerie à Sveti Vlas pour les biens côtiers près de la marina, les appartements en front de mer et les villas sur les hauteurs qui ont besoin d’un support fiable et d’une coordination locale.",
+            },
+        },
+        "ru": {
+            "title": "BlackSea Connect | Консьерж-услуги в Свети-Власе",
+            "description": "Консьерж-услуги в Свети-Власе для прибрежных объектов рядом с мариной, апартаментов у моря и вилл на холмах, которым нужна надёжная поддержка гостей и локальная координация.",
+            "h1": "Консьерж-услуги в Свети-Власе для прибрежной недвижимости и marina-пребываний",
+            "eyebrow": "SEO-страница",
+            "intro": "Консьерж-услуги в Свети-Власе должны отражать местный ритм: движение в марине, прибрежные маршруты и комплексы, где останавливаются семьи, яхтенные путешественники и постоянные гости.",
+            "keywords": ["консьерж-услуги Свети-Влас", "guest concierge", "управление недвижимостью Чёрное море", "координация прибытия", "проверенные местные партнёры"],
+            "ctas": [
+                {"label": "Запросить поддержку Свети-Влас", "href": "/request-service", "class": "button--primary"},
+                {"label": "Изучить консьерж-сервисы", "href": "/concierge-bulgaria", "class": "button--secondary"},
+                {"label": "Посмотреть партнёров", "href": "/network", "class": "button--tertiary"},
+            ],
+            "content_html": dedent(
+                """
+                <section class="trust-layer" aria-labelledby="sveti-vlas-local-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Локальный контекст</p>
+                    <h2 id="sveti-vlas-local-ru">Свети-Влас - место, где консьерж-работа следует очень конкретному прибрежному ритму.</h2>
+                  </div>
+                  <p>Трафик в марине, пляжный ритм, сезонность и ожидания гостей, которые приезжают на машине, трансфером или на лодке, требуют локального понимания. BlackSea Connect управляет этой сложностью в одном workflow.</p>
+                  <p>Координация прибытия, обновления housekeeping и dispatch партнёров происходят в едином процессе, чтобы пребывание выглядело спокойным и премиальным.</p>
+                </section>
+
+                <section class="credibility-layer" aria-labelledby="sveti-vlas-needs-ru">
+                  <div class="section-heading">
+                    <p class="section-heading__eyebrow">Что нужно гостям</p>
+                    <h2 id="sveti-vlas-needs-ru">Самые частые запросы - операционные, а не декоративные.</h2>
+                  </div>
+                  <p>В прибрежной локации мелочи имеют большой вес. Задержанный трансфер меняет начало проживания. Поздний housekeeping влияет на check-in. Пропущенная локальная рекомендация лишает гостя ощущения места.</p>
+                  <p>BlackSea Connect держит эти моменты под контролем через workflow заявок, который направляет задачу нужному человеку и сохраняет её видимой до завершения.</p>
+                  <ul>
+                    <li>Координация прибытия для marina-аривалов, частных водителей и поздних check-in.</li>
+                    <li>Housekeeping-координация для пляжных апартаментов, вилл на холмах и смешанных объектов.</li>
+                    <li>Concierge support для ужинов, транспорта, бронирований и ориентации в месте.</li>
+                    <li>Проверенные местные партнёры, которые могут быстро среагировать, когда тайминг критичен.</li>
+                  </ul>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-ops-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Операционное преимущество</p>
+                    <h2 id="sveti-vlas-ops-ru">Лучшие консьерж-услуги делают объект спокойным и собранным.</h2>
+                  </div>
+                  <p>Гость обычно не видит слой координации, но сразу чувствует его результат. Когда прибытие синхронизировано, объект готов, а локальная поддержка реагирует быстро, проживание выглядит уверенным.</p>
+                  <p>Тот же system подходит для объектов разных типов - marina-apartment, villa на холме или семейное жильё - с общим стандартом и адаптацией к месту.</p>
+                </section>
+
+                <section class="trust-layer" aria-labelledby="sveti-vlas-faq-ru">
+                  <div class="section-heading section-heading--trust">
+                    <p class="section-heading__eyebrow">Частые вопросы</p>
+                    <h2 id="sveti-vlas-faq-ru">Вопросы команд и хостов в Свети-Власе.</h2>
+                  </div>
+                  <div class="trust-grid">
+                    <article class="trust-card">
+                      <h3>Можно ли поддерживать объекты рядом с мариной?</h3>
+                      <p>Да. Marina-arrivals требуют точного тайминга и надёжной координации партнёров.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Полезно ли это для вилл и апартаментов на холмах?</h3>
+                      <p>Да. Разные типы объектов могут использовать один и тот же операционный model с разными нуждами.</p>
+                    </article>
+                    <article class="trust-card">
+                      <h3>Помогает ли при сезонном спросе?</h3>
+                      <p>Да. Сезонный спрос проще управлять, когда заявки и партнёры видны в одном workflow.</p>
+                    </article>
+                  </div>
+                </section>
+                """
+            ).strip(),
+            "related_links": [
+                {"href": "/concierge-bulgaria", "label": "Консьерж-услуги в Болгарии", "description": "Прочитайте более широкую стратегию консьерж-услуг по Чёрному морю."},
+                {"href": "/guest-experience-services", "label": "Сервисы guest experience", "description": "Посмотрите, как Свети-Влас вписывается в общий путь гостя."},
+                {"href": "/property-management-bulgaria", "label": "Управление недвижимостью в Болгарии", "description": "Свяжите локальную операцию с полной портфельной системой."},
+                {"href": "/request-service", "label": "Запросить поддержку", "description": "Запустите запрос и проведите его через операционный workflow."},
+            ],
+            "service_schema": {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Консьерж-услуги в Свети-Власе",
+                "url": "https://blackseaconnect.com/sveti-vlas-concierge-services",
+                "provider": {"@type": "Organization", "name": "BlackSea Connect", "url": "https://blackseaconnect.com/"},
+                "areaServed": "Свети-Влас",
+                "serviceType": [
+                    "консьерж-услуги",
+                    "guest concierge",
+                    "координация прибытия",
+                    "проверенные местные партнёры",
+                ],
+                "description": "Консьерж-услуги в Свети-Власе для прибрежных объектов рядом с мариной, апартаментов у моря и вилл на холмах, которым нужна надёжная поддержка гостей и локальная координация.",
+            },
+        },
+    },
+}
+
+
+def resolve_seo_landing_page(path, lang):
+    page = deepcopy(SEO_LANDING_PAGES[path])
+    page.update(_SEO_PAGE_UI_COPY.get(lang, _SEO_PAGE_UI_COPY["en"]))
+    page.update(SEO_LANDING_PAGE_LOCALES.get(path, {}).get(lang, {}))
+    page.update(SEO_LANDING_PAGE_LOCALE_OVERRIDES.get(path, {}).get(lang, {}))
+    page["lang"] = lang if lang in SEO_SUPPORTED_LANGS else "en"
+    return page

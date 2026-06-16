@@ -1,6 +1,7 @@
 import unittest
 
 from app import app
+from seo_pages import SEO_LANDING_PAGES
 
 
 class SeoRoutesTests(unittest.TestCase):
@@ -89,3 +90,65 @@ class SeoRoutesTests(unittest.TestCase):
                 body = response.get_data(as_text=True)
                 for placeholder in placeholders:
                     self.assertNotIn(placeholder, body)
+
+    def test_seo_landing_pages_render_all_supported_languages(self):
+        for path in [
+            "/concierge-bulgaria",
+            "/property-management-bulgaria",
+            "/guest-experience-services",
+            "/vacation-rental-operations",
+            "/sveti-vlas-concierge-services",
+        ]:
+            for lang in ["bg", "en", "fr", "ru"]:
+                with self.subTest(path=path, lang=lang):
+                    response = self.client.get(f"{path}?lang={lang}")
+                    self.assertEqual(response.status_code, 200)
+                    body = response.get_data(as_text=True)
+                    self.assertNotIn("{{ page.title }}", body)
+                    self.assertNotIn("{{ page.description }}", body)
+                    self.assertNotIn("{{ page.slug }}", body)
+
+    def test_concierge_bulgaria_bg_is_not_english(self):
+        response = self.client.get("/concierge-bulgaria?lang=bg")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertNotIn("Should remove friction", body)
+        self.assertIn("Консиерж услуги в България", body)
+
+    def test_concierge_bulgaria_fr_contains_french_text(self):
+        response = self.client.get("/concierge-bulgaria?lang=fr")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Services de conciergerie en Bulgarie", body)
+
+    def test_concierge_bulgaria_ru_contains_russian_text(self):
+        response = self.client.get("/concierge-bulgaria?lang=ru")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Консьерж-услуги в Болгарии", body)
+
+    def test_seo_pages_render_distinct_localized_bodies(self):
+        for path in [
+            "/concierge-bulgaria",
+            "/property-management-bulgaria",
+            "/guest-experience-services",
+            "/vacation-rental-operations",
+            "/sveti-vlas-concierge-services",
+        ]:
+            with self.subTest(path=path):
+                english_hero = SEO_LANDING_PAGES[path]["h1"]
+                localized_bodies = {}
+
+                for lang in ["bg", "fr", "ru"]:
+                    response = self.client.get(f"{path}?lang={lang}")
+                    self.assertEqual(response.status_code, 200)
+                    body = response.get_data(as_text=True)
+                    localized_bodies[lang] = body
+                    self.assertNotIn(english_hero, body)
+
+                self.assertNotEqual(localized_bodies["bg"], localized_bodies["fr"])
+                self.assertNotEqual(localized_bodies["bg"], localized_bodies["ru"])
+                self.assertNotEqual(localized_bodies["fr"], localized_bodies["ru"])
