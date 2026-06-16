@@ -2008,7 +2008,7 @@
       "namePlaceholder": "Votre nom",
       "emailPlaceholder": "Votre e-mail",
       "messagePlaceholder": "D?crivez votre demande...",
-      "urgentSupportInfo": "Appelez le <strong>+359 899 111 019</strong> pour toute urgence concernant le logement ou l?invit? n?cessitant une r?ponse imm?diate.",
+      "urgentSupportInfo": "Appelez le <strong>+359 899 111 019</strong> pour toute urgence concernant le logement ou l’invité nécessitant une réponse immédiate.",
       "requestTitle": "Envoyer une demande \u00e0 la conciergerie",
       "requestCopy": "Utilisez le formulaire pour l\u2019aide d\u00e9taill\u00e9e, les r\u00e9servations, le m\u00e9nage, le support ou les recommandations locales.",
       "submitRequest": "Envoyer la demande",
