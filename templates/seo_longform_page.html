@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="{{ page.lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>{{ page.title }}</title>
+  <meta name="description" content="{{ page.description }}">
+  <link rel="canonical" href="{{ site_url }}{{ page.canonical_path }}">
+  <meta property="og:title" content="{{ page.title }}">
+  <meta property="og:description" content="{{ page.description }}">
+  <meta property="og:type" content="{{ page.og_type }}">
+  <meta property="og:url" content="{{ site_url }}{{ page.canonical_path }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ page.title }}">
+  <meta name="twitter:description" content="{{ page.description }}">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script type="application/ld+json">
+    {{ page.service_schema | tojson }}
+  </script>
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/" data-i18n="navHome">Home</a>
+          <a class="site-nav__link" href="/services" data-i18n="navServices">Services</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Demo</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Partners</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Professionals</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
+          <a class="site-nav__link" href="/request-service" data-i18n="navRequestService">Request service</a>
+          <a class="site-nav__link" href="/network" data-i18n="navNetwork">Network</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="{{ page.ctas[0].href }}">{{ page.ctas[0].label }}</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow">{{ page.eyebrow }}</p>
+        <h1>{{ page.h1 }}</h1>
+        <p class="hero__text">{{ page.intro }}</p>
+        <div class="hero__cta">
+          {% for cta in page.ctas %}
+            <a class="button {{ cta.class }}" href="{{ cta.href }}">{{ cta.label }}</a>
+          {% endfor %}
+        </div>
+        <div class="trust-strip" aria-label="{{ page.h1 }}">
+          {% for keyword in page.keywords %}
+            <span class="trust-strip__chip">{{ keyword }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {{ page.content_html | safe }}
+
+    <section class="cta-panel" aria-labelledby="related-resources-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Internal links</p>
+        <h2 id="related-resources-title">Related BlackSea Connect pages</h2>
+        <p class="cta-panel__copy">Use these pages to explore the wider operations model and move from research into action.</p>
+      </div>
+
+      <div class="trust-grid">
+        {% for link in page.related_links %}
+          <article class="trust-card">
+            <h3><a href="{{ link.href }}">{{ link.label }}</a></h3>
+            <p>{{ link.description }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="cta-panel" aria-labelledby="related-cta-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Next step</p>
+        <h2 id="related-cta-title">See the workflow in a practical operations request.</h2>
+        <p class="cta-panel__copy">If you are evaluating the fit for a coastal property, the fastest way to move from reading to action is to request a service workflow or open the demo.</p>
+      </div>
+      <a class="button button--primary" href="/request-service">Request service</a>
+      <a class="button button--secondary" href="/demo/operations">View demo</a>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p>Coastal property operations for hospitality teams, guest concierge and trusted local partners.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="/request-service">Request service</a>
+      <a href="/network">Network</a>
+      <a href="/pilot-access">Pilot Access</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
+      <p>BlackSea Connect supports coastal hospitality teams with a calm, practical operations workflow.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

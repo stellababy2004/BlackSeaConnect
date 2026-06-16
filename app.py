@@ -17,6 +17,8 @@ from uuid import uuid4
 
 from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 
+from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES
+
 app = Flask(__name__)
 app.json.ensure_ascii = False
 SITE_URL = os.environ.get("SITE_URL", "https://blackseaconnect.com").rstrip("/")
@@ -31,6 +33,7 @@ PUBLIC_SITEMAP_PATHS = (
     "/network",
     "/request-service",
     "/pilot-access",
+    *SEO_LANDING_PAGE_ORDER,
 )
 
 PILOT_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
@@ -500,6 +503,11 @@ def sitemap_xml():
     return Response(xml, mimetype="application/xml")
 
 
+def _render_seo_landing_page(path):
+    page = SEO_LANDING_PAGES[path]
+    return render_template("seo_longform_page.html", page=page)
+
+
 @app.route("/")
 def home():
     return render_template("index.html", home_counters=_build_home_counters())
@@ -528,6 +536,31 @@ def partners():
 @app.route("/pilot-access")
 def pilot_access():
     return render_template("pilot_access.html")
+
+
+@app.route("/concierge-bulgaria")
+def concierge_bulgaria():
+    return _render_seo_landing_page("/concierge-bulgaria")
+
+
+@app.route("/property-management-bulgaria")
+def property_management_bulgaria():
+    return _render_seo_landing_page("/property-management-bulgaria")
+
+
+@app.route("/guest-experience-services")
+def guest_experience_services():
+    return _render_seo_landing_page("/guest-experience-services")
+
+
+@app.route("/vacation-rental-operations")
+def vacation_rental_operations():
+    return _render_seo_landing_page("/vacation-rental-operations")
+
+
+@app.route("/sveti-vlas-concierge-services")
+def sveti_vlas_concierge_services():
+    return _render_seo_landing_page("/sveti-vlas-concierge-services")
 
 
 @app.route("/professionals")
