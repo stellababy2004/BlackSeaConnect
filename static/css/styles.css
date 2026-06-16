@@ -19052,3 +19052,95 @@ body.admin-pilot-detail-page .admin-pilot-card .admin-pilot-status-form select {
   }
 }
 
+/* SEO longform landing pages: keep the marina backdrop, but give the article copy a readable glass surface. */
+body.seo-longform-page main {
+  position: relative;
+  z-index: 1;
+}
+
+body.seo-longform-page .trust-layer,
+body.seo-longform-page .credibility-layer,
+body.seo-longform-page .cta-panel {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 40px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 32px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.88), rgba(246, 240, 230, 0.76)),
+    rgba(255, 250, 242, 0.66) !important;
+  box-shadow:
+    0 24px 60px rgba(6, 19, 32, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+}
+
+body.seo-longform-page .trust-layer::before,
+body.seo-longform-page .credibility-layer::before,
+body.seo-longform-page .cta-panel::before {
+  opacity: 0.04 !important;
+}
+
+body.seo-longform-page .section-heading h2,
+body.seo-longform-page .trust-card h3,
+body.seo-longform-page .cta-panel h2 {
+  color: rgba(16, 35, 63, 0.98) !important;
+  text-shadow: none !important;
+}
+
+body.seo-longform-page .trust-layer p,
+body.seo-longform-page .credibility-layer p,
+body.seo-longform-page .trust-layer li,
+body.seo-longform-page .credibility-layer li,
+body.seo-longform-page .trust-card p,
+body.seo-longform-page .cta-panel__copy {
+  color: rgba(22, 42, 61, 0.88) !important;
+  line-height: 1.78 !important;
+}
+
+body.seo-longform-page .section-heading__eyebrow {
+  color: rgba(184, 138, 63, 0.96) !important;
+}
+
+body.seo-longform-page .trust-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(250, 245, 237, 0.72)),
+    rgba(255, 255, 255, 0.64) !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
+}
+
+body.seo-longform-page .trust-card a {
+  color: inherit !important;
+}
+
+body.seo-longform-page .trust-card a:hover,
+body.seo-longform-page .trust-card a:focus-visible {
+  color: rgba(16, 35, 63, 0.98) !important;
+}
+
+@media (max-width: 768px) {
+  body.seo-longform-page .trust-layer,
+  body.seo-longform-page .credibility-layer,
+  body.seo-longform-page .cta-panel {
+    padding: 20px !important;
+    border-radius: 24px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 246, 0.92), rgba(246, 240, 230, 0.84)),
+      rgba(255, 250, 242, 0.72) !important;
+  }
+
+  body.seo-longform-page .section-heading h2 {
+    max-width: 16ch;
+  }
+
+  body.seo-longform-page .trust-layer p,
+  body.seo-longform-page .credibility-layer p,
+  body.seo-longform-page .trust-layer li,
+  body.seo-longform-page .credibility-layer li,
+  body.seo-longform-page .trust-card p,
+  body.seo-longform-page .cta-panel__copy {
+    line-height: 1.72 !important;
+  }
+}
+
