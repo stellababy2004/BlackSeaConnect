@@ -288,7 +288,8 @@
       const settings = options || {};
       const activeLang = translations[lang] ? lang : defaultLang;
       const dictionary = translations[activeLang] || translations[defaultLang] || {};
-      const nodes = document.querySelectorAll("[data-i18n]");
+      const nodes = document.querySelectorAll("[data-i18n]:not([data-i18n-html])");
+      const htmlNodes = document.querySelectorAll("[data-i18n-html]");
       const attrNodes = document.querySelectorAll("[data-i18n-attr]");
       const titleNode = document.querySelector("title[data-i18n]");
 
@@ -300,6 +301,14 @@
           if (node.tagName === "OPTION") {
             node.label = value;
           }
+        }
+      });
+
+      htmlNodes.forEach((node) => {
+        const key = node.getAttribute("data-i18n-html");
+        const value = getTranslation(activeLang, key);
+        if (value !== undefined && value !== null) {
+          node.innerHTML = value;
         }
       });
 
