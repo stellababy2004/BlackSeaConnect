@@ -1,9 +1,14 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="pageTitle">BlackSea Connect | Услуги</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title data-i18n="pageTitle">BlackSea Connect | Ð£ÑÐ»ÑƒÐ³Ð¸</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
@@ -12,13 +17,13 @@
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link is-active" href="/services" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link" href="/" data-i18n="navHome">ÐÐ°Ñ‡Ð°Ð»Ð¾</a>
+          <a class="site-nav__link is-active" href="/services" data-i18n="navServices">Ð£ÑÐ»ÑƒÐ³Ð¸</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Ð”ÐµÐ¼Ð¾</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">ÐŸÐ¾Ñ€Ñ‚Ð°Ð» Ð·Ð° Ð³Ð¾ÑÑ‚Ð¸</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">ÐŸÐ°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -29,27 +34,27 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="requestPilotCta">Заяви пилотен достъп</a>
+        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="requestPilotCta">Ð—Ð°ÑÐ²Ð¸ Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="servicesEyebrow">Премиум услуги за гостоприемство</p>
-        <h1 data-i18n="servicesTitle">Оперативни услуги за престои, екипи и доверени местни партньори.</h1>
+        <p class="eyebrow" data-i18n="servicesEyebrow">ÐŸÑ€ÐµÐ¼Ð¸ÑƒÐ¼ ÑƒÑÐ»ÑƒÐ³Ð¸ Ð·Ð° Ð³Ð¾ÑÑ‚Ð¾Ð¿Ñ€Ð¸ÐµÐ¼ÑÑ‚Ð²Ð¾</p>
+        <h1 data-i18n="servicesTitle">ÐžÐ¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¸ ÑƒÑÐ»ÑƒÐ³Ð¸ Ð·Ð° Ð¿Ñ€ÐµÑÑ‚Ð¾Ð¸, ÐµÐºÐ¸Ð¿Ð¸ Ð¸ Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸.</h1>
         <p class="hero__text" data-i18n="servicesIntro">
-          BlackSea Connect събира пристигания, почистване, трансфери, консиерж поддръжка, местни партньори и гост портала в един спокоен работен поток.
+          BlackSea Connect ÑÑŠÐ±Ð¸Ñ€Ð° Ð¿Ñ€Ð¸ÑÑ‚Ð¸Ð³Ð°Ð½Ð¸Ñ, Ð¿Ð¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½Ðµ, Ñ‚Ñ€Ð°Ð½ÑÑ„ÐµÑ€Ð¸, ÐºÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°, Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸ Ð¸ Ð³Ð¾ÑÑ‚ Ð¿Ð¾Ñ€Ñ‚Ð°Ð»Ð° Ð² ÐµÐ´Ð¸Ð½ ÑÐ¿Ð¾ÐºÐ¾ÐµÐ½ Ñ€Ð°Ð±Ð¾Ñ‚ÐµÐ½ Ð¿Ð¾Ñ‚Ð¾Ðº.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/pilot-access" data-i18n="servicesPrimaryCta">Заяви пилотен достъп</a>
-          <a class="button button--secondary" href="/demo/operations" data-i18n="servicesSecondaryCta">Виж оперативното демо</a>
-          <a class="button button--tertiary" href="/partners" data-i18n="servicesTertiaryCta">Доверени партньори</a>
+          <a class="button button--primary" href="/pilot-access" data-i18n="servicesPrimaryCta">Ð—Ð°ÑÐ²Ð¸ Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
+          <a class="button button--secondary" href="/demo/operations" data-i18n="servicesSecondaryCta">Ð’Ð¸Ð¶ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ñ‚Ð¾ Ð´ÐµÐ¼Ð¾</a>
+          <a class="button button--tertiary" href="/partners" data-i18n="servicesTertiaryCta">Ð”Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</a>
         </div>
         <div class="trust-strip" aria-label="Service highlights">
-          <span class="trust-strip__chip" data-i18n="serviceChip1">координация на гости</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip2">проследяване на почистването</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip3">време на трансфери</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip4">консиерж поддръжка</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip1">ÐºÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip2">Ð¿Ñ€Ð¾ÑÐ»ÐµÐ´ÑÐ²Ð°Ð½Ðµ Ð½Ð° Ð¿Ð¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½ÐµÑ‚Ð¾</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip3">Ð²Ñ€ÐµÐ¼Ðµ Ð½Ð° Ñ‚Ñ€Ð°Ð½ÑÑ„ÐµÑ€Ð¸</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip4">ÐºÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°</span>
         </div>
       </div>
     </div>
@@ -58,106 +63,106 @@
   <main>
     <section class="credibility-layer" aria-labelledby="services-title">
       <div class="section-heading">
-        <p class="section-heading__eyebrow" data-i18n="servicesSectionEyebrow">Услуги</p>
-        <h2 id="services-title" data-i18n="servicesSectionTitle">Фокусирани оперативни услуги за екипи в гостоприемството.</h2>
+        <p class="section-heading__eyebrow" data-i18n="servicesSectionEyebrow">Ð£ÑÐ»ÑƒÐ³Ð¸</p>
+        <h2 id="services-title" data-i18n="servicesSectionTitle">Ð¤Ð¾ÐºÑƒÑÐ¸Ñ€Ð°Ð½Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¸ ÑƒÑÐ»ÑƒÐ³Ð¸ Ð·Ð° ÐµÐºÐ¸Ð¿Ð¸ Ð² Ð³Ð¾ÑÑ‚Ð¾Ð¿Ñ€Ð¸ÐµÐ¼ÑÑ‚Ð²Ð¾Ñ‚Ð¾.</h2>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card">
           <span class="feature-card__icon">01</span>
-          <h3 data-i18n="service1Title">Координация на гости</h3>
-          <p data-i18n="service1Body">Дръжте времето на пристигане, бележките за настаняване и последващия контакт в един спокоен поток.</p>
+          <h3 data-i18n="service1Title">ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸</h3>
+          <p data-i18n="service1Body">Ð”Ñ€ÑŠÐ¶Ñ‚Ðµ Ð²Ñ€ÐµÐ¼ÐµÑ‚Ð¾ Ð½Ð° Ð¿Ñ€Ð¸ÑÑ‚Ð¸Ð³Ð°Ð½Ðµ, Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸Ñ‚Ðµ Ð·Ð° Ð½Ð°ÑÑ‚Ð°Ð½ÑÐ²Ð°Ð½Ðµ Ð¸ Ð¿Ð¾ÑÐ»ÐµÐ´Ð²Ð°Ñ‰Ð¸Ñ ÐºÐ¾Ð½Ñ‚Ð°ÐºÑ‚ Ð² ÐµÐ´Ð¸Ð½ ÑÐ¿Ð¾ÐºÐ¾ÐµÐ½ Ð¿Ð¾Ñ‚Ð¾Ðº.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">02</span>
-          <h3 data-i18n="service2Title">Координация на почистването</h3>
-          <p data-i18n="service2Body">Следете готовността, статуса на смяната и финалните проверки без шумни прехвърляния.</p>
+          <h3 data-i18n="service2Title">ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ð½Ð° Ð¿Ð¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½ÐµÑ‚Ð¾</h3>
+          <p data-i18n="service2Body">Ð¡Ð»ÐµÐ´ÐµÑ‚Ðµ Ð³Ð¾Ñ‚Ð¾Ð²Ð½Ð¾ÑÑ‚Ñ‚Ð°, ÑÑ‚Ð°Ñ‚ÑƒÑÐ° Ð½Ð° ÑÐ¼ÑÐ½Ð°Ñ‚Ð° Ð¸ Ñ„Ð¸Ð½Ð°Ð»Ð½Ð¸Ñ‚Ðµ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ¸ Ð±ÐµÐ· ÑˆÑƒÐ¼Ð½Ð¸ Ð¿Ñ€ÐµÑ…Ð²ÑŠÑ€Ð»ÑÐ½Ð¸Ñ.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">03</span>
-          <h3 data-i18n="service3Title">Управление на трансфери</h3>
-          <p data-i18n="service3Body">Координирайте летищни, марина и частни автомобилни трансфери с ясни обновления.</p>
+          <h3 data-i18n="service3Title">Ð£Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð½Ð° Ñ‚Ñ€Ð°Ð½ÑÑ„ÐµÑ€Ð¸</h3>
+          <p data-i18n="service3Body">ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð¸Ñ€Ð°Ð¹Ñ‚Ðµ Ð»ÐµÑ‚Ð¸Ñ‰Ð½Ð¸, Ð¼Ð°Ñ€Ð¸Ð½Ð° Ð¸ Ñ‡Ð°ÑÑ‚Ð½Ð¸ Ð°Ð²Ñ‚Ð¾Ð¼Ð¾Ð±Ð¸Ð»Ð½Ð¸ Ñ‚Ñ€Ð°Ð½ÑÑ„ÐµÑ€Ð¸ Ñ ÑÑÐ½Ð¸ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">04</span>
-          <h3 data-i18n="service4Title">Консиерж поддръжка</h3>
-          <p data-i18n="service4Body">Насочвайте заявките на гостите, помощта за ресторанти и късните промени към точния човек бързо.</p>
+          <h3 data-i18n="service4Title">ÐšÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°</h3>
+          <p data-i18n="service4Body">ÐÐ°ÑÐ¾Ñ‡Ð²Ð°Ð¹Ñ‚Ðµ Ð·Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸Ñ‚Ðµ, Ð¿Ð¾Ð¼Ð¾Ñ‰Ñ‚Ð° Ð·Ð° Ñ€ÐµÑÑ‚Ð¾Ñ€Ð°Ð½Ñ‚Ð¸ Ð¸ ÐºÑŠÑÐ½Ð¸Ñ‚Ðµ Ð¿Ñ€Ð¾Ð¼ÐµÐ½Ð¸ ÐºÑŠÐ¼ Ñ‚Ð¾Ñ‡Ð½Ð¸Ñ Ñ‡Ð¾Ð²ÐµÐº Ð±ÑŠÑ€Ð·Ð¾.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">05</span>
-          <h3 data-i18n="service5Title">Координация на местни оператори</h3>
-          <p data-i18n="service5Body">Работете с проверени партньори за поддръжка, транспорт и услуги на едно място.</p>
+          <h3 data-i18n="service5Title">ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ð½Ð° Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¸</h3>
+          <p data-i18n="service5Body">Ð Ð°Ð±Ð¾Ñ‚ÐµÑ‚Ðµ Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸ Ð·Ð° Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°, Ñ‚Ñ€Ð°Ð½ÑÐ¿Ð¾Ñ€Ñ‚ Ð¸ ÑƒÑÐ»ÑƒÐ³Ð¸ Ð½Ð° ÐµÐ´Ð½Ð¾ Ð¼ÑÑÑ‚Ð¾.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">06</span>
-          <h3 data-i18n="service6Title">QR гост портал</h3>
-          <p data-i18n="service6Body">Дайте на гостите тих мобилен портал за Wi‑Fi, достъп, инструкции и поддръжка.</p>
+          <h3 data-i18n="service6Title">QR Ð³Ð¾ÑÑ‚ Ð¿Ð¾Ñ€Ñ‚Ð°Ð»</h3>
+          <p data-i18n="service6Body">Ð”Ð°Ð¹Ñ‚Ðµ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸Ñ‚Ðµ Ñ‚Ð¸Ñ… Ð¼Ð¾Ð±Ð¸Ð»ÐµÐ½ Ð¿Ð¾Ñ€Ñ‚Ð°Ð» Ð·Ð° Wiâ€‘Fi, Ð´Ð¾ÑÑ‚ÑŠÐ¿, Ð¸Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ð¸ Ð¸ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°.</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">07</span>
-          <h3 data-i18n="service7Title">Операции по имота</h3>
-          <p data-i18n="service7Body">Виждайте дневното състояние на портфолиото без интерфейсът да се превръща в стена от табла.</p>
+          <h3 data-i18n="service7Title">ÐžÐ¿ÐµÑ€Ð°Ñ†Ð¸Ð¸ Ð¿Ð¾ Ð¸Ð¼Ð¾Ñ‚Ð°</h3>
+          <p data-i18n="service7Body">Ð’Ð¸Ð¶Ð´Ð°Ð¹Ñ‚Ðµ Ð´Ð½ÐµÐ²Ð½Ð¾Ñ‚Ð¾ ÑÑŠÑÑ‚Ð¾ÑÐ½Ð¸Ðµ Ð½Ð° Ð¿Ð¾Ñ€Ñ‚Ñ„Ð¾Ð»Ð¸Ð¾Ñ‚Ð¾ Ð±ÐµÐ· Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÐ¹ÑÑŠÑ‚ Ð´Ð° ÑÐµ Ð¿Ñ€ÐµÐ²Ñ€ÑŠÑ‰Ð° Ð² ÑÑ‚ÐµÐ½Ð° Ð¾Ñ‚ Ñ‚Ð°Ð±Ð»Ð°.</p>
         </article>
       </div>
     </section>
 
     <section class="trust-layer" aria-labelledby="services-trust-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="servicesFeelEyebrow">Как се усеща</p>
-        <h2 id="services-trust-title" data-i18n="servicesFeelTitle">Спокойно, оперативно и лесно за екипа да му се довери.</h2>
+        <p class="section-heading__eyebrow" data-i18n="servicesFeelEyebrow">ÐšÐ°Ðº ÑÐµ ÑƒÑÐµÑ‰Ð°</p>
+        <h2 id="services-trust-title" data-i18n="servicesFeelTitle">Ð¡Ð¿Ð¾ÐºÐ¾Ð¹Ð½Ð¾, Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾ Ð¸ Ð»ÐµÑÐ½Ð¾ Ð·Ð° ÐµÐºÐ¸Ð¿Ð° Ð´Ð° Ð¼Ñƒ ÑÐµ Ð´Ð¾Ð²ÐµÑ€Ð¸.</h2>
       </div>
 
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard1Title">Координация с фокус върху госта</h3>
-          <p data-i18n="servicesFeelCard1Body">Потокът остава центриран върху пристиганията, комфорта на госта и ясното време.</p>
+          <h3 data-i18n="servicesFeelCard1Title">ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ñ Ñ„Ð¾ÐºÑƒÑ Ð²ÑŠÑ€Ñ…Ñƒ Ð³Ð¾ÑÑ‚Ð°</h3>
+          <p data-i18n="servicesFeelCard1Body">ÐŸÐ¾Ñ‚Ð¾ÐºÑŠÑ‚ Ð¾ÑÑ‚Ð°Ð²Ð° Ñ†ÐµÐ½Ñ‚Ñ€Ð¸Ñ€Ð°Ð½ Ð²ÑŠÑ€Ñ…Ñƒ Ð¿Ñ€Ð¸ÑÑ‚Ð¸Ð³Ð°Ð½Ð¸ÑÑ‚Ð°, ÐºÐ¾Ð¼Ñ„Ð¾Ñ€Ñ‚Ð° Ð½Ð° Ð³Ð¾ÑÑ‚Ð° Ð¸ ÑÑÐ½Ð¾Ñ‚Ð¾ Ð²Ñ€ÐµÐ¼Ðµ.</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard2Title">Операции без шум</h3>
-          <p data-i18n="servicesFeelCard2Body">Полезните обновления се показват когато трябва, без фалшиви елементи на живо или шумни джаджи.</p>
+          <h3 data-i18n="servicesFeelCard2Title">ÐžÐ¿ÐµÑ€Ð°Ñ†Ð¸Ð¸ Ð±ÐµÐ· ÑˆÑƒÐ¼</h3>
+          <p data-i18n="servicesFeelCard2Body">ÐŸÐ¾Ð»ÐµÐ·Ð½Ð¸Ñ‚Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ ÑÐµ Ð¿Ð¾ÐºÐ°Ð·Ð²Ð°Ñ‚ ÐºÐ¾Ð³Ð°Ñ‚Ð¾ Ñ‚Ñ€ÑÐ±Ð²Ð°, Ð±ÐµÐ· Ñ„Ð°Ð»ÑˆÐ¸Ð²Ð¸ ÐµÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¸ Ð½Ð° Ð¶Ð¸Ð²Ð¾ Ð¸Ð»Ð¸ ÑˆÑƒÐ¼Ð½Ð¸ Ð´Ð¶Ð°Ð´Ð¶Ð¸.</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard3Title">Последователни предавания към партньори</h3>
-          <p data-i18n="servicesFeelCard3Body">Местните оператори, екипите за почистване и консиерж поддръжката работят от един и същ поглед.</p>
+          <h3 data-i18n="servicesFeelCard3Title">ÐŸÐ¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»Ð½Ð¸ Ð¿Ñ€ÐµÐ´Ð°Ð²Ð°Ð½Ð¸Ñ ÐºÑŠÐ¼ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</h3>
+          <p data-i18n="servicesFeelCard3Body">ÐœÐµÑÑ‚Ð½Ð¸Ñ‚Ðµ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¸, ÐµÐºÐ¸Ð¿Ð¸Ñ‚Ðµ Ð·Ð° Ð¿Ð¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½Ðµ Ð¸ ÐºÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°Ñ‚Ð° Ñ€Ð°Ð±Ð¾Ñ‚ÑÑ‚ Ð¾Ñ‚ ÐµÐ´Ð¸Ð½ Ð¸ ÑÑŠÑ‰ Ð¿Ð¾Ð³Ð»ÐµÐ´.</p>
         </article>
       </div>
 
       <div class="trust-strip" aria-label="Service indicators">
-        <span class="trust-strip__chip" data-i18n="servicesIndicator1">мобилен гост портал</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator2">чисти предавания</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator3">доверени местни партньори</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator4">тиха поддръжка</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator1">Ð¼Ð¾Ð±Ð¸Ð»ÐµÐ½ Ð³Ð¾ÑÑ‚ Ð¿Ð¾Ñ€Ñ‚Ð°Ð»</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator2">Ñ‡Ð¸ÑÑ‚Ð¸ Ð¿Ñ€ÐµÐ´Ð°Ð²Ð°Ð½Ð¸Ñ</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator3">Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator4">Ñ‚Ð¸Ñ…Ð° Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°</span>
       </div>
     </section>
 
     <section class="cta-panel" aria-labelledby="services-cta-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="servicesNextEyebrow">Следваща стъпка</p>
-        <h2 id="services-cta-title" data-i18n="servicesNextTitle">Вижте работния поток или поискайте пилот за вашия имот.</h2>
-        <p class="cta-panel__copy" data-i18n="servicesNextCopy">Страницата с услуги е само началото. За реалистичен разговор за внедряване използвайте страницата за пилотен достъп и ще върнем практична следваща стъпка.</p>
+        <p class="section-heading__eyebrow" data-i18n="servicesNextEyebrow">Ð¡Ð»ÐµÐ´Ð²Ð°Ñ‰Ð° ÑÑ‚ÑŠÐ¿ÐºÐ°</p>
+        <h2 id="services-cta-title" data-i18n="servicesNextTitle">Ð’Ð¸Ð¶Ñ‚Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð½Ð¸Ñ Ð¿Ð¾Ñ‚Ð¾Ðº Ð¸Ð»Ð¸ Ð¿Ð¾Ð¸ÑÐºÐ°Ð¹Ñ‚Ðµ Ð¿Ð¸Ð»Ð¾Ñ‚ Ð·Ð° Ð²Ð°ÑˆÐ¸Ñ Ð¸Ð¼Ð¾Ñ‚.</h2>
+        <p class="cta-panel__copy" data-i18n="servicesNextCopy">Ð¡Ñ‚Ñ€Ð°Ð½Ð¸Ñ†Ð°Ñ‚Ð° Ñ ÑƒÑÐ»ÑƒÐ³Ð¸ Ðµ ÑÐ°Ð¼Ð¾ Ð½Ð°Ñ‡Ð°Ð»Ð¾Ñ‚Ð¾. Ð—Ð° Ñ€ÐµÐ°Ð»Ð¸ÑÑ‚Ð¸Ñ‡ÐµÐ½ Ñ€Ð°Ð·Ð³Ð¾Ð²Ð¾Ñ€ Ð·Ð° Ð²Ð½ÐµÐ´Ñ€ÑÐ²Ð°Ð½Ðµ Ð¸Ð·Ð¿Ð¾Ð»Ð·Ð²Ð°Ð¹Ñ‚Ðµ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ð°Ñ‚Ð° Ð·Ð° Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ð¸ Ñ‰Ðµ Ð²ÑŠÑ€Ð½ÐµÐ¼ Ð¿Ñ€Ð°ÐºÑ‚Ð¸Ñ‡Ð½Ð° ÑÐ»ÐµÐ´Ð²Ð°Ñ‰Ð° ÑÑ‚ÑŠÐ¿ÐºÐ°.</p>
       </div>
-      <a class="button button--primary" href="/pilot-access" data-i18n="servicesNextPrimary">Заяви пилотен достъп</a>
-      <a class="button button--secondary" href="/demo/operations" data-i18n="servicesNextSecondary">Виж демото</a>
+      <a class="button button--primary" href="/pilot-access" data-i18n="servicesNextPrimary">Ð—Ð°ÑÐ²Ð¸ Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
+      <a class="button button--secondary" href="/demo/operations" data-i18n="servicesNextSecondary">Ð’Ð¸Ð¶ Ð´ÐµÐ¼Ð¾Ñ‚Ð¾</a>
     </section>
   </main>
 
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Спокойни оперативни решения за имоти по крайбрежието.</p>
+      <p data-i18n="footerDescription">Ð¡Ð¿Ð¾ÐºÐ¾Ð¹Ð½Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¸ Ñ€ÐµÑˆÐµÐ½Ð¸Ñ Ð·Ð° Ð¸Ð¼Ð¾Ñ‚Ð¸ Ð¿Ð¾ ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð¸ÐµÑ‚Ð¾.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Услуги</a>
-      <a href="/partners" data-i18n="navPartners">Партньори</a>
-      <a href="/demo/operations" data-i18n="navDemo">Демо</a>
-      <a href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="/services" data-i18n="navServices">Ð£ÑÐ»ÑƒÐ³Ð¸</a>
+      <a href="/partners" data-i18n="navPartners">ÐŸÐ°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</a>
+      <a href="/demo/operations" data-i18n="navDemo">Ð”ÐµÐ¼Ð¾</a>
+      <a href="/guest/a-302" data-i18n="navGuestPortal">ÐŸÐ¾Ñ€Ñ‚Ð°Ð» Ð·Ð° Ð³Ð¾ÑÑ‚Ð¸</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи и доверени местни партньори.</p>
+      <p data-i18n="footerMeta">ÐžÐ¿ÐµÑ€Ð°Ñ‚Ð¸Ð²ÐµÐ½ ÑÐ¾Ñ„Ñ‚ÑƒÐµÑ€ Ð·Ð° ÐºÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ†Ð¸Ñ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸, ÐµÐºÐ¸Ð¿Ð¸ Ð¸ Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸.</p>
     </div>
   </footer>
 
@@ -177,8 +182,12 @@
       <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </span>
-  <span class="whatsapp-float__label" data-i18n="navPilotAccess">Пилотен достъп</span>
+  <span class="whatsapp-float__label" data-i18n="navPilotAccess">ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</span>
 </a>
 
 </body>
 </html>
+
+
+
+

@@ -46,6 +46,21 @@
     }
   }
 
+  function getInitialLanguage() {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = normalizeLanguage(params.get("lang"));
+
+    if (fromUrl) {
+      return fromUrl;
+    }
+
+    const fromStorage = normalizeLanguage(
+      localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_ALIAS)
+    );
+
+    return fromStorage || DEFAULT_LANG;
+  }
+
   function setLanguageInUrl(lang) {
     try {
       const url = new URL(window.location.href);
@@ -125,13 +140,127 @@
     }, dictionary);
   }
 
-  function resolveTranslation(dictionary, key, pageNamespace) {
+  function toPrefixedKey(section, name) {
+    return section + name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  function getTranslation(lang, key) {
+    const translations = window.BlackSeaI18N || {};
+    const dictionary = translations[lang] || translations.bg || {};
+    const fallbackDictionary = translations.bg || translations.en || translations.ru || {};
+
     if (!key) {
-      return undefined;
+      return null;
     }
 
-    const namespacedKey = key.includes(".") ? key : `${pageNamespace}.${key}`;
-    return resolvePath(dictionary, namespacedKey) || resolvePath(dictionary, key);
+    if (Object.prototype.hasOwnProperty.call(dictionary, key)) {
+      return dictionary[key];
+    }
+
+    const directPathValue = resolvePath(dictionary, key);
+    if (directPathValue !== undefined) {
+      return directPathValue;
+    }
+
+    if (key.includes(".")) {
+      const [section, ...rest] = key.split(".");
+      const nestedKey = rest.join(".");
+      const prefixedKey = toPrefixedKey(section, nestedKey);
+
+      if (
+        dictionary[section] &&
+        Object.prototype.hasOwnProperty.call(dictionary[section], nestedKey)
+      ) {
+        return dictionary[section][nestedKey];
+      }
+
+      if (
+        dictionary[section] &&
+        Object.prototype.hasOwnProperty.call(dictionary[section], prefixedKey)
+      ) {
+        return dictionary[section][prefixedKey];
+      }
+    }
+
+    for (const section of Object.values(dictionary)) {
+      if (
+        section &&
+        typeof section === "object" &&
+        Object.prototype.hasOwnProperty.call(section, key)
+      ) {
+        return section[key];
+      }
+
+      if (section && typeof section === "object") {
+        const nestedValue = resolvePath(section, key);
+        if (nestedValue !== undefined) {
+          return nestedValue;
+        }
+
+        if (key.includes(".")) {
+          const leafKey = key.split(".").pop();
+          if (leafKey && Object.prototype.hasOwnProperty.call(section, leafKey)) {
+            return section[leafKey];
+          }
+        }
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(fallbackDictionary, key)) {
+      return fallbackDictionary[key];
+    }
+
+    const fallbackPathValue = resolvePath(fallbackDictionary, key);
+    if (fallbackPathValue !== undefined) {
+      return fallbackPathValue;
+    }
+
+    if (key.includes(".")) {
+      const [section, ...rest] = key.split(".");
+      const nestedKey = rest.join(".");
+      const prefixedKey = toPrefixedKey(section, nestedKey);
+
+      if (
+        fallbackDictionary[section] &&
+        Object.prototype.hasOwnProperty.call(fallbackDictionary[section], nestedKey)
+      ) {
+        return fallbackDictionary[section][nestedKey];
+      }
+
+      if (
+        fallbackDictionary[section] &&
+        Object.prototype.hasOwnProperty.call(fallbackDictionary[section], prefixedKey)
+      ) {
+        return fallbackDictionary[section][prefixedKey];
+      }
+    }
+
+    for (const section of Object.values(fallbackDictionary)) {
+      if (
+        section &&
+        typeof section === "object" &&
+        Object.prototype.hasOwnProperty.call(section, key)
+      ) {
+        return section[key];
+      }
+
+      if (section && typeof section === "object") {
+        const nestedValue = resolvePath(section, key);
+        if (nestedValue !== undefined) {
+          return nestedValue;
+        }
+
+        if (key.includes(".")) {
+          const leafKey = key.split(".").pop();
+          if (leafKey && Object.prototype.hasOwnProperty.call(section, leafKey)) {
+            return section[leafKey];
+          }
+        }
+      }
+    }
+
+    warnMissing(key, lang);
+    return null;
   }
 
   function warnMissing(key, lang) {
@@ -165,14 +294,12 @@
 
       nodes.forEach((node) => {
         const key = node.getAttribute("data-i18n");
-        const value = resolveTranslation(dictionary, key, pageNamespace);
+        const value = getTranslation(activeLang, key);
         if (value !== undefined && value !== null) {
           node.textContent = value;
           if (node.tagName === "OPTION") {
             node.label = value;
           }
-        } else {
-          warnMissing(key, activeLang);
         }
       });
 
@@ -186,22 +313,18 @@
             return;
           }
 
-          const value = resolveTranslation(dictionary, key, pageNamespace);
+          const value = getTranslation(activeLang, key);
           if (value !== undefined && value !== null) {
             node.setAttribute(attr, value);
-          } else {
-            warnMissing(key, activeLang);
           }
         });
       });
 
       if (titleNode) {
         const titleKey = titleNode.getAttribute("data-i18n");
-        const titleValue = resolveTranslation(dictionary, titleKey, pageNamespace);
+        const titleValue = getTranslation(activeLang, titleKey);
         if (titleValue !== undefined && titleValue !== null) {
           titleNode.textContent = titleValue;
-        } else {
-          warnMissing(titleKey, activeLang);
         }
       }
 
@@ -274,11 +397,7 @@
     function boot() {
       bindLanguageControls();
 
-      const urlLanguage = getLanguageFromUrl();
-      let initialLanguage = urlLanguage;
-      if (!initialLanguage) {
-        initialLanguage = getStoredLanguage();
-      }
+      let initialLanguage = getInitialLanguage();
       if (!translations[initialLanguage]) {
         initialLanguage = defaultLang;
       }

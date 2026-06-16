@@ -8,18 +8,18 @@
       "navPartners": "\u041f\u0430\u0440\u0442\u043d\u044c\u043e\u0440\u0438",
       "navPilotAccess": "\u041f\u0438\u043b\u043e\u0442\u0435\u043d \u0434\u043e\u0441\u0442\u044a\u043f",
       "navApply": "\u041a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0441\u0442\u0432\u0430\u043d\u0435",
-      "homeRequestPilotCta": "\u0412\u0438\u0436 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430\u0442\u0430",
-      "homeEyebrow": "\u041f\u0440\u0435\u043c\u0438\u0443\u043c \u043a\u0440\u0430\u0439\u0431\u0440\u0435\u0436\u043d\u043e \u0433\u043e\u0441\u0442\u043e\u043f\u0440\u0438\u0435\u043c\u0441\u0442\u0432\u043e",
+      "homeRequestPilotCta": "\u0417\u0430\u044f\u0432\u0438 \u043f\u0438\u043b\u043e\u0442\u0435\u043d \u0434\u043e\u0441\u0442\u044a\u043f",
+      "homeEyebrow": "\u041f\u0440\u0435\u043c\u0438\u0443\u043c \u043a\u0440\u0430\u0439\u0431\u0440\u0435\u0436\u0435\u043d \u0441\u0435\u0440\u0432\u0438\u0437",
       "homeTitle": "\u041e\u043f\u0435\u0440\u0430\u0442\u0438\u0432\u043d\u0438\u044f\u0442 \u043a\u043e\u043a\u043f\u0438\u0442 \u0437\u0430 hospitality \u0435\u043a\u0438\u043f\u0438.",
       "homeIntro": "BlackSea Connect \u043e\u0431\u0435\u0434\u0438\u043d\u044f\u0432\u0430 \u043f\u0440\u0435\u0441\u0442\u043e\u0438, \u043f\u0440\u0438\u0441\u0442\u0438\u0433\u0430\u043d\u0438\u044f, housekeeping \u0438 \u043f\u0430\u0440\u0442\u043d\u044c\u043e\u0440\u0438 \u0432 \u0435\u0434\u043d\u0430 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430.",
       "homePrimaryCta": "\u0412\u0438\u0436 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430\u0442\u0430",
       "homeSecondaryCta": "\u041e\u0442\u043a\u0440\u0438\u0439 \u0443\u0441\u043b\u0443\u0433\u0438\u0442\u0435",
       "homeRequestServiceCta": "\u0417\u0430\u044f\u0432\u0438 \u0443\u0441\u043b\u0443\u0433\u0430",
       "homeTertiaryCta": "\u0417\u0430\u044f\u0432\u0438 \u043f\u0438\u043b\u043e\u0442\u0435\u043d \u0434\u043e\u0441\u0442\u044a\u043f",
-      "homeChip1": "\u043a\u043e\u043e\u0440\u0434\u0438\u043d\u0430\u0446\u0438\u044f \u043d\u0430 \u0433\u043e\u0441\u0442\u0438",
-      "homeChip2": "\u043f\u0440\u043e\u0441\u043b\u0435\u0434\u044f\u0432\u0430\u043d\u0435 \u043d\u0430 \u043f\u043e\u0447\u0438\u0441\u0442\u0432\u0430\u043d\u0435\u0442\u043e",
-      "homeChip3": "\u0432\u0440\u0435\u043c\u0435 \u043d\u0430 \u0442\u0440\u0430\u043d\u0441\u0444\u0435\u0440\u0438",
-      "homeChip4": "\u0434\u043e\u0432\u0435\u0440\u0435\u043d\u0438 \u043c\u0435\u0441\u0442\u043d\u0438 \u043f\u0430\u0440\u0442\u043d\u044c\u043e\u0440\u0438",
+      "homeChip1": "\u0421\u0435\u0433\u0430 \u043d\u0430 \u0436\u0438\u0432\u043e",
+      "homeChip2": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430 \u0433\u043e\u0441\u0442\u0438",
+      "homeChip3": "\u0414\u043e\u0441\u0442\u0430\u0432\u0447\u0438\u0446\u0438",
+      "homeChip4": "\u0413\u0440\u0430\u0434\u043e\u0432\u0435",
       "homeProductEyebrow": "\u0416\u0438\u0432\u0438 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438",
       "homeProductTitle": "\u0412\u0438\u0436 \u0441\u043e\u0444\u0442\u0443\u0435\u0440\u0430 \u043f\u0440\u0435\u0434\u0438 \u0438\u0441\u0442\u043e\u0440\u0438\u044f\u0442\u0430.",
       "homeProductCopy": "\u041f\u0440\u0435\u043c\u0438\u0443\u043c snapshot \u043d\u0430 \u0437\u0430\u0435\u0442\u043e\u0441\u0442, \u0437\u0430\u0435\u0437\u0434\u0438, turnarounds \u0438 SLA \u0437\u0430 \u0435\u043a\u0438\u043f\u0438, \u043a\u043e\u0438\u0442\u043e \u0438\u0441\u043a\u0430\u0442 \u044f\u0441\u043d\u043e\u0442\u0430 \u0431\u044a\u0440\u0437\u043e.",
@@ -31,7 +31,7 @@
       "homeProductPreviewRow1Label": "\u0417\u0430\u0435\u0442\u043e\u0441\u0442",
       "homeProductPreviewRow2Label": "\u0417\u0430\u0435\u0437\u0434\u0438",
       "homeProductPreviewRow3Label": "Turnarounds",
-      "homeCountersEyebrow": "\u0416\u0438\u0432 \u043f\u0440\u043e\u0433\u043b\u0435\u0434 \u043d\u0430 \u043c\u0440\u0435\u0436\u0430\u0442\u0430",
+      "homeCountersEyebrow": "\u041e\u0431\u0437\u043e\u0440 \u0434\u0430\u0448\u0431\u043e\u0440\u0434\u0430",
       "homeCountersTitle": "\u0422\u0438\u0445\u0430 \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u0441 \u0430\u043a\u0442\u0438\u0432\u043d\u0438 \u0434\u043e\u0441\u0442\u0430\u0432\u0447\u0438\u0446\u0438 \u0438 \u0437\u0430\u044f\u0432\u043a\u0438.",
       "homeCounterProvidersLabel": "\u0414\u043e\u0441\u0442\u0430\u0432\u0447\u0438\u0446\u0438",
       "homeCounterCitiesLabel": "\u0413\u0440\u0430\u0434\u043e\u0432\u0435",
@@ -727,18 +727,18 @@
       "navPartners": "Partners",
       "navPilotAccess": "Pilot Access",
       "navApply": "Apply",
-      "homeRequestPilotCta": "View the platform",
-      "homeEyebrow": "Premium coastal hospitality",
+      "homeRequestPilotCta": "Request pilot access",
+      "homeEyebrow": "Premium coastal service",
       "homeTitle": "The operational cockpit for hospitality teams.",
       "homeIntro": "BlackSea Connect brings stays, arrivals, housekeeping and trusted partners into one platform for coastal operators.",
       "homePrimaryCta": "View the platform",
       "homeSecondaryCta": "Discover services",
       "homeRequestServiceCta": "Request service",
       "homeTertiaryCta": "Request pilot access",
-      "homeChip1": "guest coordination",
-      "homeChip2": "cleaning follow-through",
-      "homeChip3": "transfer timing",
-      "homeChip4": "trusted local partners",
+      "homeChip1": "Live now",
+      "homeChip2": "Guest operations",
+      "homeChip3": "Providers",
+      "homeChip4": "Cities",
       "homeProductEyebrow": "Live operations",
       "homeProductTitle": "See the software before the story.",
       "homeProductCopy": "A premium snapshot of occupancy, arrivals, turnarounds and SLA for operators who need clarity fast.",
@@ -751,7 +751,7 @@
       "homeProductPreviewRow2Label": "Arrivals",
       "homeProductPreviewRow3Label": "Turnarounds",
       "homeProductPreviewRow4Label": "SLA",
-      "homeCountersEyebrow": "Live network snapshot",
+      "homeCountersEyebrow": "Dashboard overview",
       "homeCountersTitle": "A quiet system with active provider and request volume.",
       "homeCounterProvidersLabel": "Providers",
       "homeCounterCitiesLabel": "Cities",
@@ -1406,18 +1406,18 @@
       "navPartners": "Partenaires",
       "navPilotAccess": "Acc\u00e8s pilote",
       "navApply": "Candidature",
-      "homeRequestPilotCta": "Voir la plateforme",
-      "homeEyebrow": "Hospitalit\u00e9 c\u00f4ti\u00e8re premium",
+      "homeRequestPilotCta": "Demander un acc\u00e8s pilote",
+      "homeEyebrow": "Service c\u00f4tier premium",
       "homeTitle": "Le cockpit op\u00e9rationnel des \u00e9quipes hospitality.",
       "homeIntro": "BlackSea Connect rassemble s\u00e9jours, arriv\u00e9es, m\u00e9nage et partenaires de confiance dans une plateforme pour les op\u00e9rateurs c\u00f4tiers.",
       "homePrimaryCta": "Voir la plateforme",
       "homeSecondaryCta": "D\u00e9couvrir les services",
       "homeRequestServiceCta": "Demander un service",
       "homeTertiaryCta": "Demander un acc\u00e8s pilote",
-      "homeChip1": "coordination des invit\u00e9s",
-      "homeChip2": "suivi du m\u00e9nage",
-      "homeChip3": "timing des transferts",
-      "homeChip4": "partenaires locaux de confiance",
+      "homeChip1": "En direct",
+      "homeChip2": "Op\u00e9rations invit\u00e9s",
+      "homeChip3": "Prestataires",
+      "homeChip4": "Villes",
       "homeProductEyebrow": "Op\u00e9rations en direct",
       "homeProductTitle": "Voir le logiciel avant le discours.",
       "homeProductCopy": "Un snapshot premium de l'occupation, des arriv\u00e9es, des rotations et du SLA pour les \u00e9quipes qui veulent de la clart\u00e9 vite.",
@@ -1430,7 +1430,7 @@
       "homeProductPreviewRow2Label": "Arriv\u00e9es",
       "homeProductPreviewRow3Label": "Rotations",
       "homeProductPreviewRow4Label": "SLA",
-      "homeCountersEyebrow": "Aper\u00e7u du r\u00e9seau en direct",
+      "homeCountersEyebrow": "Aper\u00e7u du tableau de bord",
       "homeCountersTitle": "Un syst\u00e8me calme avec des prestataires et des demandes actives.",
       "homeCounterProvidersLabel": "Prestataires",
       "homeCounterCitiesLabel": "Villes",
@@ -2084,7 +2084,7 @@
       "navGuestPortal": "\u041f\u043e\u0440\u0442\u0430\u043b \u0433\u043e\u0441\u0442\u044f",
       "navPartners": "\u041f\u0430\u0440\u0442\u043d\u0451\u0440\u044b",
       "navPilotAccess": "\u041f\u0438\u043b\u043e\u0442\u043d\u044b\u0439 \u0434\u043e\u0441\u0442\u0443\u043f",
-      "homeRequestPilotCta": "\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0443",
+      "homeRequestPilotCta": "\u0417\u0430\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u043f\u0438\u043b\u043e\u0442\u043d\u044b\u0439 \u0434\u043e\u0441\u0442\u0443\u043f",
       "homeEyebrow": "\u041f\u0440\u0435\u043c\u0438\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u0440\u0438\u0431\u0440\u0435\u0436\u043d\u044b\u0439 \u0441\u0435\u0440\u0432\u0438\u0441",
       "homeTitle": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043a\u043e\u043a\u043f\u0438\u0442 \u0434\u043b\u044f hospitality-\u043a\u043e\u043c\u0430\u043d\u0434.",
       "homeIntro": "BlackSea Connect \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u044f\u0435\u0442 \u043f\u0440\u043e\u0436\u0438\u0432\u0430\u043d\u0438\u0435, \u0437\u0430\u0435\u0437\u0434\u044b, housekeeping \u0438 \u043d\u0430\u0434\u0451\u0436\u043d\u044b\u0445 \u043f\u0430\u0440\u0442\u043d\u0451\u0440\u043e\u0432 \u0432 \u0441\u043f\u043e\u043a\u043e\u0439\u043d\u0443\u044e \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0443 \u0434\u043b\u044f \u043f\u0440\u0438\u0431\u0440\u0435\u0436\u043d\u044b\u0445 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432.",
@@ -2749,7 +2749,24 @@
   }
 };
 
-Object.assign(window.BlackSeaI18N.bg, {
+function deepMerge(target, source) {
+  Object.keys(source).forEach((key) => {
+    if (
+      source[key] &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key])
+    ) {
+      target[key] = target[key] || {};
+      deepMerge(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  });
+
+  return target;
+}
+
+deepMerge(window.BlackSeaI18N.bg, {
   home: {
     navProfessionals: "Професионалисти"
   },
@@ -2906,13 +2923,13 @@ Object.keys(window.BlackSeaI18N.ru).forEach(function (key) {
     window.BlackSeaI18N.ru.home[key] = window.BlackSeaI18N.ru.home[key] || window.BlackSeaI18N.ru[key];
   }
 });
-Object.assign(window.BlackSeaI18N.bg.network, {
+deepMerge(window.BlackSeaI18N.bg.network, {
   availableBadge: "Налично за заявки",
   requestsPausedBadge: "Заявките са паузирани",
   detailAvailabilityLabel: "Заявки"
 });
 
-Object.assign(window.BlackSeaI18N.en, {
+deepMerge(window.BlackSeaI18N.en, {
   home: {
     navProfessionals: "Professionals"
   },
@@ -3039,7 +3056,7 @@ Object.assign(window.BlackSeaI18N.en, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.fr, {
+deepMerge(window.BlackSeaI18N.fr, {
   home: {
     navProfessionals: "Professionnels"
   },
@@ -3166,7 +3183,7 @@ Object.assign(window.BlackSeaI18N.fr, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.bg, {
+deepMerge(window.BlackSeaI18N.bg, {
   network: {
     pageTitle: "BlackSea Connect | Мрежа",
     navHome: "Начало",
@@ -3235,7 +3252,7 @@ Object.assign(window.BlackSeaI18N.bg, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.en, {
+deepMerge(window.BlackSeaI18N.en, {
   network: {
     pageTitle: "BlackSea Connect | Network",
     navHome: "Home",
@@ -3307,7 +3324,7 @@ Object.assign(window.BlackSeaI18N.en, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.fr, {
+deepMerge(window.BlackSeaI18N.fr, {
   network: {
     pageTitle: "BlackSea Connect | Réseau",
     navHome: "Accueil",
@@ -3381,7 +3398,7 @@ Object.assign(window.BlackSeaI18N.fr, {
 
 window.BlackSeaI18N.ru = window.BlackSeaI18N.ru || {};
 
-Object.assign(window.BlackSeaI18N.bg, {
+deepMerge(window.BlackSeaI18N.bg, {
   requestService: {
     pageTitle: "BlackSea Connect | Заявка за услуга",
     navHome: "Начало",
@@ -3522,7 +3539,7 @@ Object.assign(window.BlackSeaI18N.bg, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.en, {
+deepMerge(window.BlackSeaI18N.en, {
   requestService: {
     pageTitle: "BlackSea Connect | Request Service",
     navHome: "Home",
@@ -3666,7 +3683,7 @@ Object.assign(window.BlackSeaI18N.en, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.fr, {
+deepMerge(window.BlackSeaI18N.fr, {
   requestService: {
     pageTitle: "BlackSea Connect | Demande de service",
     navHome: "Accueil",
@@ -3807,7 +3824,7 @@ Object.assign(window.BlackSeaI18N.fr, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.ru, {
+deepMerge(window.BlackSeaI18N.ru, {
   requestService: {
     pageTitle: "BlackSea Connect | Запрос услуги",
     navHome: "Главная",
@@ -3948,58 +3965,58 @@ Object.assign(window.BlackSeaI18N.ru, {
   }
 });
 
-Object.assign(window.BlackSeaI18N.bg.requestService, {
+deepMerge(window.BlackSeaI18N.bg.requestService, {
   notAvailable: "н/а"
 });
 
-Object.assign(window.BlackSeaI18N.bg.adminServiceRequests, {
+deepMerge(window.BlackSeaI18N.bg.adminServiceRequests, {
   notAvailable: "н/а",
   internalNotesPlaceholder: "Поверителни бележки за админ екипа"
 });
 
-Object.assign(window.BlackSeaI18N.en.requestService, {
+deepMerge(window.BlackSeaI18N.en.requestService, {
   notAvailable: "n/a"
 });
 
-Object.assign(window.BlackSeaI18N.en.adminServiceRequests, {
+deepMerge(window.BlackSeaI18N.en.adminServiceRequests, {
   notAvailable: "n/a",
   internalNotesPlaceholder: "Private notes for the admin team"
 });
 
-Object.assign(window.BlackSeaI18N.fr.requestService, {
+deepMerge(window.BlackSeaI18N.fr.requestService, {
   notAvailable: "n/d"
 });
 
-Object.assign(window.BlackSeaI18N.fr.adminServiceRequests, {
+deepMerge(window.BlackSeaI18N.fr.adminServiceRequests, {
   notAvailable: "n/d",
   internalNotesPlaceholder: "Notes privées pour l'équipe admin"
 });
 
-Object.assign(window.BlackSeaI18N.ru.requestService, {
+deepMerge(window.BlackSeaI18N.ru.requestService, {
   notAvailable: "н/д"
 });
 
-Object.assign(window.BlackSeaI18N.ru.adminServiceRequests, {
+deepMerge(window.BlackSeaI18N.ru.adminServiceRequests, {
   notAvailable: "н/д",
   internalNotesPlaceholder: "Конфиденциальные заметки для админ-команды"
 });
 
-Object.assign(window.BlackSeaI18N.bg.home, {
+deepMerge(window.BlackSeaI18N.bg.home, {
   homeLiveNow: "Сега на живо",
   homeGuestOperations: "Операции за гости"
 });
 
-Object.assign(window.BlackSeaI18N.en.home, {
+deepMerge(window.BlackSeaI18N.en.home, {
   homeLiveNow: "Live now",
   homeGuestOperations: "Guest operations"
 });
 
-Object.assign(window.BlackSeaI18N.fr.home, {
+deepMerge(window.BlackSeaI18N.fr.home, {
   homeLiveNow: "En direct",
   homeGuestOperations: "Opérations clients"
 });
 
-Object.assign(window.BlackSeaI18N.ru.home, {
+deepMerge(window.BlackSeaI18N.ru.home, {
   homeLiveNow: "Сейчас в эфире",
   homeGuestOperations: "Гостевые операции"
 });
@@ -4034,7 +4051,7 @@ Object.keys(window.BlackSeaI18N.ru).forEach(function (key) {
     window.BlackSeaI18N.ru.home[key] = window.BlackSeaI18N.ru.home[key] || window.BlackSeaI18N.ru[key];
   }
 });
-Object.assign(window.BlackSeaI18N.bg.network, {
+deepMerge(window.BlackSeaI18N.bg.network, {
   featuredEyebrow: "Избрани доставчици",
   featuredTitle: "Избрани доставчици",
   featuredBadge: "Препоръчано",
@@ -4042,7 +4059,7 @@ Object.assign(window.BlackSeaI18N.bg.network, {
   notAvailable: "няма"
 });
 
-Object.assign(window.BlackSeaI18N.en.network, {
+deepMerge(window.BlackSeaI18N.en.network, {
   featuredEyebrow: "Featured providers",
   featuredTitle: "Featured providers",
   featuredBadge: "Featured",
@@ -4050,7 +4067,7 @@ Object.assign(window.BlackSeaI18N.en.network, {
   notAvailable: "n/a"
 });
 
-Object.assign(window.BlackSeaI18N.fr.network, {
+deepMerge(window.BlackSeaI18N.fr.network, {
   featuredEyebrow: "Prestataires sélectionnés",
   featuredTitle: "Prestataires sélectionnés",
   featuredBadge: "Sélectionné",
@@ -4058,13 +4075,14 @@ Object.assign(window.BlackSeaI18N.fr.network, {
   notAvailable: "n/d"
 });
 
-Object.assign(window.BlackSeaI18N.ru.network, {
+deepMerge(window.BlackSeaI18N.ru.network, {
   featuredEyebrow: "Избранные поставщики",
   featuredTitle: "Избранные поставщики",
   featuredBadge: "Избранный",
   approvedProvidersLabel: "одобренные поставщики",
   notAvailable: "н/д"
 });
+
 
 
 

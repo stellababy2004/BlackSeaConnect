@@ -1,8 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title data-i18n="pageTitle">BlackSea Connect | Request Service</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
@@ -28,7 +33,7 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/network" data-i18n="topNetworkCta">Виж доставчици</a>
+        <a class="button button--ghost topbar__portal" href="/network" data-i18n="topNetworkCta">Ð’Ð¸Ð¶ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</a>
       </div>
     </nav>
 
@@ -40,8 +45,8 @@
           Tell us what you need and we will save your request, send the team a notification, and surface matching approved providers when available.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">Отвори формата</a>
-          <a class="button button--secondary" href="/network" data-i18n="heroSecondaryCta">Разгледай доставчиците</a>
+          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ð°</a>
+          <a class="button button--secondary" href="/network" data-i18n="heroSecondaryCta">Ð Ð°Ð·Ð³Ð»ÐµÐ´Ð°Ð¹ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸Ñ‚Ðµ</a>
         </div>
         <div class="trust-strip" aria-label="Request highlights">
           <span class="trust-strip__chip" data-i18n="highlightSaved">Saved in JSONL</span>
@@ -62,7 +67,7 @@
           <p class="cta-panel__copy" data-i18n="successCopy">We will review the request and surface matching providers for the selected category.</p>
         </div>
         <div class="trust-strip" aria-label="Request status">
-          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Статус: нова</span>
+          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ: Ð½Ð¾Ð²Ð°</span>
           <span class="trust-strip__chip">{{ request_record.property_city|e }}</span>
           <span class="trust-strip__chip">{{ request_record.service_category|e }}</span>
         </div>
@@ -155,20 +160,20 @@
               {% endif %}
               <div class="trust-strip" aria-label="Provider badges">
                 {% if provider.featured %}
-                <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
+                <span class="trust-strip__chip" data-i18n="featuredBadge">ÐŸÑ€ÐµÐ¿Ð¾Ñ€ÑŠÑ‡Ð°Ð½Ð¾</span>
               {% endif %}
-                <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                <span class="trust-strip__chip" data-i18n="availableBadge">ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
                 {% for badge in provider.badges %}
                   <span class="trust-strip__chip">{{ badge|e }}</span>
                 {% endfor %}
               </div>
-              <span data-i18n="providerCompanyLabel">Фирма</span>
+              <span data-i18n="providerCompanyLabel">Ð¤Ð¸Ñ€Ð¼Ð°</span>
               <strong>{{ provider.company_name|e }}</strong>
-              <p><strong data-i18n="providerCityLabel">Град:</strong> {{ provider.city|e }}</p>
-              <p><strong data-i18n="providerServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
-              <p><strong data-i18n="providerLanguagesLabel">Езици:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">няма</span>{% endif %}</p>
+              <p><strong data-i18n="providerCityLabel">Ð“Ñ€Ð°Ð´:</strong> {{ provider.city|e }}</p>
+              <p><strong data-i18n="providerServiceLabel">Ð£ÑÐ»ÑƒÐ³Ð°:</strong> {{ provider.service_type|e }}</p>
+              <p><strong data-i18n="providerLanguagesLabel">Ð•Ð·Ð¸Ñ†Ð¸:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">Ð½ÑÐ¼Ð°</span>{% endif %}</p>
               <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-              <span class="button button--ghost" data-i18n="providerViewDetails">Виж детайли</span>
+              <span class="button button--ghost" data-i18n="providerViewDetails">Ð’Ð¸Ð¶ Ð´ÐµÑ‚Ð°Ð¹Ð»Ð¸</span>
             </a>
           {% endfor %}
         </div>
@@ -208,3 +213,7 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
+
+
+
+

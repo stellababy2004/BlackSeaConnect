@@ -1,8 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title data-i18n="pageTitle">BlackSea Connect | Network</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
@@ -41,8 +46,8 @@
           Only approved providers appear here. Search by city or filter by service category to find trusted local support along the Bulgarian Black Sea coast.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">Присъедини се към мрежата</a>
-          <a class="button button--secondary" href="#network-search" data-i18n="heroSecondaryCta">Търси доставчици</a>
+          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">ÐŸÑ€Ð¸ÑÑŠÐµÐ´Ð¸Ð½Ð¸ ÑÐµ ÐºÑŠÐ¼ Ð¼Ñ€ÐµÐ¶Ð°Ñ‚Ð°</a>
+          <a class="button button--secondary" href="#network-search" data-i18n="heroSecondaryCta">Ð¢ÑŠÑ€ÑÐ¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</a>
         </div>
         <div class="trust-strip" aria-label="Directory highlights">
           <span class="trust-strip__chip" data-i18n="highlightApproved">Approved only</span>
@@ -83,7 +88,7 @@
         <div class="pilot-form__footer">
           <button class="button button--primary" type="submit" data-i18n="searchCta">Search</button>
           <a class="button button--secondary" href="/network" data-i18n="resetCta">Reset</a>
-          <p class="pilot-form__hint"><strong>{{ total_providers }}</strong> <span data-i18n="approvedProvidersLabel">одобрени доставчици</span></p>
+          <p class="pilot-form__hint"><strong>{{ total_providers }}</strong> <span data-i18n="approvedProvidersLabel">Ð¾Ð´Ð¾Ð±Ñ€ÐµÐ½Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</span></p>
         </div>
       </form>
     </section>
@@ -98,8 +103,8 @@
         {% if featured_providers %}
           <section class="network-category-block" aria-labelledby="network-featured-title">
             <div class="section-heading section-heading--trust">
-              <p class="section-heading__eyebrow" data-i18n="featuredEyebrow">Избрани доставчици</p>
-              <h3 id="network-featured-title" data-i18n="featuredTitle">Избрани доставчици</h3>
+              <p class="section-heading__eyebrow" data-i18n="featuredEyebrow">Ð˜Ð·Ð±Ñ€Ð°Ð½Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</p>
+              <h3 id="network-featured-title" data-i18n="featuredTitle">Ð˜Ð·Ð±Ñ€Ð°Ð½Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</h3>
             </div>
 
             <div class="partner-grid">
@@ -116,21 +121,21 @@
                   {% endif %}
                   <div class="trust-strip" aria-label="Provider badges">
                     {% if provider.available_for_requests %}
-                      <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                      <span class="trust-strip__chip" data-i18n="availableBadge">ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
                     {% else %}
-                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
+                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Ð—Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ ÑÐ° Ð¿Ð°ÑƒÐ·Ð¸Ñ€Ð°Ð½Ð¸</span>
                     {% endif %}
                     {% for badge in provider.display_badges %}
                       <span class="trust-strip__chip">{{ badge|e }}</span>
                     {% endfor %}
                   </div>
-                  <span data-i18n="cardCompanyLabel">Фирма</span>
+                  <span data-i18n="cardCompanyLabel">Ð¤Ð¸Ñ€Ð¼Ð°</span>
                   <strong>{{ provider.company_name|e }}</strong>
-                  <p><strong data-i18n="cardCityLabel">Град:</strong> {{ provider.city|e }}</p>
-                  <p><strong data-i18n="cardServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
-                  <p><strong data-i18n="cardLanguagesLabel">Езици:</strong> {{ provider.languages|e or "няма" }}</p>
+                  <p><strong data-i18n="cardCityLabel">Ð“Ñ€Ð°Ð´:</strong> {{ provider.city|e }}</p>
+                  <p><strong data-i18n="cardServiceLabel">Ð£ÑÐ»ÑƒÐ³Ð°:</strong> {{ provider.service_type|e }}</p>
+                  <p><strong data-i18n="cardLanguagesLabel">Ð•Ð·Ð¸Ñ†Ð¸:</strong> {{ provider.languages|e or "Ð½ÑÐ¼Ð°" }}</p>
                   <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-                      <span class="button button--ghost" data-i18n="cardViewDetails">Виж детайли</span>
+                      <span class="button button--ghost" data-i18n="cardViewDetails">Ð’Ð¸Ð¶ Ð´ÐµÑ‚Ð°Ð¹Ð»Ð¸</span>
                 </a>
               {% endfor %}
             </div>
@@ -159,21 +164,21 @@
                   {% endif %}
                     <div class="trust-strip" aria-label="Provider badges">
                     {% if provider.available_for_requests %}
-                      <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                      <span class="trust-strip__chip" data-i18n="availableBadge">ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
                     {% else %}
-                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
+                      <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Ð—Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ ÑÐ° Ð¿Ð°ÑƒÐ·Ð¸Ñ€Ð°Ð½Ð¸</span>
                       {% endif %}
                       {% for badge in provider.display_badges %}
                         <span class="trust-strip__chip">{{ badge|e }}</span>
                       {% endfor %}
                     </div>
-                    <span data-i18n="cardCompanyLabel">Фирма</span>
+                    <span data-i18n="cardCompanyLabel">Ð¤Ð¸Ñ€Ð¼Ð°</span>
                     <strong>{{ provider.company_name|e }}</strong>
-                    <p><strong data-i18n="cardCityLabel">Град:</strong> {{ provider.city|e }}</p>
-                    <p><strong data-i18n="cardServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
-                    <p><strong data-i18n="cardLanguagesLabel">Езици:</strong> {{ provider.languages|e or "няма" }}</p>
+                    <p><strong data-i18n="cardCityLabel">Ð“Ñ€Ð°Ð´:</strong> {{ provider.city|e }}</p>
+                    <p><strong data-i18n="cardServiceLabel">Ð£ÑÐ»ÑƒÐ³Ð°:</strong> {{ provider.service_type|e }}</p>
+                    <p><strong data-i18n="cardLanguagesLabel">Ð•Ð·Ð¸Ñ†Ð¸:</strong> {{ provider.languages|e or "Ð½ÑÐ¼Ð°" }}</p>
                     <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-                    <span class="button button--ghost" data-i18n="cardViewDetails">Виж детайли</span>
+                    <span class="button button--ghost" data-i18n="cardViewDetails">Ð’Ð¸Ð¶ Ð´ÐµÑ‚Ð°Ð¹Ð»Ð¸</span>
                   </a>
                 {% endfor %}
               </div>
@@ -189,7 +194,7 @@
               Try a different city or remove the category filter to see the full approved directory.
             </p>
           </div>
-          <a class="button button--primary" href="/network" data-i18n="emptyPrimaryCta">Изчисти филтрите</a>
+          <a class="button button--primary" href="/network" data-i18n="emptyPrimaryCta">Ð˜Ð·Ñ‡Ð¸ÑÑ‚Ð¸ Ñ„Ð¸Ð»Ñ‚Ñ€Ð¸Ñ‚Ðµ</a>
         </section>
       {% endif %}
     </section>
@@ -219,3 +224,7 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
+
+
+
+

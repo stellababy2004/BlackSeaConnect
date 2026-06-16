@@ -1,18 +1,23 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="adminProfessionals.pageTitle">BlackSea Connect | Професионалисти</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title data-i18n="adminProfessionals.pageTitle">BlackSea Connect | ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="adminProfessionals.heroEyebrow">Панел на професионалистите</p>
-        <h1 data-i18n="adminProfessionals.heroTitle">Професионални кандидатури</h1>
-        <p data-i18n="adminProfessionals.heroCopy">Преглеждайте новите кандидатури за професионалната мрежа и одобрявайте подходящите партньори за BlackSeaConnect.</p>
+        <p class="eyebrow" data-i18n="adminProfessionals.heroEyebrow">ÐŸÐ°Ð½ÐµÐ» Ð½Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸Ñ‚Ðµ</p>
+        <h1 data-i18n="adminProfessionals.heroTitle">ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð¸ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð¸</h1>
+        <p data-i18n="adminProfessionals.heroCopy">ÐŸÑ€ÐµÐ³Ð»ÐµÐ¶Ð´Ð°Ð¹Ñ‚Ðµ Ð½Ð¾Ð²Ð¸Ñ‚Ðµ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð¸ Ð·Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð°Ñ‚Ð° Ð¼Ñ€ÐµÐ¶Ð° Ð¸ Ð¾Ð´Ð¾Ð±Ñ€ÑÐ²Ð°Ð¹Ñ‚Ðµ Ð¿Ð¾Ð´Ñ…Ð¾Ð´ÑÑ‰Ð¸Ñ‚Ðµ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸ Ð·Ð° BlackSeaConnect.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -24,26 +29,26 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin" data-i18n="adminProfessionals.backToCockpit">Назад към кокпита</a>
-        <a class="button button--ghost" href="/professionals" data-i18n="adminProfessionals.viewPublicPage">Виж публичната страница</a>
+        <a class="button button--secondary" href="/admin" data-i18n="adminProfessionals.backToCockpit">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ ÐºÐ¾ÐºÐ¿Ð¸Ñ‚Ð°</a>
+        <a class="button button--ghost" href="/professionals" data-i18n="adminProfessionals.viewPublicPage">Ð’Ð¸Ð¶ Ð¿ÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ‚Ð° ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ð°</a>
       </div>
     </section>
 
     <section class="admin-kpi-grid" aria-label="Professional application metrics">
       <article class="admin-kpi-card">
-        <span data-i18n="adminProfessionals.metricTotal">Общо кандидатури</span>
+        <span data-i18n="adminProfessionals.metricTotal">ÐžÐ±Ñ‰Ð¾ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð¸</span>
         <strong>{{ applications|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="adminProfessionals.metricPending">В изчакване</span>
+        <span data-i18n="adminProfessionals.metricPending">Ð’ Ð¸Ð·Ñ‡Ð°ÐºÐ²Ð°Ð½Ðµ</span>
         <strong>{{ counts.pending }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="adminProfessionals.metricApproved">Одобрени</span>
+        <span data-i18n="adminProfessionals.metricApproved">ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½Ð¸</span>
         <strong>{{ counts.approved }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="adminProfessionals.metricRejected">Отхвърлени</span>
+        <span data-i18n="adminProfessionals.metricRejected">ÐžÑ‚Ñ…Ð²ÑŠÑ€Ð»ÐµÐ½Ð¸</span>
         <strong>{{ counts.rejected }}</strong>
       </article>
     </section>
@@ -60,30 +65,30 @@
               <p class="eyebrow">{{ item.created_at|e }}</p>
               {% set status_key = 'adminProfessionals.statusPending' if item.status|lower == 'pending' else 'adminProfessionals.statusApproved' if item.status|lower == 'approved' else 'adminProfessionals.statusRejected' %}
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ status_key }}">
-                {% if item.status|lower == 'pending' %}В изчакване{% elif item.status|lower == 'approved' %}Одобрени{% else %}Отхвърлени{% endif %}
+                {% if item.status|lower == 'pending' %}Ð’ Ð¸Ð·Ñ‡Ð°ÐºÐ²Ð°Ð½Ðµ{% elif item.status|lower == 'approved' %}ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½Ð¸{% else %}ÐžÑ‚Ñ…Ð²ÑŠÑ€Ð»ÐµÐ½Ð¸{% endif %}
               </span>
             </div>
             <h2>{{ item.full_name|e }}</h2>
             <div class="trust-strip" aria-label="Provider badges">
               {% if item.featured %}
-                <span class="trust-strip__chip" data-i18n="adminProfessionals.featuredBadge">Избран</span>
+                <span class="trust-strip__chip" data-i18n="adminProfessionals.featuredBadge">Ð˜Ð·Ð±Ñ€Ð°Ð½</span>
               {% endif %}
               {% for badge in item.badges %}
                 <span class="trust-strip__chip">{{ badge|e }}</span>
               {% endfor %}
             </div>
-            <p><strong data-i18n="adminProfessionals.companyLabel">Компания:</strong> {{ item.company_name|e }}</p>
-            <p><strong data-i18n="adminProfessionals.serviceLabel">Категория услуга:</strong> {{ item.service_type|e }}</p>
-            <p><strong data-i18n="adminProfessionals.cityLabel">Град:</strong> {{ item.city|e }}</p>
-            <p><strong data-i18n="adminProfessionals.phoneLabel">Телефон:</strong> {{ item.phone|e }}</p>
-            <p><strong data-i18n="adminProfessionals.emailLabel">Имейл:</strong> {{ item.email|e }}</p>
+            <p><strong data-i18n="adminProfessionals.companyLabel">ÐšÐ¾Ð¼Ð¿Ð°Ð½Ð¸Ñ:</strong> {{ item.company_name|e }}</p>
+            <p><strong data-i18n="adminProfessionals.serviceLabel">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ ÑƒÑÐ»ÑƒÐ³Ð°:</strong> {{ item.service_type|e }}</p>
+            <p><strong data-i18n="adminProfessionals.cityLabel">Ð“Ñ€Ð°Ð´:</strong> {{ item.city|e }}</p>
+            <p><strong data-i18n="adminProfessionals.phoneLabel">Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½:</strong> {{ item.phone|e }}</p>
+            <p><strong data-i18n="adminProfessionals.emailLabel">Ð˜Ð¼ÐµÐ¹Ð»:</strong> {{ item.email|e }}</p>
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2 data-i18n="adminProfessionals.emptyTitle">Все още няма професионални кандидатури.</h2>
-        <p data-i18n="adminProfessionals.emptyCopy">След като получим първата кандидатура, тя ще се покаже тук в обратен хронологичен ред.</p>
+        <h2 data-i18n="adminProfessionals.emptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð¸ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð¸.</h2>
+        <p data-i18n="adminProfessionals.emptyCopy">Ð¡Ð»ÐµÐ´ ÐºÐ°Ñ‚Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð¼ Ð¿ÑŠÑ€Ð²Ð°Ñ‚Ð° ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°, Ñ‚Ñ Ñ‰Ðµ ÑÐµ Ð¿Ð¾ÐºÐ°Ð¶Ðµ Ñ‚ÑƒÐº Ð² Ð¾Ð±Ñ€Ð°Ñ‚ÐµÐ½ Ñ…Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ‡ÐµÐ½ Ñ€ÐµÐ´.</p>
       </section>
     {% endif %}
   </main>
@@ -92,3 +97,7 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
+
+
+
+

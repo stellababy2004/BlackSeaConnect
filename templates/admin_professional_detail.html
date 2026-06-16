@@ -1,18 +1,23 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="adminProfessionalDetail.pageTitle">BlackSea Connect | Професионална кандидатура</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title data-i18n="adminProfessionalDetail.pageTitle">BlackSea Connect | ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð° ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="adminProfessionalDetail.heroEyebrow">Подробности за кандидатурата</p>
-        <h1 data-i18n="adminProfessionalDetail.heroTitle">Преглед на професионалната кандидатура</h1>
-        <p data-i18n="adminProfessionalDetail.heroCopy">Тук виждате пълния профил и вътрешните бележки.</p>
+        <p class="eyebrow" data-i18n="adminProfessionalDetail.heroEyebrow">ÐŸÐ¾Ð´Ñ€Ð¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ð·Ð° ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°Ñ‚Ð°</p>
+        <h1 data-i18n="adminProfessionalDetail.heroTitle">ÐŸÑ€ÐµÐ³Ð»ÐµÐ´ Ð½Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð°Ñ‚Ð° ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°</h1>
+        <p data-i18n="adminProfessionalDetail.heroCopy">Ð¢ÑƒÐº Ð²Ð¸Ð¶Ð´Ð°Ñ‚Ðµ Ð¿ÑŠÐ»Ð½Ð¸Ñ Ð¿Ñ€Ð¾Ñ„Ð¸Ð» Ð¸ Ð²ÑŠÑ‚Ñ€ÐµÑˆÐ½Ð¸Ñ‚Ðµ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸.</p>
       </div>
       <div class="admin-cockpit-actions">
         <div class="language-switcher" aria-label="Language switcher">
@@ -24,8 +29,8 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--secondary" href="/admin/professionals" data-i18n="adminProfessionalDetail.backToApplications">Назад към кандидатурите</a>
-        <a class="button button--ghost" href="/professionals/apply" data-i18n="adminProfessionalDetail.openPublicForm">Отвори публичната форма</a>
+        <a class="button button--secondary" href="/admin/professionals" data-i18n="adminProfessionalDetail.backToApplications">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð¸Ñ‚Ðµ</a>
+        <a class="button button--ghost" href="/professionals/apply" data-i18n="adminProfessionalDetail.openPublicForm">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ð¿ÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ‚Ð° Ñ„Ð¾Ñ€Ð¼Ð°</a>
       </div>
     </section>
 
@@ -34,7 +39,7 @@
         <p class="eyebrow">{{ item.created_at|e }}</p>
         {% set status_key = 'adminProfessionalDetail.statusPending' if item.status|lower == 'pending' else 'adminProfessionalDetail.statusApproved' if item.status|lower == 'approved' else 'adminProfessionalDetail.statusRejected' %}
         <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ status_key }}">
-          {% if item.status|lower == 'pending' %}В изчакване{% elif item.status|lower == 'approved' %}Одобрени{% else %}Отхвърлени{% endif %}
+          {% if item.status|lower == 'pending' %}Ð’ Ð¸Ð·Ñ‡Ð°ÐºÐ²Ð°Ð½Ðµ{% elif item.status|lower == 'approved' %}ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½Ð¸{% else %}ÐžÑ‚Ñ…Ð²ÑŠÑ€Ð»ÐµÐ½Ð¸{% endif %}
         </span>
       </div>
 
@@ -46,52 +51,52 @@
           <dd>{{ item.id|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailStatus">Статус</dt>
+          <dt data-i18n="adminProfessionalDetail.detailStatus">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ</dt>
           <dd>{{ item.status|upper|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailCompany">Компания</dt>
+          <dt data-i18n="adminProfessionalDetail.detailCompany">ÐšÐ¾Ð¼Ð¿Ð°Ð½Ð¸Ñ</dt>
           <dd>{{ item.company_name|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailService">Категория услуга</dt>
+          <dt data-i18n="adminProfessionalDetail.detailService">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ ÑƒÑÐ»ÑƒÐ³Ð°</dt>
           <dd>{{ item.service_type|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailCity">Град</dt>
+          <dt data-i18n="adminProfessionalDetail.detailCity">Ð“Ñ€Ð°Ð´</dt>
           <dd>{{ item.city|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailPhone">Телефон</dt>
+          <dt data-i18n="adminProfessionalDetail.detailPhone">Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½</dt>
           <dd>{{ item.phone|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailEmail">Имейл</dt>
+          <dt data-i18n="adminProfessionalDetail.detailEmail">Ð˜Ð¼ÐµÐ¹Ð»</dt>
           <dd>{{ item.email|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailLanguages">Езици</dt>
+          <dt data-i18n="adminProfessionalDetail.detailLanguages">Ð•Ð·Ð¸Ñ†Ð¸</dt>
           <dd>{{ item.languages|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailExperience">Години опит</dt>
+          <dt data-i18n="adminProfessionalDetail.detailExperience">Ð“Ð¾Ð´Ð¸Ð½Ð¸ Ð¾Ð¿Ð¸Ñ‚</dt>
           <dd>{{ item.experience_years|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailWebsite">Уебсайт или социален профил</dt>
-        <dd>{{ item.website_or_social|e if item.website_or_social else "няма" }}</dd>
+          <dt data-i18n="adminProfessionalDetail.detailWebsite">Ð£ÐµÐ±ÑÐ°Ð¹Ñ‚ Ð¸Ð»Ð¸ ÑÐ¾Ñ†Ð¸Ð°Ð»ÐµÐ½ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»</dt>
+        <dd>{{ item.website_or_social|e if item.website_or_social else "Ð½ÑÐ¼Ð°" }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminProfessionalDetail.detailConsent">Съгласие</dt>
-          <dd data-i18n="{{ 'adminProfessionalDetail.consentYes' if item.consent else 'adminProfessionalDetail.consentNo' }}">{{ "Да" if item.consent else "Не" }}</dd>
+          <dt data-i18n="adminProfessionalDetail.detailConsent">Ð¡ÑŠÐ³Ð»Ð°ÑÐ¸Ðµ</dt>
+          <dd data-i18n="{{ 'adminProfessionalDetail.consentYes' if item.consent else 'adminProfessionalDetail.consentNo' }}">{{ "Ð”Ð°" if item.consent else "ÐÐµ" }}</dd>
         </div>
       </dl>
 
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminProfessionalDetail.summaryEyebrow">Описание на кандидатурата</p>
-            <h3 data-i18n="adminProfessionalDetail.summaryTitle">Какво е изпратил кандидатът</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.summaryEyebrow">ÐžÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ Ð½Ð° ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°Ñ‚Ð°</p>
+            <h3 data-i18n="adminProfessionalDetail.summaryTitle">ÐšÐ°ÐºÐ²Ð¾ Ðµ Ð¸Ð·Ð¿Ñ€Ð°Ñ‚Ð¸Ð» ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑŠÑ‚</h3>
           </div>
         </div>
         <p>{{ item.description|e }}</p>
@@ -100,29 +105,29 @@
       <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminProfessionalDetail.profileEyebrow">Профил и активи</p>
-            <h3 data-i18n="adminProfessionalDetail.profileTitle">Подробности за представянето</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.profileEyebrow">ÐŸÑ€Ð¾Ñ„Ð¸Ð» Ð¸ Ð°ÐºÑ‚Ð¸Ð²Ð¸</p>
+            <h3 data-i18n="adminProfessionalDetail.profileTitle">ÐŸÐ¾Ð´Ñ€Ð¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ð·Ð° Ð¿Ñ€ÐµÐ´ÑÑ‚Ð°Ð²ÑÐ½ÐµÑ‚Ð¾</h3>
           </div>
         </div>
         <div class="trust-strip" aria-label="Provider badges">
           {% if item.featured %}
-            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.featuredBadge">Избран</span>
+            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.featuredBadge">Ð˜Ð·Ð±Ñ€Ð°Ð½</span>
           {% endif %}
           {% for badge in item.badges %}
             <span class="trust-strip__chip">{{ badge|e }}</span>
           {% endfor %}
           {% if not item.badges and not item.featured %}
-            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.noBadges">Все още няма значки</span>
+            <span class="trust-strip__chip" data-i18n="adminProfessionalDetail.noBadges">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° Ð·Ð½Ð°Ñ‡ÐºÐ¸</span>
           {% endif %}
         </div>
-        <p><strong data-i18n="adminProfessionalDetail.photoLabel">URL на снимка:</strong> {% if item.photo_url %}{{ item.photo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">няма</span>{% endif %}</p>
-        <p><strong data-i18n="adminProfessionalDetail.logoLabel">URL на лого:</strong> {% if item.logo_url %}{{ item.logo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">няма</span>{% endif %}</p>
-        <p><strong data-i18n="adminProfessionalDetail.availableLabel">Достъпен за заявки:</strong> <span data-i18n="{{ 'adminProfessionalDetail.availableYes' if item.available_for_requests else 'adminProfessionalDetail.availableNo' }}">{{ "Да" if item.available_for_requests else "Не" }}</span></p>
+        <p><strong data-i18n="adminProfessionalDetail.photoLabel">URL Ð½Ð° ÑÐ½Ð¸Ð¼ÐºÐ°:</strong> {% if item.photo_url %}{{ item.photo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">Ð½ÑÐ¼Ð°</span>{% endif %}</p>
+        <p><strong data-i18n="adminProfessionalDetail.logoLabel">URL Ð½Ð° Ð»Ð¾Ð³Ð¾:</strong> {% if item.logo_url %}{{ item.logo_url|e }}{% else %}<span data-i18n="adminProfessionalDetail.notAvailable">Ð½ÑÐ¼Ð°</span>{% endif %}</p>
+        <p><strong data-i18n="adminProfessionalDetail.availableLabel">Ð”Ð¾ÑÑ‚ÑŠÐ¿ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸:</strong> <span data-i18n="{{ 'adminProfessionalDetail.availableYes' if item.available_for_requests else 'adminProfessionalDetail.availableNo' }}">{{ "Ð”Ð°" if item.available_for_requests else "ÐÐµ" }}</span></p>
       </section>
 
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
         <label>
-          <span data-i18n="adminProfessionalDetail.updateStatus">Обнови статуса</span>
+          <span data-i18n="adminProfessionalDetail.updateStatus">ÐžÐ±Ð½Ð¾Ð²Ð¸ ÑÑ‚Ð°Ñ‚ÑƒÑÐ°</span>
           <select name="status" required>
             {% for option in status_options %}
               <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
@@ -130,37 +135,37 @@
           </select>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="adminProfessionalDetail.internalNotes">Вътрешни бележки</span>
-          <textarea name="internal_notes" rows="6" data-i18n-attr="placeholder:adminProfessionalDetail.internalNotesPlaceholder" placeholder="Поверителни бележки за админ екипа">{{ item.internal_notes|e }}</textarea>
+          <span data-i18n="adminProfessionalDetail.internalNotes">Ð’ÑŠÑ‚Ñ€ÐµÑˆÐ½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸</span>
+          <textarea name="internal_notes" rows="6" data-i18n-attr="placeholder:adminProfessionalDetail.internalNotesPlaceholder" placeholder="ÐŸÐ¾Ð²ÐµÑ€Ð¸Ñ‚ÐµÐ»Ð½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸ Ð·Ð° Ð°Ð´Ð¼Ð¸Ð½ ÐµÐºÐ¸Ð¿Ð°">{{ item.internal_notes|e }}</textarea>
         </label>
         <label>
-          <span data-i18n="adminProfessionalDetail.featuredProvider">Избран доставчик</span>
+          <span data-i18n="adminProfessionalDetail.featuredProvider">Ð˜Ð·Ð±Ñ€Ð°Ð½ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº</span>
           <input type="checkbox" name="featured" value="1" {% if item.featured %}checked{% endif %}>
         </label>
         <label>
-          <span data-i18n="adminProfessionalDetail.availableToggle">Активен за заявки</span>
+          <span data-i18n="adminProfessionalDetail.availableToggle">ÐÐºÑ‚Ð¸Ð²ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
           <input type="checkbox" name="available_for_requests" value="1" {% if item.available_for_requests %}checked{% endif %}>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="adminProfessionalDetail.badges">Значки</span>
-          <textarea name="badges" rows="3" data-i18n-attr="placeholder:adminProfessionalDetail.badgesPlaceholder" placeholder="Премиум, Проверен, Бърз отговор">{{ item.badges|join(', ')|e }}</textarea>
+          <span data-i18n="adminProfessionalDetail.badges">Ð—Ð½Ð°Ñ‡ÐºÐ¸</span>
+          <textarea name="badges" rows="3" data-i18n-attr="placeholder:adminProfessionalDetail.badgesPlaceholder" placeholder="ÐŸÑ€ÐµÐ¼Ð¸ÑƒÐ¼, ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÐ½, Ð‘ÑŠÑ€Ð· Ð¾Ñ‚Ð³Ð¾Ð²Ð¾Ñ€">{{ item.badges|join(', ')|e }}</textarea>
         </label>
         <label>
-          <span data-i18n="adminProfessionalDetail.photoUrl">URL на снимка</span>
+          <span data-i18n="adminProfessionalDetail.photoUrl">URL Ð½Ð° ÑÐ½Ð¸Ð¼ÐºÐ°</span>
           <input type="url" name="photo_url" value="{{ item.photo_url|e }}" data-i18n-attr="placeholder:adminProfessionalDetail.urlPlaceholder" placeholder="https://...">
         </label>
         <label>
-          <span data-i18n="adminProfessionalDetail.logoUrl">URL на лого</span>
+          <span data-i18n="adminProfessionalDetail.logoUrl">URL Ð½Ð° Ð»Ð¾Ð³Ð¾</span>
           <input type="url" name="logo_url" value="{{ item.logo_url|e }}" data-i18n-attr="placeholder:adminProfessionalDetail.urlPlaceholder" placeholder="https://...">
         </label>
-        <button class="button button--primary" type="submit" data-i18n="adminProfessionalDetail.saveCta">Запази кандидатурата</button>
+        <button class="button button--primary" type="submit" data-i18n="adminProfessionalDetail.saveCta">Ð—Ð°Ð¿Ð°Ð·Ð¸ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð°Ñ‚Ð°</button>
       </form>
 
       <div class="admin-pilot-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminProfessionalDetail.timelineEyebrow">История на действията</p>
-            <h3 data-i18n="adminProfessionalDetail.timelineTitle">Най-новите първи</h3>
+            <p class="eyebrow" data-i18n="adminProfessionalDetail.timelineEyebrow">Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ Ð½Ð° Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸ÑÑ‚Ð°</p>
+            <h3 data-i18n="adminProfessionalDetail.timelineTitle">ÐÐ°Ð¹-Ð½Ð¾Ð²Ð¸Ñ‚Ðµ Ð¿ÑŠÑ€Ð²Ð¸</h3>
           </div>
         </div>
 
@@ -181,8 +186,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="adminProfessionalDetail.timelineEmptyTitle">Все още няма събития в историята.</h3>
-            <p data-i18n="adminProfessionalDetail.timelineEmptyCopy">Тази кандидатура ще започне да събира събития след следващото запазване.</p>
+            <h3 data-i18n="adminProfessionalDetail.timelineEmptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° ÑÑŠÐ±Ð¸Ñ‚Ð¸Ñ Ð² Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑÑ‚Ð°.</h3>
+            <p data-i18n="adminProfessionalDetail.timelineEmptyCopy">Ð¢Ð°Ð·Ð¸ ÐºÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑƒÑ€Ð° Ñ‰Ðµ Ð·Ð°Ð¿Ð¾Ñ‡Ð½Ðµ Ð´Ð° ÑÑŠÐ±Ð¸Ñ€Ð° ÑÑŠÐ±Ð¸Ñ‚Ð¸Ñ ÑÐ»ÐµÐ´ ÑÐ»ÐµÐ´Ð²Ð°Ñ‰Ð¾Ñ‚Ð¾ Ð·Ð°Ð¿Ð°Ð·Ð²Ð°Ð½Ðµ.</p>
           </div>
         {% endif %}
       </div>
@@ -193,3 +198,7 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
+
+
+
+
