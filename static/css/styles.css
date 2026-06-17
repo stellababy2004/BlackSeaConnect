@@ -21927,6 +21927,12 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   color: #29405f !important;
 }
 
+@media (max-width: 768px) {
+  .section-heading {
+    margin-bottom: 14px !important;
+  }
+}
+
 .home-resource-card__index,
 .feature-card .feature-card__icon,
 .trust-strip__chip,
