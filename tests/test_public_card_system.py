@@ -84,3 +84,22 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("-webkit-text-fill-color: #F8F6F2 !important;", self.styles)
         self.assertIn("rgba(255, 250, 243, 0.96)", tail)
         self.assertIn("#10223D !important;", tail)
+
+    def test_services_mobile_override_is_scoped_to_credibility_layer(self):
+        for selector in [
+            ".credibility-layer .feature-grid",
+            ".credibility-layer .feature-card",
+            ".credibility-layer .feature-card h3",
+            ".credibility-layer .feature-card p",
+            ".credibility-layer .feature-card .feature-card__icon",
+            ".credibility-layer .section-heading",
+            ".credibility-layer .section-heading__eyebrow",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
+        self.assertIn("grid-auto-rows: auto !important;", self.styles)
+        self.assertIn("aspect-ratio: auto !important;", self.styles)
+        self.assertIn("color: #F8F6F2 !important;", self.styles)
+        self.assertIn("color: rgba(248, 246, 242, 0.86) !important;", self.styles)
+        self.assertIn("color: #E7D7A5 !important;", self.styles)

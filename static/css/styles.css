@@ -21970,6 +21970,44 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .credibility-layer .feature-grid {
+    align-items: start !important;
+    grid-auto-rows: auto !important;
+  }
+
+  .credibility-layer .feature-card {
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .credibility-layer .feature-card h3 {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .credibility-layer .feature-card p {
+    color: rgba(248, 246, 242, 0.86) !important;
+    -webkit-text-fill-color: rgba(248, 246, 242, 0.86) !important;
+  }
+
+  .credibility-layer .feature-card .feature-card__icon,
+  .credibility-layer .section-heading__eyebrow {
+    color: #E7D7A5 !important;
+    -webkit-text-fill-color: #E7D7A5 !important;
+  }
+
+  .credibility-layer .section-heading {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+}
+
+@media (max-width: 768px) {
   .feature-card,
   .service-card,
   .resource-card,
