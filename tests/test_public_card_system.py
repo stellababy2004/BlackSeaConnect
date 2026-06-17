@@ -79,5 +79,7 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("body.home-page.home-page .hero.hero--home .hero__content", self.styles)
         self.assertIn("body.home-page.home-page .hero__content--home", self.styles)
         self.assertIn("@media (max-width: 768px) {\n  .section-heading {\n    margin-bottom: 14px !important;\n  }\n}", self.styles)
+        self.assertIn("min-height: 0 !important;", self.styles)
+        self.assertIn("color: #F8F6F2 !important;", self.styles)
         self.assertIn("rgba(255, 250, 243, 0.96)", tail)
         self.assertIn("#10223D !important;", tail)
