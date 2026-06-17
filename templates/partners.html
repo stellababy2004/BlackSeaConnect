@@ -21,7 +21,7 @@
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body>
+<body class="partners-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="/">BlackSea Connect</a>
@@ -120,6 +120,32 @@
       </div>
       <a class="button button--primary" href="/services" data-i18n="partners.partnersNextPrimary">Ð’Ð¸Ð¶ ÑƒÑÐ»ÑƒÐ³Ð¸Ñ‚Ðµ</a>
       <a class="button button--secondary" href="/pilot-access" data-i18n="partners.partnersNextSecondary">Ð—Ð°ÑÐ²Ð¸ Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
+    </section>
+
+    <section class="trust-layer" aria-labelledby="approved-partners-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Approved network</p>
+        <h2 id="approved-partners-title">Converted partner applications visible to the public.</h2>
+      </div>
+
+      {% if partners %}
+        <div class="trust-grid">
+          {% for partner in partners %}
+            <article class="trust-card">
+              <h3>{{ partner.company_name|e }}</h3>
+              <p><strong>Contact:</strong> {{ partner.contact_person|e }}</p>
+              <p><strong>Category:</strong> {{ partner.service_category|e }}</p>
+              <p><strong>Location:</strong> {{ partner.city|e }}, {{ partner.country|e }}</p>
+              {% if partner.website %}<p><strong>Website:</strong> {{ partner.website|e }}</p>{% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No approved partners yet.</h3>
+          <p>Converted partner applications will appear here once reviewed by the admin team.</p>
+        </div>
+      {% endif %}
     </section>
   </main>
 

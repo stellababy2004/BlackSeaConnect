@@ -21,7 +21,7 @@
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body>
+<body class="professionals-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="/">BlackSea Connect</a>
@@ -61,6 +61,7 @@
         <div class="hero__cta">
           <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ð° Ð·Ð° Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a>
           <a class="button button--secondary" href="#services" data-i18n="heroSecondaryCta">Ð’Ð¸Ð¶ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸Ñ‚Ðµ ÑƒÑÐ»ÑƒÐ³Ð¸</a>
+          <a class="button button--ghost" href="/owners/register" data-i18n="professionalsOwnerCta">Need help for your property?</a>
         </div>
         <div class="trust-strip" aria-label="Network highlights">
           <span class="trust-strip__chip" data-i18n="highlightFree">Ð Ð°Ð½Ð½Ð¸ÑÑ‚ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ðµ Ð±ÐµÐ·Ð¿Ð»Ð°Ñ‚ÐµÐ½</span>
@@ -99,6 +100,32 @@
         </p>
       </div>
       <a class="button button--primary" href="/professionals/apply" data-i18n="joinPrimaryCta">ÐžÑ‚Ð¸Ð´Ð¸ ÐºÑŠÐ¼ Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸ÑÑ‚Ð°</a>
+    </section>
+
+    <section class="trust-layer" aria-labelledby="approved-professionals-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow">Approved network</p>
+        <h2 id="approved-professionals-title">Converted professional applications visible to the public.</h2>
+      </div>
+
+      {% if professionals %}
+        <div class="trust-grid">
+          {% for professional in professionals %}
+            <article class="trust-card">
+              <h3>{{ professional.full_name|e }}</h3>
+              <p><strong>Category:</strong> {{ professional.professional_category|e }}</p>
+              <p><strong>Location:</strong> {{ professional.city|e }}, {{ professional.country|e }}</p>
+              <p><strong>Languages:</strong> {{ professional.languages|e }}</p>
+              <p>{{ professional.short_bio|e }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No approved professionals yet.</h3>
+          <p>Converted professional applications will appear here once reviewed by the admin team.</p>
+        </div>
+      {% endif %}
     </section>
   </main>
 

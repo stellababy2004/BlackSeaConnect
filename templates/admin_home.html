@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>Admin Â· BlackSea Connect</title>
+  <title>Admin · BlackSea Connect</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="admin-cockpit-page">
@@ -17,13 +17,18 @@
       <div>
         <p class="eyebrow">BLACKSEA CONNECT</p>
         <h1>Admin cockpit</h1>
-        <p>Premium operational view for concierge and pilot demand. Built directly from the JSONL intake stream.</p>
+        <p>Premium operational view for leads, applications, owner accounts, and service requests.</p>
       </div>
 
       <div class="admin-cockpit-actions">
         <a class="button button--primary" href="/admin/pilot-requests">View Pilot Leads</a>
         <a class="button button--secondary" href="/admin/concierge-requests">View Concierge Requests</a>
+        <a class="button button--secondary" href="/admin/partners">View Partner Applications</a>
+        <a class="button button--secondary" href="/admin/professionals">View Professional Applications</a>
+        <a class="button button--secondary" href="/admin/service-requests">View Service Requests</a>
         <a class="button button--ghost" href="/admin/pilot-requests/export">Export Leads CSV</a>
+        <a class="button button--ghost" href="/admin/partners/export">Export Partners CSV</a>
+        <a class="button button--ghost" href="/admin/professionals/export">Export Professionals CSV</a>
       </div>
     </section>
 
@@ -53,8 +58,32 @@
         <strong>{{ lost_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
+        <span>Owner Accounts</span>
+        <strong>{{ owner_accounts }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Active Requests</span>
+        <strong>{{ active_service_requests }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Completed Requests</span>
+        <strong>{{ completed_service_requests }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Requests This Month</span>
+        <strong>{{ service_requests_this_month }}</strong>
+      </article>
+      <article class="admin-kpi-card">
         <span>Concierge Requests</span>
         <strong>{{ concierge_requests }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Partner Applications</span>
+        <strong>{{ partner_applications }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Professional Applications</span>
+        <strong>{{ professional_applications }}</strong>
       </article>
     </section>
 
@@ -68,6 +97,40 @@
         </div>
         <div class="admin-pipeline-grid">
           {% for stage in pipeline %}
+            <div class="admin-pipeline-card">
+              <span>{{ stage.label }}</span>
+              <strong>{{ stage.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="admin-cockpit-panel">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Partner pipeline</p>
+            <h2>Partner application stages</h2>
+          </div>
+        </div>
+        <div class="admin-pipeline-grid">
+          {% for stage in partner_pipeline %}
+            <div class="admin-pipeline-card">
+              <span>{{ stage.label }}</span>
+              <strong>{{ stage.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="admin-cockpit-panel">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Professional pipeline</p>
+            <h2>Professional application stages</h2>
+          </div>
+        </div>
+        <div class="admin-pipeline-grid">
+          {% for stage in professional_pipeline %}
             <div class="admin-pipeline-card">
               <span>{{ stage.label }}</span>
               <strong>{{ stage.count }}</strong>
@@ -102,7 +165,7 @@
         {% else %}
           <div class="admin-empty-state">
             <h3>No activity yet.</h3>
-            <p>Once a lead is saved or a concierge request arrives, it will appear here automatically.</p>
+            <p>Once a lead or request is saved, it will appear here automatically.</p>
           </div>
         {% endif %}
       </article>
@@ -110,7 +173,3 @@
   </main>
 </body>
 </html>
-
-
-
-

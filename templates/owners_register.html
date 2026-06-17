@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title data-i18n="ownerRegisterPageTitle">BlackSea Connect | Owner Registration</title>
+  <meta name="description" data-i18n-attr="content:ownerRegisterMeta" content="Register your property and create an owner account for service requests and status tracking.">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <meta property="og:title" data-i18n-attr="content:ownerRegisterPageTitleOg" content="BlackSea Connect | Owner Registration">
+  <meta property="og:description" data-i18n-attr="content:ownerRegisterMetaOg" content="Register your property and create an owner account for service requests and status tracking.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" data-i18n-attr="content:ownerRegisterPageTitleOg" content="BlackSea Connect | Owner Registration">
+  <meta name="twitter:description" data-i18n-attr="content:ownerRegisterMetaOg" content="Register your property and create an owner account for service requests and status tracking.">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="owner-portal-page">
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
+          <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
+          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Демо</a>
+          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link is-active" href="/owners/register" data-i18n="navOwnerPortal">Собственици</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="/owners/login" data-i18n="ownerLoginCta">Вход за собственици</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="ownerRegisterEyebrow">Портал за собственици</p>
+        <h1 data-i18n="ownerRegisterTitle">Създайте акаунт за вашия имот и подавайте заявки спокойно.</h1>
+        <p class="hero__text" data-i18n="ownerRegisterIntro">
+          Регистрирайте веднъж апартамент, вила или ваканционен имот и следете всяка заявка от тихо, премиум табло.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="#owner-register-form" data-i18n="ownerRegisterPrimaryCta">Отвори формата</a>
+          <a class="button button--secondary" href="/owners/login" data-i18n="ownerRegisterSecondaryCta">Вход за собственици</a>
+        </div>
+        <div class="trust-strip" aria-label="Owner portal highlights">
+          <span class="trust-strip__chip" data-i18n="ownerRegisterChip1">Еднократна регистрация</span>
+          <span class="trust-strip__chip" data-i18n="ownerRegisterChip2">Сигурни заявки за услуги</span>
+          <span class="trust-strip__chip" data-i18n="ownerRegisterChip3">Проследяване на статус</span>
+          <span class="trust-strip__chip" data-i18n="ownerRegisterChip4">Премиум опит</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="cta-panel cta-panel--pilot" id="owner-register-form" aria-labelledby="owner-register-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow" data-i18n="ownerRegisterCardEyebrow">Регистрация</p>
+        <h2 id="owner-register-title" data-i18n="ownerRegisterCardTitle">Създайте профил за вашия имот.</h2>
+        <p class="cta-panel__copy" data-i18n="ownerRegisterCardCopy">
+          Ще използваме данните ви за вход, заявки за услуги и последваща координация.
+        </p>
+      </div>
+
+      <form class="pilot-form" method="post" action="/owners/register">
+        <div class="pilot-form__grid">
+          <label class="pilot-form__field">
+            <span data-i18n="ownerFullName">Full Name</span>
+            <input type="text" name="full_name" value="{{ form_values.full_name|e }}" required placeholder="Your full name" data-i18n-attr="placeholder:ownerFullNamePlaceholder">
+            {% if errors.full_name %}<p class="form-error" data-i18n="ownerFullNameRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerEmail">Email</span>
+            <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" data-i18n-attr="placeholder:ownerEmailPlaceholder">
+            {% if errors.email %}<p class="form-error" data-i18n="ownerEmailRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerPhone">Phone</span>
+            <input type="text" name="phone" value="{{ form_values.phone|e }}" required placeholder="+359..." data-i18n-attr="placeholder:ownerPhonePlaceholder">
+            {% if errors.phone %}<p class="form-error" data-i18n="ownerPhoneRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerPropertyType">Property Type</span>
+            <input type="text" name="property_type" value="{{ form_values.property_type|e }}" required placeholder="Villa, apartment, holiday home" data-i18n-attr="placeholder:ownerPropertyTypePlaceholder">
+            {% if errors.property_type %}<p class="form-error" data-i18n="ownerPropertyTypeRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerCity">City</span>
+            <input type="text" name="city" value="{{ form_values.city|e }}" required placeholder="Varna, Burgas..." data-i18n-attr="placeholder:ownerCityPlaceholder">
+            {% if errors.city %}<p class="form-error" data-i18n="ownerCityRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerPropertyName">Property Name</span>
+            <input type="text" name="property_name" value="{{ form_values.property_name|e }}" placeholder="Sea View Villa" data-i18n-attr="placeholder:ownerPropertyNamePlaceholder">
+          </label>
+          <label class="pilot-form__field">
+            <span data-i18n="ownerUnits">Number of Units</span>
+            <input type="number" name="number_of_units" min="1" step="1" value="{{ form_values.number_of_units|e }}" required placeholder="1" data-i18n-attr="placeholder:ownerUnitsPlaceholder">
+            {% if errors.number_of_units %}<p class="form-error" data-i18n="ownerUnitsRequired">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field pilot-form__field--full">
+            <span data-i18n="ownerNotes">Notes</span>
+            <textarea name="notes" rows="5" placeholder="Anything we should know about the property?" data-i18n-attr="placeholder:ownerNotesPlaceholder">{{ form_values.notes|e }}</textarea>
+          </label>
+        </div>
+
+        <div class="pilot-form__footer">
+          <button class="button button--primary" type="submit" data-i18n="ownerRegisterSubmit">Create account</button>
+          <p class="pilot-form__hint">
+            <a href="/owners/login" data-i18n="ownerRegisterLoginLink">Already registered? Open the login page.</a>
+          </p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p data-i18n="footerDescription">Quiet operational software for coastal properties.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="/services" data-i18n="navServices">Услуги</a>
+      <a href="/partners" data-i18n="navPartners">Партньори</a>
+      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="/owners/register" data-i18n="navOwnerPortal">Собственици</a>
+      <a href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
+      <p data-i18n="footerMeta">The owner portal keeps registration, requests, and tracking in one calm flow.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/translations.js?v=20260608"></script>
+  <script src="/static/js/i18n.js?v=20260608"></script>
+</body>
+</html>

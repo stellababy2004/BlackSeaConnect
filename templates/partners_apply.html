@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Partner Application</title>
+  <meta name="description" content="Apply to join the BlackSea Connect partner network for trusted coastal service companies.">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="/">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="/partners">Partners</a>
+          <a class="site-nav__link" href="/professionals">Professionals</a>
+          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
+          <a class="site-nav__link is-active" href="/partners/apply">Apply</a>
+        </nav>
+        <a class="button button--ghost topbar__portal" href="/partners">Back to partners</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home">
+      <div class="hero__copy">
+        <p class="eyebrow">Partner registration</p>
+        <h1>Join the BlackSea Connect partner network.</h1>
+        <p class="hero__text">
+          Share your company details and we will review your application for the coastal partner network.
+        </p>
+        <div class="hero__cta">
+          <a class="button button--primary" href="#partner-form">Open application form</a>
+          <a class="button button--secondary" href="/partners">View partner network</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {% if submitted %}
+      <section class="cta-panel">
+        <div class="cta-panel__content">
+          <p class="section-heading__eyebrow">Application received</p>
+          <h2>Thank you. Your partner application is now marked as NEW.</h2>
+          <p class="cta-panel__copy">We have saved your details and sent the admin team a notification for review.</p>
+        </div>
+        <a class="button button--primary" href="/partners">Return to partners</a>
+      </section>
+    {% endif %}
+
+    <section class="cta-panel cta-panel--pilot" id="partner-form" aria-labelledby="partner-form-title">
+      <div class="cta-panel__content">
+        <p class="section-heading__eyebrow">Application form</p>
+        <h2 id="partner-form-title">Tell us about your company and the services you provide.</h2>
+        <p class="cta-panel__copy">All applications enter the CRM pipeline with status NEW and are reviewed by the admin team.</p>
+      </div>
+
+      {% if save_error %}
+        <div class="admin-empty-state">
+          <h3>We could not save your application right now.</h3>
+          <p>Please try again in a moment.</p>
+        </div>
+      {% endif %}
+
+      <form class="pilot-form" method="post" action="/partners/apply">
+        <div class="pilot-form__grid">
+          <label class="pilot-form__field">
+            <span>Company Name</span>
+            <input name="company_name" type="text" required value="{{ form_values.company_name|e }}" placeholder="Company name">
+            {% if errors.company_name %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Contact Person</span>
+            <input name="contact_person" type="text" required value="{{ form_values.contact_person|e }}" placeholder="Full name">
+            {% if errors.contact_person %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Email</span>
+            <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="name@example.com">
+            {% if errors.email %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Phone</span>
+            <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="+359...">
+            {% if errors.phone %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Website</span>
+            <input name="website" type="url" value="{{ form_values.website|e }}" placeholder="https://example.com">
+          </label>
+          <label class="pilot-form__field">
+            <span>City</span>
+            <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="Varna, Burgas...">
+            {% if errors.city %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Country</span>
+            <input name="country" type="text" required value="{{ form_values.country|e }}" placeholder="Bulgaria">
+            {% if errors.country %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Service Category</span>
+            <select class="pilot-form__input" name="service_category" required>
+              <option value="">Select a category</option>
+              {% for category in service_categories %}
+                <option value="{{ category.label|e }}" {% if form_values.service_category == category.label %}selected{% endif %}>{{ category.label|e }}</option>
+              {% endfor %}
+            </select>
+            {% if errors.service_category %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field pilot-form__field--full">
+            <span>Description</span>
+            <textarea name="description" rows="5" required placeholder="Describe your services and coverage area.">{{ form_values.description|e }}</textarea>
+            {% if errors.description %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+          <label class="pilot-form__field">
+            <span>Years in Business</span>
+            <input name="years_in_business" type="number" min="0" step="1" required value="{{ form_values.years_in_business|e }}" placeholder="5">
+            {% if errors.years_in_business %}<p class="form-error">This field is required.</p>{% endif %}
+          </label>
+        </div>
+
+        <div class="pilot-form__footer">
+          <button class="button button--primary" type="submit">Submit application</button>
+          <p class="pilot-form__hint">Your application will be reviewed by the admin team and added to the approved network only after conversion.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

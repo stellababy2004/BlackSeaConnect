@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,111 +8,145 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="adminPilotRequestDetail.pageTitle">BlackSea Connect | Ð—Ð°ÑÐ²ÐºÐ° Ð·Ð° Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</title>
+  <title data-i18n="adminPilotRequestDetail.pageTitle">BlackSea Connect | Pilot Request Detail</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="adminPilotRequestDetail.heroEyebrow">ÐŸÐ¾Ð´Ñ€Ð¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°</p>
-        <h1 data-i18n="adminPilotRequestDetail.heroTitle">ÐŸÑ€ÐµÐ³Ð»ÐµÐ´ Ð½Ð° Ð·Ð°ÑÐ²ÐºÐ° Ð·Ð° Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</h1>
-        <p data-i18n="adminPilotRequestDetail.heroCopy">Ð¢ÑƒÐº Ð²Ð¸Ð¶Ð´Ð°Ñ‚Ðµ Ð¿ÑŠÐ»Ð½Ð¸Ñ‚Ðµ Ð´Ð°Ð½Ð½Ð¸ Ð¸ Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑÑ‚Ð° Ð½Ð° Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°.</p>
+        <p class="eyebrow" data-i18n="adminPilotRequestDetail.heroEyebrow">PRIVATE INTAKE</p>
+        <h1 data-i18n="adminPilotRequestDetail.heroTitle">Pilot request detail</h1>
+        <p data-i18n="adminPilotRequestDetail.heroCopy">Review the request, assign a responsible owner, and keep the internal timeline current.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin/pilot-requests" data-i18n="adminPilotRequestDetail.backToRequests">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ Ð·Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ</a>
-        <a class="button button--ghost" href="/admin/pilot-requests/export" data-i18n="adminPilotRequestDetail.exportCsv">Ð•ÐºÑÐ¿Ð¾Ñ€Ñ‚ Ð½Ð° CSV</a>
+        <a class="button button--secondary" href="/admin/pilot-requests" data-i18n="adminPilotRequestDetail.backToRequests">Back to requests</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export" data-i18n="adminPilotRequestDetail.exportCsv">Export Leads CSV</a>
       </div>
     </section>
 
-    <article class="admin-pilot-card">
-      <div class="admin-pilot-card__topline">
+    <article class="admin-pilot-card admin-request-detail-card">
+      <div class="admin-pilot-card__topline admin-request-detail-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        {% set status_key = 'adminPilotRequestDetail.statusNew' if item.status|lower == 'new' else 'adminPilotRequestDetail.statusAssigned' if item.status|lower == 'assigned' else 'adminPilotRequestDetail.statusCompleted' %}
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ status_key }}">
-          {% if item.status|lower == 'new' %}ÐÐ¾Ð²Ð°{% elif item.status|lower == 'assigned' %}ÐÐ°Ð·Ð½Ð°Ñ‡ÐµÐ½Ð°{% else %}Ð—Ð°Ð²ÑŠÑ€ÑˆÐµÐ½Ð°{% endif %}
+        <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ item.status|lower|e }}">
+          {{ item.status|replace('_', ' ')|upper }}
         </span>
       </div>
 
-      <h2>{% if item.name %}{{ item.name|e }}{% else %}<span data-i18n="adminPilotRequestDetail.anonymousRequest">ÐÐ½Ð¾Ð½Ð¸Ð¼Ð½Ð° Ð·Ð°ÑÐ²ÐºÐ°</span>{% endif %}</h2>
+      <h2 class="admin-request-detail-card__title">
+        {% if item.name %}{{ item.name|e }}{% else %}Anonymous request{% endif %}
+      </h2>
+      <p class="admin-request-detail-card__source">
+        <strong>Source:</strong> {{ item.submitted_from|e if item.submitted_from else 'Pilot form' }}
+      </p>
 
-      <dl class="admin-pilot-details">
+      <dl class="admin-pilot-details admin-request-detail-details">
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailId">ID</dt>
+          <dt>ID</dt>
           <dd>{{ item.id|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailStatus">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ</dt>
-          <dd>{{ item.status|upper|e }}</dd>
+          <dt>Status</dt>
+          <dd>{{ item.status|replace('_', ' ')|upper }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailOwner">ÐžÑ‚Ð³Ð¾Ð²Ð¾Ñ€Ð½Ð¸Ðº</dt>
-          <dd>{{ item.owner|e if item.owner else "ÐÐµ Ðµ Ð½Ð°Ð·Ð½Ð°Ñ‡ÐµÐ½" }}</dd>
+          <dt data-i18n="adminPilotRequestDetail.detailOwner">Owner / contact</dt>
+          <dd>{% if item.owner %}{{ item.owner|e }}{% else %}Unassigned{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailPropertyType">Ð¢Ð¸Ð¿ Ð¸Ð¼Ð¾Ñ‚</dt>
+          <dt>Property type</dt>
           <dd>{{ item.property_type|e }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailApartmentCount">Ð‘Ñ€Ð¾Ð¹ Ð°Ð¿Ð°Ñ€Ñ‚Ð°Ð¼ÐµÐ½Ñ‚Ð¸</dt>
-          <dd>{{ item.apartment_count|e }}</dd>
+          <dt>Apartment count</dt>
+          <dd>{% if item.apartment_count %}{{ item.apartment_count|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailLocation">Ð“Ñ€Ð°Ð´ / Ð»Ð¾ÐºÐ°Ñ†Ð¸Ñ</dt>
-          <dd>{{ item.city|e }}</dd>
+          <dt>City / location</dt>
+          <dd>{% if item.city %}{{ item.city|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailNeeds">ÐÑƒÐ¶Ð´Ð¸ Ð¾Ñ‚ ÐºÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶</dt>
-          <dd>{{ item.concierge_needs|e }}</dd>
+          <dt>Concierge needs</dt>
+          <dd>{% if item.concierge_needs %}{{ item.concierge_needs|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailEmail">Ð˜Ð¼ÐµÐ¹Ð»</dt>
-          <dd>{{ item.email|e }}</dd>
+          <dt>Email</dt>
+          <dd>{% if item.email %}{{ item.email|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailLanguage">Ð•Ð·Ð¸Ðº</dt>
-          <dd>{% if item.current_language %}{{ item.current_language|e }}{% else %}<span data-i18n="adminPilotRequestDetail.notAvailable">Ð½ÑÐ¼Ð°</span>{% endif %}</dd>
+          <dt>Language</dt>
+          <dd>{% if item.current_language %}{{ item.current_language|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailSource">Ð˜Ð·Ð¿Ñ€Ð°Ñ‚ÐµÐ½Ð¾ Ð¾Ñ‚</dt>
-          <dd>{{ item.submitted_from|e }}</dd>
+          <dt>Submitted from</dt>
+          <dd>{% if item.submitted_from %}{{ item.submitted_from|e }}{% else %}n/a{% endif %}</dd>
         </div>
       </dl>
 
-      <form class="admin-pilot-status-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/update">
+      <section class="admin-cockpit-panel admin-request-detail-description">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Request description</p>
+            <h3>What the owner asked for</h3>
+          </div>
+        </div>
+        <p class="admin-request-detail-description__copy">{% if item.needs %}{{ item.needs|e }}{% else %}{{ item.concierge_needs|e }}{% endif %}</p>
+      </section>
+
+      <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/update">
         <label>
-          <span data-i18n="adminPilotRequestDetail.updateStatus">ÐžÐ±Ð½Ð¾Ð²Ð¸ ÑÑ‚Ð°Ñ‚ÑƒÑÐ°</span>
-          <select name="status" required>
+          <span data-i18n="adminPilotRequestDetail.updateStatus">Status</span>
+          <select class="admin-request-detail-form__control" name="status" required>
             {% for option in status_options %}
               <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span data-i18n="adminPilotRequestDetail.ownerLabel">ÐžÑ‚Ð³Ð¾Ð²Ð¾Ñ€Ð½Ð¸Ðº</span>
-          <input type="text" name="owner" value="{{ item.owner|e }}" data-i18n-attr="placeholder:adminPilotRequestDetail.ownerPlaceholder" placeholder="ÐžÑ‚Ð³Ð¾Ð²Ð¾Ñ€Ð½Ð¾ Ð»Ð¸Ñ†Ðµ">
+          <span data-i18n="adminPilotRequestDetail.ownerLabel">Assign owner</span>
+          <input class="admin-request-detail-form__control" type="text" name="owner" value="{{ item.owner|e }}" placeholder="Owner contact or internal assignee">
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="adminPilotRequestDetail.internalNotes">Ð’ÑŠÑ‚Ñ€ÐµÑˆÐ½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸</span>
-          <textarea name="notes" rows="6" data-i18n-attr="placeholder:adminPilotRequestDetail.internalNotesPlaceholder" placeholder="ÐŸÐ¾Ð²ÐµÑ€Ð¸Ñ‚ÐµÐ»Ð½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸ Ð·Ð° Ð°Ð´Ð¼Ð¸Ð½ ÐµÐºÐ¸Ð¿Ð°">{{ item.notes|e }}</textarea>
+          <span data-i18n="adminPilotRequestDetail.internalNotes">Internal notes</span>
+          <textarea
+            class="admin-request-detail-form__control admin-request-detail-form__textarea"
+            name="notes"
+            rows="6"
+            placeholder="Private notes for the admin team"
+          >{{ item.notes|e }}</textarea>
         </label>
-        <button class="button button--primary" type="submit" data-i18n="adminPilotRequestDetail.saveCta">Ð—Ð°Ð¿Ð°Ð·Ð¸ Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°</button>
+        <button class="button button--primary admin-request-detail-form__submit" type="submit">Save request</button>
       </form>
 
-      <div class="admin-pilot-timeline">
+      <section class="admin-cockpit-panel admin-request-detail-matching">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminPilotRequestDetail.timelineEyebrow">Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ Ð½Ð° Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸ÑÑ‚Ð°</p>
-            <h3 data-i18n="adminPilotRequestDetail.timelineTitle">ÐÐ°Ð¹-Ð½Ð¾Ð²Ð¸Ñ‚Ðµ Ð¿ÑŠÑ€Ð²Ð¸</h3>
+            <p class="eyebrow" data-i18n="adminPilotRequestDetail.timelineEyebrow">Request context</p>
+            <h3 data-i18n="adminPilotRequestDetail.timelineTitle">Legacy pilot request details</h3>
+          </div>
+        </div>
+        <div class="admin-empty-state">
+          <h3 data-i18n="adminPilotRequestDetail.timelineEmptyTitle">Unified admin cockpit view</h3>
+          <p data-i18n="adminPilotRequestDetail.timelineEmptyCopy">This legacy record now uses the same readable cards, controls and spacing as the rest of the admin request pages.</p>
+        </div>
+      </section>
+
+      <div class="admin-pilot-timeline admin-request-detail-timeline">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow" data-i18n="adminPilotRequestDetail.timelineEyebrow">Timeline</p>
+            <h3 data-i18n="adminPilotRequestDetail.timelineTitle">Most recent events first</h3>
           </div>
         </div>
 
         {% if timeline %}
           <div class="admin-timeline-list">
             {% for event in timeline %}
-              <article class="admin-timeline-item">
-                <div class="admin-pilot-card__topline">
-                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+              <article class="admin-timeline-item admin-request-detail-timeline__item">
+                <div class="admin-pilot-card__topline admin-request-detail-timeline__topline">
+                  <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">
+                    {{ event.type|replace('_', ' ')|title }}
+                  </span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
                 <strong>{{ event.title|e }}</strong>
@@ -124,8 +158,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="adminPilotRequestDetail.timelineEmptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° ÑÑŠÐ±Ð¸Ñ‚Ð¸Ñ Ð² Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑÑ‚Ð°.</h3>
-            <p data-i18n="adminPilotRequestDetail.timelineEmptyCopy">Ð¢Ð°Ð·Ð¸ Ð·Ð°ÑÐ²ÐºÐ° Ñ‰Ðµ Ð·Ð°Ð¿Ð¾Ñ‡Ð½Ðµ Ð´Ð° ÑÑŠÐ±Ð¸Ñ€Ð° ÑÑŠÐ±Ð¸Ñ‚Ð¸Ñ ÑÐ»ÐµÐ´ ÑÐ»ÐµÐ´Ð²Ð°Ñ‰Ð¾Ñ‚Ð¾ Ð·Ð°Ð¿Ð°Ð·Ð²Ð°Ð½Ðµ.</p>
+            <h3>No timeline entries yet.</h3>
+            <p>The request timeline will appear after the next save.</p>
           </div>
         {% endif %}
       </div>
@@ -133,7 +167,3 @@
   </main>
 </body>
 </html>
-
-
-
-

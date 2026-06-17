@@ -13,6 +13,10 @@
     "/professionals/apply": "professionalsApply",
     "/network": "network",
     "/request-service": "requestService",
+    "/owners/register": "ownersRegister",
+    "/owners/login": "ownersLogin",
+    "/owners/dashboard": "ownersDashboard",
+    "/owners/request-service": "ownersRequestService",
     "/admin/service-requests": "adminServiceRequests"
   };
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";

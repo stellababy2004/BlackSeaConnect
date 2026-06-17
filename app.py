@@ -15,12 +15,13 @@ import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
-from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
+from flask import Flask, Response, g, jsonify, redirect, render_template, request, session, url_for
 
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
+app.secret_key = os.getenv("SECRET_KEY", "blacksea-connect-dev-secret")
 SITE_URL = os.environ.get("SITE_URL", "https://blackseaconnect.com").rstrip("/")
 PUBLIC_SITEMAP_PATHS = (
     "/",
@@ -28,42 +29,63 @@ PUBLIC_SITEMAP_PATHS = (
     "/demo/operations",
     "/guest/a-302",
     "/partners",
+    "/partners/apply",
     "/professionals",
     "/professionals/apply",
     "/network",
     "/request-service",
+    "/owners/register",
     "/pilot-access",
     *SEO_LANDING_PAGE_ORDER,
 )
 
+CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
+CRM_PIPELINE_STATUS_ALIASES = {
+    "pending": "new",
+    "approved": "converted",
+    "rejected": "lost",
+}
 PILOT_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 PILOT_STATUS_ALIASES = {
     "rejected": "lost",
 }
-PROFESSIONAL_STATUS_VALUES = ("pending", "approved", "rejected")
-PROFESSIONAL_SERVICE_CATEGORIES = (
+PARTNER_STATUS_VALUES = CRM_PIPELINE_STATUS_VALUES
+PROFESSIONAL_STATUS_VALUES = CRM_PIPELINE_STATUS_VALUES
+PARTNER_SERVICE_CATEGORIES = (
+    "Transfers",
     "Cleaning",
-    "Maintenance",
-    "Plumbing",
-    "Electrical",
-    "Laundry",
-    "Airport transfer",
+    "Property Maintenance",
     "Concierge",
-    "Property management",
-    "Photography",
-    "Real estate support",
+    "Real Estate",
+    "Hospitality",
+    "Other",
+)
+PARTNER_SERVICE_CATEGORY_TRANSLATION_KEYS = {
+    "Transfers": "partners.partnerServiceTransfers",
+    "Cleaning": "partners.partnerServiceCleaning",
+    "Property Maintenance": "partners.partnerServicePropertyMaintenance",
+    "Concierge": "partners.partnerServiceConcierge",
+    "Real Estate": "partners.partnerServiceRealEstate",
+    "Hospitality": "partners.partnerServiceHospitality",
+    "Other": "partners.partnerServiceOther",
+}
+PROFESSIONAL_SERVICE_CATEGORIES = (
+    "Concierge",
+    "Property Manager",
+    "Guest Relations",
+    "Maintenance",
+    "Hospitality Consultant",
+    "Real Estate Professional",
+    "Other",
 )
 PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS = {
-    "Cleaning": "professionals.professionalsServiceCleaning",
-    "Maintenance": "professionals.professionalsServiceMaintenance",
-    "Plumbing": "professionals.professionalsServicePlumbing",
-    "Electrical": "professionals.professionalsServiceElectrical",
-    "Laundry": "professionals.professionalsServiceLaundry",
-    "Airport transfer": "professionals.professionalsServiceAirportTransfer",
-    "Concierge": "professionals.professionalsServiceConcierge",
-    "Property management": "professionals.professionalsServicePropertyManagement",
-    "Photography": "professionals.professionalsServicePhotography",
-    "Real estate support": "professionals.professionalsServiceRealEstateSupport",
+    "Concierge": "professionals.professionalCategoryConcierge",
+    "Property Manager": "professionals.professionalCategoryPropertyManager",
+    "Guest Relations": "professionals.professionalCategoryGuestRelations",
+    "Maintenance": "professionals.professionalCategoryMaintenance",
+    "Hospitality Consultant": "professionals.professionalCategoryHospitalityConsultant",
+    "Real Estate Professional": "professionals.professionalCategoryRealEstateProfessional",
+    "Other": "professionals.professionalCategoryOther",
 }
 NETWORK_SERVICE_CATEGORIES = (
     "Cleaning",
@@ -85,13 +107,58 @@ NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
     "Electrical": "network.networkCategoryElectrical",
     "Photography": "network.networkCategoryPhotography",
 }
-SERVICE_REQUEST_STATUS_VALUES = ("new", "assigned", "completed")
-SERVICE_REQUEST_STATUS_TRANSITIONS = {
-    "new": "new",
-    "assigned": "assigned",
-    "completed": "completed",
-}
 SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
+OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
+OWNER_SESSION_ID_KEY = "owner_id"
+OWNER_SESSION_EMAIL_KEY = "owner_email"
+OWNER_SESSION_NAME_KEY = "owner_name"
+OWNER_SERVICE_CATEGORIES = (
+    "Cleaning",
+    "Airport Transfer",
+    "Concierge",
+    "Photography",
+    "Property Inspection",
+    "Maintenance",
+    "Plumbing",
+    "Electrical",
+    "Laundry",
+    "Property Management",
+    "Other",
+)
+OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS = {
+    "Cleaning": "owners.ownerCategoryCleaning",
+    "Airport Transfer": "owners.ownerCategoryAirportTransfer",
+    "Concierge": "owners.ownerCategoryConcierge",
+    "Photography": "owners.ownerCategoryPhotography",
+    "Property Inspection": "owners.ownerCategoryPropertyInspection",
+    "Maintenance": "owners.ownerCategoryMaintenance",
+    "Plumbing": "owners.ownerCategoryPlumbing",
+    "Electrical": "owners.ownerCategoryElectrical",
+    "Laundry": "owners.ownerCategoryLaundry",
+    "Property Management": "owners.ownerCategoryPropertyManagement",
+    "Other": "owners.ownerCategoryOther",
+}
+OWNER_SERVICE_CATEGORY_MATCHES = {
+    "Cleaning": "Cleaning",
+    "Airport Transfer": "Transfers",
+    "Concierge": "Concierge",
+    "Photography": "Photography",
+    "Property Inspection": "Property Management",
+    "Maintenance": "Property Management",
+    "Plumbing": "Plumbing",
+    "Electrical": "Electrical",
+    "Laundry": "Laundry",
+    "Property Management": "Property Management",
+    "Other": "",
+}
+SERVICE_REQUEST_STATUS_VALUES = ("new", "assigned", "in_progress", "completed", "cancelled")
+SERVICE_REQUEST_STATUS_ALIASES = {
+    "in progress": "in_progress",
+    "in-progress": "in_progress",
+    "done": "completed",
+    "canceled": "cancelled",
+    "cancelled": "cancelled",
+}
 
 
 def _professional_service_category_items():
@@ -104,6 +171,16 @@ def _professional_service_category_items():
     ]
 
 
+def _partner_service_category_items():
+    return [
+        {
+            "label": category,
+            "key": PARTNER_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+        }
+        for category in PARTNER_SERVICE_CATEGORIES
+    ]
+
+
 def _network_service_category_items():
     return [
         {
@@ -112,6 +189,70 @@ def _network_service_category_items():
         }
         for category in NETWORK_SERVICE_CATEGORIES
     ]
+
+
+def _owner_service_category_items():
+    return [
+        {
+            "label": category,
+            "key": OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+        }
+        for category in OWNER_SERVICE_CATEGORIES
+    ]
+
+
+def _normalize_application_status(status):
+    normalized = str(status or "").strip().lower()
+    normalized = CRM_PIPELINE_STATUS_ALIASES.get(normalized, normalized)
+    return normalized if normalized in CRM_PIPELINE_STATUS_VALUES else "new"
+
+
+def _application_status_label(status):
+    return _normalize_application_status(status).upper()
+
+
+def _normalize_application_timeline(timeline, default_type):
+    if not isinstance(timeline, list):
+        return []
+
+    normalized_timeline = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+
+        normalized_entry = dict(entry)
+        normalized_entry["type"] = str(normalized_entry.get("type", "")).strip() or default_type
+        normalized_entry["created_at"] = str(normalized_entry.get("created_at", "")).strip()
+        normalized_entry["title"] = str(normalized_entry.get("title", "")).strip()
+        normalized_entry["detail"] = str(normalized_entry.get("detail", "")).strip()
+        if "status" in normalized_entry:
+            normalized_entry["status"] = _normalize_application_status(normalized_entry.get("status"))
+        else:
+            normalized_entry["status"] = ""
+        normalized_timeline.append(normalized_entry)
+
+    return normalized_timeline
+
+
+def _append_application_timeline_event(record, event_type, title, detail="", status=None):
+    timeline = list(record.get("timeline") or [])
+    timeline.append({
+        "type": event_type,
+        "created_at": _utc_now_iso(),
+        "title": title,
+        "detail": detail,
+        "status": _normalize_application_status(status or record.get("status", "new")),
+    })
+    record["timeline"] = timeline
+
+
+def _application_status_counts(applications):
+    counts = {status: 0 for status in CRM_PIPELINE_STATUS_VALUES}
+    for record in applications:
+        status = _normalize_application_status(record.get("status", "new"))
+        if status in counts:
+            counts[status] += 1
+    return counts
 
 
 def _service_request_fallback_id(record):
@@ -190,7 +331,7 @@ def _build_network_provider(record):
 def _load_network_providers():
     providers = []
     for record in _load_professional_applications():
-        if _normalize_professional_status(record.get("status")) != "approved":
+        if _normalize_professional_status(record.get("status")) != "converted":
             continue
         providers.append(_build_network_provider(record))
     providers.sort(key=lambda item: item.get("created_at", ""), reverse=True)
@@ -232,9 +373,149 @@ def _group_network_providers(providers):
     return grouped
 
 
+def _owner_account_fallback_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("full_name", "")),
+        str(record.get("city", "")),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"owner-{digest[:16]}"
+
+
+def _normalize_owner_account(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _owner_account_fallback_id(normalized)
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+
+    for field in (
+        "full_name",
+        "email",
+        "phone",
+        "property_type",
+        "city",
+        "property_name",
+        "notes",
+    ):
+        normalized[field] = str(normalized.get(field, "")).strip()
+
+    number_of_units = str(normalized.get("number_of_units", "")).strip()
+    normalized["number_of_units"] = int(number_of_units) if number_of_units.isdigit() else 0
+    return normalized
+
+
+def _load_owner_accounts():
+    path = OWNER_ACCOUNTS_JSONL_PATH
+    accounts = []
+
+    if not path.exists():
+        return accounts
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_owner_account(record)
+            if normalized:
+                accounts.append(normalized)
+
+    accounts.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return accounts
+
+
+def _save_owner_accounts(accounts):
+    data_dir = OWNER_ACCOUNTS_JSONL_PATH.parent
+    data_dir.mkdir(exist_ok=True)
+    with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
+        for record in accounts:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _find_owner_account_by_email(email):
+    target_email = str(email or "").strip().lower()
+    if not target_email:
+        return None
+
+    for account in _load_owner_accounts():
+        if str(account.get("email", "")).strip().lower() == target_email:
+            return account
+    return None
+
+
+def _find_owner_account(account_id):
+    for account in _load_owner_accounts():
+        if str(account.get("id", "")) == str(account_id):
+            return account
+    return None
+
+
+def _upsert_owner_account(record):
+    accounts = _load_owner_accounts()
+    target_email = str(record.get("email", "")).strip().lower()
+    updated = False
+
+    for index, account in enumerate(accounts):
+        if str(account.get("email", "")).strip().lower() == target_email:
+            merged = dict(account)
+            merged.update(record)
+            merged["id"] = account.get("id", merged.get("id", ""))
+            merged["created_at"] = account.get("created_at", merged.get("created_at", ""))
+            accounts[index] = _normalize_owner_account(merged)
+            updated = True
+            break
+
+    if not updated:
+        accounts.append(_normalize_owner_account(record))
+
+    _save_owner_accounts(accounts)
+    return _find_owner_account_by_email(target_email)
+
+
 def _normalize_service_request_status(status):
     normalized = str(status or "").strip().lower()
+    normalized = SERVICE_REQUEST_STATUS_ALIASES.get(normalized, normalized)
     return normalized if normalized in SERVICE_REQUEST_STATUS_VALUES else "new"
+
+
+def _normalize_service_request_timeline(timeline):
+    if not isinstance(timeline, list):
+        return []
+
+    normalized_timeline = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+
+        normalized_entry = dict(entry)
+        normalized_entry["type"] = str(normalized_entry.get("type", "")).strip() or "SERVICE_REQUEST_CREATED"
+        normalized_entry["created_at"] = str(normalized_entry.get("created_at", "")).strip()
+        normalized_entry["title"] = str(normalized_entry.get("title", "")).strip()
+        normalized_entry["detail"] = str(normalized_entry.get("detail", "")).strip()
+        if "status" in normalized_entry:
+            normalized_entry["status"] = _normalize_service_request_status(normalized_entry.get("status"))
+        else:
+            normalized_entry["status"] = ""
+        normalized_timeline.append(normalized_entry)
+
+    return normalized_timeline
+
+
+def _service_request_status_label(status):
+    return _normalize_service_request_status(status).upper()
+
+
+def _service_request_category_match(service_category):
+    category = str(service_category or "").strip()
+    if category in NETWORK_SERVICE_CATEGORIES:
+        return category
+    return OWNER_SERVICE_CATEGORY_MATCHES.get(category, "")
 
 
 def _normalize_service_request(record):
@@ -245,6 +526,7 @@ def _normalize_service_request(record):
     normalized["id"] = str(normalized.get("id", "")).strip() or _service_request_fallback_id(normalized)
     normalized["created_at"] = str(normalized.get("created_at", "")).strip()
     normalized["status"] = _normalize_service_request_status(normalized.get("status", "new"))
+    normalized["request_source"] = str(normalized.get("request_source", "public")).strip().lower() or "public"
 
     for field in (
         "name",
@@ -252,17 +534,27 @@ def _normalize_service_request(record):
         "phone",
         "property_city",
         "property_type",
+        "property",
         "service_category",
         "preferred_date",
         "description",
         "assigned_provider_id",
         "assigned_provider_name",
         "assigned_provider_company",
+        "assigned_professional_id",
+        "assigned_professional_name",
+        "assigned_professional_company",
         "internal_notes",
+        "owner_id",
+        "owner_email",
+        "owner_name",
+        "owner_phone",
     ):
         normalized[field] = str(normalized.get(field, "")).strip()
 
-    normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
+    normalized["last_update_at"] = str(normalized.get("last_update_at", normalized["created_at"])).strip()
+    normalized["number_of_units"] = str(normalized.get("number_of_units", "")).strip()
+    normalized["timeline"] = _normalize_service_request_timeline(normalized.get("timeline", []))
     return normalized
 
 
@@ -328,7 +620,7 @@ def _append_service_request_timeline_event(record, event_type, title, detail="",
 
 
 def _service_request_timeline_events(record):
-    timeline = _normalize_professional_application_timeline(record.get("timeline"))
+    timeline = _normalize_service_request_timeline(record.get("timeline"))
     if timeline:
         return timeline
 
@@ -339,14 +631,14 @@ def _service_request_timeline_events(record):
     return [{
         "type": "SERVICE_REQUEST_CREATED",
         "created_at": created_at,
-        "title": f"Service request created: {record.get('name') or record.get('property_city') or 'Unnamed request'}",
-        "detail": f"{record.get('service_category', '')} · {record.get('property_city', '')}",
+        "title": f"Service request created: {record.get('name') or record.get('property') or record.get('property_city') or 'Unnamed request'}",
+        "detail": f"{record.get('service_category', '')} · {record.get('property_city') or record.get('property', '')}",
         "status": _normalize_service_request_status(record.get("status", "new")),
     }]
 
 
 def _service_request_matching_providers(service_category):
-    category = str(service_category or "").strip()
+    category = _service_request_category_match(service_category)
     if category not in NETWORK_SERVICE_CATEGORIES:
         return []
 
@@ -448,6 +740,83 @@ def _queue_service_request_notification(record, admin_detail_url):
     ).start()
 
 
+def _service_request_smtp_settings():
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+    return smtp_host, smtp_port_raw, smtp_from
+
+
+def _service_request_email_body(record, recipient_label, admin_detail_url, event_label):
+    assigned_professional = record.get("assigned_provider_company", "") or record.get("assigned_provider_name", "")
+    lines = [
+        f"Recipient: {recipient_label}",
+        f"Event: {event_label}",
+        f"Request ID: {record.get('id', '')}",
+        f"Category: {record.get('service_category', '')}",
+        f"Status: {_service_request_status_label(record.get('status', 'new'))}",
+        f"Property: {record.get('property') or record.get('property_city', '')}",
+        f"Preferred date: {record.get('preferred_date', '')}",
+        f"Contact phone: {record.get('phone') or record.get('owner_phone', '')}",
+        f"Assigned professional: {assigned_professional or 'n/a'}",
+        f"Admin detail URL: {admin_detail_url}",
+    ]
+    return "\n".join(lines)
+
+
+def _send_service_request_email(record, recipient_email, recipient_label, admin_detail_url, event_label, subject):
+    smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
+    if not smtp_host or not smtp_port_raw or not smtp_from or not recipient_email:
+        app.logger.warning(
+            "Service request email skipped: SMTP configuration missing for %s.",
+            recipient_label,
+        )
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning("Service request email skipped: SMTP_PORT is invalid.")
+        return False, "smtp_invalid_port"
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = recipient_email
+    message.set_content(_service_request_email_body(record, recipient_label, admin_detail_url, event_label))
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    app.logger.warning("Service request email: SMTP STARTTLS was unavailable.")
+
+            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Service request email send failed for %s: %s", recipient_label, type(exc).__name__)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+def _queue_service_request_email(record, recipient_email, recipient_label, admin_detail_url, event_label, subject):
+    Thread(
+        target=_send_service_request_email,
+        args=(record, recipient_email, recipient_label, admin_detail_url, event_label, subject),
+        daemon=True,
+    ).start()
+
+
 def _build_home_counters():
     providers = _load_network_providers()
     service_requests = _load_service_requests()
@@ -531,11 +900,6 @@ def demo_operations():
     return render_template("demo_operations.html")
 
 
-@app.route("/partners")
-def partners():
-    return render_template("partners.html")
-
-
 @app.route("/pilot-access")
 def pilot_access():
     return render_template("pilot_access.html")
@@ -571,6 +935,420 @@ def professionals():
     return render_template(
         "professionals.html",
         service_categories=_professional_service_category_items(),
+        professionals=_load_public_professional_applications(),
+    )
+
+
+def _current_owner_account():
+    owner_account = getattr(g, "owner_account", None)
+    if owner_account:
+        return owner_account
+
+    owner_id = str(session.get(OWNER_SESSION_ID_KEY, "")).strip()
+    owner_email = str(session.get(OWNER_SESSION_EMAIL_KEY, "")).strip()
+    if owner_id:
+        owner_account = _find_owner_account(owner_id)
+    if not owner_account and owner_email:
+        owner_account = _find_owner_account_by_email(owner_email)
+
+    if owner_account:
+        g.owner_account = owner_account
+    return owner_account
+
+
+def owner_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        owner_account = _current_owner_account()
+        if not owner_account:
+            return redirect(url_for("owners_login", next=request.path))
+        g.owner_account = owner_account
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+@app.route("/owners/register", methods=["GET", "POST"])
+def owners_register():
+    form_values = {
+        "full_name": "",
+        "email": "",
+        "phone": "",
+        "property_type": "",
+        "city": "",
+        "property_name": "",
+        "number_of_units": "",
+        "notes": "",
+    }
+    errors = {}
+    submitted = False
+
+    if request.method == "POST":
+        form_values.update({
+            "full_name": str(request.form.get("full_name", "")).strip(),
+            "email": str(request.form.get("email", "")).strip(),
+            "phone": str(request.form.get("phone", "")).strip(),
+            "property_type": str(request.form.get("property_type", "")).strip(),
+            "city": str(request.form.get("city", "")).strip(),
+            "property_name": str(request.form.get("property_name", "")).strip(),
+            "number_of_units": str(request.form.get("number_of_units", "")).strip(),
+            "notes": str(request.form.get("notes", "")).strip(),
+        })
+
+        required_fields = {
+            "full_name": "fullNameRequiredError",
+            "email": "emailRequiredError",
+            "phone": "phoneRequiredError",
+            "property_type": "propertyTypeRequiredError",
+            "city": "cityRequiredError",
+            "number_of_units": "numberOfUnitsRequiredError",
+        }
+
+        for field, error_key in required_fields.items():
+            if not form_values[field]:
+                errors[field] = error_key
+
+        if form_values["number_of_units"] and not form_values["number_of_units"].isdigit():
+            errors["number_of_units"] = "numberOfUnitsInvalidError"
+
+        if not errors:
+            account = {
+                "id": "",
+                "created_at": _utc_now_iso(),
+                "full_name": form_values["full_name"],
+                "email": form_values["email"],
+                "phone": form_values["phone"],
+                "property_type": form_values["property_type"],
+                "city": form_values["city"],
+                "property_name": form_values["property_name"],
+                "number_of_units": int(form_values["number_of_units"]),
+                "notes": form_values["notes"],
+            }
+            saved_account = _upsert_owner_account(account)
+            if saved_account:
+                session[OWNER_SESSION_ID_KEY] = saved_account["id"]
+                session[OWNER_SESSION_EMAIL_KEY] = saved_account["email"]
+                session[OWNER_SESSION_NAME_KEY] = saved_account["full_name"]
+            submitted = True
+            return redirect(url_for("owners_dashboard"))
+
+    return render_template(
+        "owners_register.html",
+        form_values=form_values,
+        errors=errors,
+        submitted=submitted,
+    ), (400 if errors else 200)
+
+
+@app.route("/owners/login", methods=["GET", "POST"])
+def owners_login():
+    form_values = {"email": ""}
+    errors = {}
+
+    if request.method == "POST":
+        form_values["email"] = str(request.form.get("email", "")).strip()
+        if not form_values["email"]:
+            errors["email"] = "emailRequiredError"
+        else:
+            account = _find_owner_account_by_email(form_values["email"])
+            if not account:
+                errors["email"] = "ownerNotFoundError"
+            else:
+                session[OWNER_SESSION_ID_KEY] = account["id"]
+                session[OWNER_SESSION_EMAIL_KEY] = account["email"]
+                session[OWNER_SESSION_NAME_KEY] = account["full_name"]
+                next_target = str(request.args.get("next", "")).strip() or url_for("owners_dashboard")
+                return redirect(next_target)
+
+    return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
+
+
+@app.route("/owners/dashboard")
+@owner_required
+def owners_dashboard():
+    owner_account = _current_owner_account()
+    owner_requests = []
+    for record in _load_service_requests():
+        if str(record.get("request_source", "public")).lower() != "owner":
+            continue
+        if str(record.get("owner_email", "")).strip().lower() != str(owner_account.get("email", "")).strip().lower():
+            continue
+
+        timeline = _service_request_timeline_events(record)
+        last_update_at = str(record.get("last_update_at", "")).strip()
+        if timeline:
+            last_update_at = timeline[-1].get("created_at", last_update_at)
+
+        owner_requests.append({
+            **record,
+            "last_update_at": last_update_at or record.get("created_at", ""),
+            "assigned_professional": record.get("assigned_provider_company", "") or record.get("assigned_provider_name", ""),
+            "timeline": list(reversed(timeline)),
+        })
+
+    owner_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return render_template(
+        "owners_dashboard.html",
+        owner_account=owner_account,
+        owner_requests=owner_requests,
+    )
+
+
+@app.route("/owners/request-service", methods=["GET", "POST"])
+@owner_required
+def owners_request_service():
+    owner_account = _current_owner_account()
+    form_values = {
+        "category": "",
+        "preferred_date": "",
+        "property": owner_account.get("property_name", "") or owner_account.get("property_type", ""),
+        "description": "",
+        "contact_phone": owner_account.get("phone", ""),
+    }
+    errors = {}
+    submitted = False
+
+    if request.method == "POST":
+        form_values.update({
+            "category": str(request.form.get("category", "")).strip(),
+            "preferred_date": str(request.form.get("preferred_date", "")).strip(),
+            "property": str(request.form.get("property", "")).strip(),
+            "description": str(request.form.get("description", "")).strip(),
+            "contact_phone": str(request.form.get("contact_phone", "")).strip(),
+        })
+
+        required_fields = {
+            "category": "categoryRequiredError",
+            "preferred_date": "preferredDateRequiredError",
+            "property": "propertyRequiredError",
+            "description": "descriptionRequiredError",
+            "contact_phone": "contactPhoneRequiredError",
+        }
+
+        for field, error_key in required_fields.items():
+            if not form_values[field]:
+                errors[field] = error_key
+
+        if form_values["category"] and form_values["category"] not in OWNER_SERVICE_CATEGORIES:
+            errors["category"] = "categoryInvalidError"
+
+        if not errors:
+            request_record = {
+                "id": uuid4().hex,
+                "created_at": _utc_now_iso(),
+                "last_update_at": _utc_now_iso(),
+                "status": "new",
+                "request_source": "owner",
+                "owner_id": owner_account.get("id", ""),
+                "owner_email": owner_account.get("email", ""),
+                "owner_name": owner_account.get("full_name", ""),
+                "owner_phone": owner_account.get("phone", ""),
+                "name": owner_account.get("full_name", ""),
+                "email": owner_account.get("email", ""),
+                "phone": form_values["contact_phone"],
+                "property": form_values["property"],
+                "property_city": owner_account.get("city", ""),
+                "property_type": owner_account.get("property_type", ""),
+                "number_of_units": owner_account.get("number_of_units", ""),
+                "service_category": form_values["category"],
+                "preferred_date": form_values["preferred_date"],
+                "description": form_values["description"],
+                "assigned_provider_id": "",
+                "assigned_provider_name": "",
+                "assigned_provider_company": "",
+                "assigned_professional_id": "",
+                "assigned_professional_name": "",
+                "assigned_professional_company": "",
+                "internal_notes": "",
+                "timeline": [],
+            }
+            _append_service_request_timeline_event(
+                request_record,
+                "SERVICE_REQUEST_CREATED",
+                "Request created",
+                f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
+                status="new",
+            )
+
+            SERVICE_REQUESTS_JSONL_PATH.parent.mkdir(exist_ok=True)
+            with SERVICE_REQUESTS_JSONL_PATH.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
+
+            admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
+            _queue_service_request_email(
+                request_record,
+                owner_account.get("email", ""),
+                "owner",
+                admin_detail_url,
+                "created",
+                "[BlackSeaConnect] Service request received",
+            )
+            _queue_service_request_email(
+                request_record,
+                os.getenv("SERVICE_REQUEST_ADMIN_EMAIL", "").strip() or "concierge@blackseaconnect.com",
+                "admin",
+                admin_detail_url,
+                "created",
+                "[BlackSeaConnect] New owner service request",
+            )
+            submitted = True
+            return redirect(url_for("owners_dashboard"))
+
+    return render_template(
+        "owners_request_service.html",
+        owner_account=owner_account,
+        form_values=form_values,
+        errors=errors,
+        submitted=submitted,
+        service_categories=_owner_service_category_items(),
+    ), (400 if errors else 200)
+
+
+@app.route("/owners/logout")
+def owners_logout():
+    session.pop(OWNER_SESSION_ID_KEY, None)
+    session.pop(OWNER_SESSION_EMAIL_KEY, None)
+    session.pop(OWNER_SESSION_NAME_KEY, None)
+    return redirect(url_for("owners_login"))
+
+
+@app.route("/partners")
+def partners():
+    return render_template(
+        "partners.html",
+        service_categories=_partner_service_category_items(),
+        partners=_load_public_partner_applications(),
+    )
+
+
+@app.route("/partners/apply", methods=["GET", "POST"])
+def partners_apply():
+    form_values = {
+        "company_name": "",
+        "contact_person": "",
+        "email": "",
+        "phone": "",
+        "website": "",
+        "city": "",
+        "country": "",
+        "service_category": "",
+        "description": "",
+        "years_in_business": "",
+    }
+    errors = {}
+    submitted = False
+
+    if request.method == "POST":
+        form_values.update({
+            "company_name": str(request.form.get("company_name", "")).strip(),
+            "contact_person": str(request.form.get("contact_person", "")).strip(),
+            "email": str(request.form.get("email", "")).strip(),
+            "phone": str(request.form.get("phone", "")).strip(),
+            "website": str(request.form.get("website", "")).strip(),
+            "city": str(request.form.get("city", "")).strip(),
+            "country": str(request.form.get("country", "")).strip(),
+            "service_category": str(request.form.get("service_category", "")).strip(),
+            "description": str(request.form.get("description", "")).strip(),
+            "years_in_business": str(request.form.get("years_in_business", "")).strip(),
+        })
+
+        required_field_error_keys = {
+            "company_name": "companyNameRequiredError",
+            "contact_person": "contactPersonRequiredError",
+            "email": "emailRequiredError",
+            "phone": "phoneRequiredError",
+            "city": "cityRequiredError",
+            "country": "countryRequiredError",
+            "service_category": "serviceCategoryRequiredError",
+            "description": "descriptionRequiredError",
+            "years_in_business": "yearsInBusinessRequiredError",
+        }
+
+        for field, error_key in required_field_error_keys.items():
+            if not form_values[field]:
+                errors[field] = error_key
+
+        if form_values["service_category"] and form_values["service_category"] not in PARTNER_SERVICE_CATEGORIES:
+            errors["service_category"] = "serviceCategoryInvalidError"
+
+        if form_values["years_in_business"] and not form_values["years_in_business"].isdigit():
+            errors["years_in_business"] = "yearsInBusinessInvalidError"
+
+        if not errors:
+            years_in_business = int(form_values["years_in_business"])
+            record = {
+                "id": uuid4().hex,
+                "created_at": _utc_now_iso(),
+                "status": "new",
+                "company_name": form_values["company_name"],
+                "contact_person": form_values["contact_person"],
+                "email": form_values["email"],
+                "phone": form_values["phone"],
+                "website": form_values["website"],
+                "city": form_values["city"],
+                "country": form_values["country"],
+                "service_category": form_values["service_category"],
+                "description": form_values["description"],
+                "years_in_business": years_in_business,
+                "owner": "",
+                "notes": "",
+                "internal_notes": "",
+                "timeline": [],
+            }
+            _append_partner_timeline_event(
+                record,
+                "PARTNER_APPLICATION_CREATED",
+                f"Partner application created: {record.get('company_name') or record.get('contact_person') or 'Unnamed application'}",
+                f"{record.get('service_category', '')} · {record.get('city', '')}",
+                status="new",
+            )
+
+            data_dir = Path("data")
+            data_dir.mkdir(exist_ok=True)
+
+            try:
+                with (data_dir / "partner_applications.jsonl").open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            except OSError:
+                app.logger.exception("Partner application save failed.")
+                return render_template(
+                    "partners_apply.html",
+                    service_categories=_partner_service_category_items(),
+                    form_values=form_values,
+                    errors={},
+                    submitted=False,
+                    save_error=True,
+                ), 500
+
+            admin_detail_url = url_for("admin_partner_application_detail", application_id=record["id"], _external=True)
+            _queue_partner_application_notification_email(record, admin_detail_url)
+            submitted = True
+            return render_template(
+                "partners_apply.html",
+                service_categories=_partner_service_category_items(),
+                submitted=True,
+                application_id=record["id"],
+                form_values=form_values,
+                errors={},
+                save_error=False,
+            )
+
+        return render_template(
+            "partners_apply.html",
+            service_categories=_partner_service_category_items(),
+            form_values=form_values,
+            errors=errors,
+            submitted=False,
+            save_error=False,
+        ), 400
+
+    return render_template(
+        "partners_apply.html",
+        service_categories=_partner_service_category_items(),
+        submitted=False,
+        form_values=form_values,
+        errors=errors,
+        save_error=False,
     )
 
 
@@ -624,7 +1402,9 @@ def request_service():
             request_record = {
                 "id": uuid4().hex,
                 "created_at": _utc_now_iso(),
+                "last_update_at": _utc_now_iso(),
                 "status": "new",
+                "request_source": "public",
                 "name": form_values["name"],
                 "email": form_values["email"],
                 "phone": form_values["phone"],
@@ -636,6 +1416,9 @@ def request_service():
                 "assigned_provider_id": "",
                 "assigned_provider_name": "",
                 "assigned_provider_company": "",
+                "assigned_professional_id": "",
+                "assigned_professional_name": "",
+                "assigned_professional_company": "",
                 "internal_notes": "",
                 "timeline": [],
             }
@@ -716,89 +1499,82 @@ def network_provider_detail(provider_id):
 def professionals_apply():
     form_values = {
         "full_name": "",
-        "company_name": "",
-        "service_type": "",
-        "city": "",
-        "phone": "",
         "email": "",
+        "phone": "",
+        "city": "",
+        "country": "",
+        "professional_category": "",
         "languages": "",
-        "experience_years": "",
-        "description": "",
-        "website_or_social": "",
-        "consent": False,
+        "experience": "",
+        "short_bio": "",
     }
     errors = {}
+    submitted = False
 
     if request.method == "POST":
         form_values.update({
             "full_name": str(request.form.get("full_name", "")).strip(),
-            "company_name": str(request.form.get("company_name", "")).strip(),
-            "service_type": str(request.form.get("service_type", "")).strip(),
-            "city": str(request.form.get("city", "")).strip(),
-            "phone": str(request.form.get("phone", "")).strip(),
             "email": str(request.form.get("email", "")).strip(),
+            "phone": str(request.form.get("phone", "")).strip(),
+            "city": str(request.form.get("city", "")).strip(),
+            "country": str(request.form.get("country", "")).strip(),
+            "professional_category": str(request.form.get("professional_category", "")).strip(),
             "languages": str(request.form.get("languages", "")).strip(),
-            "experience_years": str(request.form.get("experience_years", "")).strip(),
-            "description": str(request.form.get("description", "")).strip(),
-            "website_or_social": str(request.form.get("website_or_social", "")).strip(),
-            "consent": request.form.get("consent") in {"1", "on", "true", "yes"},
+            "experience": str(request.form.get("experience", "")).strip(),
+            "short_bio": str(request.form.get("short_bio", "")).strip(),
         })
 
         required_field_error_keys = {
             "full_name": "fullNameRequiredError",
-            "company_name": "companyNameRequiredError",
-            "service_type": "serviceTypeRequiredError",
-            "city": "cityRequiredError",
-            "phone": "phoneRequiredError",
             "email": "emailRequiredError",
+            "phone": "phoneRequiredError",
+            "city": "cityRequiredError",
+            "country": "countryRequiredError",
+            "professional_category": "categoryRequiredError",
             "languages": "languagesRequiredError",
-            "experience_years": "experienceRequiredError",
-            "description": "descriptionRequiredError",
+            "experience": "experienceRequiredError",
+            "short_bio": "shortBioRequiredError",
         }
 
         for field, error_key in required_field_error_keys.items():
             if not form_values[field]:
                 errors[field] = error_key
 
-        if form_values["service_type"] and form_values["service_type"] not in PROFESSIONAL_SERVICE_CATEGORIES:
-            errors["service_type"] = "serviceTypeInvalidError"
-
-        if form_values["experience_years"] and not form_values["experience_years"].isdigit():
-            errors["experience_years"] = "experienceInvalidError"
-
-        if not form_values["consent"]:
-            errors["consent"] = "consentRequiredError"
+        if form_values["professional_category"] and form_values["professional_category"] not in PROFESSIONAL_SERVICE_CATEGORIES:
+            errors["professional_category"] = "categoryInvalidError"
 
         if not errors:
-            try:
-                experience_years = int(form_values["experience_years"])
-            except ValueError:
-                experience_years = form_values["experience_years"]
+            experience_value = form_values["experience"]
 
             record = {
                 "id": uuid4().hex,
                 "created_at": _utc_now_iso(),
-                "status": "pending",
+                "status": "new",
                 "full_name": form_values["full_name"],
-                "company_name": form_values["company_name"],
-                "service_type": form_values["service_type"],
-                "city": form_values["city"],
-                "phone": form_values["phone"],
                 "email": form_values["email"],
+                "phone": form_values["phone"],
+                "city": form_values["city"],
+                "country": form_values["country"],
+                "professional_category": form_values["professional_category"],
+                "service_type": form_values["professional_category"],
                 "languages": form_values["languages"],
-                "experience_years": experience_years,
-                "description": form_values["description"],
-                "website_or_social": form_values["website_or_social"],
-                "consent": True,
+                "experience": experience_value,
+                "experience_years": experience_value,
+                "short_bio": form_values["short_bio"],
+                "description": form_values["short_bio"],
+                "website": "",
+                "website_or_social": "",
                 "internal_notes": "",
+                "notes": "",
+                "owner": "",
                 "timeline": [],
             }
             _append_professional_timeline_event(
                 record,
                 "PROFESSIONAL_APPLICATION_CREATED",
                 f"Professional application created: {record.get('full_name') or record.get('company_name') or 'Unnamed application'}",
-                f"{record.get('service_type', '')} · {record.get('city', '')}",
-                status="pending",
+                f"{record.get('professional_category', '')} · {record.get('city', '')}",
+                status="new",
             )
 
             data_dir = Path("data")
@@ -819,7 +1595,8 @@ def professionals_apply():
                 ), 500
 
             admin_detail_url = url_for("admin_professional_detail", application_id=record["id"], _external=True)
-            _queue_professional_application_notification(record, admin_detail_url)
+            _queue_professional_application_notification_email(record, admin_detail_url)
+            submitted = True
 
             return render_template(
                 "professionals_apply.html",
@@ -1382,48 +2159,157 @@ def _load_concierge_requests():
     return requests_list
 
 
+def _normalize_partner_application_timeline(timeline):
+    return _normalize_application_timeline(timeline, "PARTNER_APPLICATION_CREATED")
+
+
+def _append_partner_timeline_event(record, event_type, title, detail="", status=None):
+    _append_application_timeline_event(record, event_type, title, detail=detail, status=status)
+
+
+def _partner_application_timeline_events(record):
+    timeline = _normalize_partner_application_timeline(record.get("timeline"))
+    if timeline:
+        return timeline
+
+    created_at = str(record.get("created_at", "")).strip()
+    if not created_at:
+        return []
+
+    return [{
+        "type": "PARTNER_APPLICATION_CREATED",
+        "created_at": created_at,
+        "title": f"Partner application created: {record.get('company_name') or record.get('contact_person') or 'Unnamed application'}",
+        "detail": f"{record.get('service_category', '')} · {record.get('city', '')}",
+        "status": _normalize_application_status(record.get("status", "new")),
+    }]
+
+
+def _fallback_partner_application_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("company_name", "")),
+        str(record.get("city", "")),
+        str(record.get("service_category", "")),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"partner-{digest[:16]}"
+
+
+def _normalize_partner_application(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _fallback_partner_application_id(normalized)
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+    normalized["status"] = _normalize_application_status(normalized.get("status", "new"))
+
+    normalized["company_name"] = str(normalized.get("company_name", "")).strip()
+    normalized["contact_person"] = str(normalized.get("contact_person", "")).strip()
+    normalized["email"] = str(normalized.get("email", "")).strip()
+    normalized["phone"] = str(normalized.get("phone", "")).strip()
+    normalized["website"] = str(normalized.get("website", "")).strip()
+    normalized["city"] = str(normalized.get("city", "")).strip()
+    normalized["country"] = str(normalized.get("country", "")).strip()
+    normalized["service_category"] = str(normalized.get("service_category", "")).strip()
+    normalized["description"] = str(normalized.get("description", "")).strip()
+
+    years_in_business = normalized.get("years_in_business", "")
+    if isinstance(years_in_business, str):
+        years_in_business = years_in_business.strip()
+        normalized["years_in_business"] = int(years_in_business) if years_in_business.isdigit() else years_in_business
+    elif isinstance(years_in_business, (int, float)):
+        normalized["years_in_business"] = int(years_in_business)
+    else:
+        normalized["years_in_business"] = str(years_in_business).strip()
+
+    normalized["owner"] = str(normalized.get("owner", "")).strip()
+    normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
+    normalized["notes"] = str(normalized.get("notes") or normalized["internal_notes"]).strip()
+    normalized["timeline"] = _normalize_partner_application_timeline(normalized.get("timeline", []))
+    return normalized
+
+
+def _load_partner_applications():
+    path = Path("data") / "partner_applications.jsonl"
+    applications = []
+
+    if not path.exists():
+        return applications
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_partner_application(record)
+            if normalized:
+                applications.append(normalized)
+
+    applications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return applications
+
+
+def _save_partner_applications(applications):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    path = data_dir / "partner_applications.jsonl"
+    with path.open("w", encoding="utf-8") as f:
+        for record in applications:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _find_partner_application(application_id):
+    for record in _load_partner_applications():
+        if str(record.get("id", "")) == str(application_id):
+            return record
+    return None
+
+
+def _partner_application_status_counts(applications):
+    return _application_status_counts(applications)
+
+
+def _admin_partner_activity_feed(applications):
+    events = []
+    for record in applications:
+        timeline_events = _partner_application_timeline_events(record)
+        if timeline_events:
+            events.extend(timeline_events)
+
+    events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return events[:10]
+
+
+def _load_public_partner_applications():
+    approved_applications = []
+    for record in _load_partner_applications():
+        if _normalize_application_status(record.get("status")) != "converted":
+            continue
+        approved_applications.append(record)
+
+    approved_applications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return approved_applications
+
+
 def _normalize_professional_status(status):
-    normalized = str(status or "").strip().lower()
-    return normalized if normalized in PROFESSIONAL_STATUS_VALUES else "pending"
+    return _normalize_application_status(status)
 
 
 def _professional_status_label(status):
-    return _normalize_professional_status(status).upper()
+    return _application_status_label(status)
 
 
 def _normalize_professional_application_timeline(timeline):
-    if not isinstance(timeline, list):
-        return []
-
-    normalized_timeline = []
-    for entry in timeline:
-        if not isinstance(entry, dict):
-            continue
-
-        normalized_entry = dict(entry)
-        normalized_entry["type"] = str(normalized_entry.get("type", "")).strip() or "PROFESSIONAL_APPLICATION_CREATED"
-        normalized_entry["created_at"] = str(normalized_entry.get("created_at", "")).strip()
-        normalized_entry["title"] = str(normalized_entry.get("title", "")).strip()
-        normalized_entry["detail"] = str(normalized_entry.get("detail", "")).strip()
-        if "status" in normalized_entry:
-            normalized_entry["status"] = _normalize_professional_status(normalized_entry.get("status"))
-        else:
-            normalized_entry["status"] = ""
-        normalized_timeline.append(normalized_entry)
-
-    return normalized_timeline
+    return _normalize_application_timeline(timeline, "PROFESSIONAL_APPLICATION_CREATED")
 
 
 def _append_professional_timeline_event(record, event_type, title, detail="", status=None):
-    timeline = list(record.get("timeline") or [])
-    timeline.append({
-        "type": event_type,
-        "created_at": _utc_now_iso(),
-        "title": title,
-        "detail": detail,
-        "status": _normalize_professional_status(status or record.get("status", "pending")),
-    })
-    record["timeline"] = timeline
+    _append_application_timeline_event(record, event_type, title, detail=detail, status=status)
 
 
 def _professional_application_timeline_events(record):
@@ -1439,8 +2325,8 @@ def _professional_application_timeline_events(record):
         "type": "PROFESSIONAL_APPLICATION_CREATED",
         "created_at": created_at,
         "title": f"Professional application created: {record.get('full_name') or record.get('company_name') or 'Unnamed application'}",
-        "detail": f"{record.get('service_type', '')} · {record.get('city', '')}",
-        "status": _normalize_professional_status(record.get("status", "pending")),
+        "detail": f"{record.get('professional_category') or record.get('service_type', '')} · {record.get('city', '')}",
+        "status": _normalize_application_status(record.get("status", "new")),
     }]
 
 
@@ -1448,8 +2334,8 @@ def _fallback_professional_application_id(record):
     parts = [
         str(record.get("created_at", "")),
         str(record.get("email", "")),
-        str(record.get("company_name", "")),
-        str(record.get("service_type", "")),
+        str(record.get("full_name", "")),
+        str(record.get("professional_category", "")),
         str(record.get("city", "")),
     ]
     digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
@@ -1463,23 +2349,33 @@ def _normalize_professional_application(record):
     normalized = dict(record)
     normalized["id"] = str(normalized.get("id", "")).strip() or _fallback_professional_application_id(normalized)
     normalized["created_at"] = str(normalized.get("created_at", "")).strip()
-    normalized["status"] = _normalize_professional_status(normalized.get("status", "pending"))
+    normalized["status"] = _normalize_professional_status(normalized.get("status", "new"))
 
-    for field in (
-        "full_name",
-        "company_name",
-        "service_type",
-        "city",
-        "phone",
-        "email",
-        "languages",
-        "description",
-        "website_or_social",
-        "internal_notes",
-    ):
-        normalized[field] = str(normalized.get(field, "")).strip()
+    normalized["full_name"] = str(normalized.get("full_name") or normalized.get("company_name", "")).strip()
+    normalized["email"] = str(normalized.get("email", "")).strip()
+    normalized["phone"] = str(normalized.get("phone", "")).strip()
+    normalized["city"] = str(normalized.get("city", "")).strip()
+    normalized["country"] = str(normalized.get("country", "")).strip()
+    normalized["professional_category"] = str(normalized.get("professional_category") or normalized.get("service_type", "")).strip()
+    normalized["service_type"] = normalized["professional_category"]
+    normalized["languages"] = str(normalized.get("languages", "")).strip()
+    normalized["short_bio"] = str(normalized.get("short_bio") or normalized.get("description", "")).strip()
+    normalized["description"] = normalized["short_bio"]
+    normalized["website"] = str(normalized.get("website", "")).strip()
+    normalized["owner"] = str(normalized.get("owner", "")).strip()
+    normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
+    normalized["notes"] = str(normalized.get("notes") or normalized["internal_notes"]).strip()
 
-    experience_years = normalized.get("experience_years", "")
+    experience_value = normalized.get("experience", normalized.get("experience_years", ""))
+    if isinstance(experience_value, str):
+        experience_value = experience_value.strip()
+        normalized["experience"] = int(experience_value) if experience_value.isdigit() else experience_value
+    elif isinstance(experience_value, (int, float)):
+        normalized["experience"] = int(experience_value)
+    else:
+        normalized["experience"] = str(experience_value).strip()
+
+    experience_years = normalized.get("experience_years", normalized.get("experience", ""))
     if isinstance(experience_years, str):
         experience_years = experience_years.strip()
         normalized["experience_years"] = int(experience_years) if experience_years.isdigit() else experience_years
@@ -1488,16 +2384,13 @@ def _normalize_professional_application(record):
     else:
         normalized["experience_years"] = str(experience_years).strip()
 
-    consent_value = normalized.get("consent", False)
-    normalized["consent"] = _normalize_bool_field(consent_value)
-
     normalized["featured"] = _normalize_bool_field(normalized.get("featured", False))
     normalized["badges"] = _normalize_professional_badges(normalized.get("badges", []))
     normalized["photo_url"] = str(normalized.get("photo_url", "")).strip()
     normalized["logo_url"] = str(normalized.get("logo_url", "")).strip()
     normalized["available_for_requests"] = _normalize_bool_field(normalized.get("available_for_requests", True))
-
     normalized["timeline"] = _normalize_professional_application_timeline(normalized.get("timeline", []))
+
     return normalized
 
 
@@ -1523,6 +2416,17 @@ def _load_professional_applications():
     return applications
 
 
+def _load_public_professional_applications():
+    approved_applications = []
+    for record in _load_professional_applications():
+        if _normalize_professional_status(record.get("status")) != "converted":
+            continue
+        approved_applications.append(record)
+
+    approved_applications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return approved_applications
+
+
 def _save_professional_applications(applications):
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
@@ -1540,12 +2444,7 @@ def _find_professional_application(application_id):
 
 
 def _professional_application_status_counts(applications):
-    counts = {status: 0 for status in PROFESSIONAL_STATUS_VALUES}
-    for record in applications:
-        status = _normalize_professional_status(record.get("status", "pending"))
-        if status in counts:
-            counts[status] += 1
-    return counts
+    return _application_status_counts(applications)
 
 
 def _admin_professional_activity_feed(applications):
@@ -1559,6 +2458,97 @@ def _admin_professional_activity_feed(applications):
     return events[:10]
 
 
+def _build_application_notification_email_body(application_type, record, admin_detail_url):
+    lines = [
+        f"Name: {record.get('full_name') or record.get('company_name') or record.get('contact_person') or 'n/a'}",
+        f"Email: {record.get('email', '')}",
+        f"Category: {record.get('service_category') or record.get('professional_category') or record.get('service_type') or 'n/a'}",
+        f"Date: {record.get('created_at', '')}",
+        f"Status: {_application_status_label(record.get('status', 'new'))}",
+        f"Admin Link: {admin_detail_url}",
+    ]
+
+    if application_type == "partner":
+        lines.insert(1, f"Company: {record.get('company_name', '')}")
+        lines.insert(3, f"Phone: {record.get('phone', '')}")
+        lines.append(f"City: {record.get('city', '')}")
+        lines.append(f"Country: {record.get('country', '')}")
+    else:
+        lines.insert(1, f"Phone: {record.get('phone', '')}")
+        lines.append(f"City: {record.get('city', '')}")
+        lines.append(f"Country: {record.get('country', '')}")
+
+    return "\n".join(lines)
+
+
+def _send_admin_application_notification_email(subject, body):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+    smtp_to = "concierge@blackseaconnect.com"
+
+    if not smtp_host or not smtp_port_raw or not smtp_from:
+        app.logger.warning(
+            "Admin application email skipped: SMTP configuration is missing for %s.",
+            _smtp_endpoint_label(smtp_host or "unknown", smtp_port_raw or "unknown"),
+        )
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning(
+            "Admin application email skipped: SMTP_PORT is invalid for %s.",
+            _smtp_endpoint_label(smtp_host, smtp_port_raw),
+        )
+        return False, "smtp_invalid_port"
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = smtp_to
+    message.set_content(body)
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    app.logger.warning("Admin application email: SMTP STARTTLS was unavailable.")
+
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Admin application email send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+def _queue_admin_application_notification_email(subject, body):
+    Thread(target=_send_admin_application_notification_email, args=(subject, body), daemon=True).start()
+
+
+def _queue_partner_application_notification_email(record, admin_detail_url):
+    subject = "[BlackSeaConnect] New Partner Application"
+    body = _build_application_notification_email_body("partner", record, admin_detail_url)
+    _queue_admin_application_notification_email(subject, body)
+
+
+def _queue_professional_application_notification_email(record, admin_detail_url):
+    subject = "[BlackSeaConnect] New Professional Application"
+    body = _build_application_notification_email_body("professional", record, admin_detail_url)
+    _queue_admin_application_notification_email(subject, body)
+
+
 def _build_professional_telegram_text(record, admin_detail_url):
     lines = [
         "New Professional Application",
@@ -1568,7 +2558,7 @@ def _build_professional_telegram_text(record, admin_detail_url):
         f"city: {record.get('city', '')}",
         f"phone: {record.get('phone', '')}",
         f"email: {record.get('email', '')}",
-        f"status: {_normalize_professional_status(record.get('status', 'pending')).upper()}",
+        f"status: {_normalize_professional_status(record.get('status', 'new')).upper()}",
         f"admin_detail_url: {admin_detail_url}",
     ]
     return "\n".join(lines)
@@ -1676,9 +2666,10 @@ def _admin_pilot_activity_feed(pilot_requests, concierge_requests):
     return events[:10]
 
 
-def _admin_activity_feed(pilot_requests, concierge_requests, professional_applications):
+def _admin_activity_feed(pilot_requests, concierge_requests, partner_applications, professional_applications):
     events = []
     events.extend(_admin_pilot_activity_feed(pilot_requests, concierge_requests))
+    events.extend(_admin_partner_activity_feed(partner_applications))
     events.extend(_admin_professional_activity_feed(professional_applications))
     events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return events[:10]
@@ -1687,8 +2678,18 @@ def _admin_activity_feed(pilot_requests, concierge_requests, professional_applic
 def _build_admin_dashboard():
     pilot_requests = _load_pilot_requests()
     concierge_requests = _load_concierge_requests()
+    partner_applications = _load_partner_applications()
     professional_applications = _load_professional_applications()
+    owner_accounts = _load_owner_accounts()
+    service_requests = _load_service_requests()
     pilot_counts = _pilot_status_counts(pilot_requests)
+    partner_counts = _partner_application_status_counts(partner_applications)
+    professional_counts = _professional_application_status_counts(professional_applications)
+    service_request_counts = _service_request_status_counts(service_requests)
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    requests_this_month = sum(1 for record in service_requests if str(record.get("created_at", "")).startswith(current_month))
+    active_requests = sum(1 for record in service_requests if _normalize_service_request_status(record.get("status", "new")) in {"new", "assigned", "in_progress"})
+    completed_requests = service_request_counts["completed"]
 
     return {
         "total_leads": len(pilot_requests),
@@ -1699,7 +2700,14 @@ def _build_admin_dashboard():
         "converted_leads": pilot_counts["converted"],
         "lost_leads": pilot_counts["lost"],
         "concierge_requests": len(concierge_requests),
+        "partner_applications": len(partner_applications),
         "professional_applications": len(professional_applications),
+        "owner_accounts": len(owner_accounts),
+        "active_service_requests": active_requests,
+        "completed_service_requests": completed_requests,
+        "service_requests_this_month": requests_this_month,
+        "partner_status_counts": partner_counts,
+        "professional_status_counts": professional_counts,
         "pipeline": [
             {"key": "new", "label": "New", "count": pilot_counts["new"]},
             {"key": "contacted", "label": "Contacted", "count": pilot_counts["contacted"]},
@@ -1707,7 +2715,21 @@ def _build_admin_dashboard():
             {"key": "converted", "label": "Converted", "count": pilot_counts["converted"]},
             {"key": "lost", "label": "Lost", "count": pilot_counts["lost"]},
         ],
-        "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, professional_applications),
+        "partner_pipeline": [
+            {"key": "new", "label": "New", "count": partner_counts["new"]},
+            {"key": "contacted", "label": "Contacted", "count": partner_counts["contacted"]},
+            {"key": "qualified", "label": "Qualified", "count": partner_counts["qualified"]},
+            {"key": "converted", "label": "Converted", "count": partner_counts["converted"]},
+            {"key": "lost", "label": "Lost", "count": partner_counts["lost"]},
+        ],
+        "professional_pipeline": [
+            {"key": "new", "label": "New", "count": professional_counts["new"]},
+            {"key": "contacted", "label": "Contacted", "count": professional_counts["contacted"]},
+            {"key": "qualified", "label": "Qualified", "count": professional_counts["qualified"]},
+            {"key": "converted", "label": "Converted", "count": professional_counts["converted"]},
+            {"key": "lost", "label": "Lost", "count": professional_counts["lost"]},
+        ],
+        "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, partner_applications, professional_applications),
     }
 
 
@@ -1742,6 +2764,86 @@ def _export_pilot_requests_csv(requests_list):
     return "\ufeff" + buffer.getvalue()
 
 
+def _export_partner_applications_csv(applications):
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, delimiter=";", quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+    writer.writerow([
+        "id",
+        "created_at",
+        "status",
+        "owner",
+        "company_name",
+        "contact_person",
+        "email",
+        "phone",
+        "website",
+        "city",
+        "country",
+        "service_category",
+        "years_in_business",
+        "description",
+    ])
+
+    for record in applications:
+        writer.writerow([
+            record.get("id", ""),
+            record.get("created_at", ""),
+            _normalize_application_status(record.get("status", "new")),
+            record.get("owner", ""),
+            record.get("company_name", ""),
+            record.get("contact_person", ""),
+            record.get("email", ""),
+            record.get("phone", ""),
+            record.get("website", ""),
+            record.get("city", ""),
+            record.get("country", ""),
+            record.get("service_category", ""),
+            record.get("years_in_business", ""),
+            record.get("description", ""),
+        ])
+
+    return "\ufeff" + buffer.getvalue()
+
+
+def _export_professional_applications_csv(applications):
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, delimiter=";", quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+    writer.writerow([
+        "id",
+        "created_at",
+        "status",
+        "owner",
+        "full_name",
+        "email",
+        "phone",
+        "city",
+        "country",
+        "professional_category",
+        "languages",
+        "experience",
+        "short_bio",
+    ])
+
+    for record in applications:
+        writer.writerow([
+            record.get("id", ""),
+            record.get("created_at", ""),
+            _normalize_application_status(record.get("status", "new")),
+            record.get("owner", ""),
+            record.get("full_name", ""),
+            record.get("email", ""),
+            record.get("phone", ""),
+            record.get("city", ""),
+            record.get("country", ""),
+            record.get("professional_category", record.get("service_type", "")),
+            record.get("languages", ""),
+            record.get("experience", record.get("experience_years", "")),
+            record.get("short_bio", record.get("description", "")),
+        ])
+
+    return "\ufeff" + buffer.getvalue()
+
+
 def _save_pilot_requests(requests_list):
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
@@ -1756,6 +2858,77 @@ def _find_pilot_request(request_id):
         if str(record.get("id", "")) == str(request_id):
             return record
     return None
+
+
+def _coerce_application_status_input(raw_status):
+    normalized = str(raw_status or "").strip().lower()
+    if not normalized:
+        return None
+    normalized = CRM_PIPELINE_STATUS_ALIASES.get(normalized, normalized)
+    return normalized if normalized in CRM_PIPELINE_STATUS_VALUES else None
+
+
+def _update_application_from_form(records, record_id):
+    updated = False
+
+    for record in records:
+        if str(record.get("id", "")) != str(record_id):
+            continue
+
+        original_status = _normalize_application_status(record.get("status", "new"))
+        raw_status = request.form.get("status", "").strip()
+        if raw_status:
+            new_status = _coerce_application_status_input(raw_status)
+            if new_status is None:
+                return None, jsonify({"ok": False, "error": "invalid_status"}), 400
+        else:
+            new_status = original_status
+
+        original_owner = str(record.get("owner", "")).strip()
+        new_owner = str(request.form.get("owner", original_owner)).strip()
+        original_notes = str(record.get("internal_notes", record.get("notes", ""))).strip()
+        new_notes = str(request.form.get("notes", request.form.get("internal_notes", original_notes))).strip()
+
+        if new_status != original_status:
+            record["status"] = new_status
+            _append_application_timeline_event(
+                record,
+                "APPLICATION_STATUS_UPDATED",
+                f"Status changed from {_application_status_label(original_status)} to {_application_status_label(new_status)}",
+                new_notes or record.get("email", ""),
+                status=new_status,
+            )
+
+        if new_owner != original_owner:
+            record["owner"] = new_owner
+            if new_owner:
+                _append_application_timeline_event(
+                    record,
+                    "APPLICATION_OWNER_ASSIGNED",
+                    f"Owner assigned: {new_owner}",
+                    original_owner or "Unassigned",
+                    status=record.get("status", "new"),
+                )
+
+        if new_notes != original_notes:
+            record["internal_notes"] = new_notes
+            record["notes"] = new_notes
+            if new_notes:
+                _append_application_timeline_event(
+                    record,
+                    "APPLICATION_NOTE_ADDED",
+                    "Note added",
+                    new_notes,
+                    status=record.get("status", "new"),
+                )
+
+        updated = True
+        break
+
+    if not updated:
+        return None, jsonify({"ok": False, "error": "not_found"}), 404
+
+    return records, None, None
 
 
 @app.post("/api/pilot-request")
@@ -1985,6 +3158,54 @@ def admin_concierge_requests():
     return render_template("admin_concierge_requests.html", requests=_load_concierge_requests())
 
 
+@app.get("/admin/partners")
+@admin_required
+def admin_partners():
+    applications = _load_partner_applications()
+    counts = _partner_application_status_counts(applications)
+    return render_template(
+        "admin_partners.html",
+        applications=applications,
+        counts=counts,
+    )
+
+
+@app.get("/admin/partners/export")
+@admin_required
+def admin_partners_export():
+    csv_data = _export_partner_applications_csv(_load_partner_applications())
+    response = Response(csv_data, mimetype="text/csv")
+    response.headers["Content-Disposition"] = 'attachment; filename="partner_applications.csv"'
+    return response
+
+
+@app.get("/admin/partners/<application_id>")
+@admin_required
+def admin_partner_application_detail(application_id):
+    record = _find_partner_application(application_id)
+    if not record:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    return render_template(
+        "admin_partner_detail.html",
+        item=record,
+        status_options=[{"value": status, "label": _application_status_label(status)} for status in CRM_PIPELINE_STATUS_VALUES],
+        timeline=list(reversed(_partner_application_timeline_events(record))),
+    )
+
+
+@app.post("/admin/partners/<application_id>/update")
+@admin_required
+def admin_partner_application_update(application_id):
+    applications = _load_partner_applications()
+    applications, error_response, status_code = _update_application_from_form(applications, application_id)
+    if error_response is not None:
+        return error_response, status_code
+
+    _save_partner_applications(applications)
+    return redirect(url_for("admin_partner_application_detail", application_id=application_id))
+
+
 @app.get("/admin/professionals")
 @admin_required
 def admin_professionals():
@@ -1997,6 +3218,15 @@ def admin_professionals():
     )
 
 
+@app.get("/admin/professionals/export")
+@admin_required
+def admin_professionals_export():
+    csv_data = _export_professional_applications_csv(_load_professional_applications())
+    response = Response(csv_data, mimetype="text/csv")
+    response.headers["Content-Disposition"] = 'attachment; filename="professional_applications.csv"'
+    return response
+
+
 @app.get("/admin/professionals/<application_id>")
 @admin_required
 def admin_professional_detail(application_id):
@@ -2007,7 +3237,7 @@ def admin_professional_detail(application_id):
     return render_template(
         "admin_professional_detail.html",
         item=record,
-        status_options=[{"value": status, "label": _professional_status_label(status)} for status in PROFESSIONAL_STATUS_VALUES],
+        status_options=[{"value": status, "label": _application_status_label(status)} for status in CRM_PIPELINE_STATUS_VALUES],
         timeline=list(reversed(_professional_application_timeline_events(record))),
     )
 
@@ -2016,54 +3246,9 @@ def admin_professional_detail(application_id):
 @admin_required
 def admin_professional_update(application_id):
     applications = _load_professional_applications()
-    updated = False
-
-    for record in applications:
-        if str(record.get("id", "")) != str(application_id):
-            continue
-
-        raw_status = str(request.form.get("status", "")).strip()
-        original_status = _normalize_professional_status(record.get("status", "pending"))
-        if raw_status:
-            new_status = _normalize_professional_status(raw_status)
-            if new_status != raw_status.lower():
-                return jsonify({"ok": False, "error": "invalid_status"}), 400
-        else:
-            new_status = original_status
-
-        original_notes = str(record.get("internal_notes", "")).strip()
-        new_notes = str(request.form.get("internal_notes", original_notes)).strip()
-        original_badges = _normalize_professional_badges(record.get("badges", []))
-        original_photo_url = str(record.get("photo_url", "")).strip()
-        original_logo_url = str(record.get("logo_url", "")).strip()
-        original_available_for_requests = _normalize_bool_field(record.get("available_for_requests", True))
-        new_featured = request.form.get("featured") in {"1", "true", "yes", "on"}
-        new_badges = _normalize_professional_badges(request.form.get("badges", original_badges))
-        new_photo_url = str(request.form.get("photo_url", original_photo_url)).strip()
-        new_logo_url = str(request.form.get("logo_url", original_logo_url)).strip()
-        new_available_for_requests = request.form.get("available_for_requests") in {"1", "true", "yes", "on"}
-
-        if new_status != original_status:
-            record["status"] = new_status
-            _append_professional_timeline_event(
-                record,
-                "PROFESSIONAL_APPLICATION_STATUS_UPDATED",
-                f"Status changed from {_professional_status_label(original_status)} to {_professional_status_label(new_status)}",
-                new_notes or record.get("email", ""),
-                status=new_status,
-            )
-
-        record["internal_notes"] = new_notes
-        record["featured"] = new_featured
-        record["badges"] = new_badges
-        record["photo_url"] = new_photo_url
-        record["logo_url"] = new_logo_url
-        record["available_for_requests"] = new_available_for_requests
-        updated = True
-        break
-
-    if not updated:
-        return jsonify({"ok": False, "error": "not_found"}), 404
+    applications, error_response, status_code = _update_application_from_form(applications, application_id)
+    if error_response is not None:
+        return error_response, status_code
 
     _save_professional_applications(applications)
     return redirect(url_for("admin_professional_detail", application_id=application_id))
@@ -2132,14 +3317,22 @@ def admin_service_request_update(request_id):
         if new_status == "assigned" and selected_provider_id and not selected_provider:
             return jsonify({"ok": False, "error": "invalid_provider"}), 400
 
+        status_changed = new_status != original_status
+        provider_changed = selected_provider_id != original_provider_id
+        completed = new_status == "completed"
+
         if selected_provider:
             record["assigned_provider_id"] = selected_provider_id
             record["assigned_provider_name"] = selected_provider.get("full_name", "")
-            record["assigned_provider_company"] = selected_provider.get("company_name", "")
+            record["assigned_provider_company"] = selected_provider.get("company_name", "") or selected_provider.get("full_name", "")
+            record["assigned_professional_id"] = selected_provider_id
+            record["assigned_professional_name"] = selected_provider.get("full_name", "")
+            record["assigned_professional_company"] = selected_provider.get("company_name", "") or selected_provider.get("full_name", "")
 
         record["internal_notes"] = new_notes
+        record["last_update_at"] = _utc_now_iso()
 
-        if new_status != original_status:
+        if status_changed:
             record["status"] = new_status
             _append_service_request_timeline_event(
                 record,
@@ -2149,13 +3342,40 @@ def admin_service_request_update(request_id):
                 status=new_status,
             )
 
-        if new_status == "completed":
+        if provider_changed and selected_provider:
+            _append_service_request_timeline_event(
+                record,
+                "SERVICE_REQUEST_PROFESSIONAL_ASSIGNED",
+                "Professional assigned",
+                f"{selected_provider.get('company_name', '') or selected_provider.get('full_name', '')}",
+                status=record.get("status", "new"),
+            )
+
+        if completed:
             _append_service_request_timeline_event(
                 record,
                 "SERVICE_REQUEST_COMPLETED",
                 "Service request completed",
                 new_notes or record.get("assigned_provider_company", "") or record.get("service_category", ""),
                 status=new_status,
+            )
+
+        owner_recipient = str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip()
+        if owner_recipient and (status_changed or provider_changed or completed):
+            event_label = "completed" if completed else "assigned" if provider_changed else "status_changed"
+            subject = {
+                "completed": "[BlackSeaConnect] Service request completed",
+                "assigned": "[BlackSeaConnect] Professional assigned to your service request",
+                "status_changed": "[BlackSeaConnect] Service request status updated",
+            }[event_label]
+            admin_detail_url = url_for("admin_service_request_detail", request_id=request_id, _external=True)
+            _queue_service_request_email(
+                record,
+                owner_recipient,
+                "owner",
+                admin_detail_url,
+                event_label,
+                subject,
             )
 
         updated = True

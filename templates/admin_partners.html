@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Applications</title>
+  <title>BlackSea Connect | Partner Applications</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Professional pipeline</p>
-        <h1>Professional applications</h1>
-        <p>Review specialist applications, assign ownership and move records through the CRM pipeline.</p>
+        <p class="eyebrow">Partner pipeline</p>
+        <h1>Partner applications</h1>
+        <p>Review company applications, update CRM status and keep ownership clear.</p>
       </div>
       <div class="admin-cockpit-actions">
         <a class="button button--secondary" href="/admin">Back to cockpit</a>
-        <a class="button button--ghost" href="/admin/professionals/export">Export CSV</a>
+        <a class="button button--ghost" href="/admin/partners/export">Export CSV</a>
       </div>
     </section>
 
-    <section class="admin-kpi-grid" aria-label="Professional application metrics">
+    <section class="admin-kpi-grid" aria-label="Partner application metrics">
       <article class="admin-kpi-card"><span>Total applications</span><strong>{{ applications|length }}</strong></article>
       <article class="admin-kpi-card"><span>New</span><strong>{{ counts.new }}</strong></article>
       <article class="admin-kpi-card"><span>Contacted</span><strong>{{ counts.contacted }}</strong></article>
@@ -32,24 +32,24 @@
     {% if applications %}
       <section class="admin-pilot-list">
         {% for item in applications %}
-          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/professionals/{{ item.id|e }}" data-search="{{ (item.full_name ~ ' ' ~ item.email ~ ' ' ~ item.professional_category ~ ' ' ~ item.city ~ ' ' ~ item.country ~ ' ' ~ item.languages ~ ' ' ~ item.status ~ ' ' ~ item.owner)|lower|e }}">
+          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/partners/{{ item.id|e }}" data-search="{{ (item.company_name ~ ' ' ~ item.contact_person ~ ' ' ~ item.email ~ ' ' ~ item.service_category ~ ' ' ~ item.city ~ ' ' ~ item.country ~ ' ' ~ item.status ~ ' ' ~ item.owner)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
             </div>
-            <h2>{{ item.full_name|e }}</h2>
+            <h2>{{ item.company_name|e }}</h2>
+            <p><strong>Contact:</strong> {{ item.contact_person|e }}</p>
             <p><strong>Email:</strong> {{ item.email|e }}</p>
-            <p><strong>Category:</strong> {{ item.professional_category|e }}</p>
+            <p><strong>Category:</strong> {{ item.service_category|e }}</p>
             <p><strong>Location:</strong> {{ item.city|e }}, {{ item.country|e }}</p>
-            <p><strong>Languages:</strong> {{ item.languages|e }}</p>
             {% if item.owner %}<p><strong>Owner:</strong> {{ item.owner|e }}</p>{% endif %}
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>No professional applications yet.</h2>
-        <p>Submitted professional applications will appear here as soon as they are saved.</p>
+        <h2>No partner applications yet.</h2>
+        <p>Submitted partner applications will appear here as soon as they are saved.</p>
       </section>
     {% endif %}
   </main>

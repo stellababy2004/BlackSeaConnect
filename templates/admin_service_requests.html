@@ -1,5 +1,5 @@
-﻿<!doctype html>
-<html lang="bg">
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,72 +8,74 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Service Requests</title>
+  <title>BlackSea Connect | Service Requests</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="heroEyebrow">ÐœÑ€ÐµÐ¶Ð° Ð¾Ñ‚ Ð·Ð°ÑÐ²ÐºÐ¸ Ð·Ð° ÑƒÑÐ»ÑƒÐ³Ð¸</p>
-        <h1 data-i18n="heroTitle">ÐŸÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð¸ Ð·Ð°ÑÐ²ÐºÐ¸ Ð·Ð° ÑƒÑÐ»ÑƒÐ³Ð¸</h1>
-        <p data-i18n="heroCopy">Ð—Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ Ð¾Ñ‚ ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸ ÑÐµ Ð¿Ð°Ð·ÑÑ‚ Ð¿Ð¾Ð²ÐµÑ€Ð¸Ñ‚ÐµÐ»Ð½Ð¾ Ð¸ ÑÐµ Ð½Ð°ÑÐ¾Ñ‡Ð²Ð°Ñ‚ ÐºÑŠÐ¼ Ð¾Ð´Ð¾Ð±Ñ€ÐµÐ½Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸.</p>
+        <p class="eyebrow">SERVICE REQUESTS</p>
+        <h1>Owner and public requests</h1>
+        <p>Service requests from the owner portal and the public intake flow are stored together and tracked through the same timeline.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
-        </div>
-        <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ ÐºÐ¾ÐºÐ¿Ð¸Ñ‚Ð°</a>
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ð¿ÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ‚Ð° Ñ„Ð¾Ñ€Ð¼Ð°</a>
+        <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">Back to cockpit</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+        <a class="button button--ghost" href="/owners/register">Owner registration</a>
       </div>
     </section>
 
     <section class="admin-kpi-grid" aria-label="Service request metrics">
       <article class="admin-kpi-card">
-        <span data-i18n="metricTotal">ÐžÐ±Ñ‰Ð¾ Ð·Ð°ÑÐ²ÐºÐ¸</span>
+        <span>Total requests</span>
         <strong>{{ requests|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricNew">ÐÐ¾Ð²Ð¸</span>
+        <span>New</span>
         <strong>{{ counts.new }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricAssigned">Ð’ÑŠÐ·Ð»Ð¾Ð¶ÐµÐ½Ð¸</span>
+        <span>Assigned</span>
         <strong>{{ counts.assigned }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span data-i18n="metricCompleted">Ð—Ð°Ð²ÑŠÑ€ÑˆÐµÐ½Ð¸</span>
+        <span>In progress</span>
+        <strong>{{ counts.in_progress }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Completed</span>
         <strong>{{ counts.completed }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Cancelled</span>
+        <strong>{{ counts.cancelled }}</strong>
       </article>
     </section>
 
     {% if requests %}
       <section class="admin-pilot-list">
         {% for item in requests %}
-          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/service-requests/{{ item.id|e }}" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.service_category ~ ' ' ~ item.status)|lower|e }}">
+          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/service-requests/{{ item.id|e }}" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'ÐÐžÐ’Ð' if item.status == 'new' else 'Ð’ÐªÐ—Ð›ÐžÐ–Ð•ÐÐ' if item.status == 'assigned' else 'Ð—ÐÐ’ÐªÐ Ð¨Ð•ÐÐ' }}</span>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
             </div>
             <h2>{{ item.name|e }}</h2>
-            <p><strong data-i18n="cardCity">Ð“Ñ€Ð°Ð´:</strong> {{ item.property_city|e }}</p>
-            <p><strong data-i18n="cardType">Ð˜Ð¼Ð¾Ñ‚:</strong> {{ item.property_type|e }}</p>
-            <p><strong data-i18n="cardCategory">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ:</strong> {{ item.service_category|e }}</p>
-            <p><strong data-i18n="cardDate">Ð–ÐµÐ»Ð°Ð½Ð° Ð´Ð°Ñ‚Ð°:</strong> {{ item.preferred_date|e }}</p>
-            <p><strong data-i18n="cardAssigned">Ð’ÑŠÐ·Ð»Ð¾Ð¶ÐµÐ½Ð¾:</strong> <span data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "Ð½ÑÐ¼Ð°" }}</span></p>
+            <p><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
+            <p><strong>City:</strong> {{ item.property_city|e }}</p>
+            <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
+            <p><strong>Property:</strong> {% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</p>
+            <p><strong>Category:</strong> {{ item.service_category|e }}</p>
+            <p><strong>Preferred date:</strong> {{ item.preferred_date|e }}</p>
+            <p><strong>Assigned professional:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</p>
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2 data-i18n="emptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° Ð·Ð°ÑÐ²ÐºÐ¸ Ð·Ð° ÑƒÑÐ»ÑƒÐ³Ð¸.</h2>
-        <p data-i18n="emptyCopy">Ð¡Ð»ÐµÐ´ ÐºÐ°Ñ‚Ð¾ ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ðº Ð¸Ð·Ð¿Ñ€Ð°Ñ‚Ð¸ Ð·Ð°ÑÐ²ÐºÐ°, Ñ‚Ñ Ñ‰Ðµ ÑÐµ Ð¿Ð¾ÑÐ²Ð¸ Ñ‚ÑƒÐº Ð² Ð¾Ð±Ñ€Ð°Ñ‚ÐµÐ½ Ñ…Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ‡ÐµÐ½ Ñ€ÐµÐ´.</p>
+        <h2>No service requests yet.</h2>
+        <p>Once an owner or public visitor submits a request, it will appear here in reverse chronological order.</p>
       </section>
     {% endif %}
   </main>
@@ -82,7 +84,3 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
-
-
-
-

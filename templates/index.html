@@ -53,7 +53,7 @@
     } | tojson }}
   </script>
 </head>
-<body>
+<body class="home-page">
   <header class="hero hero--home" id="top">
     <div class="hero__backdrop" aria-hidden="true">
       <div class="hero__glow hero__glow--sunset"></div>
@@ -108,7 +108,8 @@
         <div class="hero__cta">
           <a class="button button--primary" href="/demo/operations" data-i18n="homePrimaryCta">Виж платформата</a>
           <a class="button button--secondary" href="/services" data-i18n="homeSecondaryCta">Разгледай услугите</a>
-        <a class="button button--tertiary" href="/request-service" data-i18n="homeRequestServiceCta">Заяви услуга</a>
+          <a class="button button--tertiary" href="/request-service" data-i18n="homeRequestServiceCta">Заяви услуга</a>
+          <a class="button button--ghost" href="/owners/register" data-i18n="homeOwnerServiceCta">Request a service for your property</a>
         </div>
         <div class="trust-strip" aria-label="Platform highlights">
           <span class="trust-strip__chip" data-i18n="homeChip1">координация на гости</span>
@@ -276,32 +277,37 @@
       </div>
     </section>
 
-    <section class="trust-layer" aria-labelledby="resources-title">
+    <section class="trust-layer home-resources" aria-labelledby="resources-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Ресурси</p>
-        <h2 id="resources-title">SEO страниците, които показват операционния модел в детайл.</h2>
+        <p class="section-heading__eyebrow" data-i18n="homeResourcesEyebrow">Ресурси</p>
+        <h2 id="resources-title" data-i18n="homeResourcesTitle">SEO страниците, които показват операционния модел в детайл.</h2>
       </div>
 
-      <div class="trust-grid">
-        <article class="trust-card">
-          <h3><a href="/concierge-bulgaria">Консиерж услуги в България</a></h3>
-          <p>Опора за guest concierge, local partner coordination и service requests.</p>
+      <div class="home-resources__grid" aria-label="Homepage resources">
+        <article class="trust-card home-resource-card">
+          <p class="home-resource-card__index">01</p>
+          <h3><a href="/concierge-bulgaria" data-i18n="homeResource1Title">Консиерж услуги в България</a></h3>
+          <p data-i18n="homeResource1Body">Опора за guest concierge, local partner coordination и service requests.</p>
         </article>
-        <article class="trust-card">
-          <h3><a href="/property-management-bulgaria">Управление на имоти в България</a></h3>
-          <p>Крайбрежно property management с по-ясна координация на екипите.</p>
+        <article class="trust-card home-resource-card">
+          <p class="home-resource-card__index">02</p>
+          <h3><a href="/property-management-bulgaria" data-i18n="homeResource2Title">Управление на имоти в България</a></h3>
+          <p data-i18n="homeResource2Body">Крайбрежно property management с по-ясна координация на екипите.</p>
         </article>
-        <article class="trust-card">
-          <h3><a href="/guest-experience-services">Услуги за гостско преживяване</a></h3>
-          <p>Пътят на госта, от първия въпрос до спокойното настаняване.</p>
+        <article class="trust-card home-resource-card">
+          <p class="home-resource-card__index">03</p>
+          <h3><a href="/guest-experience-services" data-i18n="homeResource3Title">Услуги за гостско преживяване</a></h3>
+          <p data-i18n="homeResource3Body">Пътят на госта, от първия въпрос до спокойното настаняване.</p>
         </article>
-        <article class="trust-card">
-          <h3><a href="/vacation-rental-operations">Операции за ваканционни наеми</a></h3>
-          <p>Repeatable workflow за turnovers, transfer timing и owner confidence.</p>
+        <article class="trust-card home-resource-card">
+          <p class="home-resource-card__index">04</p>
+          <h3><a href="/vacation-rental-operations" data-i18n="homeResource4Title">Операции за ваканционни наеми</a></h3>
+          <p data-i18n="homeResource4Body">Repeatable workflow за turnovers, transfer timing и owner confidence.</p>
         </article>
-        <article class="trust-card">
-          <h3><a href="/sveti-vlas-concierge-services">Консиерж услуги в Свети Влас</a></h3>
-          <p>Локално ориентиран concierge модел за марина и крайбрежни имоти.</p>
+        <article class="trust-card home-resource-card">
+          <p class="home-resource-card__index">05</p>
+          <h3><a href="/sveti-vlas-concierge-services" data-i18n="homeResource5Title">Консиерж услуги в Свети Влас</a></h3>
+          <p data-i18n="homeResource5Body">Локално ориентиран concierge модел за марина и крайбрежни имоти.</p>
         </article>
       </div>
     </section>

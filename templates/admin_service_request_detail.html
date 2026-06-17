@@ -1,5 +1,5 @@
-﻿<!doctype html>
-<html lang="bg">
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,128 +8,121 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Service Request Detail</title>
+  <title>BlackSea Connect | Service Request Detail</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="heroEyebrow">Ð—Ð°ÑÐ²ÐºÐ° Ð·Ð° ÑƒÑÐ»ÑƒÐ³Ð°</p>
-        <h1 data-i18n="heroTitle">ÐŸÐ¾Ð´Ñ€Ð¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°</h1>
-        <p data-i18n="heroCopy">Ð’ÑŠÐ·Ð»Ð¾Ð¶ÐµÑ‚Ðµ Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð° Ð½Ð° Ð¾Ð´Ð¾Ð±Ñ€ÐµÐ½ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº Ð¸Ð»Ð¸ Ñ Ð¾Ñ‚Ð±ÐµÐ»ÐµÐ¶ÐµÑ‚Ðµ ÐºÐ°Ñ‚Ð¾ Ð·Ð°Ð²ÑŠÑ€ÑˆÐµÐ½Ð°.</p>
+        <p class="eyebrow">SERVICE REQUEST</p>
+        <h1>Request details</h1>
+        <p>Update the status, assign an approved professional, and keep the internal timeline current.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
-        </div>
-        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ Ð·Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ</a>
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ð¿ÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ‚Ð° Ñ„Ð¾Ñ€Ð¼Ð°</a>
+        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
+        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
       </div>
     </section>
 
-    <article class="admin-pilot-card">
-      <div class="admin-pilot-card__topline">
+    <article class="admin-pilot-card admin-request-detail-card">
+      <div class="admin-pilot-card__topline admin-request-detail-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}" data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'ÐÐžÐ’Ð' if item.status == 'new' else 'Ð’ÐªÐ—Ð›ÐžÐ–Ð•ÐÐ' if item.status == 'assigned' else 'Ð—ÐÐ’ÐªÐ Ð¨Ð•ÐÐ' }}</span>
+        <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
       </div>
 
-      <h2>{{ item.name|e }}</h2>
+      <h2 class="admin-request-detail-card__title">{{ item.name|e }}</h2>
+      <p class="admin-request-detail-card__source"><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
 
-      <dl class="admin-pilot-details">
-        <div><dt data-i18n="detailId">ID</dt><dd>{{ item.id|e }}</dd></div>
-        <div><dt data-i18n="detailStatus">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ</dt><dd data-i18n="{{ 'serviceRequestStatusNew' if item.status == 'new' else 'serviceRequestStatusAssigned' if item.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ item.status|upper|e }}</dd></div>
-        <div><dt data-i18n="detailEmail">Email</dt><dd>{{ item.email|e }}</dd></div>
-        <div><dt data-i18n="detailPhone">Phone</dt><dd>{{ item.phone|e }}</dd></div>
-        <div><dt data-i18n="detailCity">Ð“Ñ€Ð°Ð´ Ð½Ð° Ð¸Ð¼Ð¾Ñ‚Ð°</dt><dd>{{ item.property_city|e }}</dd></div>
-        <div><dt data-i18n="detailType">Ð¢Ð¸Ð¿ Ð¸Ð¼Ð¾Ñ‚</dt><dd>{{ item.property_type|e }}</dd></div>
-        <div><dt data-i18n="detailCategory">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ ÑƒÑÐ»ÑƒÐ³Ð°</dt><dd>{{ item.service_category|e }}</dd></div>
-        <div><dt data-i18n="detailDate">Ð–ÐµÐ»Ð°Ð½Ð° Ð´Ð°Ñ‚Ð°</dt><dd>{{ item.preferred_date|e }}</dd></div>
-        <div><dt data-i18n="detailAssigned">Ð’ÑŠÐ·Ð»Ð¾Ð¶ÐµÐ½ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº</dt><dd data-i18n="notAvailable">{{ item.assigned_provider_company|e if item.assigned_provider_company else "Ð½ÑÐ¼Ð°" }}</dd></div>
+      <dl class="admin-pilot-details admin-request-detail-details">
+        <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
+        <div><dt>Status</dt><dd>{{ item.status|replace('_', ' ')|upper }}</dd></div>
+        <div><dt>Email</dt><dd>{{ item.email|e }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ item.phone|e }}</dd></div>
+        <div><dt>City</dt><dd>{{ item.property_city|e }}</dd></div>
+        <div><dt>Property type</dt><dd>{{ item.property_type|e }}</dd></div>
+        <div><dt>Property</dt><dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd></div>
+        <div><dt>Category</dt><dd>{{ item.service_category|e }}</dd></div>
+        <div><dt>Preferred date</dt><dd>{{ item.preferred_date|e }}</dd></div>
+        <div><dt>Assigned professional</dt><dd>{% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</dd></div>
       </dl>
 
-      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+      <section class="admin-cockpit-panel admin-request-detail-description">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="descriptionEyebrow">ÐžÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ Ð½Ð° Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°</p>
-            <h3 data-i18n="descriptionTitle">ÐšÐ°ÐºÐ²Ð¾ Ðµ Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ð¾ Ð½Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸ÐºÐ°</h3>
+            <p class="eyebrow">Request description</p>
+            <h3>What the owner asked for</h3>
           </div>
         </div>
-        <p>{{ item.description|e }}</p>
+        <p class="admin-request-detail-description__copy">{{ item.description|e }}</p>
       </section>
 
-      <form class="admin-pilot-status-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
+      <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
         <label>
-          <span data-i18n="statusLabel">ÐžÐ±Ð½Ð¾Ð²Ð¸ ÑÑ‚Ð°Ñ‚ÑƒÑ</span>
-          <select name="status" required>
+          <span>Status</span>
+          <select class="admin-request-detail-form__control" name="status" required>
             {% for option in status_options %}
-              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %} data-i18n="{{ 'serviceRequestStatusNew' if option.value == 'new' else 'serviceRequestStatusAssigned' if option.value == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ 'ÐÐžÐ’Ð' if option.value == 'new' else 'Ð’ÐªÐ—Ð›ÐžÐ–Ð•ÐÐ' if option.value == 'assigned' else 'Ð—ÐÐ’ÐªÐ Ð¨Ð•ÐÐ' }}</option>
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span data-i18n="providerLabel">Ð’ÑŠÐ·Ð»Ð¾Ð¶Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº</span>
-          <select name="assigned_provider_id">
-            <option value="" data-i18n="providerEmpty">ÐÑÐ¼Ð° Ð¸Ð·Ð±Ñ€Ð°Ð½ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº</option>
+          <span>Assign professional</span>
+          <select class="admin-request-detail-form__control" name="assigned_provider_id">
+            <option value="">No professional selected</option>
             {% for provider in matching_providers %}
-              <option value="{{ provider.id|e }}" {% if item.assigned_provider_id == provider.id %}selected{% endif %}>{{ provider.company_name|e }} Â· {{ provider.city|e }}</option>
+              <option value="{{ provider.id|e }}" {% if item.assigned_provider_id == provider.id %}selected{% endif %}>{{ provider.company_name|e }} · {{ provider.city|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="notesLabel">Ð’ÑŠÑ‚Ñ€ÐµÑˆÐ½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸</span>
-          <textarea name="internal_notes" rows="6" placeholder="ÐŸÐ¾Ð²ÐµÑ€Ð¸Ñ‚ÐµÐ»Ð½Ð¸ Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸ Ð·Ð° Ð°Ð´Ð¼Ð¸Ð½ ÐµÐºÐ¸Ð¿Ð°" data-i18n-attr="placeholder:internalNotesPlaceholder">{{ item.internal_notes|e }}</textarea>
+          <span>Internal notes</span>
+          <textarea class="admin-request-detail-form__control admin-request-detail-form__textarea" name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
         </label>
-        <button class="button button--primary" type="submit" data-i18n="saveCta">Ð—Ð°Ð¿Ð°Ð·Ð¸ Ð·Ð°ÑÐ²ÐºÐ°Ñ‚Ð°</button>
+        <button class="button button--primary admin-request-detail-form__submit" type="submit">Save request</button>
       </form>
 
-      <section class="admin-cockpit-panel" style="margin-top: 1.5rem;">
+      <section class="admin-cockpit-panel admin-request-detail-matching">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="matchingEyebrow">Ð¡ÑŠÐ²Ð¿Ð°Ð´Ð°Ñ‰Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸</p>
-            <h3 data-i18n="matchingTitle">ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸ Ð·Ð° Ñ‚Ð°Ð·Ð¸ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ</h3>
+            <p class="eyebrow">Matched professionals</p>
+            <h3>Approved professionals for this category</h3>
           </div>
         </div>
         {% if matching_providers %}
           <div class="partner-grid">
             {% for provider in matching_providers %}
               <a class="partner-card" href="/network/{{ provider.id|e }}">
-                <span class="trust-strip__chip" data-i18n="availableBadge">ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
-                {% if provider.featured %}<span class="trust-strip__chip" data-i18n="featuredBadge">ÐŸÑ€ÐµÐ¿Ð¾Ñ€ÑŠÑ‡Ð°Ð½Ð¾</span>{% endif %}
-                <strong>{{ provider.company_name|e }}</strong>
-                <p><strong data-i18n="providerCityLabel">Ð“Ñ€Ð°Ð´:</strong> {{ provider.city|e }}</p>
-                <p><strong data-i18n="providerServiceLabel">Ð£ÑÐ»ÑƒÐ³Ð°:</strong> {{ provider.service_type|e }}</p>
+                <span class="trust-strip__chip">Available for requests</span>
+                {% if provider.featured %}<span class="trust-strip__chip">Featured</span>{% endif %}
+                <strong>{% if provider.company_name %}{{ provider.company_name|e }}{% else %}{{ provider.full_name|e }}{% endif %}</strong>
+                <p><strong>City:</strong> {{ provider.city|e }}</p>
+                <p><strong>Service:</strong> {{ provider.service_type|e }}</p>
               </a>
             {% endfor %}
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="matchingEmptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° ÑÑŠÐ²Ð¿Ð°Ð´Ð°Ñ‰Ð¸ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸.</h3>
-            <p data-i18n="matchingEmptyCopy">ÐžÐ´Ð¾Ð±Ñ€ÐµÑ‚Ðµ Ð¸ Ð°ÐºÑ‚Ð¸Ð²Ð¸Ñ€Ð°Ð¹Ñ‚Ðµ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸ Ð² Ð¼Ñ€ÐµÐ¶Ð¾Ð²Ð¸Ñ ÑÐ»Ð¾Ð¹, Ð·Ð° Ð´Ð° ÑÐµ Ð¿Ð¾ÐºÐ°Ð¶Ð°Ñ‚ ÑÑŠÐ²Ð¿Ð°Ð´ÐµÐ½Ð¸Ñ Ñ‚ÑƒÐº.</p>
+            <h3>No matching professionals yet.</h3>
+            <p>Converted professionals will appear here once their category matches this request.</p>
           </div>
         {% endif %}
       </section>
 
-      <div class="admin-pilot-timeline">
+      <div class="admin-pilot-timeline admin-request-detail-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="timelineEyebrow">Ð¥Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ Ð½Ð° Ð°ÐºÑ‚Ð¸Ð²Ð½Ð¾ÑÑ‚Ñ‚Ð°</p>
-            <h3 data-i18n="timelineTitle">ÐÐ°Ð¹-Ð½Ð¾Ð²Ð¸Ñ‚Ðµ Ð¿ÑŠÑ€Ð²Ð¸</h3>
+            <p class="eyebrow">Timeline</p>
+            <h3>Most recent events first</h3>
           </div>
         </div>
 
         {% if timeline %}
           <div class="admin-timeline-list">
             {% for event in timeline %}
-              <article class="admin-timeline-item">
-                <div class="admin-pilot-card__topline">
-                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}" data-i18n="{{ 'serviceRequestEventCreated' if event.type == 'SERVICE_REQUEST_CREATED' else 'serviceRequestEventStatusUpdated' if event.type == 'SERVICE_REQUEST_STATUS_UPDATED' else 'serviceRequestEventCompleted' if event.type == 'SERVICE_REQUEST_COMPLETED' else '' }}">{{ event.type|replace('_', ' ')|title }}</span>
+              <article class="admin-timeline-item admin-request-detail-timeline__item">
+                <div class="admin-pilot-card__topline admin-request-detail-timeline__topline">
+                  <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
                 <strong>{{ event.title|e }}</strong>
@@ -141,8 +134,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3 data-i18n="timelineEmptyTitle">Ð’ÑÐµ Ð¾Ñ‰Ðµ Ð½ÑÐ¼Ð° Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð² Ñ…Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸ÑÑ‚Ð°.</h3>
-            <p data-i18n="timelineEmptyCopy">Ð¢Ð°Ð·Ð¸ Ð·Ð°ÑÐ²ÐºÐ° Ñ‰Ðµ Ð·Ð°Ð¿Ð¾Ñ‡Ð½Ðµ Ð´Ð° ÑÑŠÐ±Ð¸Ñ€Ð° ÑÑŠÐ±Ð¸Ñ‚Ð¸Ñ ÑÐ»ÐµÐ´ ÑÐ»ÐµÐ´Ð²Ð°Ñ‰Ð¾Ñ‚Ð¾ Ð·Ð°Ð¿Ð¸ÑÐ²Ð°Ð½Ðµ.</p>
+            <h3>No timeline entries yet.</h3>
+            <p>The request timeline will appear after the next save.</p>
           </div>
         {% endif %}
       </div>
@@ -153,7 +146,3 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
-
-
-
-

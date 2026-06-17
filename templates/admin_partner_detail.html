@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Application Detail</title>
+  <title>BlackSea Connect | Partner Application Detail</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Professional application detail</p>
-        <h1>Review professional application</h1>
+        <p class="eyebrow">Partner application detail</p>
+        <h1>Review partner application</h1>
         <p>Update status, assign ownership and capture internal notes.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin/professionals">Back to professional applications</a>
-        <a class="button button--ghost" href="/admin/professionals/export">Export CSV</a>
+        <a class="button button--secondary" href="/admin/partners">Back to partner applications</a>
+        <a class="button button--ghost" href="/admin/partners/export">Export CSV</a>
       </div>
     </section>
 
@@ -26,22 +26,23 @@
         <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
       </div>
 
-      <h2>{{ item.full_name|e }}</h2>
+      <h2>{{ item.company_name|e }}</h2>
 
       <dl class="admin-pilot-details">
         <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
         <div><dt>Status</dt><dd>{{ item.status|upper|e }}</dd></div>
         <div><dt>Owner</dt><dd>{{ item.owner|e if item.owner else "Unassigned" }}</dd></div>
+        <div><dt>Contact Person</dt><dd>{{ item.contact_person|e }}</dd></div>
         <div><dt>Email</dt><dd>{{ item.email|e }}</dd></div>
         <div><dt>Phone</dt><dd>{{ item.phone|e }}</dd></div>
-        <div><dt>Category</dt><dd>{{ item.professional_category|e }}</dd></div>
+        <div><dt>Website</dt><dd>{{ item.website|e if item.website else "n/a" }}</dd></div>
+        <div><dt>Category</dt><dd>{{ item.service_category|e }}</dd></div>
         <div><dt>Location</dt><dd>{{ item.city|e }}, {{ item.country|e }}</dd></div>
-        <div><dt>Languages</dt><dd>{{ item.languages|e }}</dd></div>
-        <div><dt>Experience</dt><dd>{{ item.experience|e }}</dd></div>
-        <div><dt>Short Bio</dt><dd>{{ item.short_bio|e }}</dd></div>
+        <div><dt>Years in Business</dt><dd>{{ item.years_in_business|e }}</dd></div>
+        <div><dt>Description</dt><dd>{{ item.description|e }}</dd></div>
       </dl>
 
-      <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
+      <form class="admin-pilot-status-form" method="post" action="/admin/partners/{{ item.id|e }}/update">
         <label>
           <span>Update status</span>
           <select name="status" required>
