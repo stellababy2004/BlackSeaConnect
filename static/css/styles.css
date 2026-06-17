@@ -21970,6 +21970,51 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .feature-card,
+  .service-card,
+  .resource-card,
+  .home-resource-card,
+  .operations-network-card,
+  .operations-panel,
+  .trust-card {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .feature-card *,
+  .service-card *,
+  .resource-card *,
+  .home-resource-card *,
+  .operations-network-card *,
+  .operations-panel *,
+  .trust-card * {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .home-resource-card__index,
+  .feature-card .feature-card__icon,
+  .ops-trust-card__kpi,
+  .feature-card .eyebrow,
+  .feature-card .section-heading__eyebrow,
+  .service-card .eyebrow,
+  .service-card .section-heading__eyebrow,
+  .resource-card .eyebrow,
+  .resource-card .section-heading__eyebrow,
+  .home-resource-card .eyebrow,
+  .home-resource-card .section-heading__eyebrow,
+  .operations-network-card .eyebrow,
+  .operations-network-card .section-heading__eyebrow,
+  .operations-panel .eyebrow,
+  .operations-panel .section-heading__eyebrow,
+  .trust-card .eyebrow,
+  .trust-card .section-heading__eyebrow {
+    color: #C58A00 !important;
+    -webkit-text-fill-color: #C58A00 !important;
+  }
+}
+
+@media (max-width: 768px) {
   .services-grid,
   .card-grid,
   .feature-grid {
