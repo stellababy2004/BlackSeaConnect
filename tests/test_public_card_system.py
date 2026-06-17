@@ -59,3 +59,21 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("color: rgba(16, 34, 61, 0.82) !important;", tail)
         self.assertIn("color: #B9892B !important;", tail)
 
+    def test_mobile_override_covers_bottom_surfaces(self):
+        start = self.styles.rindex("@media (max-width: 768px) {")
+        tail = self.styles[start:]
+
+        for selector in [
+            ".site-footer",
+            ".cta-panel",
+            "body.home-page .home-resource-card",
+            "body.owner-portal-page .admin-cockpit-panel",
+            "body.guest-homepage-page .guest-kpi-card",
+            "body.operations-demo-page .operations-mobile-dock",
+            "body.seo-longform-page .trust-layer",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        self.assertIn("rgba(255, 250, 243, 0.96)", tail)
+        self.assertIn("#10223D !important;", tail)

@@ -18936,6 +18936,19 @@ body.operations-demo-page .operations-hero h1 {
   }
 }
 
+@media (max-width: 768px) {
+  body.home-page .hero--home {
+    min-height: auto !important;
+    padding-bottom: 20px !important;
+  }
+
+  body.home-page .hero--home .hero__content,
+  body.home-page .hero__content--home {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
 /* Final polish pass: Demo hero paragraph, Home product preview/KPI panel, floating CTA. */
 body.operations-demo-page .operations-hero__text {
   max-width: 700px !important;
@@ -21935,6 +21948,274 @@ body:not(.operations-demo-page):not(.admin-cockpit-page):not(.admin-pilot-detail
 body:not(.operations-demo-page):not(.admin-cockpit-page):not(.admin-pilot-detail-page) .hero__copy .section-heading__eyebrow,
 body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   color: #526782 !important;
+}
+
+@media (max-width: 768px) {
+  .cta-panel,
+  .site-footer,
+  .trust-card,
+  .feature-card,
+  .home-resource-card,
+  .resource-card,
+  .empty-state,
+  .partner-card,
+  .professional-card,
+  .operations-panel,
+  .operations-panel--wide,
+  .operations-network-card,
+  .operations-empty-state,
+  .operations-list__item,
+  .operations-workflow__step,
+  .operations-notification,
+  .operations-sla__item,
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-card,
+  .portal-card,
+  .access-card,
+  .concierge-card,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  body.home-page .trust-card,
+  body.home-page .feature-card,
+  body.home-page .home-resource-card,
+  body.home-page .cta-panel,
+  body.home-page .empty-state,
+  body.partners-page .partner-card,
+  body.partners-page .trust-card,
+  body.partners-page .admin-empty-state,
+  body.partners-page .cta-panel,
+  body.professionals-page .partner-card,
+  body.professionals-page .trust-card,
+  body.professionals-page .admin-empty-state,
+  body.professionals-page .cta-panel,
+  body.owner-portal-page .admin-cockpit-panel,
+  body.owner-portal-page .admin-empty-state,
+  body.owner-portal-page .admin-pilot-card,
+  body.owner-portal-page .owner-request-card,
+  body.owner-portal-page .cta-panel,
+  body.guest-homepage-page .guest-kpi-card,
+  body.guest-homepage-page .guest-dashboard-card,
+  body.guest-homepage-page .guest-unified-card,
+  body.guest-homepage-page .guest-action-card,
+  body.guest-homepage-page .guest-form-panel,
+  body.guest-homepage-page .guest-card,
+  body.guest-homepage-page .portal-card,
+  body.guest-homepage-page .access-card,
+  body.guest-homepage-page .concierge-card,
+  body.guest-homepage-page .guest-portal-card,
+  body.guest-homepage-page .guest-portal-status,
+  body.guest-homepage-page .guest-portal-info,
+  body.guest-homepage-page .guest-portal-service,
+  body.guest-homepage-page .guest-portal-access,
+  body.guest-homepage-page .guest-portal-qr,
+  body.guest-homepage-page .guest-portal-instructions,
+  body.guest-homepage-page .site-footer,
+  body.seo-longform-page .trust-layer,
+  body.seo-longform-page .credibility-layer,
+  body.seo-longform-page .cta-panel,
+  body.seo-longform-page .trust-card,
+  body.seo-longform-page .site-footer,
+  body.operations-demo-page .operations-panel,
+  body.operations-demo-page .operations-panel--wide,
+  body.operations-demo-page .operations-network-card,
+  body.operations-demo-page .operations-empty-state,
+  body.operations-demo-page .operations-list__item,
+  body.operations-demo-page .operations-workflow__step,
+  body.operations-demo-page .operations-notification,
+  body.operations-demo-page .operations-sla__item,
+  body.operations-demo-page .site-footer,
+  body.operations-demo-page .operations-mobile-dock,
+  body.guest-homepage-page .guest-floating-actions,
+  body.guest-homepage-page .guest-mobile-dock,
+  body.operations-demo-page .operations-mobile-dock {
+    background:
+      linear-gradient(180deg, rgba(255, 250, 243, 0.96), rgba(247, 241, 232, 0.90)),
+      radial-gradient(circle at 12% 8%, rgba(216, 186, 120, 0.18), transparent 22%),
+      radial-gradient(circle at 82% 0%, rgba(146, 207, 224, 0.16), transparent 24%);
+    border-color: rgba(184, 137, 43, 0.10) !important;
+    box-shadow:
+      0 18px 42px rgba(52, 68, 80, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .site-footer,
+  body.seo-longform-page .trust-layer,
+  body.seo-longform-page .credibility-layer,
+  body.seo-longform-page .cta-panel,
+  body.seo-longform-page .trust-card,
+  body.operations-demo-page .operations-panel,
+  body.operations-demo-page .operations-panel--wide,
+  body.operations-demo-page .operations-network-card,
+  body.operations-demo-page .operations-empty-state,
+  body.operations-demo-page .operations-list__item,
+  body.operations-demo-page .operations-workflow__step,
+  body.operations-demo-page .operations-notification,
+  body.operations-demo-page .operations-sla__item,
+  body.owner-portal-page .admin-cockpit-panel,
+  body.owner-portal-page .admin-empty-state,
+  body.owner-portal-page .admin-pilot-card,
+  body.owner-portal-page .owner-request-card,
+  body.partners-page .admin-empty-state,
+  body.professionals-page .admin-empty-state,
+  body.guest-homepage-page .guest-kpi-card,
+  body.guest-homepage-page .guest-dashboard-card,
+  body.guest-homepage-page .guest-unified-card,
+  body.guest-homepage-page .guest-action-card,
+  body.guest-homepage-page .guest-form-panel,
+  body.guest-homepage-page .guest-card,
+  body.guest-homepage-page .portal-card,
+  body.guest-homepage-page .access-card,
+  body.guest-homepage-page .concierge-card,
+  body.guest-homepage-page .guest-portal-card,
+  body.guest-homepage-page .guest-portal-status,
+  body.guest-homepage-page .guest-portal-info,
+  body.guest-homepage-page .guest-portal-service,
+  body.guest-homepage-page .guest-portal-access,
+  body.guest-homepage-page .guest-portal-qr,
+  body.guest-homepage-page .guest-portal-instructions {
+    color: #10223D !important;
+  }
+
+  .cta-panel__copy,
+  .site-footer p,
+  .site-footer li,
+  .site-footer time,
+  .site-footer dd,
+  .trust-card p,
+  .feature-card p,
+  .home-resource-card p,
+  .resource-card p,
+  .empty-state p,
+  .partner-card p,
+  .professional-card p,
+  .operations-panel p,
+  .operations-panel li,
+  .operations-panel time,
+  .operations-panel dd,
+  .operations-panel--wide p,
+  .operations-network-card p,
+  .operations-empty-state p,
+  .operations-list__item p,
+  .operations-workflow__step p,
+  .operations-notification p,
+  .operations-sla__item p,
+  .guest-kpi-card p,
+  .guest-dashboard-card p,
+  .guest-unified-card p,
+  .guest-action-card p,
+  .guest-form-panel p,
+  .guest-card p,
+  .portal-card p,
+  .access-card p,
+  .concierge-card p,
+  .guest-portal-card p,
+  .guest-portal-status p,
+  .guest-portal-info p,
+  .guest-portal-service p,
+  .guest-portal-access p,
+  .guest-portal-qr p,
+  .guest-portal-instructions p,
+  body.seo-longform-page .trust-layer p,
+  body.seo-longform-page .credibility-layer p,
+  body.seo-longform-page .trust-layer li,
+  body.seo-longform-page .credibility-layer li,
+  body.seo-longform-page .trust-card p,
+  body.seo-longform-page .cta-panel__copy,
+  body.operations-demo-page .operations-panel__copy,
+  body.operations-demo-page .operations-preview-card__label,
+  body.operations-demo-page .operations-preview-card__time,
+  body.operations-demo-page .operations-feed__item strong,
+  body.operations-demo-page .operations-feed__item time,
+  body.operations-demo-page .operations-arrival-step p,
+  body.operations-demo-page .operations-panel__eyebrow,
+  body.operations-demo-page .operations-feed__badge,
+  body.operations-demo-page .operations-arrival-step__status,
+  body.operations-demo-page .operations-status-pill,
+  body.operations-demo-page .operations-preview-stat span,
+  body.operations-demo-page .operations-preview-stat strong,
+  body.operations-demo-page .operations-preview-card__notes span,
+  body.operations-demo-page .operations-preview-card__notes strong,
+  body.operations-demo-page .operations-stack .operations-panel__eyebrow,
+  body.operations-demo-page .operations-stack .operations-panel__copy,
+  body.operations-demo-page .operations-stack .operations-kpi p,
+  body.operations-demo-page .operations-stack .operations-feed__item time,
+  body.operations-demo-page .operations-stack .operations-team-card p,
+  body.operations-demo-page .operations-stack .operations-property-card__metric span,
+  body.operations-demo-page .operations-stack .operations-property-card__manager span,
+  body.operations-demo-page .operations-stack .operations-arrival-step p,
+  body.operations-demo-page .operations-stack .operations-arrival-step p span,
+  body.operations-demo-page .operations-stack .operations-command-list li,
+  body.operations-demo-page .operations-stack .operations-command-list li span {
+    color: rgba(16, 34, 61, 0.82) !important;
+  }
+
+  .section-heading__eyebrow,
+  .eyebrow,
+  .home-resource-card__index,
+  .feature-card .feature-card__icon,
+  .trust-strip__chip,
+  .ops-trust-card__kpi,
+  .guest-kpi-card__label,
+  .guest-dashboard-card__label,
+  .guest-unified-card__label,
+  .guest-portal-header__eyebrow,
+  .guest-portal-card__label,
+  .guest-portal-badge,
+  .guest-portal-timeline__tag,
+  .guest-portal-timeline__eyebrow,
+  body.operations-demo-page .operations-chip--live,
+  body.operations-demo-page .operations-status-pill--soft,
+  body.operations-demo-page .operations-arrival-step__status,
+  body.operations-demo-page .operations-feed__badge,
+  body.operations-demo-page .operations-team-card__status,
+  body.operations-demo-page .operations-property-card__name span,
+  body.operations-demo-page .operations-preview-card__label,
+  body.operations-demo-page .operations-panel__eyebrow,
+  body.operations-demo-page .operations-eyebrow,
+  .site-footer__links a {
+    color: #B9892B !important;
+  }
+
+  .site-footer__links,
+  .cta-panel,
+  body.owner-portal-page .admin-cockpit-panel,
+  body.owner-portal-page .admin-empty-state,
+  body.owner-portal-page .admin-pilot-card,
+  body.owner-portal-page .owner-request-card {
+    gap: 12px !important;
+  }
+
+  .guest-mobile-dock,
+  .operations-mobile-dock {
+    padding: 10px !important;
+    border-radius: 24px !important;
+  }
+
+  .guest-mobile-dock-button,
+  .operations-mobile-dock__button {
+    min-height: 54px !important;
+    border-color: rgba(184, 137, 43, 0.12) !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: #10223D !important;
+  }
+
+  .operations-mobile-dock__button--secondary {
+    color: #10223D !important;
+  }
+
+  .guest-mobile-dock::before,
+  .guest-floating-actions::before {
+    opacity: 0.28 !important;
+  }
 }
 
 /* Final readability lock: light public cards never render white text. */
