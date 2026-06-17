@@ -21970,6 +21970,62 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .services-grid,
+  .card-grid,
+  .feature-grid {
+    align-items: start !important;
+    grid-auto-rows: auto !important;
+  }
+
+  .service-card,
+  .feature-card,
+  .resource-card,
+  .home-resource-card {
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    flex: 0 0 auto !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    color: rgba(248, 246, 242, 0.92) !important;
+  }
+
+  .service-card *,
+  .feature-card *,
+  .resource-card *,
+  .home-resource-card * {
+    color: inherit !important;
+  }
+
+  .service-card h1,
+  .service-card h2,
+  .service-card h3,
+  .service-card p,
+  .service-card span,
+  .service-card strong,
+  .feature-card h1,
+  .feature-card h2,
+  .feature-card h3,
+  .feature-card p,
+  .feature-card span,
+  .feature-card strong,
+  .resource-card h1,
+  .resource-card h2,
+  .resource-card h3,
+  .resource-card p,
+  .resource-card span,
+  .resource-card strong,
+  .home-resource-card h1,
+  .home-resource-card h2,
+  .home-resource-card h3,
+  .home-resource-card p,
+  .home-resource-card span,
+  .home-resource-card strong {
+    color: inherit !important;
+  }
+}
+
+@media (max-width: 768px) {
   body.home-page .hero--home {
     min-height: auto !important;
     padding-bottom: 20px !important;
