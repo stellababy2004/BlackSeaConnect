@@ -75,5 +75,8 @@ class PublicCardSystemTests(unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertIn(selector, tail)
 
+        self.assertIn("body.home-page.home-page .hero.hero--home", self.styles)
+        self.assertIn("body.home-page.home-page .hero.hero--home .hero__content", self.styles)
+        self.assertIn("body.home-page.home-page .hero__content--home", self.styles)
         self.assertIn("rgba(255, 250, 243, 0.96)", tail)
         self.assertIn("#10223D !important;", tail)

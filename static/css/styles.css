@@ -17155,6 +17155,19 @@ body.operations-demo-page .operations-demo-page__ambient {
   background: none !important;
 }
 
+@media (max-width: 768px) {
+  body.home-page.home-page .hero.hero--home {
+    min-height: auto !important;
+    padding-bottom: 20px !important;
+  }
+
+  body.home-page.home-page .hero.hero--home .hero__content,
+  body.home-page.home-page .hero__content--home {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
 body.operations-demo-page .operations-demo-page__marina-blur,
 body.operations-demo-page .operations-demo-page__grain {
   display: none !important;
@@ -21948,6 +21961,32 @@ body:not(.operations-demo-page):not(.admin-cockpit-page):not(.admin-pilot-detail
 body:not(.operations-demo-page):not(.admin-cockpit-page):not(.admin-pilot-detail-page) .hero__copy .section-heading__eyebrow,
 body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   color: #526782 !important;
+}
+
+@media (max-width: 768px) {
+  body.home-page .hero--home {
+    min-height: auto !important;
+    padding-bottom: 20px !important;
+  }
+
+  body.home-page .hero--home .hero__content,
+  body.home-page .hero__content--home {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body.home-page .hero--home {
+    min-height: auto !important;
+    padding-bottom: 20px !important;
+  }
+
+  body.home-page .hero--home .hero__content,
+  body.home-page .hero__content--home {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {
