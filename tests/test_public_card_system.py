@@ -214,3 +214,27 @@ class PublicCardSystemTests(unittest.TestCase):
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, tail)
+
+    def test_mobile_guest_kpi_light_cards_assign_role_colors(self):
+        start = self.styles.index("/* Final mobile guest KPI light-card role contrast. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            "body.guest-homepage-page .guest-kpi-grid > .guest-kpi-card .guest-kpi-card__value",
+            "body.guest-homepage-page .guest-kpi-grid > .guest-kpi-card .guest-kpi-card__label",
+            "body.guest-homepage-page .guest-kpi-grid > .guest-kpi-card .feature-card__icon",
+            "body.guest-homepage-page .guest-kpi-grid > .guest-kpi-card > p:not(.guest-kpi-card__label)",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "color: #0B2742 !important;",
+            "-webkit-text-fill-color: #0B2742 !important;",
+            "color: #C58A00 !important;",
+            "-webkit-text-fill-color: #C58A00 !important;",
+            "color: rgba(11, 39, 66, 0.78) !important;",
+            "-webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)
