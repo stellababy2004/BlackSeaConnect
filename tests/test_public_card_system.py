@@ -262,3 +262,34 @@ class PublicCardSystemTests(unittest.TestCase):
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, tail)
+
+    def test_mobile_public_card_readability_pass_covers_light_cards(self):
+        start = self.styles.index("/* Final mobile public-card readability pass. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            "body.home-page .feature-card",
+            "body.home-page .trust-card",
+            "body.home-page .cta-panel",
+            "body.operations-demo-page .operations-panel",
+            "body.guest-homepage-page .guest-kpi-card",
+            "body.partners-page .trust-card",
+            "body.professionals-page .cta-panel",
+            "body.owner-portal-page .admin-cockpit-panel",
+            "body.home-page .feature-card .feature-card__icon",
+            "body.home-page .trust-strip__chip",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "border-color: rgba(15, 35, 69, 0.16) !important;",
+            "color: #0f2345 !important;",
+            "-webkit-text-fill-color: #0f2345 !important;",
+            "opacity: 1 !important;",
+            "font-weight: 700 !important;",
+            "line-height: 1.55 !important;",
+            "background:\n      linear-gradient(135deg, rgba(236, 220, 182, 0.72), rgba(210, 226, 232, 0.60)) !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)

@@ -23834,3 +23834,186 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
     -webkit-text-fill-color: #C58A00 !important;
   }
 }
+
+/* Final mobile public-card readability pass. */
+@media (max-width: 768px) {
+  body.home-page .feature-card,
+  body.home-page .trust-card,
+  body.home-page .home-resource-card,
+  body.home-page .cta-panel,
+  body.home-page .glass-card,
+  body.home-page .empty-state,
+  body.home-page .home-kpi-card,
+  body.operations-demo-page .operations-panel,
+  body.operations-demo-page .operations-panel--wide,
+  body.operations-demo-page .operations-network-card,
+  body.operations-demo-page .operations-empty-state,
+  body.operations-demo-page .operations-list__item,
+  body.operations-demo-page .operations-workflow__step,
+  body.operations-demo-page .operations-notification,
+  body.operations-demo-page .operations-sla__item,
+  body.guest-homepage-page .guest-kpi-card,
+  body.guest-homepage-page .guest-dashboard-card,
+  body.guest-homepage-page .guest-unified-card,
+  body.guest-homepage-page .guest-action-card,
+  body.guest-homepage-page .guest-form-panel,
+  body.guest-homepage-page .guest-card,
+  body.guest-homepage-page .portal-card,
+  body.guest-homepage-page .access-card,
+  body.guest-homepage-page .concierge-card,
+  body.guest-homepage-page .guest-portal-card,
+  body.guest-homepage-page .guest-portal-status,
+  body.guest-homepage-page .guest-portal-info,
+  body.guest-homepage-page .guest-portal-service,
+  body.guest-homepage-page .guest-portal-access,
+  body.guest-homepage-page .guest-portal-qr,
+  body.guest-homepage-page .guest-portal-instructions,
+  body.partners-page .trust-card,
+  body.partners-page .cta-panel,
+  body.professionals-page .trust-card,
+  body.professionals-page .cta-panel,
+  body.owner-portal-page .admin-cockpit-panel,
+  body.owner-portal-page .admin-empty-state,
+  body.owner-portal-page .admin-pilot-card,
+  body.owner-portal-page .owner-request-card {
+    border-color: rgba(15, 35, 69, 0.16) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.74),
+      0 18px 40px rgba(10, 25, 50, 0.12) !important;
+  }
+
+  body.home-page .feature-card h1,
+  body.home-page .feature-card h2,
+  body.home-page .feature-card h3,
+  body.home-page .feature-card h4,
+  body.home-page .trust-card h1,
+  body.home-page .trust-card h2,
+  body.home-page .trust-card h3,
+  body.home-page .home-resource-card h1,
+  body.home-page .home-resource-card h2,
+  body.home-page .home-resource-card h3,
+  body.home-page .cta-panel h2,
+  body.home-page .empty-state h2,
+  body.home-page .glass-card h1,
+  body.home-page .glass-card h2,
+  body.home-page .glass-card h3,
+  body.home-page .glass-card h4,
+  body.home-page .home-kpi-card__label,
+  body.operations-demo-page .operations-panel__eyebrow,
+  body.operations-demo-page .operations-panel h2,
+  body.operations-demo-page .operations-panel h3,
+  body.operations-demo-page .operations-network-card h2,
+  body.operations-demo-page .operations-network-card h3,
+  body.operations-demo-page .operations-empty-state h2,
+  body.operations-demo-page .operations-empty-state h3,
+  body.operations-demo-page .operations-list__item strong,
+  body.operations-demo-page .operations-workflow__step strong,
+  body.guest-homepage-page .guest-kpi-card h1,
+  body.guest-homepage-page .guest-kpi-card h2,
+  body.guest-homepage-page .guest-kpi-card h3,
+  body.guest-homepage-page .guest-dashboard-card h1,
+  body.guest-homepage-page .guest-dashboard-card h2,
+  body.guest-homepage-page .guest-dashboard-card h3,
+  body.guest-homepage-page .guest-unified-card h1,
+  body.guest-homepage-page .guest-unified-card h2,
+  body.guest-homepage-page .guest-unified-card h3,
+  body.guest-homepage-page .guest-action-card h1,
+  body.guest-homepage-page .guest-action-card h2,
+  body.guest-homepage-page .guest-action-card h3,
+  body.guest-homepage-page .guest-form-panel h2,
+  body.guest-homepage-page .guest-form-panel h3,
+  body.partners-page .trust-card h1,
+  body.partners-page .trust-card h2,
+  body.partners-page .trust-card h3,
+  body.partners-page .cta-panel h2,
+  body.professionals-page .trust-card h1,
+  body.professionals-page .trust-card h2,
+  body.professionals-page .trust-card h3,
+  body.professionals-page .cta-panel h2,
+  body.owner-portal-page .admin-cockpit-panel h2,
+  body.owner-portal-page .admin-cockpit-panel h3,
+  body.owner-portal-page .admin-empty-state h3,
+  body.owner-portal-page .admin-pilot-card h2,
+  body.owner-portal-page .owner-request-card h3 {
+    color: #0f2345 !important;
+    -webkit-text-fill-color: #0f2345 !important;
+    font-weight: 700 !important;
+    font-size: clamp(1.03rem, 4.4vw, 1.22rem) !important;
+    line-height: 1.14 !important;
+  }
+
+  body.home-page .feature-card p,
+  body.home-page .feature-card li,
+  body.home-page .feature-card time,
+  body.home-page .feature-card dd,
+  body.home-page .trust-card p,
+  body.home-page .home-resource-card p,
+  body.home-page .cta-panel__copy,
+  body.home-page .cta-panel__trust,
+  body.home-page .empty-state p,
+  body.home-page .home-kpi-card p,
+  body.home-page .home-kpi-card strong,
+  body.operations-demo-page .operations-panel p,
+  body.operations-demo-page .operations-panel li,
+  body.operations-demo-page .operations-panel time,
+  body.operations-demo-page .operations-panel dd,
+  body.operations-demo-page .operations-network-card p,
+  body.operations-demo-page .operations-empty-state p,
+  body.operations-demo-page .operations-list__item p,
+  body.operations-demo-page .operations-workflow__step p,
+  body.guest-homepage-page .guest-kpi-card p,
+  body.guest-homepage-page .guest-kpi-card li,
+  body.guest-homepage-page .guest-dashboard-card p,
+  body.guest-homepage-page .guest-unified-card p,
+  body.guest-homepage-page .guest-action-card p,
+  body.guest-homepage-page .guest-form-panel p,
+  body.guest-homepage-page .guest-portal-card p,
+  body.guest-homepage-page .guest-portal-status p,
+  body.guest-homepage-page .guest-portal-info p,
+  body.guest-homepage-page .guest-portal-service p,
+  body.guest-homepage-page .guest-portal-access p,
+  body.guest-homepage-page .guest-portal-qr p,
+  body.guest-homepage-page .guest-portal-instructions p,
+  body.partners-page .trust-card p,
+  body.partners-page .cta-panel__copy,
+  body.professionals-page .trust-card p,
+  body.professionals-page .cta-panel__copy,
+  body.owner-portal-page .admin-cockpit-panel p,
+  body.owner-portal-page .admin-empty-state p,
+  body.owner-portal-page .admin-pilot-card p,
+  body.owner-portal-page .owner-request-card p,
+  body.owner-portal-page .owner-request-card time,
+  body.owner-portal-page .owner-request-card dd {
+    color: #0f2345 !important;
+    -webkit-text-fill-color: #0f2345 !important;
+    opacity: 1 !important;
+    line-height: 1.55 !important;
+  }
+
+  body.home-page .feature-card .feature-card__icon,
+  body.home-page .trust-strip__chip,
+  body.home-page .home-resource-card__index,
+  body.operations-demo-page .operations-feed__badge,
+  body.operations-demo-page .operations-status-pill,
+  body.operations-demo-page .operations-chip,
+  body.operations-demo-page .operations-arrival-step__status,
+  body.guest-homepage-page .guest-kpi-card .feature-card__icon,
+  body.guest-homepage-page .guest-dashboard-card .feature-card__icon,
+  body.guest-homepage-page .guest-unified-card .feature-card__icon,
+  body.guest-homepage-page .guest-action-card .feature-card__icon,
+  body.guest-homepage-page .guest-portal-badge,
+  body.guest-homepage-page .guest-portal-timeline__tag,
+  body.partners-page .trust-card .trust-strip__chip,
+  body.professionals-page .trust-card .trust-strip__chip,
+  body.owner-portal-page .admin-pilot-status,
+  body.owner-portal-page .owner-request-status-badge {
+    color: #0f2345 !important;
+    -webkit-text-fill-color: #0f2345 !important;
+    border-color: rgba(15, 35, 69, 0.14) !important;
+    background:
+      linear-gradient(135deg, rgba(236, 220, 182, 0.72), rgba(210, 226, 232, 0.60)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.62),
+      0 8px 18px rgba(10, 25, 50, 0.10) !important;
+  }
+}
