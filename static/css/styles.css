@@ -22008,6 +22008,44 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .credibility-layer {
+    padding-top: 22px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .credibility-layer > .section-heading,
+  .trust-layer > .section-heading,
+  .section-heading--trust {
+    margin-bottom: 10px !important;
+  }
+
+  .trust-layer > .section-heading--trust {
+    margin-top: 0 !important;
+  }
+
+  .credibility-layer > .feature-grid,
+  .trust-layer > .trust-grid {
+    gap: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card,
+  .trust-layer > .trust-grid > .trust-card {
+    min-height: 0 !important;
+    padding: 22px 22px 20px !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card h3,
+  .trust-layer > .trust-grid > .trust-card h3 {
+    margin: 0 0 10px !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card .feature-card__icon {
+    margin-bottom: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
   .feature-card,
   .service-card,
   .resource-card,

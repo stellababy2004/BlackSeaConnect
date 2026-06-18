@@ -103,3 +103,30 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("color: #F8F6F2 !important;", self.styles)
         self.assertIn("color: rgba(248, 246, 242, 0.86) !important;", self.styles)
         self.assertIn("color: #E7D7A5 !important;", self.styles)
+
+    def test_mobile_credibility_spacing_is_compact(self):
+        for selector in [
+            ".credibility-layer > .section-heading",
+            ".trust-layer > .section-heading",
+            ".trust-layer > .section-heading--trust",
+            ".credibility-layer > .feature-grid",
+            ".trust-layer > .trust-grid",
+            ".credibility-layer > .feature-grid > .feature-card",
+            ".trust-layer > .trust-grid > .trust-card",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
+        for value in [
+            "padding-top: 22px !important;",
+            "margin-bottom: 10px !important;",
+            "margin-top: 0 !important;",
+            "gap: 12px !important;",
+            "margin-bottom: 14px !important;",
+            "min-height: 0 !important;",
+            "padding: 22px 22px 20px !important;",
+            "margin: 0 0 10px !important;",
+            "margin-bottom: 12px !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, self.styles)
