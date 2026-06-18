@@ -21970,6 +21970,13 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .credibility-layer,
+  .trust-layer {
+    --card-coastal-text: #F8F6F2;
+    --card-coastal-muted: rgba(248, 246, 242, 0.86);
+    --card-coastal-accent: #E7D7A5;
+  }
+
   .credibility-layer .feature-grid {
     align-items: start !important;
     grid-auto-rows: auto !important;

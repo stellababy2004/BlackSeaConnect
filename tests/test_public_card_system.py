@@ -87,6 +87,7 @@ class PublicCardSystemTests(unittest.TestCase):
 
     def test_services_mobile_override_is_scoped_to_credibility_layer(self):
         for selector in [
+            ".credibility-layer,\n  .trust-layer {\n    --card-coastal-text: #F8F6F2;",
             ".credibility-layer .feature-grid",
             ".credibility-layer .feature-card",
             ".credibility-layer .feature-card h3",
@@ -100,6 +101,7 @@ class PublicCardSystemTests(unittest.TestCase):
 
         self.assertIn("grid-auto-rows: auto !important;", self.styles)
         self.assertIn("aspect-ratio: auto !important;", self.styles)
+        self.assertIn("--card-coastal-text: #F8F6F2;", self.styles)
         self.assertIn("color: #F8F6F2 !important;", self.styles)
         self.assertIn("color: rgba(248, 246, 242, 0.86) !important;", self.styles)
         self.assertIn("color: #E7D7A5 !important;", self.styles)
