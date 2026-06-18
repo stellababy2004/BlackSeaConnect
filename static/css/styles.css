@@ -23593,3 +23593,124 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   color: #526782 !important;
 }
 
+/* Final mobile operations preview fit EOF anchor. */
+@media (max-width: 768px) {
+  body.operations-demo-page .operations-preview-card,
+  body.operations-demo-page .operations-preview-card *,
+  body.operations-demo-page .operations-feed__item,
+  body.operations-demo-page .operations-feed__item *,
+  body.operations-demo-page .operations-property-card,
+  body.operations-demo-page .operations-property-card *,
+  .home-product .home-product__preview,
+  .home-product .home-product__preview *,
+  .home-product .home-product__kpis,
+  .home-product .home-product__kpis * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__topline,
+  body.operations-demo-page .operations-preview-card__headline,
+  .home-product .preview-card__topline {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__time,
+  body.operations-demo-page .operations-chip,
+  body.operations-demo-page .operations-status-pill,
+  .home-product .preview-card__signal {
+    max-width: 100% !important;
+    height: auto !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.25 !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes > div,
+  body.operations-demo-page .operations-stack .operations-feed__item {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    gap: 10px 12px !important;
+    align-items: start !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes > div > span,
+  body.operations-demo-page .operations-stack .operations-feed__item > time {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes > div > strong,
+  body.operations-demo-page .operations-stack .operations-feed__item > div,
+  body.operations-demo-page .operations-stack .operations-feed__item strong {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-feed__badge {
+    display: inline-flex !important;
+    max-width: 100% !important;
+    width: fit-content !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.25 !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-property-card__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-property-card__metric {
+    overflow: visible !important;
+    min-width: 0 !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-property-card__metric span {
+    color: rgba(248, 246, 242, 0.82) !important;
+    -webkit-text-fill-color: rgba(248, 246, 242, 0.82) !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  body.operations-demo-page .operations-stack .operations-property-card__metric strong {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .home-product .home-product__preview-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: start !important;
+    overflow: visible !important;
+  }
+
+  .home-product .home-product__preview-row span,
+  .home-product .home-product__preview-row strong,
+  .home-product .home-product__kpi-label,
+  .home-product .home-product__kpi-value {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  .trust-layer > .trust-grid > .trust-card h3,
+  .credibility-layer > .feature-grid > .feature-card h3 {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .trust-layer > .trust-grid > .trust-card p,
+  .credibility-layer > .feature-grid > .feature-card p {
+    color: rgba(248, 246, 242, 0.86) !important;
+    -webkit-text-fill-color: rgba(248, 246, 242, 0.86) !important;
+  }
+}

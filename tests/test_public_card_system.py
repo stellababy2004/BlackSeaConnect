@@ -60,7 +60,7 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("color: #B9892B !important;", tail)
 
     def test_mobile_override_covers_bottom_surfaces(self):
-        start = self.styles.rindex("@media (max-width: 768px) {")
+        start = self.styles.index("@media (max-width: 768px) {\n  .cta-panel,")
         tail = self.styles[start:]
 
         for selector in [
@@ -84,6 +84,34 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("-webkit-text-fill-color: #F8F6F2 !important;", self.styles)
         self.assertIn("rgba(255, 250, 243, 0.96)", tail)
         self.assertIn("#10223D !important;", tail)
+
+    def test_mobile_operations_preview_rows_do_not_overlap(self):
+        start = self.styles.index("/* Final mobile operations preview fit EOF anchor. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            "body.operations-demo-page .operations-preview-card__notes > div",
+            "body.operations-demo-page .operations-stack .operations-feed__item",
+            "body.operations-demo-page .operations-preview-card__notes > div > span",
+            "body.operations-demo-page .operations-stack .operations-feed__item > time",
+            "body.operations-demo-page .operations-stack .operations-feed__badge",
+            "body.operations-demo-page .operations-stack .operations-property-card__metric span",
+            "body.operations-demo-page .operations-stack .operations-property-card__metric strong",
+            ".home-product .home-product__preview-row",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "grid-template-columns: auto minmax(0, 1fr) !important;",
+            "min-width: 0 !important;",
+            "overflow-wrap: anywhere !important;",
+            "white-space: normal !important;",
+            "white-space: nowrap !important;",
+            "-webkit-text-fill-color: #F8F6F2 !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)
 
     def test_services_mobile_override_is_scoped_to_credibility_layer(self):
         for selector in [
