@@ -327,6 +327,17 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('href="/owners/register"', response_professionals.get_data(as_text=True))
         self.assertIn('href="/owners/register"', response_pilot.get_data(as_text=True))
 
+    def test_homepage_zero_kpi_copy_uses_premium_language(self):
+        html = self.client.get("/").get_data(as_text=True)
+
+        for phrase in [
+            "Trusted Partners",
+            "Coverage Expanding",
+            "Pilot Access Open",
+        ]:
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, html)
+
     def test_owner_service_request_creation_saves_and_emails(self):
         self._seed_owner_account()
         self.client.post("/owners/login", data={"email": "owner@example.com"})

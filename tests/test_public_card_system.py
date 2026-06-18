@@ -240,24 +240,25 @@ class PublicCardSystemTests(unittest.TestCase):
                 self.assertIn(value, tail)
 
     def test_mobile_home_credibility_light_cards_use_navy_text(self):
-        start = self.styles.index("/* Final mobile home credibility light-card role contrast. */")
+        start = self.styles.index(".home-page .credibility-layer > .feature-grid > .home-kpi-card {")
         tail = self.styles[start:]
 
         for selector in [
-            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card h3',
-            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card p',
-            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card .feature-card__icon',
+            ".home-page .credibility-layer > .feature-grid > .home-kpi-card",
+            ".home-page .credibility-layer > .feature-grid > .home-kpi-card .home-kpi-card__icon",
+            ".home-page .credibility-layer > .feature-grid > .home-kpi-card__label",
+            ".home-page .credibility-layer > .feature-grid > .home-kpi-card p",
+            ".home-page .credibility-layer > .feature-grid > .home-kpi-card__value",
         ]:
             with self.subTest(selector=selector):
                 self.assertIn(selector, tail)
 
         for value in [
-            "color: #0B2742 !important;",
-            "-webkit-text-fill-color: #0B2742 !important;",
-            "color: rgba(11, 39, 66, 0.78) !important;",
-            "-webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;",
-            "color: #C58A00 !important;",
-            "-webkit-text-fill-color: #C58A00 !important;",
+            "color: #0f2345 !important;",
+            "-webkit-text-fill-color: #0f2345 !important;",
+            "background: linear-gradient(135deg, rgba(236, 220, 182, 0.94), rgba(210, 226, 232, 0.74)) !important;",
+            "font-weight: 800 !important;",
+            "font-size: clamp(2.05rem, 10.8vw, 2.9rem) !important;",
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, tail)

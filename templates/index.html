@@ -129,20 +129,20 @@
       </div>
 
       <div class="feature-grid">
-        <article class="feature-card">
-          <span class="feature-card__icon">PR</span>
-          <h3><span data-i18n="homeCounterProvidersLabel">Доставчици</span></h3>
-          <p><strong>{{ home_counters.providers }}</strong></p>
+        <article class="feature-card home-kpi-card">
+          <span class="feature-card__icon home-kpi-card__icon">PR</span>
+          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterProvidersLabel">Доставчици</span></h3>
+          <p><strong class="home-kpi-card__value">{% if home_counters.providers == 0 %}Trusted Partners{% else %}{{ home_counters.providers }}{% endif %}</strong></p>
         </article>
-        <article class="feature-card">
-          <span class="feature-card__icon">CT</span>
-          <h3><span data-i18n="homeCounterCitiesLabel">Градове</span></h3>
-          <p><strong>{{ home_counters.cities }}</strong></p>
+        <article class="feature-card home-kpi-card">
+          <span class="feature-card__icon home-kpi-card__icon">CT</span>
+          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterCitiesLabel">Градове</span></h3>
+          <p><strong class="home-kpi-card__value">{% if home_counters.cities == 0 %}Coverage Expanding{% else %}{{ home_counters.cities }}{% endif %}</strong></p>
         </article>
-        <article class="feature-card">
-          <span class="feature-card__icon">SR</span>
-          <h3><span data-i18n="homeCounterServiceRequestsLabel">Заявки за услуги</span></h3>
-          <p><strong>{{ home_counters.service_requests }}</strong></p>
+        <article class="feature-card home-kpi-card">
+          <span class="feature-card__icon home-kpi-card__icon">SR</span>
+          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterServiceRequestsLabel">Заявки за услуги</span></h3>
+          <p><strong class="home-kpi-card__value">{% if home_counters.service_requests == 0 %}Pilot Access Open{% else %}{{ home_counters.service_requests }}{% endif %}</strong></p>
         </article>
       </div>
     </section>
