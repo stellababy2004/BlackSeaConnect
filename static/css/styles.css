@@ -21970,6 +21970,28 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .trust-layer > .trust-grid > .trust-card h3 {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .trust-layer > .trust-grid > .trust-card p {
+    color: rgba(248, 246, 242, 0.86) !important;
+    -webkit-text-fill-color: rgba(248, 246, 242, 0.86) !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card h3 {
+    color: #F8F6F2 !important;
+    -webkit-text-fill-color: #F8F6F2 !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card p {
+    color: rgba(248, 246, 242, 0.86) !important;
+    -webkit-text-fill-color: rgba(248, 246, 242, 0.86) !important;
+  }
+}
+
+@media (max-width: 768px) {
   .credibility-layer,
   .trust-layer {
     --card-coastal-text: #F8F6F2;

@@ -148,3 +148,16 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("isolation: isolate !important;", self.styles)
         self.assertIn("z-index: 0 !important;", self.styles)
         self.assertIn("z-index: 1 !important;", self.styles)
+
+    def test_mobile_trust_card_text_override_wins_late_cascade(self):
+        for selector in [
+            ".trust-layer > .trust-grid > .trust-card h3",
+            ".trust-layer > .trust-grid > .trust-card p",
+            ".credibility-layer > .feature-grid > .feature-card h3",
+            ".credibility-layer > .feature-grid > .feature-card p",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
+        self.assertIn("#F8F6F2", self.styles)
+        self.assertIn("-webkit-text-fill-color", self.styles)
