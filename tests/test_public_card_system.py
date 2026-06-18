@@ -132,3 +132,19 @@ class PublicCardSystemTests(unittest.TestCase):
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, self.styles)
+
+    def test_mobile_card_overlays_render_below_content(self):
+        for selector in [
+            ".credibility-layer > .feature-grid > .feature-card::before",
+            ".credibility-layer > .feature-grid > .feature-card::after",
+            ".trust-layer > .trust-grid > .trust-card::before",
+            ".trust-layer > .trust-grid > .trust-card::after",
+            ".credibility-layer > .feature-grid > .feature-card > *",
+            ".trust-layer > .trust-grid > .trust-card > *",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
+        self.assertIn("isolation: isolate !important;", self.styles)
+        self.assertIn("z-index: 0 !important;", self.styles)
+        self.assertIn("z-index: 1 !important;", self.styles)

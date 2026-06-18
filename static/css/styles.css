@@ -22053,6 +22053,27 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
 }
 
 @media (max-width: 768px) {
+  .credibility-layer > .feature-grid > .feature-card,
+  .trust-layer > .trust-grid > .trust-card {
+    position: relative !important;
+    isolation: isolate !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card::before,
+  .credibility-layer > .feature-grid > .feature-card::after,
+  .trust-layer > .trust-grid > .trust-card::before,
+  .trust-layer > .trust-grid > .trust-card::after {
+    z-index: 0 !important;
+  }
+
+  .credibility-layer > .feature-grid > .feature-card > *,
+  .trust-layer > .trust-grid > .trust-card > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
   .feature-card,
   .service-card,
   .resource-card,
