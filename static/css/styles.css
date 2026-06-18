@@ -23714,3 +23714,26 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
     -webkit-text-fill-color: rgba(248, 246, 242, 0.86) !important;
   }
 }
+
+/* Final mobile partner network contrast: light pearl cards use navy text. */
+@media (max-width: 768px) {
+  body.partners-page .trust-layer > .trust-grid > .trust-card h3,
+  body.home-page .trust-layer[aria-labelledby="partners-title"] > .trust-grid > .trust-card h3 {
+    color: #0B2742 !important;
+    -webkit-text-fill-color: #0B2742 !important;
+  }
+
+  body.partners-page .trust-layer > .trust-grid > .trust-card p,
+  body.home-page .trust-layer[aria-labelledby="partners-title"] > .trust-grid > .trust-card p {
+    color: rgba(11, 39, 66, 0.78) !important;
+    -webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;
+  }
+
+  body.partners-page .trust-layer > .trust-grid > .trust-card p strong,
+  body.home-page .trust-layer[aria-labelledby="partners-title"] > .trust-grid > .trust-card p strong,
+  body.partners-page .trust-layer .section-heading__eyebrow,
+  body.home-page .trust-layer[aria-labelledby="partners-title"] .section-heading__eyebrow {
+    color: #B9892B !important;
+    -webkit-text-fill-color: #B9892B !important;
+  }
+}

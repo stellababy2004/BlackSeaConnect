@@ -189,3 +189,28 @@ class PublicCardSystemTests(unittest.TestCase):
 
         self.assertIn("#F8F6F2", self.styles)
         self.assertIn("-webkit-text-fill-color", self.styles)
+
+    def test_mobile_partner_network_light_cards_use_navy_text(self):
+        start = self.styles.index("/* Final mobile partner network contrast: light pearl cards use navy text. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            'body.partners-page .trust-layer > .trust-grid > .trust-card h3',
+            'body.partners-page .trust-layer > .trust-grid > .trust-card p',
+            'body.home-page .trust-layer[aria-labelledby="partners-title"] > .trust-grid > .trust-card h3',
+            'body.home-page .trust-layer[aria-labelledby="partners-title"] > .trust-grid > .trust-card p',
+            'body.partners-page .trust-layer .section-heading__eyebrow',
+            'body.home-page .trust-layer[aria-labelledby="partners-title"] .section-heading__eyebrow',
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "color: #0B2742 !important;",
+            "-webkit-text-fill-color: #0B2742 !important;",
+            "color: rgba(11, 39, 66, 0.78) !important;",
+            "-webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;",
+            "color: #B9892B !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)
