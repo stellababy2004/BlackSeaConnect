@@ -238,3 +238,26 @@ class PublicCardSystemTests(unittest.TestCase):
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, tail)
+
+    def test_mobile_home_credibility_light_cards_use_navy_text(self):
+        start = self.styles.index("/* Final mobile home credibility light-card role contrast. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card h3',
+            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card p',
+            'body.home-page .credibility-layer[aria-labelledby="credibility-title"] > .feature-grid > .feature-card .feature-card__icon',
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "color: #0B2742 !important;",
+            "-webkit-text-fill-color: #0B2742 !important;",
+            "color: rgba(11, 39, 66, 0.78) !important;",
+            "-webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;",
+            "color: #C58A00 !important;",
+            "-webkit-text-fill-color: #C58A00 !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)
