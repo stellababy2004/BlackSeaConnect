@@ -1,37 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Application</title>
-  <meta name="description" content="Apply to join the BlackSea Connect professional network for trusted local specialists.">
+  <title data-i18n="pageTitle">BlackSea Connect | Професионална регистрация</title>
+  <meta name="description" data-i18n-attr="content:heroIntro" content="Споделете вашите данни и ще прегледаме заявлението ви за пилотната фаза по българското Черноморие.">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body>
+<body class="professionals-apply-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/partners">Partners</a>
-          <a class="site-nav__link" href="/professionals">Professionals</a>
-          <a class="site-nav__link" href="/pilot-access">Pilot Access</a>
-          <a class="site-nav__link is-active" href="/professionals/apply">Apply</a>
+          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link is-active" href="/professionals/apply" data-i18n="navApply">Кандидатстване</a>
         </nav>
-        <a class="button button--ghost topbar__portal" href="/professionals">Back to professionals</a>
+        <div class="language-switcher" aria-label="Language switcher">
+          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg" data-lang="bg">BG</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="en" data-lang="en">EN</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="fr" data-lang="fr">FR</button>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <button class="language-switcher__button" type="button" data-lang-switch="ru" data-lang="ru">RU</button>
+        </div>
+        <a class="button button--ghost topbar__portal" href="/professionals" data-i18n="backToProfessionals">Обратно към професионалистите</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow">Professional registration</p>
-        <h1>Join the BlackSea Connect professional network.</h1>
-        <p class="hero__text">
-          Share your details and we will review your application for the coastal professional pipeline.
+        <p class="eyebrow" data-i18n="heroEyebrow">Професионална регистрация</p>
+        <h1 data-i18n="heroTitle">Присъединете се към професионалната мрежа на BlackSea Connect.</h1>
+        <p class="hero__text" data-i18n="heroIntro">
+          Споделете вашите данни и ще прегледаме заявлението ви за пилотната фаза по българското Черноморие.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#professional-form">Open application form</a>
-          <a class="button button--secondary" href="/professionals">View professional network</a>
+          <a class="button button--primary" href="#professional-form" data-i18n="heroPrimaryCta">Отвори формата за кандидатстване</a>
+          <a class="button button--secondary" href="/professionals" data-i18n="heroSecondaryCta">Виж професионалната мрежа</a>
         </div>
       </div>
     </div>
@@ -41,88 +50,90 @@
     {% if submitted %}
       <section class="cta-panel">
         <div class="cta-panel__content">
-          <p class="section-heading__eyebrow">Application received</p>
-          <h2>Thank you. Your professional application is now marked as NEW.</h2>
-          <p class="cta-panel__copy">We have saved your details and notified the admin team for review.</p>
+          <p class="section-heading__eyebrow" data-i18n="successEyebrow">Заявлението е получено</p>
+          <h2 data-i18n="successTitle">Благодарим ви. Вашето професионално заявление е в очакване на преглед.</h2>
+          <p class="cta-panel__copy" data-i18n="successCopy">Записахме регистрацията ви и ще я прегледаме по време на пилотната фаза. Ранният достъп остава безплатен, докато мрежата се оформя.</p>
         </div>
-        <a class="button button--primary" href="/professionals">Return to professionals</a>
+        <a class="button button--primary" href="/professionals" data-i18n="successPrimaryCta">Върни се към професионалистите</a>
       </section>
     {% endif %}
 
     <section class="cta-panel cta-panel--pilot" id="professional-form" aria-labelledby="professional-form-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow">Application form</p>
-        <h2 id="professional-form-title">Tell us about your expertise, city and languages.</h2>
-        <p class="cta-panel__copy">All professional applications start in NEW status and move through the same CRM pipeline.</p>
+        <p class="section-heading__eyebrow" data-i18n="formEyebrow">Формуляр за регистрация</p>
+        <h2 id="professional-form-title" data-i18n="formTitle">Разкажете ни за вашата експертиза, град и езици.</h2>
+        <p class="cta-panel__copy" data-i18n="formCopy">Искаме само детайлите, нужни да разберем съвместимост, локация и капацитет. Ранният достъп е безплатен по време на пилотната фаза.</p>
       </div>
 
       {% if save_error %}
         <div class="admin-empty-state">
-          <h3>We could not save your application right now.</h3>
-          <p>Please try again in a moment.</p>
+          <h3 data-i18n="saveErrorTitle">В момента не можахме да запишем заявлението ви.</h3>
+          <p data-i18n="saveErrorCopy">Моля, опитайте отново след малко.</p>
         </div>
       {% endif %}
 
       <form class="pilot-form" method="post" action="/professionals/apply">
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
-            <span>Full Name</span>
-            <input name="full_name" type="text" required value="{{ form_values.full_name|e }}" placeholder="Your full name">
-            {% if errors.full_name %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="fullNameLabel">Пълно име</span>
+            <input name="full_name" type="text" required value="{{ form_values.full_name|e }}" placeholder="Вашето пълно име" data-i18n-attr="placeholder:fullNamePlaceholder">
+            {% if errors.full_name %}<p class="form-error" data-i18n="fullNameRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Email</span>
-            <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="name@example.com">
-            {% if errors.email %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="emailLabel">Имейл</span>
+            <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="name@example.com" data-i18n-attr="placeholder:emailPlaceholder">
+            {% if errors.email %}<p class="form-error" data-i18n="emailRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Phone</span>
-            <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="+359...">
-            {% if errors.phone %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="phoneLabel">Телефон</span>
+            <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="+359..." data-i18n-attr="placeholder:phonePlaceholder">
+            {% if errors.phone %}<p class="form-error" data-i18n="phoneRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>City</span>
-            <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="Varna, Burgas...">
-            {% if errors.city %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="cityLabel">Град</span>
+            <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="Варна, Бургас..." data-i18n-attr="placeholder:cityPlaceholder">
+            {% if errors.city %}<p class="form-error" data-i18n="cityRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Country</span>
-            <input name="country" type="text" required value="{{ form_values.country|e }}" placeholder="Bulgaria">
-            {% if errors.country %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="countryLabel">Държава</span>
+            <input name="country" type="text" required value="{{ form_values.country|e }}" placeholder="България" data-i18n-attr="placeholder:countryPlaceholder">
+            {% if errors.country %}<p class="form-error" data-i18n="countryRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Professional Category</span>
+            <span data-i18n="professionalCategoryLabel">Професионална категория</span>
             <select class="pilot-form__input" name="professional_category" required>
-              <option value="">Select a category</option>
+              <option value="" data-i18n="professionalCategoryEmpty">Изберете категория</option>
               {% for category in service_categories %}
-                <option value="{{ category.label|e }}" {% if form_values.professional_category == category.label %}selected{% endif %}>{{ category.label|e }}</option>
+                <option value="{{ category.label|e }}" {% if form_values.professional_category == category.label %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label|e }}</option>
               {% endfor %}
             </select>
-            {% if errors.professional_category %}<p class="form-error">This field is required.</p>{% endif %}
+            {% if errors.professional_category %}<p class="form-error" data-i18n="serviceTypeRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Languages</span>
-            <input name="languages" type="text" required value="{{ form_values.languages|e }}" placeholder="Bulgarian, English...">
-            {% if errors.languages %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="languagesLabel">Езици</span>
+            <input name="languages" type="text" required value="{{ form_values.languages|e }}" placeholder="Български, английски..." data-i18n-attr="placeholder:languagesPlaceholder">
+            {% if errors.languages %}<p class="form-error" data-i18n="languagesRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span>Experience</span>
-            <input name="experience" type="text" required value="{{ form_values.experience|e }}" placeholder="5 years / 12 projects">
-            {% if errors.experience %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="experienceLabel">Години опит</span>
+            <input name="experience" type="text" required value="{{ form_values.experience|e }}" placeholder="5" data-i18n-attr="placeholder:experiencePlaceholder">
+            {% if errors.experience %}<p class="form-error" data-i18n="experienceRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
           <label class="pilot-form__field pilot-form__field--full">
-            <span>Short Bio</span>
-            <textarea name="short_bio" rows="5" required placeholder="Tell us about your background and how you support guests or properties.">{{ form_values.short_bio|e }}</textarea>
-            {% if errors.short_bio %}<p class="form-error">This field is required.</p>{% endif %}
+            <span data-i18n="shortBioLabel">Кратка биография</span>
+            <textarea name="short_bio" rows="5" required placeholder="Разкажете ни за опита си и как подкрепяте гости или имоти." data-i18n-attr="placeholder:shortBioPlaceholder">{{ form_values.short_bio|e }}</textarea>
+            {% if errors.short_bio %}<p class="form-error" data-i18n="shortBioRequiredError">Това поле е задължително.</p>{% endif %}
           </label>
         </div>
 
         <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit">Submit application</button>
-          <p class="pilot-form__hint">Approved entries appear publicly only after they are converted in the CRM pipeline.</p>
+          <button class="button button--primary" type="submit" data-i18n="submitCta">Изпрати заявлението</button>
+          <p class="pilot-form__hint" data-i18n="submitHint">Информацията ви се използва само за преглед на професионалната мрежа.</p>
         </div>
       </form>
     </section>
   </main>
+  <script src="/static/js/translations.js?v=20260608"></script>
+  <script src="/static/js/i18n.js?v=20260608"></script>
 </body>
 </html>

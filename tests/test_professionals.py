@@ -168,6 +168,44 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("Concierge", message.get_content())
         self.assertIn("/admin/professionals/", message.get_content())
 
+    def test_professional_apply_page_uses_i18n_hooks_for_supported_locales(self):
+        for lang in ("bg", "fr", "ru"):
+            response = self.client.get("/professionals/apply", query_string={"lang": lang})
+            self.assertEqual(response.status_code, 200)
+
+            html = response.get_data(as_text=True)
+            self.assertIn('<body class="professionals-apply-page">', html)
+            self.assertIn('data-i18n="pageTitle"', html)
+            self.assertIn('data-i18n-attr="content:heroIntro"', html)
+            self.assertIn('data-i18n="navPartners"', html)
+            self.assertIn('data-i18n="navProfessionals"', html)
+            self.assertIn('data-i18n="navPilotAccess"', html)
+            self.assertIn('data-i18n="navApply"', html)
+            self.assertIn('data-i18n="backToProfessionals"', html)
+            self.assertIn('<div class="language-switcher" aria-label="Language switcher">', html)
+            self.assertIn('data-lang-switch="bg"', html)
+            self.assertIn('data-lang-switch="en"', html)
+            self.assertIn('data-lang-switch="fr"', html)
+            self.assertIn('data-lang-switch="ru"', html)
+            self.assertIn('data-i18n="heroEyebrow"', html)
+            self.assertIn('data-i18n="heroTitle"', html)
+            self.assertIn('data-i18n="heroPrimaryCta"', html)
+            self.assertIn('data-i18n="heroSecondaryCta"', html)
+            self.assertIn('data-i18n="formEyebrow"', html)
+            self.assertIn('data-i18n="professionalCategoryLabel"', html)
+            self.assertIn('data-i18n="countryLabel"', html)
+            self.assertIn('data-i18n="shortBioLabel"', html)
+            self.assertIn('data-i18n="submitCta"', html)
+            self.assertIn('data-i18n="submitHint"', html)
+            self.assertIn('/static/js/translations.js', html)
+            self.assertIn('/static/js/i18n.js', html)
+
+        ru_response = self.client.get("/professionals/apply", query_string={"lang": "ru"})
+        self.assertEqual(ru_response.status_code, 200)
+        ru_html = ru_response.get_data(as_text=True)
+        self.assertIn('data-i18n="pageTitle"', ru_html)
+        self.assertIn('data-lang-switch="ru"', ru_html)
+
     def test_status_updates_store_history_and_notes(self):
         partner_record = {
             "id": "partner-1",
