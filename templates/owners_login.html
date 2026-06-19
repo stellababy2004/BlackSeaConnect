@@ -8,32 +8,27 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="ownerLoginPageTitle">BlackSea Connect | Owner Login</title>
-  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="Login to your owner portal with email and continue to your dashboard.">
+  <title data-i18n="ownerLoginPageTitle">BlackSea Connect | Вход за собственици</title>
+  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Owner Login">
-  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="Login to your owner portal with email and continue to your dashboard.">
+  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход за собственици">
+  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Owner Login">
-  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="Login to your owner portal with email and continue to your dashboard.">
+  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход за собственици">
+  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="owner-portal-page">
+<body class="owner-portal-page owner-login-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Site">
+        <nav class="site-nav" aria-label="Owner portal">
           <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-          <a class="site-nav__link is-active" href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
+          <a class="site-nav__link" href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
+          <a class="site-nav__link" href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -44,48 +39,86 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/owners/register" data-i18n="ownerLoginRegisterCta">Регистрация на имот</a>
+        <a class="button button--ghost topbar__portal" href="/" data-i18n="ownerLoginBackToSite">Обратно към сайта</a>
       </div>
     </nav>
 
-    <div class="hero__content hero__content--home">
+    <div class="hero__content hero__content--home owner-portal-auth-layout">
       <div class="hero__copy">
         <p class="eyebrow" data-i18n="ownerLoginEyebrow">Портал за собственици</p>
-        <h1 data-i18n="ownerLoginTitle">Влезте с имейл и отворете спокойно таблото си.</h1>
+        <h1 data-i18n="ownerLoginTitle">Влезте и вижте имота си спокойно.</h1>
         <p class="hero__text" data-i18n="ownerLoginIntro">
-          Използвайте същия имейл, с който се регистрирахте, за да преглеждате заявки, статуси и последни обновления.
+          Поверителен поглед към операциите на вашия имот.
+        </p>
+        <p class="hero__text owner-portal-auth-layout__support" data-i18n="ownerLoginSupport">
+          Вижте последните активности, разберете какво се случва и поръчайте услуга без да търсите локалния екип.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">Вход</a>
-          <a class="button button--secondary" href="/owners/register" data-i18n="ownerLoginSecondaryCta">Създай акаунт</a>
+          <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">Отвори входа</a>
+          <a class="button button--secondary" href="/owners/request-service" data-i18n="ownerLoginSecondaryCta">Заяви услуга</a>
+        </div>
+        <div class="trust-strip" aria-label="Owner login benefits">
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip1">Поверителен портал</span>
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip2">Спокойна видимост на имота</span>
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip3">Заявки за услуги на едно място</span>
         </div>
       </div>
+
+      <aside class="owner-portal-card owner-login-card" aria-label="Owner portal summary">
+        <p class="owner-portal-card__eyebrow" data-i18n="ownerLoginWhatThisIs">Какво е това</p>
+        <h2 data-i18n="ownerLoginWhatThisTitle">Всичко необходимо без административния шум.</h2>
+        <p class="owner-portal-card__subcopy" data-i18n="ownerLoginWhatThisCopy">Премиум изглед за собственици с активност, обновления и заявки за услуги.</p>
+        <dl class="owner-portal-dl">
+          <div>
+            <dt data-i18n="ownerLoginWhatThisVisibility">Видимост</dt>
+            <dd data-i18n="ownerLoginWhatThisVisibilityCopy">Обновления на имота с един поглед</dd>
+          </div>
+          <div>
+            <dt data-i18n="ownerLoginWhatThisControl">Контрол</dt>
+            <dd data-i18n="ownerLoginWhatThisControlCopy">Заявете услуга с няколко докосвания</dd>
+          </div>
+          <div>
+            <dt data-i18n="ownerLoginWhatThisConfidence">Увереност</dt>
+            <dd data-i18n="ownerLoginWhatThisConfidenceCopy">Едно спокойно място за проследяване</dd>
+          </div>
+        </dl>
+      </aside>
     </div>
   </header>
 
-  <main>
-    <section class="cta-panel cta-panel--pilot" id="owner-login-form" aria-labelledby="owner-login-title">
-      <div class="cta-panel__content">
+  <main class="owner-login-page__main">
+    <section class="owner-portal-card owner-login-panel" id="owner-login-form" aria-labelledby="owner-login-title">
+      <div class="owner-login-panel__copy">
         <p class="section-heading__eyebrow" data-i18n="ownerLoginCardEyebrow">Вход</p>
-        <h2 id="owner-login-title" data-i18n="ownerLoginCardTitle">Въведете имейла си, за да продължите.</h2>
+        <h2 id="owner-login-title" data-i18n="ownerLoginCardTitle">Въведете имейла, свързан с вашия имот.</h2>
         <p class="cta-panel__copy" data-i18n="ownerLoginCardCopy">
-          Нямате нужда от нова парола. Входът е бърз и е свързан с вече регистрираните имейли.
+          Използвайте демо данните по-долу, за да отворите портала локално.
         </p>
       </div>
 
-      <form class="pilot-form" method="post" action="/owners/login">
-        <div class="pilot-form__grid">
-          <label class="pilot-form__field pilot-form__field--full">
-            <span data-i18n="ownerLoginEmail">Email</span>
-            <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
-            {% if errors.email %}<p class="form-error" data-i18n="ownerLoginError">Please enter a registered email address.</p>{% endif %}
-          </label>
+      <form class="owner-login-form" method="post" action="/owners/login">
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerLoginEmail">Имейл</span>
+          <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
+          {% if errors.email %}<p class="form-error" data-i18n="ownerLoginError">Моля, въведете регистриран имейл адрес.</p>{% endif %}
+        </label>
+
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerLoginPassword">Парола</span>
+          <input type="password" name="password" value="{{ form_values.password|e }}" required placeholder="demo1234" autocomplete="current-password" data-i18n-attr="placeholder:ownerLoginPasswordPlaceholder">
+          {% if errors.password %}<p class="form-error" data-i18n="ownerLoginPasswordError">Please enter the demo password.</p>{% endif %}
+          {% if errors.credentials %}<p class="form-error" data-i18n="ownerLoginCredentialsError">Demo credentials are not correct.</p>{% endif %}
+        </label>
+
+        <div class="owner-login-demo-note">
+          <strong data-i18n="ownerLoginDemoLabel">Демо данни</strong>
+          <p data-i18n="ownerLoginDemoNote">owner@blackseaconnect.com / demo1234</p>
         </div>
 
-        <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="ownerLoginSubmit">Enter dashboard</button>
+        <div class="owner-login-form__footer">
+          <button class="button button--primary" type="submit" data-i18n="ownerLoginSubmit">Влез в таблото</button>
           <p class="pilot-form__hint">
-            <a href="/owners/register" data-i18n="ownerLoginRegisterLink">Need an account? Register your property.</a>
+            <a href="/owners/register" data-i18n="ownerLoginRegisterLink">Нужен ли ви е акаунт? Регистрирайте имота си.</a>
           </p>
         </div>
       </form>
@@ -102,13 +135,13 @@
       <a href="/services" data-i18n="navServices">Услуги</a>
       <a href="/partners" data-i18n="navPartners">Партньори</a>
       <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="/owners/register" data-i18n="navOwnerPortal">Собственици</a>
-      <a href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
+      <a href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
+      <a href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">The owner portal keeps registration, requests, and tracking in one calm flow.</p>
+      <p data-i18n="footerMeta">Порталът за собственици събира регистрацията, заявките и проследяването в един спокоен поток.</p>
     </div>
   </footer>
 

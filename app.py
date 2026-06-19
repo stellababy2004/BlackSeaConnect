@@ -112,44 +112,63 @@ OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
 OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
+OWNER_SESSION_LOGGED_IN_KEY = "owner_logged_in"
+OWNER_DEMO_LOGIN_EMAIL = "owner@blackseaconnect.com"
+OWNER_DEMO_LOGIN_PASSWORD = "demo1234"
+OWNER_DEMO_PROFILE = {
+    "id": "owner-demo",
+    "full_name": "Elena Petrova",
+    "email": "owner@blackseaconnect.com",
+    "phone": "+359888111222",
+    "property_type": "Villa",
+    "city": "Varna",
+    "property_name": "Sea View Villa",
+    "number_of_units": 2,
+    "notes": "Demo owner profile for local testing.",
+}
 OWNER_SERVICE_CATEGORIES = (
     "Cleaning",
-    "Airport Transfer",
-    "Concierge",
-    "Photography",
-    "Property Inspection",
+    "Inspection",
     "Maintenance",
-    "Plumbing",
-    "Electrical",
-    "Laundry",
-    "Property Management",
+    "Airport Transfer",
+    "Concierge Support",
+    "Guest Issue",
+    "Seasonal Preparation",
     "Other",
 )
 OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS = {
     "Cleaning": "owners.ownerCategoryCleaning",
-    "Airport Transfer": "owners.ownerCategoryAirportTransfer",
-    "Concierge": "owners.ownerCategoryConcierge",
-    "Photography": "owners.ownerCategoryPhotography",
-    "Property Inspection": "owners.ownerCategoryPropertyInspection",
+    "Inspection": "owners.ownerCategoryInspection",
     "Maintenance": "owners.ownerCategoryMaintenance",
-    "Plumbing": "owners.ownerCategoryPlumbing",
-    "Electrical": "owners.ownerCategoryElectrical",
-    "Laundry": "owners.ownerCategoryLaundry",
-    "Property Management": "owners.ownerCategoryPropertyManagement",
+    "Airport Transfer": "owners.ownerCategoryAirportTransfer",
+    "Concierge Support": "owners.ownerCategoryConciergeSupport",
+    "Guest Issue": "owners.ownerCategoryGuestIssue",
+    "Seasonal Preparation": "owners.ownerCategorySeasonalPreparation",
     "Other": "owners.ownerCategoryOther",
 }
 OWNER_SERVICE_CATEGORY_MATCHES = {
     "Cleaning": "Cleaning",
-    "Airport Transfer": "Transfers",
-    "Concierge": "Concierge",
-    "Photography": "Photography",
-    "Property Inspection": "Property Management",
+    "Inspection": "Property Management",
     "Maintenance": "Property Management",
-    "Plumbing": "Plumbing",
-    "Electrical": "Electrical",
-    "Laundry": "Laundry",
-    "Property Management": "Property Management",
+    "Airport Transfer": "Transfers",
+    "Concierge Support": "Concierge",
+    "Guest Issue": "Concierge",
+    "Seasonal Preparation": "Property Management",
     "Other": "",
+}
+OWNER_SERVICE_CATEGORY_ALIASES = {
+    "cleaning": "Cleaning",
+    "inspection": "Inspection",
+    "property inspection": "Inspection",
+    "maintenance": "Maintenance",
+    "airport transfer": "Airport Transfer",
+    "airport transfers": "Airport Transfer",
+    "concierge support": "Concierge Support",
+    "concierge": "Concierge Support",
+    "guest issue": "Guest Issue",
+    "seasonal preparation": "Seasonal Preparation",
+    "seasonal prep": "Seasonal Preparation",
+    "other": "Other",
 }
 SERVICE_REQUEST_STATUS_VALUES = ("new", "assigned", "in_progress", "completed", "cancelled")
 SERVICE_REQUEST_STATUS_ALIASES = {
@@ -199,6 +218,19 @@ def _owner_service_category_items():
         }
         for category in OWNER_SERVICE_CATEGORIES
     ]
+
+
+def _normalize_owner_service_category(category):
+    normalized = str(category or "").strip()
+    if not normalized:
+        return ""
+    if normalized in OWNER_SERVICE_CATEGORIES:
+        return normalized
+    lowered = normalized.lower()
+    if lowered in OWNER_SERVICE_CATEGORY_ALIASES:
+        return OWNER_SERVICE_CATEGORY_ALIASES[lowered]
+    title_case = normalized.title()
+    return title_case if title_case in OWNER_SERVICE_CATEGORIES else ""
 
 
 def _normalize_application_status(status):
@@ -512,7 +544,7 @@ def _service_request_status_label(status):
 
 
 def _service_request_category_match(service_category):
-    category = str(service_category or "").strip()
+    category = _normalize_owner_service_category(service_category) or str(service_category or "").strip()
     if category in NETWORK_SERVICE_CATEGORIES:
         return category
     return OWNER_SERVICE_CATEGORY_MATCHES.get(category, "")
@@ -944,25 +976,341 @@ def _current_owner_account():
     if owner_account:
         return owner_account
 
-    owner_id = str(session.get(OWNER_SESSION_ID_KEY, "")).strip()
-    owner_email = str(session.get(OWNER_SESSION_EMAIL_KEY, "")).strip()
-    if owner_id:
-        owner_account = _find_owner_account(owner_id)
-    if not owner_account and owner_email:
-        owner_account = _find_owner_account_by_email(owner_email)
+    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        owner_account = dict(OWNER_DEMO_PROFILE)
+    else:
+        owner_id = str(session.get(OWNER_SESSION_ID_KEY, "")).strip()
+        owner_email = str(session.get(OWNER_SESSION_EMAIL_KEY, "")).strip()
+        if owner_id:
+            owner_account = _find_owner_account(owner_id)
+        if not owner_account and owner_email:
+            owner_account = _find_owner_account_by_email(owner_email)
 
     if owner_account:
         g.owner_account = owner_account
     return owner_account
 
 
+def _parse_iso_datetime(value):
+    raw_value = str(value or "").strip()
+    if not raw_value:
+        return None
+    try:
+        return datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _owner_portal_response_minutes(record):
+    created_at = _parse_iso_datetime(record.get("created_at"))
+    if not created_at:
+        return None
+
+    for event in _service_request_timeline_events(record):
+        if event.get("type") not in {
+            "SERVICE_REQUEST_PROFESSIONAL_ASSIGNED",
+            "SERVICE_REQUEST_STATUS_UPDATED",
+            "SERVICE_REQUEST_COMPLETED",
+        }:
+            continue
+
+        event_at = _parse_iso_datetime(event.get("created_at"))
+        if event_at:
+            delta_minutes = int((event_at - created_at).total_seconds() // 60)
+            if delta_minutes >= 0:
+                return max(delta_minutes, 15)
+
+    return None
+
+
+def _format_owner_portal_duration(minutes):
+    if minutes is None:
+        return "Under 3h"
+
+    if minutes < 60:
+        return f"{minutes}m"
+
+    hours = minutes // 60
+    remaining_minutes = minutes % 60
+    return f"{hours}h {remaining_minutes:02d}m"
+
+
+def _owner_portal_metric_value(value, fallback_label):
+    try:
+        numeric_value = int(value)
+    except (TypeError, ValueError):
+        numeric_value = 0
+    return str(numeric_value) if numeric_value > 0 else fallback_label
+
+
+def _owner_portal_metric_value_with_key(value, fallback_label, fallback_key):
+    rendered_value = _owner_portal_metric_value(value, fallback_label)
+    return rendered_value, (fallback_key if rendered_value == fallback_label else "")
+
+
+def _owner_portal_activity_timeline(owner_requests):
+    demo_items = [
+        {
+            "label": "Cleaning completed",
+            "label_key": "ownerDashboardCleaningCompletedTimeline",
+            "detail": "The latest turnover was closed for your property.",
+            "detail_key": "ownerDashboardCleaningCompletedTimelineDetail",
+            "time": "Today",
+            "time_key": "ownerDashboardTimelineToday",
+            "tone": "success",
+        },
+        {
+            "label": "Guest checked in",
+            "label_key": "ownerDashboardGuestCheckedInTimeline",
+            "detail": "Arrival coordination is active and ready.",
+            "detail_key": "ownerDashboardGuestCheckedInTimelineDetail",
+            "time": "Yesterday",
+            "time_key": "ownerDashboardTimelineYesterday",
+            "tone": "arrival",
+        },
+        {
+            "label": "Maintenance request resolved",
+            "label_key": "ownerDashboardMaintenanceRequestResolvedTimeline",
+            "detail": "The local team finished the repair window.",
+            "detail_key": "ownerDashboardMaintenanceRequestResolvedTimelineDetail",
+            "time": "This week",
+            "time_key": "ownerDashboardTimelineThisWeek",
+            "tone": "maintenance",
+        },
+        {
+            "label": "Airport transfer confirmed",
+            "label_key": "ownerDashboardAirportTransferConfirmedTimeline",
+            "detail": "Pickup support is scheduled and tracked.",
+            "detail_key": "ownerDashboardAirportTransferConfirmedTimelineDetail",
+            "time": "Scheduled",
+            "time_key": "ownerDashboardTimelineScheduled",
+            "tone": "transport",
+        },
+        {
+            "label": "Property inspection completed",
+            "label_key": "ownerDashboardPropertyInspectionCompletedTimeline",
+            "detail": "The readiness review has been signed off.",
+            "detail_key": "ownerDashboardPropertyInspectionCompletedTimelineDetail",
+            "time": "Recently",
+            "time_key": "ownerDashboardTimelineRecently",
+            "tone": "inspection",
+        },
+    ]
+    if not owner_requests:
+        return demo_items
+
+    timeline_items = []
+    for record in owner_requests[:5]:
+        category = str(record.get("service_category", "")).strip() or "Property update"
+        status = _normalize_service_request_status(record.get("status", "new"))
+        if "clean" in category.lower():
+            label = "Cleaning completed" if status == "completed" else "Cleaning scheduled"
+            label_key = "ownerDashboardCleaningCompletedTimeline" if status == "completed" else "ownerDashboardCleaningScheduledTimeline"
+            detail = "The latest turnover is being prepared with care." if status == "completed" else "The next turnover is being prepared with care."
+            detail_key = "ownerDashboardCleaningCompletedTimelineDetail" if status == "completed" else "ownerDashboardCleaningScheduledTimelineDetail"
+            tone = "success"
+        elif "transfer" in category.lower():
+            label = "Airport transfer confirmed"
+            label_key = "ownerDashboardAirportTransferConfirmedTimeline"
+            detail = "Pickup support is scheduled and tracked."
+            detail_key = "ownerDashboardAirportTransferConfirmedTimelineDetail"
+            tone = "arrival"
+        elif "inspect" in category.lower():
+            label = "Property inspection completed"
+            label_key = "ownerDashboardPropertyInspectionCompletedTimeline"
+            detail = "The readiness review has been signed off."
+            detail_key = "ownerDashboardPropertyInspectionCompletedTimelineDetail"
+            tone = "inspection"
+        elif "maint" in category.lower():
+            label = "Maintenance request resolved" if status == "completed" else "Maintenance request in progress"
+            label_key = "ownerDashboardMaintenanceRequestResolvedTimeline" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimeline"
+            detail = "The local team finished the repair window." if status == "completed" else "The local team is working through the repair window."
+            detail_key = "ownerDashboardMaintenanceRequestResolvedTimelineDetail" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimelineDetail"
+            tone = "maintenance"
+        else:
+            label = f"{category} update"
+            label_key = "ownerDashboardPropertyUpdateTimeline"
+            detail = "Current status is being monitored."
+            detail_key = "ownerDashboardPropertyUpdateTimelineDetail"
+            tone = "arrival"
+
+        timeline_items.append({
+            "label": label,
+            "label_key": label_key,
+            "detail": detail,
+            "detail_key": detail_key,
+            "time": str(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
+            "time_key": "ownerDashboardTimelineRecently",
+            "tone": tone,
+        })
+
+    while len(timeline_items) < 5:
+        timeline_items.append(demo_items[len(timeline_items)])
+
+    return timeline_items[:5]
+
+
+def _owner_portal_dashboard_context(owner_account, owner_requests):
+    property_name = str(owner_account.get("property_name", "")).strip() or "Primary property"
+    city = str(owner_account.get("city", "")).strip() or "Coastal city"
+
+    completed_requests = [
+        request
+        for request in owner_requests
+        if _normalize_service_request_status(request.get("status", "new")) == "completed"
+    ]
+    open_requests = [
+        request
+        for request in owner_requests
+        if _normalize_service_request_status(request.get("status", "new")) in {"new", "assigned", "in_progress"}
+    ]
+    current_month_prefix = datetime.now(timezone.utc).strftime("%Y-%m")
+    current_month_requests = [
+        request
+        for request in owner_requests
+        if str(request.get("created_at", "")).startswith(current_month_prefix)
+    ]
+    maintenance_requests = [
+        request
+        for request in owner_requests
+        if any(keyword in str(request.get("service_category", "")).lower() for keyword in ("maintenance", "inspection", "plumb", "electr"))
+    ]
+    cleaning_requests = [
+        request
+        for request in owner_requests
+        if "clean" in str(request.get("service_category", "")).lower()
+    ]
+
+    response_minutes = [
+        minutes
+        for minutes in (_owner_portal_response_minutes(request) for request in owner_requests)
+        if minutes is not None
+    ]
+    average_response_minutes = (
+        round(sum(response_minutes) / len(response_minutes))
+        if response_minutes
+        else None
+    )
+
+    upcoming_arrivals = len(current_month_requests) + (1 if owner_requests else 0)
+    upcoming_departures = len([
+        request
+        for request in current_month_requests
+        if _normalize_service_request_status(request.get("status", "new")) == "completed"
+    ]) + (1 if owner_requests else 0)
+    cleaning_completed = len([
+        request
+        for request in completed_requests
+        if "clean" in str(request.get("service_category", "")).lower()
+    ])
+    cleaning_pending = len([
+        request
+        for request in open_requests
+        if "clean" in str(request.get("service_category", "")).lower()
+    ])
+    open_guest_requests = len(open_requests)
+    monthly_guest_requests = len(current_month_requests)
+    tasks_completed = len(completed_requests)
+    nights_booked_this_month = max(1, len(current_month_requests) + len(completed_requests))
+    upcoming_stays = max(1, len(open_requests) or len(current_month_requests) or 1)
+    completed_turnovers = max(1, cleaning_completed or tasks_completed)
+    guest_requests_handled = max(1, len(owner_requests) + len(current_month_requests))
+
+    property_status = "Active"
+    status_tone = "active"
+    status_note = "Live operational updates"
+    if maintenance_requests and not open_requests:
+        property_status = "Maintenance"
+        status_tone = "maintenance"
+        status_note = "Follow-up in progress"
+        status_note_key = "ownerDashboardStatusNoteFollowUpInProgress"
+    elif not owner_requests:
+        property_status = "Seasonal"
+        status_tone = "seasonal"
+        status_note = "Quiet monitoring mode"
+        status_note_key = "ownerDashboardStatusNoteQuietMonitoringMode"
+    else:
+        status_note_key = "ownerDashboardStatusNoteLiveOperationalUpdates"
+
+    last_completed_task = "Waiting for the first completed task."
+    last_completed_task_key = "ownerDashboardLastCompletedTaskWaiting"
+    if completed_requests:
+        latest_completed = max(completed_requests, key=lambda request: str(request.get("last_update_at", request.get("created_at", ""))))
+        latest_category = str(latest_completed.get("service_category", "")).strip()
+        last_completed_task = latest_category or latest_completed.get("description", "") or "Completed task"
+        last_completed_task_key = OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(latest_category, "") if latest_category else ""
+
+    owner_portal = {
+        "property_overview": {
+            "property_name": property_name,
+            "city": city,
+            "status": property_status,
+            "status_tone": status_tone,
+            "status_note": status_note,
+            "status_note_key": status_note_key,
+            "property_type": str(owner_account.get("property_type", "")).strip() or "Coastal residence",
+            "property_type_key": "ownerDashboardPropertyTypeResidence",
+            "units": str(owner_account.get("number_of_units", "")).strip() or "1",
+        },
+        "operations_snapshot": [
+            {"label": "Upcoming arrivals", "label_key": "ownerDashboardUpcomingArrivalsLabel", "value": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[1], "support": "Projected", "support_key": "ownerDashboardProjected"},
+            {"label": "Upcoming departures", "label_key": "ownerDashboardUpcomingDeparturesLabel", "value": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[1], "support": "Projected", "support_key": "ownerDashboardProjected"},
+            {"label": "Cleaning completed", "label_key": "ownerDashboardCleaningCompletedLabel", "value": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[1], "support": "Verified", "support_key": "ownerDashboardVerified"},
+            {"label": "Cleaning pending", "label_key": "ownerDashboardCleaningPendingLabel", "value": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[1], "support": "Open", "support_key": "ownerDashboardOpen"},
+            {"label": "Open guest requests", "label_key": "ownerDashboardOpenGuestRequestsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[1], "support": "Needs attention", "support_key": "ownerDashboardServiceReview"},
+        ],
+        "property_health": [
+            {"label": "Maintenance issues", "label_key": "ownerDashboardMaintenanceIssuesLabel", "value": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[1], "support": "Service review", "support_key": "ownerDashboardServiceReview"},
+            {"label": "Pending actions", "label_key": "ownerDashboardPendingActionsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[1], "support": "Operator follow-up", "support_key": "ownerDashboardOperatorFollowUp"},
+            {"label": "Last completed task", "label_key": "ownerDashboardLastCompletedTaskLabel", "value": last_completed_task, "value_key": last_completed_task_key, "support": "Most recent closed item", "support_key": "ownerDashboardMostRecentClosedItem"},
+        ],
+        "trusted_local_team": {
+            "assigned_operator": f"{city} operator desk",
+            "assigned_operator_key": "ownerDashboardAssignedOperatorDesk",
+            "concierge_contact": "concierge@blackseaconnect.com",
+            "service_partners_count": str(max(4, len({str(request.get("assigned_professional", "")).strip() for request in owner_requests if str(request.get("assigned_professional", "")).strip()}))),
+        },
+        "monthly_summary": [
+            {"label": "Arrivals this month", "label_key": "ownerDashboardArrivalsThisMonthLabel", "value": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[1], "support": "Property movement", "support_key": "ownerDashboardPropertyMovement"},
+            {"label": "Guest requests handled", "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": "Live + resolved", "support_key": "ownerDashboardLiveResolved"},
+            {"label": "Tasks completed", "label_key": "ownerDashboardTasksCompletedLabel", "value": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[1], "support": "Confirmed", "support_key": "ownerDashboardConfirmed"},
+            {"label": "Average response time", "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else "Ready", "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": "From request to first action", "support_key": "ownerDashboardFromRequestToFirstAction"},
+        ],
+        "performance_snapshot": [
+            {"label": "Nights booked this month", "label_key": "ownerDashboardNightsBookedThisMonthLabel", "value": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[1], "support": "Operational", "support_key": "ownerDashboardOperational"},
+            {"label": "Upcoming stays", "label_key": "ownerDashboardUpcomingStaysLabel", "value": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[1], "support": "Next arrivals", "support_key": "ownerDashboardNextArrivals"},
+            {"label": "Completed turnovers", "label_key": "ownerDashboardCompletedTurnoversLabel", "value": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[1], "support": "Verified", "support_key": "ownerDashboardVerified"},
+            {"label": "Guest requests handled", "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": "Resolved", "support_key": "ownerDashboardResolved"},
+            {"label": "Average response time", "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else "Ready", "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": "From request to first action", "support_key": "ownerDashboardFromRequestToFirstAction"},
+        ],
+        "quick_actions": [
+            {"label": "Request cleaning", "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": "Fast turnover support", "support_key": "ownerDashboardFastTurnoverSupport"},
+            {"label": "Request inspection", "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": "Check readiness", "support_key": "ownerDashboardCheckReadiness"},
+            {"label": "Request maintenance", "label_key": "ownerDashboardRequestMaintenance", "href": "/owners/request-service?category=maintenance", "support": "Keep the property protected", "support_key": "ownerDashboardKeepPropertyProtected"},
+            {"label": "Contact concierge", "label_key": "ownerDashboardContactConciergeAction", "href": "mailto:concierge@blackseaconnect.com", "support": "Private local contact", "support_key": "ownerDashboardPrivateLocalContact"},
+        ],
+        "activity_timeline": _owner_portal_activity_timeline(owner_requests),
+        "notifications": [
+            {"label": "New arrival", "label_key": "ownerDashboardNewArrival", "detail": "Welcome coordination is ready.", "detail_key": "ownerDashboardWelcomeCoordinationReady", "tone": "arrival"},
+            {"label": "Cleaning completed", "label_key": "ownerDashboardCleaningCompletedNotification", "detail": "Housekeeping closed the latest turn.", "detail_key": "ownerDashboardHousekeepingClosedLatestTurn", "tone": "success"},
+            {"label": "Guest issue reported", "label_key": "ownerDashboardGuestIssueReported", "detail": "Concierge can step in immediately.", "detail_key": "ownerDashboardConciergeCanStepInImmediately", "tone": "alert"},
+            {"label": "Maintenance completed", "label_key": "ownerDashboardMaintenanceCompleted", "detail": "The local team has wrapped the task.", "detail_key": "ownerDashboardLocalTeamWrappedTask", "tone": "maintenance"},
+        ],
+        "recent_activity": owner_requests[:3],
+        "summary_line": "A private view of your property operations.",
+        "status_note_key": status_note_key,
+        "last_completed_task_key": last_completed_task_key,
+    }
+
+    return owner_portal
+
+
 def owner_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        owner_account = _current_owner_account()
-        if not owner_account:
+        if not session.get(OWNER_SESSION_LOGGED_IN_KEY):
             return redirect(url_for("owners_login", next=request.path))
-        g.owner_account = owner_account
+        g.owner_account = dict(OWNER_DEMO_PROFILE)
         return view(*args, **kwargs)
 
     return wrapped
@@ -1029,6 +1377,7 @@ def owners_register():
                 session[OWNER_SESSION_ID_KEY] = saved_account["id"]
                 session[OWNER_SESSION_EMAIL_KEY] = saved_account["email"]
                 session[OWNER_SESSION_NAME_KEY] = saved_account["full_name"]
+                session[OWNER_SESSION_LOGGED_IN_KEY] = True
             submitted = True
             return redirect(url_for("owners_dashboard"))
 
@@ -1042,23 +1391,26 @@ def owners_register():
 
 @app.route("/owners/login", methods=["GET", "POST"])
 def owners_login():
-    form_values = {"email": ""}
+    form_values = {"email": "", "password": ""}
     errors = {}
 
     if request.method == "POST":
         form_values["email"] = str(request.form.get("email", "")).strip()
+        form_values["password"] = str(request.form.get("password", "")).strip()
         if not form_values["email"]:
             errors["email"] = "emailRequiredError"
-        else:
-            account = _find_owner_account_by_email(form_values["email"])
-            if not account:
-                errors["email"] = "ownerNotFoundError"
-            else:
-                session[OWNER_SESSION_ID_KEY] = account["id"]
-                session[OWNER_SESSION_EMAIL_KEY] = account["email"]
-                session[OWNER_SESSION_NAME_KEY] = account["full_name"]
-                next_target = str(request.args.get("next", "")).strip() or url_for("owners_dashboard")
-                return redirect(next_target)
+        if not form_values["password"]:
+            errors["password"] = "passwordRequiredError"
+        if not errors:
+            email_matches = form_values["email"].lower() == OWNER_DEMO_LOGIN_EMAIL.lower()
+            password_matches = form_values["password"] == OWNER_DEMO_LOGIN_PASSWORD
+            if email_matches and password_matches:
+                session[OWNER_SESSION_LOGGED_IN_KEY] = True
+                session[OWNER_SESSION_ID_KEY] = OWNER_DEMO_PROFILE["id"]
+                session[OWNER_SESSION_EMAIL_KEY] = OWNER_DEMO_PROFILE["email"]
+                session[OWNER_SESSION_NAME_KEY] = OWNER_DEMO_PROFILE["full_name"]
+                return redirect(url_for("owners_dashboard"))
+            errors["credentials"] = "ownerDemoCredentialsError"
 
     return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
 
@@ -1083,14 +1435,20 @@ def owners_dashboard():
             **record,
             "last_update_at": last_update_at or record.get("created_at", ""),
             "assigned_professional": record.get("assigned_provider_company", "") or record.get("assigned_provider_name", ""),
+            "service_category_key": OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(
+                str(record.get("service_category", "")).strip(),
+                OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS["Other"],
+            ),
             "timeline": list(reversed(timeline)),
         })
 
     owner_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    owner_portal = _owner_portal_dashboard_context(owner_account, owner_requests)
     return render_template(
         "owners_dashboard.html",
         owner_account=owner_account,
         owner_requests=owner_requests,
+        owner_portal=owner_portal,
     )
 
 
@@ -1099,22 +1457,24 @@ def owners_dashboard():
 def owners_request_service():
     owner_account = _current_owner_account()
     form_values = {
-        "category": "",
+        "category": _normalize_owner_service_category(request.args.get("category", "")),
         "preferred_date": "",
         "property": owner_account.get("property_name", "") or owner_account.get("property_type", ""),
         "description": "",
-        "contact_phone": owner_account.get("phone", ""),
+        "urgency": "Standard",
+        "contact_preference": "Email",
     }
     errors = {}
     submitted = False
 
     if request.method == "POST":
         form_values.update({
-            "category": str(request.form.get("category", "")).strip(),
+            "category": _normalize_owner_service_category(request.form.get("category", "")),
             "preferred_date": str(request.form.get("preferred_date", "")).strip(),
             "property": str(request.form.get("property", "")).strip(),
-            "description": str(request.form.get("description", "")).strip(),
-            "contact_phone": str(request.form.get("contact_phone", "")).strip(),
+            "description": str(request.form.get("notes", request.form.get("description", ""))).strip(),
+            "urgency": str(request.form.get("urgency", "")).strip() or "Standard",
+            "contact_preference": str(request.form.get("contact_preference", "")).strip() or "Email",
         })
 
         required_fields = {
@@ -1122,7 +1482,7 @@ def owners_request_service():
             "preferred_date": "preferredDateRequiredError",
             "property": "propertyRequiredError",
             "description": "descriptionRequiredError",
-            "contact_phone": "contactPhoneRequiredError",
+            "contact_preference": "contactPreferenceRequiredError",
         }
 
         for field, error_key in required_fields.items():
@@ -1145,7 +1505,7 @@ def owners_request_service():
                 "owner_phone": owner_account.get("phone", ""),
                 "name": owner_account.get("full_name", ""),
                 "email": owner_account.get("email", ""),
-                "phone": form_values["contact_phone"],
+                "phone": owner_account.get("phone", ""),
                 "property": form_values["property"],
                 "property_city": owner_account.get("city", ""),
                 "property_type": owner_account.get("property_type", ""),
@@ -1153,6 +1513,9 @@ def owners_request_service():
                 "service_category": form_values["category"],
                 "preferred_date": form_values["preferred_date"],
                 "description": form_values["description"],
+                "notes": form_values["description"],
+                "urgency": form_values["urgency"],
+                "contact_preference": form_values["contact_preference"],
                 "assigned_provider_id": "",
                 "assigned_provider_name": "",
                 "assigned_provider_company": "",
@@ -1206,6 +1569,7 @@ def owners_request_service():
 
 @app.route("/owners/logout")
 def owners_logout():
+    session.pop(OWNER_SESSION_LOGGED_IN_KEY, None)
     session.pop(OWNER_SESSION_ID_KEY, None)
     session.pop(OWNER_SESSION_EMAIL_KEY, None)
     session.pop(OWNER_SESSION_NAME_KEY, None)

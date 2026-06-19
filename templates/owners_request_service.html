@@ -8,33 +8,43 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="ownerRequestServicePageTitle">BlackSea Connect | Owner Service Request</title>
-  <meta name="description" data-i18n-attr="content:ownerRequestServiceMeta" content="Request cleaning, transfers, maintenance, and property support from your owner portal.">
+  <title data-i18n="ownerRequestServicePageTitle">BlackSea Connect | Заявка за услуга на собственик</title>
+  <meta name="description" data-i18n-attr="content:ownerRequestServiceMeta" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Owner Service Request">
-  <meta property="og:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Request cleaning, transfers, maintenance, and property support from your owner portal.">
+  <meta property="og:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Заявка за услуга на собственик">
+  <meta property="og:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Owner Service Request">
-  <meta name="twitter:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Request cleaning, transfers, maintenance, and property support from your owner portal.">
+  <meta name="twitter:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Заявка за услуга на собственик">
+  <meta name="twitter:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="owner-portal-page">
+<body class="owner-portal-page owner-request-service-page">
+  {% set category_translation_keys = {
+    "Cleaning": "owners.ownerCategoryCleaning",
+    "Inspection": "owners.ownerCategoryInspection",
+    "Maintenance": "owners.ownerCategoryMaintenance",
+    "Airport Transfer": "owners.ownerCategoryAirportTransfer",
+    "Concierge Support": "owners.ownerCategoryConciergeSupport",
+    "Guest Issue": "owners.ownerCategoryGuestIssue",
+    "Seasonal Preparation": "owners.ownerCategorySeasonalPreparation",
+    "Other": "owners.ownerCategoryOther"
+  } %}
+  {% set contact_preference_translation_keys = {
+    "Email": "ownerRequestContactEmail",
+    "WhatsApp": "ownerRequestContactWhatsApp",
+    "Phone call": "ownerRequestContactPhoneCall"
+  } %}
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="/">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-          <a class="site-nav__link is-active" href="/owners/request-service" data-i18n="navOwnerPortal">Собственици</a>
-          <a class="site-nav__link" href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
+        <nav class="site-nav" aria-label="Owner portal">
+          <a class="site-nav__link" href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
+          <a class="site-nav__link is-active" href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+          <a class="site-nav__link" href="/owners/logout" data-i18n="navOwnerLogout">Изход</a>
+          <a class="site-nav__link" href="/" data-i18n="navHome">Обратно към сайта</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher">
           <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
@@ -45,83 +55,142 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
         </div>
-        <a class="button button--ghost topbar__portal" href="/owners/dashboard" data-i18n="ownerRequestServiceDashboardCta">Dashboard</a>
+        <a class="button button--ghost topbar__portal" href="/owners/dashboard" data-i18n="ownerRequestServiceDashboardCta">Табло</a>
       </div>
     </nav>
 
-    <div class="hero__content hero__content--home">
+    <div class="hero__content hero__content--home owner-request-hero">
       <div class="hero__copy">
         <p class="eyebrow" data-i18n="ownerRequestServiceEyebrow">Портал за собственици</p>
-        <h1 data-i18n="ownerRequestServiceTitle">Request a service for your property.</h1>
+        <h1 data-i18n="ownerRequestServiceTitle">Заявете помощ за вашия имот.</h1>
         <p class="hero__text" data-i18n="ownerRequestServiceIntro">
-          Send a focused service request for cleaning, transfers, maintenance, or property support and follow the status from your dashboard.
+          Изберете услуга, добавете кратка бележка и запазете всичко синхронизирано с таблото си.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#owner-request-service-form" data-i18n="ownerRequestServicePrimaryCta">Open request form</a>
-          <a class="button button--secondary" href="/owners/dashboard" data-i18n="ownerRequestServiceSecondaryCta">View dashboard</a>
+          <a class="button button--primary" href="#owner-request-service-form" data-i18n="ownerRequestServicePrimaryCta">Отвори формата</a>
+          <a class="button button--secondary" href="/owners/dashboard" data-i18n="ownerRequestServiceSecondaryCta">Виж таблото</a>
         </div>
         <div class="trust-strip" aria-label="Owner request highlights">
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip1">Private owner flow</span>
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip2">Tracked in the timeline</span>
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip3">Matched to approved professionals</span>
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip4">Email updates on every change</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip1">Поверителен поток</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip2">Проследява се във времева линия</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip3">Съответства на местния екип</span>
         </div>
       </div>
+
+      <aside class="owner-portal-card owner-request-summary" aria-label="Request summary">
+        <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceSuggested">Предложено от таблото</p>
+        <h2 data-i18n="{{ category_translation_keys.get(form_values.category, 'owners.ownerCategoryCleaning') }}">{{ form_values.category or "Почистване" }}</h2>
+        <p class="owner-portal-card__subcopy" data-i18n="ownerRequestServiceSuggestedCopy">Изберете правилната услуга и запазете заявката спокойна и ясна.</p>
+        <dl class="owner-portal-dl">
+          <div>
+            <dt data-i18n="ownerRequestServicePropertyLabel">Имот</dt>
+            <dd>{{ form_values.property|e }}</dd>
+          </div>
+          <div>
+            <dt data-i18n="ownerRequestServicePreferredDateLabel">Желана дата</dt>
+            <dd>{{ form_values.preferred_date or "Scheduled" }}</dd>
+          </div>
+          <div>
+            <dt data-i18n="ownerRequestServiceContactPreferenceLabel">Предпочитан контакт</dt>
+            <dd data-i18n="{{ contact_preference_translation_keys.get(form_values.contact_preference, 'ownerRequestContactEmail') }}">{{ form_values.contact_preference }}</dd>
+          </div>
+        </dl>
+      </aside>
     </div>
   </header>
 
-  <main>
-    <section class="cta-panel cta-panel--pilot" id="owner-request-service-form" aria-labelledby="owner-request-service-title">
-      <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="ownerRequestServiceCardEyebrow">Service request</p>
-        <h2 id="owner-request-service-title" data-i18n="ownerRequestServiceCardTitle">Choose the service, add the details, and send it straight to the team.</h2>
+  <main class="owner-request-service-page__main">
+    <section class="owner-portal-card owner-request-panel" id="owner-request-service-form" aria-labelledby="owner-request-service-title">
+      <div class="owner-request-panel__copy">
+        <p class="section-heading__eyebrow" data-i18n="ownerRequestServiceCardEyebrow">Заявка за услуга</p>
+        <h2 id="owner-request-service-title" data-i18n="ownerRequestServiceCardTitle">Изпратете ясна заявка за по-малко от минута.</h2>
         <p class="cta-panel__copy" data-i18n="ownerRequestServiceCardCopy">
-          We keep the form short so your request can be reviewed quickly and matched with the right approved professional.
+          Формата е кратък, за да може местният екип да я прегледа бързо.
         </p>
-        <p class="cta-panel__trust" data-i18n="ownerRequestServiceHint">Your dashboard will keep the timeline, assignment, and status updates in one place.</p>
+        <p class="cta-panel__trust" data-i18n="ownerRequestServiceHint">Таблото ще пази времевата линия и обновленията на едно място.</p>
       </div>
 
-      <form class="pilot-form" method="post" action="/owners/request-service">
-        <div class="pilot-form__grid">
-          <label class="pilot-form__field">
-            <span data-i18n="ownerRequestServiceCategoryLabel">Category</span>
+      <form class="owner-request-form" method="post" action="/owners/request-service">
+        <div class="owner-request-form__grid">
+          <label class="owner-request-form__field">
+            <span data-i18n="ownerRequestServicePropertyLabel">Имот</span>
+            <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="Sea View Villa" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
+            {% if errors.property %}<p class="form-error" data-i18n="{{ errors.property }}">Това поле е задължително.</p>{% endif %}
+          </label>
+
+          <label class="owner-request-form__field">
+            <span data-i18n="ownerRequestServiceCategoryLabel">Категория услуга</span>
             <select name="category" required>
-              <option value="" data-i18n="ownerRequestServiceCategoryEmpty">Select a category</option>
+              <option value="" data-i18n="ownerRequestServiceCategoryEmpty">Изберете категория</option>
               {% for category in service_categories %}
                 <option value="{{ category.label|e }}" data-i18n="{{ category.key }}" {% if form_values.category == category.label %}selected{% endif %}>{{ category.label|e }}</option>
               {% endfor %}
             </select>
-            {% if errors.category %}<p class="form-error" data-i18n="{{ errors.category }}">Please choose a valid category.</p>{% endif %}
+            {% if form_values.category %}
+              <p class="owner-request-form__helper" data-i18n="ownerRequestServicePreselected">Предварително избрано: {{ form_values.category|e }}</p>
+            {% endif %}
+            {% if errors.category %}<p class="form-error" data-i18n="{{ errors.category }}">Моля, изберете валидна категория.</p>{% endif %}
           </label>
-          <label class="pilot-form__field">
-            <span data-i18n="ownerRequestServicePreferredDateLabel">Preferred Date</span>
+
+          <label class="owner-request-form__field">
+            <span data-i18n="ownerRequestServicePreferredDateLabel">Желана дата</span>
             <input type="date" name="preferred_date" value="{{ form_values.preferred_date|e }}" required placeholder="2026-07-15" data-i18n-attr="placeholder:ownerRequestServicePreferredDatePlaceholder">
-            {% if errors.preferred_date %}<p class="form-error" data-i18n="{{ errors.preferred_date }}">This field is required.</p>{% endif %}
+            {% if errors.preferred_date %}<p class="form-error" data-i18n="{{ errors.preferred_date }}">Това поле е задължително.</p>{% endif %}
           </label>
-          <label class="pilot-form__field">
-            <span data-i18n="ownerRequestServicePropertyLabel">Property</span>
-            <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="Sea View Villa" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
-            {% if errors.property %}<p class="form-error" data-i18n="{{ errors.property }}">This field is required.</p>{% endif %}
+
+          <label class="owner-request-form__field">
+            <span data-i18n="ownerRequestServiceUrgencyLabel">Спешност</span>
+            <select name="urgency" required>
+              <option value="Low" data-i18n="ownerRequestUrgencyLow" {% if form_values.urgency == "Low" %}selected{% endif %}>Ниска</option>
+              <option value="Standard" data-i18n="ownerRequestUrgencyStandard" {% if form_values.urgency == "Standard" %}selected{% endif %}>Стандартна</option>
+              <option value="High" data-i18n="ownerRequestUrgencyHigh" {% if form_values.urgency == "High" %}selected{% endif %}>Висока</option>
+              <option value="Same day" data-i18n="ownerRequestUrgencySameDay" {% if form_values.urgency == "Same day" %}selected{% endif %}>Същия ден</option>
+            </select>
           </label>
-          <label class="pilot-form__field">
-            <span data-i18n="ownerRequestServiceContactPhoneLabel">Contact Phone</span>
-            <input type="tel" name="contact_phone" value="{{ form_values.contact_phone|e }}" required placeholder="+359 888 333 444" data-i18n-attr="placeholder:ownerRequestServiceContactPhonePlaceholder">
-            {% if errors.contact_phone %}<p class="form-error" data-i18n="{{ errors.contact_phone }}">This field is required.</p>{% endif %}
+
+          <label class="owner-request-form__field">
+            <span data-i18n="ownerRequestServiceContactPreferenceLabel">Предпочитан контакт</span>
+            <select name="contact_preference" required>
+              <option value="Email" data-i18n="ownerRequestContactEmail" {% if form_values.contact_preference == "Email" %}selected{% endif %}>Имейл</option>
+              <option value="WhatsApp" data-i18n="ownerRequestContactWhatsApp" {% if form_values.contact_preference == "WhatsApp" %}selected{% endif %}>WhatsApp</option>
+              <option value="Phone call" data-i18n="ownerRequestContactPhoneCall" {% if form_values.contact_preference == "Phone call" %}selected{% endif %}>Телефонно обаждане</option>
+            </select>
+            {% if errors.contact_preference %}<p class="form-error" data-i18n="{{ errors.contact_preference }}">Това поле е задължително.</p>{% endif %}
           </label>
-          <label class="pilot-form__field pilot-form__field--full">
-            <span data-i18n="ownerRequestServiceDescriptionLabel">Description</span>
-            <textarea name="description" rows="5" required placeholder="Tell us what needs to be done and any timing notes." data-i18n-attr="placeholder:ownerRequestServiceDescriptionPlaceholder">{{ form_values.description|e }}</textarea>
-            {% if errors.description %}<p class="form-error" data-i18n="{{ errors.description }}">This field is required.</p>{% endif %}
+
+          <label class="owner-request-form__field owner-request-form__field--full">
+            <span data-i18n="ownerRequestServiceNotesLabel">Бележки</span>
+            <textarea name="notes" rows="6" required placeholder="Опишете какво трябва да бъде направено и дали има бележки за времето." data-i18n-attr="placeholder:ownerRequestServiceDescriptionPlaceholder">{{ form_values.description|e }}</textarea>
+            {% if errors.description %}<p class="form-error" data-i18n="{{ errors.description }}">Това поле е задължително.</p>{% endif %}
           </label>
         </div>
 
-        <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="ownerRequestServiceSubmit">Send request</button>
+        <div class="owner-request-form__footer">
+          <button class="button button--primary" type="submit" data-i18n="ownerRequestServiceSubmit">Изпрати заявката</button>
           <p class="pilot-form__hint">
-            <a href="/owners/login" data-i18n="ownerRequestServiceLoginLink">Need another account? Open the login page.</a>
+            <a href="/owners/dashboard" data-i18n="ownerRequestServiceLoginLink">Обратно към таблото</a>
           </p>
         </div>
       </form>
+    </section>
+
+    <section class="owner-portal-card owner-request-next" aria-labelledby="owner-request-next-title">
+      <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceWhatHappensNext">Какво следва</p>
+      <h2 id="owner-request-next-title" data-i18n="ownerRequestServiceWhatHappensNextTitle">Ще бъдете информирани без излишен шум.</h2>
+      <div class="owner-request-next__grid">
+        <div>
+          <strong data-i18n="ownerRequestServiceReview">Преглед</strong>
+          <p data-i18n="ownerRequestServiceReviewCopy">Местният екип получава заявката и проверява детайлите.</p>
+        </div>
+        <div>
+          <strong data-i18n="ownerRequestServiceConfirmation">Потвърждение</strong>
+          <p data-i18n="ownerRequestServiceConfirmationCopy">Таблото ще покаже заявката и последващите обновления.</p>
+        </div>
+        <div>
+          <strong data-i18n="ownerRequestServiceResolution">Решение</strong>
+          <p data-i18n="ownerRequestServiceResolutionCopy">Следите напредъка без да се обаждате на оператора.</p>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -135,13 +204,13 @@
       <a href="/services" data-i18n="navServices">Услуги</a>
       <a href="/partners" data-i18n="navPartners">Партньори</a>
       <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="/owners/register" data-i18n="navOwnerPortal">Собственици</a>
+      <a href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
       <a href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">The owner portal keeps registration, requests, and tracking in one calm flow.</p>
+      <p data-i18n="footerMeta">Порталът за собственици събира видимостта на имота, заявките за услуги и обновленията в един спокоен поток.</p>
     </div>
   </footer>
 

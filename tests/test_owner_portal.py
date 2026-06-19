@@ -114,6 +114,42 @@ class OwnerPortalTests(unittest.TestCase):
             "notes": "Prefers WhatsApp updates.",
         }
 
+    def _demo_login_payload(self, email="owner@blackseaconnect.com", password="demo1234"):
+        return {"email": email, "password": password}
+
+    def _demo_owner_request(self, **overrides):
+        record = {
+            "id": "owner-request-1",
+            "created_at": "2026-06-15T11:00:00Z",
+            "last_update_at": "2026-06-15T11:00:00Z",
+            "status": "new",
+            "request_source": "owner",
+            "owner_id": "owner-demo",
+            "owner_email": "owner@blackseaconnect.com",
+            "owner_name": "Elena Petrova",
+            "owner_phone": "+359888111222",
+            "name": "Elena Petrova",
+            "email": "owner@blackseaconnect.com",
+            "phone": "+359888333444",
+            "property": "Sea View Villa",
+            "property_city": "Varna",
+            "property_type": "Villa",
+            "number_of_units": "2",
+            "service_category": "Concierge",
+            "preferred_date": "2026-07-15",
+            "description": "Need airport pickup.",
+            "assigned_provider_id": "",
+            "assigned_provider_name": "",
+            "assigned_provider_company": "",
+            "assigned_professional_id": "",
+            "assigned_professional_name": "",
+            "assigned_professional_company": "",
+            "internal_notes": "",
+            "timeline": [],
+        }
+        record.update(overrides)
+        return record
+
     def _service_request_payload(self):
         return {
             "category": "Concierge",
@@ -158,62 +194,27 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(response_request.headers["Location"].startswith("/owners/login"))
 
     def test_owner_login_and_dashboard_visibility(self):
-        self._seed_owner_account()
-        self._seed_jsonl("service_requests.jsonl", [{
-            "id": "owner-request-1",
-            "created_at": "2026-06-15T11:00:00Z",
-            "last_update_at": "2026-06-15T11:00:00Z",
-            "status": "new",
-            "request_source": "owner",
-            "owner_id": "owner-1",
-            "owner_email": "owner@example.com",
-            "owner_name": "Elena Petrova",
-            "owner_phone": "+359888111222",
-            "name": "Elena Petrova",
-            "email": "owner@example.com",
-            "phone": "+359888333444",
-            "property": "Sea View Villa",
-            "property_city": "Varna",
-            "property_type": "Villa",
-            "number_of_units": "2",
-            "service_category": "Concierge",
-            "preferred_date": "2026-07-15",
-            "description": "Need airport pickup.",
-            "assigned_provider_id": "",
-            "assigned_provider_name": "",
-            "assigned_provider_company": "",
-            "assigned_professional_id": "",
-            "assigned_professional_name": "",
-            "assigned_professional_company": "",
-            "internal_notes": "",
-            "timeline": [],
-        }, {
-            "id": "public-request-1",
-            "created_at": "2026-06-15T12:00:00Z",
-            "last_update_at": "2026-06-15T12:00:00Z",
-            "status": "new",
-            "request_source": "public",
-            "name": "Public Request",
-            "email": "owner@example.com",
-            "phone": "+359888555666",
-            "property_city": "Varna",
-            "property_type": "Villa",
-            "property": "Shared Property",
-            "number_of_units": "",
-            "service_category": "Cleaning",
-            "preferred_date": "2026-07-16",
-            "description": "This should not appear on the owner dashboard.",
-            "assigned_provider_id": "",
-            "assigned_provider_name": "",
-            "assigned_provider_company": "",
-            "assigned_professional_id": "",
-            "assigned_professional_name": "",
-            "assigned_professional_company": "",
-            "internal_notes": "",
-            "timeline": [],
-        }])
+        self._seed_jsonl("service_requests.jsonl", [
+            self._demo_owner_request(),
+            self._demo_owner_request(
+                id="public-request-1",
+                created_at="2026-06-15T12:00:00Z",
+                last_update_at="2026-06-15T12:00:00Z",
+                request_source="public",
+                owner_id="",
+                owner_email="",
+                name="Public Request",
+                email="owner@blackseaconnect.com",
+                phone="+359888555666",
+                property="Shared Property",
+                number_of_units="",
+                service_category="Cleaning",
+                preferred_date="2026-07-16",
+                description="This should not appear on the owner dashboard.",
+            ),
+        ])
 
-        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        self.client.post("/owners/login", data=self._demo_login_payload())
         response = self.client.get("/owners/dashboard")
 
         self.assertEqual(response.status_code, 200)
@@ -222,9 +223,49 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("owner-request-1", html)
         self.assertNotIn("public-request-1", html)
 
+    def test_owner_dashboard_uses_portal_sections_and_quick_actions(self):
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
+
+        self.client.post("/owners/login", data=self._demo_login_payload())
+        response = self.client.get("/owners/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        for phrase in [
+            'data-i18n="ownerDashboardPropertyOverview"',
+            'data-i18n="ownerDashboardOperationsSnapshot"',
+            'data-i18n="ownerDashboardPropertyHealth"',
+            'data-i18n="ownerDashboardTrustedLocalTeam"',
+            'data-i18n="ownerDashboardMonthlySummary"',
+            'data-i18n="ownerDashboardPerformanceSnapshot"',
+            'data-i18n="ownerDashboardActivityTimeline"',
+            'data-i18n="ownerDashboardQuickActions"',
+            'data-i18n="ownerDashboardNotificationCenter"',
+            'data-i18n="ownerDashboardRecentPropertyUpdates"',
+            'data-i18n="ownerDashboardPrimaryCta"',
+            'data-i18n="ownerDashboardLogout"',
+        ]:
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, html)
+        self.assertIn('body class="owner-portal-page owner-portal-dashboard-page"', html)
+        self.assertIn("owner-kpi-card--summary", html)
+        self.assertIn("owner-portal-card--performance", html)
+        self.assertIn("owner-timeline-item", html)
+        self.assertIn("owner-request-1", html)
+
+    def test_owner_request_service_category_query_prefills_category(self):
+        self.client.post("/owners/login", data=self._demo_login_payload())
+
+        response = self.client.get("/owners/request-service?category=cleaning")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('body class="owner-portal-page owner-request-service-page"', html)
+        self.assertIn('data-i18n="ownerRequestServicePreselected"', html)
+        self.assertIn("Cleaning", html)
+
     def test_owner_pages_include_language_switcher_and_i18n_hooks(self):
-        self._seed_owner_account()
-        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        self.client.post("/owners/login", data=self._demo_login_payload())
 
         page_paths = [
             "/owners/register",
@@ -234,16 +275,54 @@ class OwnerPortalTests(unittest.TestCase):
         ]
 
         for path in page_paths:
-            response = self.client.get(path)
-            self.assertEqual(response.status_code, 200, msg=path)
-            html = response.get_data(as_text=True)
             for lang in ("bg", "en", "fr", "ru"):
-                self.assertIn(f'data-lang-switch="{lang}"', html, msg=path)
-            self.assertIn('data-i18n="', html, msg=path)
-            self.assertIn('data-i18n-attr="', html, msg=path)
+                response = self.client.get(f"{path}?lang={lang}")
+                self.assertEqual(response.status_code, 200, msg=f"{path}?lang={lang}")
+                html = response.get_data(as_text=True)
+                for control_lang in ("bg", "en", "fr", "ru"):
+                    self.assertIn(f'data-lang-switch="{control_lang}"', html, msg=path)
+                self.assertIn('data-i18n="', html, msg=path)
+                self.assertIn('data-i18n-attr="', html, msg=path)
+                self.assertNotIn('noindex', html.lower(), msg=path)
+                self.assertNotIn('x-robots-tag', response.headers.get("X-Robots-Tag", "").lower(), msg=path)
+                if path == "/owners/login":
+                    self.assertIn('data-i18n="ownerLoginPassword"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-login-page"', html, msg=path)
+                elif path == "/owners/dashboard":
+                    self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-portal-dashboard-page"', html, msg=path)
+                elif path == "/owners/request-service":
+                    self.assertIn('data-i18n="ownerRequestServiceCategoryLabel"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-request-service-page"', html, msg=path)
+
+    def test_owner_login_rejects_wrong_credentials(self):
+        response = self.client.post("/owners/login", data=self._demo_login_payload(password="wrong-pass"))
+
+        self.assertEqual(response.status_code, 400)
+        html = response.get_data(as_text=True)
+        self.assertIn('data-i18n="ownerLoginCredentialsError"', html)
+        self.assertIn('body class="owner-portal-page owner-login-page"', html)
+
+    def test_owner_login_accepts_demo_credentials(self):
+        response = self.client.post("/owners/login", data=self._demo_login_payload())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/dashboard")
+
+        with self.client.session_transaction() as session:
+            self.assertTrue(session.get("owner_logged_in"))
+
+    def test_owner_logout_clears_session(self):
+        self.client.post("/owners/login", data=self._demo_login_payload())
+
+        response = self.client.get("/owners/logout")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login")
+        with self.client.session_transaction() as session:
+            self.assertFalse(session.get("owner_logged_in"))
 
     def test_owner_dashboard_and_admin_detail_use_styled_request_components(self):
-        self._seed_owner_account()
         self._seed_jsonl("professional_applications.jsonl", [{
             "id": "pro-1",
             "created_at": "2026-06-10T10:00:00Z",
@@ -262,45 +341,25 @@ class OwnerPortalTests(unittest.TestCase):
             "internal_notes": "",
             "timeline": [],
         }])
-        self._seed_jsonl("service_requests.jsonl", [{
-            "id": "owner-request-1",
-            "created_at": "2026-06-15T11:00:00Z",
-            "last_update_at": "2026-06-15T11:00:00Z",
-            "status": "assigned",
-            "request_source": "owner",
-            "owner_id": "owner-1",
-            "owner_email": "owner@example.com",
-            "owner_name": "Elena Petrova",
-            "owner_phone": "+359888111222",
-            "name": "Elena Petrova",
-            "email": "owner@example.com",
-            "phone": "+359888333444",
-            "property": "Sea View Villa",
-            "property_city": "Varna",
-            "property_type": "Villa",
-            "number_of_units": "2",
-            "service_category": "Concierge",
-            "preferred_date": "2026-07-15",
-            "description": "Need airport pickup.",
-            "assigned_provider_id": "pro-1",
-            "assigned_provider_name": "Approved Concierge",
-            "assigned_provider_company": "Approved Concierge",
-            "assigned_professional_id": "pro-1",
-            "assigned_professional_name": "Approved Concierge",
-            "assigned_professional_company": "Approved Concierge",
-            "internal_notes": "",
-            "timeline": [],
-        }])
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request(
+            status="assigned",
+            assigned_provider_id="pro-1",
+            assigned_provider_name="Approved Concierge",
+            assigned_provider_company="Approved Concierge",
+            assigned_professional_id="pro-1",
+            assigned_professional_name="Approved Concierge",
+            assigned_professional_company="Approved Concierge",
+        )])
 
-        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        self.client.post("/owners/login", data=self._demo_login_payload())
         owner_html = self.client.get("/owners/dashboard").get_data(as_text=True)
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             admin_html = self.client.get("/admin/service-requests/owner-request-1", headers=self._auth_headers()).get_data(as_text=True)
 
-        self.assertIn("owner-request-card", owner_html)
-        self.assertIn("owner-request-status-badge", owner_html)
-        self.assertIn("owner-request-timeline", owner_html)
+        self.assertIn("owner-portal-card--activity", owner_html)
+        self.assertIn("owner-activity-item", owner_html)
+        self.assertIn("owner-status-badge", owner_html)
         self.assertIn("admin-request-detail-card", admin_html)
         self.assertIn("admin-request-detail-form__control", admin_html)
         self.assertIn('class="admin-request-detail-form__control" name="status"', admin_html)
@@ -339,8 +398,7 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertIn(phrase, html)
 
     def test_owner_service_request_creation_saves_and_emails(self):
-        self._seed_owner_account()
-        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        self.client.post("/owners/login", data=self._demo_login_payload())
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/request-service", data=self._service_request_payload())
@@ -359,7 +417,6 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("[BlackSeaConnect] New owner service request", subjects)
 
     def test_admin_assignment_updates_status_and_notifies_owner(self):
-        self._seed_owner_account()
         self._seed_jsonl("professional_applications.jsonl", [{
             "id": "pro-1",
             "created_at": "2026-06-10T10:00:00Z",
@@ -378,35 +435,7 @@ class OwnerPortalTests(unittest.TestCase):
             "internal_notes": "",
             "timeline": [],
         }])
-        self._seed_jsonl("service_requests.jsonl", [{
-            "id": "owner-request-1",
-            "created_at": "2026-06-15T11:00:00Z",
-            "last_update_at": "2026-06-15T11:00:00Z",
-            "status": "new",
-            "request_source": "owner",
-            "owner_id": "owner-1",
-            "owner_email": "owner@example.com",
-            "owner_name": "Elena Petrova",
-            "owner_phone": "+359888111222",
-            "name": "Elena Petrova",
-            "email": "owner@example.com",
-            "phone": "+359888333444",
-            "property": "Sea View Villa",
-            "property_city": "Varna",
-            "property_type": "Villa",
-            "number_of_units": "2",
-            "service_category": "Concierge",
-            "preferred_date": "2026-07-15",
-            "description": "Need airport pickup.",
-            "assigned_provider_id": "",
-            "assigned_provider_name": "",
-            "assigned_provider_company": "",
-            "assigned_professional_id": "",
-            "assigned_professional_name": "",
-            "assigned_professional_company": "",
-            "internal_notes": "",
-            "timeline": [],
-        }])
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             detail = self.client.get("/admin/service-requests/owner-request-1", headers=self._auth_headers())
