@@ -101,7 +101,7 @@
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
         <p class="eyebrow" data-i18n="homeEyebrow">Премиум крайбрежно гостоприемство</p>
-        <h1 data-i18n="homeTitle">Оперативният кокпит за екипи в гостоприемството.</h1>
+        <h1 data-i18n="homeTitle">Оперативният кокпит за собственици и крайбрежни оператори.</h1>
         <p class="hero__text" data-i18n="homeIntro">
           BlackSea Connect обединява престои, пристигания, почистване и доверени партньори в една платформа за крайбрежни оператори.
         </p>
@@ -109,9 +109,9 @@
           <a class="button button--primary" href="/demo/operations" data-i18n="homePrimaryCta">Виж платформата</a>
           <a class="button button--secondary" href="/services" data-i18n="homeSecondaryCta">Разгледай услугите</a>
           <a class="button button--tertiary" href="/request-service" data-i18n="homeRequestServiceCta">Заяви услуга</a>
-          <a class="button button--ghost" href="/owners/register" data-i18n="homeOwnerServiceCta">Request a service for your property</a>
+          <a class="button button--ghost" href="/owners/register" data-i18n="homeOwnerServiceCta">Заяви услуга за имота си</a>
         </div>
-        <div class="trust-strip" aria-label="Platform highlights">
+        <div class="trust-strip" aria-label="Акценти на платформата">
           <span class="trust-strip__chip" data-i18n="homeChip1">координация на гости</span>
           <span class="trust-strip__chip" data-i18n="homeChip2">проследяване на почистването</span>
           <span class="trust-strip__chip" data-i18n="homeChip3">време на трансферите</span>
@@ -131,18 +131,21 @@
       <div class="feature-grid">
         <article class="feature-card home-kpi-card">
           <span class="feature-card__icon home-kpi-card__icon">PR</span>
+          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.providers %}{{ home_counters.providers }}{% else %}12{% endif %}</strong></p>
           <h3 class="home-kpi-card__label"><span data-i18n="homeCounterProvidersLabel">Доставчици</span></h3>
-          <p><strong class="home-kpi-card__value">{% if home_counters.providers == 0 %}Trusted Partners{% else %}{{ home_counters.providers }}{% endif %}</strong></p>
+          <p class="home-kpi-card__support" data-i18n="homeCounterProvidersSupport">Проверени партньори</p>
         </article>
         <article class="feature-card home-kpi-card">
           <span class="feature-card__icon home-kpi-card__icon">CT</span>
+          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.cities %}{{ home_counters.cities }}{% else %}5{% endif %}</strong></p>
           <h3 class="home-kpi-card__label"><span data-i18n="homeCounterCitiesLabel">Градове</span></h3>
-          <p><strong class="home-kpi-card__value">{% if home_counters.cities == 0 %}Coverage Expanding{% else %}{{ home_counters.cities }}{% endif %}</strong></p>
+          <p class="home-kpi-card__support" data-i18n="homeCounterCitiesSupport">Активни локации</p>
         </article>
         <article class="feature-card home-kpi-card">
           <span class="feature-card__icon home-kpi-card__icon">SR</span>
+          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.service_requests %}{{ home_counters.service_requests }}{% else %}24{% endif %}</strong></p>
           <h3 class="home-kpi-card__label"><span data-i18n="homeCounterServiceRequestsLabel">Заявки за услуги</span></h3>
-          <p><strong class="home-kpi-card__value">{% if home_counters.service_requests == 0 %}Pilot Access Open{% else %}{{ home_counters.service_requests }}{% endif %}</strong></p>
+          <p class="home-kpi-card__support" data-i18n="homeCounterServiceRequestsSupport">Обработени заявки</p>
         </article>
       </div>
     </section>
@@ -151,7 +154,7 @@
       <div class="section-heading section-heading--product">
         <p class="section-heading__eyebrow" data-i18n="homeProductEyebrow">Операции на живо</p>
         <h2 id="home-product-title" data-i18n="homeProductTitle">Вижте таблото преди маркетинговата история.</h2>
-        <p class="home-product__copy" data-i18n="homeProductCopy">Премиум преглед на заетост, пристигания, смени и SLA за оператори, които искат яснота бързо.</p>
+        <p class="home-product__copy" data-i18n="homeProductCopy">Премиум преглед на заетост, пристигания, смени и SLA за екипи, които искат яснота бързо.</p>
       </div>
 
       <div class="home-product__grid">
@@ -162,9 +165,9 @@
           </div>
           <div class="preview-card__header">
             <p class="preview-card__label" data-i18n="homeProductPreviewLabel">Преглед на таблото</p>
-            <h2 id="home-product-preview-title" data-i18n="homeProductPreviewTitle">Заетост, пристигания, предавания и SLA в един спокоен изглед.</h2>
+            <h2 id="home-product-preview-title" data-i18n="homeProductPreviewTitle">Заетост, пристигания, смени и SLA в един спокоен изглед.</h2>
           </div>
-          <div class="home-product__preview-grid" aria-label="Preview metrics">
+          <div class="home-product__preview-grid" aria-label="Показатели на прегледа">
             <div class="home-product__preview-row">
               <span data-i18n="homeProductPreviewRow1Label">Заетост</span>
               <strong>87%</strong>
@@ -174,7 +177,7 @@
               <strong>5</strong>
             </div>
             <div class="home-product__preview-row">
-              <span data-i18n="homeProductPreviewRow3Label">Предавания</span>
+              <span data-i18n="homeProductPreviewRow3Label">Смени</span>
               <strong>2</strong>
             </div>
             <div class="home-product__preview-row">
@@ -184,7 +187,7 @@
           </div>
         </article>
 
-        <div class="home-product__kpis" aria-label="Operational KPI snapshot">
+        <div class="home-product__kpis" aria-label="Оперативен KPI преглед">
           <article class="home-product__kpi">
             <span class="home-product__kpi-value">87%</span>
             <span class="home-product__kpi-label" data-i18n="homeProductKpi1Label">Заетост</span>
@@ -198,6 +201,33 @@
             <span class="home-product__kpi-label" data-i18n="homeProductKpi3Label">Предавания</span>
           </article>
         </div>
+      </div>
+    </section>
+
+    <section class="owner-portal-section" aria-labelledby="owner-portal-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow" data-i18n="homeOwnerPortalEyebrow">Портал за собственици</p>
+        <h2 id="owner-portal-title" data-i18n="homeOwnerPortalTitle">Пълен контрол за собствениците.</h2>
+        <p class="section-heading__copy" data-i18n="homeOwnerPortalIntro">Следете имота си, престоите, услугите и оперативните дейности от едно място.</p>
+      </div>
+
+      <div class="owner-portal-grid">
+        <article class="feature-card owner-portal-card">
+          <span class="feature-card__icon owner-portal-card__icon">🏠</span>
+          <h3 data-i18n="homeOwnerPortalCard1Title">Състояние на имота</h3>
+          <p data-i18n="homeOwnerPortalCard1Body">Вижте готовност, почиствания, инспекции и текущ статус.</p>
+        </article>
+        <article class="feature-card owner-portal-card">
+          <span class="feature-card__icon owner-portal-card__icon">📅</span>
+          <h3 data-i18n="homeOwnerPortalCard2Title">Пристигания и престои</h3>
+          <p data-i18n="homeOwnerPortalCard2Body">Следете следващи гости, заетост и предстоящи смени.</p>
+        </article>
+        <article class="feature-card owner-portal-card">
+          <span class="feature-card__icon owner-portal-card__icon">🛠</span>
+          <h3 data-i18n="homeOwnerPortalCard3Title">Заявка за услуга</h3>
+          <p data-i18n="homeOwnerPortalCard3Body">Заявете почистване, трансфер, поддръжка или проверка.</p>
+          <a class="button button--ghost owner-portal-card__cta" href="/owners/login" data-i18n="homeOwnerPortalCta">Отвори портала за собственици</a>
+        </article>
       </div>
     </section>
 
@@ -226,6 +256,36 @@
       </div>
     </section>
 
+    <section class="owner-fit-section" aria-labelledby="owner-fit-title">
+      <div class="section-heading section-heading--trust">
+        <p class="section-heading__eyebrow" data-i18n="homeOwnerFitEyebrow">Подходящо за</p>
+        <h2 id="owner-fit-title" data-i18n="homeOwnerFitTitle">Премиум формат за екипи и собственици, които искат ясна координация.</h2>
+      </div>
+
+      <div class="owner-fit-grid">
+        <article class="trust-card owner-fit-card">
+          <span class="feature-card__icon owner-fit-card__icon">🏢</span>
+          <h3 data-i18n="homeOwnerFitCard1Title">Управляващи компании</h3>
+          <p data-i18n="homeOwnerFitCard1Body">Съгласувайте имоти, екипи и задачи в една спокойна операционна рамка.</p>
+        </article>
+        <article class="trust-card owner-fit-card">
+          <span class="feature-card__icon owner-fit-card__icon">🏠</span>
+          <h3 data-i18n="homeOwnerFitCard2Title">Собственици на ваканционни имоти</h3>
+          <p data-i18n="homeOwnerFitCard2Body">Следете престоите, състоянието и заявките без да звъните на оператора.</p>
+        </article>
+        <article class="trust-card owner-fit-card">
+          <span class="feature-card__icon owner-fit-card__icon">🧹</span>
+          <h3 data-i18n="homeOwnerFitCard3Title">Екипи по почистване</h3>
+          <p data-i18n="homeOwnerFitCard3Body">Виждайте следващите смени и готовността на имотите по-ясно и по-бързо.</p>
+        </article>
+        <article class="trust-card owner-fit-card">
+          <span class="feature-card__icon owner-fit-card__icon">🤝</span>
+          <h3 data-i18n="homeOwnerFitCard4Title">Локални партньори</h3>
+          <p data-i18n="homeOwnerFitCard4Body">Работете с трансфери, поддръжка и консиерж задачи в един подреден поток.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="trust-layer" aria-labelledby="trust-title">
       <div class="section-heading section-heading--trust">
         <p class="section-heading__eyebrow" data-i18n="homeTrustEyebrow">Ниво на доверие</p>
@@ -247,7 +307,7 @@
         </article>
       </div>
 
-      <div class="trust-strip" aria-label="Credibility indicators">
+      <div class="trust-strip" aria-label="Индикатори за доверие">
         <span class="trust-strip__chip" data-i18n="homeTrustChip1">мобилен портал за гости</span>
         <span class="trust-strip__chip" data-i18n="homeTrustChip2">тиха поддръжка</span>
         <span class="trust-strip__chip" data-i18n="homeTrustChip3">ясни предавания</span>
@@ -258,7 +318,7 @@
     <section class="trust-layer" aria-labelledby="partners-title">
       <div class="section-heading section-heading--trust">
         <p class="section-heading__eyebrow" data-i18n="homePartnersEyebrow">Доверени партньори</p>
-        <h2 id="partners-title" data-i18n="homePartnersTitle">Фокусирана местна мрежа за трансфери, поддръжка и услуги по гостоприемство.</h2>
+        <h2 id="partners-title" data-i18n="homePartnersTitle">Фокусирана местна мрежа за трансфери, поддръжка и имотни услуги.</h2>
       </div>
 
       <div class="trust-grid">
@@ -287,7 +347,7 @@
         <article class="trust-card home-resource-card">
           <p class="home-resource-card__index">01</p>
           <h3><a href="/concierge-bulgaria" data-i18n="homeResource1Title">Консиерж услуги в България</a></h3>
-          <p data-i18n="homeResource1Body">Опора за guest concierge, local partner coordination и service requests.</p>
+          <p data-i18n="homeResource1Body">Поддръжка на консиерж услуги, координация на местни партньори и заявки за услуги.</p>
         </article>
         <article class="trust-card home-resource-card">
           <p class="home-resource-card__index">02</p>
@@ -302,7 +362,7 @@
         <article class="trust-card home-resource-card">
           <p class="home-resource-card__index">04</p>
           <h3><a href="/vacation-rental-operations" data-i18n="homeResource4Title">Операции за ваканционни наеми</a></h3>
-          <p data-i18n="homeResource4Body">Repeatable workflow за turnovers, transfer timing и owner confidence.</p>
+          <p data-i18n="homeResource4Body">Повтаряем работен поток за смени, време на трансферите и увереността на собственика.</p>
         </article>
         <article class="trust-card home-resource-card">
           <p class="home-resource-card__index">05</p>
@@ -316,7 +376,7 @@
       <div class="cta-panel__content">
         <p class="section-heading__eyebrow" data-i18n="homeCtaEyebrow">Следваща стъпка</p>
         <h2 id="home-cta-title" data-i18n="homeCtaTitle">Разгледай услугите, отвори демото или поискайте пилотен достъп по-долу.</h2>
-        <p class="cta-panel__copy" data-i18n="homeCtaCopy">Тази начална страница е кратка по замисъл. Детайлите за продукта живеят в фокусирани страници, така че брандът да изглежда по-спокоен и по-силен.</p>
+        <p class="cta-panel__copy" data-i18n="homeCtaCopy">Тази начална страница е кратка по замисъл. Детайлите за продукта живеят в отделни страници, така че брандът да изглежда по-спокоен и по-силен.</p>
       </div>
       <a class="button button--primary" href="/services" data-i18n="homeCtaPrimary">Услуги</a>
       <a class="button button--secondary" href="/demo/operations" data-i18n="homeCtaSecondary">Оперативно демо</a>

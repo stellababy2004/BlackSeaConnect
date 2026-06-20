@@ -24574,3 +24574,198 @@ body.owner-portal-page.owner-request-service-page .owner-request-panel {
     padding: 0 24px 48px;
   }
 }
+
+body.home-page .credibility-layer,
+body.home-page .trust-layer,
+body.home-page .home-resources,
+body.home-page .cta-panel,
+body.home-page .owner-portal-section,
+body.home-page .owner-fit-section {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef3fb 100%) !important;
+  border-color: rgba(15, 35, 69, 0.10) !important;
+  box-shadow:
+    0 20px 48px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(10px) saturate(116%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(116%) !important;
+}
+
+body.home-page .credibility-layer .section-heading h2,
+body.home-page .trust-layer .section-heading h2,
+body.home-page .home-resources .section-heading h2,
+body.home-page .cta-panel h2,
+body.home-page .owner-portal-section .section-heading h2,
+body.home-page .owner-fit-section .section-heading h2,
+body.home-page .owner-portal-section .section-heading__copy,
+body.home-page .owner-fit-section .section-heading__copy {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  text-shadow: none !important;
+}
+
+body.home-page .credibility-layer .section-heading__eyebrow,
+body.home-page .trust-layer .section-heading__eyebrow,
+body.home-page .home-resources .section-heading__eyebrow,
+body.home-page .cta-panel .section-heading__eyebrow,
+body.home-page .owner-portal-section .section-heading__eyebrow,
+body.home-page .owner-fit-section .section-heading__eyebrow {
+  color: rgba(89, 108, 129, 0.92) !important;
+  -webkit-text-fill-color: rgba(89, 108, 129, 0.92) !important;
+}
+
+body.home-page .credibility-layer .feature-card,
+body.home-page .trust-layer .trust-card,
+body.home-page .home-resources .home-resource-card,
+body.home-page .cta-panel,
+body.home-page .owner-portal-section .owner-portal-card,
+body.home-page .owner-fit-section .owner-fit-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.90), rgba(244, 248, 252, 0.92)),
+    rgba(255, 255, 255, 0.84) !important;
+  border: 1px solid rgba(15, 35, 69, 0.10) !important;
+  box-shadow:
+    0 16px 36px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+  backdrop-filter: blur(14px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(118%) !important;
+}
+
+body.home-page .credibility-layer .feature-card h3,
+body.home-page .credibility-layer .feature-card p,
+body.home-page .trust-layer .trust-card h3,
+body.home-page .trust-layer .trust-card p,
+body.home-page .home-resources .home-resource-card h3,
+body.home-page .home-resources .home-resource-card p,
+body.home-page .cta-panel__copy,
+body.home-page .owner-portal-section .owner-portal-card h3,
+body.home-page .owner-portal-section .owner-portal-card p,
+body.home-page .owner-fit-section .owner-fit-card h3,
+body.home-page .owner-fit-section .owner-fit-card p {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body.home-page .home-kpi-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 249, 253, 0.96)) !important;
+  border: 1px solid rgba(15, 35, 69, 0.10) !important;
+  box-shadow:
+    0 16px 36px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+body.home-page .home-kpi-card__value-wrap {
+  margin: 0 !important;
+}
+
+body.home-page .home-kpi-card__value {
+  display: block;
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  font-size: clamp(2rem, 5vw, 3rem) !important;
+  font-weight: 800 !important;
+  line-height: 0.92 !important;
+  letter-spacing: -0.05em !important;
+}
+
+body.home-page .home-kpi-card__label {
+  margin: 8px 0 4px !important;
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  font-size: clamp(1.02rem, 2.8vw, 1.18rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.14 !important;
+}
+
+body.home-page .home-kpi-card__support {
+  margin: 0 !important;
+  color: rgba(35, 57, 93, 0.92) !important;
+  -webkit-text-fill-color: rgba(35, 57, 93, 0.92) !important;
+  font-size: 0.92rem !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+}
+
+body.home-page .home-kpi-card .home-kpi-card__icon,
+body.home-page .owner-portal-section .owner-portal-card__icon,
+body.home-page .owner-fit-section .owner-fit-card__icon,
+body.home-page .home-resource-card__index {
+  color: #526782 !important;
+  -webkit-text-fill-color: #526782 !important;
+}
+
+body.home-page .owner-portal-grid,
+body.home-page .owner-fit-grid {
+  display: grid;
+  gap: 16px;
+}
+
+body.home-page .owner-portal-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.home-page .owner-fit-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+body.home-page .owner-portal-card,
+body.home-page .owner-fit-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-height: 100%;
+}
+
+body.home-page .owner-portal-card__cta {
+  justify-self: start;
+  margin-top: 4px;
+  border-color: rgba(15, 35, 69, 0.14) !important;
+  color: #0f2345 !important;
+}
+
+body.home-page .owner-portal-card__cta:hover,
+body.home-page .owner-portal-card__cta:focus-visible {
+  color: #0f2345 !important;
+}
+
+body.home-page .section-heading__copy {
+  max-width: 62ch;
+  margin: 0;
+  color: rgba(35, 57, 93, 0.92) !important;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 1024px) {
+  body.home-page .owner-fit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  body.home-page .credibility-layer,
+  body.home-page .trust-layer,
+  body.home-page .home-resources,
+  body.home-page .cta-panel,
+  body.home-page .owner-portal-section,
+  body.home-page .owner-fit-section {
+    margin-inline: 16px;
+    padding: 22px 18px !important;
+    border-radius: 28px;
+  }
+
+  body.home-page .owner-portal-grid,
+  body.home-page .owner-fit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.home-page .home-kpi-card {
+    padding: 18px 18px 16px !important;
+  }
+
+  body.home-page .home-kpi-card__value {
+    font-size: clamp(2.3rem, 12vw, 3.2rem) !important;
+  }
+}

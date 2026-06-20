@@ -386,16 +386,43 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('href="/owners/register"', response_professionals.get_data(as_text=True))
         self.assertIn('href="/owners/register"', response_pilot.get_data(as_text=True))
 
-    def test_homepage_zero_kpi_copy_uses_premium_language(self):
+    def test_homepage_owner_first_conversion_layer_uses_premium_language(self):
         html = self.client.get("/").get_data(as_text=True)
+
+        for phrase in [
+            "Пълен контрол за собствениците.",
+            "Подходящо за",
+            "Отвори портала за собственици",
+            'class="home-kpi-card__value">12<',
+            'class="home-kpi-card__value">5<',
+            'class="home-kpi-card__value">24<',
+        ]:
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, html)
 
         for phrase in [
             "Trusted Partners",
             "Coverage Expanding",
-            "Pilot Access Open",
+            "Turnarounds",
+            "hospitality",
+            "investor-grade",
         ]:
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, html)
+                self.assertNotIn(phrase, html)
+
+    def test_homepage_owner_first_conversion_layer_translates_for_fr_and_ru(self):
+        translations = (Path(__file__).resolve().parents[1] / "static" / "js" / "translations.js").read_text(encoding="utf-8")
+
+        for lang, expected in [
+            ("fr", "Portail propriétaires"),
+            ("ru", "Портал владельцев"),
+        ]:
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/?lang={lang}")
+                html = response.get_data(as_text=True)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn('data-i18n="homeOwnerPortalEyebrow"', html)
+                self.assertIn(expected, translations)
 
     def test_owner_service_request_creation_saves_and_emails(self):
         self.client.post("/owners/login", data=self._demo_login_payload())

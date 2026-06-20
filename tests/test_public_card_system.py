@@ -40,6 +40,8 @@ class PublicCardSystemTests(unittest.TestCase):
             ".operations-notification",
             ".site-footer",
             "body.home-page .trust-card",
+            "body.home-page .owner-portal-section",
+            "body.home-page .owner-fit-section",
             "body.partners-page .partner-card",
             "body.professionals-page .trust-card",
             "body.guest-homepage-page .guest-portal-card",
@@ -270,6 +272,8 @@ class PublicCardSystemTests(unittest.TestCase):
         for selector in [
             "body.home-page .feature-card",
             "body.home-page .trust-card",
+            "body.home-page .owner-portal-section .owner-portal-card",
+            "body.home-page .owner-fit-section .owner-fit-card",
             "body.home-page .cta-panel",
             "body.operations-demo-page .operations-panel",
             "body.guest-homepage-page .guest-kpi-card",
