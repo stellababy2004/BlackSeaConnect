@@ -4,6 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const selects = Array.from(document.querySelectorAll("[data-pilot-select]"));
   let activeSelect = null;
 
+  const getI18n = (key, fallback) => {
+    const lang = (document.documentElement.lang || new URLSearchParams(window.location.search).get("lang") || "bg").toLowerCase();
+    const dictionaries = window.BlackSeaI18N || {};
+    const dictionary = dictionaries[lang] || dictionaries.bg || {};
+    return dictionary[key] || fallback || "";
+  };
+
   const closeSelect = (select) => {
     if (!select) return;
 
@@ -123,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (submitButton) submitButton.disabled = true;
-    if (response) response.textContent = "Sending request...";
+    if (response) response.textContent = getI18n("pilotFormSending", "Sending request...");
 
     try {
       const res = await fetch("/api/pilot-request", {
@@ -136,10 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.ok) throw new Error(data.error || "Request failed");
 
-      if (response) response.textContent = "Request received. We will contact you shortly.";
+      if (response) response.textContent = getI18n("pilotFormSuccess", "Request received. We will contact you shortly.");
       form.reset();
     } catch (error) {
-      if (response) response.textContent = "The request could not be sent. Please email concierge@blackseaconnect.com.";
+      if (response) response.textContent = getI18n("pilotFormError", "The request could not be sent. Please email concierge@blackseaconnect.com.");
     } finally {
       if (submitButton) submitButton.disabled = false;
     }

@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,27 +24,29 @@
 <body>
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
-      <a class="brand" href="/">BlackSea Connect</a>
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="navHome">Home</a>
-          <a class="site-nav__link" href="/services" data-i18n="navServices">Services</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Demo</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Guest Portal</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Partners</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Professionals</a>
-          <a class="site-nav__link is-active" href="/network" data-i18n="navNetwork">Network</a>
-          <a class="site-nav__link" href="/professionals/apply" data-i18n="navApply">Apply</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Home</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Services</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Demo</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Guest Portal</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Partners</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Pilot Access</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Professionals</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/network') }}" data-i18n="navNetwork">Network</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Apply</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/professionals/apply" data-i18n="topApplyCta">Apply now</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/professionals/apply') }}" data-i18n="topApplyCta">Apply now</a>
       </div>
     </nav>
 
@@ -65,23 +67,23 @@
           </div>
         {% endif %}
         <div class="hero__cta">
-          <a class="button button--primary" href="/network" data-i18n="heroPrimaryCta">ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ Ð´Ð¸Ñ€ÐµÐºÑ‚Ð¾Ñ€Ð¸ÑÑ‚Ð°</a>
-          <a class="button button--secondary" href="/professionals/apply" data-i18n="heroSecondaryCta">ÐŸÑ€Ð¸ÑÑŠÐµÐ´Ð¸Ð½Ð¸ ÑÐµ ÐºÑŠÐ¼ Ð¼Ñ€ÐµÐ¶Ð°Ñ‚Ð°</a>
+          <a class="button button--primary" href="{{ localized_url('/network') }}" data-i18n="heroPrimaryCta">Назад към директорията</a>
+          <a class="button button--secondary" href="{{ localized_url('/professionals/apply') }}" data-i18n="heroSecondaryCta">Присъедини се към мрежата</a>
         </div>
         <div class="trust-strip" aria-label="Provider highlights">
-          <span class="trust-strip__chip" data-i18n="highlightApproved">ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ðº</span>
+          <span class="trust-strip__chip" data-i18n="highlightApproved">Одобрен доставчик</span>
           <span class="trust-strip__chip">{{ provider.city|e }}</span>
           <span class="trust-strip__chip" data-i18n="{{ provider.category_key|e }}">{{ provider.category|e }}</span>
           {% if provider.available_for_requests %}
-            <span class="trust-strip__chip" data-i18n="availableBadge">ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸</span>
+            <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
           {% else %}
-            <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Ð—Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ ÑÐ° Ð¿Ð°ÑƒÐ·Ð¸Ñ€Ð°Ð½Ð¸</span>
+            <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
           {% endif %}
           {% for badge in provider.badges %}
             <span class="trust-strip__chip">{{ badge|e }}</span>
           {% endfor %}
           {% if provider.featured %}
-            <span class="trust-strip__chip" data-i18n="featuredBadge">ÐŸÑ€ÐµÐ¿Ð¾Ñ€ÑŠÑ‡Ð°Ð½Ð¾</span>
+            <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
           {% endif %}
         </div>
       </div>
@@ -100,20 +102,20 @@
 
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="detailCompanyLabel">Ð¤Ð¸Ñ€Ð¼Ð°</h3>
-          <p>{{ provider.company_name|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailCompanyLabel">Фирма</h3>
+          <p>{{ provider.company_name|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailCityLabel">Ð“Ñ€Ð°Ð´</h3>
-          <p>{{ provider.city|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailCityLabel">Град</h3>
+          <p>{{ provider.city|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailServiceLabel">Ð¢Ð¸Ð¿ ÑƒÑÐ»ÑƒÐ³Ð°</h3>
-          <p>{{ provider.service_type|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailServiceLabel">Тип услуга</h3>
+          <p>{{ provider.service_type|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailLanguagesLabel">Ð•Ð·Ð¸Ñ†Ð¸</h3>
-          <p>{{ provider.languages|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailLanguagesLabel">Езици</h3>
+          <p>{{ provider.languages|e or "няма" }}</p>
         </article>
       </div>
     </section>
@@ -126,22 +128,22 @@
       </div>
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="detailContactLabel">ÐšÐ¾Ð½Ñ‚Ð°ÐºÑ‚</h3>
-          <p>{{ provider.phone|e or "Ð½ÑÐ¼Ð°" }}</p>
-          <p>{{ provider.email|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailContactLabel">Контакт</h3>
+          <p>{{ provider.phone|e or "няма" }}</p>
+          <p>{{ provider.email|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailWebsiteLabel">Ð£ÐµÐ±ÑÐ°Ð¹Ñ‚ Ð¸Ð»Ð¸ ÑÐ¾Ñ†Ð¸Ð°Ð»ÐµÐ½ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»</h3>
-          <p>{{ provider.website_or_social|e or "Ð½ÑÐ¼Ð°" }}</p>
+          <h3 data-i18n="detailWebsiteLabel">Уебсайт или социален профил</h3>
+          <p>{{ provider.website_or_social|e or "няма" }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="detailStatusLabel">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ</h3>
-          <p data-i18n="detailStatusValue">ÐžÐ´Ð¾Ð±Ñ€ÐµÐ½</p>
+          <h3 data-i18n="detailStatusLabel">Статус</h3>
+          <p data-i18n="detailStatusValue">Одобрен</p>
         </article>
           <article class="trust-card">
-            <h3 data-i18n="detailAvailabilityLabel">Ð—Ð°ÑÐ²ÐºÐ¸</h3>
+            <h3 data-i18n="detailAvailabilityLabel">Заявки</h3>
             <p data-i18n="{{ 'availableBadge' if provider.available_for_requests else 'requestsPausedBadge' }}">
-            {{ "ÐÐ°Ð»Ð¸Ñ‡ÐµÐ½ Ð·Ð° Ð·Ð°ÑÐ²ÐºÐ¸" if provider.available_for_requests else "Ð—Ð°ÑÐ²ÐºÐ¸Ñ‚Ðµ ÑÐ° Ð¿Ð°ÑƒÐ·Ð¸Ñ€Ð°Ð½Ð¸" }}
+            {{ "Наличен за заявки" if provider.available_for_requests else "Заявките са паузирани" }}
           </p>
         </article>
       </div>
@@ -155,11 +157,11 @@
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Services</a>
-      <a href="/partners" data-i18n="navPartners">Partners</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Pilot Access</a>
-      <a href="/professionals" data-i18n="navProfessionals">Professionals</a>
-      <a href="/professionals/apply" data-i18n="navApply">Apply</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Services</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Partners</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Pilot Access</a>
+      <a href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Professionals</a>
+      <a href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Apply</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -168,8 +170,8 @@
     </div>
   </footer>
 
-  <script src="/static/js/translations.js"></script>
-  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>
 

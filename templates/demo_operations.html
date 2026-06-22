@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,30 +31,32 @@
 
   <header class="operations-hero">
     <nav class="operations-topbar" aria-label="Primary">
-      <a class="operations-brand" href="/">BlackSea Connect</a>
-      <nav class="site-nav" aria-label="Site">
-        <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
-        <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
-        <a class="site-nav__link is-active" href="/demo/operations" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="demo.navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a class="operations-brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
+      <div class="topbar__actions operations-topbar__actions">
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="demo.navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
         </nav>
-      <div class="language-switcher" aria-label="Language switcher">
-        <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
-        <span class="language-switcher__divider" aria-hidden="true">|</span>
-        <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
-        <span class="language-switcher__divider" aria-hidden="true">|</span>
-        <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
-        <span class="language-switcher__divider" aria-hidden="true">|</span>
-        <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+        </div>
+        <div class="operations-topbar__status">
+          <span class="operations-chip operations-chip--live" data-i18n="demo.topStatusChip">Демо операциите са на живо</span>
+          <span class="operations-chip" data-i18n="demo.topUpdatedChip">Обновено преди 2 мин.</span>
+        </div>
+        <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="demo.topPilotCta">Заяви пилотен достъп</button>
       </div>
-      <div class="operations-topbar__status">
-        <span class="operations-chip operations-chip--live" data-i18n="demo.topStatusChip">Демо операциите са на живо</span>
-        <span class="operations-chip" data-i18n="demo.topUpdatedChip">Обновено преди 2 мин.</span>
-      </div>
-      <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="demo.topPilotCta">Заяви пилотен достъп</button>
     </nav>
 
     <div class="operations-hero__grid">
@@ -252,7 +254,7 @@
             </div>
           </div>
           <div class="operations-property-card__manager">
-            <span data-i18n="demo.propertyManagerLabel">Responsable local</span>
+            <span data-i18n="demo.propertyManagerLabel">Локален отговорник</span>
             <strong data-i18n="demo.propertyManagerValue">Maria Petrova</strong>
           </div>
         </article>
@@ -261,8 +263,8 @@
       <article class="operations-panel operations-panel--wide">
         <div class="operations-panel__header">
           <div>
-            <p class="operations-panel__eyebrow" data-i18n="demo.teamEyebrow">Équipes et partenaires</p>
-            <h3 data-i18n="demo.teamTitle">Orchestration opérationnelle sur une seule couche</h3>
+            <p class="operations-panel__eyebrow" data-i18n="demo.teamEyebrow">Екипи и партньори</p>
+            <h3 data-i18n="demo.teamTitle">Координация на живо в един оперативен слой</h3>
           </div>
           <span class="operations-status-pill" data-i18n="demo.teamStatus">5 видими</span>
         </div>
@@ -372,11 +374,11 @@
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Услуги</a>
-      <a href="/partners" data-i18n="navPartners">Партньори</a>
-      <a href="/demo/operations" data-i18n="navDemo">Демо</a>
-      <a href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
+      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -384,8 +386,8 @@
       <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи по имоти и доверени местни партньори.</p>
     </div>
   </footer>
-<script src="/static/js/translations.js?v=20260608"></script>
-  <script src="/static/js/i18n.js?v=20260608"></script>
+<script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
   <script src="/static/js/pilot-form.js"></script>
 
   <script>
@@ -436,9 +438,9 @@
 
 <!-- ===== PILOT ACCESS FLOAT ===== -->
 <a
-  href="/pilot-access#pilot-form"
+  href="{{ localized_url('/pilot-access#pilot-form') }}"
   class="whatsapp-float"
-  aria-label="Pilot access concierge"
+  aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel"
 >
   <span class="whatsapp-float__pulse"></span>
   <span class="whatsapp-float__icon" aria-hidden="true">
@@ -447,11 +449,12 @@
       <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </span>
-    <span class="whatsapp-float__label" data-i18n="navPilotAccess">Пилотен достъп</span>
+    <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">Пилотен достъп</span>
 </a>
 
 </body>
 </html>
+
 
 
 

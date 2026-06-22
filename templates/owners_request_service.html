@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="bg">
+﻿<!doctype html>
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,24 +38,24 @@
   } %}
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
-      <a class="brand" href="/">BlackSea Connect</a>
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
-          <a class="site-nav__link is-active" href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
-          <a class="site-nav__link" href="/owners/logout" data-i18n="navOwnerLogout">Изход</a>
-          <a class="site-nav__link" href="/" data-i18n="navHome">Обратно към сайта</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Изход</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Обратно към сайта</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/owners/dashboard" data-i18n="ownerRequestServiceDashboardCta">Табло</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceDashboardCta">Табло</a>
       </div>
     </nav>
 
@@ -68,7 +68,7 @@
         </p>
         <div class="hero__cta">
           <a class="button button--primary" href="#owner-request-service-form" data-i18n="ownerRequestServicePrimaryCta">Отвори формата</a>
-          <a class="button button--secondary" href="/owners/dashboard" data-i18n="ownerRequestServiceSecondaryCta">Виж таблото</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceSecondaryCta">Виж таблото</a>
         </div>
         <div class="trust-strip" aria-label="Owner request highlights">
           <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip1">Поверителен поток</span>
@@ -88,7 +88,7 @@
           </div>
           <div>
             <dt data-i18n="ownerRequestServicePreferredDateLabel">Желана дата</dt>
-            <dd>{{ form_values.preferred_date or "Scheduled" }}</dd>
+            <dd>{% if form_values.preferred_date %}{{ form_values.preferred_date|e }}{% else %}<span data-i18n="ownerRequestServiceScheduled">Scheduled</span>{% endif %}</dd>
           </div>
           <div>
             <dt data-i18n="ownerRequestServiceContactPreferenceLabel">Предпочитан контакт</dt>
@@ -168,7 +168,7 @@
         <div class="owner-request-form__footer">
           <button class="button button--primary" type="submit" data-i18n="ownerRequestServiceSubmit">Изпрати заявката</button>
           <p class="pilot-form__hint">
-            <a href="/owners/dashboard" data-i18n="ownerRequestServiceLoginLink">Обратно към таблото</a>
+            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceLoginLink">Обратно към таблото</a>
           </p>
         </div>
       </form>
@@ -201,11 +201,11 @@
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Услуги</a>
-      <a href="/partners" data-i18n="navPartners">Партньори</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
-      <a href="/owners/login" data-i18n="navOwnerLogin">Вход за собственици</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+      <a href="{{ localized_url('/owners/login') }}" data-i18n="navOwnerLogin">Вход за собственици</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -214,7 +214,7 @@
     </div>
   </footer>
 
-  <script src="/static/js/translations.js?v=20260608"></script>
-  <script src="/static/js/i18n.js?v=20260608"></script>
+  <script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>

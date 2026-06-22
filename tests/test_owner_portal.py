@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import json
 import os
 import shutil
@@ -247,11 +247,16 @@ class OwnerPortalTests(unittest.TestCase):
         ]:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, html)
-        self.assertIn('body class="owner-portal-page owner-portal-dashboard-page"', html)
+        self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html)
+        self.assertIn("owner-dashboard-page", html)
+        self.assertIn("owner-dashboard-masthead", html)
+        self.assertIn("owner-dashboard-main", html)
+        self.assertIn("owner-dashboard-section", html)
         self.assertIn("owner-kpi-card--summary", html)
         self.assertIn("owner-portal-card--performance", html)
         self.assertIn("owner-timeline-item", html)
         self.assertIn("owner-request-1", html)
+        self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 
     def test_owner_request_service_category_query_prefills_category(self):
         self.client.post("/owners/login", data=self._demo_login_payload())
@@ -279,8 +284,10 @@ class OwnerPortalTests(unittest.TestCase):
                 response = self.client.get(f"{path}?lang={lang}")
                 self.assertEqual(response.status_code, 200, msg=f"{path}?lang={lang}")
                 html = response.get_data(as_text=True)
+                self.assertIn('<a class="language-switcher__button', html, msg=path)
                 for control_lang in ("bg", "en", "fr", "ru"):
                     self.assertIn(f'data-lang-switch="{control_lang}"', html, msg=path)
+                    self.assertIn(f'href="{path}?lang={control_lang}"', html, msg=path)
                 self.assertIn('data-i18n="', html, msg=path)
                 self.assertIn('data-i18n-attr="', html, msg=path)
                 self.assertNotIn('noindex', html.lower(), msg=path)
@@ -290,10 +297,37 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertIn('body class="owner-portal-page owner-login-page"', html, msg=path)
                 elif path == "/owners/dashboard":
                     self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
-                    self.assertIn('body class="owner-portal-page owner-portal-dashboard-page"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html, msg=path)
                 elif path == "/owners/request-service":
                     self.assertIn('data-i18n="ownerRequestServiceCategoryLabel"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-request-service-page"', html, msg=path)
+
+    def test_owner_dashboard_translation_keys_remain_available(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        files = {
+            "owners-dashboard.js": [
+                "ownerDashboardTitle",
+                "ownerDashboardPropertyOverview",
+                "ownerDashboardOperationsSnapshot",
+                "ownerDashboardActivityTimeline",
+                "ownerDashboardRequestCleaning",
+            ],
+            "owners.js": [
+                "ownerStatusNew",
+                "ownerTimelineCreated",
+                "ownerMetricScheduled",
+            ],
+            "owners-request-service.js": [
+                "ownerRequestIdLabel",
+                "ownerRequestLastUpdateLabel",
+            ],
+        }
+
+        for filename, keys in files.items():
+            content = (repo_root / "static" / "js" / "i18n" / filename).read_text(encoding="utf-8")
+            for key in keys:
+                with self.subTest(filename=filename, key=key):
+                    self.assertIn(key, content)
 
     def test_owner_login_rejects_wrong_credentials(self):
         response = self.client.post("/owners/login", data=self._demo_login_payload(password="wrong-pass"))
@@ -381,10 +415,11 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertIn('<body class="home-page">', response_home.get_data(as_text=True))
         self.assertIn('<body class="pilot-access-page">', response_pilot.get_data(as_text=True))
-        self.assertIn('href="/owners/register"', response_home.get_data(as_text=True))
-        self.assertIn('href="/owners/register"', response_services.get_data(as_text=True))
-        self.assertIn('href="/owners/register"', response_professionals.get_data(as_text=True))
-        self.assertIn('href="/owners/register"', response_pilot.get_data(as_text=True))
+        self.assertIn('href="/owners/register?lang=bg"', response_home.get_data(as_text=True))
+        self.assertIn('href="/owners/register?lang=bg"', response_services.get_data(as_text=True))
+        self.assertIn('href="/owners/register?lang=bg"', response_professionals.get_data(as_text=True))
+        self.assertIn('href="/owners/register?lang=bg"', response_pilot.get_data(as_text=True))
+
 
     def test_homepage_owner_first_conversion_layer_uses_premium_language(self):
         html = self.client.get("/").get_data(as_text=True)
@@ -393,36 +428,101 @@ class OwnerPortalTests(unittest.TestCase):
             "Пълен контрол за собствениците.",
             "Подходящо за",
             "Отвори портала за собственици",
-            'class="home-kpi-card__value">12<',
-            'class="home-kpi-card__value">5<',
-            'class="home-kpi-card__value">24<',
+            "Заявете пилотен достъп и тествайте оперативния модел.",
+            "Започнете с един имот, един портал за собственици и един доверен местен работен поток.",
+            "Пилотен достъп",
+            "Демо",
+            "Услуги",
         ]:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, html)
 
         for phrase in [
-            "Trusted Partners",
-            "Coverage Expanding",
-            "Turnarounds",
-            "hospitality",
-            "investor-grade",
+            "Жив преглед на мрежата",
+            "Какво покрива",
+            "Ниво на доверие",
+            "Доверени партньори",
+            "Ресурси",
+            "SEO страниците",
         ]:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, html)
 
-    def test_homepage_owner_first_conversion_layer_translates_for_fr_and_ru(self):
-        translations = (Path(__file__).resolve().parents[1] / "static" / "js" / "translations.js").read_text(encoding="utf-8")
+    def test_homepage_translates_across_supported_languages(self):
+        import subprocess
+        import textwrap
 
-        for lang, expected in [
-            ("fr", "Portail propriétaires"),
-            ("ru", "Портал владельцев"),
-        ]:
+        repo_root = Path(__file__).resolve().parents[1]
+
+        def load_home_translation(lang):
+            script = textwrap.dedent(
+                """
+                const fs = require('fs');
+                const vm = require('vm');
+
+                const moduleFiles = fs.readdirSync('static/js/i18n')
+                  .filter((file) => file.endsWith('.js') && file !== 'index.js')
+                  .sort();
+                const moduleSrc = moduleFiles
+                  .map((file) => fs.readFileSync(`static/js/i18n/${file}`, 'utf8'))
+                  .join('\\n');
+                const indexSrc = fs.readFileSync('static/js/i18n/index.js', 'utf8');
+
+                const sandbox = { window: {} };
+                sandbox.window = sandbox;
+
+                vm.runInNewContext(moduleSrc, sandbox);
+                vm.runInNewContext(indexSrc, sandbox);
+
+                const locale = sandbox.window.BlackSeaI18N[LANG];
+                const home = locale.home;
+                const common = locale.common;
+                console.log(JSON.stringify({
+                  homeTitle: home.homeTitle,
+                  homePrimaryCta: home.homePrimaryCta,
+                  navApply: common.navApply
+                }));
+                """
+            ).replace("LANG", json.dumps(lang))
+            result = subprocess.run(
+                ["node", "-e", script],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            return json.loads(result.stdout.strip())
+
+        expectations = {
+            "bg": {
+                "homeTitle": "Оперативният кокпит за собственици и крайбрежни оператори.",
+                "homePrimaryCta": "Виж платформата",
+                "navApply": "Кандидатстване",
+            },
+            "en": {
+                "homeTitle": "The operational cockpit for owners and coastal operators.",
+                "homePrimaryCta": "View platform",
+                "navApply": "Apply",
+            },
+            "fr": {
+                "homeTitle": "Le cockpit opérationnel pour les propriétaires et les opérateurs côtiers.",
+                "homePrimaryCta": "Voir la plateforme",
+                "navApply": "Candidature",
+            },
+            "ru": {
+                "homeTitle": "Операционный кокпит для владельцев и прибрежных операторов.",
+                "homePrimaryCta": "Посмотреть платформу",
+                "navApply": "Заявка",
+            },
+        }
+
+        for lang, expected in expectations.items():
             with self.subTest(lang=lang):
-                response = self.client.get(f"/?lang={lang}")
-                html = response.get_data(as_text=True)
-                self.assertEqual(response.status_code, 200)
-                self.assertIn('data-i18n="homeOwnerPortalEyebrow"', html)
-                self.assertIn(expected, translations)
+                actual = load_home_translation(lang)
+                self.assertEqual(actual["homeTitle"], expected["homeTitle"])
+                self.assertEqual(actual["homePrimaryCta"], expected["homePrimaryCta"])
+                self.assertEqual(actual["navApply"], expected["navApply"])
 
     def test_owner_service_request_creation_saves_and_emails(self):
         self.client.post("/owners/login", data=self._demo_login_payload())

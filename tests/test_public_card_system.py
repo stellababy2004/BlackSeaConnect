@@ -5,7 +5,11 @@ from pathlib import Path
 class PublicCardSystemTests(unittest.TestCase):
     def setUp(self):
         self.styles_path = Path(__file__).resolve().parents[1] / "static" / "css" / "styles.css"
+        self.template_path = Path(__file__).resolve().parents[1] / "templates" / "index.html"
+        self.i18n_path = Path(__file__).resolve().parents[1] / "static" / "js" / "i18n.js"
         self.styles = self.styles_path.read_text(encoding="utf-8")
+        self.template = self.template_path.read_text(encoding="utf-8")
+        self.i18n = self.i18n_path.read_text(encoding="utf-8")
 
     def test_shared_card_tokens_are_defined(self):
         for token in [
@@ -42,6 +46,7 @@ class PublicCardSystemTests(unittest.TestCase):
             "body.home-page .trust-card",
             "body.home-page .owner-portal-section",
             "body.home-page .owner-fit-section",
+            "body.home-page .home-light-section",
             "body.partners-page .partner-card",
             "body.professionals-page .trust-card",
             "body.guest-homepage-page .guest-portal-card",
@@ -61,6 +66,82 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("color: rgba(16, 34, 61, 0.82) !important;", tail)
         self.assertIn("color: #B9892B !important;", tail)
 
+    def test_homepage_light_sections_use_shared_glass_container(self):
+        for selector in [
+            'class="home-product"',
+            'class="owner-portal-section home-light-section"',
+            'class="owner-fit-section home-light-section"',
+            'class="cta-panel home-light-section"',
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.template)
+
+        for selector in [
+            "body.home-page .home-light-section {",
+            "body.home-page .home-light-section .feature-card,",
+            "body.home-page .home-light-section .owner-portal-card,",
+            "body.home-page .home-light-section .owner-fit-card {",
+            "body.home-page .home-light-section .cta-panel__content {",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
+        for removed in [
+            'class="credibility-layer home-light-section"',
+            'class="trust-layer home-light-section"',
+            'class="trust-layer home-resources home-light-section"',
+        ]:
+            with self.subTest(removed=removed):
+                self.assertNotIn(removed, self.template)
+
+        for value in [
+            "border-radius: clamp(28px, 4vw, 56px);",
+            "background:\n    linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(232, 239, 248, 0.90)) !important;",
+            "box-shadow:\n    0 28px 80px rgba(8, 24, 44, 0.18),\n    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;",
+            "backdrop-filter: blur(18px) saturate(130%) !important;",
+            "overflow: hidden;",
+            "max-width: 22ch;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, self.styles)
+
+    def test_homepage_language_switcher_and_aria_labels_are_scoped(self):
+        for selector in [
+            'data-lang-switch="bg"',
+            'data-lang-switch="en"',
+            'data-lang-switch="fr"',
+            'data-lang-switch="ru"',
+            'data-i18n-attr="aria-label:homePrimaryNavLabel"',
+            'data-i18n-attr="aria-label:homeSiteNavLabel"',
+            'data-i18n-attr="aria-label:homeLanguageSwitcherLabel"',
+            'data-i18n-attr="aria-label:homePlatformSignalsLabel"',
+            'data-i18n-attr="aria-label:homePreviewMetricsLabel"',
+            'data-i18n-attr="aria-label:homeKpiOverviewLabel"',
+            'data-i18n-attr="aria-label:homeFooterLinksLabel"',
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.template)
+
+        for snippet in [
+            "url.pathname",
+            "url.searchParams.set(\"lang\", lang)",
+            "url.hash",
+            "window.history.replaceState",
+            "syncLanguageControls(activeLang)",
+        ]:
+            with self.subTest(snippet=snippet):
+                self.assertIn(snippet, self.i18n)
+
+    def test_i18n_resolver_stays_within_the_requested_namespace(self):
+        for snippet in [
+            "for (const section of Object.values(dictionary))",
+            "for (const section of Object.values(fallbackDictionary))",
+            "const leafKey = key.split(\".\").pop();",
+            "Object.prototype.hasOwnProperty.call(section, leafKey)",
+        ]:
+            with self.subTest(snippet=snippet):
+                self.assertNotIn(snippet, self.i18n)
+
     def test_mobile_override_covers_bottom_surfaces(self):
         start = self.styles.index("@media (max-width: 768px) {\n  .cta-panel,")
         tail = self.styles[start:]
@@ -69,6 +150,7 @@ class PublicCardSystemTests(unittest.TestCase):
             ".site-footer",
             ".cta-panel",
             "body.home-page .home-resource-card",
+            "body.home-page .home-light-section",
             "body.owner-portal-page .admin-cockpit-panel",
             "body.guest-homepage-page .guest-kpi-card",
             "body.operations-demo-page .operations-mobile-dock",
@@ -86,6 +168,7 @@ class PublicCardSystemTests(unittest.TestCase):
         self.assertIn("-webkit-text-fill-color: #F8F6F2 !important;", self.styles)
         self.assertIn("rgba(255, 250, 243, 0.96)", tail)
         self.assertIn("#10223D !important;", tail)
+        self.assertIn("body.home-page .home-light-section {", tail)
 
     def test_mobile_operations_preview_rows_do_not_overlap(self):
         start = self.styles.index("/* Final mobile operations preview fit EOF anchor. */")
@@ -237,6 +320,37 @@ class PublicCardSystemTests(unittest.TestCase):
             "-webkit-text-fill-color: #C58A00 !important;",
             "color: rgba(11, 39, 66, 0.78) !important;",
             "-webkit-text-fill-color: rgba(11, 39, 66, 0.78) !important;",
+        ]:
+            with self.subTest(value=value):
+                self.assertIn(value, tail)
+
+    def test_shared_topbar_wrap_guard_keeps_navigation_horizontal(self):
+        start = self.styles.index("/* Shared desktop navbar wrap guard: keep pills horizontal and wrap whole buttons only. */")
+        tail = self.styles[start:]
+
+        for selector in [
+            ".topbar,",
+            ".operations-topbar,",
+            ".hero--home .topbar {",
+            ".topbar__actions,",
+            ".operations-topbar__actions,",
+            ".operations-topbar__status {",
+            ".site-nav,",
+            ".operations-topbar .site-nav {",
+            ".site-nav__link,",
+            ".language-switcher__button,",
+            ".topbar__portal,",
+            ".operations-button {",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, tail)
+
+        for value in [
+            "white-space: nowrap !important;",
+            "min-width: max-content !important;",
+            "flex: 0 0 auto !important;",
+            "overflow-wrap: normal !important;",
+            "word-break: normal !important;",
         ]:
             with self.subTest(value=value):
                 self.assertIn(value, tail)

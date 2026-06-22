@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="bg">
+﻿<!doctype html>
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,38 +8,38 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="ownerLoginPageTitle">BlackSea Connect | Вход за собственици</title>
-  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
+  <title data-i18n="ownerLoginPageTitle">BlackSea Connect | Вход на собственик</title>
+  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="Влезте в портала си със своя имейл и продължете към таблото.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход за собственици">
-  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
+  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход на собственик">
+  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="Влезте в портала си със своя имейл и продължете към таблото.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход за собственици">
-  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="Поверителен поглед към операциите на вашия имот. Влезте, за да виждате активност, обновления и заявки за услуги.">
+  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход на собственик">
+  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="Влезте в портала си със своя имейл и продължете към таблото.">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="owner-portal-page owner-login-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
-      <a class="brand" href="/">BlackSea Connect</a>
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="/" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
-          <a class="site-nav__link" href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/" data-i18n="ownerLoginBackToSite">Обратно към сайта</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/') }}" data-i18n="ownerLoginBackToSite">Обратно към сайта</a>
       </div>
     </nav>
 
@@ -55,7 +55,7 @@
         </p>
         <div class="hero__cta">
           <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">Отвори входа</a>
-          <a class="button button--secondary" href="/owners/request-service" data-i18n="ownerLoginSecondaryCta">Заяви услуга</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLoginSecondaryCta">Заяви услуга</a>
         </div>
         <div class="trust-strip" aria-label="Owner login benefits">
           <span class="trust-strip__chip" data-i18n="ownerLoginChip1">Поверителен портал</span>
@@ -118,7 +118,7 @@
         <div class="owner-login-form__footer">
           <button class="button button--primary" type="submit" data-i18n="ownerLoginSubmit">Влез в таблото</button>
           <p class="pilot-form__hint">
-            <a href="/owners/register" data-i18n="ownerLoginRegisterLink">Нужен ли ви е акаунт? Регистрирайте имота си.</a>
+          <a href="{{ localized_url('/owners/register') }}" data-i18n="ownerLoginRegisterLink">Нужен ли ви е акаунт? Регистрирайте имота си.</a>
           </p>
         </div>
       </form>
@@ -128,15 +128,15 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Quiet operational software for coastal properties.</p>
+      <p data-i18n="footerDescription">Спокойни оперативни решения за крайбрежни имоти.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Услуги</a>
-      <a href="/partners" data-i18n="navPartners">Партньори</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="/owners/dashboard" data-i18n="navOwnerPortal">Табло</a>
-      <a href="/owners/request-service" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+      <a href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -145,7 +145,8 @@
     </div>
   </footer>
 
-  <script src="/static/js/translations.js?v=20260608"></script>
-  <script src="/static/js/i18n.js?v=20260608"></script>
+  <script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>
+

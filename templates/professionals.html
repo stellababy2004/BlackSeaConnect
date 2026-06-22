@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,50 +24,50 @@
 <body class="professionals-page">
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
-      <a class="brand" href="/">BlackSea Connect</a>
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="navHome">ÐÐ°Ñ‡Ð°Ð»Ð¾</a>
-          <a class="site-nav__link" href="/services" data-i18n="navServices">Ð£ÑÐ»ÑƒÐ³Ð¸</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Ð”ÐµÐ¼Ð¾</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">ÐŸÐ¾Ñ€Ñ‚Ð°Ð» Ð·Ð° Ð³Ð¾ÑÑ‚Ð¸</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">ÐŸÐ°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
-          <a class="site-nav__link is-active" href="/professionals" data-i18n="navProfessionals">ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg" data-lang="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg" data-lang="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en" data-lang="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en" data-lang="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr" data-lang="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr" data-lang="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru" data-lang="ru">RU</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru" data-lang="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/professionals/apply" data-i18n="topApplyCta">ÐšÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑÑ‚Ð²Ð°Ð¹ ÑÐµÐ³Ð°</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/professionals/apply') }}" data-i18n="topApplyCta">Кандидатствай сега</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="heroEyebrow">ÐœÑ€ÐµÐ¶Ð° Ð·Ð° ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð¸ ÑƒÑÐ»ÑƒÐ³Ð¸</p>
-        <h1 data-i18n="heroTitle">ÐŸÑ€Ð¸ÑÑŠÐµÐ´Ð¸Ð½ÐµÑ‚Ðµ ÑÐµ ÐºÑŠÐ¼ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð½Ð°Ñ‚Ð° Ð¼Ñ€ÐµÐ¶Ð° Ð½Ð° BlackSeaConnect</h1>
+        <p class="eyebrow" data-i18n="heroEyebrow">Мрежа за крайбрежни услуги</p>
+        <h1 data-i18n="heroTitle">Присъединете се към професионалната мрежа на BlackSeaConnect</h1>
         <p class="hero__text" data-i18n="heroIntro">
-          BlackSeaConnect ÑÐµ Ð¿Ñ€ÐµÐ²Ñ€ÑŠÑ‰Ð° Ð² Ð¼Ñ€ÐµÐ¶Ð° Ð·Ð° ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð¸ ÑƒÑÐ»ÑƒÐ³Ð¸, ÐºÐ¾ÑÑ‚Ð¾ ÑÐ²ÑŠÑ€Ð·Ð²Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸ Ð½Ð° Ð¸Ð¼Ð¾Ñ‚Ð¸, Ð³Ð¾ÑÑ‚Ð¸ Ð¸ Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸ Ð¿Ð¾ Ð±ÑŠÐ»Ð³Ð°Ñ€ÑÐºÐ¾Ñ‚Ð¾ Ð§ÐµÑ€Ð½Ð¾Ð¼Ð¾Ñ€Ð¸Ðµ.
+          BlackSeaConnect се превръща в мрежа за крайбрежни услуги, която свързва собственици на имоти, гости и доверени местни професионалисти по българското Черноморие.
         </p>
         <p class="hero__text" data-i18n="heroIntro2">
-          ÐžÑ‚Ð²Ð°Ñ€ÑÐ¼Ðµ Ð¿ÑŠÑ€Ð²Ð¸Ñ ÑÐ»Ð¾Ð¹ Ð·Ð° Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ Ð½Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸, Ð·Ð° Ð´Ð° Ð¼Ð¾Ð³Ð°Ñ‚ Ð¼ÐµÑÑ‚Ð½Ð¸Ñ‚Ðµ Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸ Ð´Ð° ÑÐµ Ð²ÐºÐ»ÑŽÑ‡Ð°Ñ‚ Ð¿Ð¾-Ñ€Ð°Ð½Ð¾, Ð´Ð° Ð¿Ð¾Ð¼Ð¾Ð³Ð½Ð°Ñ‚ Ð·Ð° Ð¾Ñ„Ð¾Ñ€Ð¼ÑÐ½ÐµÑ‚Ð¾ Ð½Ð° Ð¼Ñ€ÐµÐ¶Ð°Ñ‚Ð° Ð¸ Ð´Ð° Ð¿Ð¾Ð»ÑƒÑ‡Ð°Ð²Ð°Ñ‚ Ð·Ð°ÑÐ²ÐºÐ¸ Ð¾Ñ‚ Ð¿Ñ€ÐµÐ¼Ð¸ÑƒÐ¼ ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶ÐµÐ½ Ñ€Ð°Ð±Ð¾Ñ‚ÐµÐ½ Ð¿Ð¾Ñ‚Ð¾Ðº.
+          Отваряме първия слой за регистрация на професионалисти, за да могат местните доставчици да се включат по-рано, да помогнат за оформянето на мрежата и да получават заявки от премиум крайбрежен работен поток.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/professionals/apply" data-i18n="heroPrimaryCta">ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ð° Ð·Ð° Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a>
-          <a class="button button--secondary" href="#services" data-i18n="heroSecondaryCta">Ð’Ð¸Ð¶ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸Ñ‚Ðµ ÑƒÑÐ»ÑƒÐ³Ð¸</a>
-          <a class="button button--ghost" href="/owners/register" data-i18n="professionalsOwnerCta">Need help for your property?</a>
+          <a class="button button--primary" href="{{ localized_url('/professionals/apply') }}" data-i18n="heroPrimaryCta">Отвори формата за регистрация</a>
+          <a class="button button--secondary" href="#services" data-i18n="heroSecondaryCta">Виж категориите услуги</a>
+        <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="professionalsOwnerCta">Нуждаете се от помощ за имота си?</a>
         </div>
         <div class="trust-strip" aria-label="Network highlights">
-          <span class="trust-strip__chip" data-i18n="highlightFree">Ð Ð°Ð½Ð½Ð¸ÑÑ‚ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ðµ Ð±ÐµÐ·Ð¿Ð»Ð°Ñ‚ÐµÐ½</span>
-          <span class="trust-strip__chip" data-i18n="highlightPilot">Ð—Ð°Ð¿Ð¸ÑÐ²Ð°Ð½Ðµ Ð² Ð¿Ð¸Ð»Ð¾Ñ‚Ð½Ð°Ñ‚Ð° Ñ„Ð°Ð·Ð°</span>
-          <span class="trust-strip__chip" data-i18n="highlightTrusted">Ð”Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸</span>
-          <span class="trust-strip__chip" data-i18n="highlightCoast">Ð‘ÑŠÐ»Ð³Ð°Ñ€ÑÐºÐ¾Ñ‚Ð¾ Ð§ÐµÑ€Ð½Ð¾Ð¼Ð¾Ñ€Ð¸Ðµ</span>
+          <span class="trust-strip__chip" data-i18n="highlightFree">Ранният достъп е безплатен</span>
+          <span class="trust-strip__chip" data-i18n="highlightPilot">Записване в пилотната фаза</span>
+          <span class="trust-strip__chip" data-i18n="highlightTrusted">Доверени местни професионалисти</span>
+          <span class="trust-strip__chip" data-i18n="highlightCoast">Българското Черноморие</span>
         </div>
       </div>
     </div>
@@ -76,12 +76,12 @@
   <main>
     <section class="cta-panel" id="services" aria-labelledby="professionals-services-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="servicesEyebrow">ÐšÐ°ÐºÐ²Ð¾ Ð¸Ð·Ð³Ñ€Ð°Ð¶Ð´Ð°Ð¼Ðµ</p>
-        <h2 id="professionals-services-title" data-i18n="servicesTitle">Ð¡Ð¿Ð¾ÐºÐ¾Ð¹Ð½Ð° Ð²Ñ…Ð¾Ð´Ð½Ð° Ñ‚Ð¾Ñ‡ÐºÐ° Ð·Ð° Ð¼ÐµÑÑ‚Ð½Ð¸Ñ‚Ðµ ÐµÐºÐ¸Ð¿Ð¸, ÐºÐ¾Ð¸Ñ‚Ð¾ Ð¿Ð¾Ð´Ð´ÑŠÑ€Ð¶Ð°Ñ‚ ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð¸Ñ‚Ðµ Ð¸Ð¼Ð¾Ñ‚Ð¸.</h2>
+        <p class="section-heading__eyebrow" data-i18n="servicesEyebrow">Какво изграждаме</p>
+        <h2 id="professionals-services-title" data-i18n="servicesTitle">Спокойна входна точка за местните екипи, които поддържат крайбрежните имоти.</h2>
         <p class="cta-panel__copy" data-i18n="servicesCopy">
-          ÐœÑ€ÐµÐ¶Ð°Ñ‚Ð° Ðµ ÑÑŠÐ·Ð´Ð°Ð´ÐµÐ½Ð° Ð·Ð° Ð´Ð¾ÑÑ‚Ð°Ð²Ñ‡Ð¸Ñ†Ð¸, ÐºÐ¾Ð¸Ñ‚Ð¾ Ð¿Ð¾Ð´Ð¿Ð¾Ð¼Ð°Ð³Ð°Ñ‚ Ð¿Ñ€ÐµÑÑ‚Ð¾Ð¸ Ð½Ð° Ð³Ð¾ÑÑ‚Ð¸, Ð³Ñ€Ð¸Ð¶Ð° Ð·Ð° Ð¸Ð¼Ð¾Ñ‚Ð¸ Ð¸ Ð½Ð°Ð´ÐµÐ¶Ð´Ð½Ð¾ Ð¸Ð·Ð¿ÑŠÐ»Ð½ÐµÐ½Ð¸Ðµ Ð½Ð° Ñ‚ÐµÑ€ÐµÐ½. Ð¢Ñ Ð·Ð°Ð¿Ð°Ð·Ð²Ð° Ð¿Ñ€ÐµÐ¶Ð¸Ð²ÑÐ²Ð°Ð½ÐµÑ‚Ð¾ Ð¿Ñ€ÐµÐ¼Ð¸ÑƒÐ¼ Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸Ñ‚Ðµ Ð¸ Ð»ÐµÑÐ½Ð¾ Ð·Ð° Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸Ñ‚Ðµ, ÐºÐ¾Ð¸Ñ‚Ð¾ Ð³Ð¸ Ð¾Ð±ÑÐ»ÑƒÐ¶Ð²Ð°Ñ‚.
+          Мрежата е създадена за доставчици, които подпомагат престои на гости, грижа за имоти и надеждно изпълнение на терен. Тя запазва преживяването премиум за собствениците и лесно за професионалистите, които ги обслужват.
         </p>
-        <p class="cta-panel__trust" data-i18n="servicesTrust">Ð Ð°Ð½Ð½Ð¸ÑÑ‚ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ðµ Ð±ÐµÐ·Ð¿Ð»Ð°Ñ‚ÐµÐ½ Ð¿Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð½Ð° Ð¿Ð¸Ð»Ð¾Ñ‚Ð½Ð°Ñ‚Ð° Ñ„Ð°Ð·Ð°.</p>
+        <p class="cta-panel__trust" data-i18n="servicesTrust">Ранният достъп е безплатен по време на пилотната фаза.</p>
       </div>
 
       <div class="trust-strip" aria-label="Service categories">
@@ -93,19 +93,19 @@
 
     <section class="cta-panel" aria-labelledby="professionals-join-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="joinEyebrow">ÐŸÑ€Ð¸ÑÑŠÐµÐ´Ð¸Ð½ÑÐ²Ð°Ð½Ðµ ÐºÑŠÐ¼ Ð¼Ñ€ÐµÐ¶Ð°Ñ‚Ð°</p>
-        <h2 id="professionals-join-title" data-i18n="joinTitle">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð¸Ñ€Ð°Ð¹Ñ‚Ðµ ÑÐµ Ð²ÐµÐ´Ð½ÑŠÐ¶ Ð¸ Ð½ÐµÐºÐ° Ð¿Ñ€ÐµÑ†ÐµÐ½Ð¸Ð¼ Ð´Ð°Ð»Ð¸ Ð¿Ð°ÑÐ²Ð°Ñ‚Ðµ Ð½Ð° ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð°Ñ‚Ð° Ð¼Ñ€ÐµÐ¶Ð°.</h2>
+        <p class="section-heading__eyebrow" data-i18n="joinEyebrow">Присъединяване към мрежата</p>
+        <h2 id="professionals-join-title" data-i18n="joinTitle">Регистрирайте се веднъж и нека преценим дали пасвате на крайбрежната мрежа.</h2>
         <p class="cta-panel__copy" data-i18n="joinCopy">
-          Ð¡Ð¿Ð¾Ð´ÐµÐ»ÐµÑ‚Ðµ Ð²Ð°ÑˆÐ¸Ñ Ñ€Ð°Ð¹Ð¾Ð½ Ð½Ð° Ñ€Ð°Ð±Ð¾Ñ‚Ð°, Ð¾Ð¿Ð¸Ñ‚ Ð¸ Ð´Ð°Ð½Ð½Ð¸ Ð·Ð° ÐºÐ¾Ð½Ñ‚Ð°ÐºÑ‚. Ð©Ðµ Ð¿Ñ€ÐµÐ³Ð»ÐµÐ¶Ð´Ð°Ð¼Ðµ Ð·Ð°ÑÐ²Ð»ÐµÐ½Ð¸ÑÑ‚Ð° Ð¿Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð½Ð° Ð¿Ð¸Ð»Ð¾Ñ‚Ð½Ð°Ñ‚Ð° Ñ„Ð°Ð·Ð° Ð¸ Ñ‰Ðµ Ð´ÑŠÑ€Ð¶Ð¸Ð¼ Ð¿Ñ€Ð¾Ñ†ÐµÑÐ° Ð»ÐµÐº.
+          Споделете вашия район на работа, опит и данни за контакт. Ще преглеждаме заявленията по време на пилотната фаза и ще държим процеса лек.
         </p>
       </div>
-      <a class="button button--primary" href="/professionals/apply" data-i18n="joinPrimaryCta">ÐžÑ‚Ð¸Ð´Ð¸ ÐºÑŠÐ¼ Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸ÑÑ‚Ð°</a>
+        <a class="button button--primary" href="{{ localized_url('/professionals/apply') }}" data-i18n="joinPrimaryCta">Отиди към регистрацията</a>
     </section>
 
     <section class="trust-layer" aria-labelledby="approved-professionals-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow">Approved network</p>
-        <h2 id="approved-professionals-title">Converted professional applications visible to the public.</h2>
+        <p class="section-heading__eyebrow" data-i18n="professionalsApprovedEyebrow">Одобрена мрежа</p>
+        <h2 id="approved-professionals-title" data-i18n="professionalsApprovedTitle">Одобрените кандидатури на професионалисти са видими публично.</h2>
       </div>
 
       {% if professionals %}
@@ -122,8 +122,8 @@
         </div>
       {% else %}
         <div class="admin-empty-state">
-          <h3>No approved professionals yet.</h3>
-          <p>Converted professional applications will appear here once reviewed by the admin team.</p>
+          <h3 data-i18n="professionalsApprovedEmptyTitle">Все още няма одобрени професионалисти.</h3>
+          <p data-i18n="professionalsApprovedEmptyCopy">Одобрените кандидатури на професионалисти ще се покажат тук, след като бъдат прегледани от екипа.</p>
         </div>
       {% endif %}
     </section>
@@ -132,20 +132,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">ÐšÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð° Ð¼Ñ€ÐµÐ¶Ð° Ð¾Ñ‚ Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¼ÐµÑÑ‚Ð½Ð¸ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸.</p>
+      <p data-i18n="footerDescription">Крайбрежна мрежа от доверени местни професионалисти.</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Ð£ÑÐ»ÑƒÐ³Ð¸</a>
-      <a href="/partners" data-i18n="navPartners">ÐŸÐ°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿</a>
-      <a href="/professionals" data-i18n="navProfessionals">ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð¸</a>
-      <a href="/professionals/apply" data-i18n="navApply">ÐšÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑÑ‚Ð²Ð°Ð½Ðµ</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
+      <a href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Кандидатстване</a>
     </nav>
 
     <div class="site-footer__meta">
       <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Ð Ð°Ð½Ð½Ð¸ÑÑ‚ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ðµ Ð±ÐµÐ·Ð¿Ð»Ð°Ñ‚ÐµÐ½ Ð¿Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð½Ð° Ð¿Ð¸Ð»Ð¾Ñ‚Ð½Ð°Ñ‚Ð° Ñ„Ð°Ð·Ð°.</p>
+      <p data-i18n="footerMeta">Ранният достъп е безплатен по време на пилотната фаза.</p>
     </div>
   </footer>
 
@@ -153,7 +153,6 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
-
 
 
 

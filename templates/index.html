@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,29 +72,29 @@
       </div>
     </div>
 
-    <nav class="topbar" aria-label="Primary">
+    <nav class="topbar" aria-label="Primary" data-i18n-attr="aria-label:homePrimaryNavLabel">
       <a class="brand" href="#top">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link is-active" href="/" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="/services" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/professionals/apply" data-i18n="navApply">Кандидатстване</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+        <nav class="site-nav" aria-label="Site" data-i18n-attr="aria-label:homeSiteNavLabel">
+          <a class="site-nav__link is-active" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Кандидатстване</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:homeLanguageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/demo/operations" data-i18n="homeRequestPilotCta">Виж платформата</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/demo/operations') }}" data-i18n="homeRequestPilotCta">Виж платформата</a>
       </div>
     </nav>
 
@@ -106,12 +106,12 @@
           BlackSea Connect обединява престои, пристигания, почистване и доверени партньори в една платформа за крайбрежни оператори.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="/demo/operations" data-i18n="homePrimaryCta">Виж платформата</a>
-          <a class="button button--secondary" href="/services" data-i18n="homeSecondaryCta">Разгледай услугите</a>
-          <a class="button button--tertiary" href="/request-service" data-i18n="homeRequestServiceCta">Заяви услуга</a>
-          <a class="button button--ghost" href="/owners/register" data-i18n="homeOwnerServiceCta">Заяви услуга за имота си</a>
+          <a class="button button--primary" href="{{ localized_url('/demo/operations') }}" data-i18n="homePrimaryCta">Виж платформата</a>
+          <a class="button button--secondary" href="{{ localized_url('/services') }}" data-i18n="homeSecondaryCta">Разгледай услугите</a>
+          <a class="button button--tertiary" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">Заяви услуга</a>
+          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="homeOwnerServiceCta">Заяви услуга за имота си</a>
         </div>
-        <div class="trust-strip" aria-label="Акценти на платформата">
+        <div class="trust-strip" aria-label="Акценти на платформата" data-i18n-attr="aria-label:homePlatformSignalsLabel">
           <span class="trust-strip__chip" data-i18n="homeChip1">координация на гости</span>
           <span class="trust-strip__chip" data-i18n="homeChip2">проследяване на почистването</span>
           <span class="trust-strip__chip" data-i18n="homeChip3">време на трансферите</span>
@@ -122,34 +122,6 @@
   </header>
 
   <main>
-    <section class="credibility-layer" aria-labelledby="home-counters-title">
-      <div class="section-heading">
-        <p class="section-heading__eyebrow" data-i18n="homeCountersEyebrow">Жив преглед на мрежата</p>
-        <h2 id="home-counters-title" data-i18n="homeCountersTitle">Тиха система с активни доставчици и заявки.</h2>
-      </div>
-
-      <div class="feature-grid">
-        <article class="feature-card home-kpi-card">
-          <span class="feature-card__icon home-kpi-card__icon">PR</span>
-          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.providers %}{{ home_counters.providers }}{% else %}12{% endif %}</strong></p>
-          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterProvidersLabel">Доставчици</span></h3>
-          <p class="home-kpi-card__support" data-i18n="homeCounterProvidersSupport">Проверени партньори</p>
-        </article>
-        <article class="feature-card home-kpi-card">
-          <span class="feature-card__icon home-kpi-card__icon">CT</span>
-          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.cities %}{{ home_counters.cities }}{% else %}5{% endif %}</strong></p>
-          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterCitiesLabel">Градове</span></h3>
-          <p class="home-kpi-card__support" data-i18n="homeCounterCitiesSupport">Активни локации</p>
-        </article>
-        <article class="feature-card home-kpi-card">
-          <span class="feature-card__icon home-kpi-card__icon">SR</span>
-          <p class="home-kpi-card__value-wrap"><strong class="home-kpi-card__value">{% if home_counters.service_requests %}{{ home_counters.service_requests }}{% else %}24{% endif %}</strong></p>
-          <h3 class="home-kpi-card__label"><span data-i18n="homeCounterServiceRequestsLabel">Заявки за услуги</span></h3>
-          <p class="home-kpi-card__support" data-i18n="homeCounterServiceRequestsSupport">Обработени заявки</p>
-        </article>
-      </div>
-    </section>
-
     <section class="home-product" aria-labelledby="home-product-title">
       <div class="section-heading section-heading--product">
         <p class="section-heading__eyebrow" data-i18n="homeProductEyebrow">Операции на живо</p>
@@ -167,7 +139,7 @@
             <p class="preview-card__label" data-i18n="homeProductPreviewLabel">Преглед на таблото</p>
             <h2 id="home-product-preview-title" data-i18n="homeProductPreviewTitle">Заетост, пристигания, смени и SLA в един спокоен изглед.</h2>
           </div>
-          <div class="home-product__preview-grid" aria-label="Показатели на прегледа">
+          <div class="home-product__preview-grid" aria-label="Показатели на прегледа" data-i18n-attr="aria-label:homePreviewMetricsLabel">
             <div class="home-product__preview-row">
               <span data-i18n="homeProductPreviewRow1Label">Заетост</span>
               <strong>87%</strong>
@@ -187,7 +159,7 @@
           </div>
         </article>
 
-        <div class="home-product__kpis" aria-label="Оперативен KPI преглед">
+        <div class="home-product__kpis" aria-label="Оперативен KPI преглед" data-i18n-attr="aria-label:homeKpiOverviewLabel">
           <article class="home-product__kpi">
             <span class="home-product__kpi-value">87%</span>
             <span class="home-product__kpi-label" data-i18n="homeProductKpi1Label">Заетост</span>
@@ -204,7 +176,7 @@
       </div>
     </section>
 
-    <section class="owner-portal-section" aria-labelledby="owner-portal-title">
+    <section class="owner-portal-section home-light-section" aria-labelledby="owner-portal-title">
       <div class="section-heading section-heading--trust">
         <p class="section-heading__eyebrow" data-i18n="homeOwnerPortalEyebrow">Портал за собственици</p>
         <h2 id="owner-portal-title" data-i18n="homeOwnerPortalTitle">Пълен контрол за собствениците.</h2>
@@ -226,37 +198,12 @@
           <span class="feature-card__icon owner-portal-card__icon">🛠</span>
           <h3 data-i18n="homeOwnerPortalCard3Title">Заявка за услуга</h3>
           <p data-i18n="homeOwnerPortalCard3Body">Заявете почистване, трансфер, поддръжка или проверка.</p>
-          <a class="button button--ghost owner-portal-card__cta" href="/owners/login" data-i18n="homeOwnerPortalCta">Отвори портала за собственици</a>
+          <a class="button button--ghost owner-portal-card__cta" href="{{ localized_url('/owners/login') }}" data-i18n="homeOwnerPortalCta">Отвори портала за собственици</a>
         </article>
       </div>
     </section>
 
-    <section class="credibility-layer" aria-labelledby="credibility-title">
-      <div class="section-heading">
-        <p class="section-heading__eyebrow" data-i18n="homeWhatEyebrow">Какво покрива</p>
-        <h2 id="credibility-title" data-i18n="homeWhatTitle">Създадено за екипи, които имат нужда от тиха и надеждна координация.</h2>
-      </div>
-
-      <div class="feature-grid">
-        <article class="feature-card">
-          <span class="feature-card__icon">01</span>
-          <h3 data-i18n="homeFeature1Title">Координация на гости</h3>
-          <p data-i18n="homeFeature1Body">Дръжте бележките за пристигане, предаванията и последващите действия в един спокоен поток.</p>
-        </article>
-        <article class="feature-card">
-          <span class="feature-card__icon">02</span>
-          <h3 data-i18n="homeFeature2Title">Проследяване на почистването</h3>
-          <p data-i18n="homeFeature2Body">Следете готовността, статуса на смяната и финалните проверки без шум.</p>
-        </article>
-        <article class="feature-card">
-          <span class="feature-card__icon">03</span>
-          <h3 data-i18n="homeFeature3Title">Време на трансфери</h3>
-          <p data-i18n="homeFeature3Body">Координирайте летищни, марина и частни автомобилни трансфери с ясни обновления.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="owner-fit-section" aria-labelledby="owner-fit-title">
+    <section class="owner-fit-section home-light-section" aria-labelledby="owner-fit-title">
       <div class="section-heading section-heading--trust">
         <p class="section-heading__eyebrow" data-i18n="homeOwnerFitEyebrow">Подходящо за</p>
         <h2 id="owner-fit-title" data-i18n="homeOwnerFitTitle">Премиум формат за екипи и собственици, които искат ясна координация.</h2>
@@ -286,116 +233,30 @@
       </div>
     </section>
 
-    <section class="trust-layer" aria-labelledby="trust-title">
-      <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="homeTrustEyebrow">Ниво на доверие</p>
-        <h2 id="trust-title" data-i18n="homeTrustTitle">Спокойни операции, доверени оператори и ясна отговорност.</h2>
-      </div>
-
-      <div class="trust-grid">
-        <article class="trust-card">
-          <h3 data-i18n="homeTrustCard1Title">Проверени местни оператори</h3>
-          <p data-i18n="homeTrustCard1Body">Работете с проверени партньори за трансфери, поддръжка и услуги без оперативен шум.</p>
-        </article>
-        <article class="trust-card">
-          <h3 data-i18n="homeTrustCard2Title">Спокойно изживяване за госта</h3>
-          <p data-i18n="homeTrustCard2Body">Гостите получават точната информация в точния момент в премиум мобилно изживяване.</p>
-        </article>
-        <article class="trust-card">
-          <h3 data-i18n="homeTrustCard3Title">Надеждни ежедневни операции</h3>
-          <p data-i18n="homeTrustCard3Body">Екипите виждат какво е готово, какво чака и какво изисква следващо внимание.</p>
-        </article>
-      </div>
-
-      <div class="trust-strip" aria-label="Индикатори за доверие">
-        <span class="trust-strip__chip" data-i18n="homeTrustChip1">мобилен портал за гости</span>
-        <span class="trust-strip__chip" data-i18n="homeTrustChip2">тиха поддръжка</span>
-        <span class="trust-strip__chip" data-i18n="homeTrustChip3">ясни предавания</span>
-        <span class="trust-strip__chip" data-i18n="homeTrustChip4">премиум крайбрежен поток</span>
-      </div>
-    </section>
-
-    <section class="trust-layer" aria-labelledby="partners-title">
-      <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="homePartnersEyebrow">Доверени партньори</p>
-        <h2 id="partners-title" data-i18n="homePartnersTitle">Фокусирана местна мрежа за трансфери, поддръжка и имотни услуги.</h2>
-      </div>
-
-      <div class="trust-grid">
-        <article class="trust-card">
-          <h3 data-i18n="homePartner1Title">Трансфери</h3>
-          <p data-i18n="homePartner1Body">Летищни, марина и частни автомобилни партньори с предвидимо предаване.</p>
-        </article>
-        <article class="trust-card">
-          <h3 data-i18n="homePartner2Title">Поддръжка</h3>
-          <p data-i18n="homePartner2Body">Бързи ремонтни и сервизни партньори за проблеми, които не бива да спират гостите.</p>
-        </article>
-        <article class="trust-card">
-          <h3 data-i18n="homePartner3Title">Почистване</h3>
-          <p data-i18n="homePartner3Body">Екипи и проверки, които държат имота подготвен и спокоен.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="trust-layer home-resources" aria-labelledby="resources-title">
-      <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="homeResourcesEyebrow">Ресурси</p>
-        <h2 id="resources-title" data-i18n="homeResourcesTitle">SEO страниците, които показват операционния модел в детайл.</h2>
-      </div>
-
-      <div class="home-resources__grid" aria-label="Homepage resources">
-        <article class="trust-card home-resource-card">
-          <p class="home-resource-card__index">01</p>
-          <h3><a href="/concierge-bulgaria" data-i18n="homeResource1Title">Консиерж услуги в България</a></h3>
-          <p data-i18n="homeResource1Body">Поддръжка на консиерж услуги, координация на местни партньори и заявки за услуги.</p>
-        </article>
-        <article class="trust-card home-resource-card">
-          <p class="home-resource-card__index">02</p>
-          <h3><a href="/property-management-bulgaria" data-i18n="homeResource2Title">Управление на имоти в България</a></h3>
-          <p data-i18n="homeResource2Body">Крайбрежно property management с по-ясна координация на екипите.</p>
-        </article>
-        <article class="trust-card home-resource-card">
-          <p class="home-resource-card__index">03</p>
-          <h3><a href="/guest-experience-services" data-i18n="homeResource3Title">Услуги за гостско преживяване</a></h3>
-          <p data-i18n="homeResource3Body">Пътят на госта, от първия въпрос до спокойното настаняване.</p>
-        </article>
-        <article class="trust-card home-resource-card">
-          <p class="home-resource-card__index">04</p>
-          <h3><a href="/vacation-rental-operations" data-i18n="homeResource4Title">Операции за ваканционни наеми</a></h3>
-          <p data-i18n="homeResource4Body">Повтаряем работен поток за смени, време на трансферите и увереността на собственика.</p>
-        </article>
-        <article class="trust-card home-resource-card">
-          <p class="home-resource-card__index">05</p>
-          <h3><a href="/sveti-vlas-concierge-services" data-i18n="homeResource5Title">Консиерж услуги в Свети Влас</a></h3>
-          <p data-i18n="homeResource5Body">Локално ориентиран concierge модел за марина и крайбрежни имоти.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="cta-panel" aria-labelledby="home-cta-title">
+    <section class="cta-panel home-light-section" aria-labelledby="home-cta-title">
       <div class="cta-panel__content">
         <p class="section-heading__eyebrow" data-i18n="homeCtaEyebrow">Следваща стъпка</p>
-        <h2 id="home-cta-title" data-i18n="homeCtaTitle">Разгледай услугите, отвори демото или поискайте пилотен достъп по-долу.</h2>
-        <p class="cta-panel__copy" data-i18n="homeCtaCopy">Тази начална страница е кратка по замисъл. Детайлите за продукта живеят в отделни страници, така че брандът да изглежда по-спокоен и по-силен.</p>
+        <h2 id="home-cta-title" data-i18n="homeCtaTitle">Заявете пилотен достъп и тествайте оперативния модел.</h2>
+        <p class="cta-panel__copy" data-i18n="homeCtaCopy">Започнете с един имот, един портал за собственици и един доверен местен работен поток.</p>
       </div>
-      <a class="button button--primary" href="/services" data-i18n="homeCtaPrimary">Услуги</a>
-      <a class="button button--secondary" href="/demo/operations" data-i18n="homeCtaSecondary">Оперативно демо</a>
-      <a class="button button--tertiary" href="/pilot-access" data-i18n="homeCtaTertiary">Пилотен достъп</a>
+      <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="homeCtaPrimary">Пилотен достъп</a>
+      <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="homeCtaSecondary">Демо</a>
+      <a class="button button--tertiary" href="{{ localized_url('/services') }}" data-i18n="homeCtaTertiary">Услуги</a>
     </section>
   </main>
 
-  <footer class="site-footer" aria-label="Site footer">
+    <footer class="site-footer" aria-label="Site footer" data-i18n-attr="aria-label:homeFooterLabel">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
       <p data-i18n="footerDescription">Спокойни операции по гостоприемство за крайбрежни имоти.</p>
     </div>
 
-    <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="navServices">Услуги</a>
-      <a href="/partners" data-i18n="navPartners">Партньори</a>
-      <a href="/demo/operations" data-i18n="navDemo">Демо</a>
-      <a href="/guest/a-302" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="/pilot-access" data-i18n="navPilotAccess">Пилотен достъп</a>
+    <nav class="site-footer__links" aria-label="Footer links" data-i18n-attr="aria-label:homeFooterLinksLabel">
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
+      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
+      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -404,14 +265,14 @@
     </div>
   </footer>
 
-<script src="/static/js/translations.js?v=20260608"></script>
-  <script src="/static/js/i18n.js?v=20260608"></script>
+<script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
 
 <!-- ===== PILOT ACCESS FLOAT ===== -->
 <a
-  href="/pilot-access#pilot-form"
+  href="{{ localized_url('/pilot-access#pilot-form') }}"
   class="whatsapp-float"
-  aria-label="Pilot access concierge"
+  aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel"
 >
   <span class="whatsapp-float__pulse"></span>
   <span class="whatsapp-float__icon" aria-hidden="true">
@@ -425,6 +286,7 @@
 
 </body>
 </html>
+
 
 
 

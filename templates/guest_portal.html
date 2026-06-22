@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,27 +41,27 @@
     </div>
 
     <nav class="topbar" aria-label="Primary">
-      <a class="brand" href="/">BlackSea Connect</a>
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="/" data-i18n="home.navHome">Начало</a>
-          <a class="site-nav__link" href="/services" data-i18n="home.navServices">Услуги</a>
-          <a class="site-nav__link" href="/demo/operations" data-i18n="home.navDemo">Демо</a>
-          <a class="site-nav__link is-active" href="/guest/a-302" data-i18n="home.navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="/partners" data-i18n="home.navPartners">Партньори</a>
-          <a class="site-nav__link" href="/professionals" data-i18n="home.navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="/pilot-access" data-i18n="home.navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="home.navHome">Начало</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="home.navServices">Услуги</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="home.navDemo">Демо</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/guest/a-302') }}" data-i18n="home.navGuestPortal">Портал за гости</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="home.navPartners">Партньори</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="home.navProfessionals">Професионалисти</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="home.navPilotAccess">Пилотен достъп</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher">
-          <button class="language-switcher__button is-active" type="button" data-lang-switch="bg">BG</button>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="en">EN</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="fr">FR</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <button class="language-switcher__button" type="button" data-lang-switch="ru">RU</button>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="/pilot-access" data-i18n="home.homeRequestPilotCta">Заяви пилотен достъп</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/pilot-access') }}" data-i18n="home.homeRequestPilotCta">Заяви пилотен достъп</a>
       </div>
     </nav>
 
@@ -369,11 +369,11 @@
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="/services" data-i18n="home.navServices">Услуги</a>
-      <a href="/partners" data-i18n="home.navPartners">Партньори</a>
-      <a href="/demo/operations" data-i18n="home.navDemo">Демо</a>
-      <a href="/guest/a-302" data-i18n="home.navGuestPortal">Портал за гости</a>
-      <a href="/pilot-access" data-i18n="home.navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="home.navServices">Услуги</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="home.navPartners">Партньори</a>
+      <a href="{{ localized_url('/demo/operations') }}" data-i18n="home.navDemo">Демо</a>
+      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="home.navGuestPortal">Портал за гости</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="home.navPilotAccess">Пилотен достъп</a>
     </nav>
 
     <div class="site-footer__meta">
@@ -382,14 +382,14 @@
     </div>
   </footer>
 
-  <script src="/static/js/translations.js?v=20260608"></script>
-  <script src="/static/js/i18n.js?v=20260608"></script>
+  <script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
 
   <!-- ===== PILOT ACCESS FLOAT ===== -->
   <a
-    href="/pilot-access#pilot-form"
+  href="{{ localized_url('/pilot-access#pilot-form') }}"
     class="whatsapp-float"
-    aria-label="Pilot access concierge"
+  aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel"
   >
     <span class="whatsapp-float__pulse"></span>
     <span class="whatsapp-float__icon" aria-hidden="true">
@@ -398,10 +398,17 @@
         <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
       </svg>
     </span>
-    <span class="whatsapp-float__label" data-i18n="home.navPilotAccess">Пилотен достъп</span>
+  <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">Пилотен достъп</span>
   </a>
 
   <script>
+  const guestI18n = (key, fallback) => {
+    const lang = (document.documentElement.lang || new URLSearchParams(window.location.search).get("lang") || "bg").toLowerCase();
+    const dictionaries = window.BlackSeaI18N || {};
+    const dictionary = dictionaries[lang] || dictionaries.bg || {};
+    return dictionary[key] || fallback || "";
+  };
+
   document.getElementById("concierge-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -415,7 +422,7 @@
       message: form.message.value
     };
 
-    status.textContent = "Изпращане на заявката...";
+    status.textContent = guestI18n("guestConciergeSending", "Изпращане на заявката...");
 
     try {
       const response = await fetch("/api/concierge", {
@@ -429,18 +436,19 @@
       const data = await response.json();
 
       if (data.ok) {
-        status.textContent = "Заявката е изпратена успешно.";
+        status.textContent = guestI18n("guestConciergeSuccess", "Заявката е изпратена успешно.");
         form.reset();
       } else {
-        status.textContent = "Моля, попълнете всички задължителни полета.";
+        status.textContent = guestI18n("guestConciergeValidationError", "Моля, попълнете всички задължителни полета.");
       }
     } catch (error) {
-      status.textContent = "Грешка във връзката. Моля, опитайте отново.";
+      status.textContent = guestI18n("guestConciergeError", "Грешка във връзката. Моля, опитайте отново.");
     }
   });
   </script>
 </body>
 </html>
+
 
 
 
