@@ -866,7 +866,58 @@ def _build_home_counters():
 
 @app.context_processor
 def inject_public_site_settings():
-    return {"site_url": SITE_URL}
+    supported_languages = {"bg", "en", "fr", "ru"}
+    current_lang = str(request.args.get("lang", "bg")).strip().lower() or "bg"
+    if current_lang not in supported_languages:
+        current_lang = "bg"
+
+    def language_switch_url(lang):
+        normalized_lang = str(lang).strip().lower()
+        preserved_args = [(key, value) for key, value in request.args.items(multi=True) if key != "lang"]
+        preserved_args.append(("lang", normalized_lang))
+        query_string = urllib.parse.urlencode(preserved_args, doseq=True)
+        return f"{request.path}?{query_string}" if query_string else request.path
+
+    def current_page_language():
+        return current_lang
+
+    def localized_url(path_or_url):
+        target = str(path_or_url or "").strip()
+        if not target:
+            return target
+
+        lowered = target.lower()
+        if lowered.startswith(("http://", "https://", "mailto:", "tel:", "javascript:")):
+            return target
+        if target.startswith("#") or target.startswith("//") or target.startswith("/static/"):
+            return target
+
+        parsed = urllib.parse.urlsplit(target)
+        if parsed.scheme or parsed.netloc:
+            return target
+
+        current_args = {key: value for key, value in request.args.items() if key != "lang"}
+        target_args = {
+            key: value
+            for key, value in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+            if key != "lang"
+        }
+        current_args.update(target_args)
+        current_args["lang"] = current_lang
+        query_string = urllib.parse.urlencode(current_args, doseq=True)
+        rebuilt_path = parsed.path or target
+        if query_string:
+            rebuilt_path = f"{rebuilt_path}?{query_string}"
+        if parsed.fragment:
+            rebuilt_path = f"{rebuilt_path}#{parsed.fragment}"
+        return rebuilt_path
+
+    return {
+        "site_url": SITE_URL,
+        "language_switch_url": language_switch_url,
+        "localized_url": localized_url,
+        "page_lang": current_page_language(),
+    }
 
 
 @app.after_request
@@ -1035,6 +1086,13 @@ def _format_owner_portal_duration(minutes):
     return f"{hours}h {remaining_minutes:02d}m"
 
 
+def _format_owner_portal_timestamp(value):
+    parsed_value = _parse_iso_datetime(value)
+    if not parsed_value:
+        return ""
+    return parsed_value.astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC")
+
+
 def _owner_portal_metric_value(value, fallback_label):
     try:
         numeric_value = int(value)
@@ -1139,8 +1197,8 @@ def _owner_portal_activity_timeline(owner_requests):
             "label_key": label_key,
             "detail": detail,
             "detail_key": detail_key,
-            "time": str(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
-            "time_key": "ownerDashboardTimelineRecently",
+            "time": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
+            "time_key": "",
             "tone": tone,
         })
 
@@ -1296,7 +1354,13 @@ def _owner_portal_dashboard_context(owner_account, owner_requests):
             {"label": "Guest issue reported", "label_key": "ownerDashboardGuestIssueReported", "detail": "Concierge can step in immediately.", "detail_key": "ownerDashboardConciergeCanStepInImmediately", "tone": "alert"},
             {"label": "Maintenance completed", "label_key": "ownerDashboardMaintenanceCompleted", "detail": "The local team has wrapped the task.", "detail_key": "ownerDashboardLocalTeamWrappedTask", "tone": "maintenance"},
         ],
-        "recent_activity": owner_requests[:3],
+        "recent_activity": [
+            {
+                **record,
+                "last_update_display": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
+            }
+            for record in owner_requests[:3]
+        ],
         "summary_line": "A private view of your property operations.",
         "status_note_key": status_note_key,
         "last_completed_task_key": last_completed_task_key,
@@ -3758,6 +3822,7 @@ def admin_home():
     return render_template("admin_home.html", **dashboard)
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
+
 
 
 

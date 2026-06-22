@@ -1,7 +1,6 @@
 ﻿(function () {
-  const STORAGE_KEY = "blacksea-language";
-  const STORAGE_KEY_ALIAS = "blackseaLang";
   const DEFAULT_LANG = "bg";
+  const SUPPORTED_LANGS = new Set(["bg", "en", "fr", "ru"]);
   const PAGE_NAMESPACE_BY_PATH = {
     "/": "home",
     "/services": "services",
@@ -21,6 +20,7 @@
   };
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
   const warnedKeys = new Set();
+  const DEBUG_I18N = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
 
   function normalizeLanguage(lang) {
     if (!lang) {
@@ -34,16 +34,7 @@
     try {
       const params = new URLSearchParams(window.location.search);
       const candidate = normalizeLanguage(params.get("lang"));
-      return candidate;
-    } catch (error) {
-      void error;
-      return "";
-    }
-  }
-
-  function getStoredLanguage() {
-    try {
-      return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_ALIAS));
+      return SUPPORTED_LANGS.has(candidate) ? candidate : "";
     } catch (error) {
       void error;
       return "";
@@ -51,18 +42,8 @@
   }
 
   function getInitialLanguage() {
-    const params = new URLSearchParams(window.location.search);
-    const fromUrl = normalizeLanguage(params.get("lang"));
-
-    if (fromUrl) {
-      return fromUrl;
-    }
-
-    const fromStorage = normalizeLanguage(
-      localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_ALIAS)
-    );
-
-    return fromStorage || DEFAULT_LANG;
+    const fromUrl = getLanguageFromUrl();
+    return fromUrl || DEFAULT_LANG;
   }
 
   function setLanguageInUrl(lang) {
@@ -72,6 +53,17 @@
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     } catch (error) {
       void error;
+    }
+  }
+
+  function buildLanguageUrl(lang) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", lang);
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch (error) {
+      void error;
+      return window.location.href;
     }
   }
 
@@ -148,123 +140,159 @@
     return section + name.charAt(0).toUpperCase() + name.slice(1);
   }
 
-  function getTranslation(lang, key) {
+  function getNamespaceTranslation(dictionary, namespace, key) {
+    if (!dictionary || !namespace || !key) {
+      return undefined;
+    }
+
+    const scoped = dictionary[namespace];
+    if (!scoped || typeof scoped !== "object") {
+      return undefined;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(scoped, key)) {
+      return scoped[key];
+    }
+
+    return resolvePath(scoped, key);
+  }
+
+  function getTranslation(lang, key, pageNamespace) {
     const translations = window.BlackSeaI18N || {};
     const dictionary = translations[lang] || translations.bg || {};
     const fallbackDictionary = translations.bg || translations.en || translations.ru || {};
+    let value;
 
     if (!key) {
-      return null;
-    }
-
-    if (Object.prototype.hasOwnProperty.call(dictionary, key)) {
-      return dictionary[key];
-    }
-
-    const directPathValue = resolvePath(dictionary, key);
-    if (directPathValue !== undefined) {
-      return directPathValue;
-    }
-
-    if (key.includes(".")) {
-      const [section, ...rest] = key.split(".");
-      const nestedKey = rest.join(".");
-      const prefixedKey = toPrefixedKey(section, nestedKey);
-
+      value = null;
+    } else {
       if (
-        dictionary[section] &&
-        Object.prototype.hasOwnProperty.call(dictionary[section], nestedKey)
+        pageNamespace &&
+        dictionary[pageNamespace] &&
+        typeof dictionary[pageNamespace] === "object"
       ) {
-        return dictionary[section][nestedKey];
-      }
-
-      if (
-        dictionary[section] &&
-        Object.prototype.hasOwnProperty.call(dictionary[section], prefixedKey)
-      ) {
-        return dictionary[section][prefixedKey];
-      }
-    }
-
-    for (const section of Object.values(dictionary)) {
-      if (
-        section &&
-        typeof section === "object" &&
-        Object.prototype.hasOwnProperty.call(section, key)
-      ) {
-        return section[key];
-      }
-
-      if (section && typeof section === "object") {
-        const nestedValue = resolvePath(section, key);
-        if (nestedValue !== undefined) {
-          return nestedValue;
-        }
-
-        if (key.includes(".")) {
-          const leafKey = key.split(".").pop();
-          if (leafKey && Object.prototype.hasOwnProperty.call(section, leafKey)) {
-            return section[leafKey];
+        if (Object.prototype.hasOwnProperty.call(dictionary[pageNamespace], key)) {
+          value = dictionary[pageNamespace][key];
+        } else {
+          const pagePathValue = resolvePath(dictionary[pageNamespace], key);
+          if (pagePathValue !== undefined) {
+            value = pagePathValue;
           }
         }
       }
-    }
 
-    if (Object.prototype.hasOwnProperty.call(fallbackDictionary, key)) {
-      return fallbackDictionary[key];
-    }
-
-    const fallbackPathValue = resolvePath(fallbackDictionary, key);
-    if (fallbackPathValue !== undefined) {
-      return fallbackPathValue;
-    }
-
-    if (key.includes(".")) {
-      const [section, ...rest] = key.split(".");
-      const nestedKey = rest.join(".");
-      const prefixedKey = toPrefixedKey(section, nestedKey);
-
-      if (
-        fallbackDictionary[section] &&
-        Object.prototype.hasOwnProperty.call(fallbackDictionary[section], nestedKey)
-      ) {
-        return fallbackDictionary[section][nestedKey];
+      if (value === undefined) {
+        value = getNamespaceTranslation(dictionary, "common", key);
       }
 
-      if (
-        fallbackDictionary[section] &&
-        Object.prototype.hasOwnProperty.call(fallbackDictionary[section], prefixedKey)
-      ) {
-        return fallbackDictionary[section][prefixedKey];
-      }
-    }
-
-    for (const section of Object.values(fallbackDictionary)) {
-      if (
-        section &&
-        typeof section === "object" &&
-        Object.prototype.hasOwnProperty.call(section, key)
-      ) {
-        return section[key];
+      if (value === undefined && pageNamespace && pageNamespace.startsWith("owners")) {
+        value = getNamespaceTranslation(dictionary, "owners", key);
       }
 
-      if (section && typeof section === "object") {
-        const nestedValue = resolvePath(section, key);
-        if (nestedValue !== undefined) {
-          return nestedValue;
+      if (value === undefined && Object.prototype.hasOwnProperty.call(dictionary, key)) {
+        value = dictionary[key];
+      }
+
+      if (value === undefined) {
+        const directPathValue = resolvePath(dictionary, key);
+        if (directPathValue !== undefined) {
+          value = directPathValue;
         }
+      }
 
-        if (key.includes(".")) {
-          const leafKey = key.split(".").pop();
-          if (leafKey && Object.prototype.hasOwnProperty.call(section, leafKey)) {
-            return section[leafKey];
+      if (value === undefined && key.includes(".")) {
+        const [section, ...rest] = key.split(".");
+        const nestedKey = rest.join(".");
+        const prefixedKey = toPrefixedKey(section, nestedKey);
+
+        if (
+          dictionary[section] &&
+          Object.prototype.hasOwnProperty.call(dictionary[section], nestedKey)
+        ) {
+          value = dictionary[section][nestedKey];
+        } else if (
+          dictionary[section] &&
+          Object.prototype.hasOwnProperty.call(dictionary[section], prefixedKey)
+        ) {
+          value = dictionary[section][prefixedKey];
+        }
+      }
+
+      if (value === undefined && Object.prototype.hasOwnProperty.call(fallbackDictionary, key)) {
+        value = fallbackDictionary[key];
+      }
+
+      if (value === undefined) {
+        const fallbackPathValue = resolvePath(fallbackDictionary, key);
+        if (fallbackPathValue !== undefined) {
+          value = fallbackPathValue;
+        }
+      }
+
+      if (
+        value === undefined &&
+        pageNamespace &&
+        fallbackDictionary[pageNamespace] &&
+        typeof fallbackDictionary[pageNamespace] === "object"
+      ) {
+        if (Object.prototype.hasOwnProperty.call(fallbackDictionary[pageNamespace], key)) {
+          value = fallbackDictionary[pageNamespace][key];
+        } else {
+          const fallbackPagePathValue = resolvePath(fallbackDictionary[pageNamespace], key);
+          if (fallbackPagePathValue !== undefined) {
+            value = fallbackPagePathValue;
           }
         }
       }
-    }
 
-    warnMissing(key, lang);
-    return null;
+      if (value === undefined) {
+        value = getNamespaceTranslation(fallbackDictionary, "common", key);
+      }
+
+      if (value === undefined && pageNamespace && pageNamespace.startsWith("owners")) {
+        value = getNamespaceTranslation(fallbackDictionary, "owners", key);
+      }
+
+      if (value === undefined && key.includes(".")) {
+        const [section, ...rest] = key.split(".");
+        const nestedKey = rest.join(".");
+        const prefixedKey = toPrefixedKey(section, nestedKey);
+
+        if (
+          fallbackDictionary[section] &&
+          Object.prototype.hasOwnProperty.call(fallbackDictionary[section], nestedKey)
+        ) {
+          value = fallbackDictionary[section][nestedKey];
+        } else if (
+          fallbackDictionary[section] &&
+          Object.prototype.hasOwnProperty.call(fallbackDictionary[section], prefixedKey)
+        ) {
+          value = fallbackDictionary[section][prefixedKey];
+        }
+
+        if (value === undefined) {
+          value = getNamespaceTranslation(dictionary, "common", nestedKey);
+        }
+
+        if (value === undefined) {
+          value = getNamespaceTranslation(fallbackDictionary, "common", nestedKey);
+        }
+      }
+
+      if (value === undefined) {
+        warnMissing(key, lang);
+        value = null;
+      }
+    }
+    if (DEBUG_I18N && window.console && typeof window.console.log === "function") {
+      window.console.log({
+        lang,
+        namespace: pageNamespace,
+        key,
+        value
+      });
+    }
+    return value;
   }
 
   function warnMissing(key, lang) {
@@ -299,7 +327,7 @@
 
       nodes.forEach((node) => {
         const key = node.getAttribute("data-i18n");
-        const value = getTranslation(activeLang, key);
+        const value = getTranslation(activeLang, key, pageNamespace);
         if (value !== undefined && value !== null) {
           node.textContent = value;
           if (node.tagName === "OPTION") {
@@ -310,7 +338,7 @@
 
       htmlNodes.forEach((node) => {
         const key = node.getAttribute("data-i18n-html");
-        const value = getTranslation(activeLang, key);
+        const value = getTranslation(activeLang, key, pageNamespace);
         if (value !== undefined && value !== null) {
           node.innerHTML = value;
         }
@@ -326,7 +354,7 @@
             return;
           }
 
-          const value = getTranslation(activeLang, key);
+          const value = getTranslation(activeLang, key, pageNamespace);
           if (value !== undefined && value !== null) {
             node.setAttribute(attr, value);
           }
@@ -335,20 +363,13 @@
 
       if (titleNode) {
         const titleKey = titleNode.getAttribute("data-i18n");
-        const titleValue = getTranslation(activeLang, titleKey);
+        const titleValue = getTranslation(activeLang, titleKey, pageNamespace);
         if (titleValue !== undefined && titleValue !== null) {
           titleNode.textContent = titleValue;
         }
       }
 
       document.documentElement.lang = activeLang;
-
-      try {
-        localStorage.setItem(STORAGE_KEY, activeLang);
-        localStorage.setItem(STORAGE_KEY_ALIAS, activeLang);
-      } catch (error) {
-        void error;
-      }
 
       if (settings.syncUrl !== false) {
         setLanguageInUrl(activeLang);
@@ -376,11 +397,15 @@
         window.console.log("language click", selectedLanguage);
       }
 
+      if (normalizeLanguage(document.documentElement.lang) === selectedLanguage) {
+        return;
+      }
+
       if (control.tagName === "A") {
         event.preventDefault();
       }
 
-      applyLanguage(selectedLanguage, { syncUrl: true });
+      window.location.assign(buildLanguageUrl(selectedLanguage));
     }
 
     function bindLanguageControls() {
@@ -431,5 +456,6 @@
     init(window.BlackSeaI18N);
   }
 }());
+
 
 
