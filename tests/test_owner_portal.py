@@ -1,4 +1,5 @@
 ﻿import base64
+import html as html_lib
 import json
 import os
 import shutil
@@ -282,7 +283,18 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(len(FakeSMTP.sent_messages), 1)
         message = FakeSMTP.sent_messages[0]
         self.assertEqual(message["Subject"], "BlackSea Connect — Вход в портала за собственици")
+        self.assertIn("BlackSea Connect Owner Portal", message["From"])
+        self.assertIn("concierge@blackseaconnect.com", message["From"])
+        self.assertEqual(message["Reply-To"], "concierge@blackseaconnect.com")
+        self.assertIn("mailto:concierge@blackseaconnect.com?subject=unsubscribe", message["List-Unsubscribe"])
+        self.assertTrue(message["Message-ID"].startswith("<"))
         self.assertTrue(message.is_multipart())
+        plain_part = message.get_body(preferencelist=("plain",))
+        self.assertIsNotNone(plain_part)
+        self.assertIn(
+            "You are receiving this email because you requested access to your BlackSea Connect owner portal.",
+            plain_part.get_content(),
+        )
         html_part = message.get_body(preferencelist=("html",))
         self.assertIsNotNone(html_part)
         self.assertIn("Влезте в портала", html_part.get_content())
@@ -291,6 +303,8 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual([event["event"] for event in events], ["token_created", "sent"])
         self.assertTrue(all(event["email_masked"] == _mask_email("owner@example.com") for event in events))
         self.assertTrue(all(event["submitted_email"] == "owner@example.com" for event in events))
+        self.assertEqual(events[0]["smtp_message_id"], "")
+        self.assertEqual(events[1]["smtp_message_id"], message["Message-ID"])
 
     def test_owner_registration_email_field_starts_empty_and_preserves_user_input_only(self):
         response = self.client.get("/owners/register")
@@ -797,7 +811,12 @@ class OwnerPortalTests(unittest.TestCase):
         self._seed_owner_account()
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            self.client.post("/owners/login", data=self._demo_login_payload())
+            login_response = self.client.post("/owners/login", data=self._demo_login_payload())
+
+        self.assertEqual(login_response.status_code, 302)
+        login_tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertTrue(login_tokens)
+        login_token = login_tokens[-1]["token"]
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             admin_response = self.client.get("/admin/owner-magic-events", headers=self._auth_headers())
@@ -807,6 +826,14 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Owner Magic Events", html)
         self.assertIn(_mask_email("owner@blackseaconnect.com"), html)
         self.assertNotIn("owner@blackseaconnect.com", html)
+        self.assertNotIn(login_token, html)
+        self.assertIn("Message-ID", html)
+
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        sent_event = next(event for event in events if event["event"] == "sent")
+        self.assertTrue(sent_event["smtp_message_id"])
+        self.assertIn(html_lib.escape(sent_event["smtp_message_id"]), html)
+        self.assertIn(sent_event["smtp_message_id"][1:17], html)
 
     def test_mask_email_helper(self):
         self.assertEqual(_mask_email("stoyanova@orange.fr"), "s*******@orange.fr")

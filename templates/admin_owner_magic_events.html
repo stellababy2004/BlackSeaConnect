@@ -43,6 +43,20 @@
       text-transform: uppercase;
       color: #7a6328;
     }
+    .admin-events-message-id {
+      display: inline-block;
+      max-width: 360px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+      color: #4b5563;
+      background: rgba(31, 41, 55, 0.04);
+      border-radius: 10px;
+      padding: 4px 8px;
+    }
     .admin-events-empty {
       padding: 20px 0 8px;
       color: #6b7280;
@@ -85,6 +99,7 @@
               <th>Reason</th>
               <th>Source</th>
               <th>Language</th>
+              <th>Message-ID</th>
             </tr>
           </thead>
           <tbody>
@@ -96,6 +111,13 @@
                 <td>{{ event.reason }}</td>
                 <td>{{ event.source }}</td>
                 <td>{{ event.language }}</td>
+                <td>
+                  {% if event.smtp_message_id %}
+                    <span class="admin-events-message-id" title="{{ event.smtp_message_id }}">{{ event.smtp_message_id }}</span>
+                  {% else %}
+                    <span class="admin-events-empty">-</span>
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           </tbody>

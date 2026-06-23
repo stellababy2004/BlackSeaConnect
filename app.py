@@ -1,6 +1,7 @@
 ﻿from datetime import datetime, timezone
 from datetime import timedelta
 from email.message import EmailMessage
+from email.utils import formataddr, parseaddr
 import hashlib
 import csv
 import io
@@ -907,6 +908,7 @@ def _load_owner_magic_email_events():
                 "reason": reason,
                 "source": source,
                 "language": language,
+                "smtp_message_id": str(record.get("smtp_message_id", "")).strip(),
             })
 
     events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
@@ -921,7 +923,7 @@ def _save_owner_magic_email_events(events):
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
-def _append_owner_magic_email_event(event, email, reason, source, language):
+def _append_owner_magic_email_event(event, email, reason, source, language, smtp_message_id=""):
     timestamp = _utc_now_iso()
     event_record = {
         "id": uuid4().hex,
@@ -935,6 +937,7 @@ def _append_owner_magic_email_event(event, email, reason, source, language):
         "reason": str(reason or "").strip(),
         "source": str(source or "").strip(),
         "language": str(language or "").strip().lower() or "bg",
+        "smtp_message_id": str(smtp_message_id or "").strip(),
     }
     events = _load_owner_magic_email_events()
     events.append(event_record)
@@ -1384,25 +1387,53 @@ def _send_owner_magic_link(email, login_url):
 
 def _owner_magic_link_email_locale(language):
     normalized = str(language or "").strip().lower()
-    return "bg" if normalized == "bg" else "en"
+    return normalized if normalized in {"bg", "en", "fr", "ru"} else "bg"
 
 
 def _owner_magic_link_email_message(email, login_url, language):
     lang = _owner_magic_link_email_locale(language)
-    if lang == "bg":
-        subject = "BlackSea Connect — Вход в портала за собственици"
-        greeting = "Здравейте,"
-        intro = "Използвайте бутона по-долу за сигурен достъп до вашия портал."
-        button_label = "Влезте в портала"
-        fallback_label = "Ако бутонът не работи, копирайте този линк:"
-        closing = "Този линк е валиден 30 минути."
-    else:
-        subject = "BlackSea Connect - Your secure sign-in link"
-        greeting = "Hello,"
-        intro = "Use the button below for secure access to your Owner Portal."
-        button_label = "Access Owner Portal"
-        fallback_label = "If the button does not work, copy this link:"
-        closing = "This link expires in 30 minutes."
+    localized_copy = {
+        "bg": {
+            "subject": "BlackSea Connect — Вход в портала за собственици",
+            "greeting": "Здравейте,",
+            "intro": "Използвайте бутона по-долу за сигурен достъп до вашия портал.",
+            "button_label": "Влезте в портала",
+            "fallback_label": "Ако бутонът не работи, копирайте този линк:",
+            "closing": "Този линк е валиден 30 минути.",
+        },
+        "en": {
+            "subject": "BlackSea Connect — Owner Portal secure sign-in link",
+            "greeting": "Hello,",
+            "intro": "Use the button below for secure access to your Owner Portal.",
+            "button_label": "Access Owner Portal",
+            "fallback_label": "If the button does not work, copy this link:",
+            "closing": "This link expires in 30 minutes.",
+        },
+        "fr": {
+            "subject": "BlackSea Connect — Lien de connexion sécurisé au portail propriétaire",
+            "greeting": "Bonjour,",
+            "intro": "Utilisez le bouton ci-dessous pour accéder en toute sécurité à votre portail propriétaire.",
+            "button_label": "Accéder au portail",
+            "fallback_label": "Si le bouton ne fonctionne pas, copiez ce lien :",
+            "closing": "Ce lien expire dans 30 minutes.",
+        },
+        "ru": {
+            "subject": "BlackSea Connect — Безопасная ссылка для входа в портал владельца",
+            "greeting": "Здравствуйте,",
+            "intro": "Используйте кнопку ниже для безопасного доступа к вашему порталу владельца.",
+            "button_label": "Войти в портал",
+            "fallback_label": "Если кнопка не работает, скопируйте эту ссылку:",
+            "closing": "Ссылка действует 30 минут.",
+        },
+    }
+    copy = localized_copy.get(lang, localized_copy["bg"])
+    footer = "You are receiving this email because you requested access to your BlackSea Connect owner portal."
+    subject = copy["subject"]
+    greeting = copy["greeting"]
+    intro = copy["intro"]
+    button_label = copy["button_label"]
+    fallback_label = copy["fallback_label"]
+    closing = copy["closing"]
 
     text_body = "\n".join([
         greeting,
@@ -1412,6 +1443,8 @@ def _owner_magic_link_email_message(email, login_url, language):
         login_url,
         "",
         closing,
+        "",
+        footer,
         "",
         "BlackSea Connect",
     ])
@@ -1428,6 +1461,7 @@ def _owner_magic_link_email_message(email, login_url, language):
         f'<p style="margin:20px 0 8px;font-size:14px;line-height:1.7;color:#4b5563;">{fallback_label}</p>',
         f'<p style="margin:0;font-size:14px;line-height:1.7;word-break:break-all;"><a href="{login_url}" style="color:#9b7b2f;">{login_url}</a></p>',
         f'<p style="margin:24px 0 0;font-size:14px;line-height:1.7;color:#4b5563;">{closing}</p>',
+        f'<p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b7280;">{footer}</p>',
         "</div>",
         "</div>",
         "</body>",
@@ -1449,10 +1483,17 @@ def _send_owner_magic_link_with_language(email, login_url, language):
         return {"ok": False, "reason": "smtp_invalid_port"}
 
     subject, text_body, html_body = _owner_magic_link_email_message(email, login_url, language)
+    smtp_display_name = "BlackSea Connect Owner Portal"
+    _, smtp_address = parseaddr(smtp_from)
+    sender_email = smtp_address or smtp_from
+    message_id = f"<{uuid4().hex}@blackseaconnect.com>"
     message = EmailMessage()
     message["Subject"] = subject
-    message["From"] = smtp_from
+    message["From"] = formataddr((smtp_display_name, sender_email))
     message["To"] = email
+    message["Reply-To"] = "concierge@blackseaconnect.com"
+    message["List-Unsubscribe"] = "<mailto:concierge@blackseaconnect.com?subject=unsubscribe>"
+    message["Message-ID"] = message_id
     message.set_content(text_body)
     message.add_alternative(html_body, subtype="html")
 
@@ -1487,13 +1528,13 @@ def _send_owner_magic_link_with_language(email, login_url, language):
         return {"ok": False, "reason": "unexpected_error"}
 
     app.logger.info("Owner magic link email sent to %s", _mask_email(email))
-    return {"ok": True, "reason": "sent"}
+    return {"ok": True, "reason": "sent", "message_id": message_id}
 
 
 def _send_owner_magic_link_and_log(email, login_url, language, source):
     result = _send_owner_magic_link_with_language(email, login_url, language)
     event_name = "sent" if result.get("ok") else "failed"
-    _append_owner_magic_email_event(event_name, email, result.get("reason", ""), source, language)
+    _append_owner_magic_email_event(event_name, email, result.get("reason", ""), source, language, result.get("message_id", ""))
     return result
 
 
