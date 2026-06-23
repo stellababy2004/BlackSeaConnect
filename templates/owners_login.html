@@ -133,7 +133,7 @@
       <form class="owner-login-form" method="post" action="{{ localized_url('/owners/login') }}">
         <label class="owner-login-form__field">
           <span data-i18n="ownerLoginEmail">Имейл</span>
-          <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
+          <input id="owner-login-email" type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
           {% if errors.email %}<p class="form-error" data-i18n="ownerAccountNotFoundError">Please enter a registered email address.</p>{% endif %}
         </label>
 

@@ -250,6 +250,32 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIsNotNone(html_part)
         self.assertIn("Влезте в портала", html_part.get_content())
 
+    def test_owner_registration_email_field_starts_empty_and_preserves_user_input_only(self):
+        response = self.client.get("/owners/register")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('id="owner-register-email"', html)
+        self.assertIn('name="email" value=""', html)
+        self.assertNotIn('name="email" value="/owners/register"', html)
+
+        invalid_post = self.client.post(
+            "/owners/register",
+            data={
+                "full_name": "",
+                "email": "owner@example.com",
+                "phone": "",
+                "property_type": "",
+                "city": "",
+                "property_name": "",
+                "number_of_units": "",
+                "notes": "",
+            },
+        )
+        self.assertEqual(invalid_post.status_code, 400)
+        invalid_html = invalid_post.get_data(as_text=True)
+        self.assertIn('name="email" value="owner@example.com"', invalid_html)
+        self.assertNotIn('value="/owners/register"', invalid_html)
+
     def test_owner_routes_require_login(self):
         response_dashboard = self.client.get("/owners/dashboard")
         response_request = self.client.get("/owners/request-service")

@@ -79,7 +79,7 @@
         </p>
       </div>
 
-      <form class="pilot-form" method="post" action="{{ localized_url('/owners/register') }}">
+      <form class="pilot-form" method="post" action="{{ localized_url('/owners/register') }}" autocomplete="off">
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
             <span data-i18n="ownerFullName">Full Name</span>
@@ -88,7 +88,7 @@
           </label>
           <label class="pilot-form__field">
             <span data-i18n="ownerEmail">Email</span>
-            <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" data-i18n-attr="placeholder:ownerEmailPlaceholder">
+            <input id="owner-register-email" type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-attr="placeholder:ownerEmailPlaceholder">
             {% if errors.email %}<p class="form-error" data-i18n="ownerEmailRequired">This field is required.</p>{% endif %}
           </label>
           <label class="pilot-form__field">
