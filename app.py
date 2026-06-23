@@ -136,6 +136,11 @@ OWNER_ACCOUNTS_DEBUG_STATE = {
     "account_count": 0,
     "account_count_after_save": 0,
     "account_count_after_reload": 0,
+    "last_save_path": "",
+    "last_save_success": False,
+    "last_save_exception": "",
+    "last_save_account_count": 0,
+    "last_reload_account_count": 0,
     "last_action": "idle",
     "last_error": "",
     "updated_at": "",
@@ -519,11 +524,18 @@ def _load_owner_accounts():
 
 def _save_owner_accounts(accounts):
     data_dir = OWNER_ACCOUNTS_JSONL_PATH.parent
+    absolute_path = str(OWNER_ACCOUNTS_JSONL_PATH.resolve())
     try:
         data_dir.mkdir(exist_ok=True)
+        app.logger.info("Owner accounts write path: %s", absolute_path)
         with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
             for record in accounts:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        app.logger.info(
+            "Owner accounts write exists_after_write=%s path=%s",
+            OWNER_ACCOUNTS_JSONL_PATH.exists(),
+            absolute_path,
+        )
     except Exception as exc:
         _update_owner_accounts_debug_state(
             file_exists=OWNER_ACCOUNTS_JSONL_PATH.exists(),
@@ -532,12 +544,17 @@ def _save_owner_accounts(accounts):
             account_count=len(accounts),
             account_count_after_save=0,
             account_count_after_reload=0,
+            last_save_path=absolute_path,
+            last_save_success=False,
+            last_save_exception=type(exc).__name__,
+            last_save_account_count=len(accounts),
+            last_reload_account_count=0,
             last_action="save_failed",
             last_error=type(exc).__name__,
         )
         app.logger.warning(
             "Owner accounts write failed for %s: %s",
-            str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+            absolute_path,
             type(exc).__name__,
         )
         return False
@@ -550,12 +567,17 @@ def _save_owner_accounts(accounts):
         account_count=len(accounts),
         account_count_after_save=len(accounts),
         account_count_after_reload=0,
+        last_save_path=absolute_path,
+        last_save_success=True,
+        last_save_exception="",
+        last_save_account_count=len(accounts),
+        last_reload_account_count=0,
         last_action="save",
         last_error="",
     )
     app.logger.info(
         "Owner accounts persisted to %s (%s records)",
-        str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+        absolute_path,
         len(accounts),
     )
     reloaded_accounts = _load_owner_accounts()
@@ -567,6 +589,11 @@ def _save_owner_accounts(accounts):
         account_count=len(accounts),
         account_count_after_save=len(accounts),
         account_count_after_reload=len(reloaded_accounts),
+        last_save_path=absolute_path,
+        last_save_success=True,
+        last_save_exception="",
+        last_save_account_count=len(accounts),
+        last_reload_account_count=len(reloaded_accounts),
         last_action="save_reload_verified",
         last_error="",
     )

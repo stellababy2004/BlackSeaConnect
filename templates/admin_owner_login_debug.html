@@ -104,6 +104,15 @@
         </section>
 
         <section class="admin-owner-login-debug-panel">
+          <h2>Last Save Trace</h2>
+          <p><strong>Last save path:</strong> {{ persistence_debug.last_save_path }}</p>
+          <p><strong>Last save success:</strong> {{ persistence_debug.last_save_success }}</p>
+          <p><strong>Last save exception:</strong> {{ persistence_debug.last_save_exception }}</p>
+          <p><strong>Last save account count:</strong> {{ persistence_debug.last_save_account_count }}</p>
+          <p><strong>Last reload account count:</strong> {{ persistence_debug.last_reload_account_count }}</p>
+        </section>
+
+        <section class="admin-owner-login-debug-panel">
           <h2>Last Lookup Result</h2>
           <p><strong>Result:</strong> {{ login_debug.result }}</p>
           <p><strong>Submitted raw:</strong> {{ login_debug.submitted_email_raw }}</p>
