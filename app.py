@@ -517,6 +517,18 @@ def _upsert_owner_account(record):
     return _find_owner_account_by_email(target_email)
 
 
+def _ensure_owner_account_exists(record):
+    target_email = str(record.get("email", "")).strip().lower()
+    if not target_email:
+        return None
+
+    existing_account = _find_owner_account_by_email(target_email)
+    if existing_account:
+        return existing_account
+
+    return _upsert_owner_account(record)
+
+
 def _owner_property_fallback_id(record):
     name = str(record.get("name", "")).strip().lower()
     location = str(record.get("location", "")).strip().lower()
@@ -689,7 +701,11 @@ def _load_owner_magic_email_events():
             events.append({
                 "id": event_id,
                 "created_at": created_at,
+                "timestamp": str(record.get("timestamp", created_at)).strip() or created_at,
                 "event": event,
+                "submitted_email": str(record.get("submitted_email", "")).strip(),
+                "account_found": record.get("account_found"),
+                "delivery": str(record.get("delivery", "")).strip(),
                 "email_masked": email_masked,
                 "reason": reason,
                 "source": source,
@@ -709,11 +725,37 @@ def _save_owner_magic_email_events(events):
 
 
 def _append_owner_magic_email_event(event, email, reason, source, language):
+    timestamp = _utc_now_iso()
     event_record = {
         "id": uuid4().hex,
-        "created_at": _utc_now_iso(),
+        "created_at": timestamp,
+        "timestamp": timestamp,
         "event": str(event or "").strip(),
+        "submitted_email": str(email or "").strip(),
+        "account_found": None,
+        "delivery": "",
         "email_masked": _mask_email(email),
+        "reason": str(reason or "").strip(),
+        "source": str(source or "").strip(),
+        "language": str(language or "").strip().lower() or "bg",
+    }
+    events = _load_owner_magic_email_events()
+    events.append(event_record)
+    _save_owner_magic_email_events(events)
+    return event_record
+
+
+def _append_owner_magic_login_audit(submitted_email, account_found, delivery, reason, source, language):
+    timestamp = _utc_now_iso()
+    event_record = {
+        "id": uuid4().hex,
+        "created_at": timestamp,
+        "timestamp": timestamp,
+        "event": "owner_login_attempt",
+        "submitted_email": str(submitted_email or "").strip(),
+        "account_found": bool(account_found),
+        "delivery": str(delivery or "").strip(),
+        "email_masked": _mask_email(submitted_email),
         "reason": str(reason or "").strip(),
         "source": str(source or "").strip(),
         "language": str(language or "").strip().lower() or "bg",
@@ -2137,6 +2179,7 @@ def owners_login():
         if not errors:
             owner_account = _find_owner_account_by_email(form_values["email"])
             if not owner_account:
+                _append_owner_magic_login_audit(form_values["email"], False, "generic", "unknown_email", "login", current_lang)
                 _append_owner_magic_email_event("unknown_email", form_values["email"], "unknown_email", "login", current_lang)
                 return redirect(url_for("owners_login", magic_sent="1", delivery="generic", lang=current_lang))
             else:
@@ -2146,6 +2189,7 @@ def owners_login():
                 email_language = _owner_magic_link_email_locale(current_lang)
                 send_result = _send_owner_magic_link_and_log(owner_account["email"], login_url, email_language, "login")
                 if not send_result.get("ok"):
+                    _append_owner_magic_login_audit(owner_account["email"], True, "failed", send_result.get("reason", "smtp_send_failed"), "login", current_lang)
                     _consume_owner_magic_token(magic_token["token"])
                     return redirect(url_for("owners_login", magic_sent="0", delivery="failed", lang=current_lang))
                 return redirect(url_for("owners_login", magic_sent="1", delivery="sent", magic_recipient=_mask_email(owner_account["email"]), lang=current_lang))
@@ -2888,6 +2932,18 @@ def admin_required(view):
 def admin_owner_magic_events():
     events = _load_owner_magic_email_events()[:100]
     return render_template("admin_owner_magic_events.html", events=events)
+
+
+@app.get("/admin/owner-accounts")
+@admin_required
+def admin_owner_accounts():
+    owner_accounts = _load_owner_accounts()
+    return render_template(
+        "admin_owner_accounts.html",
+        owner_accounts=owner_accounts,
+        owner_accounts_count=len(owner_accounts),
+        owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+    )
 
 
 def _clean_payload_value(payload, *keys):
