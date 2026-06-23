@@ -114,6 +114,21 @@ OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
 OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
+OWNER_LOGIN_DEBUG_STATE = {
+    "submitted_email_raw": "",
+    "submitted_email_normalized": "",
+    "loaded_count": 0,
+    "loaded_emails": [],
+    "loaded_emails_normalized": [],
+    "search_value": "",
+    "search_value_normalized": "",
+    "comparisons": [],
+    "matched": False,
+    "matched_email": "",
+    "matched_email_normalized": "",
+    "result": "idle",
+    "updated_at": "",
+}
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_SESSION_ID_KEY = "owner_id"
@@ -493,13 +508,60 @@ def _save_owner_accounts(accounts):
 
 
 def _find_owner_account_by_email(email):
-    target_email = str(email or "").strip().lower()
+    target_raw = str(email or "")
+    target_email = target_raw.strip().lower()
+    accounts = _load_owner_accounts()
+    _update_owner_login_debug_state(
+        search_value=target_raw,
+        search_value_normalized=target_email,
+        loaded_count=len(accounts),
+        loaded_emails=[str(account.get("email", "")) for account in accounts],
+        loaded_emails_normalized=[str(account.get("email", "")).strip().lower() for account in accounts],
+        comparisons=[],
+        matched=False,
+        matched_email="",
+        matched_email_normalized="",
+        result="searching",
+    )
+    app.logger.warning(
+        "Owner lookup search raw=%r normalized=%r",
+        target_raw,
+        target_email,
+    )
     if not target_email:
+        _update_owner_login_debug_state(result="empty_search")
         return None
 
-    for account in _load_owner_accounts():
-        if str(account.get("email", "")).strip().lower() == target_email:
+    comparisons = []
+    for account in accounts:
+        account_email_raw = str(account.get("email", ""))
+        account_email_normalized = account_email_raw.strip().lower()
+        comparison_result = account_email_normalized == target_email
+        comparison = {
+            "email_raw": account_email_raw,
+            "email_normalized": account_email_normalized,
+            "result": comparison_result,
+        }
+        comparisons.append(comparison)
+        app.logger.warning(
+            "Owner lookup compare email_raw=%r normalized=%r result=%s",
+            account_email_raw,
+            account_email_normalized,
+            comparison_result,
+        )
+        if comparison_result:
+            _update_owner_login_debug_state(
+                comparisons=comparisons,
+                matched=True,
+                matched_email=account_email_raw,
+                matched_email_normalized=account_email_normalized,
+                result="matched",
+            )
             return account
+    _update_owner_login_debug_state(
+        comparisons=comparisons,
+        result="not_found",
+    )
     return None
 
 
@@ -820,6 +882,31 @@ def _mask_email(email):
     visible_prefix = local_part[0]
     masked_suffix = "*" * max(1, min(len(local_part) - 1, 7))
     return f"{visible_prefix}{masked_suffix}@{domain_part}"
+
+
+def _update_owner_login_debug_state(**kwargs):
+    OWNER_LOGIN_DEBUG_STATE.update(kwargs)
+    OWNER_LOGIN_DEBUG_STATE["updated_at"] = _utc_now_iso()
+
+
+def _owner_login_debug_snapshot():
+    return {
+        "submitted_email_raw": OWNER_LOGIN_DEBUG_STATE.get("submitted_email_raw", ""),
+        "submitted_email_normalized": OWNER_LOGIN_DEBUG_STATE.get("submitted_email_normalized", ""),
+        "loaded_count": OWNER_LOGIN_DEBUG_STATE.get("loaded_count", 0),
+        "loaded_emails": list(OWNER_LOGIN_DEBUG_STATE.get("loaded_emails", [])),
+        "loaded_emails_normalized": list(OWNER_LOGIN_DEBUG_STATE.get("loaded_emails_normalized", [])),
+        "search_value": OWNER_LOGIN_DEBUG_STATE.get("search_value", ""),
+        "search_value_normalized": OWNER_LOGIN_DEBUG_STATE.get("search_value_normalized", ""),
+        "comparisons": list(OWNER_LOGIN_DEBUG_STATE.get("comparisons", [])),
+        "matched": OWNER_LOGIN_DEBUG_STATE.get("matched", False),
+        "matched_email": OWNER_LOGIN_DEBUG_STATE.get("matched_email", ""),
+        "matched_email_normalized": OWNER_LOGIN_DEBUG_STATE.get("matched_email_normalized", ""),
+        "result": OWNER_LOGIN_DEBUG_STATE.get("result", "idle"),
+        "updated_at": OWNER_LOGIN_DEBUG_STATE.get("updated_at", ""),
+        "loader_path": str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+        "loader_name": "_load_owner_accounts",
+    }
 
 
 def _normalize_service_request_status(status):
@@ -2867,11 +2954,32 @@ def owners_login():
     errors = {}
 
     if request.method == "POST":
-        form_values["email"] = str(request.form.get("email", "")).strip()
+        raw_email = str(request.form.get("email", ""))
+        normalized_email = raw_email.strip().lower()
+        form_values["email"] = raw_email.strip()
+        loaded_accounts = _load_owner_accounts()
+        loaded_emails = [str(account.get("email", "")) for account in loaded_accounts]
+        loaded_emails_normalized = [str(account.get("email", "")).strip().lower() for account in loaded_accounts]
+        _update_owner_login_debug_state(
+            submitted_email_raw=raw_email,
+            submitted_email_normalized=normalized_email,
+            loaded_count=len(loaded_accounts),
+            loaded_emails=loaded_emails,
+            loaded_emails_normalized=loaded_emails_normalized,
+            comparisons=[],
+            matched=False,
+            matched_email="",
+            matched_email_normalized="",
+            result="submitted",
+        )
+        app.logger.warning("Owner login submitted_email_raw=%r", raw_email)
+        app.logger.warning("Owner login submitted_email_normalized=%r", normalized_email)
+        app.logger.warning("Owner login loaded_owner_accounts_count=%s", len(loaded_accounts))
+        app.logger.warning("Owner login loaded_owner_emails=%r", loaded_emails)
         if not form_values["email"]:
             errors["email"] = "emailRequiredError"
         if not errors:
-            owner_account = _find_owner_account_by_email(form_values["email"])
+            owner_account = _find_owner_account_by_email(raw_email)
             if not owner_account:
                 _append_owner_magic_login_audit(form_values["email"], False, "generic", "unknown_email", "login", current_lang)
                 _append_owner_magic_email_event("unknown_email", form_values["email"], "unknown_email", "login", current_lang)
@@ -3637,6 +3745,19 @@ def admin_owner_accounts():
         owner_accounts=owner_accounts,
         owner_accounts_count=len(owner_accounts),
         owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+    )
+
+
+@app.get("/admin/owner-login-debug")
+@admin_required
+def admin_owner_login_debug():
+    owner_accounts = _load_owner_accounts()
+    return render_template(
+        "admin_owner_login_debug.html",
+        owner_accounts=owner_accounts,
+        owner_accounts_count=len(owner_accounts),
+        owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+        login_debug=_owner_login_debug_snapshot(),
     )
 
 
