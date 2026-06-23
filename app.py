@@ -7,9 +7,11 @@ import csv
 import io
 import hmac
 from functools import wraps
+from contextlib import contextmanager
 from pathlib import Path
 import json
 import os
+import sqlite3
 import smtplib
 import urllib.error
 import urllib.request
@@ -448,12 +450,128 @@ def _normalize_owner_account(record):
     return normalized
 
 
-def _load_owner_accounts():
-    path = OWNER_ACCOUNTS_JSONL_PATH
-    accounts = []
+def _owner_db_path():
+    return Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
 
+
+@contextmanager
+def _owner_db_connection():
+    db_path = _owner_db_path()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode = MEMORY")
+    conn.execute("PRAGMA foreign_keys = ON")
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _ensure_owner_db_schema(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_db_meta (
+            meta_key TEXT PRIMARY KEY,
+            meta_value TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_accounts (
+            email TEXT PRIMARY KEY COLLATE NOCASE,
+            id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            property_type TEXT NOT NULL,
+            city TEXT NOT NULL,
+            property_name TEXT NOT NULL,
+            number_of_units INTEGER NOT NULL,
+            notes TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_properties (
+            id TEXT PRIMARY KEY,
+            owner_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            name TEXT NOT NULL,
+            property_type TEXT NOT NULL,
+            location TEXT NOT NULL,
+            bedrooms INTEGER NOT NULL,
+            bathrooms INTEGER NOT NULL,
+            guest_capacity INTEGER NOT NULL,
+            operating_mode TEXT NOT NULL,
+            notes TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_magic_tokens (
+            token TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_magic_email_events (
+            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            event TEXT NOT NULL,
+            submitted_email TEXT NOT NULL,
+            account_found INTEGER,
+            delivery TEXT NOT NULL,
+            email_masked TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            source TEXT NOT NULL,
+            language TEXT NOT NULL,
+            smtp_message_id TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
+
+
+def _owner_jsonl_signature(path):
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return ""
+    return f"{stat.st_mtime_ns}:{stat.st_size}"
+
+
+def _owner_db_meta_get(conn, meta_key):
+    row = conn.execute("SELECT meta_value FROM owner_db_meta WHERE meta_key = ?", (meta_key,)).fetchone()
+    return str(row["meta_value"]) if row else ""
+
+
+def _owner_db_meta_set(conn, meta_key, meta_value):
+    conn.execute(
+        """
+        INSERT INTO owner_db_meta (meta_key, meta_value)
+        VALUES (?, ?)
+        ON CONFLICT(meta_key) DO UPDATE SET meta_value = excluded.meta_value
+        """,
+        (meta_key, meta_value),
+    )
+
+
+def _import_owner_accounts_jsonl(conn):
+    path = OWNER_ACCOUNTS_JSONL_PATH
     if not path.exists():
-        return accounts
+        return
 
     with path.open("r", encoding="utf-8") as f:
         for line in f:
@@ -463,24 +581,264 @@ def _load_owner_accounts():
                 continue
 
             normalized = _normalize_owner_account(record)
-            if normalized:
-                accounts.append(normalized)
+            if not normalized:
+                continue
 
-    accounts.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    return accounts
+            conn.execute(
+                """
+                INSERT INTO owner_accounts (
+                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    id = excluded.id,
+                    full_name = excluded.full_name,
+                    phone = excluded.phone,
+                    property_type = excluded.property_type,
+                    city = excluded.city,
+                    property_name = excluded.property_name,
+                    number_of_units = excluded.number_of_units,
+                    notes = excluded.notes
+                """,
+                (
+                    normalized["email"],
+                    normalized["id"],
+                    normalized["created_at"],
+                    normalized["full_name"],
+                    normalized["phone"],
+                    normalized["property_type"],
+                    normalized["city"],
+                    normalized["property_name"],
+                    normalized["number_of_units"],
+                    normalized["notes"],
+                ),
+            )
+
+
+def _import_owner_properties_jsonl(conn):
+    path = OWNER_PROPERTIES_JSONL_PATH
+    if not path.exists():
+        return
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_owner_property(record)
+            if not normalized:
+                continue
+
+            conn.execute(
+                """
+                INSERT INTO owner_properties (
+                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    owner_id = excluded.owner_id,
+                    created_at = excluded.created_at,
+                    name = excluded.name,
+                    property_type = excluded.property_type,
+                    location = excluded.location,
+                    bedrooms = excluded.bedrooms,
+                    bathrooms = excluded.bathrooms,
+                    guest_capacity = excluded.guest_capacity,
+                    operating_mode = excluded.operating_mode,
+                    notes = excluded.notes
+                """,
+                (
+                    normalized["id"],
+                    normalized["owner_id"],
+                    normalized["created_at"],
+                    normalized["name"],
+                    normalized["property_type"],
+                    normalized["location"],
+                    normalized["bedrooms"],
+                    normalized["bathrooms"],
+                    normalized["guest_capacity"],
+                    normalized["operating_mode"],
+                    normalized["notes"],
+                ),
+            )
+
+
+def _import_owner_magic_tokens_jsonl(conn):
+    path = OWNER_MAGIC_TOKENS_PATH
+    if not path.exists():
+        return
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            token = str(record.get("token", "")).strip()
+            email = str(record.get("email", "")).strip()
+            created_at = str(record.get("created_at", "")).strip()
+            if not token or not email or not created_at:
+                continue
+
+            conn.execute(
+                """
+                INSERT INTO owner_magic_tokens (token, email, created_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(token) DO UPDATE SET
+                    email = excluded.email,
+                    created_at = excluded.created_at
+                """,
+                (token, email, created_at),
+            )
+
+
+def _import_owner_magic_email_events_jsonl(conn):
+    path = OWNER_MAGIC_EMAIL_EVENTS_PATH
+    if not path.exists():
+        return
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            event = str(record.get("event", "")).strip()
+            email_masked = str(record.get("email_masked", "")).strip()
+            reason = str(record.get("reason", "")).strip()
+            source = str(record.get("source", "")).strip()
+            language = str(record.get("language", "")).strip().lower()
+            created_at = str(record.get("created_at", "")).strip()
+            event_id = str(record.get("id", "")).strip()
+            timestamp = str(record.get("timestamp", created_at)).strip() or created_at
+            if not event or not email_masked or not reason or not source or not language or not created_at or not event_id:
+                continue
+
+            account_found = record.get("account_found")
+            if account_found is None:
+                account_found_value = None
+            else:
+                account_found_value = 1 if bool(account_found) else 0
+
+            conn.execute(
+                """
+                INSERT INTO owner_magic_email_events (
+                    id, created_at, timestamp, event, submitted_email, account_found, delivery, email_masked, reason, source, language, smtp_message_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    created_at = excluded.created_at,
+                    timestamp = excluded.timestamp,
+                    event = excluded.event,
+                    submitted_email = excluded.submitted_email,
+                    account_found = excluded.account_found,
+                    delivery = excluded.delivery,
+                    email_masked = excluded.email_masked,
+                    reason = excluded.reason,
+                    source = excluded.source,
+                    language = excluded.language,
+                    smtp_message_id = excluded.smtp_message_id
+                """,
+                (
+                    event_id,
+                    created_at,
+                    timestamp,
+                    event,
+                    str(record.get("submitted_email", "")).strip(),
+                    account_found_value,
+                    str(record.get("delivery", "")).strip(),
+                    email_masked,
+                    reason,
+                    source,
+                    language,
+                    str(record.get("smtp_message_id", "")).strip(),
+                ),
+            )
+
+
+def _migrate_owner_jsonl_backups(conn):
+    migrations = (
+        ("owner_accounts_jsonl_signature", OWNER_ACCOUNTS_JSONL_PATH, _import_owner_accounts_jsonl),
+        ("owner_properties_jsonl_signature", OWNER_PROPERTIES_JSONL_PATH, _import_owner_properties_jsonl),
+        ("owner_magic_tokens_jsonl_signature", OWNER_MAGIC_TOKENS_PATH, _import_owner_magic_tokens_jsonl),
+        ("owner_magic_email_events_jsonl_signature", OWNER_MAGIC_EMAIL_EVENTS_PATH, _import_owner_magic_email_events_jsonl),
+    )
+
+    for meta_key, path, importer in migrations:
+        signature = _owner_jsonl_signature(path)
+        if not signature:
+            continue
+
+        if _owner_db_meta_get(conn, meta_key) == signature:
+            continue
+
+        importer(conn)
+        _owner_db_meta_set(conn, meta_key, signature)
+
+
+def _load_owner_accounts():
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            FROM owner_accounts
+            ORDER BY created_at DESC, email DESC
+            """
+        ).fetchall()
+
+    return [
+        {
+            "email": str(row["email"]),
+            "id": str(row["id"]),
+            "created_at": str(row["created_at"]),
+            "full_name": str(row["full_name"]),
+            "phone": str(row["phone"]),
+            "property_type": str(row["property_type"]),
+            "city": str(row["city"]),
+            "property_name": str(row["property_name"]),
+            "number_of_units": int(row["number_of_units"] or 0),
+            "notes": str(row["notes"]),
+        }
+        for row in rows
+    ]
 
 
 def _save_owner_accounts(accounts):
-    data_dir = OWNER_ACCOUNTS_JSONL_PATH.parent
     try:
-        data_dir.mkdir(exist_ok=True)
-        with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute("DELETE FROM owner_accounts")
             for record in accounts:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                normalized = _normalize_owner_account(record)
+                if not normalized:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO owner_accounts (
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        normalized["email"],
+                        normalized["id"],
+                        normalized["created_at"],
+                        normalized["full_name"],
+                        normalized["phone"],
+                        normalized["property_type"],
+                        normalized["city"],
+                        normalized["property_name"],
+                        normalized["number_of_units"],
+                        normalized["notes"],
+                    ),
+                )
     except Exception as exc:
         app.logger.warning(
             "Owner accounts write failed for %s: %s",
-            str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+            str(_owner_db_path().resolve()),
             type(exc).__name__,
         )
         return False
@@ -491,50 +849,119 @@ def _save_owner_accounts(accounts):
 def _find_owner_account_by_email(email):
     target_raw = str(email or "")
     target_email = target_raw.strip().lower()
-    accounts = _load_owner_accounts()
     if not target_email:
         return None
 
-    for account in accounts:
-        account_email_raw = str(account.get("email", ""))
-        account_email_normalized = account_email_raw.strip().lower()
-        if account_email_normalized == target_email:
-            return account
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            FROM owner_accounts
+            WHERE email = ?
+            LIMIT 1
+            """,
+            (target_email,),
+        ).fetchone()
+
+    if row:
+        return {
+            "email": str(row["email"]),
+            "id": str(row["id"]),
+            "created_at": str(row["created_at"]),
+            "full_name": str(row["full_name"]),
+            "phone": str(row["phone"]),
+            "property_type": str(row["property_type"]),
+            "city": str(row["city"]),
+            "property_name": str(row["property_name"]),
+            "number_of_units": int(row["number_of_units"] or 0),
+            "notes": str(row["notes"]),
+        }
     return None
 
 
 def _find_owner_account(account_id):
-    for account in _load_owner_accounts():
-        if str(account.get("id", "")) == str(account_id):
-            return account
+    target_account_id = str(account_id or "").strip()
+    if not target_account_id:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            FROM owner_accounts
+            WHERE id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (target_account_id,),
+        ).fetchone()
+
+    if row:
+        return {
+            "email": str(row["email"]),
+            "id": str(row["id"]),
+            "created_at": str(row["created_at"]),
+            "full_name": str(row["full_name"]),
+            "phone": str(row["phone"]),
+            "property_type": str(row["property_type"]),
+            "city": str(row["city"]),
+            "property_name": str(row["property_name"]),
+            "number_of_units": int(row["number_of_units"] or 0),
+            "notes": str(row["notes"]),
+        }
     return None
 
 
 def _upsert_owner_account(record):
-    accounts = _load_owner_accounts()
-    target_email = str(record.get("email", "")).strip().lower()
-    updated = False
-    created = False
-
-    for index, account in enumerate(accounts):
-        if str(account.get("email", "")).strip().lower() == target_email:
-            merged = dict(account)
-            merged.update(record)
-            merged["id"] = account.get("id", merged.get("id", ""))
-            merged["created_at"] = account.get("created_at", merged.get("created_at", ""))
-            accounts[index] = _normalize_owner_account(merged)
-            updated = True
-            break
-
-    if not updated:
-        accounts.append(_normalize_owner_account(record))
-        created = True
-
-    app.logger.info("Owner account created=%s for %s", created, _mask_email(target_email))
-    if not _save_owner_accounts(accounts):
-        app.logger.warning("Owner account write failed for %s", _mask_email(target_email))
+    normalized = _normalize_owner_account(record)
+    if not normalized:
         return None
 
+    target_email = str(normalized.get("email", "")).strip().lower()
+    existing_account = _find_owner_account_by_email(target_email)
+    created = not bool(existing_account)
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_accounts (
+                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    id = excluded.id,
+                    full_name = excluded.full_name,
+                    phone = excluded.phone,
+                    property_type = excluded.property_type,
+                    city = excluded.city,
+                    property_name = excluded.property_name,
+                    number_of_units = excluded.number_of_units,
+                    notes = excluded.notes
+                """,
+                (
+                    normalized["email"],
+                    normalized["id"],
+                    normalized["created_at"],
+                    normalized["full_name"],
+                    normalized["phone"],
+                    normalized["property_type"],
+                    normalized["city"],
+                    normalized["property_name"],
+                    normalized["number_of_units"],
+                    normalized["notes"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner account write failed for %s: %s", _mask_email(target_email), type(exc).__name__)
+        return None
+
+    app.logger.info("Owner account created=%s for %s", created, _mask_email(target_email))
     persisted_account = _find_owner_account_by_email(target_email)
     if persisted_account:
         app.logger.info("Owner account persisted for %s", _mask_email(target_email))
@@ -601,82 +1028,170 @@ def _normalize_owner_property(record):
 
 
 def _load_owner_properties():
-    path = OWNER_PROPERTIES_JSONL_PATH
-    properties = []
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
+            FROM owner_properties
+            ORDER BY created_at DESC, id DESC
+            """
+        ).fetchall()
 
-    if not path.exists():
-        return properties
-
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            normalized = _normalize_owner_property(record)
-            if normalized:
-                properties.append(normalized)
-
-    properties.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    return properties
+    return [
+        {
+            "id": str(row["id"]),
+            "owner_id": str(row["owner_id"]),
+            "created_at": str(row["created_at"]),
+            "name": str(row["name"]),
+            "property_type": str(row["property_type"]),
+            "location": str(row["location"]),
+            "bedrooms": int(row["bedrooms"] or 0),
+            "bathrooms": int(row["bathrooms"] or 0),
+            "guest_capacity": int(row["guest_capacity"] or 0),
+            "operating_mode": str(row["operating_mode"]),
+            "notes": str(row["notes"]),
+        }
+        for row in rows
+    ]
 
 
 def _save_owner_properties(properties):
-    data_dir = OWNER_PROPERTIES_JSONL_PATH.parent
-    data_dir.mkdir(exist_ok=True)
-    with OWNER_PROPERTIES_JSONL_PATH.open("w", encoding="utf-8") as f:
-        for record in properties:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute("DELETE FROM owner_properties")
+            for record in properties:
+                normalized = _normalize_owner_property(record)
+                if not normalized:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO owner_properties (
+                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        normalized["id"],
+                        normalized["owner_id"],
+                        normalized["created_at"],
+                        normalized["name"],
+                        normalized["property_type"],
+                        normalized["location"],
+                        normalized["bedrooms"],
+                        normalized["bathrooms"],
+                        normalized["guest_capacity"],
+                        normalized["operating_mode"],
+                        normalized["notes"],
+                    ),
+                )
+    except Exception as exc:
+        app.logger.warning(
+            "Owner properties write failed for %s: %s",
+            str(_owner_db_path().resolve()),
+            type(exc).__name__,
+        )
+        return False
+    return True
 
 
 def _append_owner_property(record):
-    properties = _load_owner_properties()
     normalized = _normalize_owner_property(record)
     if not normalized:
         return None
 
-    properties.append(normalized)
-    _save_owner_properties(properties)
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_properties (
+                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    owner_id = excluded.owner_id,
+                    created_at = excluded.created_at,
+                    name = excluded.name,
+                    property_type = excluded.property_type,
+                    location = excluded.location,
+                    bedrooms = excluded.bedrooms,
+                    bathrooms = excluded.bathrooms,
+                    guest_capacity = excluded.guest_capacity,
+                    operating_mode = excluded.operating_mode,
+                    notes = excluded.notes
+                """,
+                (
+                    normalized["id"],
+                    normalized["owner_id"],
+                    normalized["created_at"],
+                    normalized["name"],
+                    normalized["property_type"],
+                    normalized["location"],
+                    normalized["bedrooms"],
+                    normalized["bathrooms"],
+                    normalized["guest_capacity"],
+                    normalized["operating_mode"],
+                    normalized["notes"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner property write failed for %s: %s", normalized.get("owner_id", ""), type(exc).__name__)
+        return None
     return normalized
 
 
 def _load_owner_magic_tokens():
-    path = OWNER_MAGIC_TOKENS_PATH
-    tokens = []
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT token, email, created_at
+            FROM owner_magic_tokens
+            ORDER BY created_at DESC, token DESC
+            """
+        ).fetchall()
 
-    if not path.exists():
-        return tokens
-
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            token = str(record.get("token", "")).strip()
-            email = str(record.get("email", "")).strip()
-            created_at = str(record.get("created_at", "")).strip()
-            if not token or not email or not created_at:
-                continue
-
-            tokens.append({
-                "token": token,
-                "email": email,
-                "created_at": created_at,
-            })
-
-    tokens.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    return tokens
+    return [
+        {
+            "token": str(row["token"]),
+            "email": str(row["email"]),
+            "created_at": str(row["created_at"]),
+        }
+        for row in rows
+    ]
 
 
 def _save_owner_magic_tokens(tokens):
-    data_dir = OWNER_MAGIC_TOKENS_PATH.parent
-    data_dir.mkdir(exist_ok=True)
-    with OWNER_MAGIC_TOKENS_PATH.open("w", encoding="utf-8") as f:
-        for record in tokens:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute("DELETE FROM owner_magic_tokens")
+            for record in tokens:
+                token = str(record.get("token", "")).strip()
+                email = str(record.get("email", "")).strip()
+                created_at = str(record.get("created_at", "")).strip()
+                if not token or not email or not created_at:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO owner_magic_tokens (token, email, created_at)
+                    VALUES (?, ?, ?)
+                    """,
+                    (token, email, created_at),
+                )
+    except Exception as exc:
+        app.logger.warning(
+            "Owner magic tokens write failed for %s: %s",
+            str(_owner_db_path().resolve()),
+            type(exc).__name__,
+        )
+        return False
+    return True
 
 
 def _create_owner_magic_token(email):
@@ -685,9 +1200,23 @@ def _create_owner_magic_token(email):
         "email": str(email or "").strip(),
         "created_at": _utc_now_iso(),
     }
-    tokens = _load_owner_magic_tokens()
-    tokens.append(token_record)
-    _save_owner_magic_tokens(tokens)
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_magic_tokens (token, email, created_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(token) DO UPDATE SET
+                    email = excluded.email,
+                    created_at = excluded.created_at
+                """,
+                (token_record["token"], token_record["email"], token_record["created_at"]),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner magic token write failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return None
     return token_record
 
 
@@ -696,9 +1225,25 @@ def _find_owner_magic_token(token):
     if not target_token:
         return None
 
-    for record in _load_owner_magic_tokens():
-        if str(record.get("token", "")).strip() == target_token:
-            return record
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT token, email, created_at
+            FROM owner_magic_tokens
+            WHERE token = ?
+            LIMIT 1
+            """,
+            (target_token,),
+        ).fetchone()
+
+    if row:
+        return {
+            "token": str(row["token"]),
+            "email": str(row["email"]),
+            "created_at": str(row["created_at"]),
+        }
     return None
 
 
@@ -707,64 +1252,101 @@ def _consume_owner_magic_token(token):
     if not target_token:
         return False
 
-    tokens = _load_owner_magic_tokens()
-    remaining_tokens = [record for record in tokens if str(record.get("token", "")).strip() != target_token]
-    if len(remaining_tokens) == len(tokens):
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute("DELETE FROM owner_magic_tokens WHERE token = ?", (target_token,))
+            return cursor.rowcount > 0
+    except Exception as exc:
+        app.logger.warning("Owner magic token consume failed for %s: %s", target_token, type(exc).__name__)
         return False
-
-    _save_owner_magic_tokens(remaining_tokens)
-    return True
 
 
 def _load_owner_magic_email_events():
-    path = OWNER_MAGIC_EMAIL_EVENTS_PATH
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT id, created_at, timestamp, event, submitted_email, account_found, delivery, email_masked, reason, source, language, smtp_message_id
+            FROM owner_magic_email_events
+            ORDER BY sequence DESC
+            """
+        ).fetchall()
+
     events = []
-
-    if not path.exists():
-        return events
-
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            event = str(record.get("event", "")).strip()
-            email_masked = str(record.get("email_masked", "")).strip()
-            reason = str(record.get("reason", "")).strip()
-            source = str(record.get("source", "")).strip()
-            language = str(record.get("language", "")).strip().lower()
-            created_at = str(record.get("created_at", "")).strip()
-            event_id = str(record.get("id", "")).strip()
-            if not event or not email_masked or not reason or not source or not language or not created_at or not event_id:
-                continue
-
-            events.append({
-                "id": event_id,
-                "created_at": created_at,
-                "timestamp": str(record.get("timestamp", created_at)).strip() or created_at,
-                "event": event,
-                "submitted_email": str(record.get("submitted_email", "")).strip(),
-                "account_found": record.get("account_found"),
-                "delivery": str(record.get("delivery", "")).strip(),
-                "email_masked": email_masked,
-                "reason": reason,
-                "source": source,
-                "language": language,
-                "smtp_message_id": str(record.get("smtp_message_id", "")).strip(),
-            })
-
-    events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    for row in rows:
+        account_found_value = row["account_found"]
+        if account_found_value is None:
+            account_found = None
+        else:
+            account_found = bool(account_found_value)
+        events.append({
+            "id": str(row["id"]),
+            "created_at": str(row["created_at"]),
+            "timestamp": str(row["timestamp"]),
+            "event": str(row["event"]),
+            "submitted_email": str(row["submitted_email"]),
+            "account_found": account_found,
+            "delivery": str(row["delivery"]),
+            "email_masked": str(row["email_masked"]),
+            "reason": str(row["reason"]),
+            "source": str(row["source"]),
+            "language": str(row["language"]),
+            "smtp_message_id": str(row["smtp_message_id"]),
+        })
     return events
 
 
 def _save_owner_magic_email_events(events):
-    data_dir = OWNER_MAGIC_EMAIL_EVENTS_PATH.parent
-    data_dir.mkdir(exist_ok=True)
-    with OWNER_MAGIC_EMAIL_EVENTS_PATH.open("w", encoding="utf-8") as f:
-        for record in events:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute("DELETE FROM owner_magic_email_events")
+            for record in events:
+                event = str(record.get("event", "")).strip()
+                email_masked = str(record.get("email_masked", "")).strip()
+                reason = str(record.get("reason", "")).strip()
+                source = str(record.get("source", "")).strip()
+                language = str(record.get("language", "")).strip().lower()
+                created_at = str(record.get("created_at", "")).strip()
+                event_id = str(record.get("id", "")).strip()
+                timestamp = str(record.get("timestamp", created_at)).strip() or created_at
+                if not event or not email_masked or not reason or not source or not language or not created_at or not event_id:
+                    continue
+                account_found = record.get("account_found")
+                account_found_value = None if account_found is None else (1 if bool(account_found) else 0)
+                conn.execute(
+                    """
+                    INSERT INTO owner_magic_email_events (
+                        id, created_at, timestamp, event, submitted_email, account_found, delivery, email_masked, reason, source, language, smtp_message_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        event_id,
+                        created_at,
+                        timestamp,
+                        event,
+                        str(record.get("submitted_email", "")).strip(),
+                        account_found_value,
+                        str(record.get("delivery", "")).strip(),
+                        email_masked,
+                        reason,
+                        source,
+                        language,
+                        str(record.get("smtp_message_id", "")).strip(),
+                    ),
+                )
+    except Exception as exc:
+        app.logger.warning(
+            "Owner magic email events write failed for %s: %s",
+            str(_owner_db_path().resolve()),
+            type(exc).__name__,
+        )
+        return False
+    return True
 
 
 def _append_owner_magic_email_event(event, email, reason, source, language, smtp_message_id=""):
@@ -783,9 +1365,34 @@ def _append_owner_magic_email_event(event, email, reason, source, language, smtp
         "language": str(language or "").strip().lower() or "bg",
         "smtp_message_id": str(smtp_message_id or "").strip(),
     }
-    events = _load_owner_magic_email_events()
-    events.append(event_record)
-    _save_owner_magic_email_events(events)
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_magic_email_events (
+                    id, created_at, timestamp, event, submitted_email, account_found, delivery, email_masked, reason, source, language, smtp_message_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_record["id"],
+                    event_record["created_at"],
+                    event_record["timestamp"],
+                    event_record["event"],
+                    event_record["submitted_email"],
+                    None,
+                    event_record["delivery"],
+                    event_record["email_masked"],
+                    event_record["reason"],
+                    event_record["source"],
+                    event_record["language"],
+                    event_record["smtp_message_id"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner magic email event append failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return event_record
     return event_record
 
 
@@ -804,9 +1411,33 @@ def _append_owner_magic_login_audit(submitted_email, account_found, delivery, re
         "source": str(source or "").strip(),
         "language": str(language or "").strip().lower() or "bg",
     }
-    events = _load_owner_magic_email_events()
-    events.append(event_record)
-    _save_owner_magic_email_events(events)
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_magic_email_events (
+                    id, created_at, timestamp, event, submitted_email, account_found, delivery, email_masked, reason, source, language, smtp_message_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_record["id"],
+                    event_record["created_at"],
+                    event_record["timestamp"],
+                    event_record["event"],
+                    event_record["submitted_email"],
+                    1 if event_record["account_found"] else 0,
+                    event_record["delivery"],
+                    event_record["email_masked"],
+                    event_record["reason"],
+                    event_record["source"],
+                    event_record["language"],
+                    "",
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner magic login audit append failed for %s: %s", _mask_email(submitted_email), type(exc).__name__)
     return event_record
 
 
@@ -3681,7 +4312,7 @@ def admin_owner_accounts():
         "admin_owner_accounts.html",
         owner_accounts=owner_accounts,
         owner_accounts_count=len(owner_accounts),
-        owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+        owner_accounts_path=str(_owner_db_path().resolve()),
     )
 
 

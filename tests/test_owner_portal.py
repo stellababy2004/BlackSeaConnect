@@ -2,6 +2,7 @@
 import html as html_lib
 import json
 import os
+import sqlite3
 import shutil
 import smtplib
 import unittest
@@ -97,6 +98,9 @@ class OwnerPortalTests(unittest.TestCase):
         self._tmpdir = Path(self._cwd) / f".tmp_owner_portal_tests_{uuid.uuid4().hex}"
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
+        self.owner_db_path = self._tmpdir / "data" / "blacksea_owner.db"
+        self.ADMIN_ENV = {**self.ADMIN_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
+        self.SMTP_ENV = {**self.SMTP_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
         app.config["TESTING"] = True
         self.client = app.test_client()
 
@@ -110,6 +114,32 @@ class OwnerPortalTests(unittest.TestCase):
         return {"Authorization": f"Basic {token}"}
 
     def _read_jsonl(self, filename):
+        owner_table_map = {
+            "owner_accounts.jsonl": "owner_accounts",
+            "owner_properties.jsonl": "owner_properties",
+            "owner_magic_tokens.jsonl": "owner_magic_tokens",
+            "owner_magic_email_events.jsonl": "owner_magic_email_events",
+        }
+        table_name = owner_table_map.get(filename)
+        db_path = Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
+        if table_name and db_path.exists():
+            conn = sqlite3.connect(db_path)
+            try:
+                conn.row_factory = sqlite3.Row
+                order_by = "sequence ASC" if table_name == "owner_magic_email_events" else "created_at ASC"
+                rows = conn.execute(f"SELECT * FROM {table_name} ORDER BY {order_by}").fetchall()
+            finally:
+                conn.close()
+
+            records = []
+            for row in rows:
+                record = dict(row)
+                if table_name == "owner_magic_email_events":
+                    account_found = record.get("account_found")
+                    record["account_found"] = None if account_found is None else bool(account_found)
+                records.append(record)
+            return records
+
         path = Path("data") / filename
         if not path.exists():
             return []
@@ -120,6 +150,19 @@ class OwnerPortalTests(unittest.TestCase):
                 if line.strip():
                     records.append(json.loads(line))
         return records
+
+    def _read_owner_db_rows(self, table_name):
+        db_path = Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
+        if not db_path.exists():
+            return []
+
+        conn = sqlite3.connect(db_path)
+        try:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
+        finally:
+            conn.close()
+        return [dict(row) for row in rows]
 
     def _seed_jsonl(self, filename, records):
         data_dir = Path("data")
@@ -825,6 +868,69 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("Count: 1", html)
         self.assertEqual(html.count("stoyanova@orange.fr"), 1)
+
+    def test_jsonl_migration_imports_old_records_idempotently(self):
+        self._seed_jsonl("owner_accounts.jsonl", [{
+            "id": "owner-legacy",
+            "created_at": "2026-06-15T10:00:00Z",
+            "full_name": "Legacy Owner",
+            "email": "legacy@example.com",
+            "phone": "+359888111222",
+            "property_type": "Villa",
+            "city": "Varna",
+            "property_name": "Legacy Villa",
+            "number_of_units": 1,
+            "notes": "",
+        }])
+        self._seed_jsonl("owner_properties.jsonl", [{
+            "id": "property-legacy",
+            "owner_id": "owner-legacy",
+            "created_at": "2026-06-15T10:30:00Z",
+            "name": "Legacy Villa",
+            "property_type": "Villa",
+            "location": "Varna",
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "guest_capacity": 6,
+            "operating_mode": "year-round",
+            "notes": "",
+        }])
+        self._seed_jsonl("owner_magic_tokens.jsonl", [{
+            "token": "legacy-token",
+            "email": "legacy@example.com",
+            "created_at": "2026-06-15T10:40:00Z",
+        }])
+        self._seed_jsonl("owner_magic_email_events.jsonl", [{
+            "id": "event-legacy",
+            "created_at": "2026-06-15T10:50:00Z",
+            "timestamp": "2026-06-15T10:50:00Z",
+            "event": "sent",
+            "submitted_email": "legacy@example.com",
+            "account_found": True,
+            "delivery": "sent",
+            "email_masked": _mask_email("legacy@example.com"),
+            "reason": "sent",
+            "source": "login",
+            "language": "bg",
+            "smtp_message_id": "<legacy-message-id>",
+        }])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            first_accounts = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
+            first_events = self.client.get("/admin/owner-magic-events", headers=self._auth_headers())
+            second_accounts = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
+
+        self.assertEqual(first_accounts.status_code, 200)
+        self.assertEqual(first_events.status_code, 200)
+        self.assertEqual(second_accounts.status_code, 200)
+        self.assertEqual(len(self._read_owner_db_rows("owner_accounts")), 1)
+        self.assertEqual(len(self._read_owner_db_rows("owner_properties")), 1)
+        self.assertEqual(len(self._read_owner_db_rows("owner_magic_tokens")), 1)
+        self.assertEqual(len(self._read_owner_db_rows("owner_magic_email_events")), 1)
+        self.assertEqual(self._read_owner_db_rows("owner_accounts")[0]["email"], "legacy@example.com")
+        self.assertEqual(self._read_owner_db_rows("owner_properties")[0]["name"], "Legacy Villa")
+        self.assertEqual(self._read_owner_db_rows("owner_magic_tokens")[0]["token"], "legacy-token")
+        self.assertEqual(self._read_owner_db_rows("owner_magic_email_events")[0]["id"], "event-legacy")
 
     def test_admin_owner_magic_events_page_requires_admin(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):

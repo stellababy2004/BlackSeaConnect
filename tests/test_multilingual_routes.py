@@ -1,6 +1,8 @@
 ﻿import json
 import os
+import sqlite3
 import subprocess
+import shutil
 import textwrap
 import unittest
 from pathlib import Path
@@ -36,8 +38,17 @@ class FakeSMTP:
 
 class MultilingualRouteTests(unittest.TestCase):
     def setUp(self):
+        self._cwd = os.getcwd()
+        self._tmpdir = Path(self._cwd) / f".tmp_multilingual_routes_tests_{id(self)}"
+        self._tmpdir.mkdir(exist_ok=True)
+        os.chdir(self._tmpdir)
+        self.owner_db_path = self._tmpdir / "data" / "blacksea_owner.db"
         app.config["TESTING"] = True
         self.client = app.test_client()
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+        shutil.rmtree(self._tmpdir, ignore_errors=True)
 
     def _i18n_module_loader_js(self):
         return textwrap.dedent(
@@ -83,11 +94,19 @@ class MultilingualRouteTests(unittest.TestCase):
             "SMTP_FROM": "BlackSea Connect <concierge@blackseaconnect.com>",
             "SMTP_USERNAME": "smtp-user",
             "SMTP_PASSWORD": "smtp-pass",
+            "OWNER_DB_PATH": str(self.owner_db_path),
         }
         with patch.dict(os.environ, smtp_env, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             self.client.post("/owners/login", data={"email": "owner@example.com"})
-        token_path = data_dir / "owner_magic_tokens.jsonl"
-        token = json.loads(token_path.read_text(encoding="utf-8").strip().splitlines()[-1])["token"]
+        conn = sqlite3.connect(self.owner_db_path)
+        try:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT token FROM owner_magic_tokens ORDER BY created_at DESC, token DESC LIMIT 1"
+            ).fetchone()
+            token = row["token"]
+        finally:
+            conn.close()
         return self.client.get(f"/auth/owner-magic/{token}")
 
     def test_supported_routes_return_200_and_language_controls(self):
