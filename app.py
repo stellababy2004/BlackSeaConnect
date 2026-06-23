@@ -471,10 +471,25 @@ def _load_owner_accounts():
 
 def _save_owner_accounts(accounts):
     data_dir = OWNER_ACCOUNTS_JSONL_PATH.parent
-    data_dir.mkdir(exist_ok=True)
-    with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
-        for record in accounts:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        data_dir.mkdir(exist_ok=True)
+        with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
+            for record in accounts:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        app.logger.warning(
+            "Owner accounts write failed for %s: %s",
+            str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+            type(exc).__name__,
+        )
+        return False
+
+    app.logger.info(
+        "Owner accounts persisted to %s (%s records)",
+        str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
+        len(accounts),
+    )
+    return True
 
 
 def _find_owner_account_by_email(email):
@@ -499,6 +514,7 @@ def _upsert_owner_account(record):
     accounts = _load_owner_accounts()
     target_email = str(record.get("email", "")).strip().lower()
     updated = False
+    created = False
 
     for index, account in enumerate(accounts):
         if str(account.get("email", "")).strip().lower() == target_email:
@@ -512,9 +528,19 @@ def _upsert_owner_account(record):
 
     if not updated:
         accounts.append(_normalize_owner_account(record))
+        created = True
 
-    _save_owner_accounts(accounts)
-    return _find_owner_account_by_email(target_email)
+    app.logger.info("Owner account created=%s for %s", created, _mask_email(target_email))
+    if not _save_owner_accounts(accounts):
+        app.logger.warning("Owner account write failed for %s", _mask_email(target_email))
+        return None
+
+    persisted_account = _find_owner_account_by_email(target_email)
+    if persisted_account:
+        app.logger.info("Owner account persisted for %s", _mask_email(target_email))
+    else:
+        app.logger.warning("Owner account persistence verification failed for %s", _mask_email(target_email))
+    return persisted_account
 
 
 def _ensure_owner_account_exists(record):
@@ -2146,6 +2172,7 @@ def owners_register():
             }
             saved_account = _upsert_owner_account(account)
             if saved_account:
+                app.logger.info("Owner registration received for %s", _mask_email(saved_account["email"]))
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
@@ -2944,6 +2971,30 @@ def admin_owner_accounts():
         owner_accounts_count=len(owner_accounts),
         owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
     )
+
+
+@app.post("/admin/seed-owner")
+@admin_required
+def admin_seed_owner():
+    seed_record = {
+        "id": "",
+        "created_at": _utc_now_iso(),
+        "full_name": "Stella",
+        "email": "stoyanova@orange.fr",
+        "phone": "",
+        "property_type": "",
+        "city": "",
+        "property_name": "",
+        "number_of_units": 1,
+        "notes": "Seeded from admin probe.",
+    }
+    owner_account = _ensure_owner_account_exists(seed_record)
+    if not owner_account:
+        app.logger.warning("Admin owner seed failed for %s", _mask_email(seed_record["email"]))
+        return _admin_auth_response(500, "Failed to seed owner account.")
+
+    app.logger.info("Admin owner seed completed for %s", _mask_email(seed_record["email"]))
+    return redirect(url_for("admin_owner_accounts"))
 
 
 def _clean_payload_value(payload, *keys):
