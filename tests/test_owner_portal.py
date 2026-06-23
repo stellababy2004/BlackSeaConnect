@@ -102,10 +102,10 @@ class OwnerPortalTests(unittest.TestCase):
             for record in records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    def _owner_payload(self):
+    def _owner_payload(self, email="owner@example.com"):
         return {
             "full_name": "Elena Petrova",
-            "email": "owner@example.com",
+            "email": email,
             "phone": "+359888111222",
             "property_type": "Villa",
             "city": "Varna",
@@ -114,8 +114,33 @@ class OwnerPortalTests(unittest.TestCase):
             "notes": "Prefers WhatsApp updates.",
         }
 
-    def _demo_login_payload(self, email="owner@blackseaconnect.com", password="demo1234"):
-        return {"email": email, "password": password}
+    def _demo_login_payload(self, email="owner@blackseaconnect.com", password=None):
+        return {"email": email}
+
+    def _login_owner_via_magic(self, email="owner@blackseaconnect.com"):
+        self._seed_owner_account(email=email)
+        response = self.client.post("/owners/login", data={"email": email})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+
+        tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertTrue(tokens)
+        token = tokens[-1]["token"]
+
+        login_response = self.client.get(f"/auth/owner-magic/{token}")
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(login_response.headers["Location"], "/owners/dashboard")
+        return login_response
+
+    def _request_owner_magic_link(self, email="owner@blackseaconnect.com"):
+        self._seed_owner_account(email=email)
+        response = self.client.post("/owners/login", data={"email": email})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+
+        tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertTrue(tokens)
+        return response, tokens[-1]["token"]
 
     def _demo_owner_request(self, **overrides):
         record = {
@@ -159,12 +184,12 @@ class OwnerPortalTests(unittest.TestCase):
             "contact_phone": "+359888333444",
         }
 
-    def _seed_owner_account(self):
+    def _seed_owner_account(self, email="owner@blackseaconnect.com"):
         self._seed_jsonl("owner_accounts.jsonl", [{
             "id": "owner-1",
             "created_at": "2026-06-15T10:00:00Z",
             "full_name": "Elena Petrova",
-            "email": "owner@example.com",
+            "email": email,
             "phone": "+359888111222",
             "property_type": "Villa",
             "city": "Varna",
@@ -173,11 +198,12 @@ class OwnerPortalTests(unittest.TestCase):
             "notes": "",
         }])
 
-    def test_owner_registration_creates_account_and_logs_in(self):
-        response = self.client.post("/owners/register", data=self._owner_payload())
+    def test_owner_registration_creates_account_and_sends_magic_flow(self):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/register", data=self._owner_payload())
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/owners/login?registered=1", response.headers["Location"])
+        self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
 
         with self.client.session_transaction() as sess:
             self.assertNotIn("owner_logged_in", sess)
@@ -187,6 +213,12 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(len(accounts), 1)
         self.assertEqual(accounts[0]["full_name"], "Elena Petrova")
         self.assertEqual(accounts[0]["number_of_units"], 2)
+
+        tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertEqual(len(tokens), 1)
+        self.assertEqual(tokens[0]["email"], "owner@example.com")
+        self.assertEqual(len(FakeSMTP.sent_messages), 1)
+        self.assertEqual(FakeSMTP.sent_messages[0]["Subject"], "BlackSea Connect - Your secure sign-in link")
 
     def test_owner_routes_require_login(self):
         response_dashboard = self.client.get("/owners/dashboard")
@@ -218,7 +250,7 @@ class OwnerPortalTests(unittest.TestCase):
             ),
         ])
 
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
         response = self.client.get("/owners/dashboard")
 
         self.assertEqual(response.status_code, 200)
@@ -230,7 +262,7 @@ class OwnerPortalTests(unittest.TestCase):
     def test_owner_dashboard_uses_portal_sections_and_quick_actions(self):
         self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
 
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
         response = self.client.get("/owners/dashboard")
 
         self.assertEqual(response.status_code, 200)
@@ -263,7 +295,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 
     def test_owner_request_service_category_query_prefills_category(self):
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
 
         response = self.client.get("/owners/request-service?category=cleaning")
 
@@ -274,7 +306,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Cleaning", html)
 
     def test_owner_pages_include_language_switcher_and_i18n_hooks(self):
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
 
         page_paths = [
             "/owners/register",
@@ -297,7 +329,8 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertNotIn('noindex', html.lower(), msg=path)
                 self.assertNotIn('x-robots-tag', response.headers.get("X-Robots-Tag", "").lower(), msg=path)
                 if path == "/owners/login":
-                    self.assertIn('data-i18n="ownerLoginPassword"', html, msg=path)
+                    self.assertIn('data-i18n="ownerLoginEmail"', html, msg=path)
+                    self.assertIn('data-i18n="ownerLoginSendMagicLink"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-login-page"', html, msg=path)
                 elif path == "/owners/dashboard":
                     self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
@@ -333,25 +366,71 @@ class OwnerPortalTests(unittest.TestCase):
                 with self.subTest(filename=filename, key=key):
                     self.assertIn(key, content)
 
-    def test_owner_login_rejects_wrong_credentials(self):
-        response = self.client.post("/owners/login", data=self._demo_login_payload(password="wrong-pass"))
+    def test_owner_login_rejects_unknown_email(self):
+        response = self.client.post("/owners/login", data={"email": "missing@example.com"})
 
         self.assertEqual(response.status_code, 400)
         html = response.get_data(as_text=True)
-        self.assertIn('data-i18n="ownerLoginCredentialsError"', html)
+        self.assertIn('data-i18n="ownerAccountNotFoundError"', html)
         self.assertIn('body class="owner-portal-page owner-login-page"', html)
 
-    def test_owner_login_accepts_demo_credentials(self):
-        response = self.client.post("/owners/login", data=self._demo_login_payload())
+    def test_owner_login_sends_magic_flow(self):
+        self._seed_owner_account()
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/login", data=self._demo_login_payload())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+
+        tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertEqual(len(tokens), 1)
+        self.assertEqual(tokens[0]["email"], "owner@blackseaconnect.com")
+        self.assertEqual(len(FakeSMTP.sent_messages), 1)
+
+    def test_owner_magic_link_logs_user_in(self):
+        _, token = self._request_owner_magic_link()
+
+        response = self.client.get(f"/auth/owner-magic/{token}")
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["Location"], "/owners/dashboard")
-
         with self.client.session_transaction() as session:
             self.assertTrue(session.get("owner_logged_in"))
+            self.assertEqual(session.get("owner_email"), "owner@blackseaconnect.com")
+
+    def test_owner_magic_link_token_is_consumed_after_login(self):
+        _, token = self._request_owner_magic_link()
+
+        self.client.get(f"/auth/owner-magic/{token}")
+
+        tokens = self._read_jsonl("owner_magic_tokens.jsonl")
+        self.assertEqual(tokens, [])
+
+    def test_owner_magic_link_rejects_expired_token(self):
+        self._seed_owner_account()
+        expired_token = "expired-token-1"
+        self._seed_jsonl("owner_magic_tokens.jsonl", [{
+            "token": expired_token,
+            "email": "owner@blackseaconnect.com",
+            "created_at": "2026-06-15T09:00:00Z",
+        }])
+
+        response = self.client.get(f"/auth/owner-magic/{expired_token}")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?expired_token=1")
+        self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
+
+    def test_owner_magic_link_rejects_invalid_token(self):
+        self._seed_owner_account()
+
+        response = self.client.get("/auth/owner-magic/does-not-exist")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?invalid_token=1")
 
     def test_owner_logout_clears_session(self):
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
 
         response = self.client.get("/owners/logout")
 
@@ -389,7 +468,7 @@ class OwnerPortalTests(unittest.TestCase):
             assigned_professional_company="Approved Concierge",
         )])
 
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
         owner_html = self.client.get("/owners/dashboard").get_data(as_text=True)
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
@@ -529,7 +608,7 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertEqual(actual["navApply"], expected["navApply"])
 
     def test_owner_service_request_creation_saves_and_emails(self):
-        self.client.post("/owners/login", data=self._demo_login_payload())
+        self._login_owner_via_magic()
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/request-service", data=self._service_request_payload())

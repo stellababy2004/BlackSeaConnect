@@ -92,31 +92,47 @@
         <p class="section-heading__eyebrow" data-i18n="ownerLoginCardEyebrow">Вход</p>
         <h2 id="owner-login-title" data-i18n="ownerLoginCardTitle">Въведете имейла, свързан с вашия имот.</h2>
         <p class="cta-panel__copy" data-i18n="ownerLoginCardCopy">
-          Използвайте демо данните по-долу, за да отворите портала локално.
+          We will send a secure sign-in link to the registered email address.
         </p>
       </div>
+
+      {% if request.args.get('registered') == '1' %}
+        <div class="owner-login-banner owner-login-banner--success" role="status">
+          <strong data-i18n="ownerLoginRegisteredBannerTitle">Registration received.</strong>
+          <p data-i18n="ownerLoginRegisteredBannerCopy">Your owner account is ready and a secure sign-in link has been sent.</p>
+        </div>
+      {% endif %}
+
+      {% if request.args.get('magic_sent') == '1' %}
+        <div class="owner-login-banner owner-login-banner--info" role="status">
+          <strong data-i18n="ownerLoginMagicSentBannerTitle">Check your email.</strong>
+          <p data-i18n="ownerLoginMagicSentBannerCopy">A secure sign-in link has been sent and expires in 30 minutes.</p>
+        </div>
+      {% endif %}
+
+      {% if request.args.get('invalid_token') == '1' %}
+        <div class="owner-login-banner owner-login-banner--warning" role="alert">
+          <strong data-i18n="ownerLoginInvalidTokenBannerTitle">That sign-in link is not valid.</strong>
+          <p data-i18n="ownerLoginInvalidTokenBannerCopy">Please request a new secure link from the login form.</p>
+        </div>
+      {% endif %}
+
+      {% if request.args.get('expired_token') == '1' %}
+        <div class="owner-login-banner owner-login-banner--warning" role="alert">
+          <strong data-i18n="ownerLoginExpiredTokenBannerTitle">That sign-in link expired.</strong>
+          <p data-i18n="ownerLoginExpiredTokenBannerCopy">Request a new link to continue to the Owner Portal.</p>
+        </div>
+      {% endif %}
 
       <form class="owner-login-form" method="post" action="/owners/login">
         <label class="owner-login-form__field">
           <span data-i18n="ownerLoginEmail">Имейл</span>
-          <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
-          {% if errors.email %}<p class="form-error" data-i18n="ownerLoginError">Моля, въведете регистриран имейл адрес.</p>{% endif %}
+          <input type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
+          {% if errors.email %}<p class="form-error" data-i18n="ownerAccountNotFoundError">Please enter a registered email address.</p>{% endif %}
         </label>
-
-        <label class="owner-login-form__field">
-          <span data-i18n="ownerLoginPassword">Парола</span>
-          <input type="password" name="password" value="{{ form_values.password|e }}" required placeholder="demo1234" autocomplete="current-password" data-i18n-attr="placeholder:ownerLoginPasswordPlaceholder">
-          {% if errors.password %}<p class="form-error" data-i18n="ownerLoginPasswordError">Please enter the demo password.</p>{% endif %}
-          {% if errors.credentials %}<p class="form-error" data-i18n="ownerLoginCredentialsError">Demo credentials are not correct.</p>{% endif %}
-        </label>
-
-        <div class="owner-login-demo-note">
-          <strong data-i18n="ownerLoginDemoLabel">Демо данни</strong>
-          <p data-i18n="ownerLoginDemoNote">owner@blackseaconnect.com / demo1234</p>
-        </div>
 
         <div class="owner-login-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="ownerLoginSubmit">Влез в таблото</button>
+          <button class="button button--primary" type="submit" data-i18n="ownerLoginSendMagicLink">Send secure link</button>
           <p class="pilot-form__hint">
           <a href="{{ localized_url('/owners/register') }}" data-i18n="ownerLoginRegisterLink">Нужен ли ви е акаунт? Регистрирайте имота си.</a>
           </p>

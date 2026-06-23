@@ -1,4 +1,5 @@
 ﻿from datetime import datetime, timezone
+from datetime import timedelta
 from email.message import EmailMessage
 import hashlib
 import csv
@@ -109,6 +110,8 @@ NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
 }
 SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
 OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
+OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
+OWNER_MAGIC_LINK_TTL_MINUTES = 30
 OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
@@ -510,6 +513,81 @@ def _upsert_owner_account(record):
     return _find_owner_account_by_email(target_email)
 
 
+def _load_owner_magic_tokens():
+    path = OWNER_MAGIC_TOKENS_PATH
+    tokens = []
+
+    if not path.exists():
+        return tokens
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            token = str(record.get("token", "")).strip()
+            email = str(record.get("email", "")).strip()
+            created_at = str(record.get("created_at", "")).strip()
+            if not token or not email or not created_at:
+                continue
+
+            tokens.append({
+                "token": token,
+                "email": email,
+                "created_at": created_at,
+            })
+
+    tokens.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return tokens
+
+
+def _save_owner_magic_tokens(tokens):
+    data_dir = OWNER_MAGIC_TOKENS_PATH.parent
+    data_dir.mkdir(exist_ok=True)
+    with OWNER_MAGIC_TOKENS_PATH.open("w", encoding="utf-8") as f:
+        for record in tokens:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _create_owner_magic_token(email):
+    token_record = {
+        "token": uuid4().hex,
+        "email": str(email or "").strip(),
+        "created_at": _utc_now_iso(),
+    }
+    tokens = _load_owner_magic_tokens()
+    tokens.append(token_record)
+    _save_owner_magic_tokens(tokens)
+    return token_record
+
+
+def _find_owner_magic_token(token):
+    target_token = str(token or "").strip()
+    if not target_token:
+        return None
+
+    for record in _load_owner_magic_tokens():
+        if str(record.get("token", "")).strip() == target_token:
+            return record
+    return None
+
+
+def _consume_owner_magic_token(token):
+    target_token = str(token or "").strip()
+    if not target_token:
+        return False
+
+    tokens = _load_owner_magic_tokens()
+    remaining_tokens = [record for record in tokens if str(record.get("token", "")).strip() != target_token]
+    if len(remaining_tokens) == len(tokens):
+        return False
+
+    _save_owner_magic_tokens(remaining_tokens)
+    return True
+
+
 def _normalize_service_request_status(status):
     normalized = str(status or "").strip().lower()
     normalized = SERVICE_REQUEST_STATUS_ALIASES.get(normalized, normalized)
@@ -849,6 +927,68 @@ def _queue_service_request_email(record, recipient_email, recipient_label, admin
     ).start()
 
 
+def _send_owner_magic_link(email, login_url):
+    smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
+    if not smtp_host or not smtp_port_raw or not smtp_from or not email:
+        app.logger.warning("Owner magic link email skipped: SMTP configuration missing for %s.", email or "unknown")
+        return False
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning("Owner magic link email skipped: SMTP_PORT is invalid.")
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = "BlackSea Connect - Your secure sign-in link"
+    message["From"] = smtp_from
+    message["To"] = email
+    message.set_content(
+        "\n".join([
+            "Hello,",
+            "",
+            "Use the secure link below to access your Owner Portal:",
+            "",
+            login_url,
+            "",
+            "This link expires in 30 minutes.",
+            "",
+            "BlackSea Connect",
+        ])
+    )
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    app.logger.warning("Owner magic link email: SMTP STARTTLS was unavailable.")
+
+            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Owner magic link email send failed for %s: %s", email, type(exc).__name__)
+        return False
+
+    return True
+
+
+def _queue_owner_magic_link_email(email, login_url):
+    Thread(
+        target=_send_owner_magic_link,
+        args=(email, login_url),
+        daemon=True,
+    ).start()
+
+
 def _build_home_counters():
     providers = _load_network_providers()
     service_requests = _load_service_requests()
@@ -1027,15 +1167,12 @@ def _current_owner_account():
     if owner_account:
         return owner_account
 
-    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
-        owner_account = dict(OWNER_DEMO_PROFILE)
-    else:
-        owner_id = str(session.get(OWNER_SESSION_ID_KEY, "")).strip()
-        owner_email = str(session.get(OWNER_SESSION_EMAIL_KEY, "")).strip()
-        if owner_id:
-            owner_account = _find_owner_account(owner_id)
-        if not owner_account and owner_email:
-            owner_account = _find_owner_account_by_email(owner_email)
+    owner_id = str(session.get(OWNER_SESSION_ID_KEY, "")).strip()
+    owner_email = str(session.get(OWNER_SESSION_EMAIL_KEY, "")).strip()
+    if owner_id:
+        owner_account = _find_owner_account(owner_id)
+    if not owner_account and owner_email:
+        owner_account = _find_owner_account_by_email(owner_email)
 
     if owner_account:
         g.owner_account = owner_account
@@ -1374,7 +1511,14 @@ def owner_required(view):
     def wrapped(*args, **kwargs):
         if not session.get(OWNER_SESSION_LOGGED_IN_KEY):
             return redirect(url_for("owners_login", next=request.path))
-        g.owner_account = dict(OWNER_DEMO_PROFILE)
+        owner_account = _current_owner_account()
+        if not owner_account:
+            session.pop(OWNER_SESSION_LOGGED_IN_KEY, None)
+            session.pop(OWNER_SESSION_ID_KEY, None)
+            session.pop(OWNER_SESSION_EMAIL_KEY, None)
+            session.pop(OWNER_SESSION_NAME_KEY, None)
+            return redirect(url_for("owners_login", next=request.path))
+        g.owner_account = owner_account
         return view(*args, **kwargs)
 
     return wrapped
@@ -1442,8 +1586,11 @@ def owners_register():
                     "Owner account created. Magic link flow pending for %s",
                     saved_account["email"],
                 )
+                magic_token = _create_owner_magic_token(saved_account["email"])
+                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
+                _queue_owner_magic_link_email(saved_account["email"], login_url)
             submitted = True
-            return redirect(url_for("owners_login", registered="1"))
+            return redirect(url_for("owners_login", registered="1", magic_sent="1"))
 
     return render_template(
         "owners_register.html",
@@ -1455,28 +1602,53 @@ def owners_register():
 
 @app.route("/owners/login", methods=["GET", "POST"])
 def owners_login():
-    form_values = {"email": "", "password": ""}
+    form_values = {"email": ""}
     errors = {}
 
     if request.method == "POST":
         form_values["email"] = str(request.form.get("email", "")).strip()
-        form_values["password"] = str(request.form.get("password", "")).strip()
         if not form_values["email"]:
             errors["email"] = "emailRequiredError"
-        if not form_values["password"]:
-            errors["password"] = "passwordRequiredError"
         if not errors:
-            email_matches = form_values["email"].lower() == OWNER_DEMO_LOGIN_EMAIL.lower()
-            password_matches = form_values["password"] == OWNER_DEMO_LOGIN_PASSWORD
-            if email_matches and password_matches:
-                session[OWNER_SESSION_LOGGED_IN_KEY] = True
-                session[OWNER_SESSION_ID_KEY] = OWNER_DEMO_PROFILE["id"]
-                session[OWNER_SESSION_EMAIL_KEY] = OWNER_DEMO_PROFILE["email"]
-                session[OWNER_SESSION_NAME_KEY] = OWNER_DEMO_PROFILE["full_name"]
-                return redirect(url_for("owners_dashboard"))
-            errors["credentials"] = "ownerDemoCredentialsError"
+            owner_account = _find_owner_account_by_email(form_values["email"])
+            if not owner_account:
+                errors["email"] = "ownerAccountNotFoundError"
+            else:
+                magic_token = _create_owner_magic_token(owner_account["email"])
+                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
+                _queue_owner_magic_link_email(owner_account["email"], login_url)
+                return redirect(url_for("owners_login", magic_sent="1"))
 
     return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
+
+
+@app.get("/auth/owner-magic/<token>")
+def owner_magic_login(token):
+    token_record = _find_owner_magic_token(token)
+    if not token_record:
+        return redirect(url_for("owners_login", invalid_token="1"))
+
+    owner_account = _find_owner_account_by_email(token_record.get("email", ""))
+    if not owner_account:
+        _consume_owner_magic_token(token)
+        return redirect(url_for("owners_login", invalid_token="1"))
+
+    created_at = _parse_iso_datetime(token_record.get("created_at", ""))
+    if not created_at:
+        _consume_owner_magic_token(token)
+        return redirect(url_for("owners_login", invalid_token="1"))
+
+    expires_at = created_at + timedelta(minutes=OWNER_MAGIC_LINK_TTL_MINUTES)
+    if datetime.now(timezone.utc) >= expires_at:
+        _consume_owner_magic_token(token)
+        return redirect(url_for("owners_login", expired_token="1"))
+
+    session[OWNER_SESSION_LOGGED_IN_KEY] = True
+    session[OWNER_SESSION_ID_KEY] = owner_account.get("id", "")
+    session[OWNER_SESSION_EMAIL_KEY] = owner_account.get("email", "")
+    session[OWNER_SESSION_NAME_KEY] = owner_account.get("full_name", "")
+    _consume_owner_magic_token(token)
+    return redirect(url_for("owners_dashboard"))
 
 
 @app.route("/owners/dashboard")

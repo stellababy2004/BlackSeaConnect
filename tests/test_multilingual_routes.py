@@ -29,13 +29,31 @@ class MultilingualRouteTests(unittest.TestCase):
         )
 
     def _login_owner(self):
-        return self.client.post(
-            "/owners/login",
-            data={
-                "email": "owner@blackseaconnect.com",
-                "password": "demo1234",
-            },
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        (data_dir / "owner_accounts.jsonl").write_text(
+            json.dumps(
+                {
+                    "id": "owner-1",
+                    "created_at": "2026-06-15T10:00:00Z",
+                    "full_name": "Elena Petrova",
+                    "email": "owner@example.com",
+                    "phone": "+359888111222",
+                    "property_type": "Villa",
+                    "city": "Varna",
+                    "property_name": "Sea View Villa",
+                    "number_of_units": 2,
+                    "notes": "",
+                },
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
         )
+        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        token_path = data_dir / "owner_magic_tokens.jsonl"
+        token = json.loads(token_path.read_text(encoding="utf-8").strip().splitlines()[-1])["token"]
+        return self.client.get(f"/auth/owner-magic/{token}")
 
     def test_supported_routes_return_200_and_language_controls(self):
         routes = {
