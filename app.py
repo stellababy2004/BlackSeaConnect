@@ -1438,12 +1438,12 @@ def owners_register():
             }
             saved_account = _upsert_owner_account(account)
             if saved_account:
-                session[OWNER_SESSION_ID_KEY] = saved_account["id"]
-                session[OWNER_SESSION_EMAIL_KEY] = saved_account["email"]
-                session[OWNER_SESSION_NAME_KEY] = saved_account["full_name"]
-                session[OWNER_SESSION_LOGGED_IN_KEY] = True
+                app.logger.info(
+                    "Owner account created. Magic link flow pending for %s",
+                    saved_account["email"],
+                )
             submitted = True
-            return redirect(url_for("owners_dashboard"))
+            return redirect(url_for("owners_login", registered="1"))
 
     return render_template(
         "owners_register.html",

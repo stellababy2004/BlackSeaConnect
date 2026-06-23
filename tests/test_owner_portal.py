@@ -177,7 +177,11 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.post("/owners/register", data=self._owner_payload())
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/dashboard")
+        self.assertIn("/owners/login?registered=1", response.headers["Location"])
+
+        with self.client.session_transaction() as sess:
+            self.assertNotIn("owner_logged_in", sess)
+            self.assertNotIn("owner_id", sess)
 
         accounts = self._read_jsonl("owner_accounts.jsonl")
         self.assertEqual(len(accounts), 1)
