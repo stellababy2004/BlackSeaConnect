@@ -659,6 +659,20 @@ def _consume_owner_magic_token(token):
     return True
 
 
+def _mask_email(email):
+    raw_email = str(email or "").strip()
+    if not raw_email or "@" not in raw_email:
+        return "unknown"
+
+    local_part, domain_part = raw_email.split("@", 1)
+    if not local_part or not domain_part:
+        return "unknown"
+
+    visible_prefix = local_part[0]
+    masked_suffix = "*" * max(1, min(len(local_part) - 1, 7))
+    return f"{visible_prefix}{masked_suffix}@{domain_part}"
+
+
 def _normalize_service_request_status(status):
     normalized = str(status or "").strip().lower()
     normalized = SERVICE_REQUEST_STATUS_ALIASES.get(normalized, normalized)
@@ -1059,7 +1073,7 @@ def _owner_magic_link_email_message(email, login_url, language):
 def _send_owner_magic_link_with_language(email, login_url, language):
     smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
     if not smtp_host or not smtp_port_raw or not smtp_from or not email:
-        app.logger.warning("Owner magic link email skipped: SMTP configuration missing for %s.", email or "unknown")
+        app.logger.warning("Owner magic link email skipped for %s: SMTP configuration missing.", _mask_email(email))
         return False
 
     try:
@@ -1093,9 +1107,9 @@ def _send_owner_magic_link_with_language(email, login_url, language):
                 smtp.login(smtp_username, smtp_password)
 
             smtp.send_message(message)
-            app.logger.info("Owner magic link email sent to %s", email)
+            app.logger.warning("Owner magic link email sent to %s", _mask_email(email))
     except Exception as exc:
-        app.logger.warning("Owner magic link email send failed for %s: %s", email, type(exc).__name__)
+        app.logger.warning("Owner magic link email failed for %s: %s", _mask_email(email), type(exc).__name__)
         return False
 
     return True
@@ -1806,15 +1820,15 @@ def owners_register():
             if saved_account:
                 app.logger.info(
                     "Owner account created. Magic link flow pending for %s",
-                    saved_account["email"],
+                    _mask_email(saved_account["email"]),
                 )
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
                 _queue_owner_magic_link_email(saved_account["email"], login_url, email_language)
-                app.logger.info("Owner magic link queued for %s: %s", saved_account["email"], login_url)
+                app.logger.warning("Owner magic link queued for %s", _mask_email(saved_account["email"]))
             submitted = True
-            return redirect(url_for("owners_login", registered="1", magic_sent="1"))
+            return redirect(url_for("owners_login", registered="1", magic_sent="1", magic_recipient=_mask_email(saved_account["email"])))
 
     return render_template(
         "owners_register.html",
@@ -1836,14 +1850,15 @@ def owners_login():
         if not errors:
             owner_account = _find_owner_account_by_email(form_values["email"])
             if not owner_account:
-                errors["email"] = "ownerAccountNotFoundError"
+                app.logger.warning("Owner magic link requested for unknown email: %s", _mask_email(form_values["email"]))
+                return redirect(url_for("owners_login", magic_sent="1"))
             else:
                 magic_token = _create_owner_magic_token(owner_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
                 _queue_owner_magic_link_email(owner_account["email"], login_url, email_language)
-                app.logger.info("Owner magic link queued for %s: %s", owner_account["email"], login_url)
-                return redirect(url_for("owners_login", magic_sent="1"))
+                app.logger.warning("Owner magic link queued for %s", _mask_email(owner_account["email"]))
+                return redirect(url_for("owners_login", magic_sent="1", magic_recipient=_mask_email(owner_account["email"])))
 
     return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
 

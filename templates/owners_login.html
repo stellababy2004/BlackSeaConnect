@@ -99,14 +99,20 @@
       {% if request.args.get('registered') == '1' %}
         <div class="owner-login-banner owner-login-banner--success" role="status">
           <strong data-i18n="ownerLoginRegisteredBannerTitle">Registration received.</strong>
-          <p data-i18n="ownerLoginRegisteredBannerCopy">Your owner account is ready and a secure sign-in link has been sent.</p>
+          {% if request.args.get('magic_recipient') %}
+            <p data-i18n="ownerLoginRegisteredRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
+          {% else %}
+            <p data-i18n="ownerLoginRegisteredBannerCopy">Your owner account is ready and a secure sign-in link has been sent.</p>
+          {% endif %}
         </div>
-      {% endif %}
-
-      {% if request.args.get('magic_sent') == '1' %}
+      {% elif request.args.get('magic_sent') == '1' %}
         <div class="owner-login-banner owner-login-banner--info" role="status">
           <strong data-i18n="ownerLoginMagicSentBannerTitle">Check your email.</strong>
-          <p data-i18n="ownerLoginMagicSentBannerCopy">A secure sign-in link has been sent and expires in 30 minutes.</p>
+          {% if request.args.get('magic_recipient') %}
+            <p data-i18n="ownerLoginMagicSentRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
+          {% else %}
+            <p data-i18n="ownerLoginMagicSentGenericCopy">Ако имейлът е регистриран, ще получите защитен линк.</p>
+          {% endif %}
         </div>
       {% endif %}
 

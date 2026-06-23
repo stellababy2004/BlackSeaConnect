@@ -8,7 +8,7 @@ from pathlib import Path
 import uuid
 from unittest.mock import patch
 
-from app import app
+from app import app, _mask_email
 
 
 class FakeSMTP:
@@ -138,7 +138,7 @@ class OwnerPortalTests(unittest.TestCase):
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+        self.assertEqual(response.headers["Location"], f"/owners/login?magic_sent=1&magic_recipient={_mask_email(email)}")
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertTrue(tokens)
@@ -155,7 +155,7 @@ class OwnerPortalTests(unittest.TestCase):
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+        self.assertEqual(response.headers["Location"], f"/owners/login?magic_sent=1&magic_recipient={_mask_email(email)}")
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertTrue(tokens)
@@ -223,6 +223,12 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
+        self.assertIn(f"magic_recipient={_mask_email('owner@example.com')}", response.headers["Location"])
+
+        page = self.client.get(response.headers["Location"])
+        self.assertEqual(page.status_code, 200)
+        html = page.get_data(as_text=True)
+        self.assertIn(f"Изпратихме защитен линк до {_mask_email('owner@example.com')}. Проверете входящата поща и Spam.", html)
 
         with self.client.session_transaction() as sess:
             self.assertNotIn("owner_logged_in", sess)
@@ -490,10 +496,14 @@ class OwnerPortalTests(unittest.TestCase):
     def test_owner_login_rejects_unknown_email(self):
         response = self.client.post("/owners/login", data={"email": "missing@example.com"})
 
-        self.assertEqual(response.status_code, 400)
-        html = response.get_data(as_text=True)
-        self.assertIn('data-i18n="ownerAccountNotFoundError"', html)
-        self.assertIn('body class="owner-portal-page owner-login-page"', html)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+
+        page = self.client.get(response.headers["Location"])
+        self.assertEqual(page.status_code, 200)
+        html = page.get_data(as_text=True)
+        self.assertIn("Ако имейлът е регистриран, ще получите защитен линк.", html)
+        self.assertNotIn("ownerAccountNotFoundError", html)
 
     def test_owner_login_sends_magic_flow(self):
         self._seed_owner_account()
@@ -501,12 +511,22 @@ class OwnerPortalTests(unittest.TestCase):
             response = self.client.post("/owners/login", data=self._demo_login_payload())
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+        self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn(f"magic_recipient={_mask_email('owner@blackseaconnect.com')}", response.headers["Location"])
+
+        page = self.client.get(response.headers["Location"])
+        self.assertEqual(page.status_code, 200)
+        html = page.get_data(as_text=True)
+        self.assertIn(f"Изпратихме защитен линк до {_mask_email('owner@blackseaconnect.com')}. Проверете входящата поща и Spam.", html)
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0]["email"], "owner@blackseaconnect.com")
         self.assertEqual(len(FakeSMTP.sent_messages), 1)
+
+    def test_mask_email_helper(self):
+        self.assertEqual(_mask_email("stoyanova@orange.fr"), "s*******@orange.fr")
+        self.assertEqual(_mask_email("ab@example.com"), "a*@example.com")
 
     def test_owner_magic_link_logs_user_in(self):
         _, token = self._request_owner_magic_link()
