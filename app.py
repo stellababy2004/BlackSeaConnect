@@ -555,6 +555,22 @@ def _ensure_owner_account_exists(record):
     return _upsert_owner_account(record)
 
 
+def _seed_owner_account_if_missing(seed_record):
+    target_email = str(seed_record.get("email", "")).strip().lower()
+    if not target_email:
+        return None, False
+
+    existing_account = _find_owner_account_by_email(target_email)
+    if existing_account:
+        app.logger.info("Admin owner seed skipped; account already exists for %s", _mask_email(target_email))
+        return existing_account, False
+
+    seeded_account = _ensure_owner_account_exists(seed_record)
+    if seeded_account:
+        app.logger.info("Admin owner seed created account for %s", _mask_email(target_email))
+    return seeded_account, True
+
+
 def _owner_property_fallback_id(record):
     name = str(record.get("name", "")).strip().lower()
     location = str(record.get("location", "")).strip().lower()
@@ -2988,12 +3004,12 @@ def admin_seed_owner():
         "number_of_units": 1,
         "notes": "Seeded from admin probe.",
     }
-    owner_account = _ensure_owner_account_exists(seed_record)
+    owner_account, created = _seed_owner_account_if_missing(seed_record)
     if not owner_account:
         app.logger.warning("Admin owner seed failed for %s", _mask_email(seed_record["email"]))
         return _admin_auth_response(500, "Failed to seed owner account.")
 
-    app.logger.info("Admin owner seed completed for %s", _mask_email(seed_record["email"]))
+    app.logger.info("Admin owner seed completed for %s (created=%s)", _mask_email(seed_record["email"]), created)
     return redirect(url_for("admin_owner_accounts"))
 
 

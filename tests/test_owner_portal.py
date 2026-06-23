@@ -727,6 +727,22 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("delivery=sent", login_response.headers["Location"])
         self.assertIn("magic_recipient=", login_response.headers["Location"])
 
+    def test_admin_seed_owner_is_idempotent(self):
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            first = self.client.post("/admin/seed-owner", headers=self._auth_headers())
+            second = self.client.post("/admin/seed-owner", headers=self._auth_headers())
+
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Count: 1", html)
+        self.assertEqual(html.count("stoyanova@orange.fr"), 1)
+
     def test_admin_owner_magic_events_page_requires_admin(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             response = self.client.get("/admin/owner-magic-events")
