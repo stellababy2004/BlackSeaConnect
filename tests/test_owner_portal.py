@@ -340,6 +340,19 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Добавете първия си имот, за да започнем оперативната подготовка.", html)
         self.assertIn('href="/owners/property/new?lang=bg"', html)
 
+    def test_owner_dashboard_renders_french_copy_and_preserves_lang_links(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners/dashboard?lang=fr")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('<html lang="fr">', html)
+        self.assertIn("Aperçu premium du bien.", html)
+        self.assertIn("Retour au site", html)
+        self.assertIn('href="/owners/request-service?lang=fr"', html)
+        self.assertIn('href="/owners/property/new?lang=fr"', html)
+
     def test_owner_property_creation_saves_and_redirects(self):
         self._login_owner_via_magic(seed_property=False)
 
@@ -444,7 +457,8 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Sea View Villa", html)
         self.assertIn("Marina Apartment", html)
         self.assertIn("Sveti Vlas", html)
-        self.assertIn("seasonal", html.lower())
+        self.assertIn("Сезонен", html)
+        self.assertIn("Целогодишен", html)
 
     def test_owner_dashboard_shows_onboarding_progress_after_first_property(self):
         self._seed_owner_account()
@@ -455,7 +469,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("ownerOnboardingProgressTitle", html)
+        self.assertIn("Подготвяме операциите на имота ви.", html)
         self.assertIn("50%", html)
 
     def test_owner_login_and_dashboard_visibility(self):

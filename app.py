@@ -1746,147 +1746,684 @@ def _owner_portal_metric_value_with_key(value, fallback_label, fallback_key):
     return rendered_value, (fallback_key if rendered_value == fallback_label else "")
 
 
-def _owner_portal_activity_timeline(owner_requests):
-    demo_items = [
-        {
-            "label": "Cleaning completed",
-            "label_key": "ownerDashboardCleaningCompletedTimeline",
-            "detail": "The latest turnover was closed for your property.",
-            "detail_key": "ownerDashboardCleaningCompletedTimelineDetail",
-            "time": "Today",
-            "time_key": "ownerDashboardTimelineToday",
-            "tone": "success",
+def _owner_dashboard_copy(lang):
+    copy = {
+        "bg": {
+            "page_title": "BlackSea Connect | Табло на собственик",
+            "page_meta": "Премиум табло за имотите, операциите и услугите ви.",
+            "nav_portal": "Табло",
+            "nav_request_service": "Заявка за услуга",
+            "nav_logout": "Изход",
+            "nav_home": "Обратно към сайта",
+            "nav_services": "Услуги",
+            "nav_partners": "Партньори",
+            "nav_pilot_access": "Пилотен достъп",
+            "profile_profile": "Профил",
+            "profile_properties": "Имотите",
+            "profile_logout": "Изход",
+            "hero_eyebrow": "Портал за собственици",
+            "hero_title": "Премиум поглед към имота.",
+            "hero_copy": "Проследявайте имотите, задачите и оперативната готовност в един спокоен изглед.",
+            "hero_summary_line": "Личен преглед на вашите оперативни процеси.",
+            "hero_empty_hint": "Добавете първия си имот, за да започнем оперативната подготовка.",
+            "empty_activity_copy": "Все още няма заявки за услуги. Таблото ще покаже всяка заявка веднага след изпращане.",
+            "hero_primary_cta": "Заяви услуга",
+            "hero_secondary_cta": "Изход",
+            "property_status_label": "Статус на имота",
+            "location_label": "Локация",
+            "property_type_label": "Тип имот",
+            "property_name_label": "Име на имота",
+            "city_label": "Град",
+            "status_label": "Статус",
+            "bedrooms_label": "Спални",
+            "bathrooms_label": "Бани",
+            "capacity_label": "Капацитет",
+            "units_label": "Единици",
+            "operating_mode_label": "Режим на работа",
+            "mode_year_round": "Целогодишен",
+            "mode_seasonal": "Сезонен",
+            "property_type_residence": "Крайбрежна резиденция",
+            "location_pending": "Локацията предстои",
+            "status_active": "Активен",
+            "status_seasonal": "Сезонен",
+            "status_setup": "Настройка",
+            "status_paused": "Пауза",
+            "status_maintenance": "Поддръжка",
+            "status_note_active": "Активни оперативни обновления",
+            "status_note_seasonal": "Спокойно сезонно наблюдение",
+            "status_note_setup": "Подготвяме първите оперативни стъпки",
+            "status_note_paused": "Обектът е временно поставен на пауза",
+            "status_note_maintenance": "Проследяване на текуща поддръжка",
+            "empty_state_title": "Добре дошли в BlackSea Connect",
+            "empty_state_copy": "Добавете първия си имот, за да започнем оперативната подготовка.",
+            "empty_state_cta": "Добавете имот",
+            "onboarding_eyebrow": "Onboarding",
+            "onboarding_title": "Подготвяме операциите на имота ви.",
+            "onboarding_stage_property_added": "Имотът е добавен",
+            "onboarding_stage_information_reviewed": "Информацията е прегледана",
+            "onboarding_stage_operations_configured": "Операциите са конфигурирани",
+            "onboarding_stage_concierge_ready": "Concierge е готов",
+            "onboarding_pending": "В очакване",
+            "onboarding_complete": "Готово",
+            "ready": "Готово",
+            "properties_eyebrow": "Имотите",
+            "properties_title": "Вашите имоти",
+            "summary_eyebrow": "Преглед на имота",
+            "summary_title": "Всичко необходимо в един спокоен изглед.",
+            "property_health_eyebrow": "Състояние на имота",
+            "property_health_title": "Какво има нужда от внимание сега.",
+            "trusted_local_team_eyebrow": "Доверен местен екип",
+            "trusted_local_team_title": "Кой подкрепя имота.",
+            "assigned_operator_label": "Назначен оператор",
+            "assigned_operator_suffix": "операторски екип",
+            "concierge_contact_label": "Контакт за консиерж",
+            "service_partners_label": "Партньори за услуги",
+            "monthly_summary_eyebrow": "Месечно резюме",
+            "monthly_summary_title": "Кратък поглед към месеца.",
+            "performance_snapshot_eyebrow": "Снимка на ефективността",
+            "performance_snapshot_title": "Само оперативни индикатори.",
+            "activity_timeline_eyebrow": "Хронология на активността",
+            "activity_timeline_title": "Скорошна активност на имота.",
+            "quick_actions_eyebrow": "Бързи действия",
+            "quick_actions_title": "Действайте бързо, без да губите видимост.",
+            "notification_center_eyebrow": "Център за известия",
+            "notification_center_title": "Известия за имота, подготвени за бъдещето.",
+            "recent_updates_eyebrow": "Последни актуализации",
+            "recent_updates_title": "Последна сервисна активност.",
+            "footer_description": "Спокойни оперативни решения за крайбрежни имоти.",
+            "footer_meta": "Порталът за собственици събира видимостта на имота, заявките и обновленията в един спокоен поток.",
+            "upcoming_arrivals_label": "Предстоящи пристигания",
+            "upcoming_departures_label": "Предстоящи отпътувания",
+            "cleaning_completed_label": "Извършени почиствания",
+            "cleaning_pending_label": "Предстоящи почиствания",
+            "open_guest_requests_label": "Отворени заявки",
+            "maintenance_issues_label": "Проблеми за поддръжка",
+            "pending_actions_label": "Очакват действия",
+            "last_completed_task_label": "Последна завършена задача",
+            "arrivals_this_month_label": "Пристигания този месец",
+            "guest_requests_handled_label": "Обслужени заявки",
+            "tasks_completed_label": "Завършени задачи",
+            "average_response_time_label": "Средно време за реакция",
+            "nights_booked_this_month_label": "Нощувки този месец",
+            "upcoming_stays_label": "Предстоящи престои",
+            "completed_turnovers_label": "Завършени смени",
+            "request_cleaning": "Заяви почистване",
+            "request_inspection": "Заяви инспекция",
+            "request_maintenance": "Заяви поддръжка",
+            "contact_concierge": "Свържете се с консиерж",
+            "fast_turnover_support": "Бърза подкрепа за смяната",
+            "check_readiness": "Проверете готовността",
+            "keep_property_protected": "Поддържайте имота защитен",
+            "private_local_contact": "Поверителен местен контакт",
+            "projected": "Прогнозно",
+            "verified": "Проверено",
+            "open": "Отворено",
+            "needs_attention": "Искат внимание",
+            "service_review": "Преглед на услугата",
+            "operator_follow_up": "Проследяване от оператора",
+            "most_recent_closed_item": "Най-скорошна затворена задача",
+            "property_movement": "Движение на имота",
+            "live_resolved": "В реално време + приключени",
+            "confirmed": "Потвърдено",
+            "from_request_to_first_action": "От заявка до първо действие",
+            "operational": "Оперативно",
+            "next_arrivals": "Следващи пристигания",
+            "resolved": "Решени",
+            "today": "Днес",
+            "yesterday": "Вчера",
+            "this_week": "Тази седмица",
+            "scheduled": "Планирано",
+            "recently": "Наскоро",
+            "timeline_cleaning_completed": "Почистването е приключено",
+            "timeline_cleaning_completed_detail": "Последната смяна е затворена за вашия имот.",
+            "timeline_guest_checked_in": "Гостът е настанен",
+            "timeline_guest_checked_in_detail": "Координацията по пристигането е активна и готова.",
+            "timeline_maintenance_resolved": "Заявка за поддръжка е решена",
+            "timeline_maintenance_resolved_detail": "Местният екип приключи ремонтния прозорец.",
+            "timeline_airport_transfer_confirmed": "Потвърден е трансфер от летище",
+            "timeline_airport_transfer_confirmed_detail": "Подкрепата за посрещане е планирана и проследена.",
+            "timeline_property_inspection_completed": "Проверката на имота е приключена",
+            "timeline_property_inspection_completed_detail": "Оценката за готовност е одобрена.",
+            "timeline_cleaning_scheduled": "Почистване е планирано",
+            "timeline_cleaning_scheduled_detail": "Следващата смяна се подготвя внимателно.",
+            "timeline_property_update": "Актуализация на имота",
+            "timeline_property_update_detail": "Текущият статус се наблюдава.",
+            "request_id_label": "ID на заявката:",
+            "updated_label": "Обновено:",
+            "new_arrival": "Ново пристигане",
+            "welcome_coordination_ready": "Координацията за посрещане е готова.",
+            "cleaning_completed_notification": "Почистването е приключило",
+            "housekeeping_closed_latest_turn": "Екипът по почистването затвори последната смяна.",
+            "guest_issue_reported": "Съобщен е проблем от гост",
+            "concierge_can_step_in_immediately": "Консиержът може да реагира веднага.",
+            "maintenance_completed": "Поддръжката е завършена",
+            "local_team_wrapped_task": "Местният екип приключи задачата.",
+            "owner_status_new": "Нова",
+            "owner_status_assigned": "Назначена",
+            "owner_status_in_progress": "В процес",
+            "owner_status_completed": "Приключена",
+            "owner_status_cancelled": "Отменена",
         },
-        {
-            "label": "Guest checked in",
-            "label_key": "ownerDashboardGuestCheckedInTimeline",
-            "detail": "Arrival coordination is active and ready.",
-            "detail_key": "ownerDashboardGuestCheckedInTimelineDetail",
-            "time": "Yesterday",
-            "time_key": "ownerDashboardTimelineYesterday",
-            "tone": "arrival",
+        "en": {
+            "page_title": "BlackSea Connect | Owner Dashboard",
+            "page_meta": "Premium dashboard for your properties, operations, and services.",
+            "nav_portal": "Dashboard",
+            "nav_request_service": "Request service",
+            "nav_logout": "Logout",
+            "nav_home": "Back to site",
+            "nav_services": "Services",
+            "nav_partners": "Partners",
+            "nav_pilot_access": "Pilot access",
+            "profile_profile": "Profile",
+            "profile_properties": "Properties",
+            "profile_logout": "Logout",
+            "hero_eyebrow": "Owner portal",
+            "hero_title": "Premium property overview.",
+            "hero_copy": "Track properties, tasks, and operational readiness in one calm view.",
+            "hero_summary_line": "A private view of your property operations.",
+            "hero_empty_hint": "Add your first property to begin operational preparation.",
+            "empty_activity_copy": "There are no service requests yet. The dashboard will show each request as soon as it is submitted.",
+            "hero_primary_cta": "Request service",
+            "hero_secondary_cta": "Logout",
+            "property_status_label": "Property status",
+            "location_label": "Location",
+            "property_type_label": "Property type",
+            "property_name_label": "Property name",
+            "city_label": "City",
+            "status_label": "Status",
+            "bedrooms_label": "Bedrooms",
+            "bathrooms_label": "Bathrooms",
+            "capacity_label": "Capacity",
+            "units_label": "Units",
+            "operating_mode_label": "Operating mode",
+            "mode_year_round": "Year-round",
+            "mode_seasonal": "Seasonal",
+            "property_type_residence": "Coastal residence",
+            "location_pending": "Location pending",
+            "status_active": "Active",
+            "status_seasonal": "Seasonal",
+            "status_setup": "Setup",
+            "status_paused": "Paused",
+            "status_maintenance": "Maintenance",
+            "status_note_active": "Live operational updates",
+            "status_note_seasonal": "Quiet seasonal monitoring",
+            "status_note_setup": "Preparing the first operational steps",
+            "status_note_paused": "The property is temporarily paused",
+            "status_note_maintenance": "Tracking an active maintenance window",
+            "empty_state_title": "Welcome to BlackSea Connect",
+            "empty_state_copy": "Add your first property to begin operational preparation.",
+            "empty_state_cta": "Add property",
+            "onboarding_eyebrow": "Onboarding",
+            "onboarding_title": "Preparing your property operations.",
+            "onboarding_stage_property_added": "Property added",
+            "onboarding_stage_information_reviewed": "Information reviewed",
+            "onboarding_stage_operations_configured": "Operations configured",
+            "onboarding_stage_concierge_ready": "Concierge ready",
+            "onboarding_pending": "Pending",
+            "onboarding_complete": "Complete",
+            "ready": "Ready",
+            "properties_eyebrow": "Properties",
+            "properties_title": "Your properties",
+            "summary_eyebrow": "Property overview",
+            "summary_title": "Everything you need in one calm view.",
+            "property_health_eyebrow": "Property health",
+            "property_health_title": "What needs attention now.",
+            "trusted_local_team_eyebrow": "Trusted local team",
+            "trusted_local_team_title": "Who is supporting the property.",
+            "assigned_operator_label": "Assigned operator",
+            "assigned_operator_suffix": "operator desk",
+            "concierge_contact_label": "Concierge contact",
+            "service_partners_label": "Service partners",
+            "monthly_summary_eyebrow": "Monthly summary",
+            "monthly_summary_title": "A concise view of the month.",
+            "performance_snapshot_eyebrow": "Performance snapshot",
+            "performance_snapshot_title": "Operational indicators only.",
+            "activity_timeline_eyebrow": "Activity timeline",
+            "activity_timeline_title": "Recent property activity.",
+            "quick_actions_eyebrow": "Quick actions",
+            "quick_actions_title": "Move quickly without losing visibility.",
+            "notification_center_eyebrow": "Notification center",
+            "notification_center_title": "Future-ready alerts for the property.",
+            "recent_updates_eyebrow": "Recent updates",
+            "recent_updates_title": "Latest service activity.",
+            "footer_description": "Calm operational solutions for coastal properties.",
+            "footer_meta": "The owner portal brings property visibility, requests, and updates into one calm flow.",
+            "upcoming_arrivals_label": "Upcoming arrivals",
+            "upcoming_departures_label": "Upcoming departures",
+            "cleaning_completed_label": "Cleaning completed",
+            "cleaning_pending_label": "Cleaning pending",
+            "open_guest_requests_label": "Open guest requests",
+            "maintenance_issues_label": "Maintenance issues",
+            "pending_actions_label": "Pending actions",
+            "last_completed_task_label": "Last completed task",
+            "arrivals_this_month_label": "Arrivals this month",
+            "guest_requests_handled_label": "Guest requests handled",
+            "tasks_completed_label": "Tasks completed",
+            "average_response_time_label": "Average response time",
+            "nights_booked_this_month_label": "Nights booked this month",
+            "upcoming_stays_label": "Upcoming stays",
+            "completed_turnovers_label": "Completed turnovers",
+            "request_cleaning": "Request cleaning",
+            "request_inspection": "Request inspection",
+            "request_maintenance": "Request maintenance",
+            "contact_concierge": "Contact concierge",
+            "fast_turnover_support": "Fast turnover support",
+            "check_readiness": "Check readiness",
+            "keep_property_protected": "Keep the property protected",
+            "private_local_contact": "Private local contact",
+            "projected": "Projected",
+            "verified": "Verified",
+            "open": "Open",
+            "needs_attention": "Needs attention",
+            "service_review": "Service review",
+            "operator_follow_up": "Operator follow-up",
+            "most_recent_closed_item": "Most recent closed item",
+            "property_movement": "Property movement",
+            "live_resolved": "Live + resolved",
+            "confirmed": "Confirmed",
+            "from_request_to_first_action": "From request to first action",
+            "operational": "Operational",
+            "next_arrivals": "Next arrivals",
+            "resolved": "Resolved",
+            "today": "Today",
+            "yesterday": "Yesterday",
+            "this_week": "This week",
+            "scheduled": "Scheduled",
+            "recently": "Recently",
+            "timeline_cleaning_completed": "Cleaning completed",
+            "timeline_cleaning_completed_detail": "The latest turnover was closed for your property.",
+            "timeline_guest_checked_in": "Guest checked in",
+            "timeline_guest_checked_in_detail": "Arrival coordination is active and ready.",
+            "timeline_maintenance_resolved": "Maintenance request resolved",
+            "timeline_maintenance_resolved_detail": "The local team finished the repair window.",
+            "timeline_airport_transfer_confirmed": "Airport transfer confirmed",
+            "timeline_airport_transfer_confirmed_detail": "Pickup support is scheduled and tracked.",
+            "timeline_property_inspection_completed": "Property inspection completed",
+            "timeline_property_inspection_completed_detail": "The readiness review has been signed off.",
+            "timeline_cleaning_scheduled": "Cleaning scheduled",
+            "timeline_cleaning_scheduled_detail": "The next turnover is being prepared with care.",
+            "timeline_property_update": "Property update",
+            "timeline_property_update_detail": "Current status is being monitored.",
+            "request_id_label": "Request ID:",
+            "updated_label": "Updated:",
+            "new_arrival": "New arrival",
+            "welcome_coordination_ready": "Welcome coordination is ready.",
+            "cleaning_completed_notification": "Cleaning completed",
+            "housekeeping_closed_latest_turn": "Housekeeping closed the latest turn.",
+            "guest_issue_reported": "Guest issue reported",
+            "concierge_can_step_in_immediately": "Concierge can step in immediately.",
+            "maintenance_completed": "Maintenance completed",
+            "local_team_wrapped_task": "The local team has wrapped the task.",
+            "owner_status_new": "New",
+            "owner_status_assigned": "Assigned",
+            "owner_status_in_progress": "In progress",
+            "owner_status_completed": "Completed",
+            "owner_status_cancelled": "Cancelled",
         },
-        {
-            "label": "Maintenance request resolved",
-            "label_key": "ownerDashboardMaintenanceRequestResolvedTimeline",
-            "detail": "The local team finished the repair window.",
-            "detail_key": "ownerDashboardMaintenanceRequestResolvedTimelineDetail",
-            "time": "This week",
-            "time_key": "ownerDashboardTimelineThisWeek",
-            "tone": "maintenance",
+        "fr": {
+            "page_title": "BlackSea Connect | Tableau de bord propriétaire",
+            "page_meta": "Tableau premium pour vos biens, opérations et services.",
+            "nav_portal": "Tableau de bord",
+            "nav_request_service": "Demander un service",
+            "nav_logout": "Déconnexion",
+            "nav_home": "Retour au site",
+            "nav_services": "Services",
+            "nav_partners": "Partenaires",
+            "nav_pilot_access": "Accès pilote",
+            "profile_profile": "Profil",
+            "profile_properties": "Biens",
+            "profile_logout": "Déconnexion",
+            "hero_eyebrow": "Espace propriétaire",
+            "hero_title": "Aperçu premium du bien.",
+            "hero_copy": "Suivez les biens, les tâches et la préparation opérationnelle dans une vue apaisée.",
+            "hero_summary_line": "Une vue privée des opérations de votre bien.",
+            "hero_empty_hint": "Ajoutez votre premier bien pour lancer la préparation opérationnelle.",
+            "empty_activity_copy": "Aucune demande de service pour le moment. Le tableau affichera chaque demande dès son envoi.",
+            "hero_primary_cta": "Demander un service",
+            "hero_secondary_cta": "Déconnexion",
+            "property_status_label": "Statut du bien",
+            "location_label": "Localisation",
+            "property_type_label": "Type de bien",
+            "property_name_label": "Nom du bien",
+            "city_label": "Ville",
+            "status_label": "Statut",
+            "bedrooms_label": "Chambres",
+            "bathrooms_label": "Salles de bain",
+            "capacity_label": "Capacité",
+            "units_label": "Unités",
+            "operating_mode_label": "Mode d’exploitation",
+            "mode_year_round": "Toute l’année",
+            "mode_seasonal": "Saisonnier",
+            "property_type_residence": "Résidence côtière",
+            "location_pending": "Localisation à renseigner",
+            "status_active": "Actif",
+            "status_seasonal": "Saisonnier",
+            "status_setup": "Configuration",
+            "status_paused": "En pause",
+            "status_maintenance": "Maintenance",
+            "status_note_active": "Mises à jour opérationnelles en direct",
+            "status_note_seasonal": "Surveillance saisonnière calme",
+            "status_note_setup": "Préparation des premières étapes opérationnelles",
+            "status_note_paused": "Le bien est temporairement en pause",
+            "status_note_maintenance": "Suivi d’une maintenance en cours",
+            "empty_state_title": "Bienvenue chez BlackSea Connect",
+            "empty_state_copy": "Ajoutez votre premier bien pour lancer la préparation opérationnelle.",
+            "empty_state_cta": "Ajouter un bien",
+            "onboarding_eyebrow": "Onboarding",
+            "onboarding_title": "Préparation des opérations du bien.",
+            "onboarding_stage_property_added": "Bien ajouté",
+            "onboarding_stage_information_reviewed": "Informations vérifiées",
+            "onboarding_stage_operations_configured": "Opérations configurées",
+            "onboarding_stage_concierge_ready": "Concierge prêt",
+            "onboarding_pending": "En attente",
+            "onboarding_complete": "Terminé",
+            "ready": "Prêt",
+            "properties_eyebrow": "Biens",
+            "properties_title": "Vos biens",
+            "summary_eyebrow": "Aperçu du bien",
+            "summary_title": "Tout ce qu’il faut dans une vue sereine.",
+            "property_health_eyebrow": "État du bien",
+            "property_health_title": "Ce qui demande de l’attention maintenant.",
+            "trusted_local_team_eyebrow": "Équipe locale de confiance",
+            "trusted_local_team_title": "Qui soutient le bien.",
+            "assigned_operator_label": "Opérateur assigné",
+            "assigned_operator_suffix": "bureau opérateur",
+            "concierge_contact_label": "Contact concierge",
+            "service_partners_label": "Partenaires de service",
+            "monthly_summary_eyebrow": "Résumé mensuel",
+            "monthly_summary_title": "Une vue concise du mois.",
+            "performance_snapshot_eyebrow": "Vue d’ensemble des performances",
+            "performance_snapshot_title": "Indicateurs opérationnels uniquement.",
+            "activity_timeline_eyebrow": "Chronologie de l’activité",
+            "activity_timeline_title": "Activité récente du bien.",
+            "quick_actions_eyebrow": "Actions rapides",
+            "quick_actions_title": "Agissez vite sans perdre en visibilité.",
+            "notification_center_eyebrow": "Centre de notifications",
+            "notification_center_title": "Alertes prêtes pour l’avenir.",
+            "recent_updates_eyebrow": "Mises à jour récentes",
+            "recent_updates_title": "Dernière activité de service.",
+            "footer_description": "Solutions opérationnelles apaisées pour les biens côtiers.",
+            "footer_meta": "Le portail propriétaire réunit la visibilité du bien, les demandes et les mises à jour dans un seul flux serein.",
+            "upcoming_arrivals_label": "Arrivées à venir",
+            "upcoming_departures_label": "Départs à venir",
+            "cleaning_completed_label": "Ménages terminés",
+            "cleaning_pending_label": "Ménages à venir",
+            "open_guest_requests_label": "Demandes ouvertes",
+            "maintenance_issues_label": "Problèmes de maintenance",
+            "pending_actions_label": "Actions en attente",
+            "last_completed_task_label": "Dernière tâche terminée",
+            "arrivals_this_month_label": "Arrivées ce mois-ci",
+            "guest_requests_handled_label": "Demandes traitées",
+            "tasks_completed_label": "Tâches terminées",
+            "average_response_time_label": "Temps de réponse moyen",
+            "nights_booked_this_month_label": "Nuits réservées ce mois-ci",
+            "upcoming_stays_label": "Séjours à venir",
+            "completed_turnovers_label": "Rotations terminées",
+            "request_cleaning": "Demander le ménage",
+            "request_inspection": "Demander une inspection",
+            "request_maintenance": "Demander une maintenance",
+            "contact_concierge": "Contacter le concierge",
+            "fast_turnover_support": "Soutien rapide à la rotation",
+            "check_readiness": "Vérifier la préparation",
+            "keep_property_protected": "Protéger le bien",
+            "private_local_contact": "Contact local privé",
+            "projected": "Prévu",
+            "verified": "Vérifié",
+            "open": "Ouvert",
+            "needs_attention": "Nécessite de l’attention",
+            "service_review": "Revue du service",
+            "operator_follow_up": "Suivi de l’opérateur",
+            "most_recent_closed_item": "Dernière tâche clôturée",
+            "property_movement": "Mouvement du bien",
+            "live_resolved": "En direct + résolu",
+            "confirmed": "Confirmé",
+            "from_request_to_first_action": "De la demande à la première action",
+            "operational": "Opérationnel",
+            "next_arrivals": "Prochaines arrivées",
+            "resolved": "Résolu",
+            "today": "Aujourd’hui",
+            "yesterday": "Hier",
+            "this_week": "Cette semaine",
+            "scheduled": "Planifié",
+            "recently": "Récemment",
+            "timeline_cleaning_completed": "Ménage terminé",
+            "timeline_cleaning_completed_detail": "La dernière rotation a été clôturée pour votre bien.",
+            "timeline_guest_checked_in": "Arrivée du client confirmée",
+            "timeline_guest_checked_in_detail": "La coordination d’arrivée est active et prête.",
+            "timeline_maintenance_resolved": "Demande de maintenance résolue",
+            "timeline_maintenance_resolved_detail": "L’équipe locale a terminé la fenêtre de réparation.",
+            "timeline_airport_transfer_confirmed": "Transfert aéroport confirmé",
+            "timeline_airport_transfer_confirmed_detail": "L’accompagnement à l’arrivée est planifié et suivi.",
+            "timeline_property_inspection_completed": "Inspection du bien terminée",
+            "timeline_property_inspection_completed_detail": "La revue de préparation a été validée.",
+            "timeline_cleaning_scheduled": "Ménage planifié",
+            "timeline_cleaning_scheduled_detail": "La prochaine rotation est préparée avec soin.",
+            "timeline_property_update": "Mise à jour du bien",
+            "timeline_property_update_detail": "Le statut actuel est surveillé.",
+            "request_id_label": "ID de demande :",
+            "updated_label": "Mis à jour :",
+            "new_arrival": "Nouvelle arrivée",
+            "welcome_coordination_ready": "La coordination d’accueil est prête.",
+            "cleaning_completed_notification": "Ménage terminé",
+            "housekeeping_closed_latest_turn": "Le ménage a clôturé la dernière rotation.",
+            "guest_issue_reported": "Incident client signalé",
+            "concierge_can_step_in_immediately": "Le concierge peut intervenir immédiatement.",
+            "maintenance_completed": "Maintenance terminée",
+            "local_team_wrapped_task": "L’équipe locale a terminé la tâche.",
+            "owner_status_new": "Nouveau",
+            "owner_status_assigned": "Attribué",
+            "owner_status_in_progress": "En cours",
+            "owner_status_completed": "Terminé",
+            "owner_status_cancelled": "Annulé",
         },
-        {
-            "label": "Airport transfer confirmed",
-            "label_key": "ownerDashboardAirportTransferConfirmedTimeline",
-            "detail": "Pickup support is scheduled and tracked.",
-            "detail_key": "ownerDashboardAirportTransferConfirmedTimelineDetail",
-            "time": "Scheduled",
-            "time_key": "ownerDashboardTimelineScheduled",
-            "tone": "transport",
+        "ru": {
+            "page_title": "BlackSea Connect | Панель владельца",
+            "page_meta": "Премиальная панель для ваших объектов, операций и услуг.",
+            "nav_portal": "Панель",
+            "nav_request_service": "Запросить услугу",
+            "nav_logout": "Выйти",
+            "nav_home": "Вернуться на сайт",
+            "nav_services": "Услуги",
+            "nav_partners": "Партнёры",
+            "nav_pilot_access": "Пилотный доступ",
+            "profile_profile": "Профиль",
+            "profile_properties": "Объекты",
+            "profile_logout": "Выйти",
+            "hero_eyebrow": "Портал владельца",
+            "hero_title": "Премиальный обзор объекта.",
+            "hero_copy": "Отслеживайте объекты, задачи и оперативную готовность в одном спокойном виде.",
+            "hero_summary_line": "Приватный обзор операций вашего объекта.",
+            "hero_empty_hint": "Добавьте первый объект, чтобы начать операционную подготовку.",
+            "empty_activity_copy": "Пока нет сервисных запросов. Панель покажет каждый запрос сразу после отправки.",
+            "hero_primary_cta": "Запросить услугу",
+            "hero_secondary_cta": "Выйти",
+            "property_status_label": "Статус объекта",
+            "location_label": "Локация",
+            "property_type_label": "Тип объекта",
+            "property_name_label": "Название объекта",
+            "city_label": "Город",
+            "status_label": "Статус",
+            "bedrooms_label": "Спальни",
+            "bathrooms_label": "Ванные",
+            "capacity_label": "Вместимость",
+            "units_label": "Единицы",
+            "operating_mode_label": "Режим работы",
+            "mode_year_round": "Круглый год",
+            "mode_seasonal": "Сезонный",
+            "property_type_residence": "Курортная резиденция",
+            "location_pending": "Локация уточняется",
+            "status_active": "Активен",
+            "status_seasonal": "Сезонный",
+            "status_setup": "Настройка",
+            "status_paused": "Приостановлен",
+            "status_maintenance": "Обслуживание",
+            "status_note_active": "Актуальные операционные обновления",
+            "status_note_seasonal": "Спокойный сезонный мониторинг",
+            "status_note_setup": "Подготавливаем первые операционные шаги",
+            "status_note_paused": "Объект временно приостановлен",
+            "status_note_maintenance": "Отслеживается активное окно обслуживания",
+            "empty_state_title": "Добро пожаловать в BlackSea Connect",
+            "empty_state_copy": "Добавьте первый объект, чтобы начать операционную подготовку.",
+            "empty_state_cta": "Добавить объект",
+            "onboarding_eyebrow": "Onboarding",
+            "onboarding_title": "Подготовка операций объекта.",
+            "onboarding_stage_property_added": "Объект добавлен",
+            "onboarding_stage_information_reviewed": "Информация проверена",
+            "onboarding_stage_operations_configured": "Операции настроены",
+            "onboarding_stage_concierge_ready": "Консьерж готов",
+            "onboarding_pending": "В ожидании",
+            "onboarding_complete": "Готово",
+            "ready": "Готово",
+            "properties_eyebrow": "Объекты",
+            "properties_title": "Ваши объекты",
+            "summary_eyebrow": "Обзор объекта",
+            "summary_title": "Всё необходимое в одном спокойном виде.",
+            "property_health_eyebrow": "Состояние объекта",
+            "property_health_title": "Что требует внимания сейчас.",
+            "trusted_local_team_eyebrow": "Надёжная местная команда",
+            "trusted_local_team_title": "Кто поддерживает объект.",
+            "assigned_operator_label": "Назначенный оператор",
+            "assigned_operator_suffix": "операторский отдел",
+            "concierge_contact_label": "Контакт консьержа",
+            "service_partners_label": "Партнёры по услугам",
+            "monthly_summary_eyebrow": "Ежемесячная сводка",
+            "monthly_summary_title": "Краткий обзор месяца.",
+            "performance_snapshot_eyebrow": "Снимок эффективности",
+            "performance_snapshot_title": "Только операционные индикаторы.",
+            "activity_timeline_eyebrow": "Хронология активности",
+            "activity_timeline_title": "Недавняя активность объекта.",
+            "quick_actions_eyebrow": "Быстрые действия",
+            "quick_actions_title": "Действуйте быстро, не теряя видимость.",
+            "notification_center_eyebrow": "Центр уведомлений",
+            "notification_center_title": "Уведомления, готовые к будущему.",
+            "recent_updates_eyebrow": "Последние обновления",
+            "recent_updates_title": "Последняя сервисная активность.",
+            "footer_description": "Спокойные операционные решения для объектов у моря.",
+            "footer_meta": "Портал владельца объединяет видимость объекта, запросы и обновления в один спокойный поток.",
+            "upcoming_arrivals_label": "Предстоящие заезды",
+            "upcoming_departures_label": "Предстоящие выезды",
+            "cleaning_completed_label": "Завершённые уборки",
+            "cleaning_pending_label": "Уборки в ожидании",
+            "open_guest_requests_label": "Открытые запросы гостей",
+            "maintenance_issues_label": "Проблемы обслуживания",
+            "pending_actions_label": "Ожидают действий",
+            "last_completed_task_label": "Последняя завершённая задача",
+            "arrivals_this_month_label": "Заезды в этом месяце",
+            "guest_requests_handled_label": "Обработанные запросы гостей",
+            "tasks_completed_label": "Завершённые задачи",
+            "average_response_time_label": "Среднее время отклика",
+            "nights_booked_this_month_label": "Ночей забронировано в этом месяце",
+            "upcoming_stays_label": "Предстоящие проживания",
+            "completed_turnovers_label": "Завершённые смены",
+            "request_cleaning": "Запросить уборку",
+            "request_inspection": "Запросить инспекцию",
+            "request_maintenance": "Запросить обслуживание",
+            "contact_concierge": "Связаться с консьержем",
+            "fast_turnover_support": "Быстрая поддержка смены",
+            "check_readiness": "Проверить готовность",
+            "keep_property_protected": "Сохранить объект защищённым",
+            "private_local_contact": "Приватный местный контакт",
+            "projected": "Прогноз",
+            "verified": "Проверено",
+            "open": "Открыто",
+            "needs_attention": "Требует внимания",
+            "service_review": "Проверка сервиса",
+            "operator_follow_up": "Дальнейшая работа оператора",
+            "most_recent_closed_item": "Последняя закрытая задача",
+            "property_movement": "Движение объекта",
+            "live_resolved": "В реальном времени + завершено",
+            "confirmed": "Подтверждено",
+            "from_request_to_first_action": "От запроса до первого действия",
+            "operational": "Операционно",
+            "next_arrivals": "Следующие заезды",
+            "resolved": "Решено",
+            "today": "Сегодня",
+            "yesterday": "Вчера",
+            "this_week": "На этой неделе",
+            "scheduled": "Запланировано",
+            "recently": "Недавно",
+            "timeline_cleaning_completed": "Уборка завершена",
+            "timeline_cleaning_completed_detail": "Последняя смена закрыта для вашего объекта.",
+            "timeline_guest_checked_in": "Гость заселился",
+            "timeline_guest_checked_in_detail": "Координация заезда активна и готова.",
+            "timeline_maintenance_resolved": "Запрос на обслуживание решён",
+            "timeline_maintenance_resolved_detail": "Местная команда завершила окно ремонта.",
+            "timeline_airport_transfer_confirmed": "Трансфер из аэропорта подтверждён",
+            "timeline_airport_transfer_confirmed_detail": "Поддержка встречи запланирована и отслеживается.",
+            "timeline_property_inspection_completed": "Инспекция объекта завершена",
+            "timeline_property_inspection_completed_detail": "Проверка готовности подтверждена.",
+            "timeline_cleaning_scheduled": "Уборка запланирована",
+            "timeline_cleaning_scheduled_detail": "Следующая смена готовится тщательно.",
+            "timeline_property_update": "Обновление объекта",
+            "timeline_property_update_detail": "Текущий статус находится под наблюдением.",
+            "request_id_label": "ID запроса:",
+            "updated_label": "Обновлено:",
+            "new_arrival": "Новое прибытие",
+            "welcome_coordination_ready": "Координация встречи готова.",
+            "cleaning_completed_notification": "Уборка завершена",
+            "housekeeping_closed_latest_turn": "Команда уборки закрыла последнюю смену.",
+            "guest_issue_reported": "Сообщена проблема гостя",
+            "concierge_can_step_in_immediately": "Консьерж может вмешаться немедленно.",
+            "maintenance_completed": "Обслуживание завершено",
+            "local_team_wrapped_task": "Местная команда завершила задачу.",
+            "owner_status_new": "Новый",
+            "owner_status_assigned": "Назначен",
+            "owner_status_in_progress": "В процессе",
+            "owner_status_completed": "Завершён",
+            "owner_status_cancelled": "Отменён",
         },
-        {
-            "label": "Property inspection completed",
-            "label_key": "ownerDashboardPropertyInspectionCompletedTimeline",
-            "detail": "The readiness review has been signed off.",
-            "detail_key": "ownerDashboardPropertyInspectionCompletedTimelineDetail",
-            "time": "Recently",
-            "time_key": "ownerDashboardTimelineRecently",
-            "tone": "inspection",
-        },
-    ]
-    if not owner_requests:
-        return demo_items
-
-    timeline_items = []
-    for record in owner_requests[:5]:
-        category = str(record.get("service_category", "")).strip() or "Property update"
-        status = _normalize_service_request_status(record.get("status", "new"))
-        if "clean" in category.lower():
-            label = "Cleaning completed" if status == "completed" else "Cleaning scheduled"
-            label_key = "ownerDashboardCleaningCompletedTimeline" if status == "completed" else "ownerDashboardCleaningScheduledTimeline"
-            detail = "The latest turnover is being prepared with care." if status == "completed" else "The next turnover is being prepared with care."
-            detail_key = "ownerDashboardCleaningCompletedTimelineDetail" if status == "completed" else "ownerDashboardCleaningScheduledTimelineDetail"
-            tone = "success"
-        elif "transfer" in category.lower():
-            label = "Airport transfer confirmed"
-            label_key = "ownerDashboardAirportTransferConfirmedTimeline"
-            detail = "Pickup support is scheduled and tracked."
-            detail_key = "ownerDashboardAirportTransferConfirmedTimelineDetail"
-            tone = "arrival"
-        elif "inspect" in category.lower():
-            label = "Property inspection completed"
-            label_key = "ownerDashboardPropertyInspectionCompletedTimeline"
-            detail = "The readiness review has been signed off."
-            detail_key = "ownerDashboardPropertyInspectionCompletedTimelineDetail"
-            tone = "inspection"
-        elif "maint" in category.lower():
-            label = "Maintenance request resolved" if status == "completed" else "Maintenance request in progress"
-            label_key = "ownerDashboardMaintenanceRequestResolvedTimeline" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimeline"
-            detail = "The local team finished the repair window." if status == "completed" else "The local team is working through the repair window."
-            detail_key = "ownerDashboardMaintenanceRequestResolvedTimelineDetail" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimelineDetail"
-            tone = "maintenance"
-        else:
-            label = f"{category} update"
-            label_key = "ownerDashboardPropertyUpdateTimeline"
-            detail = "Current status is being monitored."
-            detail_key = "ownerDashboardPropertyUpdateTimelineDetail"
-            tone = "arrival"
-
-        timeline_items.append({
-            "label": label,
-            "label_key": label_key,
-            "detail": detail,
-            "detail_key": detail_key,
-            "time": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
-            "time_key": "",
-            "tone": tone,
-        })
-
-    while len(timeline_items) < 5:
-        timeline_items.append(demo_items[len(timeline_items)])
-
-    return timeline_items[:5]
+    }
+    return copy.get(lang, copy["bg"])
 
 
-def _owner_property_status(property_record, has_owner_requests):
+def _owner_property_status(property_record, has_owner_requests, dashboard_copy):
     operating_mode = str(property_record.get("operating_mode", "")).strip().lower()
     notes = str(property_record.get("notes", "")).strip().lower()
 
     if "paused" in notes:
-        return "paused", "Paused", "ownerDashboardPropertyStatusPaused", "paused"
+        return "paused", dashboard_copy["status_paused"], "ownerDashboardPropertyStatusPaused", "paused", dashboard_copy["status_note_paused"]
     if operating_mode == "seasonal":
-        return "seasonal", "Seasonal", "ownerDashboardPropertyStatusSeasonal", "seasonal"
+        return "seasonal", dashboard_copy["status_seasonal"], "ownerDashboardPropertyStatusSeasonal", "seasonal", dashboard_copy["status_note_seasonal"]
     if not has_owner_requests:
-        return "onboarding", "Onboarding", "ownerDashboardPropertyStatusOnboarding", "onboarding"
-    return "active", "Active", "ownerDashboardPropertyStatusActive", "active"
+        return "setup", dashboard_copy["status_setup"], "ownerDashboardPropertyStatusOnboarding", "setup", dashboard_copy["status_note_setup"]
+    return "active", dashboard_copy["status_active"], "ownerDashboardPropertyStatusActive", "active", dashboard_copy["status_note_active"]
 
 
-def _owner_property_card_context(property_record, has_owner_requests):
-    status, status_label, status_key, status_tone = _owner_property_status(property_record, has_owner_requests)
+def _owner_property_status_key(status):
+    normalized = str(status or "").strip().lower()
+    if normalized == "seasonal":
+        return "ownerDashboardStatusSeasonal"
+    if normalized == "setup":
+        return "ownerDashboardStatusOnboarding"
+    if normalized == "paused":
+        return "ownerDashboardStatusPaused"
+    if normalized == "maintenance":
+        return "ownerDashboardStatusMaintenance"
+    return "ownerDashboardStatusActive"
+
+
+def _owner_property_card_context(property_record, has_owner_requests, dashboard_copy):
+    status, status_label, status_key, status_tone, status_note = _owner_property_status(property_record, has_owner_requests, dashboard_copy)
     bedrooms = str(property_record.get("bedrooms", "")).strip() or "0"
     bathrooms = str(property_record.get("bathrooms", "")).strip() or "0"
     guest_capacity = str(property_record.get("guest_capacity", "")).strip() or "0"
     operating_mode = str(property_record.get("operating_mode", "")).strip().lower() or "year-round"
-    operating_mode_label = "Seasonal" if operating_mode == "seasonal" else "Year-round"
+    operating_mode_label = dashboard_copy["mode_seasonal"] if operating_mode == "seasonal" else dashboard_copy["mode_year_round"]
     operating_mode_key = "ownerPropertyModeSeasonal" if operating_mode == "seasonal" else "ownerPropertyModeYearRound"
     if status == "paused":
-        status_note = "This property is currently paused."
         status_note_key = "ownerPropertyStatusNotePaused"
     elif status == "seasonal":
-        status_note = "Seasonal operations are planned and ready."
         status_note_key = "ownerPropertyStatusNoteSeasonal"
     elif status == "active":
-        status_note = "Operations are configured and active."
         status_note_key = "ownerPropertyStatusNoteActive"
     else:
-        status_note = "We are reviewing the first details before activation."
         status_note_key = "ownerPropertyStatusNoteOnboarding"
 
     return {
         "id": property_record.get("id", ""),
-        "name": str(property_record.get("name", "")).strip() or "Property",
-        "property_type": str(property_record.get("property_type", "")).strip() or "Residence",
-        "location": str(property_record.get("location", "")).strip() or "Location pending",
+        "name": str(property_record.get("name", "")).strip() or dashboard_copy["property_type_residence"],
+        "property_type": str(property_record.get("property_type", "")).strip() or dashboard_copy["property_type_residence"],
+        "location": str(property_record.get("location", "")).strip() or dashboard_copy["location_pending"],
         "bedrooms": bedrooms,
         "bathrooms": bathrooms,
         "guest_capacity": guest_capacity,
@@ -1904,40 +2441,143 @@ def _owner_property_card_context(property_record, has_owner_requests):
     }
 
 
-def _owner_portal_dashboard_context(owner_account, owner_requests):
+def _owner_portal_activity_timeline(owner_requests, dashboard_copy):
+    demo_items = [
+        {
+            "label": dashboard_copy["timeline_cleaning_completed"],
+            "label_key": "ownerDashboardCleaningCompletedTimeline",
+            "detail": dashboard_copy["timeline_cleaning_completed_detail"],
+            "detail_key": "ownerDashboardCleaningCompletedTimelineDetail",
+            "time": dashboard_copy["today"],
+            "time_key": "ownerDashboardTimelineToday",
+            "tone": "success",
+        },
+        {
+            "label": dashboard_copy["timeline_guest_checked_in"],
+            "label_key": "ownerDashboardGuestCheckedInTimeline",
+            "detail": dashboard_copy["timeline_guest_checked_in_detail"],
+            "detail_key": "ownerDashboardGuestCheckedInTimelineDetail",
+            "time": dashboard_copy["yesterday"],
+            "time_key": "ownerDashboardTimelineYesterday",
+            "tone": "arrival",
+        },
+        {
+            "label": dashboard_copy["timeline_maintenance_resolved"],
+            "label_key": "ownerDashboardMaintenanceRequestResolvedTimeline",
+            "detail": dashboard_copy["timeline_maintenance_resolved_detail"],
+            "detail_key": "ownerDashboardMaintenanceRequestResolvedTimelineDetail",
+            "time": dashboard_copy["this_week"],
+            "time_key": "ownerDashboardTimelineThisWeek",
+            "tone": "maintenance",
+        },
+        {
+            "label": dashboard_copy["timeline_airport_transfer_confirmed"],
+            "label_key": "ownerDashboardAirportTransferConfirmedTimeline",
+            "detail": dashboard_copy["timeline_airport_transfer_confirmed_detail"],
+            "detail_key": "ownerDashboardAirportTransferConfirmedTimelineDetail",
+            "time": dashboard_copy["scheduled"],
+            "time_key": "ownerDashboardTimelineScheduled",
+            "tone": "transport",
+        },
+        {
+            "label": dashboard_copy["timeline_property_inspection_completed"],
+            "label_key": "ownerDashboardPropertyInspectionCompletedTimeline",
+            "detail": dashboard_copy["timeline_property_inspection_completed_detail"],
+            "detail_key": "ownerDashboardPropertyInspectionCompletedTimelineDetail",
+            "time": dashboard_copy["recently"],
+            "time_key": "ownerDashboardTimelineRecently",
+            "tone": "inspection",
+        },
+    ]
+    if not owner_requests:
+        return demo_items
+
+    timeline_items = []
+    for record in owner_requests[:5]:
+        category = str(record.get("service_category", "")).strip() or dashboard_copy["timeline_property_update"]
+        status = _normalize_service_request_status(record.get("status", "new"))
+        if "clean" in category.lower():
+            label = dashboard_copy["timeline_cleaning_completed"] if status == "completed" else dashboard_copy["timeline_cleaning_scheduled"]
+            label_key = "ownerDashboardCleaningCompletedTimeline" if status == "completed" else "ownerDashboardCleaningScheduledTimeline"
+            detail = dashboard_copy["timeline_cleaning_completed_detail"] if status == "completed" else dashboard_copy["timeline_cleaning_scheduled_detail"]
+            detail_key = "ownerDashboardCleaningCompletedTimelineDetail" if status == "completed" else "ownerDashboardCleaningScheduledTimelineDetail"
+            tone = "success"
+        elif "transfer" in category.lower():
+            label = dashboard_copy["timeline_airport_transfer_confirmed"]
+            label_key = "ownerDashboardAirportTransferConfirmedTimeline"
+            detail = dashboard_copy["timeline_airport_transfer_confirmed_detail"]
+            detail_key = "ownerDashboardAirportTransferConfirmedTimelineDetail"
+            tone = "arrival"
+        elif "inspect" in category.lower():
+            label = dashboard_copy["timeline_property_inspection_completed"]
+            label_key = "ownerDashboardPropertyInspectionCompletedTimeline"
+            detail = dashboard_copy["timeline_property_inspection_completed_detail"]
+            detail_key = "ownerDashboardPropertyInspectionCompletedTimelineDetail"
+            tone = "inspection"
+        elif "maint" in category.lower():
+            label = dashboard_copy["timeline_maintenance_resolved"] if status == "completed" else dashboard_copy["timeline_property_update"]
+            label_key = "ownerDashboardMaintenanceRequestResolvedTimeline" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimeline"
+            detail = dashboard_copy["timeline_maintenance_resolved_detail"] if status == "completed" else dashboard_copy["timeline_property_update_detail"]
+            detail_key = "ownerDashboardMaintenanceRequestResolvedTimelineDetail" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimelineDetail"
+            tone = "maintenance"
+        else:
+            label = dashboard_copy["timeline_property_update"]
+            label_key = "ownerDashboardPropertyUpdateTimeline"
+            detail = dashboard_copy["timeline_property_update_detail"]
+            detail_key = "ownerDashboardPropertyUpdateTimelineDetail"
+            tone = "arrival"
+
+        timeline_items.append({
+            "label": label,
+            "label_key": label_key,
+            "detail": detail,
+            "detail_key": detail_key,
+            "time": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or dashboard_copy["recently"],
+            "time_key": "",
+            "tone": tone,
+        })
+
+    while len(timeline_items) < 5:
+        timeline_items.append(demo_items[len(timeline_items)])
+
+    return timeline_items[:5]
+
+
+def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang):
+    dashboard_copy = _owner_dashboard_copy(current_lang)
     owner_properties = [
         property_record
         for property_record in _load_owner_properties()
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
     has_properties = bool(owner_properties)
-    property_cards = [_owner_property_card_context(property_record, bool(owner_requests)) for property_record in owner_properties]
+    property_cards = [_owner_property_card_context(property_record, bool(owner_requests), dashboard_copy) for property_record in owner_properties]
     primary_property = property_cards[0] if property_cards else None
-    property_name = primary_property["name"] if primary_property else str(owner_account.get("property_name", "")).strip() or "Primary property"
+    property_name = primary_property["name"] if primary_property else str(owner_account.get("property_name", "")).strip() or dashboard_copy["property_type_residence"]
     city = ""
     if primary_property:
         city = primary_property["location"]
     if not city:
-        city = str(owner_account.get("city", "")).strip() or "Coastal city"
+        city = str(owner_account.get("city", "")).strip() or dashboard_copy["location_pending"]
 
     onboarding_stages = [
         {
-            "label": "Property Added",
+            "label": dashboard_copy["onboarding_stage_property_added"],
             "label_key": "ownerOnboardingStagePropertyAdded",
             "complete": has_properties,
         },
         {
-            "label": "Information Reviewed",
+            "label": dashboard_copy["onboarding_stage_information_reviewed"],
             "label_key": "ownerOnboardingStageInformationReviewed",
             "complete": has_properties,
         },
         {
-            "label": "Operations Configured",
+            "label": dashboard_copy["onboarding_stage_operations_configured"],
             "label_key": "ownerOnboardingStageOperationsConfigured",
             "complete": bool(owner_requests),
         },
         {
-            "label": "Concierge Ready",
+            "label": dashboard_copy["onboarding_stage_concierge_ready"],
             "label_key": "ownerOnboardingStageConciergeReady",
             "complete": bool(owner_requests and any(_normalize_service_request_status(request.get("status", "new")) in {"assigned", "in_progress", "completed"} for request in owner_requests)),
         },
@@ -2007,28 +2647,31 @@ def _owner_portal_dashboard_context(owner_account, owner_requests):
     completed_turnovers = max(1, cleaning_completed or tasks_completed)
     guest_requests_handled = max(1, len(owner_requests) + len(current_month_requests))
 
-    property_status = "Active"
+    property_status = dashboard_copy["status_active"]
+    property_status_slug = "active"
     status_tone = "active"
-    status_note = "Live operational updates"
+    status_note = dashboard_copy["status_note_active"]
     if maintenance_requests and not open_requests:
-        property_status = "Maintenance"
+        property_status = dashboard_copy["status_maintenance"]
+        property_status_slug = "maintenance"
         status_tone = "maintenance"
-        status_note = "Follow-up in progress"
+        status_note = dashboard_copy["status_note_maintenance"]
         status_note_key = "ownerDashboardStatusNoteFollowUpInProgress"
     elif not owner_requests:
-        property_status = "Seasonal"
+        property_status = dashboard_copy["status_seasonal"]
+        property_status_slug = "seasonal"
         status_tone = "seasonal"
-        status_note = "Quiet monitoring mode"
+        status_note = dashboard_copy["status_note_seasonal"]
         status_note_key = "ownerDashboardStatusNoteQuietMonitoringMode"
     else:
         status_note_key = "ownerDashboardStatusNoteLiveOperationalUpdates"
 
-    last_completed_task = "Waiting for the first completed task."
+    last_completed_task = dashboard_copy["last_completed_task_label"]
     last_completed_task_key = "ownerDashboardLastCompletedTaskWaiting"
     if completed_requests:
         latest_completed = max(completed_requests, key=lambda request: str(request.get("last_update_at", request.get("created_at", ""))))
         latest_category = str(latest_completed.get("service_category", "")).strip()
-        last_completed_task = latest_category or latest_completed.get("description", "") or "Completed task"
+        last_completed_task = latest_category or latest_completed.get("description", "") or dashboard_copy["last_completed_task_label"]
         last_completed_task_key = OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(latest_category, "") if latest_category else ""
 
     owner_portal = {
@@ -2038,74 +2681,82 @@ def _owner_portal_dashboard_context(owner_account, owner_requests):
         "primary_property": primary_property or {},
         "onboarding": {
             "percentage": onboarding_percentage,
-            "stages": onboarding_stages,
+            "stages": [
+                {
+                    **stage,
+                    "label": dashboard_copy["onboarding_title"] if idx == 0 and not stage["complete"] else stage["label"],
+                }
+                for idx, stage in enumerate(onboarding_stages)
+            ],
         },
         "property_overview": {
             "property_name": property_name,
             "city": city,
             "location": city,
             "status": primary_property["status_label"] if primary_property else property_status,
+            "status_key": primary_property["status_key"] if primary_property else _owner_property_status_key(property_status_slug),
             "status_tone": primary_property["status_tone"] if primary_property else status_tone,
             "status_note": primary_property["status_note"] if primary_property else status_note,
             "status_note_key": primary_property["status_note_key"] if primary_property else status_note_key,
-            "property_type": primary_property["property_type"] if primary_property else str(owner_account.get("property_type", "")).strip() or "Coastal residence",
+            "property_type": primary_property["property_type"] if primary_property else str(owner_account.get("property_type", "")).strip() or dashboard_copy["property_type_residence"],
             "property_type_key": "ownerDashboardPropertyTypeResidence",
             "units": primary_property["guest_capacity"] if primary_property else str(owner_account.get("number_of_units", "")).strip() or "1",
         },
         "operations_snapshot": [
-            {"label": "Upcoming arrivals", "label_key": "ownerDashboardUpcomingArrivalsLabel", "value": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[1], "support": "Projected", "support_key": "ownerDashboardProjected"},
-            {"label": "Upcoming departures", "label_key": "ownerDashboardUpcomingDeparturesLabel", "value": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[1], "support": "Projected", "support_key": "ownerDashboardProjected"},
-            {"label": "Cleaning completed", "label_key": "ownerDashboardCleaningCompletedLabel", "value": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[1], "support": "Verified", "support_key": "ownerDashboardVerified"},
-            {"label": "Cleaning pending", "label_key": "ownerDashboardCleaningPendingLabel", "value": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[1], "support": "Open", "support_key": "ownerDashboardOpen"},
-            {"label": "Open guest requests", "label_key": "ownerDashboardOpenGuestRequestsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[1], "support": "Needs attention", "support_key": "ownerDashboardServiceReview"},
+            {"label": dashboard_copy["upcoming_arrivals_label"], "label_key": "ownerDashboardUpcomingArrivalsLabel", "value": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[1], "support": dashboard_copy["projected"], "support_key": "ownerDashboardProjected"},
+            {"label": dashboard_copy["upcoming_departures_label"], "label_key": "ownerDashboardUpcomingDeparturesLabel", "value": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_departures, "Scheduled", "ownerMetricScheduled")[1], "support": dashboard_copy["projected"], "support_key": "ownerDashboardProjected"},
+            {"label": dashboard_copy["cleaning_completed_label"], "label_key": "ownerDashboardCleaningCompletedLabel", "value": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_completed, "Growing", "ownerMetricGrowing")[1], "support": dashboard_copy["verified"], "support_key": "ownerDashboardVerified"},
+            {"label": dashboard_copy["cleaning_pending_label"], "label_key": "ownerDashboardCleaningPendingLabel", "value": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[0], "value_key": _owner_portal_metric_value_with_key(cleaning_pending, "Ready", "ownerMetricReady")[1], "support": dashboard_copy["open"], "support_key": "ownerDashboardOpen"},
+            {"label": dashboard_copy["open_guest_requests_label"], "label_key": "ownerDashboardOpenGuestRequestsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Building", "ownerMetricBuilding")[1], "support": dashboard_copy["needs_attention"], "support_key": "ownerDashboardServiceReview"},
         ],
         "property_health": [
-            {"label": "Maintenance issues", "label_key": "ownerDashboardMaintenanceIssuesLabel", "value": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[1], "support": "Service review", "support_key": "ownerDashboardServiceReview"},
-            {"label": "Pending actions", "label_key": "ownerDashboardPendingActionsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[1], "support": "Operator follow-up", "support_key": "ownerDashboardOperatorFollowUp"},
-            {"label": "Last completed task", "label_key": "ownerDashboardLastCompletedTaskLabel", "value": last_completed_task, "value_key": last_completed_task_key, "support": "Most recent closed item", "support_key": "ownerDashboardMostRecentClosedItem"},
+            {"label": dashboard_copy["maintenance_issues_label"], "label_key": "ownerDashboardMaintenanceIssuesLabel", "value": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(len(maintenance_requests), "Pilot", "ownerMetricPilot")[1], "support": dashboard_copy["service_review"], "support_key": "ownerDashboardServiceReview"},
+            {"label": dashboard_copy["pending_actions_label"], "label_key": "ownerDashboardPendingActionsLabel", "value": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(open_guest_requests, "Scheduled", "ownerMetricScheduled")[1], "support": dashboard_copy["operator_follow_up"], "support_key": "ownerDashboardOperatorFollowUp"},
+            {"label": dashboard_copy["last_completed_task_label"], "label_key": "ownerDashboardLastCompletedTaskLabel", "value": last_completed_task, "value_key": last_completed_task_key, "support": dashboard_copy["most_recent_closed_item"], "support_key": "ownerDashboardMostRecentClosedItem"},
         ],
         "trusted_local_team": {
-            "assigned_operator": f"{city} operator desk",
+            "assigned_operator": f"{city} {dashboard_copy['assigned_operator_suffix']}",
             "assigned_operator_key": "ownerDashboardAssignedOperatorDesk",
             "concierge_contact": "concierge@blackseaconnect.com",
             "service_partners_count": str(max(4, len({str(request.get("assigned_professional", "")).strip() for request in owner_requests if str(request.get("assigned_professional", "")).strip()}))),
         },
         "monthly_summary": [
-            {"label": "Arrivals this month", "label_key": "ownerDashboardArrivalsThisMonthLabel", "value": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[1], "support": "Property movement", "support_key": "ownerDashboardPropertyMovement"},
-            {"label": "Guest requests handled", "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": "Live + resolved", "support_key": "ownerDashboardLiveResolved"},
-            {"label": "Tasks completed", "label_key": "ownerDashboardTasksCompletedLabel", "value": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[1], "support": "Confirmed", "support_key": "ownerDashboardConfirmed"},
-            {"label": "Average response time", "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else "Ready", "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": "From request to first action", "support_key": "ownerDashboardFromRequestToFirstAction"},
+            {"label": dashboard_copy["arrivals_this_month_label"], "label_key": "ownerDashboardArrivalsThisMonthLabel", "value": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(max(1, monthly_guest_requests), "Growing", "ownerMetricGrowing")[1], "support": dashboard_copy["property_movement"], "support_key": "ownerDashboardPropertyMovement"},
+            {"label": dashboard_copy["guest_requests_handled_label"], "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": dashboard_copy["live_resolved"], "support_key": "ownerDashboardLiveResolved"},
+            {"label": dashboard_copy["tasks_completed_label"], "label_key": "ownerDashboardTasksCompletedLabel", "value": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(tasks_completed, "Pilot", "ownerMetricPilot")[1], "support": dashboard_copy["confirmed"], "support_key": "ownerDashboardConfirmed"},
+            {"label": dashboard_copy["average_response_time_label"], "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else dashboard_copy["ready"], "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": dashboard_copy["from_request_to_first_action"], "support_key": "ownerDashboardFromRequestToFirstAction"},
         ],
         "performance_snapshot": [
-            {"label": "Nights booked this month", "label_key": "ownerDashboardNightsBookedThisMonthLabel", "value": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[1], "support": "Operational", "support_key": "ownerDashboardOperational"},
-            {"label": "Upcoming stays", "label_key": "ownerDashboardUpcomingStaysLabel", "value": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[1], "support": "Next arrivals", "support_key": "ownerDashboardNextArrivals"},
-            {"label": "Completed turnovers", "label_key": "ownerDashboardCompletedTurnoversLabel", "value": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[1], "support": "Verified", "support_key": "ownerDashboardVerified"},
-            {"label": "Guest requests handled", "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": "Resolved", "support_key": "ownerDashboardResolved"},
-            {"label": "Average response time", "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else "Ready", "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": "From request to first action", "support_key": "ownerDashboardFromRequestToFirstAction"},
+            {"label": dashboard_copy["nights_booked_this_month_label"], "label_key": "ownerDashboardNightsBookedThisMonthLabel", "value": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[0], "value_key": _owner_portal_metric_value_with_key(nights_booked_this_month, "Pilot", "ownerMetricPilot")[1], "support": dashboard_copy["operational"], "support_key": "ownerDashboardOperational"},
+            {"label": dashboard_copy["upcoming_stays_label"], "label_key": "ownerDashboardUpcomingStaysLabel", "value": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_stays, "Scheduled", "ownerMetricScheduled")[1], "support": dashboard_copy["next_arrivals"], "support_key": "ownerDashboardNextArrivals"},
+            {"label": dashboard_copy["completed_turnovers_label"], "label_key": "ownerDashboardCompletedTurnoversLabel", "value": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[0], "value_key": _owner_portal_metric_value_with_key(completed_turnovers, "Growing", "ownerMetricGrowing")[1], "support": dashboard_copy["verified"], "support_key": "ownerDashboardVerified"},
+            {"label": dashboard_copy["guest_requests_handled_label"], "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": dashboard_copy["resolved"], "support_key": "ownerDashboardResolved"},
+            {"label": dashboard_copy["average_response_time_label"], "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else dashboard_copy["ready"], "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": dashboard_copy["from_request_to_first_action"], "support_key": "ownerDashboardFromRequestToFirstAction"},
         ],
         "quick_actions": [
-            {"label": "Request cleaning", "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": "Fast turnover support", "support_key": "ownerDashboardFastTurnoverSupport"},
-            {"label": "Request inspection", "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": "Check readiness", "support_key": "ownerDashboardCheckReadiness"},
-            {"label": "Request maintenance", "label_key": "ownerDashboardRequestMaintenance", "href": "/owners/request-service?category=maintenance", "support": "Keep the property protected", "support_key": "ownerDashboardKeepPropertyProtected"},
-            {"label": "Contact concierge", "label_key": "ownerDashboardContactConciergeAction", "href": "mailto:concierge@blackseaconnect.com", "support": "Private local contact", "support_key": "ownerDashboardPrivateLocalContact"},
+            {"label": dashboard_copy["request_cleaning"], "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": dashboard_copy["fast_turnover_support"], "support_key": "ownerDashboardFastTurnoverSupport"},
+            {"label": dashboard_copy["request_inspection"], "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": dashboard_copy["check_readiness"], "support_key": "ownerDashboardCheckReadiness"},
+            {"label": dashboard_copy["request_maintenance"], "label_key": "ownerDashboardRequestMaintenance", "href": "/owners/request-service?category=maintenance", "support": dashboard_copy["keep_property_protected"], "support_key": "ownerDashboardKeepPropertyProtected"},
+            {"label": dashboard_copy["contact_concierge"], "label_key": "ownerDashboardContactConciergeAction", "href": "mailto:concierge@blackseaconnect.com", "support": dashboard_copy["private_local_contact"], "support_key": "ownerDashboardPrivateLocalContact"},
         ],
-        "activity_timeline": _owner_portal_activity_timeline(owner_requests),
+        "activity_timeline": _owner_portal_activity_timeline(owner_requests, dashboard_copy),
         "notifications": [
-            {"label": "New arrival", "label_key": "ownerDashboardNewArrival", "detail": "Welcome coordination is ready.", "detail_key": "ownerDashboardWelcomeCoordinationReady", "tone": "arrival"},
-            {"label": "Cleaning completed", "label_key": "ownerDashboardCleaningCompletedNotification", "detail": "Housekeeping closed the latest turn.", "detail_key": "ownerDashboardHousekeepingClosedLatestTurn", "tone": "success"},
-            {"label": "Guest issue reported", "label_key": "ownerDashboardGuestIssueReported", "detail": "Concierge can step in immediately.", "detail_key": "ownerDashboardConciergeCanStepInImmediately", "tone": "alert"},
-            {"label": "Maintenance completed", "label_key": "ownerDashboardMaintenanceCompleted", "detail": "The local team has wrapped the task.", "detail_key": "ownerDashboardLocalTeamWrappedTask", "tone": "maintenance"},
+            {"label": dashboard_copy["new_arrival"], "label_key": "ownerDashboardNewArrival", "detail": dashboard_copy["welcome_coordination_ready"], "detail_key": "ownerDashboardWelcomeCoordinationReady", "tone": "arrival"},
+            {"label": dashboard_copy["cleaning_completed_notification"], "label_key": "ownerDashboardCleaningCompletedNotification", "detail": dashboard_copy["housekeeping_closed_latest_turn"], "detail_key": "ownerDashboardHousekeepingClosedLatestTurn", "tone": "success"},
+            {"label": dashboard_copy["guest_issue_reported"], "label_key": "ownerDashboardGuestIssueReported", "detail": dashboard_copy["concierge_can_step_in_immediately"], "detail_key": "ownerDashboardConciergeCanStepInImmediately", "tone": "alert"},
+            {"label": dashboard_copy["maintenance_completed"], "label_key": "ownerDashboardMaintenanceCompleted", "detail": dashboard_copy["local_team_wrapped_task"], "detail_key": "ownerDashboardLocalTeamWrappedTask", "tone": "maintenance"},
         ],
         "recent_activity": [
             {
                 **record,
-                "last_update_display": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or "Recently",
+                "last_update_display": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or dashboard_copy["recently"],
             }
             for record in owner_requests[:3]
         ],
-        "summary_line": "A private view of your property operations.",
+        "summary_line": dashboard_copy["hero_summary_line"],
         "status_note_key": status_note_key,
         "last_completed_task_key": last_completed_task_key,
+        "ui": dashboard_copy,
     }
 
     return owner_portal
@@ -2382,7 +3033,7 @@ def owners_dashboard():
         })
 
     owner_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    owner_portal = _owner_portal_dashboard_context(owner_account, owner_requests)
+    owner_portal = _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     return render_template(
         "owners_dashboard.html",
         owner_account=owner_account,

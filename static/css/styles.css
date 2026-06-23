@@ -1340,11 +1340,16 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-kpi-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+body.owner-portal-page.owner-portal-dashboard-page .owner-portal-grid--properties {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
 body.owner-portal-page.owner-portal-dashboard-page .owner-kpi-grid {
   gap: 12px;
 }
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-kpi-card,
+body.owner-portal-page.owner-portal-dashboard-page .owner-portal-card--property,
 body.owner-portal-page.owner-portal-dashboard-page .owner-health-item,
 body.owner-portal-page.owner-portal-dashboard-page .owner-team-list__item,
 body.owner-portal-page.owner-portal-dashboard-page .owner-action-card,
@@ -1359,6 +1364,55 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-activity-item {
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-kpi-card {
   min-height: 110px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-portal-card--property {
+  display: grid;
+  gap: 16px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__hero {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__name {
+  max-width: 14ch;
+  margin: 6px 0 0;
+  font-size: clamp(1.6rem, 4.4vw, 2.35rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__location {
+  margin: 0;
+  color: #23395d !important;
+  font-weight: 700;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__chips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(247, 244, 238, 0.94);
+  border: 1px solid rgba(15, 35, 69, 0.10);
+  color: #5b6d84 !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page .owner-property-card__facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-kpi-card__label,
@@ -1566,6 +1620,22 @@ body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-a
 
 body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-kpi-card {
   min-height: 92px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-portal-card--property {
+  gap: 14px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__hero {
+  gap: 12px;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__name {
+  max-width: 11ch;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__facts {
+  grid-template-columns: 1fr;
 }
 
 body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-kpi-card__value {
