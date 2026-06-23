@@ -109,7 +109,6 @@
       {% endif %}
       <form class="admin-owner-accounts-actions" method="post" action="{{ url_for('admin_seed_owner') }}">
         <button class="admin-owner-accounts-button" type="submit">Seed Stella Account</button>
-        <a class="admin-owner-accounts-button" href="{{ url_for('admin_owner_login_debug') }}" style="text-decoration:none; display:inline-flex; align-items:center;">Owner Login Debug</a>
       </form>
 
       {% if owner_accounts %}

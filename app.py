@@ -115,37 +115,6 @@ OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
 OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
-OWNER_LOGIN_DEBUG_STATE = {
-    "submitted_email_raw": "",
-    "submitted_email_normalized": "",
-    "loaded_count": 0,
-    "loaded_emails": [],
-    "loaded_emails_normalized": [],
-    "search_value": "",
-    "search_value_normalized": "",
-    "comparisons": [],
-    "matched": False,
-    "matched_email": "",
-    "matched_email_normalized": "",
-    "result": "idle",
-    "updated_at": "",
-}
-OWNER_ACCOUNTS_DEBUG_STATE = {
-    "file_exists": False,
-    "file_size_bytes": 0,
-    "line_count": 0,
-    "account_count": 0,
-    "account_count_after_save": 0,
-    "account_count_after_reload": 0,
-    "last_save_path": "",
-    "last_save_success": False,
-    "last_save_exception": "",
-    "last_save_account_count": 0,
-    "last_reload_account_count": 0,
-    "last_action": "idle",
-    "last_error": "",
-    "updated_at": "",
-}
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_SESSION_ID_KEY = "owner_id"
@@ -484,20 +453,10 @@ def _load_owner_accounts():
     accounts = []
 
     if not path.exists():
-        _update_owner_accounts_debug_state(
-            file_exists=False,
-            file_size_bytes=0,
-            line_count=0,
-            account_count=0,
-            last_action="load_missing_file",
-            last_error="",
-        )
         return accounts
 
     with path.open("r", encoding="utf-8") as f:
-        raw_line_count = 0
         for line in f:
-            raw_line_count += 1
             try:
                 record = json.loads(line)
             except json.JSONDecodeError:
@@ -508,96 +467,24 @@ def _load_owner_accounts():
                 accounts.append(normalized)
 
     accounts.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    try:
-        file_size_bytes = path.stat().st_size
-    except OSError:
-        file_size_bytes = 0
-    _update_owner_accounts_debug_state(
-        file_exists=True,
-        file_size_bytes=file_size_bytes,
-        line_count=raw_line_count,
-        account_count=len(accounts),
-        last_action="load",
-        last_error="",
-    )
     return accounts
 
 
 def _save_owner_accounts(accounts):
     data_dir = OWNER_ACCOUNTS_JSONL_PATH.parent
-    absolute_path = str(OWNER_ACCOUNTS_JSONL_PATH.resolve())
     try:
         data_dir.mkdir(exist_ok=True)
-        app.logger.info("Owner accounts write path: %s", absolute_path)
         with OWNER_ACCOUNTS_JSONL_PATH.open("w", encoding="utf-8") as f:
             for record in accounts:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
-        app.logger.info(
-            "Owner accounts write exists_after_write=%s path=%s",
-            OWNER_ACCOUNTS_JSONL_PATH.exists(),
-            absolute_path,
-        )
     except Exception as exc:
-        _update_owner_accounts_debug_state(
-            file_exists=OWNER_ACCOUNTS_JSONL_PATH.exists(),
-            file_size_bytes=OWNER_ACCOUNTS_JSONL_PATH.stat().st_size if OWNER_ACCOUNTS_JSONL_PATH.exists() else 0,
-            line_count=0,
-            account_count=len(accounts),
-            account_count_after_save=0,
-            account_count_after_reload=0,
-            last_save_path=absolute_path,
-            last_save_success=False,
-            last_save_exception=type(exc).__name__,
-            last_save_account_count=len(accounts),
-            last_reload_account_count=0,
-            last_action="save_failed",
-            last_error=type(exc).__name__,
-        )
         app.logger.warning(
             "Owner accounts write failed for %s: %s",
-            absolute_path,
+            str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
             type(exc).__name__,
         )
         return False
 
-    post_save_stats = _owner_accounts_file_stats()
-    _update_owner_accounts_debug_state(
-        file_exists=post_save_stats["file_exists"],
-        file_size_bytes=post_save_stats["file_size_bytes"],
-        line_count=post_save_stats["line_count"],
-        account_count=len(accounts),
-        account_count_after_save=len(accounts),
-        account_count_after_reload=0,
-        last_save_path=absolute_path,
-        last_save_success=True,
-        last_save_exception="",
-        last_save_account_count=len(accounts),
-        last_reload_account_count=0,
-        last_action="save",
-        last_error="",
-    )
-    app.logger.info(
-        "Owner accounts persisted to %s (%s records)",
-        absolute_path,
-        len(accounts),
-    )
-    reloaded_accounts = _load_owner_accounts()
-    reloaded_stats = _owner_accounts_file_stats()
-    _update_owner_accounts_debug_state(
-        file_exists=reloaded_stats["file_exists"],
-        file_size_bytes=reloaded_stats["file_size_bytes"],
-        line_count=reloaded_stats["line_count"],
-        account_count=len(accounts),
-        account_count_after_save=len(accounts),
-        account_count_after_reload=len(reloaded_accounts),
-        last_save_path=absolute_path,
-        last_save_success=True,
-        last_save_exception="",
-        last_save_account_count=len(accounts),
-        last_reload_account_count=len(reloaded_accounts),
-        last_action="save_reload_verified",
-        last_error="",
-    )
     return True
 
 
@@ -605,57 +492,14 @@ def _find_owner_account_by_email(email):
     target_raw = str(email or "")
     target_email = target_raw.strip().lower()
     accounts = _load_owner_accounts()
-    _update_owner_login_debug_state(
-        search_value=target_raw,
-        search_value_normalized=target_email,
-        loaded_count=len(accounts),
-        loaded_emails=[str(account.get("email", "")) for account in accounts],
-        loaded_emails_normalized=[str(account.get("email", "")).strip().lower() for account in accounts],
-        comparisons=[],
-        matched=False,
-        matched_email="",
-        matched_email_normalized="",
-        result="searching",
-    )
-    app.logger.warning(
-        "Owner lookup search raw=%r normalized=%r",
-        target_raw,
-        target_email,
-    )
     if not target_email:
-        _update_owner_login_debug_state(result="empty_search")
         return None
 
-    comparisons = []
     for account in accounts:
         account_email_raw = str(account.get("email", ""))
         account_email_normalized = account_email_raw.strip().lower()
-        comparison_result = account_email_normalized == target_email
-        comparison = {
-            "email_raw": account_email_raw,
-            "email_normalized": account_email_normalized,
-            "result": comparison_result,
-        }
-        comparisons.append(comparison)
-        app.logger.warning(
-            "Owner lookup compare email_raw=%r normalized=%r result=%s",
-            account_email_raw,
-            account_email_normalized,
-            comparison_result,
-        )
-        if comparison_result:
-            _update_owner_login_debug_state(
-                comparisons=comparisons,
-                matched=True,
-                matched_email=account_email_raw,
-                matched_email_normalized=account_email_normalized,
-                result="matched",
-            )
+        if account_email_normalized == target_email:
             return account
-    _update_owner_login_debug_state(
-        comparisons=comparisons,
-        result="not_found",
-    )
     return None
 
 
@@ -978,68 +822,6 @@ def _mask_email(email):
     visible_prefix = local_part[0]
     masked_suffix = "*" * max(1, min(len(local_part) - 1, 7))
     return f"{visible_prefix}{masked_suffix}@{domain_part}"
-
-
-def _update_owner_login_debug_state(**kwargs):
-    OWNER_LOGIN_DEBUG_STATE.update(kwargs)
-    OWNER_LOGIN_DEBUG_STATE["updated_at"] = _utc_now_iso()
-
-
-def _owner_login_debug_snapshot():
-    return {
-        "submitted_email_raw": OWNER_LOGIN_DEBUG_STATE.get("submitted_email_raw", ""),
-        "submitted_email_normalized": OWNER_LOGIN_DEBUG_STATE.get("submitted_email_normalized", ""),
-        "loaded_count": OWNER_LOGIN_DEBUG_STATE.get("loaded_count", 0),
-        "loaded_emails": list(OWNER_LOGIN_DEBUG_STATE.get("loaded_emails", [])),
-        "loaded_emails_normalized": list(OWNER_LOGIN_DEBUG_STATE.get("loaded_emails_normalized", [])),
-        "search_value": OWNER_LOGIN_DEBUG_STATE.get("search_value", ""),
-        "search_value_normalized": OWNER_LOGIN_DEBUG_STATE.get("search_value_normalized", ""),
-        "comparisons": list(OWNER_LOGIN_DEBUG_STATE.get("comparisons", [])),
-        "matched": OWNER_LOGIN_DEBUG_STATE.get("matched", False),
-        "matched_email": OWNER_LOGIN_DEBUG_STATE.get("matched_email", ""),
-        "matched_email_normalized": OWNER_LOGIN_DEBUG_STATE.get("matched_email_normalized", ""),
-        "result": OWNER_LOGIN_DEBUG_STATE.get("result", "idle"),
-        "updated_at": OWNER_LOGIN_DEBUG_STATE.get("updated_at", ""),
-        "loader_path": str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
-        "loader_name": "_load_owner_accounts",
-    }
-
-
-def _update_owner_accounts_debug_state(**kwargs):
-    OWNER_ACCOUNTS_DEBUG_STATE.update(kwargs)
-    OWNER_ACCOUNTS_DEBUG_STATE["updated_at"] = _utc_now_iso()
-
-
-def _owner_accounts_file_stats():
-    path = OWNER_ACCOUNTS_JSONL_PATH
-    exists = path.exists()
-    file_size_bytes = 0
-    line_count = 0
-    if exists:
-        try:
-            file_size_bytes = path.stat().st_size
-        except OSError:
-            file_size_bytes = 0
-        try:
-            with path.open("r", encoding="utf-8") as f:
-                for line_count, _ in enumerate(f, start=1):
-                    pass
-        except OSError:
-            line_count = 0
-
-    return {
-        "file_exists": exists,
-        "file_size_bytes": file_size_bytes,
-        "line_count": line_count,
-        "loader_path": str(path.resolve()),
-        "loader_name": "_load_owner_accounts",
-    }
-
-
-def _owner_accounts_persistence_snapshot():
-    snapshot = dict(OWNER_ACCOUNTS_DEBUG_STATE)
-    snapshot.update(_owner_accounts_file_stats())
-    return snapshot
 
 
 def _normalize_service_request_status(status):
@@ -3128,25 +2910,6 @@ def owners_login():
         raw_email = str(request.form.get("email", ""))
         normalized_email = raw_email.strip().lower()
         form_values["email"] = raw_email.strip()
-        loaded_accounts = _load_owner_accounts()
-        loaded_emails = [str(account.get("email", "")) for account in loaded_accounts]
-        loaded_emails_normalized = [str(account.get("email", "")).strip().lower() for account in loaded_accounts]
-        _update_owner_login_debug_state(
-            submitted_email_raw=raw_email,
-            submitted_email_normalized=normalized_email,
-            loaded_count=len(loaded_accounts),
-            loaded_emails=loaded_emails,
-            loaded_emails_normalized=loaded_emails_normalized,
-            comparisons=[],
-            matched=False,
-            matched_email="",
-            matched_email_normalized="",
-            result="submitted",
-        )
-        app.logger.warning("Owner login submitted_email_raw=%r", raw_email)
-        app.logger.warning("Owner login submitted_email_normalized=%r", normalized_email)
-        app.logger.warning("Owner login loaded_owner_accounts_count=%s", len(loaded_accounts))
-        app.logger.warning("Owner login loaded_owner_emails=%r", loaded_emails)
         if not form_values["email"]:
             errors["email"] = "emailRequiredError"
         if not errors:
@@ -3916,20 +3679,6 @@ def admin_owner_accounts():
         owner_accounts=owner_accounts,
         owner_accounts_count=len(owner_accounts),
         owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
-    )
-
-
-@app.get("/admin/owner-login-debug")
-@admin_required
-def admin_owner_login_debug():
-    owner_accounts = _load_owner_accounts()
-    return render_template(
-        "admin_owner_login_debug.html",
-        owner_accounts=owner_accounts,
-        owner_accounts_count=len(owner_accounts),
-        owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
-        login_debug=_owner_login_debug_snapshot(),
-        persistence_debug=_owner_accounts_persistence_snapshot(),
     )
 
 
