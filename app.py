@@ -1786,6 +1786,8 @@ def owners_register():
             "number_of_units": str(request.form.get("number_of_units", "")).strip(),
             "notes": str(request.form.get("notes", "")).strip(),
         })
+        app.logger.warning("OWNER REGISTER POST RECEIVED")
+        app.logger.warning("OWNER REGISTER EMAIL SUBMITTED: %s", _mask_email(form_values["email"]))
 
         required_fields = {
             "full_name": "fullNameRequiredError",
@@ -1817,15 +1819,20 @@ def owners_register():
                 "notes": form_values["notes"],
             }
             saved_account = _upsert_owner_account(account)
+            app.logger.warning("OWNER REGISTER ACCOUNT FOUND: %s", bool(saved_account))
             if saved_account:
                 app.logger.info(
                     "Owner account created. Magic link flow pending for %s",
                     _mask_email(saved_account["email"]),
                 )
+                app.logger.warning("OWNER REGISTER BEFORE TOKEN CREATE: %s", _mask_email(saved_account["email"]))
                 magic_token = _create_owner_magic_token(saved_account["email"])
+                app.logger.warning("OWNER REGISTER AFTER TOKEN CREATE: %s", _mask_email(saved_account["email"]))
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                app.logger.warning("OWNER REGISTER BEFORE QUEUE: %s", _mask_email(saved_account["email"]))
                 _queue_owner_magic_link_email(saved_account["email"], login_url, email_language)
+                app.logger.warning("OWNER REGISTER AFTER QUEUE: %s", _mask_email(saved_account["email"]))
                 app.logger.warning("Owner magic link queued for %s", _mask_email(saved_account["email"]))
             submitted = True
             return redirect(url_for("owners_login", registered="1", magic_sent="1", magic_recipient=_mask_email(saved_account["email"])))
@@ -1845,18 +1852,25 @@ def owners_login():
 
     if request.method == "POST":
         form_values["email"] = str(request.form.get("email", "")).strip()
+        app.logger.warning("OWNER LOGIN POST RECEIVED")
+        app.logger.warning("OWNER LOGIN EMAIL SUBMITTED: %s", _mask_email(form_values["email"]))
         if not form_values["email"]:
             errors["email"] = "emailRequiredError"
         if not errors:
             owner_account = _find_owner_account_by_email(form_values["email"])
+            app.logger.warning("OWNER LOGIN ACCOUNT FOUND: %s", bool(owner_account))
             if not owner_account:
                 app.logger.warning("Owner magic link requested for unknown email: %s", _mask_email(form_values["email"]))
                 return redirect(url_for("owners_login", magic_sent="1"))
             else:
+                app.logger.warning("OWNER LOGIN BEFORE TOKEN CREATE: %s", _mask_email(owner_account["email"]))
                 magic_token = _create_owner_magic_token(owner_account["email"])
+                app.logger.warning("OWNER LOGIN AFTER TOKEN CREATE: %s", _mask_email(owner_account["email"]))
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                app.logger.warning("OWNER LOGIN BEFORE QUEUE: %s", _mask_email(owner_account["email"]))
                 _queue_owner_magic_link_email(owner_account["email"], login_url, email_language)
+                app.logger.warning("OWNER LOGIN AFTER QUEUE: %s", _mask_email(owner_account["email"]))
                 app.logger.warning("Owner magic link queued for %s", _mask_email(owner_account["email"]))
                 return redirect(url_for("owners_login", magic_sent="1", magic_recipient=_mask_email(owner_account["email"])))
 
@@ -2582,6 +2596,16 @@ def admin_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
+
+@app.route("/debug/owner-accounts")
+@admin_required
+def debug_owner_accounts():
+    accounts = _load_owner_accounts()
+    return jsonify({
+        "count": len(accounts),
+        "emails": [_mask_email(account.get("email", "")) for account in accounts],
+    })
 
 
 def _clean_payload_value(payload, *keys):
