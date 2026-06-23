@@ -24,6 +24,36 @@
       backdrop-filter: blur(18px);
       padding: 28px;
     }
+    .admin-owner-accounts-banner {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(155, 123, 47, 0.1);
+      color: #5f4a14;
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      font-weight: 600;
+    }
+    .admin-owner-accounts-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      align-items: center;
+    }
+    .admin-owner-accounts-button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: #9b7b2f;
+      color: #fff;
+      padding: 12px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(155, 123, 47, 0.22);
+    }
+    .admin-owner-accounts-button:hover {
+      background: #8a6b27;
+    }
     .admin-owner-accounts-table {
       width: 100%;
       border-collapse: collapse;
@@ -74,6 +104,12 @@
       </div>
       <h1>Owner Accounts</h1>
       <p>Loaded from <code>{{ owner_accounts_path }}</code></p>
+      {% if request.args.get('seeded') == '1' %}
+        <div class="admin-owner-accounts-banner" role="status">Owner account seeded successfully.</div>
+      {% endif %}
+      <form class="admin-owner-accounts-actions" method="post" action="{{ url_for('admin_seed_owner') }}">
+        <button class="admin-owner-accounts-button" type="submit">Seed Stella Account</button>
+      </form>
 
       {% if owner_accounts %}
         <table class="admin-owner-accounts-table" aria-label="Owner accounts">

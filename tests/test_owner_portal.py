@@ -704,21 +704,23 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Count: 1", html)
         self.assertIn("stoyanova@orange.fr", html)
         self.assertIn("2026-06-15T10:00:00Z", html)
+        self.assertIn("Seed Stella Account", html)
 
     def test_admin_seed_owner_creates_account_and_enables_login_delivery_sent(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             seed_response = self.client.post("/admin/seed-owner", headers=self._auth_headers())
 
         self.assertEqual(seed_response.status_code, 302)
-        self.assertIn("/admin/owner-accounts", seed_response.headers["Location"])
+        self.assertIn("/admin/owner-accounts?seeded=1", seed_response.headers["Location"])
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            accounts_response = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
+            accounts_response = self.client.get(seed_response.headers["Location"], headers=self._auth_headers())
 
         self.assertEqual(accounts_response.status_code, 200)
         html = accounts_response.get_data(as_text=True)
         self.assertIn("Count: 1", html)
         self.assertIn("stoyanova@orange.fr", html)
+        self.assertIn("Owner account seeded successfully.", html)
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             login_response = self.client.post("/owners/login", data={"email": "stoyanova@orange.fr"})
@@ -726,6 +728,12 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(login_response.status_code, 302)
         self.assertIn("delivery=sent", login_response.headers["Location"])
         self.assertIn("magic_recipient=", login_response.headers["Location"])
+        self.assertIn("lang=bg", login_response.headers["Location"])
+        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["phone"], "+35987927767")
+        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["property_name"], "Stella Appart")
+        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["city"], "Sveti Vlas")
+        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["property_type"], "Apartment")
+        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["number_of_units"], 1)
 
     def test_admin_seed_owner_is_idempotent(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):

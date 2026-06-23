@@ -2997,10 +2997,10 @@ def admin_seed_owner():
         "created_at": _utc_now_iso(),
         "full_name": "Stella",
         "email": "stoyanova@orange.fr",
-        "phone": "",
-        "property_type": "",
-        "city": "",
-        "property_name": "",
+        "phone": "+35987927767",
+        "property_type": "Apartment",
+        "city": "Sveti Vlas",
+        "property_name": "Stella Appart",
         "number_of_units": 1,
         "notes": "Seeded from admin probe.",
     }
@@ -3010,7 +3010,7 @@ def admin_seed_owner():
         return _admin_auth_response(500, "Failed to seed owner account.")
 
     app.logger.info("Admin owner seed completed for %s (created=%s)", _mask_email(seed_record["email"]), created)
-    return redirect(url_for("admin_owner_accounts"))
+    return redirect(url_for("admin_owner_accounts", seeded="1"))
 
 
 def _clean_payload_value(payload, *keys):
