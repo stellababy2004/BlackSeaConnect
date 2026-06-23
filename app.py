@@ -974,6 +974,7 @@ def _send_owner_magic_link(email, login_url):
                 smtp.login(smtp_username, smtp_password)
 
             smtp.send_message(message)
+            app.logger.info("Owner magic link email sent to %s", email)
     except Exception as exc:
         app.logger.warning("Owner magic link email send failed for %s: %s", email, type(exc).__name__)
         return False
@@ -1589,6 +1590,7 @@ def owners_register():
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 _queue_owner_magic_link_email(saved_account["email"], login_url)
+                app.logger.info("Owner magic link queued for %s: %s", saved_account["email"], login_url)
             submitted = True
             return redirect(url_for("owners_login", registered="1", magic_sent="1"))
 
@@ -1617,6 +1619,7 @@ def owners_login():
                 magic_token = _create_owner_magic_token(owner_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
                 _queue_owner_magic_link_email(owner_account["email"], login_url)
+                app.logger.info("Owner magic link queued for %s: %s", owner_account["email"], login_url)
                 return redirect(url_for("owners_login", magic_sent="1"))
 
     return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
