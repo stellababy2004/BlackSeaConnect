@@ -68,10 +68,11 @@ class MultilingualRouteTests(unittest.TestCase):
             "/network": "languageSwitcherLabel",
             "/owners/login": "languageSwitcherLabel",
             "/owners/dashboard": "languageSwitcherLabel",
+            "/owners/property/new": "languageSwitcherLabel",
             "/owners/request-service": "languageSwitcherLabel",
         }
 
-        owner_routes = {"/owners/dashboard", "/owners/request-service"}
+        owner_routes = {"/owners/dashboard", "/owners/property/new", "/owners/request-service"}
 
         for path, switcher_key in routes.items():
             for lang in ("bg", "en", "fr", "ru"):
@@ -125,6 +126,7 @@ class MultilingualRouteTests(unittest.TestCase):
             "/network",
             "/owners/login",
             "/owners/dashboard",
+            "/owners/property/new",
             "/owners/request-service",
         ]
 
@@ -147,6 +149,7 @@ class MultilingualRouteTests(unittest.TestCase):
             "templates/network.html",
             "templates/network_detail.html",
             "templates/owners_register.html",
+            "templates/owners_property_new.html",
             "templates/owners_request_service.html",
             "templates/partners.html",
             "templates/professionals.html",
@@ -164,6 +167,7 @@ class MultilingualRouteTests(unittest.TestCase):
         providers = _load_network_providers()
         routes = [
             "/owners/register",
+            "/owners/property/new",
             "/owners/request-service",
             "/professionals/apply",
             "/request-service",
@@ -180,7 +184,7 @@ class MultilingualRouteTests(unittest.TestCase):
         for path in routes:
             for lang in ("bg", "en", "fr", "ru"):
                 with self.subTest(path=path, lang=lang):
-                    if path.startswith("/owners/request-service"):
+                    if path.startswith("/owners/") and path != "/owners/register":
                         self._login_owner()
                     response = self.client.get(f"{path}?lang={lang}")
                     self.assertEqual(response.status_code, 200)

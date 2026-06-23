@@ -40,6 +40,17 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
+        <details class="owner-profile-dropdown">
+          <summary class="button button--ghost owner-profile-dropdown__summary">
+            <span class="owner-profile-dropdown__name">{{ owner_account.full_name|e }}</span>
+            <span class="owner-profile-dropdown__email">{{ owner_account.email|e }}</span>
+          </summary>
+          <div class="owner-profile-dropdown__menu">
+            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerProfileDropdownProfile">Profile</a>
+            <a href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
+            <a href="{{ localized_url('/owners/logout') }}" data-i18n="ownerProfileDropdownLogout">Logout</a>
+          </div>
+        </details>
         <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardRequestCta">Заяви услуга</a>
       </div>
     </nav>
@@ -52,10 +63,15 @@
           Поверителен поглед към операциите на вашия имот.
         </p>
         <p class="hero__text owner-portal-auth-layout__support" data-i18n="ownerDashboardSummaryLine">{{ owner_portal.summary_line }}</p>
-        <p class="hero__text owner-dashboard__property">
-          {{ owner_portal.property_overview.property_type|e }} · {{ owner_portal.property_overview.city|e }}{% if owner_portal.property_overview.property_name %} · {{ owner_portal.property_overview.property_name|e }}{% endif %}
-        </p>
+        {% if owner_portal.empty_state %}
+          <p class="hero__text owner-dashboard__property" data-i18n="ownerDashboardEmptyStateHint">Добавете първия си имот, за да започнем оперативната подготовка.</p>
+        {% else %}
+          <p class="hero__text owner-dashboard__property">
+            {{ owner_portal.property_overview.property_type|e }} · {{ owner_portal.property_overview.location|e }}{% if owner_portal.property_overview.property_name %} · {{ owner_portal.property_overview.property_name|e }}{% endif %}
+          </p>
+        {% endif %}
         <p class="hero__text owner-dashboard__name">{{ owner_account.full_name|e }}</p>
+        <p class="hero__text owner-dashboard__email">{{ owner_account.email|e }}</p>
         <div class="hero__cta">
           <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">Заяви услуга</a>
           <a class="button button--secondary" href="{{ localized_url('/owners/logout') }}" data-i18n="ownerDashboardLogout">Изход</a>
@@ -76,6 +92,10 @@
             <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusActive">Активен</span>
           {% elif owner_portal.property_overview.status == "Seasonal" %}
             <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusSeasonal">Сезонен</span>
+          {% elif owner_portal.property_overview.status == "Onboarding" %}
+            <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusOnboarding">Onboarding</span>
+          {% elif owner_portal.property_overview.status == "Paused" %}
+            <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusPaused">Paused</span>
           {% else %}
             <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusMaintenance">Поддръжка</span>
           {% endif %}
@@ -84,14 +104,14 @@
         <dl class="owner-portal-hero__facts owner-portal-dl">
           <div>
             <dt data-i18n="ownerDashboardLocationLabel">Локация</dt>
-            <dd>{{ owner_portal.property_overview.city|e }}</dd>
+            <dd>{{ owner_portal.property_overview.location|e }}</dd>
           </div>
           <div>
             <dt data-i18n="ownerDashboardPropertyTypeLabel">Тип имот</dt>
             <dd data-i18n="{{ owner_portal.property_overview.property_type_key }}">{{ owner_portal.property_overview.property_type|e }}</dd>
           </div>
           <div>
-            <dt data-i18n="ownerDashboardUnitsLabel">Брой единици</dt>
+            <dt data-i18n="ownerPropertyGuestCapacityLabel">Капацитет</dt>
             <dd>{{ owner_portal.property_overview.units|e }}</dd>
           </div>
         </dl>
@@ -100,6 +120,82 @@
   </header>
 
   <main class="owner-portal-dashboard owner-dashboard-main">
+    {% if owner_portal.empty_state %}
+      <section class="owner-portal-section owner-dashboard-section owner-dashboard-section--empty" aria-labelledby="owner-onboarding-title">
+        <article class="owner-portal-card owner-portal-card--onboarding owner-onboarding-card">
+          <p class="owner-portal-card__eyebrow" data-i18n="ownerOnboardingEyebrow">Owner onboarding</p>
+          <h2 id="owner-onboarding-title" data-i18n="ownerOnboardingTitle">Добре дошли в BlackSea Connect</h2>
+          <p class="owner-portal-card__subcopy" data-i18n="ownerOnboardingCopy">Добавете първия си имот, за да започнем оперативната подготовка.</p>
+          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerOnboardingCta">Добавете имот</a>
+        </article>
+      </section>
+    {% else %}
+      {% if owner_portal.onboarding.percentage > 0 %}
+        <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-onboarding-progress-title">
+          <article class="owner-portal-card owner-portal-card--summary owner-onboarding-progress">
+            <p class="owner-portal-card__eyebrow" data-i18n="ownerOnboardingProgressEyebrow">Onboarding progress</p>
+            <h2 id="owner-onboarding-progress-title" data-i18n="ownerOnboardingProgressTitle">Preparing your property operations.</h2>
+            <div class="owner-onboarding-progress__meter" aria-label="Onboarding progress">
+              <strong>{{ owner_portal.onboarding.percentage }}%</strong>
+            </div>
+            <div class="owner-onboarding-progress__steps">
+              {% for stage in owner_portal.onboarding.stages %}
+                <div class="owner-onboarding-step {% if stage.complete %}is-complete{% endif %}">
+                  <span class="owner-onboarding-step__index">{{ loop.index }}</span>
+                  <div>
+                    <strong data-i18n="{{ stage.label_key }}">{{ stage.label }}</strong>
+                    <p>{% if stage.complete %}Complete{% else %}Pending{% endif %}</p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+        </section>
+      {% endif %}
+
+      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-properties-title">
+        <div class="section-heading">
+          <p class="section-heading__eyebrow" data-i18n="ownerDashboardPropertiesEyebrow">Properties</p>
+          <h2 id="owner-properties-title" data-i18n="ownerDashboardPropertiesTitle">Вашите имоти</h2>
+        </div>
+        <div class="owner-portal-grid owner-portal-grid--properties">
+          {% for property in owner_portal.properties %}
+            <article class="owner-portal-card owner-portal-card--property">
+              <div class="owner-portal-card__header">
+                <div>
+                  <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyOverview">Преглед на имота</p>
+                  <h3>{{ property.name|e }}</h3>
+                </div>
+                <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}" data-i18n="{{ property.status_key }}">{{ property.status_label }}</span>
+              </div>
+              <p class="owner-portal-card__subcopy">{{ property.location|e }}</p>
+              <dl class="owner-portal-dl">
+                <div>
+                  <dt data-i18n="ownerDashboardPropertyTypeLabel">Тип имот</dt>
+                  <dd>{{ property.property_type|e }}</dd>
+                </div>
+                <div>
+                  <dt data-i18n="ownerPropertyBedroomsLabel">Спални</dt>
+                  <dd>{{ property.bedrooms|e }}</dd>
+                </div>
+                <div>
+                  <dt data-i18n="ownerPropertyBathroomsLabel">Бани</dt>
+                  <dd>{{ property.bathrooms|e }}</dd>
+                </div>
+                <div>
+                  <dt data-i18n="ownerPropertyGuestCapacityLabel">Гости</dt>
+                  <dd>{{ property.guest_capacity|e }}</dd>
+                </div>
+                <div>
+                  <dt data-i18n="ownerPropertyOperatingModeLabel">Operating mode</dt>
+                  <dd data-i18n="{{ property.operating_mode_key }}">{{ property.operating_mode_label }}</dd>
+                </div>
+              </dl>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
     <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-property-overview-title">
       <div class="section-heading">
         <p class="section-heading__eyebrow" data-i18n="ownerDashboardSummaryEyebrow">Преглед на имота</p>
@@ -117,11 +213,15 @@
               <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusActive">Активен</span>
             {% elif owner_portal.property_overview.status == "Seasonal" %}
               <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusSeasonal">Сезонен</span>
+            {% elif owner_portal.property_overview.status == "Onboarding" %}
+              <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusOnboarding">Onboarding</span>
+            {% elif owner_portal.property_overview.status == "Paused" %}
+              <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusPaused">Paused</span>
             {% else %}
               <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="ownerDashboardStatusMaintenance">Поддръжка</span>
             {% endif %}
           </div>
-          <p class="owner-portal-card__subcopy">{{ owner_portal.property_overview.city|e }} · {{ owner_portal.property_overview.property_type|e }} · {{ owner_portal.property_overview.units|e }}</p>
+          <p class="owner-portal-card__subcopy">{{ owner_portal.property_overview.location|e }} · {{ owner_portal.property_overview.property_type|e }} · {{ owner_portal.property_overview.units|e }}</p>
           <dl class="owner-portal-dl">
             <div>
               <dt data-i18n="ownerDashboardPropertyNameLabel">Име на имота</dt>
@@ -299,6 +399,7 @@
         {% endif %}
       </article>
     </section>
+    {% endif %}
   </main>
 
   <footer class="site-footer" aria-label="Site footer">

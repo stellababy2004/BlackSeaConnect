@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="{{ page_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title data-i18n="ownerPropertyNewPageTitle">BlackSea Connect | Add property</title>
+  <meta name="description" data-i18n-attr="content:ownerPropertyNewMeta" content="Add the first property to start operational onboarding.">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="owner-portal-page owner-property-new-page">
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Owner portal">
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Изход</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+        </div>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerPropertyNewBackToDashboard">Back to dashboard</a>
+      </div>
+    </nav>
+
+    <div class="hero__content hero__content--home owner-portal-auth-layout">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="ownerPropertyNewEyebrow">Property onboarding</p>
+        <h1 data-i18n="ownerPropertyNewTitle">Добавете имот</h1>
+        <p class="hero__text" data-i18n="ownerPropertyNewIntro">Задайте първия имот и започнете оперативната подготовка.</p>
+        <p class="hero__text owner-portal-auth-layout__support">
+          {{ owner_account.full_name|e }} · {{ owner_account.email|e }}
+        </p>
+      </div>
+      <aside class="owner-portal-card owner-login-card" aria-label="Owner property onboarding summary">
+        <p class="owner-portal-card__eyebrow" data-i18n="ownerPropertyNewSummaryEyebrow">What happens next</p>
+        <h2 data-i18n="ownerPropertyNewSummaryTitle">We will prepare your first operational record.</h2>
+        <p class="owner-portal-card__subcopy" data-i18n="ownerPropertyNewSummaryCopy">Property details help us map readiness, housekeeping, and concierge setup.</p>
+      </aside>
+    </div>
+  </header>
+
+  <main class="owner-login-page__main">
+    <section class="owner-portal-card owner-login-panel" aria-labelledby="owner-property-new-form-title">
+      <div class="owner-login-panel__copy">
+        <p class="section-heading__eyebrow" data-i18n="ownerPropertyNewFormEyebrow">New property</p>
+        <h2 id="owner-property-new-form-title" data-i18n="ownerPropertyNewFormTitle">Enter the details for your first property.</h2>
+      </div>
+
+      <form class="owner-login-form" method="post" action="{{ localized_url('/owners/property/new') }}">
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerPropertyNameLabel">Property name</span>
+          <input type="text" name="name" value="{{ form_values.name|e }}" required placeholder="Sea View Villa">
+          {% if errors.name %}<p class="form-error" data-i18n="{{ errors.name }}">Please enter a property name.</p>{% endif %}
+        </label>
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerPropertyTypeLabel">Property type</span>
+          <input type="text" name="property_type" value="{{ form_values.property_type|e }}" required placeholder="Villa">
+          {% if errors.property_type %}<p class="form-error" data-i18n="{{ errors.property_type }}">Please enter a property type.</p>{% endif %}
+        </label>
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerPropertyLocationLabel">Location</span>
+          <input type="text" name="location" value="{{ form_values.location|e }}" required placeholder="Varna, Bulgaria">
+          {% if errors.location %}<p class="form-error" data-i18n="{{ errors.location }}">Please enter a location.</p>{% endif %}
+        </label>
+        <div class="owner-login-form__grid">
+          <label class="owner-login-form__field">
+            <span data-i18n="ownerPropertyBedroomsLabel">Bedrooms</span>
+            <input type="number" min="0" name="bedrooms" value="{{ form_values.bedrooms|e }}" required>
+            {% if errors.bedrooms %}<p class="form-error" data-i18n="{{ errors.bedrooms }}">Please enter a valid bedroom count.</p>{% endif %}
+          </label>
+          <label class="owner-login-form__field">
+            <span data-i18n="ownerPropertyBathroomsLabel">Bathrooms</span>
+            <input type="number" min="0" name="bathrooms" value="{{ form_values.bathrooms|e }}" required>
+            {% if errors.bathrooms %}<p class="form-error" data-i18n="{{ errors.bathrooms }}">Please enter a valid bathroom count.</p>{% endif %}
+          </label>
+          <label class="owner-login-form__field">
+            <span data-i18n="ownerPropertyGuestCapacityLabel">Guest capacity</span>
+            <input type="number" min="0" name="guest_capacity" value="{{ form_values.guest_capacity|e }}" required>
+            {% if errors.guest_capacity %}<p class="form-error" data-i18n="{{ errors.guest_capacity }}">Please enter a valid guest capacity.</p>{% endif %}
+          </label>
+          <label class="owner-login-form__field">
+            <span data-i18n="ownerPropertyOperatingModeLabel">Operating mode</span>
+            <select name="operating_mode" required>
+              <option value="year-round" {% if form_values.operating_mode == 'year-round' %}selected{% endif %}>Year-round</option>
+              <option value="seasonal" {% if form_values.operating_mode == 'seasonal' %}selected{% endif %}>Seasonal</option>
+            </select>
+            {% if errors.operating_mode %}<p class="form-error" data-i18n="{{ errors.operating_mode }}">Please select an operating mode.</p>{% endif %}
+          </label>
+        </div>
+        <label class="owner-login-form__field">
+          <span data-i18n="ownerPropertyNotesLabel">Notes</span>
+          <textarea name="notes" rows="4" placeholder="Anything the concierge team should know">{{ form_values.notes|e }}</textarea>
+        </label>
+
+        <div class="owner-login-form__footer">
+          <button class="button button--primary" type="submit" data-i18n="ownerPropertyNewSubmit">Save property</button>
+          <p class="pilot-form__hint">
+            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerPropertyNewCancel">Back to dashboard</a>
+          </p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="site-footer__brand">
+      <strong>BlackSea Connect</strong>
+      <p data-i18n="footerDescription">Спокойни оперативни решения за крайбрежни имоти.</p>
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer links">
+      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
+      <a href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
+      <a href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Изход</a>
+    </nav>
+
+    <div class="site-footer__meta">
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
+      <p data-i18n="footerMeta">Painless property onboarding for coastal owners.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/i18n.js?v=20260621"></script>
+</body>
+</html>

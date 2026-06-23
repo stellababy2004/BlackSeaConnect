@@ -110,6 +110,7 @@ NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
 }
 SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
 OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
+OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
 OWNER_SESSION_ID_KEY = "owner_id"
@@ -511,6 +512,76 @@ def _upsert_owner_account(record):
 
     _save_owner_accounts(accounts)
     return _find_owner_account_by_email(target_email)
+
+
+def _owner_property_fallback_id(record):
+    name = str(record.get("name", "")).strip().lower()
+    location = str(record.get("location", "")).strip().lower()
+    seed = f"{name}:{location}:{record.get('created_at', '')}"
+    return f"property-{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:16]}"
+
+
+def _normalize_owner_property(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _owner_property_fallback_id(normalized)
+    normalized["owner_id"] = str(normalized.get("owner_id", "")).strip()
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+    normalized["name"] = str(normalized.get("name", "")).strip()
+    normalized["property_type"] = str(normalized.get("property_type", "")).strip()
+    normalized["location"] = str(normalized.get("location", "")).strip()
+    normalized["notes"] = str(normalized.get("notes", "")).strip()
+
+    for field in ("bedrooms", "bathrooms", "guest_capacity"):
+        value = str(normalized.get(field, "")).strip()
+        normalized[field] = int(value) if value.isdigit() else 0
+
+    operating_mode = str(normalized.get("operating_mode", "")).strip().lower()
+    normalized["operating_mode"] = "seasonal" if operating_mode == "seasonal" else "year-round"
+    return normalized
+
+
+def _load_owner_properties():
+    path = OWNER_PROPERTIES_JSONL_PATH
+    properties = []
+
+    if not path.exists():
+        return properties
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            normalized = _normalize_owner_property(record)
+            if normalized:
+                properties.append(normalized)
+
+    properties.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return properties
+
+
+def _save_owner_properties(properties):
+    data_dir = OWNER_PROPERTIES_JSONL_PATH.parent
+    data_dir.mkdir(exist_ok=True)
+    with OWNER_PROPERTIES_JSONL_PATH.open("w", encoding="utf-8") as f:
+        for record in properties:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _append_owner_property(record):
+    properties = _load_owner_properties()
+    normalized = _normalize_owner_property(record)
+    if not normalized:
+        return None
+
+    properties.append(normalized)
+    _save_owner_properties(properties)
+    return normalized
 
 
 def _load_owner_magic_tokens():
@@ -928,6 +999,64 @@ def _queue_service_request_email(record, recipient_email, recipient_label, admin
 
 
 def _send_owner_magic_link(email, login_url):
+    return _send_owner_magic_link_with_language(email, login_url, "bg")
+
+
+def _owner_magic_link_email_locale(language):
+    normalized = str(language or "").strip().lower()
+    return "bg" if normalized == "bg" else "en"
+
+
+def _owner_magic_link_email_message(email, login_url, language):
+    lang = _owner_magic_link_email_locale(language)
+    if lang == "bg":
+        subject = "BlackSea Connect — Вход в портала за собственици"
+        greeting = "Здравейте,"
+        intro = "Използвайте бутона по-долу за сигурен достъп до вашия портал."
+        button_label = "Влезте в портала"
+        fallback_label = "Ако бутонът не работи, копирайте този линк:"
+        closing = "Този линк е валиден 30 минути."
+    else:
+        subject = "BlackSea Connect - Your secure sign-in link"
+        greeting = "Hello,"
+        intro = "Use the button below for secure access to your Owner Portal."
+        button_label = "Access Owner Portal"
+        fallback_label = "If the button does not work, copy this link:"
+        closing = "This link expires in 30 minutes."
+
+    text_body = "\n".join([
+        greeting,
+        "",
+        intro,
+        "",
+        login_url,
+        "",
+        closing,
+        "",
+        "BlackSea Connect",
+    ])
+    html_body = "\n".join([
+        "<!doctype html>",
+        f'<html lang="{lang}">',
+        "<body style=\"margin:0;padding:0;background:#f6f0df;font-family:Arial,Helvetica,sans-serif;color:#1e1b16;\">",
+        '<div style="max-width:640px;margin:0 auto;padding:32px 20px;">',
+        '<div style="background:#fffaf0;border:1px solid #ead6a6;border-radius:20px;padding:32px;box-shadow:0 16px 40px rgba(0,0,0,0.08);">',
+        '<div style="font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#9b7b2f;font-weight:700;">BlackSea Connect</div>',
+        f'<h1 style="margin:16px 0 12px;font-size:28px;line-height:1.2;color:#1f2937;">{greeting}</h1>',
+        f'<p style="margin:0 0 24px;font-size:16px;line-height:1.7;">{intro}</p>',
+        f'<a href="{login_url}" style="display:inline-block;background:#9b7b2f;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">{button_label}</a>',
+        f'<p style="margin:20px 0 8px;font-size:14px;line-height:1.7;color:#4b5563;">{fallback_label}</p>',
+        f'<p style="margin:0;font-size:14px;line-height:1.7;word-break:break-all;"><a href="{login_url}" style="color:#9b7b2f;">{login_url}</a></p>',
+        f'<p style="margin:24px 0 0;font-size:14px;line-height:1.7;color:#4b5563;">{closing}</p>',
+        "</div>",
+        "</div>",
+        "</body>",
+        "</html>",
+    ])
+    return subject, text_body, html_body
+
+
+def _send_owner_magic_link_with_language(email, login_url, language):
     smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
     if not smtp_host or not smtp_port_raw or not smtp_from or not email:
         app.logger.warning("Owner magic link email skipped: SMTP configuration missing for %s.", email or "unknown")
@@ -939,23 +1068,13 @@ def _send_owner_magic_link(email, login_url):
         app.logger.warning("Owner magic link email skipped: SMTP_PORT is invalid.")
         return False
 
+    subject, text_body, html_body = _owner_magic_link_email_message(email, login_url, language)
     message = EmailMessage()
-    message["Subject"] = "BlackSea Connect - Your secure sign-in link"
+    message["Subject"] = subject
     message["From"] = smtp_from
     message["To"] = email
-    message.set_content(
-        "\n".join([
-            "Hello,",
-            "",
-            "Use the secure link below to access your Owner Portal:",
-            "",
-            login_url,
-            "",
-            "This link expires in 30 minutes.",
-            "",
-            "BlackSea Connect",
-        ])
-    )
+    message.set_content(text_body)
+    message.add_alternative(html_body, subtype="html")
 
     try:
         smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
@@ -982,10 +1101,10 @@ def _send_owner_magic_link(email, login_url):
     return True
 
 
-def _queue_owner_magic_link_email(email, login_url):
+def _queue_owner_magic_link_email(email, login_url, language="bg"):
     Thread(
-        target=_send_owner_magic_link,
-        args=(email, login_url),
+        target=_send_owner_magic_link_with_language,
+        args=(email, login_url, language),
         daemon=True,
     ).start()
 
@@ -1346,9 +1465,102 @@ def _owner_portal_activity_timeline(owner_requests):
     return timeline_items[:5]
 
 
+def _owner_property_status(property_record, has_owner_requests):
+    operating_mode = str(property_record.get("operating_mode", "")).strip().lower()
+    notes = str(property_record.get("notes", "")).strip().lower()
+
+    if "paused" in notes:
+        return "paused", "Paused", "ownerDashboardPropertyStatusPaused", "paused"
+    if operating_mode == "seasonal":
+        return "seasonal", "Seasonal", "ownerDashboardPropertyStatusSeasonal", "seasonal"
+    if not has_owner_requests:
+        return "onboarding", "Onboarding", "ownerDashboardPropertyStatusOnboarding", "onboarding"
+    return "active", "Active", "ownerDashboardPropertyStatusActive", "active"
+
+
+def _owner_property_card_context(property_record, has_owner_requests):
+    status, status_label, status_key, status_tone = _owner_property_status(property_record, has_owner_requests)
+    bedrooms = str(property_record.get("bedrooms", "")).strip() or "0"
+    bathrooms = str(property_record.get("bathrooms", "")).strip() or "0"
+    guest_capacity = str(property_record.get("guest_capacity", "")).strip() or "0"
+    operating_mode = str(property_record.get("operating_mode", "")).strip().lower() or "year-round"
+    operating_mode_label = "Seasonal" if operating_mode == "seasonal" else "Year-round"
+    operating_mode_key = "ownerPropertyModeSeasonal" if operating_mode == "seasonal" else "ownerPropertyModeYearRound"
+    if status == "paused":
+        status_note = "This property is currently paused."
+        status_note_key = "ownerPropertyStatusNotePaused"
+    elif status == "seasonal":
+        status_note = "Seasonal operations are planned and ready."
+        status_note_key = "ownerPropertyStatusNoteSeasonal"
+    elif status == "active":
+        status_note = "Operations are configured and active."
+        status_note_key = "ownerPropertyStatusNoteActive"
+    else:
+        status_note = "We are reviewing the first details before activation."
+        status_note_key = "ownerPropertyStatusNoteOnboarding"
+
+    return {
+        "id": property_record.get("id", ""),
+        "name": str(property_record.get("name", "")).strip() or "Property",
+        "property_type": str(property_record.get("property_type", "")).strip() or "Residence",
+        "location": str(property_record.get("location", "")).strip() or "Location pending",
+        "bedrooms": bedrooms,
+        "bathrooms": bathrooms,
+        "guest_capacity": guest_capacity,
+        "operating_mode": operating_mode,
+        "operating_mode_label": operating_mode_label,
+        "operating_mode_key": operating_mode_key,
+        "notes": str(property_record.get("notes", "")).strip(),
+        "status": status,
+        "status_label": status_label,
+        "status_key": status_key,
+        "status_tone": status_tone,
+        "status_note": status_note,
+        "status_note_key": status_note_key,
+        "created_at": str(property_record.get("created_at", "")).strip(),
+    }
+
+
 def _owner_portal_dashboard_context(owner_account, owner_requests):
-    property_name = str(owner_account.get("property_name", "")).strip() or "Primary property"
-    city = str(owner_account.get("city", "")).strip() or "Coastal city"
+    owner_properties = [
+        property_record
+        for property_record in _load_owner_properties()
+        if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
+    ]
+    has_properties = bool(owner_properties)
+    property_cards = [_owner_property_card_context(property_record, bool(owner_requests)) for property_record in owner_properties]
+    primary_property = property_cards[0] if property_cards else None
+    property_name = primary_property["name"] if primary_property else str(owner_account.get("property_name", "")).strip() or "Primary property"
+    city = ""
+    if primary_property:
+        city = primary_property["location"]
+    if not city:
+        city = str(owner_account.get("city", "")).strip() or "Coastal city"
+
+    onboarding_stages = [
+        {
+            "label": "Property Added",
+            "label_key": "ownerOnboardingStagePropertyAdded",
+            "complete": has_properties,
+        },
+        {
+            "label": "Information Reviewed",
+            "label_key": "ownerOnboardingStageInformationReviewed",
+            "complete": has_properties,
+        },
+        {
+            "label": "Operations Configured",
+            "label_key": "ownerOnboardingStageOperationsConfigured",
+            "complete": bool(owner_requests),
+        },
+        {
+            "label": "Concierge Ready",
+            "label_key": "ownerOnboardingStageConciergeReady",
+            "complete": bool(owner_requests and any(_normalize_service_request_status(request.get("status", "new")) in {"assigned", "in_progress", "completed"} for request in owner_requests)),
+        },
+    ]
+    onboarding_completed = sum(1 for stage in onboarding_stages if stage["complete"])
+    onboarding_percentage = int(round((onboarding_completed / len(onboarding_stages)) * 100)) if onboarding_stages else 0
 
     completed_requests = [
         request
@@ -1437,16 +1649,25 @@ def _owner_portal_dashboard_context(owner_account, owner_requests):
         last_completed_task_key = OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(latest_category, "") if latest_category else ""
 
     owner_portal = {
+        "empty_state": not has_properties,
+        "has_properties": has_properties,
+        "properties": property_cards,
+        "primary_property": primary_property or {},
+        "onboarding": {
+            "percentage": onboarding_percentage,
+            "stages": onboarding_stages,
+        },
         "property_overview": {
             "property_name": property_name,
             "city": city,
-            "status": property_status,
-            "status_tone": status_tone,
-            "status_note": status_note,
-            "status_note_key": status_note_key,
-            "property_type": str(owner_account.get("property_type", "")).strip() or "Coastal residence",
+            "location": city,
+            "status": primary_property["status_label"] if primary_property else property_status,
+            "status_tone": primary_property["status_tone"] if primary_property else status_tone,
+            "status_note": primary_property["status_note"] if primary_property else status_note,
+            "status_note_key": primary_property["status_note_key"] if primary_property else status_note_key,
+            "property_type": primary_property["property_type"] if primary_property else str(owner_account.get("property_type", "")).strip() or "Coastal residence",
             "property_type_key": "ownerDashboardPropertyTypeResidence",
-            "units": str(owner_account.get("number_of_units", "")).strip() or "1",
+            "units": primary_property["guest_capacity"] if primary_property else str(owner_account.get("number_of_units", "")).strip() or "1",
         },
         "operations_snapshot": [
             {"label": "Upcoming arrivals", "label_key": "ownerDashboardUpcomingArrivalsLabel", "value": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[0], "value_key": _owner_portal_metric_value_with_key(upcoming_arrivals, "Scheduled", "ownerMetricScheduled")[1], "support": "Projected", "support_key": "ownerDashboardProjected"},
@@ -1589,7 +1810,8 @@ def owners_register():
                 )
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
-                _queue_owner_magic_link_email(saved_account["email"], login_url)
+                email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                _queue_owner_magic_link_email(saved_account["email"], login_url, email_language)
                 app.logger.info("Owner magic link queued for %s: %s", saved_account["email"], login_url)
             submitted = True
             return redirect(url_for("owners_login", registered="1", magic_sent="1"))
@@ -1618,7 +1840,8 @@ def owners_login():
             else:
                 magic_token = _create_owner_magic_token(owner_account["email"])
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
-                _queue_owner_magic_link_email(owner_account["email"], login_url)
+                email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                _queue_owner_magic_link_email(owner_account["email"], login_url, email_language)
                 app.logger.info("Owner magic link queued for %s: %s", owner_account["email"], login_url)
                 return redirect(url_for("owners_login", magic_sent="1"))
 
@@ -1652,6 +1875,86 @@ def owner_magic_login(token):
     session[OWNER_SESSION_NAME_KEY] = owner_account.get("full_name", "")
     _consume_owner_magic_token(token)
     return redirect(url_for("owners_dashboard"))
+
+
+@app.route("/owners/property/new", methods=["GET", "POST"])
+@owner_required
+def owners_property_new():
+    owner_account = _current_owner_account()
+    form_values = {
+        "name": "",
+        "property_type": "",
+        "location": "",
+        "bedrooms": "",
+        "bathrooms": "",
+        "guest_capacity": "",
+        "operating_mode": "year-round",
+        "notes": "",
+    }
+    errors = {}
+
+    if request.method == "POST":
+        form_values.update({
+            "name": str(request.form.get("name", "")).strip(),
+            "property_type": str(request.form.get("property_type", "")).strip(),
+            "location": str(request.form.get("location", "")).strip(),
+            "bedrooms": str(request.form.get("bedrooms", "")).strip(),
+            "bathrooms": str(request.form.get("bathrooms", "")).strip(),
+            "guest_capacity": str(request.form.get("guest_capacity", "")).strip(),
+            "operating_mode": str(request.form.get("operating_mode", "year-round")).strip().lower(),
+            "notes": str(request.form.get("notes", "")).strip(),
+        })
+
+        required_fields = {
+            "name": "ownerPropertyNameRequiredError",
+            "property_type": "ownerPropertyTypeRequiredError",
+            "location": "ownerPropertyLocationRequiredError",
+            "bedrooms": "ownerPropertyBedroomsRequiredError",
+            "bathrooms": "ownerPropertyBathroomsRequiredError",
+            "guest_capacity": "ownerPropertyGuestCapacityRequiredError",
+            "operating_mode": "ownerPropertyModeRequiredError",
+        }
+        for field, error_key in required_fields.items():
+            if not form_values[field]:
+                errors[field] = error_key
+
+        numeric_fields = {
+            "bedrooms": "ownerPropertyBedroomsInvalidError",
+            "bathrooms": "ownerPropertyBathroomsInvalidError",
+            "guest_capacity": "ownerPropertyGuestCapacityInvalidError",
+        }
+        for field, error_key in numeric_fields.items():
+            value = form_values[field]
+            if value and not value.isdigit():
+                errors[field] = error_key
+
+        if form_values["operating_mode"] not in {"seasonal", "year-round"}:
+            errors["operating_mode"] = "ownerPropertyModeInvalidError"
+
+        if not errors:
+            saved_property = _append_owner_property({
+                "id": "",
+                "owner_id": owner_account.get("id", ""),
+                "created_at": _utc_now_iso(),
+                "name": form_values["name"],
+                "property_type": form_values["property_type"],
+                "location": form_values["location"],
+                "bedrooms": int(form_values["bedrooms"]),
+                "bathrooms": int(form_values["bathrooms"]),
+                "guest_capacity": int(form_values["guest_capacity"]),
+                "operating_mode": form_values["operating_mode"],
+                "notes": form_values["notes"],
+            })
+            if saved_property:
+                app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
+            return redirect(url_for("owners_dashboard", property_added="1"))
+
+    return render_template(
+        "owners_property_new.html",
+        owner_account=owner_account,
+        form_values=form_values,
+        errors=errors,
+    ), (400 if errors else 200)
 
 
 @app.route("/owners/dashboard")

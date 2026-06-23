@@ -117,8 +117,25 @@ class OwnerPortalTests(unittest.TestCase):
     def _demo_login_payload(self, email="owner@blackseaconnect.com", password=None):
         return {"email": email}
 
-    def _login_owner_via_magic(self, email="owner@blackseaconnect.com"):
+    def _seed_owner_property(self, owner_id="owner-1", owner_email="owner@blackseaconnect.com", name="Sea View Villa", location="Varna", operating_mode="year-round"):
+        self._seed_jsonl("owner_properties.jsonl", [{
+            "id": "property-1",
+            "owner_id": owner_id,
+            "created_at": "2026-06-15T10:30:00Z",
+            "name": name,
+            "property_type": "Villa",
+            "location": location,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "guest_capacity": 6,
+            "operating_mode": operating_mode,
+            "notes": "",
+        }])
+
+    def _login_owner_via_magic(self, email="owner@blackseaconnect.com", seed_property=True):
         self._seed_owner_account(email=email)
+        if seed_property:
+            self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
@@ -132,8 +149,10 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(login_response.headers["Location"], "/owners/dashboard")
         return login_response
 
-    def _request_owner_magic_link(self, email="owner@blackseaconnect.com"):
+    def _request_owner_magic_link(self, email="owner@blackseaconnect.com", seed_property=False):
         self._seed_owner_account(email=email)
+        if seed_property:
+            self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
@@ -218,16 +237,114 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0]["email"], "owner@example.com")
         self.assertEqual(len(FakeSMTP.sent_messages), 1)
-        self.assertEqual(FakeSMTP.sent_messages[0]["Subject"], "BlackSea Connect - Your secure sign-in link")
+        message = FakeSMTP.sent_messages[0]
+        self.assertEqual(message["Subject"], "BlackSea Connect — Вход в портала за собственици")
+        self.assertTrue(message.is_multipart())
+        html_part = message.get_body(preferencelist=("html",))
+        self.assertIsNotNone(html_part)
+        self.assertIn("Влезте в портала", html_part.get_content())
 
     def test_owner_routes_require_login(self):
         response_dashboard = self.client.get("/owners/dashboard")
         response_request = self.client.get("/owners/request-service")
+        response_property_new = self.client.get("/owners/property/new")
 
         self.assertEqual(response_dashboard.status_code, 302)
         self.assertTrue(response_dashboard.headers["Location"].startswith("/owners/login"))
         self.assertEqual(response_request.status_code, 302)
         self.assertTrue(response_request.headers["Location"].startswith("/owners/login"))
+        self.assertEqual(response_property_new.status_code, 302)
+        self.assertTrue(response_property_new.headers["Location"].startswith("/owners/login"))
+
+    def test_owner_dashboard_shows_empty_state_without_properties(self):
+        self._login_owner_via_magic(seed_property=False)
+        response = self.client.get("/owners/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Добре дошли в BlackSea Connect", html)
+        self.assertIn("Добавете първия си имот, за да започнем оперативната подготовка.", html)
+        self.assertIn('href="/owners/property/new?lang=bg"', html)
+
+    def test_owner_property_creation_saves_and_redirects(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.post(
+            "/owners/property/new",
+            data={
+                "name": "Sea View Villa",
+                "property_type": "Villa",
+                "location": "Varna, Bulgaria",
+                "bedrooms": "3",
+                "bathrooms": "2",
+                "guest_capacity": "6",
+                "operating_mode": "year-round",
+                "notes": "Prefers weekend updates.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/owners/dashboard?property_added=1")
+
+        properties = self._read_jsonl("owner_properties.jsonl")
+        self.assertEqual(len(properties), 1)
+        self.assertEqual(properties[0]["name"], "Sea View Villa")
+        self.assertEqual(properties[0]["location"], "Varna, Bulgaria")
+        self.assertEqual(properties[0]["operating_mode"], "year-round")
+
+    def test_owner_dashboard_lists_properties(self):
+        self._seed_owner_account()
+        self._seed_jsonl("owner_properties.jsonl", [
+            {
+                "id": "property-1",
+                "owner_id": "owner-1",
+                "created_at": "2026-06-15T10:30:00Z",
+                "name": "Sea View Villa",
+                "property_type": "Villa",
+                "location": "Varna",
+                "bedrooms": 3,
+                "bathrooms": 2,
+                "guest_capacity": 6,
+                "operating_mode": "year-round",
+                "notes": "",
+            },
+            {
+                "id": "property-2",
+                "owner_id": "owner-1",
+                "created_at": "2026-06-15T10:45:00Z",
+                "name": "Marina Apartment",
+                "property_type": "Apartment",
+                "location": "Sveti Vlas",
+                "bedrooms": 2,
+                "bathrooms": 1,
+                "guest_capacity": 4,
+                "operating_mode": "seasonal",
+                "notes": "",
+            },
+        ])
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Sea View Villa", html)
+        self.assertIn("Marina Apartment", html)
+        self.assertIn("Sveti Vlas", html)
+        self.assertIn("seasonal", html.lower())
+
+    def test_owner_dashboard_shows_onboarding_progress_after_first_property(self):
+        self._seed_owner_account()
+        self._seed_owner_property()
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("ownerOnboardingProgressTitle", html)
+        self.assertIn("50%", html)
 
     def test_owner_login_and_dashboard_visibility(self):
         self._seed_jsonl("service_requests.jsonl", [
@@ -311,6 +428,7 @@ class OwnerPortalTests(unittest.TestCase):
         page_paths = [
             "/owners/register",
             "/owners/login",
+            "/owners/property/new",
             "/owners/dashboard",
             "/owners/request-service",
         ]
@@ -332,6 +450,9 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertIn('data-i18n="ownerLoginEmail"', html, msg=path)
                     self.assertIn('data-i18n="ownerLoginSendMagicLink"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-login-page"', html, msg=path)
+                elif path == "/owners/property/new":
+                    self.assertIn('data-i18n="ownerPropertyNewFormTitle"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-property-new-page"', html, msg=path)
                 elif path == "/owners/dashboard":
                     self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html, msg=path)
