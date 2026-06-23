@@ -92,6 +92,18 @@
 
       <div class="admin-owner-login-debug-grid">
         <section class="admin-owner-login-debug-panel">
+          <h2>Persistence Snapshot</h2>
+          <p><strong>File exists:</strong> {{ persistence_debug.file_exists }}</p>
+          <p><strong>File size bytes:</strong> {{ persistence_debug.file_size_bytes }}</p>
+          <p><strong>Line count:</strong> {{ persistence_debug.line_count }}</p>
+          <p><strong>Account count:</strong> {{ persistence_debug.account_count }}</p>
+          <p><strong>Account count after save:</strong> {{ persistence_debug.account_count_after_save }}</p>
+          <p><strong>Account count after reload:</strong> {{ persistence_debug.account_count_after_reload }}</p>
+          <p><strong>Last action:</strong> {{ persistence_debug.last_action }}</p>
+          <p><strong>Last error:</strong> {{ persistence_debug.last_error }}</p>
+        </section>
+
+        <section class="admin-owner-login-debug-panel">
           <h2>Last Lookup Result</h2>
           <p><strong>Result:</strong> {{ login_debug.result }}</p>
           <p><strong>Submitted raw:</strong> {{ login_debug.submitted_email_raw }}</p>
@@ -106,10 +118,10 @@
 
         <section class="admin-owner-login-debug-panel">
           <h2>Loaded Emails</h2>
-          <p><strong>Count:</strong> {{ login_debug.loaded_count }}</p>
+          <p><strong>Count:</strong> {{ owner_accounts_count }}</p>
           <ul class="admin-owner-login-debug-list">
-            {% for email in login_debug.loaded_emails %}
-              <li>{{ email }}</li>
+            {% for account in owner_accounts %}
+              <li>{{ account.email }}</li>
             {% endfor %}
           </ul>
         </section>
@@ -117,8 +129,8 @@
         <section class="admin-owner-login-debug-panel">
           <h2>Normalized Emails</h2>
           <ul class="admin-owner-login-debug-list">
-            {% for email in login_debug.loaded_emails_normalized %}
-              <li>{{ email }}</li>
+            {% for account in owner_accounts %}
+              <li>{{ account.email | lower }}</li>
             {% endfor %}
           </ul>
         </section>
@@ -148,6 +160,12 @@
         {% else %}
           <p class="admin-owner-login-debug-muted">No comparison data yet.</p>
         {% endif %}
+      </section>
+
+      <section class="admin-owner-login-debug-panel">
+        <h2>Loader Info</h2>
+        <p><strong>Loader:</strong> {{ persistence_debug.loader_name }}</p>
+        <p><strong>Path:</strong> {{ persistence_debug.loader_path }}</p>
       </section>
     </section>
   </main>

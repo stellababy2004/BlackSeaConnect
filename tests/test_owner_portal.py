@@ -749,6 +749,23 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["property_type"], "Apartment")
         self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["number_of_units"], 1)
 
+    def test_admin_owner_login_debug_shows_persistence_snapshot(self):
+        self._seed_owner_account(email="stoyanova@orange.fr")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin/owner-login-debug", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Owner Login Debug", html)
+        self.assertIn("Persistence Snapshot", html)
+        self.assertIn("File exists:", html)
+        self.assertIn("File size bytes:", html)
+        self.assertIn("Line count:", html)
+        self.assertIn("Account count after save:", html)
+        self.assertIn("Account count after reload:", html)
+        self.assertIn("stoyanova@orange.fr", html)
+
     def test_admin_seed_owner_is_idempotent(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             first = self.client.post("/admin/seed-owner", headers=self._auth_headers())

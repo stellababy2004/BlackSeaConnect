@@ -129,6 +129,17 @@ OWNER_LOGIN_DEBUG_STATE = {
     "result": "idle",
     "updated_at": "",
 }
+OWNER_ACCOUNTS_DEBUG_STATE = {
+    "file_exists": False,
+    "file_size_bytes": 0,
+    "line_count": 0,
+    "account_count": 0,
+    "account_count_after_save": 0,
+    "account_count_after_reload": 0,
+    "last_action": "idle",
+    "last_error": "",
+    "updated_at": "",
+}
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_SESSION_ID_KEY = "owner_id"
@@ -467,10 +478,20 @@ def _load_owner_accounts():
     accounts = []
 
     if not path.exists():
+        _update_owner_accounts_debug_state(
+            file_exists=False,
+            file_size_bytes=0,
+            line_count=0,
+            account_count=0,
+            last_action="load_missing_file",
+            last_error="",
+        )
         return accounts
 
     with path.open("r", encoding="utf-8") as f:
+        raw_line_count = 0
         for line in f:
+            raw_line_count += 1
             try:
                 record = json.loads(line)
             except json.JSONDecodeError:
@@ -481,6 +502,18 @@ def _load_owner_accounts():
                 accounts.append(normalized)
 
     accounts.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    try:
+        file_size_bytes = path.stat().st_size
+    except OSError:
+        file_size_bytes = 0
+    _update_owner_accounts_debug_state(
+        file_exists=True,
+        file_size_bytes=file_size_bytes,
+        line_count=raw_line_count,
+        account_count=len(accounts),
+        last_action="load",
+        last_error="",
+    )
     return accounts
 
 
@@ -492,6 +525,16 @@ def _save_owner_accounts(accounts):
             for record in accounts:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception as exc:
+        _update_owner_accounts_debug_state(
+            file_exists=OWNER_ACCOUNTS_JSONL_PATH.exists(),
+            file_size_bytes=OWNER_ACCOUNTS_JSONL_PATH.stat().st_size if OWNER_ACCOUNTS_JSONL_PATH.exists() else 0,
+            line_count=0,
+            account_count=len(accounts),
+            account_count_after_save=0,
+            account_count_after_reload=0,
+            last_action="save_failed",
+            last_error=type(exc).__name__,
+        )
         app.logger.warning(
             "Owner accounts write failed for %s: %s",
             str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
@@ -499,10 +542,33 @@ def _save_owner_accounts(accounts):
         )
         return False
 
+    post_save_stats = _owner_accounts_file_stats()
+    _update_owner_accounts_debug_state(
+        file_exists=post_save_stats["file_exists"],
+        file_size_bytes=post_save_stats["file_size_bytes"],
+        line_count=post_save_stats["line_count"],
+        account_count=len(accounts),
+        account_count_after_save=len(accounts),
+        account_count_after_reload=0,
+        last_action="save",
+        last_error="",
+    )
     app.logger.info(
         "Owner accounts persisted to %s (%s records)",
         str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
         len(accounts),
+    )
+    reloaded_accounts = _load_owner_accounts()
+    reloaded_stats = _owner_accounts_file_stats()
+    _update_owner_accounts_debug_state(
+        file_exists=reloaded_stats["file_exists"],
+        file_size_bytes=reloaded_stats["file_size_bytes"],
+        line_count=reloaded_stats["line_count"],
+        account_count=len(accounts),
+        account_count_after_save=len(accounts),
+        account_count_after_reload=len(reloaded_accounts),
+        last_action="save_reload_verified",
+        last_error="",
     )
     return True
 
@@ -907,6 +973,43 @@ def _owner_login_debug_snapshot():
         "loader_path": str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
         "loader_name": "_load_owner_accounts",
     }
+
+
+def _update_owner_accounts_debug_state(**kwargs):
+    OWNER_ACCOUNTS_DEBUG_STATE.update(kwargs)
+    OWNER_ACCOUNTS_DEBUG_STATE["updated_at"] = _utc_now_iso()
+
+
+def _owner_accounts_file_stats():
+    path = OWNER_ACCOUNTS_JSONL_PATH
+    exists = path.exists()
+    file_size_bytes = 0
+    line_count = 0
+    if exists:
+        try:
+            file_size_bytes = path.stat().st_size
+        except OSError:
+            file_size_bytes = 0
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                for line_count, _ in enumerate(f, start=1):
+                    pass
+        except OSError:
+            line_count = 0
+
+    return {
+        "file_exists": exists,
+        "file_size_bytes": file_size_bytes,
+        "line_count": line_count,
+        "loader_path": str(path.resolve()),
+        "loader_name": "_load_owner_accounts",
+    }
+
+
+def _owner_accounts_persistence_snapshot():
+    snapshot = dict(OWNER_ACCOUNTS_DEBUG_STATE)
+    snapshot.update(_owner_accounts_file_stats())
+    return snapshot
 
 
 def _normalize_service_request_status(status):
@@ -3758,6 +3861,7 @@ def admin_owner_login_debug():
         owner_accounts_count=len(owner_accounts),
         owner_accounts_path=str(OWNER_ACCOUNTS_JSONL_PATH.resolve()),
         login_debug=_owner_login_debug_snapshot(),
+        persistence_debug=_owner_accounts_persistence_snapshot(),
     )
 
 
