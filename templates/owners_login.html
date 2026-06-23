@@ -31,13 +31,13 @@
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+          <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+          <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <a class="language-switcher__button {% if current_lang == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+          <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
         <a class="button button--ghost topbar__portal" href="{{ localized_url('/') }}" data-i18n="ownerLoginBackToSite">Обратно към сайта</a>
       </div>
@@ -131,6 +131,7 @@
       {% endif %}
 
       <form class="owner-login-form" method="post" action="{{ localized_url('/owners/login') }}">
+        <input type="hidden" name="lang" value="{{ current_lang }}">
         <label class="owner-login-form__field">
           <span data-i18n="ownerLoginEmail">Имейл</span>
           <input id="owner-login-email" type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">

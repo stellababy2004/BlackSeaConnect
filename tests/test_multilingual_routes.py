@@ -369,6 +369,24 @@ class MultilingualRouteTests(unittest.TestCase):
             with self.subTest(page="pilot", href=href):
                 self.assertIn(href, pilot_html)
 
+        self._login_owner()
+        dashboard_html = self.client.get("/owners/dashboard?lang=fr").get_data(as_text=True)
+        for href in [
+            'href="/owners/property/new?lang=fr"',
+            'href="/owners/logout?lang=fr"',
+        ]:
+            with self.subTest(page="owner-dashboard", href=href):
+                self.assertIn(href, dashboard_html)
+
+        property_html = self.client.get("/owners/property/new?lang=fr").get_data(as_text=True)
+        for href in [
+            'href="/owners/dashboard?lang=fr"',
+            'href="/owners/logout?lang=fr"',
+        ]:
+            with self.subTest(page="owner-property", href=href):
+                self.assertIn(href, property_html)
+        self.assertIn('name="lang" value="fr"', property_html)
+
     def test_internal_links_preserve_existing_query_params_on_owner_flows(self):
         self._login_owner()
         response = self.client.get("/owners/request-service?category=cleaning&utm_source=nav&lang=fr")

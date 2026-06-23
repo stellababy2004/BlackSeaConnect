@@ -32,13 +32,13 @@
           <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Обратно към сайта</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+          <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+          <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <a class="language-switcher__button {% if current_lang == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+          <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
         <details class="owner-profile-dropdown">
           <summary class="button button--ghost owner-profile-dropdown__summary">

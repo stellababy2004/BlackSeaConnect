@@ -24501,7 +24501,8 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   }
 
   body.owner-portal-page.owner-login-page,
-  body.owner-portal-page.owner-request-service-page {
+  body.owner-portal-page.owner-request-service-page,
+  body.owner-portal-page.owner-property-page {
     background:
       radial-gradient(circle at top, rgba(255, 255, 255, 0.86), rgba(247, 241, 231, 0.78) 40%, rgba(236, 227, 213, 0.64) 100%),
       linear-gradient(180deg, #f9f6f1 0%, #f2ebe1 100%);
@@ -24523,7 +24524,15 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   body.owner-portal-page.owner-request-service-page dd,
   body.owner-portal-page.owner-request-service-page dt,
   body.owner-portal-page.owner-request-service-page span,
-  body.owner-portal-page.owner-request-service-page a {
+  body.owner-portal-page.owner-request-service-page a,
+  body.owner-portal-page.owner-property-page h1,
+  body.owner-portal-page.owner-property-page h2,
+  body.owner-portal-page.owner-property-page h3,
+  body.owner-portal-page.owner-property-page p,
+  body.owner-portal-page.owner-property-page dd,
+  body.owner-portal-page.owner-property-page dt,
+  body.owner-portal-page.owner-property-page span,
+  body.owner-portal-page.owner-property-page a {
     color: #0f2345;
     opacity: 1;
     text-shadow: none;
@@ -24533,6 +24542,12 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   body.owner-portal-page.owner-request-service-page .hero__content--home {
     display: grid;
     gap: 18px;
+    align-items: start;
+  }
+
+  body.owner-portal-page.owner-property-page .hero__content--home {
+    display: grid;
+    gap: 22px;
     align-items: start;
   }
 
@@ -24548,6 +24563,164 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
     border-radius: 28px;
     backdrop-filter: blur(18px) saturate(122%) !important;
     -webkit-backdrop-filter: blur(18px) saturate(122%) !important;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-shell {
+    width: min(1100px, calc(100vw - 32px));
+    margin: 0 auto;
+  }
+
+  body.owner-portal-page.owner-property-page .hero__content--home,
+  body.owner-portal-page.owner-property-page main {
+    width: min(1100px, calc(100vw - 32px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-card {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 242, 233, 0.90)),
+      rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(15, 35, 69, 0.12);
+    box-shadow:
+      0 24px 56px rgba(15, 35, 69, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.74);
+    border-radius: 32px;
+    backdrop-filter: blur(24px) saturate(122%);
+    -webkit-backdrop-filter: blur(24px) saturate(122%);
+    padding: clamp(22px, 3.4vw, 34px);
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-card__header {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-card__copy {
+    margin: 10px 0 0;
+    max-width: 58ch;
+    color: #23395d;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-grid {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+    align-items: start;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-form {
+    display: grid;
+    gap: 22px;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-form__fields {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-field {
+    display: grid;
+    gap: 8px;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-field--full {
+    grid-column: 1 / -1;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-field span {
+    color: #0f2345 !important;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  body.owner-portal-page.owner-property-page input,
+  body.owner-portal-page.owner-property-page select,
+  body.owner-portal-page.owner-property-page textarea {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 18px;
+    border: 1px solid rgba(15, 35, 69, 0.14);
+    background: rgba(255, 255, 255, 0.94);
+    color: #0f2345;
+    padding: 0.95rem 1rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+  }
+
+  body.owner-portal-page.owner-property-page textarea {
+    min-height: 132px;
+    resize: vertical;
+  }
+
+  body.owner-portal-page.owner-property-page input:focus,
+  body.owner-portal-page.owner-property-page select:focus,
+  body.owner-portal-page.owner-property-page textarea:focus {
+    outline: 2px solid rgba(155, 123, 47, 0.24);
+    outline-offset: 2px;
+    border-color: rgba(155, 123, 47, 0.28);
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-actions .button {
+    min-width: 180px;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-aside {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-aside--hero {
+    min-height: 100%;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-checklist {
+    display: grid;
+    gap: 10px;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-checklist__item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(247, 244, 238, 0.92);
+    border: 1px solid rgba(15, 35, 69, 0.10);
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-checklist__item span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(155, 123, 47, 0.16), rgba(236, 220, 182, 0.72));
+    color: #8a681f;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-checklist__item strong {
+    display: block;
+    color: #0f2345;
+  }
+
+  body.owner-portal-page.owner-property-page .owner-property-checklist__item p {
+    margin: 3px 0 0;
+    color: #4b5f7b;
   }
 
   body.owner-portal-page.owner-login-page .owner-login-card,
@@ -24663,6 +24836,11 @@ body.owner-portal-page.owner-request-service-page .owner-request-panel {
     justify-items: start;
   }
 
+  body.owner-portal-page.owner-property-page .owner-property-shell .owner-property-card + .owner-property-card,
+  body.owner-portal-page.owner-property-page .hero__content--home + main {
+    margin-top: 24px;
+  }
+
   body.owner-portal-page.owner-request-service-page .owner-request-next__grid {
     display: grid;
     gap: 12px;
@@ -24678,7 +24856,10 @@ body.owner-portal-page.owner-request-service-page .owner-request-panel {
   body.owner-portal-page.owner-login-page .owner-portal-auth-layout__support,
   body.owner-portal-page.owner-request-service-page .owner-request-summary .owner-portal-card__subcopy,
   body.owner-portal-page.owner-request-service-page .owner-request-next p,
-  body.owner-portal-page.owner-request-service-page .owner-request-summary dd {
+  body.owner-portal-page.owner-request-service-page .owner-request-summary dd,
+  body.owner-portal-page.owner-property-page .owner-property-card__copy,
+  body.owner-portal-page.owner-property-page .owner-property-aside p,
+  body.owner-portal-page.owner-property-page .owner-property-aside dd {
     color: #23395d !important;
   }
 
@@ -24692,7 +24873,26 @@ body.owner-portal-page.owner-request-service-page .owner-request-panel {
   body.owner-portal-page.owner-request-service-page .owner-request-next__grid {
     grid-template-columns: 1fr;
   }
-}
+
+    body.owner-portal-page.owner-property-page .hero__content--home,
+    body.owner-portal-page.owner-property-page main,
+    body.owner-portal-page.owner-property-page .owner-property-grid,
+    body.owner-portal-page.owner-property-page .owner-property-form__fields {
+      width: 100%;
+      grid-template-columns: 1fr;
+    }
+
+    body.owner-portal-page.owner-property-page .owner-property-card__header,
+    body.owner-portal-page.owner-property-page .owner-property-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    body.owner-portal-page.owner-property-page .owner-property-actions .button {
+      min-width: 0;
+      width: 100%;
+    }
+  }
 
 @media (max-width: 480px) {
     body.owner-portal-page.owner-login-page .owner-login-panel,

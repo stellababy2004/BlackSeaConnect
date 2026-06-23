@@ -113,6 +113,8 @@ OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
 OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
+SITE_LANGUAGE_SESSION_KEY = "site_lang"
+SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
@@ -1122,6 +1124,213 @@ def _queue_owner_magic_link_email(email, login_url, language="bg"):
     ).start()
 
 
+def _owner_property_new_copy(language):
+    lang = _normalize_site_language(language) or "bg"
+    copy = {
+        "bg": {
+            "page_title": "BlackSea Connect | Добавете имот",
+            "meta": "Задайте първия имот и започнете оперативната подготовка.",
+            "hero_eyebrow": "Портал за собственици",
+            "hero_title": "Добре дошли в BlackSea Connect",
+            "hero_intro": "Добавете първия си имот, за да започнем оперативната подготовка.",
+            "next_eyebrow": "Какво следва?",
+            "next_title": "Ще подготвим първия оперативен профил.",
+            "next_copy": "Данните за имота ни помагат да планираме готовност, почистване и concierge setup.",
+            "form_eyebrow": "Добавете имот",
+            "form_title": "Въведете детайлите за първия си имот.",
+            "form_copy": "Спокойно, ясно и подредено. Ще запишем основните данни и ще продължим оттам.",
+            "name_label": "Име на имота",
+            "type_label": "Тип имот",
+            "location_label": "Локация",
+            "bedrooms_label": "Спални",
+            "bathrooms_label": "Бани",
+            "guest_capacity_label": "Капацитет гости",
+            "operating_mode_label": "Режим на работа",
+            "year_round_label": "Целогодишен",
+            "seasonal_label": "Сезонен",
+            "notes_label": "Бележки",
+            "notes_placeholder": "Има ли нещо важно, което екипът ни трябва да знае?",
+            "submit_label": "Запази имота",
+            "back_label": "Назад към таблото",
+            "aside_title": "Подготовката започва от тук",
+            "aside_copy": "Ще използваме данните, за да подготвим оперативен профил, да подредим приоритетите и да ускорим първите стъпки.",
+            "aside_step_1": "Добавен имот",
+            "aside_step_2": "Проверка на информацията",
+            "aside_step_3": "Оперативна конфигурация",
+            "aside_step_4": "Concierge готовност",
+            "aside_detail_1": "Първият оперативен запис вече е подготвен.",
+            "aside_detail_2": "Потвърждаваме данните и нормализираме профила.",
+            "aside_detail_3": "Подготвяме почистване, готовност и concierge потока.",
+            "aside_detail_4": "Имотът е готов за екипа.",
+            "nav_dashboard_label": "Табло",
+            "nav_properties_label": "Имот",
+            "nav_logout_label": "Изход",
+            "footer_description": "Спокойни оперативни решения за крайбрежни имоти.",
+            "footer_meta": "Порталът за собственици събира видимостта, заявките и подготовката в един спокоен поток.",
+            "aria_owner_portal": "Портал за собственици",
+            "aria_summary": "Обобщение на първия имот",
+            "aria_steps": "Стъпки по onboarding",
+            "aria_guidance": "Напътствия за onboarding",
+        },
+        "en": {
+            "page_title": "BlackSea Connect | Add property",
+            "meta": "Set up your first property and begin operational onboarding.",
+            "hero_eyebrow": "Owner portal",
+            "hero_title": "Welcome to BlackSea Connect",
+            "hero_intro": "Add your first property so we can start operational preparation.",
+            "next_eyebrow": "What happens next?",
+            "next_title": "We will prepare the first operational profile.",
+            "next_copy": "Property details help us plan readiness, housekeeping, and concierge setup.",
+            "form_eyebrow": "Add property",
+            "form_title": "Enter the details for your first property.",
+            "form_copy": "Calm, clear, and organized. We will capture the essentials and continue from there.",
+            "name_label": "Property name",
+            "type_label": "Property type",
+            "location_label": "Location",
+            "bedrooms_label": "Bedrooms",
+            "bathrooms_label": "Bathrooms",
+            "guest_capacity_label": "Guest capacity",
+            "operating_mode_label": "Operating mode",
+            "year_round_label": "Year-round",
+            "seasonal_label": "Seasonal",
+            "notes_label": "Notes",
+            "notes_placeholder": "Anything important our team should know?",
+            "submit_label": "Save property",
+            "back_label": "Back to dashboard",
+            "aside_title": "Preparation starts here",
+            "aside_copy": "We will use these details to prepare the operational profile, organize priorities, and speed up the first steps.",
+            "aside_step_1": "Property added",
+            "aside_step_2": "Information reviewed",
+            "aside_step_3": "Operations configured",
+            "aside_step_4": "Concierge ready",
+            "aside_detail_1": "The first operational record is now prepared.",
+            "aside_detail_2": "We confirm the details and normalize the profile.",
+            "aside_detail_3": "We prepare cleaning, readiness, and concierge flow.",
+            "aside_detail_4": "The property is ready for the team.",
+            "nav_dashboard_label": "Dashboard",
+            "nav_properties_label": "Property",
+            "nav_logout_label": "Logout",
+            "footer_description": "Quiet operational software for coastal properties.",
+            "footer_meta": "The owner portal keeps visibility, requests, and preparation in one calm flow.",
+            "aria_owner_portal": "Owner portal",
+            "aria_summary": "First property summary",
+            "aria_steps": "Onboarding steps",
+            "aria_guidance": "Onboarding guidance",
+        },
+        "fr": {
+            "page_title": "BlackSea Connect | Ajouter un bien",
+            "meta": "Renseignez votre premier bien pour lancer la préparation opérationnelle.",
+            "hero_eyebrow": "Portail propriétaire",
+            "hero_title": "Bienvenue chez BlackSea Connect",
+            "hero_intro": "Ajoutez votre premier bien pour lancer la préparation opérationnelle.",
+            "next_eyebrow": "Que se passe-t-il ensuite ?",
+            "next_title": "Nous préparerons votre premier profil opérationnel.",
+            "next_copy": "Les détails du bien nous aident à planifier la préparation, le ménage et la configuration concierge.",
+            "form_eyebrow": "Ajouter un bien",
+            "form_title": "Saisissez les détails de votre premier bien.",
+            "form_copy": "Calme, clair et structuré. Nous enregistrons l'essentiel puis nous avançons.",
+            "name_label": "Nom du bien",
+            "type_label": "Type de bien",
+            "location_label": "Localisation",
+            "bedrooms_label": "Chambres",
+            "bathrooms_label": "Salles de bain",
+            "guest_capacity_label": "Capacité voyageurs",
+            "operating_mode_label": "Mode d’exploitation",
+            "year_round_label": "Toute l’année",
+            "seasonal_label": "Saisonnier",
+            "notes_label": "Notes",
+            "notes_placeholder": "Y a-t-il quelque chose d'important à signaler ?",
+            "submit_label": "Enregistrer le bien",
+            "back_label": "Retour au tableau de bord",
+            "aside_title": "La préparation commence ici",
+            "aside_copy": "Nous utiliserons ces détails pour préparer le profil opérationnel, organiser les priorités et accélérer les premières étapes.",
+            "aside_step_1": "Bien ajouté",
+            "aside_step_2": "Informations vérifiées",
+            "aside_step_3": "Opérations configurées",
+            "aside_step_4": "Concierge prêt",
+            "aside_detail_1": "Le premier enregistrement opérationnel est prêt.",
+            "aside_detail_2": "Nous confirmons les détails et normalisons le profil.",
+            "aside_detail_3": "Nous préparons le ménage, la préparation et le flux concierge.",
+            "aside_detail_4": "Le bien est prêt pour l'équipe.",
+            "nav_dashboard_label": "Tableau de bord",
+            "nav_properties_label": "Bien",
+            "nav_logout_label": "Déconnexion",
+            "footer_description": "Logiciel opérationnel discret pour les biens côtiers.",
+            "footer_meta": "Le portail propriétaire regroupe la visibilité, les demandes et la préparation dans un flux calme.",
+            "aria_owner_portal": "Portail propriétaire",
+            "aria_summary": "Résumé du premier bien",
+            "aria_steps": "Étapes d'intégration",
+            "aria_guidance": "Conseils d'intégration",
+        },
+        "ru": {
+            "page_title": "BlackSea Connect | Добавить объект",
+            "meta": "Укажите первый объект и начните операционную подготовку.",
+            "hero_eyebrow": "Портал владельца",
+            "hero_title": "Добро пожаловать в BlackSea Connect",
+            "hero_intro": "Добавьте первый объект, и мы начнем операционную подготовку.",
+            "next_eyebrow": "Что будет дальше?",
+            "next_title": "Мы подготовим первый операционный профиль.",
+            "next_copy": "Данные об объекте помогают нам спланировать готовность, уборку и настройку concierge.",
+            "form_eyebrow": "Добавить объект",
+            "form_title": "Введите данные вашего первого объекта.",
+            "form_copy": "Спокойно, понятно и без лишнего шума. Мы зафиксируем главное и продолжим дальше.",
+            "name_label": "Название объекта",
+            "type_label": "Тип объекта",
+            "location_label": "Локация",
+            "bedrooms_label": "Спальни",
+            "bathrooms_label": "Ванные",
+            "guest_capacity_label": "Вместимость гостей",
+            "operating_mode_label": "Режим работы",
+            "year_round_label": "Круглый год",
+            "seasonal_label": "Сезонный",
+            "notes_label": "Заметки",
+            "notes_placeholder": "Есть ли что-то важное для нашей команды?",
+            "submit_label": "Сохранить объект",
+            "back_label": "Назад к панели",
+            "aside_title": "Подготовка начинается здесь",
+            "aside_copy": "Мы используем эти данные, чтобы подготовить операционный профиль, расставить приоритеты и ускорить первые шаги.",
+            "aside_step_1": "Объект добавлен",
+            "aside_step_2": "Информация проверена",
+            "aside_step_3": "Операции настроены",
+            "aside_step_4": "Concierge готов",
+            "aside_detail_1": "Первый операционный запис уже подготовлен.",
+            "aside_detail_2": "Мы подтверждаем данные и нормализуем профиль.",
+            "aside_detail_3": "Мы готовим уборку, готовность и поток concierge.",
+            "aside_detail_4": "Объект готов для команды.",
+            "nav_dashboard_label": "Панель",
+            "nav_properties_label": "Объект",
+            "nav_logout_label": "Выход",
+            "footer_description": "Спокойное операционное ПО для прибрежной недвижимости.",
+            "footer_meta": "Портал владельца объединяет видимость, запросы и подготовку в одном спокойном потоке.",
+            "aria_owner_portal": "Портал владельца",
+            "aria_summary": "Сводка по первому объекту",
+            "aria_steps": "Шаги onboarding",
+            "aria_guidance": "Подсказки onboarding",
+        },
+    }
+    return copy.get(lang, copy["bg"])
+
+
+def _normalize_site_language(language):
+    normalized = str(language or "").strip().lower()
+    return normalized if normalized in SUPPORTED_LANGUAGES else ""
+
+
+def _resolve_current_language():
+    for candidate in (
+        request.values.get("lang"),
+        request.args.get("lang"),
+        session.get(SITE_LANGUAGE_SESSION_KEY),
+    ):
+        normalized = _normalize_site_language(candidate)
+        if normalized:
+            session[SITE_LANGUAGE_SESSION_KEY] = normalized
+            return normalized
+
+    session[SITE_LANGUAGE_SESSION_KEY] = "bg"
+    return "bg"
+
+
 def _build_home_counters():
     providers = _load_network_providers()
     service_requests = _load_service_requests()
@@ -1139,13 +1348,10 @@ def _build_home_counters():
 
 @app.context_processor
 def inject_public_site_settings():
-    supported_languages = {"bg", "en", "fr", "ru"}
-    current_lang = str(request.args.get("lang", "bg")).strip().lower() or "bg"
-    if current_lang not in supported_languages:
-        current_lang = "bg"
+    current_lang = _resolve_current_language()
 
     def language_switch_url(lang):
-        normalized_lang = str(lang).strip().lower()
+        normalized_lang = _normalize_site_language(lang) or "bg"
         preserved_args = [(key, value) for key, value in request.args.items(multi=True) if key != "lang"]
         preserved_args.append(("lang", normalized_lang))
         query_string = urllib.parse.urlencode(preserved_args, doseq=True)
@@ -1744,15 +1950,16 @@ def _owner_portal_dashboard_context(owner_account, owner_requests):
 def owner_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
+        current_lang = _resolve_current_language()
         if not session.get(OWNER_SESSION_LOGGED_IN_KEY):
-            return redirect(url_for("owners_login", next=request.path))
+            return redirect(url_for("owners_login", next=request.path, lang=current_lang))
         owner_account = _current_owner_account()
         if not owner_account:
             session.pop(OWNER_SESSION_LOGGED_IN_KEY, None)
             session.pop(OWNER_SESSION_ID_KEY, None)
             session.pop(OWNER_SESSION_EMAIL_KEY, None)
             session.pop(OWNER_SESSION_NAME_KEY, None)
-            return redirect(url_for("owners_login", next=request.path))
+            return redirect(url_for("owners_login", next=request.path, lang=current_lang))
         g.owner_account = owner_account
         return view(*args, **kwargs)
 
@@ -1761,6 +1968,7 @@ def owner_required(view):
 
 @app.route("/owners/register", methods=["GET", "POST"])
 def owners_register():
+    current_lang = _resolve_current_language()
     form_values = {
         "full_name": "",
         "email": "",
@@ -1817,22 +2025,24 @@ def owners_register():
             saved_account = _upsert_owner_account(account)
             if saved_account:
                 magic_token = _create_owner_magic_token(saved_account["email"])
-                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
-                email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
+                email_language = _owner_magic_link_email_locale(current_lang)
                 _queue_owner_magic_link_email(saved_account["email"], login_url, email_language)
             submitted = True
-            return redirect(url_for("owners_login", registered="1", magic_sent="1", magic_recipient=_mask_email(saved_account["email"])))
+            return redirect(url_for("owners_login", registered="1", magic_sent="1", magic_recipient=_mask_email(saved_account["email"]), lang=current_lang))
 
     return render_template(
         "owners_register.html",
         form_values=form_values,
         errors=errors,
         submitted=submitted,
+        current_lang=current_lang,
     ), (400 if errors else 200)
 
 
 @app.route("/owners/login", methods=["GET", "POST"])
 def owners_login():
+    current_lang = _resolve_current_language()
     form_values = {"email": ""}
     errors = {}
 
@@ -1843,49 +2053,51 @@ def owners_login():
         if not errors:
             owner_account = _find_owner_account_by_email(form_values["email"])
             if not owner_account:
-                return redirect(url_for("owners_login", magic_sent="1"))
+                return redirect(url_for("owners_login", magic_sent="1", lang=current_lang))
             else:
                 magic_token = _create_owner_magic_token(owner_account["email"])
-                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'])}"
-                email_language = _owner_magic_link_email_locale(request.args.get("lang", "bg"))
+                login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
+                email_language = _owner_magic_link_email_locale(current_lang)
                 _queue_owner_magic_link_email(owner_account["email"], login_url, email_language)
-                return redirect(url_for("owners_login", magic_sent="1", magic_recipient=_mask_email(owner_account["email"])))
+                return redirect(url_for("owners_login", magic_sent="1", magic_recipient=_mask_email(owner_account["email"]), lang=current_lang))
 
-    return render_template("owners_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
+    return render_template("owners_login.html", form_values=form_values, errors=errors, current_lang=current_lang), (400 if errors else 200)
 
 
 @app.get("/auth/owner-magic/<token>")
 def owner_magic_login(token):
+    current_lang = _resolve_current_language()
     token_record = _find_owner_magic_token(token)
     if not token_record:
-        return redirect(url_for("owners_login", invalid_token="1"))
+        return redirect(url_for("owners_login", invalid_token="1", lang=current_lang))
 
     owner_account = _find_owner_account_by_email(token_record.get("email", ""))
     if not owner_account:
         _consume_owner_magic_token(token)
-        return redirect(url_for("owners_login", invalid_token="1"))
+        return redirect(url_for("owners_login", invalid_token="1", lang=current_lang))
 
     created_at = _parse_iso_datetime(token_record.get("created_at", ""))
     if not created_at:
         _consume_owner_magic_token(token)
-        return redirect(url_for("owners_login", invalid_token="1"))
+        return redirect(url_for("owners_login", invalid_token="1", lang=current_lang))
 
     expires_at = created_at + timedelta(minutes=OWNER_MAGIC_LINK_TTL_MINUTES)
     if datetime.now(timezone.utc) >= expires_at:
         _consume_owner_magic_token(token)
-        return redirect(url_for("owners_login", expired_token="1"))
+        return redirect(url_for("owners_login", expired_token="1", lang=current_lang))
 
     session[OWNER_SESSION_LOGGED_IN_KEY] = True
     session[OWNER_SESSION_ID_KEY] = owner_account.get("id", "")
     session[OWNER_SESSION_EMAIL_KEY] = owner_account.get("email", "")
     session[OWNER_SESSION_NAME_KEY] = owner_account.get("full_name", "")
     _consume_owner_magic_token(token)
-    return redirect(url_for("owners_dashboard"))
+    return redirect(url_for("owners_dashboard", lang=current_lang))
 
 
 @app.route("/owners/property/new", methods=["GET", "POST"])
 @owner_required
 def owners_property_new():
+    current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
     form_values = {
         "name": "",
@@ -1953,19 +2165,22 @@ def owners_property_new():
             })
             if saved_property:
                 app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
-            return redirect(url_for("owners_dashboard", property_added="1"))
+            return redirect(url_for("owners_dashboard", property_added="1", lang=current_lang))
 
     return render_template(
         "owners_property_new.html",
         owner_account=owner_account,
         form_values=form_values,
         errors=errors,
+        current_lang=current_lang,
+        property_page_copy=_owner_property_new_copy(current_lang),
     ), (400 if errors else 200)
 
 
 @app.route("/owners/dashboard")
 @owner_required
 def owners_dashboard():
+    current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
     owner_requests = []
     for record in _load_service_requests():
@@ -1997,12 +2212,14 @@ def owners_dashboard():
         owner_account=owner_account,
         owner_requests=owner_requests,
         owner_portal=owner_portal,
+        current_lang=current_lang,
     )
 
 
 @app.route("/owners/request-service", methods=["GET", "POST"])
 @owner_required
 def owners_request_service():
+    current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
     form_values = {
         "category": _normalize_owner_service_category(request.args.get("category", "")),
@@ -2103,7 +2320,7 @@ def owners_request_service():
                 "[BlackSeaConnect] New owner service request",
             )
             submitted = True
-            return redirect(url_for("owners_dashboard"))
+            return redirect(url_for("owners_dashboard", lang=current_lang))
 
     return render_template(
         "owners_request_service.html",
@@ -2112,16 +2329,18 @@ def owners_request_service():
         errors=errors,
         submitted=submitted,
         service_categories=_owner_service_category_items(),
+        current_lang=current_lang,
     ), (400 if errors else 200)
 
 
 @app.route("/owners/logout")
 def owners_logout():
+    current_lang = _resolve_current_language()
     session.pop(OWNER_SESSION_LOGGED_IN_KEY, None)
     session.pop(OWNER_SESSION_ID_KEY, None)
     session.pop(OWNER_SESSION_EMAIL_KEY, None)
     session.pop(OWNER_SESSION_NAME_KEY, None)
-    return redirect(url_for("owners_login"))
+    return redirect(url_for("owners_login", lang=current_lang))
 
 
 @app.route("/partners")

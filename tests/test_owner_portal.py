@@ -138,7 +138,9 @@ class OwnerPortalTests(unittest.TestCase):
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], f"/owners/login?magic_sent=1&magic_recipient={_mask_email(email)}")
+        self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn(f"magic_recipient={_mask_email(email)}", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertTrue(tokens)
@@ -146,7 +148,8 @@ class OwnerPortalTests(unittest.TestCase):
 
         login_response = self.client.get(f"/auth/owner-magic/{token}")
         self.assertEqual(login_response.status_code, 302)
-        self.assertEqual(login_response.headers["Location"], "/owners/dashboard")
+        self.assertIn("/owners/dashboard", login_response.headers["Location"])
+        self.assertIn("lang=bg", login_response.headers["Location"])
         return login_response
 
     def _request_owner_magic_link(self, email="owner@blackseaconnect.com", seed_property=False):
@@ -155,7 +158,9 @@ class OwnerPortalTests(unittest.TestCase):
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
         response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], f"/owners/login?magic_sent=1&magic_recipient={_mask_email(email)}")
+        self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn(f"magic_recipient={_mask_email(email)}", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertTrue(tokens)
@@ -224,6 +229,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email('owner@example.com')}", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
@@ -316,13 +322,51 @@ class OwnerPortalTests(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/dashboard?property_added=1")
+        self.assertIn("/owners/dashboard?property_added=1", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         properties = self._read_jsonl("owner_properties.jsonl")
         self.assertEqual(len(properties), 1)
         self.assertEqual(properties[0]["name"], "Sea View Villa")
         self.assertEqual(properties[0]["location"], "Varna, Bulgaria")
         self.assertEqual(properties[0]["operating_mode"], "year-round")
+
+    def test_owner_property_new_renders_french_copy_and_hidden_lang(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners/property/new?lang=fr")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('<html lang="fr">', html)
+        self.assertIn("Ajouter un bien", html)
+        self.assertIn("Renseignez votre premier bien pour lancer la préparation opérationnelle.", html)
+        self.assertIn("Que se passe-t-il ensuite ?", html)
+        self.assertIn('name="lang" value="fr"', html)
+        self.assertIn('href="/owners/dashboard?lang=fr"', html)
+        self.assertIn('href="/owners/logout?lang=fr"', html)
+
+    def test_owner_property_creation_preserves_language_on_redirect(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.post(
+            "/owners/property/new",
+            data={
+                "lang": "fr",
+                "name": "Sea View Villa",
+                "property_type": "Villa",
+                "location": "Varna, Bulgaria",
+                "bedrooms": "3",
+                "bathrooms": "2",
+                "guest_capacity": "6",
+                "operating_mode": "year-round",
+                "notes": "Prefers weekend updates.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/dashboard?property_added=1", response.headers["Location"])
+        self.assertIn("lang=fr", response.headers["Location"])
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()
@@ -484,7 +528,7 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertIn('body class="owner-portal-page owner-login-page"', html, msg=path)
                 elif path == "/owners/property/new":
                     self.assertIn('data-i18n="ownerPropertyNewFormTitle"', html, msg=path)
-                    self.assertIn('body class="owner-portal-page owner-property-new-page"', html, msg=path)
+                    self.assertIn('body class="owner-portal-page owner-property-new-page owner-property-page"', html, msg=path)
                 elif path == "/owners/dashboard":
                     self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html, msg=path)
@@ -523,7 +567,8 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.post("/owners/login", data={"email": "missing@example.com"})
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?magic_sent=1")
+        self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
@@ -539,6 +584,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email('owner@blackseaconnect.com')}", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
@@ -560,7 +606,8 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.get(f"/auth/owner-magic/{token}")
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/dashboard")
+        self.assertIn("/owners/dashboard", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
         with self.client.session_transaction() as session:
             self.assertTrue(session.get("owner_logged_in"))
             self.assertEqual(session.get("owner_email"), "owner@blackseaconnect.com")
@@ -585,7 +632,8 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.get(f"/auth/owner-magic/{expired_token}")
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?expired_token=1")
+        self.assertIn("/owners/login?expired_token=1", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
         self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
 
     def test_owner_magic_link_rejects_invalid_token(self):
@@ -594,7 +642,8 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.get("/auth/owner-magic/does-not-exist")
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login?invalid_token=1")
+        self.assertIn("/owners/login?invalid_token=1", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
     def test_owner_logout_clears_session(self):
         self._login_owner_via_magic()
@@ -602,7 +651,8 @@ class OwnerPortalTests(unittest.TestCase):
         response = self.client.get("/owners/logout")
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/login")
+        self.assertIn("/owners/login", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
         with self.client.session_transaction() as session:
             self.assertFalse(session.get("owner_logged_in"))
 
@@ -781,7 +831,8 @@ class OwnerPortalTests(unittest.TestCase):
             response = self.client.post("/owners/request-service", data=self._service_request_payload())
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/owners/dashboard")
+        self.assertIn("/owners/dashboard", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
 
         records = self._read_jsonl("service_requests.jsonl")
         self.assertEqual(len(records), 1)
