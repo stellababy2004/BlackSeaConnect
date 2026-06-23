@@ -5,10 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeSelect = null;
 
   const getI18n = (key, fallback) => {
-    const lang = (document.documentElement.lang || new URLSearchParams(window.location.search).get("lang") || "bg").toLowerCase();
-    const dictionaries = window.BlackSeaI18N || {};
-    const dictionary = dictionaries[lang] || dictionaries.bg || {};
-    return dictionary[key] || fallback || "";
+    const lang = (
+      document.documentElement.lang ||
+      new URLSearchParams(window.location.search).get("lang") ||
+      "bg"
+    ).toLowerCase();
+
+    const modules = window.BlackSeaI18NModules || {};
+    const moduleDictionary =
+      modules.pilot?.[lang]?.pilot ||
+      modules.pilot?.bg?.pilot ||
+      {};
+
+    const flatDictionaries = window.BlackSeaI18N || {};
+    const flatDictionary = flatDictionaries[lang] || flatDictionaries.bg || {};
+
+    return moduleDictionary[key] || flatDictionary[key] || fallback || "";
   };
 
   const closeSelect = (select) => {
