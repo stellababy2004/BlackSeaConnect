@@ -254,7 +254,8 @@ class OwnerPortalTests(unittest.TestCase):
         }])
 
     def test_owner_registration_creates_account_and_sends_magic_flow(self):
-        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+        smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/register", data=self._owner_payload())
 
         self.assertEqual(response.status_code, 302)
@@ -280,31 +281,46 @@ class OwnerPortalTests(unittest.TestCase):
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0]["email"], "owner@example.com")
-        self.assertEqual(len(FakeSMTP.sent_messages), 1)
-        message = FakeSMTP.sent_messages[0]
-        self.assertEqual(message["Subject"], "BlackSea Connect — Вход в портала за собственици")
-        self.assertIn("BlackSea Connect Owner Portal", message["From"])
-        self.assertIn("concierge@blackseaconnect.com", message["From"])
-        self.assertEqual(message["Reply-To"], "concierge@blackseaconnect.com")
-        self.assertIn("mailto:concierge@blackseaconnect.com?subject=unsubscribe", message["List-Unsubscribe"])
-        self.assertTrue(message["Message-ID"].startswith("<"))
-        self.assertTrue(message.is_multipart())
-        plain_part = message.get_body(preferencelist=("plain",))
+        self.assertEqual(len(FakeSMTP.sent_messages), 2)
+        admin_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "[BlackSea Owners] New owner registration")
+        owner_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "BlackSea Connect — Вход в портала за собственици")
+
+        self.assertEqual(admin_message["From"], "BlackSea Connect <concierge@blackseaconnect.com>")
+        self.assertEqual(admin_message["To"], "ops@example.com")
+        self.assertIn("Full name: Elena Petrova", admin_message.get_content())
+        self.assertIn("Email: owner@example.com", admin_message.get_content())
+        self.assertIn("Phone: +359888111222", admin_message.get_content())
+        self.assertIn("Property name: Sea View Villa", admin_message.get_content())
+        self.assertIn("Property type: Villa", admin_message.get_content())
+        self.assertIn("City/location: Varna", admin_message.get_content())
+        self.assertIn("Number of units: 2", admin_message.get_content())
+        self.assertIn("Language: bg", admin_message.get_content())
+        self.assertIn("Created at:", admin_message.get_content())
+        self.assertIn("Source URL: http://localhost/owners/register", admin_message.get_content())
+
+        self.assertIn("BlackSea Connect Owner Portal", owner_message["From"])
+        self.assertIn("concierge@blackseaconnect.com", owner_message["From"])
+        self.assertEqual(owner_message["Reply-To"], "concierge@blackseaconnect.com")
+        self.assertIn("mailto:concierge@blackseaconnect.com?subject=unsubscribe", owner_message["List-Unsubscribe"])
+        self.assertTrue(owner_message["Message-ID"].startswith("<"))
+        self.assertTrue(owner_message.is_multipart())
+        plain_part = owner_message.get_body(preferencelist=("plain",))
         self.assertIsNotNone(plain_part)
         self.assertIn(
             "You are receiving this email because you requested access to your BlackSea Connect owner portal.",
             plain_part.get_content(),
         )
-        html_part = message.get_body(preferencelist=("html",))
+        html_part = owner_message.get_body(preferencelist=("html",))
         self.assertIsNotNone(html_part)
         self.assertIn("Влезте в портала", html_part.get_content())
 
         events = self._read_jsonl("owner_magic_email_events.jsonl")
-        self.assertEqual([event["event"] for event in events], ["token_created", "sent"])
+        self.assertEqual([event["event"] for event in events], ["owner_registration_notification_sent", "token_created", "sent"])
         self.assertTrue(all(event["email_masked"] == _mask_email("owner@example.com") for event in events))
         self.assertTrue(all(event["submitted_email"] == "owner@example.com" for event in events))
         self.assertEqual(events[0]["smtp_message_id"], "")
-        self.assertEqual(events[1]["smtp_message_id"], message["Message-ID"])
+        self.assertEqual(events[1]["smtp_message_id"], "")
+        self.assertEqual(events[2]["smtp_message_id"], owner_message["Message-ID"])
 
     def test_owner_registration_email_field_starts_empty_and_preserves_user_input_only(self):
         response = self.client.get("/owners/register")
@@ -717,9 +733,39 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(accounts[0]["email"], "owner@example.com")
         self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
         events = self._read_jsonl("owner_magic_email_events.jsonl")
-        self.assertEqual([event["event"] for event in events], ["token_created", "failed"])
+        self.assertEqual([event["event"] for event in events], ["owner_registration_notification_failed", "token_created", "failed"])
         self.assertTrue(all(event["submitted_email"] == "owner@example.com" for event in events))
         self.assertTrue(all(event["account_found"] is None for event in events))
+
+    def test_owner_registration_notification_failure_does_not_block_magic_link(self):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app._send_owner_registration_notification_email", return_value={"ok": False, "reason": "smtp_send_failed"}), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/register", data=self._owner_payload())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=sent", response.headers["Location"])
+        self.assertEqual(len(FakeSMTP.sent_messages), 1)
+        self.assertEqual(FakeSMTP.sent_messages[0]["Subject"], "BlackSea Connect — Вход в портала за собственици")
+
+    def test_owner_registration_validation_errors_do_not_send_admin_notification(self):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app._send_owner_registration_notification_email") as notify_mock, patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post(
+                "/owners/register",
+                data={
+                    "full_name": "",
+                    "email": "owner@example.com",
+                    "phone": "",
+                    "property_type": "",
+                    "city": "",
+                    "property_name": "",
+                    "number_of_units": "",
+                    "notes": "",
+                },
+            )
+
+        self.assertEqual(response.status_code, 400)
+        notify_mock.assert_not_called()
+        self.assertEqual(FakeSMTP.sent_messages, [])
 
     def test_admin_owner_accounts_page_shows_loaded_accounts(self):
         self._seed_owner_account(email="stoyanova@orange.fr")
@@ -735,11 +781,12 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Seed Stella Account", html)
 
     def test_admin_seed_owner_creates_account_and_enables_login_delivery_sent(self):
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app._send_owner_registration_notification_email") as notify_mock:
             seed_response = self.client.post("/admin/seed-owner", headers=self._auth_headers())
 
         self.assertEqual(seed_response.status_code, 302)
         self.assertIn("/admin/owner-accounts?seeded=1", seed_response.headers["Location"])
+        notify_mock.assert_not_called()
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             accounts_response = self.client.get(seed_response.headers["Location"], headers=self._auth_headers())

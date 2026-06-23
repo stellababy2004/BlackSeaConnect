@@ -2865,6 +2865,7 @@ def owners_register():
             errors["number_of_units"] = "numberOfUnitsInvalidError"
 
         if not errors:
+            existing_account = _find_owner_account_by_email(form_values["email"])
             account = {
                 "id": "",
                 "created_at": _utc_now_iso(),
@@ -2880,6 +2881,8 @@ def owners_register():
             saved_account = _upsert_owner_account(account)
             if saved_account:
                 app.logger.info("Owner registration received for %s", _mask_email(saved_account["email"]))
+                if not existing_account:
+                    _send_owner_registration_notification_email(saved_account, request.url, current_lang)
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
@@ -4578,6 +4581,149 @@ def _send_admin_application_notification_email(subject, body):
 
 def _queue_admin_application_notification_email(subject, body):
     Thread(target=_send_admin_application_notification_email, args=(subject, body), daemon=True).start()
+
+
+def _build_owner_registration_notification_body(owner_account, language, source_url=None):
+    lines = [
+        "BlackSea Connect owner registration notification",
+        "",
+        f"Full name: {owner_account.get('full_name', '')}",
+        f"Email: {owner_account.get('email', '')}",
+        f"Phone: {owner_account.get('phone', '')}",
+        f"Property name: {owner_account.get('property_name', '')}",
+        f"Property type: {owner_account.get('property_type', '')}",
+        f"City/location: {owner_account.get('city', '')}",
+        f"Number of units: {owner_account.get('number_of_units', '')}",
+        f"Language: {str(language or '').strip().lower() or 'bg'}",
+        f"Created at: {owner_account.get('created_at', '')}",
+    ]
+    if source_url:
+        lines.append(f"Source URL: {source_url}")
+    return "\n".join(lines)
+
+
+def _send_owner_registration_notification_email(owner_account, source_url, language):
+    smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
+    admin_notification_email = os.getenv("ADMIN_NOTIFICATION_EMAIL", "").strip()
+    recipient_email = admin_notification_email or smtp_from
+
+    if not smtp_host or not smtp_port_raw or not smtp_from or not recipient_email:
+        app.logger.warning(
+            "Owner registration notification skipped for %s: SMTP configuration is missing.",
+            _mask_email(owner_account.get("email", "")),
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "smtp_not_configured",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "smtp_not_configured"}
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning(
+            "Owner registration notification skipped for %s: SMTP_PORT is invalid.",
+            _mask_email(owner_account.get("email", "")),
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "smtp_invalid_port",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "smtp_invalid_port"}
+
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+
+    message = EmailMessage()
+    message["Subject"] = "[BlackSea Owners] New owner registration"
+    message["From"] = smtp_from
+    message["To"] = recipient_email
+    message.set_content(_build_owner_registration_notification_body(owner_account, language, source_url))
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    app.logger.warning("Owner registration notification: SMTP STARTTLS was unavailable.")
+
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+    except smtplib.SMTPAuthenticationError as exc:
+        app.logger.warning(
+            "Owner registration notification failed for %s: SMTPAuthenticationError",
+            _mask_email(owner_account.get("email", "")),
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "smtp_login_failed",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "smtp_login_failed"}
+    except smtplib.SMTPRecipientsRefused:
+        app.logger.warning(
+            "Owner registration notification failed for %s: SMTPRecipientsRefused",
+            _mask_email(owner_account.get("email", "")),
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "smtp_send_failed",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "smtp_send_failed"}
+    except smtplib.SMTPException:
+        app.logger.warning(
+            "Owner registration notification failed for %s: SMTPException",
+            _mask_email(owner_account.get("email", "")),
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "smtp_send_failed",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "smtp_send_failed"}
+    except Exception as exc:
+        app.logger.warning(
+            "Owner registration notification failed for %s: %s",
+            _mask_email(owner_account.get("email", "")),
+            type(exc).__name__,
+        )
+        _append_owner_magic_email_event(
+            "owner_registration_notification_failed",
+            owner_account.get("email", ""),
+            "unexpected_error",
+            "register",
+            language,
+        )
+        return {"ok": False, "reason": "unexpected_error"}
+
+    app.logger.info("Owner registration notification sent for %s", _mask_email(owner_account.get("email", "")))
+    _append_owner_magic_email_event(
+        "owner_registration_notification_sent",
+        owner_account.get("email", ""),
+        "sent",
+        "register",
+        language,
+    )
+    return {"ok": True, "reason": "sent"}
 
 
 def _queue_partner_application_notification_email(record, admin_detail_url):
