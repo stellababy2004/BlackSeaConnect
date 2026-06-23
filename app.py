@@ -112,6 +112,7 @@ SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
 OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
 OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
+OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
@@ -661,6 +662,68 @@ def _consume_owner_magic_token(token):
     return True
 
 
+def _load_owner_magic_email_events():
+    path = OWNER_MAGIC_EMAIL_EVENTS_PATH
+    events = []
+
+    if not path.exists():
+        return events
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            event = str(record.get("event", "")).strip()
+            email_masked = str(record.get("email_masked", "")).strip()
+            reason = str(record.get("reason", "")).strip()
+            source = str(record.get("source", "")).strip()
+            language = str(record.get("language", "")).strip().lower()
+            created_at = str(record.get("created_at", "")).strip()
+            event_id = str(record.get("id", "")).strip()
+            if not event or not email_masked or not reason or not source or not language or not created_at or not event_id:
+                continue
+
+            events.append({
+                "id": event_id,
+                "created_at": created_at,
+                "event": event,
+                "email_masked": email_masked,
+                "reason": reason,
+                "source": source,
+                "language": language,
+            })
+
+    events.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return events
+
+
+def _save_owner_magic_email_events(events):
+    data_dir = OWNER_MAGIC_EMAIL_EVENTS_PATH.parent
+    data_dir.mkdir(exist_ok=True)
+    with OWNER_MAGIC_EMAIL_EVENTS_PATH.open("w", encoding="utf-8") as f:
+        for record in events:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _append_owner_magic_email_event(event, email, reason, source, language):
+    event_record = {
+        "id": uuid4().hex,
+        "created_at": _utc_now_iso(),
+        "event": str(event or "").strip(),
+        "email_masked": _mask_email(email),
+        "reason": str(reason or "").strip(),
+        "source": str(source or "").strip(),
+        "language": str(language or "").strip().lower() or "bg",
+    }
+    events = _load_owner_magic_email_events()
+    events.append(event_record)
+    _save_owner_magic_email_events(events)
+    return event_record
+
+
 def _mask_email(email):
     raw_email = str(email or "").strip()
     if not raw_email or "@" not in raw_email:
@@ -1076,13 +1139,13 @@ def _send_owner_magic_link_with_language(email, login_url, language):
     smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
     if not smtp_host or not smtp_port_raw or not smtp_from or not email:
         app.logger.warning("Owner magic link email skipped for %s: SMTP configuration missing.", _mask_email(email))
-        return False
+        return {"ok": False, "reason": "smtp_not_configured"}
 
     try:
         smtp_port = int(smtp_port_raw)
     except ValueError:
-        app.logger.warning("Owner magic link email skipped: SMTP_PORT is invalid.")
-        return False
+        app.logger.warning("Owner magic link email skipped for %s: SMTP_PORT is invalid.", _mask_email(email))
+        return {"ok": False, "reason": "smtp_invalid_port"}
 
     subject, text_body, html_body = _owner_magic_link_email_message(email, login_url, language)
     message = EmailMessage()
@@ -1109,11 +1172,28 @@ def _send_owner_magic_link_with_language(email, login_url, language):
                 smtp.login(smtp_username, smtp_password)
 
             smtp.send_message(message)
+    except smtplib.SMTPAuthenticationError as exc:
+        app.logger.warning("Owner magic link email login failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return {"ok": False, "reason": "smtp_login_failed"}
+    except smtplib.SMTPRecipientsRefused as exc:
+        app.logger.warning("Owner magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return {"ok": False, "reason": "smtp_send_failed"}
+    except smtplib.SMTPException as exc:
+        app.logger.warning("Owner magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return {"ok": False, "reason": "smtp_send_failed"}
     except Exception as exc:
         app.logger.warning("Owner magic link email failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return False
+        return {"ok": False, "reason": "unexpected_error"}
 
-    return True
+    app.logger.info("Owner magic link email sent to %s", _mask_email(email))
+    return {"ok": True, "reason": "sent"}
+
+
+def _send_owner_magic_link_and_log(email, login_url, language, source):
+    result = _send_owner_magic_link_with_language(email, login_url, language)
+    event_name = "sent" if result.get("ok") else "failed"
+    _append_owner_magic_email_event(event_name, email, result.get("reason", ""), source, language)
+    return result
 
 
 def _queue_owner_magic_link_email(email, login_url, language="bg"):
@@ -2025,11 +2105,15 @@ def owners_register():
             saved_account = _upsert_owner_account(account)
             if saved_account:
                 magic_token = _create_owner_magic_token(saved_account["email"])
+                _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
                 email_language = _owner_magic_link_email_locale(current_lang)
-                _queue_owner_magic_link_email(saved_account["email"], login_url, email_language)
-            submitted = True
-            return redirect(url_for("owners_login", registered="1", magic_sent="1", magic_recipient=_mask_email(saved_account["email"]), lang=current_lang))
+                send_result = _send_owner_magic_link_and_log(saved_account["email"], login_url, email_language, "register")
+                if not send_result.get("ok"):
+                    _consume_owner_magic_token(magic_token["token"])
+                    return redirect(url_for("owners_login", registered="1", magic_sent="0", delivery="failed", lang=current_lang))
+                submitted = True
+                return redirect(url_for("owners_login", registered="1", magic_sent="1", delivery="sent", magic_recipient=_mask_email(saved_account["email"]), lang=current_lang))
 
     return render_template(
         "owners_register.html",
@@ -2053,13 +2137,18 @@ def owners_login():
         if not errors:
             owner_account = _find_owner_account_by_email(form_values["email"])
             if not owner_account:
-                return redirect(url_for("owners_login", magic_sent="1", lang=current_lang))
+                _append_owner_magic_email_event("unknown_email", form_values["email"], "unknown_email", "login", current_lang)
+                return redirect(url_for("owners_login", magic_sent="1", delivery="generic", lang=current_lang))
             else:
                 magic_token = _create_owner_magic_token(owner_account["email"])
+                _append_owner_magic_email_event("token_created", owner_account["email"], "token_created", "login", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
                 email_language = _owner_magic_link_email_locale(current_lang)
-                _queue_owner_magic_link_email(owner_account["email"], login_url, email_language)
-                return redirect(url_for("owners_login", magic_sent="1", magic_recipient=_mask_email(owner_account["email"]), lang=current_lang))
+                send_result = _send_owner_magic_link_and_log(owner_account["email"], login_url, email_language, "login")
+                if not send_result.get("ok"):
+                    _consume_owner_magic_token(magic_token["token"])
+                    return redirect(url_for("owners_login", magic_sent="0", delivery="failed", lang=current_lang))
+                return redirect(url_for("owners_login", magic_sent="1", delivery="sent", magic_recipient=_mask_email(owner_account["email"]), lang=current_lang))
 
     return render_template("owners_login.html", form_values=form_values, errors=errors, current_lang=current_lang), (400 if errors else 200)
 
@@ -2792,6 +2881,13 @@ def admin_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
+
+@app.get("/admin/owner-magic-events")
+@admin_required
+def admin_owner_magic_events():
+    events = _load_owner_magic_email_events()[:100]
+    return render_template("admin_owner_magic_events.html", events=events)
 
 
 def _clean_payload_value(payload, *keys):

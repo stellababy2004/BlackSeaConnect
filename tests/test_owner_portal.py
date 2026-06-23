@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import smtplib
 import unittest
 from email.message import EmailMessage
 from pathlib import Path
@@ -37,6 +38,31 @@ class FakeSMTP:
 
     def send_message(self, message):
         FakeSMTP.sent_messages.append(message)
+
+
+class RejectingSMTP:
+    def __init__(self, host, port, timeout=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def ehlo(self):
+        return None
+
+    def starttls(self):
+        return None
+
+    def login(self, username, password):
+        return None
+
+    def send_message(self, message):
+        raise smtplib.SMTPRecipientsRefused({"owner@example.com": (550, b"Rejected")})
 
 
 class ImmediateThread:
@@ -136,9 +162,11 @@ class OwnerPortalTests(unittest.TestCase):
         self._seed_owner_account(email=email)
         if seed_property:
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
-        response = self.client.post("/owners/login", data={"email": email})
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=sent", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email(email)}", response.headers["Location"])
         self.assertIn("lang=bg", response.headers["Location"])
 
@@ -156,9 +184,11 @@ class OwnerPortalTests(unittest.TestCase):
         self._seed_owner_account(email=email)
         if seed_property:
             self._seed_owner_property(owner_id="owner-1", owner_email=email)
-        response = self.client.post("/owners/login", data={"email": email})
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/login", data={"email": email})
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=sent", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email(email)}", response.headers["Location"])
         self.assertIn("lang=bg", response.headers["Location"])
 
@@ -223,11 +253,12 @@ class OwnerPortalTests(unittest.TestCase):
         }])
 
     def test_owner_registration_creates_account_and_sends_magic_flow(self):
-        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/register", data=self._owner_payload())
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=sent", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email('owner@example.com')}", response.headers["Location"])
         self.assertIn("lang=bg", response.headers["Location"])
 
@@ -255,6 +286,11 @@ class OwnerPortalTests(unittest.TestCase):
         html_part = message.get_body(preferencelist=("html",))
         self.assertIsNotNone(html_part)
         self.assertIn("Влезте в портала", html_part.get_content())
+
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        self.assertEqual([event["event"] for event in events], ["token_created", "sent"])
+        self.assertTrue(all(event["email_masked"] == _mask_email("owner@example.com") for event in events))
+        self.assertTrue(all("owner@example.com" not in json.dumps(event, ensure_ascii=False) for event in events))
 
     def test_owner_registration_email_field_starts_empty_and_preserves_user_input_only(self):
         response = self.client.get("/owners/register")
@@ -568,6 +604,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=generic", response.headers["Location"])
         self.assertIn("lang=bg", response.headers["Location"])
 
         page = self.client.get(response.headers["Location"])
@@ -575,14 +612,22 @@ class OwnerPortalTests(unittest.TestCase):
         html = page.get_data(as_text=True)
         self.assertIn("Ако имейлът е регистриран, ще получите защитен линк.", html)
         self.assertNotIn("ownerAccountNotFoundError", html)
+        self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
+
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event"], "unknown_email")
+        self.assertEqual(events[0]["reason"], "unknown_email")
+        self.assertEqual(events[0]["email_masked"], _mask_email("missing@example.com"))
 
     def test_owner_login_sends_magic_flow(self):
         self._seed_owner_account()
-        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/login", data=self._demo_login_payload())
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?magic_sent=1", response.headers["Location"])
+        self.assertIn("delivery=sent", response.headers["Location"])
         self.assertIn(f"magic_recipient={_mask_email('owner@blackseaconnect.com')}", response.headers["Location"])
         self.assertIn("lang=bg", response.headers["Location"])
 
@@ -595,6 +640,74 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0]["email"], "owner@blackseaconnect.com")
         self.assertEqual(len(FakeSMTP.sent_messages), 1)
+
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        self.assertEqual([event["event"] for event in events], ["token_created", "sent"])
+        for event in events:
+            self.assertNotIn("token", event)
+            self.assertNotIn("magic_url", event)
+            self.assertNotIn("owner@blackseaconnect.com", json.dumps(event, ensure_ascii=False))
+
+    def test_owner_login_smtp_failure_redirects_failed(self):
+        self._seed_owner_account()
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", RejectingSMTP), patch("app.smtplib.SMTP_SSL", RejectingSMTP):
+            response = self.client.post("/owners/login", data=self._demo_login_payload())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/login?magic_sent=0", response.headers["Location"])
+        self.assertIn("delivery=failed", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
+
+        page = self.client.get(response.headers["Location"])
+        self.assertEqual(page.status_code, 200)
+        self.assertIn("Не успяхме да изпратим линка. Моля, опитайте отново след малко.", page.get_data(as_text=True))
+
+        self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        self.assertEqual([event["event"] for event in events], ["token_created", "failed"])
+        self.assertTrue(all(event["reason"] == "smtp_send_failed" for event in events if event["event"] == "failed"))
+
+    def test_owner_registration_smtp_failure_redirects_failed(self):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", RejectingSMTP), patch("app.smtplib.SMTP_SSL", RejectingSMTP):
+            response = self.client.post("/owners/register", data=self._owner_payload())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/login?registered=1&magic_sent=0", response.headers["Location"])
+        self.assertIn("delivery=failed", response.headers["Location"])
+        self.assertIn("lang=bg", response.headers["Location"])
+
+        page = self.client.get(response.headers["Location"])
+        self.assertEqual(page.status_code, 200)
+        self.assertIn("Профилът е създаден, но имейлът не беше изпратен. Моля, опитайте вход отново или се свържете с нас.", page.get_data(as_text=True))
+
+        accounts = self._read_jsonl("owner_accounts.jsonl")
+        self.assertEqual(len(accounts), 1)
+        self.assertEqual(accounts[0]["email"], "owner@example.com")
+        self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
+        events = self._read_jsonl("owner_magic_email_events.jsonl")
+        self.assertEqual([event["event"] for event in events], ["token_created", "failed"])
+        self.assertTrue(all(event["email_masked"] == _mask_email("owner@example.com") for event in events))
+
+    def test_admin_owner_magic_events_page_requires_admin(self):
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin/owner-magic-events")
+
+        self.assertEqual(response.status_code, 401)
+
+        self._seed_owner_account()
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data=self._demo_login_payload())
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            admin_response = self.client.get("/admin/owner-magic-events", headers=self._auth_headers())
+
+        self.assertEqual(admin_response.status_code, 200)
+        html = admin_response.get_data(as_text=True)
+        self.assertIn("Owner Magic Events", html)
+        self.assertIn(_mask_email("owner@blackseaconnect.com"), html)
+        self.assertNotIn("owner@blackseaconnect.com", html)
 
     def test_mask_email_helper(self):
         self.assertEqual(_mask_email("stoyanova@orange.fr"), "s*******@orange.fr")
@@ -826,6 +939,7 @@ class OwnerPortalTests(unittest.TestCase):
 
     def test_owner_service_request_creation_saves_and_emails(self):
         self._login_owner_via_magic()
+        FakeSMTP.sent_messages.clear()
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/request-service", data=self._service_request_payload())

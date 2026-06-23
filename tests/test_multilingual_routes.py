@@ -1,10 +1,37 @@
 ﻿import json
+import os
 import subprocess
 import textwrap
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from app import app, _load_network_providers
+
+
+class FakeSMTP:
+    def __init__(self, host, port, timeout=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def ehlo(self):
+        return None
+
+    def starttls(self):
+        return None
+
+    def login(self, username, password):
+        return None
+
+    def send_message(self, message):
+        return None
 
 
 class MultilingualRouteTests(unittest.TestCase):
@@ -50,7 +77,15 @@ class MultilingualRouteTests(unittest.TestCase):
             + "\n",
             encoding="utf-8",
         )
-        self.client.post("/owners/login", data={"email": "owner@example.com"})
+        smtp_env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_FROM": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "SMTP_USERNAME": "smtp-user",
+            "SMTP_PASSWORD": "smtp-pass",
+        }
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data={"email": "owner@example.com"})
         token_path = data_dir / "owner_magic_tokens.jsonl"
         token = json.loads(token_path.read_text(encoding="utf-8").strip().splitlines()[-1])["token"]
         return self.client.get(f"/auth/owner-magic/{token}")
@@ -970,3 +1005,6 @@ class MultilingualRouteTests(unittest.TestCase):
         ]:
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, bg_services)
+
+
+

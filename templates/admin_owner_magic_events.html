@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Owner Magic Events</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-events-page {
+      background: linear-gradient(180deg, #f7f1e3 0%, #fdfaf2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+      padding: 32px 20px 48px;
+    }
+    .admin-events-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    .admin-events-card {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 28px;
+      overflow: hidden;
+    }
+    .admin-events-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .admin-events-table th,
+    .admin-events-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      vertical-align: top;
+    }
+    .admin-events-table th {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7a6328;
+    }
+    .admin-events-empty {
+      padding: 20px 0 8px;
+      color: #6b7280;
+    }
+    .admin-events-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: #6b7280;
+    }
+    .admin-events-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.1);
+      color: #7a6328;
+      font-size: 12px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="admin-events-page">
+  <main class="admin-events-shell">
+    <section class="admin-events-card">
+      <div class="admin-events-meta">
+        <span class="admin-events-chip">Admin</span>
+        <span class="admin-events-chip">Owner Magic Delivery Audit</span>
+      </div>
+      <h1>Owner Magic Events</h1>
+      <p>Latest 100 events from the owner magic-link delivery audit log.</p>
+
+      {% if events %}
+        <table class="admin-events-table" aria-label="Owner magic events">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event</th>
+              <th>Email</th>
+              <th>Reason</th>
+              <th>Source</th>
+              <th>Language</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+              <tr>
+                <td>{{ event.created_at }}</td>
+                <td>{{ event.event }}</td>
+                <td>{{ event.email_masked }}</td>
+                <td>{{ event.reason }}</td>
+                <td>{{ event.source }}</td>
+                <td>{{ event.language }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="admin-events-empty">No owner magic events recorded yet.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

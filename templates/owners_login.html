@@ -96,20 +96,32 @@
         </p>
       </div>
 
-      {% if request.args.get('registered') == '1' %}
+      {% if request.args.get('registered') == '1' and request.args.get('delivery') == 'failed' %}
+        <div class="owner-login-banner owner-login-banner--warning" role="alert">
+          <strong data-i18n="ownerLoginRegisteredFailedBannerTitle">Registration received.</strong>
+          <p data-i18n="ownerLoginRegisteredFailedBannerCopy">Профилът е създаден, но имейлът не беше изпратен. Моля, опитайте вход отново или се свържете с нас.</p>
+        </div>
+      {% elif request.args.get('registered') == '1' %}
         <div class="owner-login-banner owner-login-banner--success" role="status">
           <strong data-i18n="ownerLoginRegisteredBannerTitle">Registration received.</strong>
-          {% if request.args.get('magic_recipient') %}
+          {% if request.args.get('delivery') == 'sent' and request.args.get('magic_recipient') %}
             <p data-i18n="ownerLoginRegisteredRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
           {% else %}
             <p data-i18n="ownerLoginRegisteredBannerCopy">Your owner account is ready and a secure sign-in link has been sent.</p>
           {% endif %}
         </div>
+      {% elif request.args.get('delivery') == 'failed' %}
+        <div class="owner-login-banner owner-login-banner--warning" role="alert">
+          <strong data-i18n="ownerLoginMagicFailedBannerTitle">We couldn’t send the link.</strong>
+          <p data-i18n="ownerLoginMagicFailedBannerCopy">Не успяхме да изпратим линка. Моля, опитайте отново след малко.</p>
+        </div>
       {% elif request.args.get('magic_sent') == '1' %}
         <div class="owner-login-banner owner-login-banner--info" role="status">
           <strong data-i18n="ownerLoginMagicSentBannerTitle">Check your email.</strong>
-          {% if request.args.get('magic_recipient') %}
+          {% if request.args.get('delivery') == 'sent' and request.args.get('magic_recipient') %}
             <p data-i18n="ownerLoginMagicSentRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
+          {% elif request.args.get('delivery') == 'generic' %}
+            <p data-i18n="ownerLoginMagicSentGenericCopy">Ако имейлът е регистриран, ще получите защитен линк.</p>
           {% else %}
             <p data-i18n="ownerLoginMagicSentGenericCopy">Ако имейлът е регистриран, ще получите защитен линк.</p>
           {% endif %}
