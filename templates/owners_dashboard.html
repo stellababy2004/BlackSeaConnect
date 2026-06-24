@@ -230,7 +230,10 @@
             </div>
           </article>
           <article class="owner-portal-card owner-portal-card--activity">
-            <p class="owner-portal-card__eyebrow">Upcoming events</p>
+            <div class="owner-portal-card__header" style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+              <p class="owner-portal-card__eyebrow" style="margin:0;">Upcoming events</p>
+              <a class="button button--ghost" href="{{ localized_url('/owners/calendar') }}">View calendar</a>
+            </div>
             {% if owner_portal.calendar_widget.upcoming_events %}
               <div class="owner-activity-list">
                 {% for event in owner_portal.calendar_widget.upcoming_events %}

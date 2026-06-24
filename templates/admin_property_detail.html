@@ -373,8 +373,13 @@
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Calendar</p>
-          <h2 class="admin-property-detail-section-title">Mini calendar</h2>
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <p class="eyebrow">Calendar</p>
+              <h2 class="admin-property-detail-section-title">Mini calendar</h2>
+            </div>
+            <a class="button button--ghost" href="/admin/calendar?property={{ property.id|urlencode }}">Open admin calendar</a>
+          </div>
           <div class="admin-property-detail-calendar">
             <div class="admin-property-detail-calendar-grid">
               {% for day in calendar.mini_calendar %}
