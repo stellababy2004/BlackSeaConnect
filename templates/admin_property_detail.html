@@ -244,9 +244,66 @@
       display: grid;
       gap: 18px;
     }
+    .admin-property-detail-calendar {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-property-detail-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .admin-property-detail-calendar-day {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.84);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+      min-height: 98px;
+    }
+    .admin-property-detail-calendar-day span,
+    .admin-property-detail-calendar-day strong {
+      display: block;
+    }
+    .admin-property-detail-calendar-day span {
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .admin-property-detail-calendar-day strong {
+      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+    .admin-property-detail-calendar-events {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-property-detail-calendar-event {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-property-detail-calendar-event__topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .admin-property-detail-calendar-event__topline strong {
+      font-size: 0.98rem;
+    }
+    .admin-property-detail-calendar-event__topline time {
+      color: #6b7280;
+      font-size: 13px;
+      white-space: nowrap;
+    }
     @media (max-width: 920px) {
       .admin-property-detail-grid,
-      .admin-property-detail-dl {
+      .admin-property-detail-dl,
+      .admin-property-detail-calendar-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -316,6 +373,36 @@
         </article>
 
         <article class="admin-property-detail-panel">
+          <p class="eyebrow">Calendar</p>
+          <h2 class="admin-property-detail-section-title">Mini calendar</h2>
+          <div class="admin-property-detail-calendar">
+            <div class="admin-property-detail-calendar-grid">
+              {% for day in calendar.mini_calendar %}
+                <div class="admin-property-detail-calendar-day">
+                  <span>{{ day.label|e }}</span>
+                  <strong>{{ day.day }}</strong>
+                  <p class="admin-property-detail-empty">{{ day.count }} events</p>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="admin-property-detail-card-grid" style="margin-top: 0;">
+              <div class="admin-property-detail-stat">
+                <span>Upcoming events</span>
+                <strong>{{ calendar.upcoming_events|length }}</strong>
+              </div>
+              <div class="admin-property-detail-stat">
+                <span>Cleaning schedule</span>
+                <strong>{{ calendar.cleaning_schedule|length }}</strong>
+              </div>
+              <div class="admin-property-detail-stat">
+                <span>Maintenance schedule</span>
+                <strong>{{ calendar.maintenance_schedule|length }}</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="admin-property-detail-panel">
           <p class="eyebrow">Service Request History</p>
           <h2 class="admin-property-detail-section-title">Latest linked requests</h2>
           {% if service_requests %}
@@ -335,6 +422,26 @@
             </div>
           {% else %}
             <p class="admin-property-detail-empty">No linked service requests are available yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Blocked Dates</p>
+          <h2 class="admin-property-detail-section-title">Owner calendar blocks</h2>
+          {% if calendar.blocked_dates %}
+            <div class="admin-property-detail-calendar-events">
+              {% for event in calendar.blocked_dates %}
+                <div class="admin-property-detail-calendar-event">
+                  <div class="admin-property-detail-calendar-event__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time>{{ event.display_label|e }}</time>
+                  </div>
+                  <p class="admin-property-detail-empty">{{ event.event_type|e }} · {{ event.status|e }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-property-detail-empty">No blocked dates or personal stays are scheduled yet.</p>
           {% endif %}
         </article>
       </div>

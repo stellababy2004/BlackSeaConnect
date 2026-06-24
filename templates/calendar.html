@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="{{ current_lang if current_lang is defined and current_lang else 'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | {{ calendar_scope_label }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .calendar-page {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(155, 123, 47, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(39, 92, 132, 0.16), transparent 28%),
+        linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 54%, #efe8d4 100%);
+      color: #1f2937;
+      padding: 24px 18px 56px;
+    }
+    .calendar-shell {
+      max-width: 1520px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .calendar-hero,
+    .calendar-panel {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+    }
+    .calendar-hero {
+      padding: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .calendar-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .calendar-copy {
+      max-width: 860px;
+      color: #4b5563;
+      line-height: 1.65;
+      margin: 0;
+    }
+    .calendar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .calendar-panel {
+      padding: 22px;
+    }
+    .calendar-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .calendar-summary-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .calendar-summary-card span {
+      display: block;
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .calendar-summary-card strong {
+      font-size: 1.45rem;
+    }
+    .calendar-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .calendar-tab {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .calendar-tab.is-active {
+      background: #1f2937;
+      color: #fff;
+      border-color: #1f2937;
+    }
+    .calendar-filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .calendar-filter {
+      display: grid;
+      gap: 8px;
+    }
+    .calendar-filter label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      font-weight: 700;
+    }
+    .calendar-filter input,
+    .calendar-filter select,
+    .calendar-owner-form input,
+    .calendar-owner-form select,
+    .calendar-owner-form textarea {
+      width: 100%;
+      border: 1px solid rgba(31, 41, 55, 0.12);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .calendar-group-list {
+      display: grid;
+      gap: 14px;
+    }
+    .calendar-group {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+    }
+    .calendar-group h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .calendar-event-list {
+      display: grid;
+      gap: 12px;
+    }
+    .calendar-event {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: #fff;
+      box-shadow: 0 12px 24px rgba(31, 41, 55, 0.06);
+    }
+    .calendar-event__topline,
+    .calendar-event__meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .calendar-event__badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+    }
+    .calendar-event__badge--green { background: rgba(34, 139, 77, 0.14); color: #2f6b4e; }
+    .calendar-event__badge--blue { background: rgba(61, 97, 199, 0.14); color: #3557a8; }
+    .calendar-event__badge--orange { background: rgba(197, 116, 34, 0.16); color: #a85812; }
+    .calendar-event__badge--red { background: rgba(170, 47, 47, 0.14); color: #9b3131; }
+    .calendar-event__badge--purple { background: rgba(113, 73, 171, 0.14); color: #6a479f; }
+    .calendar-event__badge--turquoise { background: rgba(28, 145, 147, 0.14); color: #0e7578; }
+    .calendar-event__badge--grey { background: rgba(113, 128, 150, 0.14); color: #526170; }
+    .calendar-event__title {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+    .calendar-event__copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .calendar-event__flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8b6d2b;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .calendar-side {
+      display: grid;
+      gap: 18px;
+    }
+    .calendar-owner-form {
+      display: grid;
+      gap: 12px;
+    }
+    .calendar-owner-form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .calendar-owner-form__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .calendar-owner-form__check {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: #1f2937;
+      font-weight: 600;
+    }
+    .calendar-owner-form__check input {
+      width: 18px;
+      height: 18px;
+      accent-color: #9b7b2f;
+    }
+    .calendar-future-list {
+      display: grid;
+      gap: 10px;
+    }
+    .calendar-future-pill {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .calendar-note {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+    }
+    .calendar-footer {
+      display: grid;
+      gap: 8px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    @media (max-width: 1120px) {
+      .calendar-grid,
+      .calendar-filters,
+      .calendar-summary-grid,
+      .calendar-owner-form__grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="calendar-page calendar-page--{{ calendar_scope|e }}">
+  <main class="calendar-shell">
+    <section class="calendar-hero">
+      <div>
+        <p class="eyebrow">BLACKSEA CONNECT</p>
+        <h1>{{ calendar_scope_label }}</h1>
+        <p class="calendar-copy">{{ calendar_scope_description }}. One event engine powers every view across owners and operations.</p>
+      </div>
+      <div class="calendar-actions">
+        {% if calendar_scope == 'owner' %}
+          <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Dashboard</a>
+        {% else %}
+          <a class="button button--primary" href="/admin">Admin home</a>
+          <a class="button button--secondary" href="/admin/operations">Operations board</a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="calendar-panel">
+      <div class="calendar-summary-grid">
+        <article class="calendar-summary-card">
+          <span>Visible events</span>
+          <strong>{{ calendar_filtered_count }}</strong>
+        </article>
+        <article class="calendar-summary-card">
+          <span>Today</span>
+          <strong>{{ calendar_summary.today }}</strong>
+        </article>
+        <article class="calendar-summary-card">
+          <span>Tomorrow</span>
+          <strong>{{ calendar_summary.tomorrow }}</strong>
+        </article>
+        <article class="calendar-summary-card">
+          <span>This week</span>
+          <strong>{{ calendar_summary.this_week }}</strong>
+        </article>
+        <article class="calendar-summary-card">
+          <span>Overdue</span>
+          <strong>{{ calendar_summary.overdue }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="calendar-panel">
+      <div class="calendar-tabs" aria-label="Calendar views">
+        {% for view in calendar_views %}
+          <a class="calendar-tab {% if view == calendar_view %}is-active{% endif %}"
+             href="{{ request.path }}?view={{ view }}{% for key, value in calendar_filters.items() if value %}&{{ key }}={{ value|urlencode }}{% endfor %}">
+            {{ view|title }}
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="calendar-panel">
+      <form class="calendar-filters" method="get" action="{{ request.path }}">
+        <input type="hidden" name="view" value="{{ calendar_view }}">
+        <label class="calendar-filter">
+          <span>Search</span>
+          <input type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Search events">
+        </label>
+        <label class="calendar-filter">
+          <span>Property</span>
+          <select name="property">
+            <option value="">All properties</option>
+            {% for option in calendar_property_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.property %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>Owner</span>
+          <select name="owner">
+            <option value="">All owners</option>
+            {% for option in calendar_owner_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.owner %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>Professional</span>
+          <select name="professional">
+            <option value="">All professionals</option>
+            {% for option in calendar_professional_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.professional %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>Category</span>
+          <select name="category">
+            <option value="">All categories</option>
+            {% for option in calendar_category_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>Status</span>
+          <select name="status">
+            <option value="">All statuses</option>
+            {% for option in calendar_status_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>City</span>
+          <select name="city">
+            <option value="">All cities</option>
+            {% for option in calendar_city_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.city %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="calendar-filter">
+          <span>Priority</span>
+          <select name="priority">
+            <option value="">All priorities</option>
+            {% for option in calendar_priority_options %}
+              <option value="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="calendar-actions" style="align-self: end;">
+          <button class="button button--primary" type="submit">Apply filters</button>
+          <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">Reset</a>
+        </div>
+      </form>
+    </section>
+
+    <section class="calendar-grid">
+      <article class="calendar-panel">
+        {% if calendar_groups %}
+          <div class="calendar-group-list">
+            {% for group in calendar_groups %}
+              <section class="calendar-group">
+                <h3>{{ group.label }}</h3>
+                {% if group.events %}
+                  <div class="calendar-event-list">
+                    {% for event in group.events %}
+                      <article class="calendar-event">
+                        <div class="calendar-event__topline">
+                          <div class="calendar-event__flag">
+                            <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
+                            {% if event.is_overdue %}
+                              <span>Overdue</span>
+                            {% endif %}
+                          </div>
+                          <time>{{ event.display_label|e }}</time>
+                        </div>
+                        <h4 class="calendar-event__title">{{ event.title|e }}</h4>
+                        {% if event.description %}
+                          <p class="calendar-event__copy">{{ event.description|e }}</p>
+                        {% endif %}
+                        <div class="calendar-event__meta">
+                          <p class="calendar-event__copy">{{ event.property_label|e }}{% if event.city %} · {{ event.city|e }}{% endif %}</p>
+                          <p class="calendar-event__copy">{% if event.owner_label %}{{ event.owner_label|e }}{% endif %}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
+                        </div>
+                        <div class="calendar-event__meta">
+                          <p class="calendar-event__copy">Status: {{ event.status|e }}</p>
+                          <p class="calendar-event__copy">{% if event.priority %}Priority: {{ event.priority|e }}{% endif %}</p>
+                        </div>
+                      </article>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="calendar-note">No events in this range.</p>
+                {% endif %}
+              </section>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="calendar-group">
+            <h3>No events yet.</h3>
+            <p class="calendar-note">Once operations tasks or owner dates are saved, they will appear here automatically.</p>
+          </div>
+        {% endif %}
+      </article>
+
+      <aside class="calendar-side">
+        {% if calendar_can_create %}
+          <section class="calendar-panel">
+            <div class="section-heading">
+              <p class="section-heading__eyebrow">Owner actions</p>
+              <h2>Create availability blocks</h2>
+            </div>
+            <p class="calendar-note">Owners can create blocked dates and personal stays without touching the operational workflow.</p>
+            {% if calendar_owner_properties %}
+              <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}">
+                <label>
+                  <span>Property</span>
+                  <select name="property_id" required>
+                    {% for property in calendar_owner_properties %}
+                      <option value="{{ property.id|e }}">{{ property.name|e }} · {{ property.location|e }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  <span>Event type</span>
+                  <select name="event_type" required>
+                    <option value="Blocked Dates">Blocked Dates</option>
+                    <option value="Personal Stay">Personal Stay</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Title</span>
+                  <input type="text" name="title" placeholder="Optional title">
+                </label>
+                <label>
+                  <span>Description</span>
+                  <textarea name="description" placeholder="Optional note"></textarea>
+                </label>
+                <div class="calendar-owner-form__grid">
+                  <label>
+                    <span>Start</span>
+                    <input type="datetime-local" name="start_datetime" required>
+                  </label>
+                  <label>
+                    <span>End</span>
+                    <input type="datetime-local" name="end_datetime" required>
+                  </label>
+                </div>
+                <label class="calendar-owner-form__check">
+                  <input type="checkbox" name="all_day" value="1">
+                  <span>All day</span>
+                </label>
+                <div class="calendar-actions">
+                  <button class="button button--primary" type="submit">Save event</button>
+                  <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
+                </div>
+              </form>
+            {% else %}
+              <p class="calendar-note">Add a property first to create blocked dates or personal stays.</p>
+            {% endif %}
+          </section>
+        {% endif %}
+
+        <section class="calendar-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Future architecture</p>
+            <h2>Integration points</h2>
+          </div>
+          <div class="calendar-future-list">
+            {% for provider in calendar_external_integration_points %}
+              <div class="calendar-future-pill">
+                <span>{{ provider }}</span>
+                <strong>Ready</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

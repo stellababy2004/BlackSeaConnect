@@ -27,6 +27,7 @@
         <a class="button button--secondary" href="/admin/professionals">View Professional Applications</a>
         <a class="button button--secondary" href="/admin/service-requests">View Service Requests</a>
         <a class="button button--secondary" href="/admin/operations">View Operations</a>
+        <a class="button button--secondary" href="/admin/calendar">View Calendar</a>
         <a class="button button--secondary" href="/admin/notifications">View Notifications</a>
         <a class="button button--secondary" href="/admin/owner-accounts">View Owner Accounts</a>
         <a class="button button--secondary" href="/admin/properties">View Properties</a>
@@ -105,6 +106,56 @@
         <span>Professional Applications</span>
         <strong>{{ professional_applications }}</strong>
       </article>
+    </section>
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">{{ calendar_widget.headline if calendar_widget is defined else 'Unified scheduling' }}</p>
+          <h2>Calendar engine</h2>
+        </div>
+      </div>
+      <div class="admin-kpi-grid">
+        <article class="admin-kpi-card">
+          <span>Today's Operations</span>
+          <strong>{{ calendar_widget.summary.todays_operations }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Upcoming Check-ins</span>
+          <strong>{{ calendar_widget.summary.upcoming_check_ins }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Upcoming Check-outs</span>
+          <strong>{{ calendar_widget.summary.upcoming_check_outs }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Today's Cleaning</span>
+          <strong>{{ calendar_widget.summary.todays_cleaning }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Overdue Events</span>
+          <strong>{{ calendar_widget.summary.overdue_events }}</strong>
+        </article>
+      </div>
+      <div class="admin-activity-list" style="margin-top: 16px;">
+        {% if calendar_widget.upcoming_events %}
+          {% for event in calendar_widget.upcoming_events %}
+            <div class="admin-activity-item">
+              <div class="admin-activity-meta">
+                <span class="admin-pilot-status admin-pilot-status--{{ event.color|e }}">{{ event.event_type|e }}</span>
+                <time>{{ event.display_label|e }}</time>
+              </div>
+              <strong>{{ event.title|e }}</strong>
+              <p>{{ event.property_label|e }}{% if event.owner_label %} · {{ event.owner_label|e }}{% endif %}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="admin-empty-state">
+            <h3>No scheduled events yet.</h3>
+            <p>The shared calendar will surface task-driven events, visits, and owner dates here.</p>
+          </div>
+        {% endif %}
+      </div>
     </section>
 
     <section class="admin-cockpit-grid">

@@ -29,6 +29,7 @@
         <nav class="site-nav" aria-label="{{ ui.nav_portal }}">
           <a class="site-nav__link is-active" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ ui.nav_portal }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ ui.nav_request_service }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/calendar') }}">Calendar</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">{{ ui.nav_logout }}</a>
           <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ ui.nav_home }}</a>
         </nav>
@@ -83,6 +84,7 @@
           <span class="trust-strip__chip" data-i18n="ownerDashboardOperationsSnapshot">{{ ui.monthly_summary_eyebrow }}</span>
           <span class="trust-strip__chip" data-i18n="ownerDashboardActivityTimeline">{{ ui.activity_timeline_eyebrow }}</span>
           <span class="trust-strip__chip" data-i18n="ownerDashboardPerformanceSnapshot">{{ ui.performance_snapshot_eyebrow }}</span>
+          <span class="trust-strip__chip">Calendar engine</span>
         </div>
       </div>
 
@@ -192,7 +194,64 @@
         </div>
       </section>
 
-    <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-property-overview-title">
+      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-calendar-title">
+        <div class="section-heading">
+          <p class="section-heading__eyebrow">Unified scheduling</p>
+          <h2 id="owner-calendar-title">{{ owner_portal.calendar_widget.headline }}</h2>
+        </div>
+        <div class="owner-portal-grid owner-portal-grid--overview">
+          <article class="owner-portal-card owner-portal-card--snapshot">
+            <p class="owner-portal-card__eyebrow">{{ owner_portal.calendar_widget.supporting_title }}</p>
+            <div class="owner-kpi-grid">
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Today</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.today }}</strong>
+                <span class="owner-kpi-card__support">Events scheduled for today</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Tomorrow</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.tomorrow }}</strong>
+                <span class="owner-kpi-card__support">Events scheduled for tomorrow</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">This week</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.this_week }}</strong>
+                <span class="owner-kpi-card__support">Near-term calendar load</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Completed</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.completed }}</strong>
+                <span class="owner-kpi-card__support">Closed events</span>
+              </article>
+            </div>
+            <div class="hero__cta" style="margin-top: 14px;">
+              <a class="button button--primary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+              <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
+            </div>
+          </article>
+          <article class="owner-portal-card owner-portal-card--activity">
+            <p class="owner-portal-card__eyebrow">Upcoming events</p>
+            {% if owner_portal.calendar_widget.upcoming_events %}
+              <div class="owner-activity-list">
+                {% for event in owner_portal.calendar_widget.upcoming_events %}
+                  <div class="owner-activity-item">
+                    <div class="owner-activity-item__meta">
+                      <span class="owner-status-badge owner-status-badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
+                      <time>{{ event.display_label|e }}</time>
+                    </div>
+                    <strong>{{ event.title|e }}</strong>
+                    <p>{{ event.property_label|e }}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="owner-portal-card__subcopy">No calendar events are scheduled yet.</p>
+            {% endif %}
+          </article>
+        </div>
+      </section>
+
+      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-property-overview-title">
       <div class="section-heading">
         <p class="section-heading__eyebrow" data-i18n="ownerDashboardSummaryEyebrow">{{ ui.summary_eyebrow }}</p>
         <h2 id="owner-property-overview-title" data-i18n="ownerDashboardSummaryTitle">{{ ui.summary_title }}</h2>

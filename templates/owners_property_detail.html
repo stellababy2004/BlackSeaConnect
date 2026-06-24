@@ -223,12 +223,69 @@
       color: #6b7280;
       line-height: 1.6;
     }
+    .owner-property-detail-calendar {
+      display: grid;
+      gap: 14px;
+    }
+    .owner-property-detail-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .owner-property-detail-calendar-day {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.86);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+      min-height: 98px;
+    }
+    .owner-property-detail-calendar-day strong,
+    .owner-property-detail-calendar-day span {
+      display: block;
+    }
+    .owner-property-detail-calendar-day strong {
+      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+    .owner-property-detail-calendar-day span {
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .owner-property-detail-calendar-events {
+      display: grid;
+      gap: 10px;
+    }
+    .owner-property-detail-calendar-event {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .owner-property-detail-calendar-event__topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .owner-property-detail-calendar-event__topline strong {
+      font-size: 0.98rem;
+    }
+    .owner-property-detail-calendar-event__topline time {
+      color: #6b7280;
+      font-size: 13px;
+      white-space: nowrap;
+    }
     @media (max-width: 920px) {
       .owner-property-detail-grid {
         grid-template-columns: 1fr;
       }
       .owner-property-detail-dl,
-      .owner-property-detail-summary {
+      .owner-property-detail-summary,
+      .owner-property-detail-calendar-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -361,6 +418,36 @@
         </article>
 
         <article class="owner-property-detail-panel">
+          <p class="eyebrow">Calendar</p>
+          <h2 class="owner-property-detail-section-title">Mini calendar</h2>
+          <div class="owner-property-detail-calendar">
+            <div class="owner-property-detail-calendar-grid">
+              {% for day in property_context.calendar.mini_calendar %}
+                <div class="owner-property-detail-calendar-day">
+                  <span>{{ day.label|e }}</span>
+                  <strong>{{ day.day }}</strong>
+                  <p class="owner-property-detail-empty">{{ day.count }} events</p>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="owner-property-detail-summary" style="margin-bottom: 0;">
+              <div class="owner-property-detail-stat">
+                <span>Upcoming</span>
+                <strong>{{ property_context.calendar.upcoming_events|length }}</strong>
+              </div>
+              <div class="owner-property-detail-stat">
+                <span>Cleaning</span>
+                <strong>{{ property_context.calendar.cleaning_schedule|length }}</strong>
+              </div>
+              <div class="owner-property-detail-stat">
+                <span>Maintenance</span>
+                <strong>{{ property_context.calendar.maintenance_schedule|length }}</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="owner-property-detail-panel">
           <p class="eyebrow">Service Request History</p>
           <h2 class="owner-property-detail-section-title">Recent requests</h2>
           {% if property_context.service_requests %}
@@ -380,6 +467,26 @@
             </div>
           {% else %}
             <p class="owner-property-detail-empty">No service requests are linked to this property yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Blocked dates</p>
+          <h2 class="owner-property-detail-section-title">Owner calendar blocks</h2>
+          {% if property_context.calendar.blocked_dates %}
+            <div class="owner-property-detail-calendar-events">
+              {% for event in property_context.calendar.blocked_dates %}
+                <div class="owner-property-detail-calendar-event">
+                  <div class="owner-property-detail-calendar-event__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time>{{ event.display_label|e }}</time>
+                  </div>
+                  <p class="owner-property-detail-empty">{{ event.event_type|e }} · {{ event.status|e }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="owner-property-detail-empty">No blocked dates or personal stays are scheduled yet.</p>
           {% endif %}
         </article>
       </div>

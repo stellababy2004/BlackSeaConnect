@@ -258,6 +258,85 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "checklist_updated",
     "comment_added",
 }
+CALENDAR_EVENT_TYPE_VALUES = (
+    "Check-in",
+    "Check-out",
+    "Cleaning",
+    "Inspection",
+    "Maintenance",
+    "Airport Transfer",
+    "Concierge",
+    "Professional Visit",
+    "Guest Issue",
+    "Seasonal Preparation",
+    "Blocked Dates",
+    "Personal Stay",
+    "Owner Meeting",
+    "Other",
+)
+CALENDAR_EVENT_TYPE_ALIASES = {
+    "check in": "Check-in",
+    "check-in": "Check-in",
+    "checkin": "Check-in",
+    "check out": "Check-out",
+    "check-out": "Check-out",
+    "checkout": "Check-out",
+    "clean": "Cleaning",
+    "cleaning": "Cleaning",
+    "inspection": "Inspection",
+    "maintenance": "Maintenance",
+    "airport": "Airport Transfer",
+    "airport transfer": "Airport Transfer",
+    "airport transfers": "Airport Transfer",
+    "concierge": "Concierge",
+    "professional visit": "Professional Visit",
+    "guest issue": "Guest Issue",
+    "seasonal preparation": "Seasonal Preparation",
+    "seasonal prep": "Seasonal Preparation",
+    "blocked dates": "Blocked Dates",
+    "blocked date": "Blocked Dates",
+    "personal stay": "Personal Stay",
+    "owner meeting": "Owner Meeting",
+    "meeting": "Owner Meeting",
+    "other": "Other",
+}
+CALENDAR_EVENT_STATUS_VALUES = (
+    "SCHEDULED",
+    "IN_PROGRESS",
+    "COMPLETED",
+    "CANCELLED",
+    "BLOCKED",
+)
+CALENDAR_OWNER_EVENT_TYPES = {"Blocked Dates", "Personal Stay"}
+CALENDAR_EXTERNAL_INTEGRATION_POINTS = (
+    "Airbnb iCal",
+    "Booking.com iCal",
+    "VRBO",
+    "Google Calendar",
+    "Apple Calendar",
+    "Outlook",
+)
+CALENDAR_EVENT_COLOR_BY_TYPE = {
+    "Cleaning": "green",
+    "Inspection": "blue",
+    "Maintenance": "orange",
+    "Guest Issue": "red",
+    "Airport Transfer": "purple",
+    "Concierge": "turquoise",
+    "Blocked Dates": "grey",
+    "Personal Stay": "turquoise",
+    "Professional Visit": "blue",
+    "Check-in": "purple",
+    "Check-out": "purple",
+    "Seasonal Preparation": "orange",
+    "Owner Meeting": "blue",
+    "Other": "grey",
+}
+CALENDAR_EVENT_COLOR_BY_STATUS = {
+    "COMPLETED": "dark-green",
+    "CANCELLED": "grey",
+    "BLOCKED": "grey",
+}
 
 OPERATIONS_NOTIFICATION_EVENT_VALUES = {
     "notification_sent",
@@ -992,6 +1071,384 @@ def _ensure_operations_notification_schema(conn):
     )
 
 
+def _ensure_calendar_event_schema(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS calendar_events (
+            id TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            property_id TEXT NOT NULL DEFAULT '',
+            owner_id TEXT NOT NULL DEFAULT '',
+            operation_task_id TEXT NOT NULL DEFAULT '',
+            event_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            start_datetime TEXT NOT NULL,
+            end_datetime TEXT NOT NULL,
+            all_day INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'SCHEDULED',
+            assigned_professional TEXT NOT NULL DEFAULT '',
+            created_by TEXT NOT NULL DEFAULT '',
+            color TEXT NOT NULL DEFAULT 'grey',
+            metadata_json TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+
+
+def _normalize_calendar_event_type(event_type):
+    normalized = str(event_type or "").strip()
+    if not normalized:
+        return "Other"
+    lookup_key = normalized.lower().replace("_", " ").replace("-", " ")
+    canonical = CALENDAR_EVENT_TYPE_ALIASES.get(lookup_key)
+    if canonical:
+        return canonical
+    if normalized in CALENDAR_EVENT_TYPE_VALUES:
+        return normalized
+    title_case = normalized.title()
+    return title_case if title_case in CALENDAR_EVENT_TYPE_VALUES else "Other"
+
+
+def _normalize_calendar_event_status(status):
+    normalized = str(status or "").strip().upper()
+    if not normalized:
+        return "SCHEDULED"
+    aliases = {
+        "NEW": "SCHEDULED",
+        "ASSIGNED": "SCHEDULED",
+        "WAITING_OWNER": "SCHEDULED",
+        "WAITING_PROVIDER": "SCHEDULED",
+        "DONE": "COMPLETED",
+        "ARCHIVED": "CANCELLED",
+        "INPROGRESS": "IN_PROGRESS",
+        "IN-PROGRESS": "IN_PROGRESS",
+    }
+    normalized = aliases.get(normalized, normalized)
+    return normalized if normalized in CALENDAR_EVENT_STATUS_VALUES else "SCHEDULED"
+
+
+def _calendar_event_color(event_type, status):
+    normalized_status = _normalize_calendar_event_status(status)
+    if normalized_status in CALENDAR_EVENT_COLOR_BY_STATUS:
+        return CALENDAR_EVENT_COLOR_BY_STATUS[normalized_status]
+    normalized_type = _normalize_calendar_event_type(event_type)
+    return CALENDAR_EVENT_COLOR_BY_TYPE.get(normalized_type, "grey")
+
+
+def _calendar_parse_datetime(value):
+    raw_value = str(value or "").strip()
+    if not raw_value:
+        return None, False
+    try:
+        if len(raw_value) == 10:
+            parsed = datetime.fromisoformat(raw_value).replace(tzinfo=timezone.utc)
+            return parsed, True
+        parsed = datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc), False
+    except ValueError:
+        return None, False
+
+
+def _calendar_event_bounds(start_value, end_value="", all_day=False):
+    start_dt, start_all_day = _calendar_parse_datetime(start_value)
+    end_dt, end_all_day = _calendar_parse_datetime(end_value)
+    if start_dt is None:
+        start_dt = datetime.now(timezone.utc)
+    if all_day or start_all_day or end_all_day:
+        start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        if end_dt is None or end_dt.date() < start_dt.date():
+            end_dt = start_dt + timedelta(days=1) - timedelta(seconds=1)
+        else:
+            end_dt = end_dt.replace(hour=23, minute=59, second=59, microsecond=0)
+        return start_dt.isoformat(), end_dt.isoformat(), True
+    if end_dt is None or end_dt < start_dt:
+        end_dt = start_dt + timedelta(hours=1)
+    return start_dt.isoformat(), end_dt.isoformat(), False
+
+
+def _calendar_task_event_type(task_record):
+    task = task_record or {}
+    category = str(task.get("category", "")).strip()
+    source_type = str(task.get("source_type", "")).strip().upper()
+    title = str(task.get("title", "")).strip().lower()
+    notes = str(task.get("notes", "")).strip().lower()
+    property_name = str(task.get("property_name", "")).strip()
+    category_map = {
+        "SERVICE": "Other",
+        "LEAD": "Professional Visit",
+        "OWNER": "Owner Meeting",
+        "PROFESSIONAL": "Professional Visit",
+        "PARTNER": "Professional Visit",
+        "CONCIERGE": "Concierge",
+    }
+    if source_type in {"SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"}:
+        service_category = str(task.get("category", "")).strip() or str(task.get("title", "")).strip()
+        normalized = _normalize_calendar_event_type(service_category)
+        if normalized != "Other":
+            return normalized
+    if "check in" in title or "check-in" in title or "arrival" in title:
+        return "Check-in"
+    if "check out" in title or "check-out" in title or "departure" in title:
+        return "Check-out"
+    if "clean" in title or "clean" in notes:
+        return "Cleaning"
+    if "inspect" in title or "inspection" in notes:
+        return "Inspection"
+    if "maint" in title or "maint" in notes:
+        return "Maintenance"
+    if property_name and category in category_map:
+        return category_map.get(category, "Other")
+    return _normalize_calendar_event_type(category or task.get("title", "") or task.get("source_type", "Other"))
+
+
+def _calendar_task_status(task_record):
+    status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
+    status_map = {
+        "NEW": "SCHEDULED",
+        "ASSIGNED": "SCHEDULED",
+        "IN_PROGRESS": "IN_PROGRESS",
+        "WAITING_OWNER": "SCHEDULED",
+        "WAITING_PROVIDER": "SCHEDULED",
+        "DONE": "COMPLETED",
+        "ARCHIVED": "CANCELLED",
+    }
+    return status_map.get(status, "SCHEDULED")
+
+
+def _calendar_event_payload_from_task(task_record):
+    task = task_record or {}
+    task_id = str(task.get("id", "")).strip()
+    if not task_id:
+        return None
+
+    event_type = _calendar_task_event_type(task)
+    status = _calendar_task_status(task)
+    due_date = str(task.get("due_date", "")).strip()
+    created_at = str(task.get("created_at", "")).strip()
+    updated_at = str(task.get("updated_at", "")).strip() or _utc_now_iso()
+    start_source = due_date or created_at or updated_at
+    start_datetime, end_datetime, all_day = _calendar_event_bounds(start_source, task.get("completed_at", ""), due_date and len(due_date) == 10)
+    metadata = {
+        "source": "operations_task",
+        "source_type": str(task.get("source_type", "")).strip(),
+        "task_status": str(task.get("status", "")).strip(),
+        "priority": str(task.get("priority", "")).strip(),
+        "request_status": str(task.get("request_status", "")).strip(),
+        "property_name": str(task.get("property_name", "")).strip(),
+        "property_location": str(task.get("property_location", "")).strip(),
+        "owner_name": str(task.get("owner_name", "")).strip(),
+        "owner_email": str(task.get("owner_email", "")).strip(),
+    }
+    return {
+        "id": task_id,
+        "created_at": created_at or updated_at,
+        "updated_at": updated_at,
+        "property_id": str(task.get("property_id", "")).strip(),
+        "owner_id": str(task.get("owner_id", "")).strip(),
+        "operation_task_id": task_id,
+        "event_type": event_type,
+        "title": str(task.get("title", "")).strip() or event_type,
+        "description": str(task.get("notes", "")).strip() or str(task.get("admin_notes", "")).strip(),
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "all_day": all_day,
+        "status": status,
+        "assigned_professional": str(task.get("assigned_to", "")).strip(),
+        "created_by": "system:operations",
+        "color": _calendar_event_color(event_type, status),
+        "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+    }
+
+
+def _calendar_event_payload_from_owner_form(owner_account, property_record, form_values):
+    owner_account = owner_account or {}
+    property_record = property_record or {}
+    event_type = _normalize_calendar_event_type(form_values.get("event_type", ""))
+    if event_type not in CALENDAR_OWNER_EVENT_TYPES:
+        return None
+
+    title = str(form_values.get("title", "")).strip() or event_type
+    description = str(form_values.get("description", "")).strip()
+    all_day = bool(form_values.get("all_day"))
+    start_datetime, end_datetime, all_day = _calendar_event_bounds(
+        form_values.get("start_datetime", ""),
+        form_values.get("end_datetime", ""),
+        all_day,
+    )
+    status = "BLOCKED" if event_type == "Blocked Dates" else "SCHEDULED"
+    metadata = {
+        "source": "owner_calendar",
+        "property_name": str(property_record.get("name", "")).strip(),
+        "property_location": str(property_record.get("location", "")).strip(),
+        "owner_name": str(owner_account.get("full_name", "")).strip(),
+        "owner_email": str(owner_account.get("email", "")).strip(),
+    }
+    return {
+        "id": uuid4().hex,
+        "created_at": _utc_now_iso(),
+        "updated_at": _utc_now_iso(),
+        "property_id": str(property_record.get("id", "")).strip(),
+        "owner_id": str(owner_account.get("id", "")).strip(),
+        "operation_task_id": "",
+        "event_type": event_type,
+        "title": title,
+        "description": description,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "all_day": all_day,
+        "status": status,
+        "assigned_professional": "",
+        "created_by": f"owner:{str(owner_account.get('id', '')).strip()}",
+        "color": _calendar_event_color(event_type, status),
+        "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+    }
+
+
+def _calendar_event_from_row(row):
+    if row is None:
+        return None
+
+    metadata_json = str(row["metadata_json"]) if "metadata_json" in row.keys() else ""
+    try:
+        metadata = json.loads(metadata_json) if metadata_json else {}
+    except json.JSONDecodeError:
+        metadata = {}
+
+    return {
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "updated_at": str(row["updated_at"]),
+        "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
+        "owner_id": str(row["owner_id"]) if "owner_id" in row.keys() else "",
+        "operation_task_id": str(row["operation_task_id"]) if "operation_task_id" in row.keys() else "",
+        "event_type": _normalize_calendar_event_type(row["event_type"] if "event_type" in row.keys() else "Other"),
+        "title": str(row["title"]),
+        "description": str(row["description"]) if "description" in row.keys() else "",
+        "start_datetime": str(row["start_datetime"]) if "start_datetime" in row.keys() else "",
+        "end_datetime": str(row["end_datetime"]) if "end_datetime" in row.keys() else "",
+        "all_day": bool(int(row["all_day"] or 0)) if "all_day" in row.keys() else False,
+        "status": _normalize_calendar_event_status(row["status"] if "status" in row.keys() else "SCHEDULED"),
+        "assigned_professional": str(row["assigned_professional"]) if "assigned_professional" in row.keys() else "",
+        "created_by": str(row["created_by"]) if "created_by" in row.keys() else "",
+        "color": str(row["color"]) if "color" in row.keys() and str(row["color"]).strip() else _calendar_event_color(row["event_type"], row["status"]),
+        "metadata_json": metadata_json or "{}",
+        "metadata": metadata,
+    }
+
+
+def _persist_calendar_event(conn, payload):
+    if not payload:
+        return None
+
+    conn.execute(
+        """
+        INSERT INTO calendar_events (
+            id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
+            start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            created_at = excluded.created_at,
+            updated_at = excluded.updated_at,
+            property_id = excluded.property_id,
+            owner_id = excluded.owner_id,
+            operation_task_id = excluded.operation_task_id,
+            event_type = excluded.event_type,
+            title = excluded.title,
+            description = excluded.description,
+            start_datetime = excluded.start_datetime,
+            end_datetime = excluded.end_datetime,
+            all_day = excluded.all_day,
+            status = excluded.status,
+            assigned_professional = excluded.assigned_professional,
+            created_by = excluded.created_by,
+            color = excluded.color,
+            metadata_json = excluded.metadata_json
+        """,
+        (
+            payload["id"],
+            payload["created_at"],
+            payload["updated_at"],
+            payload["property_id"],
+            payload["owner_id"],
+            payload["operation_task_id"],
+            payload["event_type"],
+            payload["title"],
+            payload["description"],
+            payload["start_datetime"],
+            payload["end_datetime"],
+            1 if payload["all_day"] else 0,
+            payload["status"],
+            payload["assigned_professional"],
+            payload["created_by"],
+            payload["color"],
+            payload["metadata_json"],
+        ),
+    )
+    return payload
+
+
+def _upsert_calendar_event_from_task(task_record):
+    payload = _calendar_event_payload_from_task(task_record)
+    if not payload:
+        return None
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            _persist_calendar_event(conn, payload)
+    except Exception as exc:
+        app.logger.warning("Calendar event sync failed for task %s: %s", str((task_record or {}).get("id", "")).strip(), type(exc).__name__)
+        return None
+    return payload
+
+
+def _create_calendar_event_from_owner(owner_account, property_record, form_values):
+    payload = _calendar_event_payload_from_owner_form(owner_account, property_record, form_values)
+    if not payload:
+        return None
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            _persist_calendar_event(conn, payload)
+    except Exception as exc:
+        app.logger.warning("Owner calendar event creation failed for %s: %s", payload.get("id", ""), type(exc).__name__)
+        return None
+    return payload
+
+
+def _load_calendar_events(*, owner_id=None, property_ids=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
+                   start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
+            FROM calendar_events
+            ORDER BY start_datetime ASC, end_datetime ASC, updated_at DESC, id ASC
+            """
+        ).fetchall()
+
+    events = [_calendar_event_from_row(row) for row in rows]
+    if owner_id is not None:
+        target_owner_id = str(owner_id or "").strip()
+        events = [
+            event
+            for event in events
+            if str(event.get("owner_id", "")).strip() == target_owner_id
+            or (target_owner_id and str(event.get("metadata", {}).get("owner_id", "")).strip() == target_owner_id)
+        ]
+    if property_ids is not None:
+        allowed_ids = {str(property_id).strip() for property_id in property_ids if str(property_id).strip()}
+        events = [event for event in events if not allowed_ids or str(event.get("property_id", "")).strip() in allowed_ids]
+    return events
 def _seed_owner_property_activity_backfill(conn):
     property_rows = conn.execute(
         """
@@ -1243,6 +1700,76 @@ def _seed_operations_task_backfill(conn):
         _upsert_operations_task_from_service_request(record, source_type=source_type, force_create=True)
 
 
+def _seed_calendar_event_backfill(conn):
+    existing_event_ids = {
+        str(row["id"]).strip()
+        for row in conn.execute("SELECT id FROM calendar_events").fetchall()
+    }
+
+    rows = conn.execute(
+        """
+        SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+               category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+               due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
+        FROM operations_tasks
+        """
+    ).fetchall()
+
+    for row in rows:
+        task_record = _operations_task_from_row(row)
+        if not task_record:
+            continue
+
+        payload = _calendar_event_payload_from_task(task_record)
+        if not payload or payload["id"] in existing_event_ids:
+            continue
+
+        conn.execute(
+            """
+            INSERT INTO calendar_events (
+                id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
+                start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                created_at = excluded.created_at,
+                updated_at = excluded.updated_at,
+                property_id = excluded.property_id,
+                owner_id = excluded.owner_id,
+                operation_task_id = excluded.operation_task_id,
+                event_type = excluded.event_type,
+                title = excluded.title,
+                description = excluded.description,
+                start_datetime = excluded.start_datetime,
+                end_datetime = excluded.end_datetime,
+                all_day = excluded.all_day,
+                status = excluded.status,
+                assigned_professional = excluded.assigned_professional,
+                created_by = excluded.created_by,
+                color = excluded.color,
+                metadata_json = excluded.metadata_json
+            """,
+            (
+                payload["id"],
+                payload["created_at"],
+                payload["updated_at"],
+                payload["property_id"],
+                payload["owner_id"],
+                payload["operation_task_id"],
+                payload["event_type"],
+                payload["title"],
+                payload["description"],
+                payload["start_datetime"],
+                payload["end_datetime"],
+                1 if payload["all_day"] else 0,
+                payload["status"],
+                payload["assigned_professional"],
+                payload["created_by"],
+                payload["color"],
+                payload["metadata_json"],
+            ),
+        )
+
+
 def _ensure_owner_db_schema(conn):
     global _OWNER_DB_SCHEMA_INITIALIZING
     if _OWNER_DB_SCHEMA_INITIALIZING:
@@ -1303,6 +1830,7 @@ def _ensure_owner_db_schema(conn):
         )
         _ensure_owner_property_activity_schema(conn)
         _ensure_operations_task_schema(conn)
+        _ensure_calendar_event_schema(conn)
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS owner_magic_tokens (
@@ -1348,6 +1876,7 @@ def _ensure_owner_db_schema(conn):
         _ensure_owner_property_schema(conn)
         _seed_owner_property_activity_backfill(conn)
         _seed_operations_task_backfill(conn)
+        _seed_calendar_event_backfill(conn)
     finally:
         _OWNER_DB_SCHEMA_INITIALIZING = False
 
@@ -2612,7 +3141,9 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
             status=merged_task["status"],
         )
 
-    return _find_operations_task(task_id) or merged_task
+    synced_task = _find_operations_task(task_id) or merged_task
+    _upsert_calendar_event_from_task(synced_task)
+    return synced_task
 
 
 def _upsert_operations_task_from_source(task_payload, append_created_event=False, force_create=False, status_override=None, notify=False):
@@ -2902,7 +3433,9 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
                     break
             _save_service_requests(requests_list)
 
-    return _find_operations_task(task_id)
+    updated_task = _find_operations_task(task_id)
+    _upsert_calendar_event_from_task(updated_task or task)
+    return updated_task
 
 
 def _update_operations_task_checklist(task_id, checklist_selection):
@@ -5692,6 +6225,341 @@ def _owner_portal_activity_timeline(owner_requests, dashboard_copy):
     return timeline_items[:5]
 
 
+def _calendar_event_sort_key(event):
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    fallback_dt, _ = _calendar_parse_datetime(event.get("created_at", ""))
+    return (
+        start_dt or fallback_dt or datetime.now(timezone.utc),
+        end_dt or start_dt or fallback_dt or datetime.now(timezone.utc),
+        str(event.get("updated_at", "")),
+        str(event.get("id", "")),
+    )
+
+
+def _calendar_event_display_label(event):
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    if start_dt is None:
+        return str(event.get("start_datetime", "")).strip() or str(event.get("created_at", "")).strip()
+    if event.get("all_day"):
+        return start_dt.strftime("%d %b %Y")
+    if end_dt and end_dt.date() != start_dt.date():
+        return f"{start_dt.strftime('%d %b %Y %H:%M')} - {end_dt.strftime('%d %b %Y %H:%M')}"
+    return f"{start_dt.strftime('%d %b %Y %H:%M')}"
+
+
+def _calendar_event_day_label(event):
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    if start_dt is None:
+        return "Unscheduled"
+    return start_dt.strftime("%A, %d %B %Y")
+
+
+def _calendar_event_week_label(event):
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    if start_dt is None:
+        return "Unscheduled"
+    year, week, _ = start_dt.isocalendar()
+    return f"Week {week:02d}, {year}"
+
+
+def _calendar_event_search_text(event):
+    metadata = event.get("metadata", {}) or {}
+    parts = [
+        event.get("title", ""),
+        event.get("description", ""),
+        event.get("event_type", ""),
+        event.get("status", ""),
+        event.get("assigned_professional", ""),
+        metadata.get("property_name", ""),
+        metadata.get("property_location", ""),
+        metadata.get("owner_name", ""),
+        metadata.get("owner_email", ""),
+        metadata.get("priority", ""),
+        metadata.get("task_status", ""),
+    ]
+    return " ".join(str(part or "") for part in parts).lower()
+
+
+def _calendar_enrich_event(event, property_map=None, owner_map=None, task_map=None):
+    property_map = property_map or {}
+    owner_map = owner_map or {}
+    task_map = task_map or {}
+    metadata = dict(event.get("metadata", {}) or {})
+    task_record = task_map.get(str(event.get("operation_task_id", "")).strip())
+    property_record = property_map.get(str(event.get("property_id", "")).strip())
+    owner_account = owner_map.get(str(event.get("owner_id", "")).strip())
+    if task_record:
+        metadata.setdefault("priority", str(task_record.get("priority", "")).strip())
+        metadata.setdefault("task_status", str(task_record.get("status", "")).strip())
+        metadata.setdefault("source_type", str(task_record.get("source_type", "")).strip())
+    if property_record:
+        metadata.setdefault("property_name", str(property_record.get("name", "")).strip())
+        metadata.setdefault("property_location", str(property_record.get("location", "")).strip())
+    if owner_account:
+        metadata.setdefault("owner_name", str(owner_account.get("full_name", "")).strip())
+        metadata.setdefault("owner_email", str(owner_account.get("email", "")).strip())
+
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    if start_dt is None:
+        start_dt = datetime.now(timezone.utc)
+    if end_dt is None:
+        end_dt = start_dt
+    today = datetime.now(timezone.utc).date()
+    overdue = bool(start_dt.date() < today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"})
+
+    priority = str(metadata.get("priority", "")).strip().upper() or _normalize_operations_task_priority((task_record or {}).get("priority", "NORMAL")) if task_record else ""
+    city = str(metadata.get("property_location", "")).strip() or str((property_record or {}).get("location", "")).strip()
+    property_label = str(metadata.get("property_name", "")).strip() or str((property_record or {}).get("name", "")).strip() or str(event.get("property_id", "")).strip()
+    owner_label = str(metadata.get("owner_name", "")).strip() or str((owner_account or {}).get("full_name", "")).strip()
+    owner_email = str(metadata.get("owner_email", "")).strip() or str((owner_account or {}).get("email", "")).strip()
+    professional = str(event.get("assigned_professional", "")).strip()
+    if not professional and task_record:
+        professional = str(task_record.get("assigned_to", "")).strip()
+
+    enriched = {
+        **event,
+        "metadata": metadata,
+        "property_record": property_record,
+        "owner_account": owner_account,
+        "task_record": task_record,
+        "property_label": property_label,
+        "owner_label": owner_label,
+        "owner_email": owner_email,
+        "professional": professional,
+        "priority": priority or "",
+        "city": city,
+        "display_label": _calendar_event_display_label(event),
+        "day_label": _calendar_event_day_label(event),
+        "week_label": _calendar_event_week_label(event),
+        "search_text": _calendar_event_search_text({**event, "metadata": metadata}),
+        "is_overdue": overdue,
+    }
+    return enriched
+
+
+def _calendar_filter_events(events, filters):
+    filters = filters or {}
+    search_query = str(filters.get("search", "")).strip().lower()
+    search_tokens = [token for token in search_query.split() if token]
+    property_filter = str(filters.get("property", "")).strip()
+    owner_filter = str(filters.get("owner", "")).strip()
+    professional_filter = str(filters.get("professional", "")).strip()
+    category_filter = _normalize_calendar_event_type(filters.get("category", "")) if str(filters.get("category", "")).strip() else ""
+    priority_filter = str(filters.get("priority", "")).strip().upper()
+    status_filter = _normalize_calendar_event_status(filters.get("status", "")) if str(filters.get("status", "")).strip() else ""
+    city_filter = str(filters.get("city", "")).strip()
+
+    filtered = []
+    for event in events:
+        event_text = event.get("search_text", "")
+        if search_tokens and not all(token in event_text for token in search_tokens):
+            continue
+        if property_filter:
+            property_values = {
+                str(event.get("property_id", "")).strip(),
+                str(event.get("property_label", "")).strip().lower(),
+                str((event.get("metadata", {}) or {}).get("property_name", "")).strip().lower(),
+            }
+            if property_filter.strip().lower() not in property_values and _admin_property_query_value(property_filter) not in {_admin_property_query_value(value) for value in property_values}:
+                continue
+        if owner_filter:
+            owner_values = {
+                str(event.get("owner_id", "")).strip(),
+                str(event.get("owner_label", "")).strip().lower(),
+                str(event.get("owner_email", "")).strip().lower(),
+            }
+            if owner_filter.strip().lower() not in owner_values and _admin_property_query_value(owner_filter) not in {_admin_property_query_value(value) for value in owner_values}:
+                continue
+        if professional_filter and _admin_property_query_value(event.get("professional", "")) != _admin_property_query_value(professional_filter):
+            continue
+        if category_filter and _normalize_calendar_event_type(event.get("event_type", "")) != category_filter:
+            continue
+        if priority_filter and str(event.get("priority", "")).strip().upper() != priority_filter:
+            continue
+        if status_filter and _normalize_calendar_event_status(event.get("status", "")) != status_filter:
+            continue
+        if city_filter and _admin_property_query_value(event.get("city", "")) != _admin_property_query_value(city_filter):
+            continue
+        filtered.append(event)
+    return filtered
+
+
+def _calendar_group_events(events, calendar_view):
+    grouped = []
+    if calendar_view == "timeline":
+        return [{"label": "Timeline", "events": events}]
+
+    group_key = None
+    current_group = None
+    for event in events:
+        if calendar_view == "month":
+            key = _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+            label = key.strftime("%B %Y") if key else "Unscheduled"
+        elif calendar_view == "week":
+            key = _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+            label = _calendar_event_week_label(event)
+        else:
+            key = _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+            label = _calendar_event_day_label(event)
+
+        if label != group_key:
+            current_group = {"label": label, "events": []}
+            grouped.append(current_group)
+            group_key = label
+        current_group["events"].append(event)
+
+    return grouped
+
+
+def _calendar_widget_summary(events):
+    today = datetime.now(timezone.utc).date()
+    tomorrow = today + timedelta(days=1)
+    week_end = today + timedelta(days=6)
+    def _matches_date(event, target_date):
+        start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+        return bool(start_dt and start_dt.date() == target_date)
+
+    return {
+        "today": sum(1 for event in events if _matches_date(event, today)),
+        "tomorrow": sum(1 for event in events if _matches_date(event, tomorrow)),
+        "this_week": sum(1 for event in events if (start := _calendar_parse_datetime(event.get("start_datetime", ""))[0]) and today <= start.date() <= week_end),
+        "completed": sum(1 for event in events if _normalize_calendar_event_status(event.get("status", "")) == "COMPLETED"),
+        "overdue": sum(1 for event in events if event.get("is_overdue")),
+    }
+
+
+def _calendar_dashboard_widget(events, scope="admin"):
+    sorted_events = sorted(events, key=_calendar_event_sort_key)
+    summary = _calendar_widget_summary(sorted_events)
+    today = datetime.now(timezone.utc).date()
+    if scope == "admin":
+        def _event_date(event):
+            return _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+
+        summary.update({
+            "todays_operations": sum(1 for event in sorted_events if _event_date(event) and _event_date(event).date() == today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"}),
+            "upcoming_check_ins": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-in" and _event_date(event) and _event_date(event).date() >= today),
+            "upcoming_check_outs": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-out" and _event_date(event) and _event_date(event).date() >= today),
+            "todays_cleaning": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Cleaning" and _event_date(event) and _event_date(event).date() == today),
+            "overdue_events": summary["overdue"],
+        })
+    if scope == "owner":
+        headline = "Upcoming events"
+        supporting_title = "Owner schedule"
+    else:
+        headline = "Today's operations"
+        supporting_title = "Unified schedule"
+    return {
+        "headline": headline,
+        "supporting_title": supporting_title,
+        "summary": summary,
+        "upcoming_events": sorted_events[:5],
+        "sorted_events": sorted_events,
+    }
+
+
+def _calendar_property_sections(events):
+    sorted_events = sorted(events, key=_calendar_event_sort_key)
+    upcoming_events = [event for event in sorted_events if _calendar_parse_datetime(event.get("start_datetime", ""))[0] and _calendar_parse_datetime(event.get("start_datetime", ""))[0] >= datetime.now(timezone.utc)][:6]
+    cleaning_schedule = [event for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Cleaning"][:6]
+    maintenance_schedule = [event for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Maintenance"][:6]
+    blocked_dates = [event for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) in {"Blocked Dates", "Personal Stay"}][:6]
+    mini_calendar = []
+    today = datetime.now(timezone.utc).date()
+    for offset in range(7):
+        day = today + timedelta(days=offset)
+        day_events = []
+        for event in sorted_events:
+            start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+            if start_dt and start_dt.date() == day:
+                day_events.append(event)
+        mini_calendar.append({
+            "date": day.isoformat(),
+            "label": day.strftime("%a"),
+            "day": day.day,
+            "count": len(day_events),
+            "events": day_events[:3],
+        })
+    return {
+        "mini_calendar": mini_calendar,
+        "upcoming_events": upcoming_events,
+        "cleaning_schedule": cleaning_schedule,
+        "maintenance_schedule": maintenance_schedule,
+        "blocked_dates": blocked_dates,
+        "all_events": sorted_events,
+    }
+
+
+def _build_calendar_page_context(scope, owner_account=None):
+    owner_account = owner_account or {}
+    calendar_view = str(request.args.get("view", "")).strip().lower()
+    allowed_views = {"month", "week", "day"} if scope == "owner" else {"month", "week", "day", "timeline"}
+    if calendar_view not in allowed_views:
+        calendar_view = "month" if scope == "owner" else "timeline"
+
+    filters = {
+        "property": str(request.args.get("property", "")).strip(),
+        "owner": str(request.args.get("owner", "")).strip(),
+        "professional": str(request.args.get("professional", "")).strip(),
+        "category": str(request.args.get("category", "")).strip(),
+        "priority": str(request.args.get("priority", "")).strip(),
+        "status": str(request.args.get("status", "")).strip(),
+        "city": str(request.args.get("city", "")).strip(),
+        "search": str(request.args.get("q", "")).strip(),
+    }
+
+    owner_properties = []
+    if scope == "owner":
+        owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
+        property_ids = [property_record.get("id", "") for property_record in owner_properties]
+        events = _load_calendar_events(owner_id=owner_account.get("id", ""), property_ids=property_ids)
+    else:
+        events = _load_calendar_events()
+        owner_properties = _load_owner_properties()
+
+    property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
+    owner_map = {str(account.get("id", "")).strip(): account for account in _load_owner_accounts()}
+    task_map = {str(task.get("id", "")).strip(): task for task in _load_operations_tasks()}
+    enriched_events = [_calendar_enrich_event(event, property_map, owner_map, task_map) for event in events]
+    filtered_events = _calendar_filter_events(enriched_events, filters)
+    filtered_events.sort(key=_calendar_event_sort_key)
+    groups = _calendar_group_events(filtered_events, calendar_view)
+
+    property_options = sorted({event.get("property_label", "") for event in enriched_events if event.get("property_label", "")})
+    owner_options = sorted({event.get("owner_label", "") for event in enriched_events if event.get("owner_label", "")})
+    professional_options = sorted({event.get("professional", "") for event in enriched_events if event.get("professional", "")})
+    category_options = sorted({event.get("event_type", "") for event in enriched_events if event.get("event_type", "")})
+    city_options = sorted({event.get("city", "") for event in enriched_events if event.get("city", "")})
+    status_options = sorted({event.get("status", "") for event in enriched_events if event.get("status", "")})
+
+    return {
+        "calendar_scope": scope,
+        "calendar_view": calendar_view,
+        "calendar_views": [view for view in ["month", "week", "day", "timeline"] if view in allowed_views],
+        "calendar_filters": filters,
+        "calendar_groups": groups,
+        "calendar_events": filtered_events,
+        "calendar_total_count": len(enriched_events),
+        "calendar_filtered_count": len(filtered_events),
+        "calendar_summary": _calendar_widget_summary(filtered_events),
+        "calendar_property_options": property_options,
+        "calendar_owner_options": owner_options,
+        "calendar_professional_options": professional_options,
+        "calendar_category_options": category_options,
+        "calendar_city_options": city_options,
+        "calendar_status_options": status_options,
+        "calendar_priority_options": ["LOW", "NORMAL", "HIGH", "URGENT"],
+        "calendar_owner_properties": owner_properties,
+        "calendar_can_create": scope == "owner",
+        "calendar_scope_label": "Owner Calendar" if scope == "owner" else "Admin Calendar",
+        "calendar_scope_description": "Only your properties" if scope == "owner" else "All properties",
+        "calendar_external_integration_points": CALENDAR_EXTERNAL_INTEGRATION_POINTS,
+    }
+
+
 def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang):
     dashboard_copy = _owner_dashboard_copy(current_lang)
     owner_properties = [
@@ -5699,6 +6567,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         for property_record in _owner_properties_for_account(owner_account.get("id", ""))
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
+    owner_calendar_context = _build_calendar_page_context("owner", owner_account)
+    calendar_widget = _calendar_dashboard_widget(owner_calendar_context["calendar_events"], scope="owner")
     has_properties = bool(owner_properties)
     property_cards = [_owner_property_card_context(property_record, bool(owner_requests), dashboard_copy) for property_record in owner_properties]
     primary_property = property_cards[0] if property_cards else None
@@ -5902,6 +6772,7 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             }
             for record in owner_requests[:3]
         ],
+        "calendar_widget": calendar_widget,
         "summary_line": dashboard_copy["hero_summary_line"],
         "status_note_key": status_note_key,
         "last_completed_task_key": last_completed_task_key,
@@ -5909,6 +6780,26 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     }
 
     return owner_portal
+
+
+def _property_calendar_context(property_record, owner_account=None):
+    property_record = property_record or {}
+    owner_account = owner_account or {}
+    property_id = str(property_record.get("id", "")).strip()
+    owner_id = str(property_record.get("owner_id", "")).strip() or str(owner_account.get("id", "")).strip()
+    if not property_id:
+        return _calendar_property_sections([])
+
+    property_map = {property_id: property_record}
+    owner_map = {}
+    if owner_account:
+        owner_map[owner_id] = owner_account
+    elif owner_id:
+        owner_map[owner_id] = _find_owner_account(owner_id) or {}
+    task_map = {str(task.get("id", "")).strip(): task for task in _load_operations_tasks()}
+    events = _load_calendar_events(owner_id=owner_id or None, property_ids=[property_id])
+    enriched_events = [_calendar_enrich_event(event, property_map, owner_map, task_map) for event in events]
+    return _calendar_property_sections(enriched_events)
 
 
 def _owner_property_service_requests(owner_account, property_record):
@@ -5987,6 +6878,7 @@ def _owner_property_detail_context(owner_account, property_record):
     ]
     checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
     service_requests = _owner_property_service_requests(owner_account, property_record)
+    calendar = _property_calendar_context(property_record, owner_account)
     return {
         "property": {
             **property_record,
@@ -5999,6 +6891,7 @@ def _owner_property_detail_context(owner_account, property_record):
         },
         "checklist_items": checklist_items,
         "service_requests": service_requests,
+        "calendar": calendar,
         "history_count": len(service_requests),
     }
 
@@ -6384,6 +7277,39 @@ def owners_dashboard():
         owner_requests=owner_requests,
         owner_portal=owner_portal,
         current_lang=current_lang,
+    )
+
+
+@app.route("/owners/calendar", methods=["GET", "POST"])
+@owner_required
+def owners_calendar():
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    if request.method == "POST":
+        property_record = _find_owner_property(request.form.get("property_id", ""))
+        if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+            return Response("Property not found.", status=404, mimetype="text/plain")
+        form_values = {
+            "event_type": _normalize_calendar_event_type(request.form.get("event_type", "")),
+            "title": str(request.form.get("title", "")).strip(),
+            "description": str(request.form.get("description", "")).strip(),
+            "start_datetime": str(request.form.get("start_datetime", "")).strip(),
+            "end_datetime": str(request.form.get("end_datetime", "")).strip(),
+            "all_day": bool(request.form.get("all_day")),
+        }
+        if form_values["event_type"] not in CALENDAR_OWNER_EVENT_TYPES:
+            return Response("Unsupported owner calendar event.", status=400, mimetype="text/plain")
+        created_event = _create_calendar_event_from_owner(owner_account, property_record, form_values)
+        if not created_event:
+            return Response("Failed to create calendar event.", status=400, mimetype="text/plain")
+        return redirect(url_for("owners_calendar", view=request.args.get("view", "month"), lang=current_lang))
+
+    context = _build_calendar_page_context("owner", owner_account)
+    return render_template(
+        "calendar.html",
+        current_lang=current_lang,
+        owner_account=owner_account,
+        **context,
     )
 
 
@@ -7428,6 +8354,7 @@ def _admin_property_detail_context(property_record):
     property_service_requests = _admin_property_service_requests(property_record, owner_account)
     property_events = _load_property_activity_events(property_record.get("id", ""))
     timeline = _admin_property_activity_timeline(property_record, owner_account, property_service_requests, property_events)
+    calendar = _property_calendar_context(property_record, owner_account)
 
     checklist_items = [
         {
@@ -7470,6 +8397,7 @@ def _admin_property_detail_context(property_record):
         "service_requests": latest_service_requests,
         "timeline": timeline,
         "property_events": property_events,
+        "calendar": calendar,
         "service_request_count": len(property_service_requests),
         "activity_count": len(timeline),
     }
@@ -8070,6 +8998,16 @@ def admin_property_detail(property_id):
     context = _admin_property_detail_context(property_record)
     return render_template(
         "admin_property_detail.html",
+        **context,
+    )
+
+
+@app.route("/admin/calendar")
+@admin_required
+def admin_calendar():
+    context = _build_calendar_page_context("admin")
+    return render_template(
+        "calendar.html",
         **context,
     )
 
@@ -9410,6 +10348,8 @@ def _build_admin_dashboard():
         normalized_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
         if normalized_status in property_status_counts:
             property_status_counts[normalized_status] += 1
+    calendar_context = _build_calendar_page_context("admin")
+    calendar_widget = _calendar_dashboard_widget(calendar_context["calendar_events"], scope="admin")
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
     requests_this_month = sum(1 for record in service_requests if str(record.get("created_at", "")).startswith(current_month))
     active_requests = sum(1 for record in service_requests if _normalize_service_request_status(record.get("status", "new")) in {"new", "assigned", "in_progress"})
@@ -9457,6 +10397,7 @@ def _build_admin_dashboard():
             {"key": "converted", "label": "Converted", "count": professional_counts["converted"]},
             {"key": "lost", "label": "Lost", "count": professional_counts["lost"]},
         ],
+        "calendar_widget": calendar_widget,
         "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, partner_applications, professional_applications),
     }
 
