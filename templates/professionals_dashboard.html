@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professional Dashboard</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .professional-dashboard-page {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%);
+      color: #1f2937;
+      padding: 28px 20px 52px;
+    }
+    .professional-dashboard-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .professional-panel, .professional-hero {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 26px;
+    }
+    .professional-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .professional-dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .professional-kpi {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.86);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .professional-kpi span { display:block; color:#8b6d2b; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
+    .professional-kpi strong { display:block; margin-top:6px; font-size:1.4rem; }
+    .professional-task-list { display:grid; gap:12px; }
+    .professional-task-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      text-decoration: none;
+      color: inherit;
+      display: grid;
+      gap: 8px;
+    }
+    .professional-task-card__meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .professional-badge {
+      display:inline-flex;
+      align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      background: rgba(155,123,47,0.1);
+      color:#7a6328;
+      font-size:12px;
+      font-weight:700;
+    }
+    .professional-task-card p { margin: 0; color:#4b5563; }
+    @media (max-width: 920px) {
+      .professional-dashboard-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .professional-dashboard-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="professional-dashboard-page">
+  <main class="professional-dashboard-shell">
+    <section class="professional-hero">
+      <div>
+        <p class="eyebrow">Professional portal</p>
+        <h1>{{ display_name|e }}</h1>
+        <p>{{ professional_account.company|e if professional_account.company else professional_account.email|e }}</p>
+        <p>{{ professional_account.service_categories|e if professional_account.service_categories else 'Operational services' }}</p>
+      </div>
+      <div class="hero__cta">
+        <a class="button button--secondary" href="/professionals/tasks">View tasks</a>
+        <a class="button button--ghost" href="/professionals/logout">Logout</a>
+      </div>
+    </section>
+
+    <section class="professional-dashboard-grid">
+      <article class="professional-kpi"><span>Assigned</span><strong>{{ assigned_count }}</strong></article>
+      <article class="professional-kpi"><span>Today</span><strong>{{ today_count }}</strong></article>
+      <article class="professional-kpi"><span>Upcoming</span><strong>{{ upcoming_count }}</strong></article>
+      <article class="professional-kpi"><span>Completed</span><strong>{{ completed_count }}</strong></article>
+    </section>
+
+    <section class="professional-panel">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow">Assigned tasks</p>
+        <h2>Active workload</h2>
+      </div>
+      <div class="professional-task-list">
+        {% for task in assigned_tasks[:5] %}
+          <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
+            <div class="professional-task-card__meta">
+              <span class="professional-badge">{{ task.status_label|e }}</span>
+              <span class="professional-badge">{{ task.priority_label|e }}</span>
+              <time>{{ task.due_date|e or 'No due date' }}</time>
+            </div>
+            <strong>{{ task.title|e }}</strong>
+            <p>{{ task.property_name|e or task.property_location|e }}</p>
+          </a>
+        {% else %}
+          <p>No assigned tasks yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

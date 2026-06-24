@@ -428,7 +428,7 @@
                     <p><strong>Owner:</strong> {{ task.owner_name|e }}</p>
                     <p><strong>City:</strong> {{ task.property_location|e }}</p>
                     <p><strong>Priority:</strong> <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></p>
-                    <p><strong>Assigned:</strong> {{ task.assigned_to|e or 'Unassigned' }}</p>
+                    <p><strong>Assigned:</strong> {{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</p>
                     <p><strong>Task ID:</strong> {{ task.request_id|e }}</p>
                     <p><strong>Created:</strong> {{ task.created_at|e }}</p>
                     <p><strong>Due:</strong> {{ task.due_date|e or 'Not set' }}</p>

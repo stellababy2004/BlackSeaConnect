@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professional Login</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .professional-login-page {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(155, 123, 47, 0.18), transparent 35%), linear-gradient(180deg, #f8f4eb 0%, #f1ebde 100%);
+      color: #1f2937;
+      display: grid;
+      place-items: center;
+      padding: 28px 20px;
+    }
+    .professional-login-shell {
+      width: min(560px, 100%);
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      box-shadow: 0 22px 60px rgba(31, 41, 55, 0.12);
+      backdrop-filter: blur(18px);
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+    }
+    .professional-login-shell h1 { margin: 6px 0 10px; font-size: clamp(2rem, 5vw, 3rem); }
+    .professional-login-shell p { margin: 0; color: #4b5563; line-height: 1.65; }
+    .professional-login-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .professional-login-form label { display: grid; gap: 8px; font-weight: 600; color: #374151; }
+    .professional-login-form input {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      padding: 12px 14px;
+      background: #fff;
+      font: inherit;
+      color: #1f2937;
+    }
+    .professional-login-note {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(155, 123, 47, 0.08);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      color: #7a6328;
+    }
+  </style>
+</head>
+<body class="professional-login-page">
+  <main class="professional-login-shell">
+    <div>
+      <p class="eyebrow">Professional portal</p>
+      <h1>Sign in with your email</h1>
+      <p>We will send a secure magic link if your professional account is registered in BlackSea Connect.</p>
+    </div>
+
+    {% if request.args.get("magic_sent") == "1" %}
+      <div class="professional-login-note">If your email is registered, a sign-in link has been sent.</div>
+    {% endif %}
+    {% if request.args.get("magic_sent") == "0" %}
+      <div class="professional-login-note">We could not send a sign-in link right now. Please try again shortly.</div>
+    {% endif %}
+    {% if request.args.get("invalid_token") == "1" %}
+      <div class="professional-login-note">That sign-in link is no longer valid.</div>
+    {% endif %}
+    {% if request.args.get("expired_token") == "1" %}
+      <div class="professional-login-note">That sign-in link has expired.</div>
+    {% endif %}
+    {% if request.args.get("access") == "denied" %}
+      <div class="professional-login-note">Your account is not yet approved for portal access.</div>
+    {% endif %}
+
+    <form class="professional-login-form" method="post" action="/professionals/login">
+      <label>
+        <span>Email address</span>
+        <input type="email" name="email" value="{{ form_values.email|e }}" placeholder="name@company.com" required>
+      </label>
+      {% if errors.email %}
+        <p class="professional-login-note">Email is required.</p>
+      {% endif %}
+      <button class="button button--primary" type="submit">Send magic link</button>
+    </form>
+
+    <div class="hero__cta">
+      <a class="button button--secondary" href="/professionals">Back to professionals</a>
+      <a class="button button--ghost" href="/professionals/apply">Apply as professional</a>
+    </div>
+  </main>
+</body>
+</html>

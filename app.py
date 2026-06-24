@@ -124,6 +124,7 @@ OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
 OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
 OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
+PROFESSIONAL_MAGIC_LINK_TTL_MINUTES = 30
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_STATUS_VALUES = {"PILOT", "ACTIVE", "INACTIVE", "VIP"}
@@ -150,6 +151,10 @@ OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
 OWNER_SESSION_LOGGED_IN_KEY = "owner_logged_in"
+PROFESSIONAL_SESSION_ID_KEY = "professional_id"
+PROFESSIONAL_SESSION_EMAIL_KEY = "professional_email"
+PROFESSIONAL_SESSION_NAME_KEY = "professional_name"
+PROFESSIONAL_SESSION_LOGGED_IN_KEY = "professional_logged_in"
 OWNER_DEMO_LOGIN_EMAIL = "owner@blackseaconnect.com"
 OWNER_DEMO_LOGIN_PASSWORD = "demo1234"
 OWNER_DEMO_PROFILE = {
@@ -257,6 +262,11 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "note_added",
     "checklist_updated",
     "comment_added",
+    "professional_assigned",
+    "professional_accepted",
+    "professional_started",
+    "professional_completed",
+    "professional_comment_added",
 }
 CALENDAR_EVENT_TYPE_VALUES = (
     "Check-in",
@@ -960,22 +970,23 @@ def _ensure_operations_task_schema(conn):
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS operations_tasks (
-            id TEXT PRIMARY KEY,
-            request_id TEXT NOT NULL DEFAULT '',
-            source_type TEXT NOT NULL DEFAULT '',
-            source_id TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            title TEXT NOT NULL,
-            category TEXT NOT NULL DEFAULT '',
-            owner_name TEXT NOT NULL DEFAULT '',
-            owner_email TEXT NOT NULL DEFAULT '',
-            property_id TEXT NOT NULL DEFAULT '',
-            property_name TEXT NOT NULL DEFAULT '',
-            assigned_to TEXT NOT NULL DEFAULT '',
-            due_date TEXT NOT NULL DEFAULT '',
-            priority TEXT NOT NULL DEFAULT 'NORMAL',
-            status TEXT NOT NULL DEFAULT 'NEW',
+                id TEXT PRIMARY KEY,
+                request_id TEXT NOT NULL DEFAULT '',
+                source_type TEXT NOT NULL DEFAULT '',
+                source_id TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL DEFAULT '',
+                owner_name TEXT NOT NULL DEFAULT '',
+                owner_email TEXT NOT NULL DEFAULT '',
+                property_id TEXT NOT NULL DEFAULT '',
+                property_name TEXT NOT NULL DEFAULT '',
+                assigned_to TEXT NOT NULL DEFAULT '',
+                assigned_professional_id TEXT NOT NULL DEFAULT '',
+                due_date TEXT NOT NULL DEFAULT '',
+                priority TEXT NOT NULL DEFAULT 'NORMAL',
+                status TEXT NOT NULL DEFAULT 'NEW',
             notes TEXT NOT NULL DEFAULT '',
             completed_at TEXT NOT NULL DEFAULT '',
             owner_id TEXT NOT NULL DEFAULT '',
@@ -1003,6 +1014,7 @@ def _ensure_operations_task_schema(conn):
         "property_id": "TEXT NOT NULL DEFAULT ''",
         "property_name": "TEXT NOT NULL DEFAULT ''",
         "assigned_to": "TEXT NOT NULL DEFAULT ''",
+        "assigned_professional_id": "TEXT NOT NULL DEFAULT ''",
         "priority": "TEXT NOT NULL DEFAULT 'NORMAL'",
         "status": "TEXT NOT NULL DEFAULT 'NEW'",
         "due_date": "TEXT NOT NULL DEFAULT ''",
@@ -1709,8 +1721,9 @@ def _seed_calendar_event_backfill(conn):
     rows = conn.execute(
         """
         SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
-               category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
-               due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+                   due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status,
+                   checklist_json, attachments_json, comments_json
         FROM operations_tasks
         """
     ).fetchall()
@@ -1856,6 +1869,30 @@ def _ensure_owner_db_schema(conn):
                 source TEXT NOT NULL,
                 language TEXT NOT NULL,
                 smtp_message_id TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS professional_accounts (
+                email TEXT PRIMARY KEY COLLATE NOCASE,
+                id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                company TEXT NOT NULL DEFAULT '',
+                service_categories TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'PENDING',
+                last_login_at TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS professional_magic_tokens (
+                token TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                created_at TEXT NOT NULL
             )
             """
         )
@@ -2218,6 +2255,7 @@ def _operations_task_from_row(row):
         "owner_name": str(row["owner_name"]) if "owner_name" in row.keys() else "",
         "owner_email": str(row["owner_email"]) if "owner_email" in row.keys() else "",
         "assigned_to": str(row["assigned_to"]) if "assigned_to" in row.keys() else "",
+        "assigned_professional_id": str(row["assigned_professional_id"]) if "assigned_professional_id" in row.keys() else "",
         "priority": _normalize_operations_task_priority(row["priority"] if "priority" in row.keys() else "NORMAL"),
         "status": _normalize_operations_task_status(row["status"] if "status" in row.keys() else "NEW"),
         "due_date": str(row["due_date"]) if "due_date" in row.keys() else "",
@@ -2241,7 +2279,7 @@ def _load_operations_tasks():
         rows = conn.execute(
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
-                   category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+                   category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
                    due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
@@ -2262,7 +2300,7 @@ def _find_operations_task(task_id):
         row = conn.execute(
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
-                   category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+                   category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
                    due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
@@ -2640,6 +2678,47 @@ def _send_operations_notification_via_email(task_record, admin_detail_url, recip
             client.send_message(message)
     except Exception as exc:
         app.logger.warning("Operations notification email send failed: %s", type(exc).__name__)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+def _send_plaintext_email(recipient_email, subject, body):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+
+    if not smtp_host or not smtp_port_raw or not smtp_from or not recipient_email:
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        return False, "smtp_invalid_port"
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = recipient_email
+    message.set_content(body)
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=15) as client:
+            client.ehlo()
+            if smtp_port != 465:
+                try:
+                    client.starttls()
+                    client.ehlo()
+                except smtplib.SMTPException:
+                    pass
+            if smtp_username and smtp_password:
+                client.login(smtp_username, smtp_password)
+            client.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Plaintext email send failed for %s: %s", _mask_email(recipient_email), type(exc).__name__)
         return False, "smtp_send_failed"
 
     return True, None
@@ -3030,6 +3109,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         "property_id": str((task_payload or {}).get("property_id", "")).strip() or str((existing_task or {}).get("property_id", "")).strip(),
         "property_name": str((task_payload or {}).get("property_name", "")).strip() or str((existing_task or {}).get("property_name", "")).strip(),
         "assigned_to": str((task_payload or {}).get("assigned_to", "")).strip() or str((existing_task or {}).get("assigned_to", "")).strip(),
+        "assigned_professional_id": str((task_payload or {}).get("assigned_professional_id", "")).strip() or str((existing_task or {}).get("assigned_professional_id", "")).strip(),
         "priority": _normalize_operations_task_priority((task_payload or {}).get("priority", (existing_task or {}).get("priority", "NORMAL"))),
         "status": status,
         "due_date": str((task_payload or {}).get("due_date", "")).strip() or str((existing_task or {}).get("due_date", "")).strip(),
@@ -3052,10 +3132,10 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                 """
                 INSERT INTO operations_tasks (
                     id, request_id, source_type, source_id, created_at, updated_at, title, category,
-                    owner_name, owner_email, property_id, property_name, assigned_to, priority, status,
+                    owner_name, owner_email, property_id, property_name, assigned_to, assigned_professional_id, priority, status,
                     due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status,
                     checklist_json, attachments_json, comments_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     request_id = excluded.request_id,
                     source_type = excluded.source_type,
@@ -3069,6 +3149,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     property_id = excluded.property_id,
                     property_name = excluded.property_name,
                     assigned_to = excluded.assigned_to,
+                    assigned_professional_id = excluded.assigned_professional_id,
                     priority = excluded.priority,
                     status = excluded.status,
                     due_date = excluded.due_date,
@@ -3096,6 +3177,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     merged_task["property_id"],
                     merged_task["property_name"],
                     merged_task["assigned_to"],
+                    merged_task["assigned_professional_id"],
                     merged_task["priority"],
                     merged_task["status"],
                     merged_task["due_date"],
@@ -3261,6 +3343,7 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
         "property_id": property_id,
         "property_name": property_name,
         "assigned_to": str(record.get("assigned_to", "")).strip(),
+        "assigned_professional_id": str(record.get("assigned_professional_id", "")).strip(),
         "priority": priority,
         "status": task_status,
         "due_date": due_date,
@@ -3315,26 +3398,38 @@ def _upsert_operations_task_from_service_request(request_record, status_override
     return updated_task
 
 
-def _update_operations_task_details(task_id, *, status=None, assigned_to=None, notes=None, due_date=None, priority=None, source="detail"):
+def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
     task = _find_operations_task(task_id)
     if not task:
         return None
 
     task_id = str(task_id or "").strip()
     new_status = _normalize_operations_task_status(status if status is not None else task.get("status", "NEW"))
-    new_assigned_to = str(assigned_to if assigned_to is not None else task.get("assigned_to", "")).strip()
+    new_assigned_professional_id = str(assigned_professional_id if assigned_professional_id is not None else task.get("assigned_professional_id", "")).strip()
+    current_assigned_professional_id = str(task.get("assigned_professional_id", "")).strip()
+    professional_account = _find_professional_account(new_assigned_professional_id) if new_assigned_professional_id else None
+    if new_assigned_professional_id and not professional_account:
+        return None
+    if professional_account and _normalize_professional_account_status(professional_account.get("status", "PENDING")) not in {"APPROVED", "ACTIVE"}:
+        return None
+    new_assigned_to = _professional_account_display_label(professional_account) if professional_account else str(assigned_to if assigned_to is not None else task.get("assigned_to", "")).strip()
     new_notes = str(notes if notes is not None else task.get("admin_notes", "")).strip()
     new_due_date = str(due_date if due_date is not None else task.get("due_date", "")).strip()
     new_priority = _normalize_operations_task_priority(priority if priority is not None else task.get("priority", "NORMAL"))
     current_status = _normalize_operations_task_status(task.get("status", "NEW"))
     current_assigned_to = str(task.get("assigned_to", "")).strip()
+    current_assigned_professional = str(task.get("assigned_professional_id", "")).strip()
     current_notes = str(task.get("admin_notes", "")).strip()
     current_due_date = str(task.get("due_date", "")).strip()
     current_priority = _normalize_operations_task_priority(task.get("priority", "NORMAL"))
 
+    if new_assigned_professional_id and new_status == current_status and current_status == "NEW":
+        new_status = "ASSIGNED"
+
     if (
         new_status == current_status
         and new_assigned_to == current_assigned_to
+        and new_assigned_professional_id == current_assigned_professional
         and new_notes == current_notes
         and new_due_date == current_due_date
         and new_priority == current_priority
@@ -3356,10 +3451,10 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
             conn.execute(
                 """
                 UPDATE operations_tasks
-                SET status = ?, assigned_to = ?, admin_notes = ?, due_date = ?, priority = ?, completed_at = ?, updated_at = ?
+                SET status = ?, assigned_to = ?, assigned_professional_id = ?, admin_notes = ?, due_date = ?, priority = ?, completed_at = ?, updated_at = ?
                 WHERE id = ? OR request_id = ? OR source_id = ?
                 """,
-                (new_status, new_assigned_to, new_notes, new_due_date, new_priority, completed_at, updated_at, task_id, task_id, task_id),
+                (new_status, new_assigned_to, new_assigned_professional_id, new_notes, new_due_date, new_priority, completed_at, updated_at, task_id, task_id, task_id),
             )
     except Exception as exc:
         app.logger.warning("Operations task update failed for %s: %s", task_id, type(exc).__name__)
@@ -3369,10 +3464,48 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
         _append_operations_task_event(
             task_id,
             "assigned",
-            f"Assigned to {new_assigned_to}",
-            current_assigned_to or "Unassigned",
+            "Task assigned",
+            new_assigned_to,
             status=new_status,
         )
+
+    if new_assigned_professional_id and new_assigned_professional_id != current_assigned_professional:
+        _append_operations_task_event(
+            task_id,
+            "professional_assigned",
+            "Professional assigned",
+            new_assigned_to or new_assigned_professional_id,
+            status=new_status,
+        )
+        if professional_account:
+            assignment_body = "\n".join([
+                "BlackSea Connect task assignment",
+                "",
+                f"Task: {task.get('title', '')}",
+                f"Property: {task.get('property_name', '') or task.get('property_location', '')}",
+                f"Due date: {new_due_date or 'n/a'}",
+                f"Status: {new_status}",
+                f"Admin notes: {new_notes or 'n/a'}",
+                f"Task URL: {url_for('professionals_task_detail', task_id=task_id, _external=True)}",
+            ])
+            _send_plaintext_email(
+                professional_account.get("email", ""),
+                "[BlackSeaConnect] New task assignment",
+                assignment_body,
+            )
+            _append_operations_notification(
+                "professional_assigned",
+                "Professional task assigned",
+                assignment_body,
+                task_id=task_id,
+                source_type=task.get("source_type", ""),
+                source_id=task.get("source_id", ""),
+                status="sent",
+                channel="EMAIL",
+                recipient=professional_account.get("email", ""),
+                operator_key=_current_admin_operator_key(),
+                metadata="professional_assignment",
+            )
 
     if new_status != current_status:
         event_type = "completed" if new_status == "DONE" else "status_changed"
@@ -3401,6 +3534,37 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
                     requests_list[index] = request_record
                     break
             _save_service_requests(requests_list)
+
+    if new_status == "DONE" and current_status != "DONE":
+        admin_email = os.getenv("ADMIN_NOTIFICATION_EMAIL", "").strip() or os.getenv("ADMIN_EMAIL", "").strip()
+        completion_body = "\n".join([
+            "BlackSea Connect task completed",
+            "",
+            f"Task: {task.get('title', '')}",
+            f"Professional: {new_assigned_to or new_assigned_professional_id or 'n/a'}",
+            f"Property: {task.get('property_name', '') or task.get('property_location', '')}",
+            f"Completion note: {new_notes or 'n/a'}",
+            f"Task URL: {url_for('admin_operations_detail', task_id=task_id, _external=True)}",
+        ])
+        _append_operations_notification(
+            "professional_completed",
+            "Professional completed task",
+            completion_body,
+            task_id=task_id,
+            source_type=task.get("source_type", ""),
+            source_id=task.get("source_id", ""),
+            status="sent",
+            channel="EMAIL",
+            recipient=admin_email,
+            operator_key=_current_admin_operator_key(),
+            metadata="professional_completion",
+        )
+        if admin_email:
+            _send_plaintext_email(
+                admin_email,
+                "[BlackSeaConnect] Task completed",
+                completion_body,
+            )
 
     if new_notes != current_notes:
         _append_operations_task_event(
@@ -4956,6 +5120,152 @@ def _queue_owner_magic_link_email(email, login_url, language="bg"):
     ).start()
 
 
+def _professional_magic_link_email_message(email, login_url):
+    subject = "BlackSea Connect - Professional Portal secure sign-in link"
+    text_body = "\n".join([
+        "Hello,",
+        "",
+        "Use the link below to access your Professional Portal.",
+        "",
+        login_url,
+        "",
+        "This link expires in 30 minutes.",
+        "",
+        "BlackSea Connect",
+    ])
+    html_body = "\n".join([
+        "<!doctype html>",
+        "<html lang=\"en\">",
+        "<body style=\"margin:0;padding:0;background:#f6f0df;font-family:Arial,Helvetica,sans-serif;color:#1e1b16;\">",
+        '<div style="max-width:640px;margin:0 auto;padding:32px 20px;">',
+        '<div style="background:#fffaf0;border:1px solid #ead6a6;border-radius:20px;padding:32px;box-shadow:0 16px 40px rgba(0,0,0,0.08);">',
+        '<div style="font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#9b7b2f;font-weight:700;">BlackSea Connect</div>',
+        '<h1 style="margin:16px 0 12px;font-size:28px;line-height:1.2;color:#1f2937;">Hello,</h1>',
+        '<p style="margin:0 0 24px;font-size:16px;line-height:1.7;">Use the link below to access your Professional Portal.</p>',
+        f'<a href="{login_url}" style="display:inline-block;background:#9b7b2f;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Access Professional Portal</a>',
+        f'<p style="margin:20px 0 8px;font-size:14px;line-height:1.7;color:#4b5563;">If the button does not work, copy this link:</p>',
+        f'<p style="margin:0;font-size:14px;line-height:1.7;word-break:break-all;"><a href="{login_url}" style="color:#9b7b2f;">{login_url}</a></p>',
+        '<p style="margin:24px 0 0;font-size:14px;line-height:1.7;color:#4b5563;">This link expires in 30 minutes.</p>',
+        '<p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b7280;">You are receiving this email because you requested access to your BlackSea Connect professional portal.</p>',
+        "</div>",
+        "</div>",
+        "</body>",
+        "</html>",
+    ])
+    return subject, text_body, html_body
+
+
+def _send_professional_magic_link(email, login_url):
+    smtp_host, smtp_port_raw, smtp_from = _service_request_smtp_settings()
+    if not smtp_host or not smtp_port_raw or not smtp_from or not email:
+        app.logger.warning("Professional magic link email skipped for %s: SMTP configuration missing.", _mask_email(email))
+        return {"ok": False, "reason": "smtp_not_configured"}
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        app.logger.warning("Professional magic link email skipped for %s: SMTP_PORT is invalid.", _mask_email(email))
+        return {"ok": False, "reason": "smtp_invalid_port"}
+
+    subject, text_body, html_body = _professional_magic_link_email_message(email, login_url)
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = email
+    message.set_content(text_body)
+    message.add_alternative(html_body, subtype="html")
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    pass
+            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Professional magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return {"ok": False, "reason": "smtp_send_failed"}
+
+    return {"ok": True, "reason": "sent"}
+
+
+def _create_professional_magic_token(email):
+    token_record = {
+        "token": uuid4().hex,
+        "email": str(email or "").strip(),
+        "created_at": _utc_now_iso(),
+    }
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO professional_magic_tokens (token, email, created_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(token) DO UPDATE SET
+                    email = excluded.email,
+                    created_at = excluded.created_at
+                """,
+                (token_record["token"], token_record["email"], token_record["created_at"]),
+            )
+    except Exception as exc:
+        app.logger.warning("Professional magic token write failed for %s: %s", _mask_email(email), type(exc).__name__)
+        return None
+    return token_record
+
+
+def _find_professional_magic_token(token):
+    target_token = str(token or "").strip()
+    if not target_token:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT token, email, created_at
+            FROM professional_magic_tokens
+            WHERE token = ?
+            LIMIT 1
+            """,
+            (target_token,),
+        ).fetchone()
+
+    if row:
+        return {
+            "token": str(row["token"]),
+            "email": str(row["email"]),
+            "created_at": str(row["created_at"]),
+        }
+    return None
+
+
+def _consume_professional_magic_token(token):
+    target_token = str(token or "").strip()
+    if not target_token:
+        return False
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute("DELETE FROM professional_magic_tokens WHERE token = ?", (target_token,))
+            return cursor.rowcount > 0
+    except Exception as exc:
+        app.logger.warning("Professional magic token consume failed for %s: %s", target_token, type(exc).__name__)
+        return False
+
+
 def _owner_property_new_copy(language):
     lang = _normalize_site_language(language) or "bg"
     copy = {
@@ -5348,6 +5658,23 @@ def _current_owner_account():
     if owner_account:
         g.owner_account = owner_account
     return owner_account
+
+
+def _current_professional_account():
+    professional_account = getattr(g, "professional_account", None)
+    if professional_account:
+        return professional_account
+
+    professional_id = str(session.get(PROFESSIONAL_SESSION_ID_KEY, "")).strip()
+    professional_email = str(session.get(PROFESSIONAL_SESSION_EMAIL_KEY, "")).strip()
+    if professional_id:
+        professional_account = _find_professional_account(professional_id)
+    if not professional_account and professional_email:
+        professional_account = _find_professional_account_by_email(professional_email)
+
+    if professional_account:
+        g.professional_account = professional_account
+    return professional_account
 
 
 def _parse_iso_datetime(value):
@@ -6915,6 +7242,24 @@ def owner_required(view):
     return wrapped
 
 
+def professional_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get(PROFESSIONAL_SESSION_LOGGED_IN_KEY):
+            return redirect(url_for("professionals_login", next=request.path))
+        professional_account = _current_professional_account()
+        if not professional_account or _normalize_professional_account_status(professional_account.get("status", "PENDING")) not in {"APPROVED", "ACTIVE"}:
+            session.pop(PROFESSIONAL_SESSION_LOGGED_IN_KEY, None)
+            session.pop(PROFESSIONAL_SESSION_ID_KEY, None)
+            session.pop(PROFESSIONAL_SESSION_EMAIL_KEY, None)
+            session.pop(PROFESSIONAL_SESSION_NAME_KEY, None)
+            return redirect(url_for("professionals_login", next=request.path, access="denied"))
+        g.professional_account = professional_account
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 @app.route("/owners/register", methods=["GET", "POST"])
 def owners_register():
     current_lang = _resolve_current_language()
@@ -8164,6 +8509,151 @@ def professionals_apply():
     )
 
 
+@app.route("/professionals/login", methods=["GET", "POST"])
+def professionals_login():
+    form_values = {"email": ""}
+    errors = {}
+    if request.method == "POST":
+        raw_email = str(request.form.get("email", "")).strip()
+        form_values["email"] = raw_email
+        if not raw_email:
+            errors["email"] = "emailRequiredError"
+        else:
+            professional_account = _find_professional_account_by_email(raw_email)
+            if not professional_account:
+                return redirect(url_for("professionals_login", magic_sent="1"))
+
+            magic_token = _create_professional_magic_token(professional_account["email"])
+            if not magic_token:
+                return redirect(url_for("professionals_login", magic_sent="0"))
+
+            login_url = f"{SITE_URL}{url_for('professional_magic_login', token=magic_token['token'])}"
+            send_result = _send_professional_magic_link(professional_account["email"], login_url)
+            if not send_result.get("ok"):
+                _consume_professional_magic_token(magic_token["token"])
+                return redirect(url_for("professionals_login", magic_sent="0"))
+
+            return redirect(url_for("professionals_login", magic_sent="1"))
+
+    return render_template("professionals_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
+
+
+@app.get("/auth/professional-magic/<token>")
+def professional_magic_login(token):
+    token_record = _find_professional_magic_token(token)
+    if not token_record:
+        return redirect(url_for("professionals_login", invalid_token="1"))
+
+    professional_account = _find_professional_account_by_email(token_record.get("email", ""))
+    if not professional_account:
+        _consume_professional_magic_token(token)
+        return redirect(url_for("professionals_login", invalid_token="1"))
+
+    created_at = _parse_iso_datetime(token_record.get("created_at", ""))
+    if not created_at or datetime.now(timezone.utc) >= created_at + timedelta(minutes=PROFESSIONAL_MAGIC_LINK_TTL_MINUTES):
+        _consume_professional_magic_token(token)
+        return redirect(url_for("professionals_login", expired_token="1"))
+
+    session[PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
+    session[PROFESSIONAL_SESSION_ID_KEY] = professional_account.get("id", "")
+    session[PROFESSIONAL_SESSION_EMAIL_KEY] = professional_account.get("email", "")
+    session[PROFESSIONAL_SESSION_NAME_KEY] = professional_account.get("full_name", "")
+    _upsert_professional_account({
+        **professional_account,
+        "last_login_at": _utc_now_iso(),
+    })
+    _consume_professional_magic_token(token)
+    return redirect(url_for("professionals_dashboard"))
+
+
+@app.get("/professionals/logout")
+def professionals_logout():
+    session.pop(PROFESSIONAL_SESSION_LOGGED_IN_KEY, None)
+    session.pop(PROFESSIONAL_SESSION_ID_KEY, None)
+    session.pop(PROFESSIONAL_SESSION_EMAIL_KEY, None)
+    session.pop(PROFESSIONAL_SESSION_NAME_KEY, None)
+    return redirect(url_for("professionals_login"))
+
+
+@app.get("/professionals/dashboard")
+@professional_required
+def professionals_dashboard():
+    professional_account = _current_professional_account()
+    context = _professional_dashboard_context(professional_account)
+    return render_template("professionals_dashboard.html", **context)
+
+
+@app.get("/professionals/tasks")
+@professional_required
+def professionals_tasks():
+    professional_account = _current_professional_account()
+    context = _professional_dashboard_context(professional_account)
+    search_query = str(request.args.get("q", "")).strip().lower()
+    tasks = context["assigned_tasks"]
+    if search_query:
+        tasks = [
+            task
+            for task in tasks
+            if search_query in " ".join([
+                str(task.get("title", "")).lower(),
+                str(task.get("property_name", "")).lower(),
+                str(task.get("property_location", "")).lower(),
+                str(task.get("category", "")).lower(),
+            ])
+        ]
+    return render_template("professionals_tasks.html", **context, tasks=tasks, search_query=request.args.get("q", ""))
+
+
+@app.route("/professionals/tasks/<task_id>", methods=["GET", "POST"])
+@professional_required
+def professionals_task_detail(task_id):
+    professional_account = _current_professional_account()
+    task_record = _find_operations_task(task_id)
+    if not task_record or not _professional_task_matches_account(task_record, professional_account):
+        return Response("Task not found.", status=404, mimetype="text/plain")
+
+    if request.method == "POST":
+        action = str(request.form.get("task_action", "")).strip().lower()
+        note_text = str(request.form.get("note", "")).strip()
+        current_status = _normalize_operations_task_status(task_record.get("status", "NEW"))
+        if action == "accept":
+            _update_operations_task_details(task_id, status="ASSIGNED", assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
+            _append_operations_task_event(task_id, "professional_accepted", "Professional accepted task", _professional_account_display_label(professional_account), status="ASSIGNED")
+        elif action == "start":
+            _update_operations_task_details(task_id, status="IN_PROGRESS", assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
+            _append_operations_task_event(task_id, "professional_started", "Professional started task", _professional_account_display_label(professional_account), status="IN_PROGRESS")
+        elif action == "complete":
+            completion_status = "DONE"
+            _update_operations_task_details(task_id, status=completion_status, assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
+            if note_text:
+                _append_operations_task_comment(task_id, _professional_account_display_label(professional_account), note_text)
+            _append_operations_task_event(task_id, "professional_completed", "Professional completed task", note_text or _professional_account_display_label(professional_account), status=completion_status)
+        elif action == "comment" and note_text:
+            _append_operations_task_comment(task_id, _professional_account_display_label(professional_account), note_text)
+            _append_operations_task_event(task_id, "professional_comment_added", "Professional comment added", note_text, status=current_status)
+        return redirect(url_for("professionals_task_detail", task_id=task_id))
+
+    refreshed_task = _find_operations_task(task_id) or task_record
+    timeline_events = [
+        event
+        for event in _load_operations_task_events(refreshed_task.get("request_id", ""))
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "note_added", "comment_added", "professional_assigned", "professional_accepted", "professional_started", "professional_completed", "professional_comment_added"}
+    ]
+    return render_template(
+        "professionals_task_detail.html",
+        task={
+            **refreshed_task,
+            "status_label": _operations_task_status_label(refreshed_task.get("status", "NEW")),
+            "status_tone": _operations_task_status_tone(refreshed_task.get("status", "NEW")),
+            "priority_label": _operations_task_priority_label(refreshed_task.get("priority", "NORMAL")),
+            "priority_tone": _operations_task_priority_tone(refreshed_task.get("priority", "NORMAL")),
+            "assigned_professional_label": _professional_account_display_label(professional_account),
+        },
+        professional_account=professional_account,
+        timeline=list(reversed(timeline_events)),
+    )
+
+
 @app.route("/health")
 def health():
     return jsonify({"ok": True, "service": "blackseaconnect"})
@@ -8436,6 +8926,7 @@ def _admin_operations_task_is_overdue(task_record):
 def _admin_operations_task_context(task_record):
     owner_account = _find_owner_account(task_record.get("owner_id", ""))
     property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
+    professional_account = _find_professional_account(task_record.get("assigned_professional_id", ""))
     property_readiness_percent = None
     if property_record:
         readiness_completed, readiness_total = _owner_property_checklist_completion(property_record)
@@ -8453,7 +8944,12 @@ def _admin_operations_task_context(task_record):
     assignment_history = [
         event
         for event in timeline_events
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "professional_assigned", "professional_accepted", "professional_started", "professional_completed", "professional_comment_added"}
+    ]
+    assignable_professionals = [
+        account
+        for account in _load_professional_accounts()
+        if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
     ]
     return {
         "task": {
@@ -8463,6 +8959,7 @@ def _admin_operations_task_context(task_record):
             "priority_label": _operations_task_priority_label(task_record.get("priority", "NORMAL")),
             "priority_tone": _operations_task_priority_tone(task_record.get("priority", "NORMAL")),
             "overdue": _admin_operations_task_is_overdue(task_record),
+            "assigned_professional_label": _professional_account_display_label(professional_account) if professional_account else str(task_record.get("assigned_to", "")).strip(),
         },
         "owner_account": owner_account,
         "property_record": property_record,
@@ -8470,6 +8967,7 @@ def _admin_operations_task_context(task_record):
         "related_requests": related_requests,
         "timeline": list(reversed(timeline_events)),
         "assignment_history": list(reversed(assignment_history)),
+        "professional_accounts": assignable_professionals,
         "checklist_items": task_record.get("checklist_items", _operations_task_checklist_items(task_record.get("checklist_json", ""))),
         "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
@@ -8492,6 +8990,7 @@ def _admin_operations_board_context():
             "property_label": property_record.get("name", "") if property_record else task_record.get("property_name", "") or task_record.get("property_location", ""),
             "property_location": property_record.get("location", "") if property_record else task_record.get("property_location", ""),
             "property_type": property_record.get("property_type", "") if property_record else "",
+            "assigned_professional_label": _professional_account_display_label(_find_professional_account(task_record.get("assigned_professional_id", ""))) if str(task_record.get("assigned_professional_id", "")).strip() else str(task_record.get("assigned_to", "")).strip(),
             "status_label": _operations_task_status_label(task_record.get("status", "NEW")),
             "status_tone": _operations_task_status_tone(task_record.get("status", "NEW")),
             "priority_label": _operations_task_priority_label(task_record.get("priority", "NORMAL")),
@@ -9809,6 +10308,284 @@ def _load_public_partner_applications():
     return approved_applications
 
 
+def _normalize_professional_account_status(status):
+    normalized = str(status or "").strip().upper()
+    if normalized in {"PENDING", "APPROVED", "ACTIVE", "SUSPENDED"}:
+        return normalized
+    return "PENDING"
+
+
+def _professional_account_status_from_application_status(status):
+    normalized = _normalize_professional_status(status)
+    if normalized == "converted":
+        return "ACTIVE"
+    if normalized == "qualified":
+        return "APPROVED"
+    if normalized in {"contacted", "new"}:
+        return "PENDING"
+    if normalized == "lost":
+        return "SUSPENDED"
+    return "PENDING"
+
+
+def _professional_account_fallback_id(record):
+    parts = [
+        str(record.get("created_at", "")),
+        str(record.get("email", "")),
+        str(record.get("full_name", "")),
+        str(record.get("company", "")),
+    ]
+    digest = hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
+    return f"professional-account-{digest[:16]}"
+
+
+def _normalize_professional_account(record):
+    if not isinstance(record, dict):
+        return None
+
+    normalized = dict(record)
+    normalized["id"] = str(normalized.get("id", "")).strip() or _professional_account_fallback_id(normalized)
+    normalized["created_at"] = str(normalized.get("created_at", "")).strip()
+    normalized["full_name"] = str(normalized.get("full_name", "")).strip()
+    normalized["email"] = str(normalized.get("email", "")).strip()
+    normalized["phone"] = str(normalized.get("phone", "")).strip()
+    normalized["company"] = str(normalized.get("company", normalized.get("company_name", ""))).strip()
+    service_categories = normalized.get("service_categories", normalized.get("professional_category", normalized.get("service_type", "")))
+    if isinstance(service_categories, (list, tuple, set)):
+        service_categories = ", ".join(str(item).strip() for item in service_categories if str(item).strip())
+    normalized["service_categories"] = str(service_categories or "").strip()
+    normalized["status"] = _normalize_professional_account_status(normalized.get("status", "PENDING"))
+    normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
+    return normalized
+
+
+def _professional_account_from_row(row):
+    return {
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "full_name": str(row["full_name"]),
+        "email": str(row["email"]),
+        "phone": str(row["phone"]),
+        "company": str(row["company"]) if "company" in row.keys() else "",
+        "service_categories": str(row["service_categories"]) if "service_categories" in row.keys() else "",
+        "status": _normalize_professional_account_status(row["status"] if "status" in row.keys() else "PENDING"),
+        "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
+    }
+
+
+def _sync_professional_accounts_from_applications(conn=None):
+    if conn is None:
+        return
+
+    applications = _load_professional_applications()
+    for record in applications:
+        normalized = _normalize_professional_account({
+            "id": record.get("id", ""),
+            "created_at": record.get("created_at", ""),
+            "full_name": record.get("full_name", ""),
+            "email": record.get("email", ""),
+            "phone": record.get("phone", ""),
+            "company": record.get("company_name", record.get("company", "")),
+            "service_categories": record.get("professional_category", record.get("service_type", "")),
+            "status": _professional_account_status_from_application_status(record.get("status", "new")),
+            "last_login_at": record.get("last_login_at", ""),
+        })
+        if not normalized or not normalized["email"]:
+            continue
+        conn.execute(
+            """
+            INSERT INTO professional_accounts (
+                email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                id = excluded.id,
+                created_at = excluded.created_at,
+                full_name = excluded.full_name,
+                phone = excluded.phone,
+                company = excluded.company,
+                service_categories = excluded.service_categories,
+                status = excluded.status,
+                last_login_at = excluded.last_login_at
+            """,
+            (
+                normalized["email"],
+                normalized["id"],
+                normalized["created_at"],
+                normalized["full_name"],
+                normalized["phone"],
+                normalized["company"],
+                normalized["service_categories"],
+                normalized["status"],
+                normalized["last_login_at"],
+            ),
+        )
+
+
+def _load_professional_accounts():
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _sync_professional_accounts_from_applications(conn)
+        rows = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            FROM professional_accounts
+            ORDER BY created_at DESC, full_name ASC, email ASC
+            """
+        ).fetchall()
+
+    return [_professional_account_from_row(row) for row in rows]
+
+
+def _find_professional_account_by_email(email):
+    target_email = str(email or "").strip().lower()
+    if not target_email:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _sync_professional_accounts_from_applications(conn)
+        row = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            FROM professional_accounts
+            WHERE email = ?
+            LIMIT 1
+            """,
+            (target_email,),
+        ).fetchone()
+
+    return _professional_account_from_row(row) if row else None
+
+
+def _find_professional_account(professional_id):
+    target_id = str(professional_id or "").strip()
+    if not target_id:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _sync_professional_accounts_from_applications(conn)
+        row = conn.execute(
+            """
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            FROM professional_accounts
+            WHERE id = ?
+            LIMIT 1
+            """,
+            (target_id,),
+        ).fetchone()
+
+    return _professional_account_from_row(row) if row else None
+
+
+def _upsert_professional_account(account_record):
+    normalized = _normalize_professional_account(account_record)
+    if not normalized or not normalized["email"]:
+        return None
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO professional_accounts (
+                    email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    id = excluded.id,
+                    created_at = excluded.created_at,
+                    full_name = excluded.full_name,
+                    phone = excluded.phone,
+                    company = excluded.company,
+                    service_categories = excluded.service_categories,
+                    status = excluded.status,
+                    last_login_at = excluded.last_login_at
+                """,
+                (
+                    normalized["email"],
+                    normalized["id"],
+                    normalized["created_at"],
+                    normalized["full_name"],
+                    normalized["phone"],
+                    normalized["company"],
+                    normalized["service_categories"],
+                    normalized["status"],
+                    normalized["last_login_at"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Professional account upsert failed for %s: %s", _mask_email(normalized["email"]), type(exc).__name__)
+        return None
+    return _find_professional_account_by_email(normalized["email"])
+
+
+def _professional_account_display_label(account_record):
+    account = account_record or {}
+    parts = [
+        str(account.get("full_name", "")).strip(),
+        str(account.get("company", "")).strip(),
+    ]
+    label = " / ".join(part for part in parts if part)
+    return label or str(account.get("email", "")).strip() or "Professional"
+
+
+def _professional_task_matches_account(task_record, professional_account):
+    task = task_record or {}
+    account = professional_account or {}
+    target_id = str(account.get("id", "")).strip()
+    if not target_id:
+        return False
+    return str(task.get("assigned_professional_id", "")).strip() == target_id
+
+
+def _professional_tasks_for_account(professional_account):
+    tasks = [task for task in _load_operations_tasks() if _professional_task_matches_account(task, professional_account)]
+    tasks.sort(key=lambda item: (item.get("updated_at", ""), item.get("created_at", "")), reverse=True)
+    return tasks
+
+
+def _professional_dashboard_context(professional_account):
+    tasks = _professional_tasks_for_account(professional_account)
+    today = datetime.now(timezone.utc).date()
+    today_tasks = []
+    upcoming_tasks = []
+    completed_tasks = []
+    for task in tasks:
+        due_date = str(task.get("due_date", "")).strip()
+        due_dt = None
+        if due_date:
+            try:
+                due_dt = datetime.fromisoformat(due_date)
+            except ValueError:
+                due_dt = None
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"DONE", "ARCHIVED"}:
+            completed_tasks.append(task)
+            continue
+        if due_dt and due_dt.date() == today:
+            today_tasks.append(task)
+        elif due_dt and due_dt.date() > today:
+            upcoming_tasks.append(task)
+
+    assigned_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"DONE", "ARCHIVED"}]
+    return {
+        "professional_account": professional_account,
+        "assigned_tasks": assigned_tasks,
+        "today_tasks": today_tasks,
+        "upcoming_tasks": upcoming_tasks,
+        "completed_tasks": completed_tasks,
+        "total_count": len(tasks),
+        "assigned_count": len(assigned_tasks),
+        "today_count": len(today_tasks),
+        "upcoming_count": len(upcoming_tasks),
+        "completed_count": len(completed_tasks),
+        "display_name": _professional_account_display_label(professional_account),
+    }
+
+
 def _normalize_professional_status(status):
     return _normalize_application_status(status)
 
@@ -10945,6 +11722,19 @@ def admin_professional_update(application_id):
         return error_response, status_code
 
     _save_professional_applications(applications)
+    updated_record = _find_professional_application(application_id)
+    if updated_record:
+        _upsert_professional_account({
+            "id": updated_record.get("id", ""),
+            "created_at": updated_record.get("created_at", ""),
+            "full_name": updated_record.get("full_name", ""),
+            "email": updated_record.get("email", ""),
+            "phone": updated_record.get("phone", ""),
+            "company": updated_record.get("company_name", ""),
+            "service_categories": updated_record.get("professional_category", ""),
+            "status": _professional_account_status_from_application_status(updated_record.get("status", "new")),
+            "last_login_at": "",
+        })
     return redirect(url_for("admin_professional_detail", application_id=application_id))
 
 
@@ -11143,6 +11933,7 @@ def admin_operations_detail(task_id):
         else:
             status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
             assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
+            assigned_professional_id_value = str(request.form.get("assigned_professional_id", task_record.get("assigned_professional_id", ""))).strip()
             due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
             priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
             notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
@@ -11150,6 +11941,7 @@ def admin_operations_detail(task_id):
                 task_id,
                 status=status_value,
                 assigned_to=assigned_to_value,
+                assigned_professional_id=assigned_professional_id_value,
                 notes=notes_value,
                 due_date=due_date_value,
                 priority=priority_value,

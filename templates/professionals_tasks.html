@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Professional Tasks</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .professional-tasks-page {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%);
+      color: #1f2937;
+      padding: 28px 20px 52px;
+    }
+    .professional-tasks-shell { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
+    .professional-panel { background: rgba(255,255,255,0.86); border: 1px solid rgba(155,123,47,0.16); border-radius: 28px; box-shadow: 0 18px 48px rgba(31,41,55,0.08); backdrop-filter: blur(18px); padding: 26px; }
+    .professional-task-list { display:grid; gap:12px; }
+    .professional-task-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+      text-decoration: none;
+      color: inherit;
+      display: grid;
+      gap: 8px;
+    }
+    .professional-task-card__meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
+    .professional-task-card p { margin:0; color:#4b5563; }
+    .professional-search { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .professional-search input { flex:1 1 260px; border-radius:16px; border:1px solid rgba(31,41,55,0.14); padding:12px 14px; font:inherit; }
+  </style>
+</head>
+<body class="professional-tasks-page">
+  <main class="professional-tasks-shell">
+    <section class="professional-panel">
+      <div class="hero__cta" style="justify-content:space-between;">
+        <div>
+          <p class="eyebrow">Professional portal</p>
+          <h1>Tasks</h1>
+        </div>
+        <div class="hero__cta">
+          <a class="button button--secondary" href="/professionals/dashboard">Dashboard</a>
+          <a class="button button--ghost" href="/professionals/logout">Logout</a>
+        </div>
+      </div>
+
+      <form class="professional-search" method="get" action="/professionals/tasks">
+        <input type="search" name="q" value="{{ search_query|e }}" placeholder="Search by property, category, or title">
+        <button class="button button--primary" type="submit">Search</button>
+      </form>
+
+      <div class="professional-task-list">
+        {% for task in tasks %}
+          <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
+            <div class="professional-task-card__meta">
+              <span class="professional-badge">{{ task.status_label|e }}</span>
+              <span class="professional-badge">{{ task.priority_label|e }}</span>
+              <time>{{ task.due_date|e or 'No due date' }}</time>
+            </div>
+            <strong>{{ task.title|e }}</strong>
+            <p>{{ task.property_name|e or task.property_location|e }}</p>
+          </a>
+        {% else %}
+          <p>No tasks are assigned to your account.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

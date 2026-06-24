@@ -35,6 +35,7 @@
           <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
           <a class="site-nav__link is-active" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
         </nav>
+        <a class="button button--ghost topbar__portal" href="/professionals/login">Professional login</a>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg" data-lang="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
@@ -61,7 +62,8 @@
         <div class="hero__cta">
           <a class="button button--primary" href="{{ localized_url('/professionals/apply') }}" data-i18n="heroPrimaryCta">Отвори формата за регистрация</a>
           <a class="button button--secondary" href="#services" data-i18n="heroSecondaryCta">Виж категориите услуги</a>
-        <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="professionalsOwnerCta">Нуждаете се от помощ за имота си?</a>
+          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="professionalsOwnerCta">Нуждаете се от помощ за имота си?</a>
+          <a class="button button--secondary" href="/professionals/login">Portal login</a>
         </div>
         <div class="trust-strip" aria-label="Network highlights">
           <span class="trust-strip__chip" data-i18n="highlightFree">Ранният достъп е безплатен</span>
@@ -153,6 +155,5 @@
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
-
 
 

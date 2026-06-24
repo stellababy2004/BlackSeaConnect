@@ -330,7 +330,7 @@
             <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
             <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
             <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
-            <div><dt>Assigned to</dt><dd>{{ task.assigned_to|e or 'Unassigned' }}</dd></div>
+            <div><dt>Assigned to</dt><dd>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</dd></div>
             <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
             <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
             <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
@@ -356,8 +356,13 @@
               </select>
             </label>
             <label>
-              <span>Assigned operator</span>
-              <input type="text" name="assigned_to" value="{{ task.assigned_to|e }}" placeholder="Operator name">
+              <span>Assigned professional</span>
+              <select name="assigned_professional_id">
+                <option value="">Unassigned</option>
+                {% for professional in professional_accounts %}
+                  <option value="{{ professional.id|e }}" {% if task.assigned_professional_id == professional.id %}selected{% endif %}>{{ professional.full_name|e }}{% if professional.company %} / {{ professional.company|e }}{% endif %}</option>
+                {% endfor %}
+              </select>
             </label>
             <label>
               <span>Priority</span>
@@ -406,6 +411,7 @@
             <input type="hidden" name="task_action" value="details">
             <input type="hidden" name="status" value="{{ task.status|e }}">
             <input type="hidden" name="assigned_to" value="{{ task.assigned_to|e }}">
+            <input type="hidden" name="assigned_professional_id" value="{{ task.assigned_professional_id|e }}">
             <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
             <input type="hidden" name="priority" value="{{ task.priority|e }}">
             <label>

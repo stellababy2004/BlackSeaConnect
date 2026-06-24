@@ -1,8 +1,10 @@
 import base64
 import json
 import os
+import re
 import shutil
 import unittest
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
 import uuid
@@ -129,6 +131,91 @@ class ApplicationWorkflowTests(unittest.TestCase):
             "experience": "7 years",
             "short_bio": "Guest-facing operations specialist for premium coastal stays.",
         }
+
+    def _email_plaintext(self, message):
+        body = message.get_body(preferencelist=("plain",))
+        return body.get_content() if body else message.get_content()
+
+    def _seed_professional_application(self, *, full_name, email, status, professional_category="Concierge", company="", phone="+359888000000"):
+        self._seed_jsonl("professional_applications.jsonl", [{
+            "id": f"professional-{re.sub(r'[^a-z0-9]+', '-', email.lower()).strip('-')}",
+            "created_at": "2026-06-10T10:00:00Z",
+            "status": status,
+            "full_name": full_name,
+            "email": email,
+            "phone": phone,
+            "city": "Varna",
+            "country": "Bulgaria",
+            "company_name": company,
+            "professional_category": professional_category,
+            "languages": "Bulgarian, English",
+            "experience": "5 years",
+            "short_bio": "Professional portal test profile.",
+            "owner": "",
+            "notes": "",
+            "internal_notes": "",
+            "timeline": [],
+        }])
+
+    def _seed_professional_account(self, *, full_name, email, status="ACTIVE", professional_category="Concierge", company="", phone="+359888000000", account_id=None):
+        payload = {
+            "id": account_id or f"professional-{re.sub(r'[^a-z0-9]+', '-', email.lower()).strip('-')}",
+            "created_at": "2026-06-10T10:00:00Z",
+            "full_name": full_name,
+            "email": email,
+            "phone": phone,
+            "company": company,
+            "service_categories": professional_category,
+            "status": status,
+            "last_login_at": "",
+        }
+        with app.app_context():
+            return app_module._upsert_professional_account(payload)
+
+    def _seed_operations_task(self, task_id, **overrides):
+        payload = {
+            "id": task_id,
+            "request_id": task_id,
+            "source_id": task_id,
+            "source_type": "TEST",
+            "created_at": "2026-06-10T10:00:00Z",
+            "updated_at": "2026-06-10T10:00:00Z",
+            "title": "Test task",
+            "category": "MAINTENANCE",
+            "owner_id": "owner-1",
+            "owner_name": "Owner One",
+            "owner_email": "owner@example.com",
+            "property_id": "property-1",
+            "property_name": "Sea View Villa",
+            "property_location": "Varna",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "due_date": datetime.now(timezone.utc).date().isoformat(),
+            "notes": "",
+            "admin_notes": "",
+        }
+        payload.update(overrides)
+        with app.app_context():
+            return app_module._upsert_operations_task_from_source(payload)
+
+    def _login_professional_via_magic(self, email):
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/professionals/login", data={"email": email})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/professionals/login?magic_sent=1", response.headers["Location"])
+        self.assertGreaterEqual(len(FakeSMTP.sent_messages), 1)
+        message = FakeSMTP.sent_messages[-1]
+        login_body = self._email_plaintext(message)
+        token_match = re.search(r"/auth/professional-magic/([^\s]+)", login_body)
+        self.assertIsNotNone(token_match)
+        token = token_match.group(1)
+        login_response = self.client.get(f"/auth/professional-magic/{token}")
+        self.assertEqual(login_response.status_code, 302)
+        self.assertIn("/professionals/dashboard", login_response.headers["Location"])
+        return login_response
 
     def test_partner_application_submission_saves_and_emails(self):
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
@@ -572,3 +659,186 @@ class ApplicationWorkflowTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("Partner Applications", html)
         self.assertIn("Professional Applications", html)
+
+    def test_approved_professional_can_log_in_and_see_dashboard_counts(self):
+        self._seed_professional_account(
+            full_name="Approved Professional",
+            email="approved-pro@example.com",
+            status="ACTIVE",
+            professional_category="Concierge",
+            account_id="professional-approved-pro-example-com",
+        )
+        today = datetime.now(timezone.utc).date()
+        tomorrow = today + timedelta(days=1)
+        self._seed_operations_task(
+            "task-today",
+            title="Today task",
+            due_date=today.isoformat(),
+            status="ASSIGNED",
+            assigned_professional_id="professional-approved-pro-example-com",
+            assigned_to="Approved Professional",
+        )
+        self._seed_operations_task(
+            "task-upcoming",
+            title="Upcoming task",
+            due_date=tomorrow.isoformat(),
+            status="ASSIGNED",
+            assigned_professional_id="professional-approved-pro-example-com",
+            assigned_to="Approved Professional",
+        )
+        self._seed_operations_task(
+            "task-completed",
+            title="Completed task",
+            due_date=today.isoformat(),
+            status="DONE",
+            assigned_professional_id="professional-approved-pro-example-com",
+            assigned_to="Approved Professional",
+        )
+
+        self._login_professional_via_magic("approved-pro@example.com")
+
+        dashboard = self.client.get("/professionals/dashboard")
+        self.assertEqual(dashboard.status_code, 200)
+        html = dashboard.get_data(as_text=True)
+        self.assertIn("Approved Professional", html)
+        self.assertIn("Today task", html)
+        self.assertIn("Upcoming task", html)
+        self.assertIn("Completed", html)
+        self.assertRegex(html, r"Today</span>\s*<strong>1</strong>")
+        self.assertRegex(html, r"Upcoming</span>\s*<strong>1</strong>")
+        self.assertRegex(html, r"Completed</span>\s*<strong>1</strong>")
+
+    def test_pending_professional_is_blocked_from_task_views(self):
+        self._seed_professional_account(
+            full_name="Pending Professional",
+            email="pending-pro@example.com",
+            status="PENDING",
+            professional_category="Maintenance",
+            account_id="professional-pending-pro-example-com",
+        )
+        pending_account = app_module._find_professional_account_by_email("pending-pro@example.com")
+        self.assertIsNotNone(pending_account)
+
+        with self.client.session_transaction() as session:
+            session["professional_logged_in"] = True
+            session["professional_id"] = pending_account["id"]
+            session["professional_email"] = pending_account["email"]
+            session["professional_name"] = pending_account["full_name"]
+
+        response = self.client.get("/professionals/dashboard")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/professionals/login", response.headers["Location"])
+        self.assertIn("access=denied", response.headers["Location"])
+
+        with self.client.session_transaction() as session:
+            self.assertFalse(session.get("professional_logged_in"))
+
+    def test_admin_can_assign_task_and_professional_sees_only_assigned_work(self):
+        self._seed_professional_account(
+            full_name="Assigned Professional",
+            email="assigned-pro@example.com",
+            status="ACTIVE",
+            professional_category="Concierge",
+            account_id="professional-assigned-pro-example-com",
+        )
+        self._seed_professional_account(
+            full_name="Other Professional",
+            email="other-pro@example.com",
+            status="ACTIVE",
+            professional_category="Cleaning",
+            account_id="professional-other-pro-example-com",
+        )
+        assigned_account = app_module._find_professional_account_by_email("assigned-pro@example.com")
+        other_account = app_module._find_professional_account_by_email("other-pro@example.com")
+        self.assertIsNotNone(assigned_account)
+        self.assertIsNotNone(other_account)
+
+        today = datetime.now(timezone.utc).date().isoformat()
+        self._seed_operations_task("task-assignable", title="Assignable task", due_date=today)
+        self._seed_operations_task(
+            "task-unassigned",
+            title="Other task",
+            due_date=today,
+            status="ASSIGNED",
+            assigned_professional_id=other_account["id"],
+            assigned_to="Other Professional",
+        )
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post(
+                "/admin/operations/task-assignable",
+                data={
+                    "status": "NEW",
+                    "assigned_to": "Assigned Professional",
+                    "assigned_professional_id": assigned_account["id"],
+                    "priority": "NORMAL",
+                    "due_date": today,
+                    "admin_notes": "Assign to the approved professional.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+        updated_task = app_module._find_operations_task("task-assignable")
+        self.assertEqual(updated_task["assigned_professional_id"], assigned_account["id"])
+        self.assertEqual(updated_task["assigned_to"], "Assigned Professional")
+        self.assertTrue(any(event["event_type"] == "professional_assigned" for event in app_module._load_operations_task_events("task-assignable")))
+        self.assertTrue(FakeSMTP.sent_messages)
+        self.assertEqual(FakeSMTP.sent_messages[-1]["To"], "assigned-pro@example.com")
+
+        self._login_professional_via_magic("assigned-pro@example.com")
+        tasks_response = self.client.get("/professionals/tasks")
+        self.assertEqual(tasks_response.status_code, 200)
+        tasks_html = tasks_response.get_data(as_text=True)
+        self.assertIn("Assignable task", tasks_html)
+        self.assertNotIn("Other task", tasks_html)
+        detail_response = self.client.get("/professionals/tasks/task-assignable")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertIn("Accept task", detail_response.get_data(as_text=True))
+
+    def test_professional_lifecycle_updates_timeline_calendar_and_admin_notifications(self):
+        self._seed_professional_account(
+            full_name="Lifecycle Professional",
+            email="lifecycle-pro@example.com",
+            status="ACTIVE",
+            professional_category="Maintenance",
+            account_id="professional-lifecycle-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("lifecycle-pro@example.com")
+        self.assertIsNotNone(account)
+        today = datetime.now(timezone.utc).date().isoformat()
+        self._seed_operations_task(
+            "task-lifecycle",
+            title="Lifecycle task",
+            due_date=today,
+            status="ASSIGNED",
+            assigned_professional_id=account["id"],
+            assigned_to="Lifecycle Professional",
+        )
+
+        self._login_professional_via_magic("lifecycle-pro@example.com")
+        FakeSMTP.sent_messages.clear()
+
+        with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "accept"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "start"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "comment", "note": "Checked keys and refreshed access."}).status_code, 302)
+            complete_response = self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "complete", "note": "Guest-ready and cleaned."})
+
+        self.assertEqual(complete_response.status_code, 302)
+        task_record = app_module._find_operations_task("task-lifecycle")
+        self.assertEqual(task_record["status"], "DONE")
+        events = app_module._load_operations_task_events("task-lifecycle")
+        event_types = [event["event_type"] for event in events]
+        self.assertIn("professional_accepted", event_types)
+        self.assertIn("professional_started", event_types)
+        self.assertIn("professional_completed", event_types)
+        self.assertIn("professional_comment_added", event_types)
+
+        calendar_events = [event for event in app_module._load_calendar_events() if event.get("operation_task_id") == "task-lifecycle"]
+        self.assertTrue(calendar_events)
+        self.assertIn(calendar_events[0]["status"], {"DONE", "COMPLETED"})
+
+        notifications = app_module._load_operations_notifications()
+        self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
+        self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
