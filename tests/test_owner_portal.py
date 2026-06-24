@@ -1170,7 +1170,7 @@ class OwnerPortalTests(unittest.TestCase):
                     "q": "Sea View",
                     "property": "Sea View Villa",
                     "owner": "Elena Petrova",
-                    "category": request_record["service_category"],
+                    "category": "SERVICE",
                     "status": "NEW",
                 },
                 headers=self._auth_headers(),
@@ -1182,69 +1182,197 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Open Tasks", board_html)
         self.assertIn("Sea View Villa", board_html)
         self.assertIn("Elena Petrova", board_html)
-        self.assertIn(request_record["service_category"], board_html)
+        self.assertIn("SERVICE", board_html)
         self.assertIn("Priority", board_html)
         self.assertIn('draggable="true"', board_html)
 
         task_rows = self._read_owner_db_rows("operations_tasks")
-        self.assertEqual(len(task_rows), 1)
-        self.assertEqual(task_rows[0]["status"], "NEW")
-        self.assertEqual(task_rows[0]["priority"], "NORMAL")
+        service_task_rows = [row for row in task_rows if row["source_type"] == "OWNER_SERVICE_REQUEST"]
+        self.assertEqual(len(task_rows), 2)
+        self.assertEqual(len(service_task_rows), 1)
+        self.assertEqual(service_task_rows[0]["status"], "NEW")
+        self.assertEqual(service_task_rows[0]["priority"], "NORMAL")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            status_response = self.client.post(
+            detail_update = self.client.post(
+                f"/admin/operations/{request_id}",
+                data={
+                    "status": "ASSIGNED",
+                    "assigned_to": "Mira Ivanova",
+                    "priority": "HIGH",
+                    "due_date": "2026-07-20",
+                    "admin_notes": "Follow up with housekeeping.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(detail_update.status_code, 302)
+        task_rows = self._read_owner_db_rows("operations_tasks")
+        service_task_rows = [row for row in task_rows if row["source_type"] == "OWNER_SERVICE_REQUEST"]
+        self.assertEqual(service_task_rows[0]["status"], "ASSIGNED")
+        self.assertEqual(service_task_rows[0]["assigned_to"], "Mira Ivanova")
+        self.assertEqual(service_task_rows[0]["priority"], "HIGH")
+        self.assertEqual(service_task_rows[0]["due_date"], "2026-07-20")
+        task_events = self._read_owner_db_rows("operations_task_events")
+        self.assertTrue(any(row["event_type"] == "assigned" for row in task_events))
+        self.assertTrue(any(row["event_type"] == "status_changed" for row in task_events))
+        self.assertTrue(any(row["event_type"] == "note_added" for row in task_events))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            board_after_assignment = self.client.get("/admin/operations", headers=self._auth_headers())
+
+        self.assertEqual(board_after_assignment.status_code, 200)
+        assignment_board_html = board_after_assignment.get_data(as_text=True)
+        self.assertRegex(assignment_board_html, r"Assigned Tasks</span>\s*<strong>1</strong>")
+        self.assertRegex(assignment_board_html, r"Open Tasks</span>\s*<strong>2</strong>")
+        self.assertRegex(assignment_board_html, r"Completed Tasks</span>\s*<strong>0</strong>")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            in_progress_response = self.client.post(
                 f"/admin/operations/{request_id}/status",
                 json={"status": "IN_PROGRESS"},
                 headers=self._auth_headers(),
             )
 
-        self.assertEqual(status_response.status_code, 200)
-        self.assertEqual(status_response.get_json()["task"]["status"], "IN_PROGRESS")
-
+        self.assertEqual(in_progress_response.status_code, 200)
+        self.assertEqual(in_progress_response.get_json()["task"]["status"], "IN_PROGRESS")
         task_rows = self._read_owner_db_rows("operations_tasks")
-        self.assertEqual(task_rows[0]["status"], "IN_PROGRESS")
+        service_task_rows = [row for row in task_rows if row["source_type"] == "OWNER_SERVICE_REQUEST"]
+        self.assertEqual(service_task_rows[0]["status"], "IN_PROGRESS")
         self.assertEqual(self._read_jsonl("service_requests.jsonl")[0]["status"], "in_progress")
-        task_events = self._read_owner_db_rows("operations_task_events")
-        self.assertTrue(any(row["event_type"] == "started" for row in task_events))
-
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            detail_response = self.client.get(f"/admin/operations/{request_id}", headers=self._auth_headers())
-
-        self.assertEqual(detail_response.status_code, 200)
-        detail_html = detail_response.get_data(as_text=True)
-        self.assertIn("Task activity", detail_html)
-        self.assertIn("Started", detail_html)
-        self.assertIn("Latest service requests for this property", detail_html)
-
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            notes_response = self.client.post(
-                f"/admin/operations/{request_id}",
-                data={"status": "IN_PROGRESS", "admin_notes": "Follow up with housekeeping."},
-                headers=self._auth_headers(),
-            )
-
-        self.assertEqual(notes_response.status_code, 302)
-        self.assertEqual(self._read_owner_db_rows("operations_tasks")[0]["admin_notes"], "Follow up with housekeeping.")
-        self.assertTrue(any(row["event_type"] == "note_added" for row in self._read_owner_db_rows("operations_task_events")))
+        self.assertTrue(any(row["event_type"] == "status_changed" for row in self._read_owner_db_rows("operations_task_events")))
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             completed_response = self.client.post(
-                f"/admin/service-requests/{request_id}/update",
-                data={"status": "completed", "internal_notes": "Wrapped up."},
+                f"/admin/operations/{request_id}/status",
+                json={"status": "DONE"},
                 headers=self._auth_headers(),
             )
 
-        self.assertEqual(completed_response.status_code, 302)
-        self.assertEqual(self._read_owner_db_rows("operations_tasks")[0]["status"], "DONE")
+        self.assertEqual(completed_response.status_code, 200)
+        self.assertEqual(completed_response.get_json()["task"]["status"], "DONE")
+        task_rows = self._read_owner_db_rows("operations_tasks")
+        service_task_rows = [row for row in task_rows if row["source_type"] == "OWNER_SERVICE_REQUEST"]
+        self.assertEqual(service_task_rows[0]["status"], "DONE")
         self.assertEqual(self._read_jsonl("service_requests.jsonl")[0]["status"], "completed")
         self.assertTrue(any(row["event_type"] == "completed" for row in self._read_owner_db_rows("operations_task_events")))
+        self.assertTrue(any(row.get("completed_at") for row in service_task_rows))
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             refreshed = self.client.get(f"/admin/operations/{request_id}", headers=self._auth_headers())
 
         refreshed_html = refreshed.get_data(as_text=True)
+        self.assertIn("Mira Ivanova", refreshed_html)
         self.assertIn("Follow up with housekeeping.", refreshed_html)
         self.assertIn("Completed", refreshed_html)
+        self.assertIn("Task activity", refreshed_html)
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            completed_board = self.client.get("/admin/operations", headers=self._auth_headers())
+
+        completed_board_html = completed_board.get_data(as_text=True)
+        self.assertRegex(completed_board_html, r"Open Tasks</span>\s*<strong>1</strong>")
+        self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>0</strong>")
+        self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
+
+    def test_operations_tasks_are_created_for_public_intakes(self):
+        smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            pilot_response = self.client.post(
+                "/api/pilot-request",
+                json={
+                    "name": "Pilot Lead",
+                    "email": "pilot@example.com",
+                    "property_type": "Villa",
+                    "apartment_count": "2",
+                    "city": "Varna",
+                    "concierge_needs": "Need pilot support for guest check-in.",
+                    "current_language": "en",
+                    "website": "",
+                },
+            )
+            partner_response = self.client.post(
+                "/partners/apply",
+                data={
+                    "company_name": "Sea Breeze Partners",
+                    "contact_person": "Marta Ivanova",
+                    "email": "partner@example.com",
+                    "phone": "+359888222333",
+                    "website": "",
+                    "company_website": "https://example.com",
+                    "city": "Varna",
+                    "country": "Bulgaria",
+                    "service_category": "Concierge",
+                    "description": "Partnership request for concierge support.",
+                    "years_in_business": "4",
+                },
+            )
+            professional_response = self.client.post(
+                "/professionals/apply",
+                data={
+                    "full_name": "Nikolai Petrov",
+                    "email": "pro@example.com",
+                    "phone": "+359888444555",
+                    "city": "Burgas",
+                    "country": "Bulgaria",
+                    "professional_category": "Concierge",
+                    "languages": "en, bg",
+                    "experience": "6",
+                    "short_bio": "Guest-facing operations specialist for premium stays.",
+                    "website": "",
+                },
+            )
+            concierge_response = self.client.post(
+                "/request-service",
+                data={
+                    "name": "Guest Support",
+                    "email": "concierge@example.com",
+                    "phone": "+359888555666",
+                    "property_city": "Sofia",
+                    "property_type": "Apartment",
+                    "service_category": "Concierge",
+                    "preferred_date": "2026-07-15",
+                    "description": "Need guest check-in coordination.",
+                    "website": "",
+                },
+            )
+            owner_registration_response = self.client.post(
+                "/owners/register",
+                data={
+                    "full_name": "Owner Example",
+                    "email": "owner-register@example.com",
+                    "phone": "+359888777888",
+                    "property_type": "Villa",
+                    "city": "Varna",
+                    "property_name": "Harbor View Villa",
+                    "number_of_units": "2",
+                    "notes": "Prefers email updates.",
+                    "website": "",
+                },
+            )
+
+        self.assertEqual(pilot_response.status_code, 200)
+        self.assertEqual(partner_response.status_code, 200)
+        self.assertEqual(professional_response.status_code, 200)
+        self.assertEqual(concierge_response.status_code, 200)
+        self.assertEqual(owner_registration_response.status_code, 302)
+
+        tasks = self._read_owner_db_rows("operations_tasks")
+        categories = [row["category"] for row in tasks]
+        source_types = [row["source_type"] for row in tasks]
+
+        self.assertIn("LEAD", categories)
+        self.assertIn("PARTNER", categories)
+        self.assertIn("PROFESSIONAL", categories)
+        self.assertIn("CONCIERGE", categories)
+        self.assertIn("OWNER", categories)
+        self.assertIn("PILOT_REQUEST", source_types)
+        self.assertIn("PARTNER_APPLICATION", source_types)
+        self.assertIn("PROFESSIONAL_APPLICATION", source_types)
+        self.assertIn("CONCIERGE_REQUEST", source_types)
+        self.assertIn("OWNER_REGISTRATION", source_types)
+        self.assertTrue(all(row["status"] == "NEW" for row in tasks))
+        self.assertTrue(all(row["priority"] == "NORMAL" for row in tasks))
 
     def test_jsonl_migration_imports_old_records_idempotently(self):
         self._seed_jsonl("owner_accounts.jsonl", [{

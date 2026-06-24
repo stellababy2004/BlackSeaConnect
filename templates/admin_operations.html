@@ -377,7 +377,7 @@
                   <div class="admin-operations-card__meta">
                     <p><strong>Property:</strong> {{ task.property_label|e }}</p>
                     <p><strong>Owner:</strong> {{ task.owner_name|e }}</p>
-                    <p><strong>Category:</strong> {{ task.category|e }}</p>
+                    <p><strong>Category:</strong> <span class="admin-operations-badge">{{ task.category|e }}</span></p>
                     <p><strong>Priority:</strong> <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></p>
                     <p><strong>Created:</strong> {{ task.created_at|e }}</p>
                   </div>

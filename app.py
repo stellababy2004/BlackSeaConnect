@@ -47,6 +47,7 @@ PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
 PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
+_OWNER_DB_SCHEMA_INITIALIZING = False
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -213,7 +214,7 @@ SERVICE_REQUEST_STATUS_ALIASES = {
     "canceled": "cancelled",
     "cancelled": "cancelled",
 }
-OPERATIONS_TASK_STATUS_VALUES = ("NEW", "ASSIGNED", "IN_PROGRESS", "DONE", "ARCHIVED")
+OPERATIONS_TASK_STATUS_VALUES = ("NEW", "ASSIGNED", "IN_PROGRESS", "DONE")
 OPERATIONS_TASK_STATUS_ALIASES = {
     "new": "NEW",
     "assigned": "ASSIGNED",
@@ -222,9 +223,9 @@ OPERATIONS_TASK_STATUS_ALIASES = {
     "started": "IN_PROGRESS",
     "done": "DONE",
     "completed": "DONE",
-    "archived": "ARCHIVED",
-    "cancelled": "ARCHIVED",
-    "canceled": "ARCHIVED",
+    "archived": "DONE",
+    "cancelled": "DONE",
+    "canceled": "DONE",
 }
 OPERATIONS_TASK_PRIORITY_VALUES = ("LOW", "NORMAL", "HIGH", "URGENT")
 OPERATIONS_TASK_PRIORITY_ALIASES = {
@@ -238,11 +239,20 @@ OPERATIONS_TASK_PRIORITY_ALIASES = {
 OPERATIONS_TASK_EVENT_VALUES = {
     "task_created",
     "assigned",
-    "started",
+    "status_changed",
     "completed",
-    "archived",
     "note_added",
 }
+
+OPERATIONS_TASK_SOURCE_TYPES = (
+    "PILOT_REQUEST",
+    "OWNER_REGISTRATION",
+    "PROFESSIONAL_APPLICATION",
+    "PARTNER_APPLICATION",
+    "CONCIERGE_REQUEST",
+    "SERVICE_REQUEST",
+    "OWNER_SERVICE_REQUEST",
+)
 
 
 def _professional_service_category_items():
@@ -327,7 +337,7 @@ def _service_request_status_to_operations_status(status):
         "assigned": "ASSIGNED",
         "in_progress": "IN_PROGRESS",
         "completed": "DONE",
-        "cancelled": "ARCHIVED",
+        "cancelled": "DONE",
     }.get(normalized, "NEW")
 
 
@@ -338,7 +348,6 @@ def _operations_status_to_service_request_status(status):
         "ASSIGNED": "assigned",
         "IN_PROGRESS": "in_progress",
         "DONE": "completed",
-        "ARCHIVED": "cancelled",
     }.get(normalized, "new")
 
 
@@ -356,7 +365,7 @@ def _operations_task_status_tone(status):
         return "in-progress"
     if normalized == "DONE":
         return "done"
-    return "archived"
+    return "new"
 
 
 def _operations_task_priority_label(priority):
@@ -377,11 +386,10 @@ def _operations_task_priority_tone(priority):
 def _operations_task_status_event(status):
     normalized = _normalize_operations_task_status(status)
     return {
-        "NEW": ("task_created", "Task created"),
+        "NEW": ("status_changed", "Status changed to New"),
         "ASSIGNED": ("assigned", "Assigned"),
-        "IN_PROGRESS": ("started", "Started"),
+        "IN_PROGRESS": ("status_changed", "Status changed to In progress"),
         "DONE": ("completed", "Completed"),
-        "ARCHIVED": ("archived", "Archived"),
     }.get(normalized, ("task_created", "Task created"))
 
 
@@ -705,27 +713,63 @@ def _ensure_owner_property_activity_schema(conn):
 
 
 def _ensure_operations_task_schema(conn):
+    existing_columns = _owner_table_columns(conn, "operations_tasks")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS operations_tasks (
-            request_id TEXT PRIMARY KEY,
-            owner_id TEXT NOT NULL,
-            property_id TEXT NOT NULL DEFAULT '',
+            id TEXT PRIMARY KEY,
+            request_id TEXT NOT NULL DEFAULT '',
+            source_type TEXT NOT NULL DEFAULT '',
+            source_id TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             title TEXT NOT NULL,
-            property_name TEXT NOT NULL DEFAULT '',
-            property_location TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL DEFAULT '',
             owner_name TEXT NOT NULL DEFAULT '',
             owner_email TEXT NOT NULL DEFAULT '',
-            category TEXT NOT NULL DEFAULT '',
+            property_id TEXT NOT NULL DEFAULT '',
+            property_name TEXT NOT NULL DEFAULT '',
+            assigned_to TEXT NOT NULL DEFAULT '',
+            due_date TEXT NOT NULL DEFAULT '',
             priority TEXT NOT NULL DEFAULT 'NORMAL',
             status TEXT NOT NULL DEFAULT 'NEW',
+            notes TEXT NOT NULL DEFAULT '',
+            completed_at TEXT NOT NULL DEFAULT '',
+            owner_id TEXT NOT NULL DEFAULT '',
+            property_location TEXT NOT NULL DEFAULT '',
             admin_notes TEXT NOT NULL DEFAULT '',
             request_status TEXT NOT NULL DEFAULT 'new'
         )
         """
     )
+    existing_columns = _owner_table_columns(conn, "operations_tasks")
+    required_columns = {
+        "id": "TEXT NOT NULL DEFAULT ''",
+        "request_id": "TEXT NOT NULL DEFAULT ''",
+        "source_type": "TEXT NOT NULL DEFAULT ''",
+        "source_id": "TEXT NOT NULL DEFAULT ''",
+        "created_at": "TEXT NOT NULL DEFAULT ''",
+        "updated_at": "TEXT NOT NULL DEFAULT ''",
+        "title": "TEXT NOT NULL DEFAULT ''",
+        "category": "TEXT NOT NULL DEFAULT ''",
+        "owner_name": "TEXT NOT NULL DEFAULT ''",
+        "owner_email": "TEXT NOT NULL DEFAULT ''",
+        "property_id": "TEXT NOT NULL DEFAULT ''",
+        "property_name": "TEXT NOT NULL DEFAULT ''",
+        "assigned_to": "TEXT NOT NULL DEFAULT ''",
+        "priority": "TEXT NOT NULL DEFAULT 'NORMAL'",
+        "status": "TEXT NOT NULL DEFAULT 'NEW'",
+        "due_date": "TEXT NOT NULL DEFAULT ''",
+        "notes": "TEXT NOT NULL DEFAULT ''",
+        "completed_at": "TEXT NOT NULL DEFAULT ''",
+        "owner_id": "TEXT NOT NULL DEFAULT ''",
+        "property_location": "TEXT NOT NULL DEFAULT ''",
+        "admin_notes": "TEXT NOT NULL DEFAULT ''",
+        "request_status": "TEXT NOT NULL DEFAULT 'new'",
+    }
+    for column_name, column_sql in required_columns.items():
+        if column_name not in existing_columns:
+            conn.execute(f"ALTER TABLE operations_tasks ADD COLUMN {column_name} {column_sql}")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS operations_task_events (
@@ -802,186 +846,301 @@ def _seed_owner_property_activity_backfill(conn):
 
 
 def _seed_operations_task_backfill(conn):
-    existing_task_ids = {
-        str(row["request_id"]).strip()
-        for row in conn.execute("SELECT request_id FROM operations_tasks").fetchall()
+    existing_task_keys = {
+        (str(row["source_type"]).strip(), str(row["source_id"]).strip())
+        for row in conn.execute("SELECT source_type, source_id FROM operations_tasks").fetchall()
     }
-    for record in _load_service_requests():
-        request_id = str(record.get("id", "")).strip()
-        if not request_id or request_id in existing_task_ids:
+
+    def _has_task(source_type, source_id):
+        return (str(source_type or "").strip(), str(source_id or "").strip()) in existing_task_keys
+
+    for record in _load_pilot_requests():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id or _has_task("PILOT_REQUEST", source_id):
             continue
-
-        owner_id = str(record.get("owner_id", "")).strip()
-        if not owner_id:
-            owner_id = str(record.get("request_source", "")).strip() or "public"
-
-        owner_name = str(record.get("owner_name", "")).strip() or str(record.get("name", "")).strip()
-        owner_email = str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip()
-        property_name = str(record.get("property", "")).strip()
-        property_location = str(record.get("property_city", "")).strip()
-        status = _service_request_status_to_operations_status(record.get("status", "new"))
-        created_at = str(record.get("created_at", "")).strip() or _utc_now_iso()
-        title = str(record.get("description", "")).strip() or property_name or property_location or "Task"
-        conn.execute(
-            """
-            INSERT INTO operations_tasks (
-                request_id, owner_id, property_id, created_at, updated_at, title, property_name,
-                property_location, owner_name, owner_email, category, priority, status, admin_notes, request_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                request_id,
-                owner_id,
-                str(record.get("property_id", "")).strip(),
-                created_at,
-                str(record.get("last_update_at", created_at)).strip() or created_at,
-                title,
-                property_name,
-                property_location,
-                owner_name,
-                owner_email,
-                str(record.get("service_category", "")).strip(),
-                _operations_task_priority_from_request(record),
-                status,
-                "",
-                _normalize_service_request_status(record.get("status", "new")),
-            ),
+        _upsert_operations_task_from_source(
+            {
+                "id": source_id,
+                "request_id": source_id,
+                "source_type": "PILOT_REQUEST",
+                "source_id": source_id,
+                "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "updated_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "title": str(record.get("name", "")).strip() or str(record.get("email", "")).strip() or "Pilot request",
+                "category": "LEAD",
+                "owner_name": str(record.get("name", "")).strip(),
+                "owner_email": str(record.get("email", "")).strip(),
+                "property_id": "",
+                "property_name": str(record.get("city", "")).strip() or str(record.get("property_type", "")).strip(),
+                "assigned_to": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": str(record.get("concierge_needs", "")).strip(),
+                "completed_at": "",
+                "owner_id": "",
+                "property_location": str(record.get("city", "")).strip(),
+                "admin_notes": "",
+                "request_status": "new",
+                "timeline_detail": str(record.get("concierge_needs", "")).strip(),
+            },
+            append_created_event=True,
+            force_create=True,
         )
-        task_event_type, task_event_title = _operations_task_status_event(status)
-        conn.execute(
-            """
-            INSERT INTO operations_task_events (
-                id, task_id, created_at, event_type, title, detail, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                f"{request_id}-created",
-                request_id,
-                created_at,
-                "task_created",
-                "Task created",
-                f"{title} · {property_location or property_name}".strip(" ·"),
-                "NEW",
-            ),
+
+    for record in _load_owner_accounts():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id or _has_task("OWNER_REGISTRATION", source_id):
+            continue
+        _upsert_operations_task_from_source(
+            {
+                "id": source_id,
+                "request_id": source_id,
+                "source_type": "OWNER_REGISTRATION",
+                "source_id": source_id,
+                "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "updated_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "title": str(record.get("full_name", "")).strip() or str(record.get("email", "")).strip() or "Owner registration",
+                "category": "OWNER",
+                "owner_name": str(record.get("full_name", "")).strip(),
+                "owner_email": str(record.get("email", "")).strip(),
+                "property_id": "",
+                "property_name": str(record.get("property_name", "")).strip() or str(record.get("city", "")).strip(),
+                "assigned_to": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": str(record.get("notes", "")).strip(),
+                "completed_at": "",
+                "owner_id": source_id,
+                "property_location": str(record.get("city", "")).strip(),
+                "admin_notes": "",
+                "request_status": "new",
+                "timeline_detail": str(record.get("city", "")).strip(),
+            },
+            append_created_event=True,
+            force_create=True,
         )
-        if status != "NEW":
-            conn.execute(
-                """
-                INSERT INTO operations_task_events (
-                    id, task_id, created_at, event_type, title, detail, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    f"{request_id}-{status.lower()}",
-                    request_id,
-                    created_at,
-                    task_event_type,
-                    task_event_title,
-                    str(record.get("service_category", "")).strip(),
-                    status,
-                ),
-            )
+
+    for record in _load_partner_applications():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id or _has_task("PARTNER_APPLICATION", source_id):
+            continue
+        _upsert_operations_task_from_source(
+            {
+                "id": source_id,
+                "request_id": source_id,
+                "source_type": "PARTNER_APPLICATION",
+                "source_id": source_id,
+                "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "updated_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "title": str(record.get("company_name", "")).strip() or str(record.get("contact_person", "")).strip() or "Partner application",
+                "category": "PARTNER",
+                "owner_name": str(record.get("contact_person", "")).strip() or str(record.get("company_name", "")).strip(),
+                "owner_email": str(record.get("email", "")).strip(),
+                "property_id": "",
+                "property_name": str(record.get("company_name", "")).strip() or str(record.get("city", "")).strip(),
+                "assigned_to": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": str(record.get("description", "")).strip(),
+                "completed_at": "",
+                "owner_id": "",
+                "property_location": str(record.get("city", "")).strip(),
+                "admin_notes": "",
+                "request_status": "new",
+                "timeline_detail": str(record.get("service_category", "")).strip(),
+            },
+            append_created_event=True,
+            force_create=True,
+        )
+
+    for record in _load_professional_applications():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id or _has_task("PROFESSIONAL_APPLICATION", source_id):
+            continue
+        _upsert_operations_task_from_source(
+            {
+                "id": source_id,
+                "request_id": source_id,
+                "source_type": "PROFESSIONAL_APPLICATION",
+                "source_id": source_id,
+                "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "updated_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "title": str(record.get("full_name", "")).strip() or str(record.get("email", "")).strip() or "Professional application",
+                "category": "PROFESSIONAL",
+                "owner_name": str(record.get("full_name", "")).strip(),
+                "owner_email": str(record.get("email", "")).strip(),
+                "property_id": "",
+                "property_name": str(record.get("city", "")).strip(),
+                "assigned_to": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": str(record.get("short_bio", "")).strip(),
+                "completed_at": "",
+                "owner_id": "",
+                "property_location": str(record.get("city", "")).strip(),
+                "admin_notes": "",
+                "request_status": "new",
+                "timeline_detail": str(record.get("professional_category", "")).strip(),
+            },
+            append_created_event=True,
+            force_create=True,
+        )
+
+    for record in _load_concierge_requests():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id or _has_task("CONCIERGE_REQUEST", source_id):
+            continue
+        _upsert_operations_task_from_source(
+            {
+                "id": source_id,
+                "request_id": source_id,
+                "source_type": "CONCIERGE_REQUEST",
+                "source_id": source_id,
+                "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "updated_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+                "title": str(record.get("message", "")).strip() or str(record.get("name", "")).strip() or "Concierge request",
+                "category": "CONCIERGE",
+                "owner_name": str(record.get("name", "")).strip(),
+                "owner_email": str(record.get("email", "")).strip(),
+                "property_id": "",
+                "property_name": str(record.get("service_type", "")).strip(),
+                "assigned_to": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": str(record.get("message", "")).strip(),
+                "completed_at": "",
+                "owner_id": "",
+                "property_location": "",
+                "admin_notes": "",
+                "request_status": "new",
+                "timeline_detail": str(record.get("service_type", "")).strip(),
+            },
+            append_created_event=True,
+            force_create=True,
+        )
+
+    for record in _load_service_requests():
+        source_id = str(record.get("id", "")).strip()
+        if not source_id:
+            continue
+        source_type = "OWNER_SERVICE_REQUEST" if str(record.get("request_source", "public")).lower() == "owner" else "CONCIERGE_REQUEST"
+        if _has_task(source_type, source_id):
+            continue
+        _upsert_operations_task_from_service_request(record, source_type=source_type, force_create=True)
 
 
 def _ensure_owner_db_schema(conn):
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_db_meta (
-            meta_key TEXT PRIMARY KEY,
-            meta_value TEXT NOT NULL
+    global _OWNER_DB_SCHEMA_INITIALIZING
+    if _OWNER_DB_SCHEMA_INITIALIZING:
+        return
+
+    _OWNER_DB_SCHEMA_INITIALIZING = True
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_db_meta (
+                meta_key TEXT PRIMARY KEY,
+                meta_value TEXT NOT NULL
+            )
+            """
         )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_accounts (
-            email TEXT PRIMARY KEY COLLATE NOCASE,
-            id TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            full_name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            property_type TEXT NOT NULL,
-            city TEXT NOT NULL,
-            property_name TEXT NOT NULL,
-            number_of_units INTEGER NOT NULL,
-            notes TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'PILOT',
-            language TEXT NOT NULL DEFAULT 'bg',
-            last_login_at TEXT NOT NULL DEFAULT '',
-            internal_notes TEXT NOT NULL DEFAULT ''
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_accounts (
+                email TEXT PRIMARY KEY COLLATE NOCASE,
+                id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                property_type TEXT NOT NULL,
+                city TEXT NOT NULL,
+                property_name TEXT NOT NULL,
+                number_of_units INTEGER NOT NULL,
+                notes TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'PILOT',
+                language TEXT NOT NULL DEFAULT 'bg',
+                last_login_at TEXT NOT NULL DEFAULT '',
+                internal_notes TEXT NOT NULL DEFAULT ''
+            )
+            """
         )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_properties (
-            id TEXT PRIMARY KEY,
-            owner_id TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            name TEXT NOT NULL,
-            property_type TEXT NOT NULL,
-            location TEXT NOT NULL,
-            bedrooms INTEGER NOT NULL,
-            bathrooms INTEGER NOT NULL,
-            guest_capacity INTEGER NOT NULL,
-            operating_mode TEXT NOT NULL,
-            notes TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'SETUP',
-            guest_guide_ready INTEGER NOT NULL DEFAULT 0,
-            access_instructions_ready INTEGER NOT NULL DEFAULT 0,
-            emergency_contact_ready INTEGER NOT NULL DEFAULT 0,
-            cleaning_partner_ready INTEGER NOT NULL DEFAULT 0,
-            admin_notes TEXT NOT NULL DEFAULT ''
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_properties (
+                id TEXT PRIMARY KEY,
+                owner_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                name TEXT NOT NULL,
+                property_type TEXT NOT NULL,
+                location TEXT NOT NULL,
+                bedrooms INTEGER NOT NULL,
+                bathrooms INTEGER NOT NULL,
+                guest_capacity INTEGER NOT NULL,
+                operating_mode TEXT NOT NULL,
+                notes TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'SETUP',
+                guest_guide_ready INTEGER NOT NULL DEFAULT 0,
+                access_instructions_ready INTEGER NOT NULL DEFAULT 0,
+                emergency_contact_ready INTEGER NOT NULL DEFAULT 0,
+                cleaning_partner_ready INTEGER NOT NULL DEFAULT 0,
+                admin_notes TEXT NOT NULL DEFAULT ''
+            )
+            """
         )
-        """
-    )
-    _ensure_owner_property_activity_schema(conn)
-    _ensure_operations_task_schema(conn)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_magic_tokens (
-            token TEXT PRIMARY KEY,
-            email TEXT NOT NULL,
-            created_at TEXT NOT NULL
+        _ensure_owner_property_activity_schema(conn)
+        _ensure_operations_task_schema(conn)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_magic_tokens (
+                token TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
         )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_magic_email_events (
-            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-            id TEXT NOT NULL UNIQUE,
-            created_at TEXT NOT NULL,
-            timestamp TEXT NOT NULL,
-            event TEXT NOT NULL,
-            submitted_email TEXT NOT NULL,
-            account_found INTEGER,
-            delivery TEXT NOT NULL,
-            email_masked TEXT NOT NULL,
-            reason TEXT NOT NULL,
-            source TEXT NOT NULL,
-            language TEXT NOT NULL,
-            smtp_message_id TEXT NOT NULL DEFAULT ''
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_magic_email_events (
+                sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT NOT NULL UNIQUE,
+                created_at TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                event TEXT NOT NULL,
+                submitted_email TEXT NOT NULL,
+                account_found INTEGER,
+                delivery TEXT NOT NULL,
+                email_masked TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                source TEXT NOT NULL,
+                language TEXT NOT NULL,
+                smtp_message_id TEXT NOT NULL DEFAULT ''
+            )
+            """
         )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS owner_activity_events (
-            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-            id TEXT NOT NULL UNIQUE,
-            owner_id TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            event_type TEXT NOT NULL,
-            title TEXT NOT NULL,
-            detail TEXT NOT NULL DEFAULT ''
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS owner_activity_events (
+                sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT NOT NULL UNIQUE,
+                owner_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                detail TEXT NOT NULL DEFAULT ''
+            )
+            """
         )
-        """
-    )
-    _ensure_owner_account_schema(conn)
-    _ensure_owner_property_schema(conn)
-    _seed_owner_property_activity_backfill(conn)
-    _seed_operations_task_backfill(conn)
+        _ensure_owner_account_schema(conn)
+        _ensure_owner_property_schema(conn)
+        _seed_owner_property_activity_backfill(conn)
+        _seed_operations_task_backfill(conn)
+    finally:
+        _OWNER_DB_SCHEMA_INITIALIZING = False
 
 
 def _owner_jsonl_signature(path):
@@ -1196,21 +1355,43 @@ def _append_property_activity_event(property_id, owner_id, event_type, title, de
 
 
 def _operations_task_from_row(row):
+    if row is None:
+        return None
+
+    task_id = str(row["id"] if "id" in row.keys() and row["id"] else row["request_id"]).strip()
+    request_id = str(row["request_id"] if "request_id" in row.keys() and row["request_id"] else task_id).strip()
+    source_type = str(row["source_type"]) if "source_type" in row.keys() else ""
+    source_id = str(row["source_id"]) if "source_id" in row.keys() else request_id
+    notes = str(row["notes"]) if "notes" in row.keys() else ""
+    admin_notes = str(row["admin_notes"]) if "admin_notes" in row.keys() else ""
+    if not notes:
+        notes = admin_notes
+    if not admin_notes:
+        admin_notes = notes
+    completed_at = str(row["completed_at"]) if "completed_at" in row.keys() else ""
+
     return {
-        "request_id": str(row["request_id"]),
-        "owner_id": str(row["owner_id"]),
+        "id": task_id,
+        "request_id": request_id,
+        "source_type": source_type,
+        "source_id": source_id,
+        "owner_id": str(row["owner_id"]) if "owner_id" in row.keys() else "",
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
         "created_at": str(row["created_at"]),
         "updated_at": str(row["updated_at"]),
         "title": str(row["title"]),
+        "category": str(row["category"]) if "category" in row.keys() else "",
         "property_name": str(row["property_name"]) if "property_name" in row.keys() else "",
         "property_location": str(row["property_location"]) if "property_location" in row.keys() else "",
         "owner_name": str(row["owner_name"]) if "owner_name" in row.keys() else "",
         "owner_email": str(row["owner_email"]) if "owner_email" in row.keys() else "",
-        "category": str(row["category"]) if "category" in row.keys() else "",
+        "assigned_to": str(row["assigned_to"]) if "assigned_to" in row.keys() else "",
         "priority": _normalize_operations_task_priority(row["priority"] if "priority" in row.keys() else "NORMAL"),
         "status": _normalize_operations_task_status(row["status"] if "status" in row.keys() else "NEW"),
-        "admin_notes": str(row["admin_notes"]) if "admin_notes" in row.keys() else "",
+        "due_date": str(row["due_date"]) if "due_date" in row.keys() else "",
+        "notes": notes,
+        "completed_at": completed_at,
+        "admin_notes": admin_notes,
         "request_status": _normalize_service_request_status(row["request_status"] if "request_status" in row.keys() else "new"),
     }
 
@@ -1221,10 +1402,11 @@ def _load_operations_tasks():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT request_id, owner_id, property_id, created_at, updated_at, title, property_name, property_location,
-                   owner_name, owner_email, category, priority, status, admin_notes, request_status
+            SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+                   category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+                   due_date, notes, completed_at, admin_notes, request_status
             FROM operations_tasks
-            ORDER BY updated_at DESC, created_at DESC, request_id DESC
+            ORDER BY updated_at DESC, created_at DESC, id DESC
             """
         ).fetchall()
 
@@ -1241,13 +1423,14 @@ def _find_operations_task(task_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT request_id, owner_id, property_id, created_at, updated_at, title, property_name, property_location,
-                   owner_name, owner_email, category, priority, status, admin_notes, request_status
+            SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+                   category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
+                   due_date, notes, completed_at, admin_notes, request_status
             FROM operations_tasks
-            WHERE request_id = ?
+            WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
             """,
-            (target_task_id,),
+            (target_task_id, target_task_id, target_task_id),
         ).fetchone()
 
     return _operations_task_from_row(row) if row else None
@@ -1328,61 +1511,48 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
     return event
 
 
-def _upsert_operations_task_from_service_request(request_record, status_override=None, note_event=False):
-    request_id = str((request_record or {}).get("id", "")).strip()
-    if not request_id:
+def _upsert_operations_task(task_payload, *, append_created_event=False, status_override=None, note_event=False):
+    task_id = str((task_payload or {}).get("id", "")).strip()
+    if not task_id:
         return None
 
-    task = _find_operations_task(request_id)
-    current_status = _normalize_operations_task_status(task.get("status", "NEW")) if task else _service_request_status_to_operations_status((request_record or {}).get("status", "new"))
-    request_status = _normalize_service_request_status((request_record or {}).get("status", "new"))
-    new_status = _normalize_operations_task_status(status_override or _service_request_status_to_operations_status(request_status))
-    task_created = False
-
-    created_at = str((request_record or {}).get("created_at", "")).strip() or _utc_now_iso()
-    updated_at = str((request_record or {}).get("last_update_at", created_at)).strip() or created_at
-    request_status_changed = False
-    if task:
-        current_status = _normalize_operations_task_status(task.get("status", "NEW"))
-        request_status_changed = task.get("request_status") != request_status
-        if status_override is None and request_status_changed:
-            new_status = _service_request_status_to_operations_status(request_status)
-        task_payload = {
-            **task,
-            "owner_id": str((request_record or {}).get("owner_id", task.get("owner_id", ""))).strip(),
-            "property_id": str((request_record or {}).get("property_id", task.get("property_id", ""))).strip(),
-            "created_at": created_at or task.get("created_at", ""),
-            "updated_at": updated_at,
-            "title": str((request_record or {}).get("description", "")).strip() or task.get("title", ""),
-            "property_name": str((request_record or {}).get("property", "")).strip() or task.get("property_name", ""),
-            "property_location": str((request_record or {}).get("property_city", "")).strip() or task.get("property_location", ""),
-            "owner_name": str((request_record or {}).get("owner_name", "")).strip() or task.get("owner_name", ""),
-            "owner_email": str((request_record or {}).get("owner_email", "")).strip() or task.get("owner_email", ""),
-            "category": str((request_record or {}).get("service_category", "")).strip() or task.get("category", ""),
-            "priority": task.get("priority", "NORMAL") or "NORMAL",
-            "status": new_status if status_override is not None or request_status_changed else current_status,
-            "admin_notes": task.get("admin_notes", ""),
-            "request_status": request_status,
-        }
+    existing_task = _find_operations_task(task_id)
+    created_at = str((task_payload or {}).get("created_at", "")).strip() or (existing_task or {}).get("created_at", "") or _utc_now_iso()
+    updated_at = str((task_payload or {}).get("updated_at", "")).strip() or _utc_now_iso()
+    status = _normalize_operations_task_status(
+        status_override
+        or (task_payload or {}).get("status")
+        or (existing_task or {}).get("status", "NEW")
+    )
+    if status == "DONE":
+        completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip() or updated_at
     else:
-        task_payload = {
-            "request_id": request_id,
-            "owner_id": str((request_record or {}).get("owner_id", "")).strip() or "public",
-            "property_id": str((request_record or {}).get("property_id", "")).strip(),
-            "created_at": created_at,
-            "updated_at": updated_at,
-            "title": str((request_record or {}).get("description", "")).strip() or str((request_record or {}).get("property", "")).strip() or str((request_record or {}).get("property_city", "")).strip() or "Task",
-            "property_name": str((request_record or {}).get("property", "")).strip(),
-            "property_location": str((request_record or {}).get("property_city", "")).strip(),
-            "owner_name": str((request_record or {}).get("owner_name", "")).strip() or str((request_record or {}).get("name", "")).strip(),
-            "owner_email": str((request_record or {}).get("owner_email", "")).strip() or str((request_record or {}).get("email", "")).strip(),
-            "category": str((request_record or {}).get("service_category", "")).strip(),
-            "priority": _operations_task_priority_from_request(request_record),
-            "status": new_status,
-            "admin_notes": "",
-            "request_status": request_status,
-        }
-        task_created = True
+        completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip()
+
+    merged_task = {
+        "id": task_id,
+        "request_id": str((task_payload or {}).get("request_id", "")).strip() or task_id,
+        "source_type": str((task_payload or {}).get("source_type", "")).strip() or str((existing_task or {}).get("source_type", "")).strip(),
+        "source_id": str((task_payload or {}).get("source_id", "")).strip() or task_id,
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "title": str((task_payload or {}).get("title", "")).strip() or str((existing_task or {}).get("title", "")).strip() or "Task",
+        "category": str((task_payload or {}).get("category", "")).strip() or str((existing_task or {}).get("category", "")).strip(),
+        "owner_name": str((task_payload or {}).get("owner_name", "")).strip() or str((existing_task or {}).get("owner_name", "")).strip(),
+        "owner_email": str((task_payload or {}).get("owner_email", "")).strip() or str((existing_task or {}).get("owner_email", "")).strip(),
+        "property_id": str((task_payload or {}).get("property_id", "")).strip() or str((existing_task or {}).get("property_id", "")).strip(),
+        "property_name": str((task_payload or {}).get("property_name", "")).strip() or str((existing_task or {}).get("property_name", "")).strip(),
+        "assigned_to": str((task_payload or {}).get("assigned_to", "")).strip() or str((existing_task or {}).get("assigned_to", "")).strip(),
+        "priority": _normalize_operations_task_priority((task_payload or {}).get("priority", (existing_task or {}).get("priority", "NORMAL"))),
+        "status": status,
+        "due_date": str((task_payload or {}).get("due_date", "")).strip() or str((existing_task or {}).get("due_date", "")).strip(),
+        "notes": str((task_payload or {}).get("notes", "")).strip() or str((task_payload or {}).get("admin_notes", "")).strip() or str((existing_task or {}).get("notes", "")).strip() or str((existing_task or {}).get("admin_notes", "")).strip(),
+        "completed_at": completed_at,
+        "owner_id": str((task_payload or {}).get("owner_id", "")).strip() or str((existing_task or {}).get("owner_id", "")).strip(),
+        "property_location": str((task_payload or {}).get("property_location", "")).strip() or str((existing_task or {}).get("property_location", "")).strip(),
+        "admin_notes": str((task_payload or {}).get("admin_notes", "")).strip() or str((task_payload or {}).get("notes", "")).strip() or str((existing_task or {}).get("admin_notes", "")).strip() or str((existing_task or {}).get("notes", "")).strip(),
+        "request_status": _normalize_service_request_status((task_payload or {}).get("request_status", (existing_task or {}).get("request_status", "new"))),
+    }
 
     try:
         with _owner_db_connection() as conn:
@@ -1391,121 +1561,361 @@ def _upsert_operations_task_from_service_request(request_record, status_override
             conn.execute(
                 """
                 INSERT INTO operations_tasks (
-                    request_id, owner_id, property_id, created_at, updated_at, title, property_name,
-                    property_location, owner_name, owner_email, category, priority, status, admin_notes, request_status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(request_id) DO UPDATE SET
-                    owner_id = excluded.owner_id,
-                    property_id = excluded.property_id,
+                    id, request_id, source_type, source_id, created_at, updated_at, title, category,
+                    owner_name, owner_email, property_id, property_name, assigned_to, priority, status,
+                    due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    request_id = excluded.request_id,
+                    source_type = excluded.source_type,
+                    source_id = excluded.source_id,
                     created_at = excluded.created_at,
                     updated_at = excluded.updated_at,
                     title = excluded.title,
-                    property_name = excluded.property_name,
-                    property_location = excluded.property_location,
+                    category = excluded.category,
                     owner_name = excluded.owner_name,
                     owner_email = excluded.owner_email,
-                    category = excluded.category,
+                    property_id = excluded.property_id,
+                    property_name = excluded.property_name,
+                    assigned_to = excluded.assigned_to,
                     priority = excluded.priority,
                     status = excluded.status,
+                    due_date = excluded.due_date,
+                    notes = excluded.notes,
+                    completed_at = excluded.completed_at,
+                    owner_id = excluded.owner_id,
+                    property_location = excluded.property_location,
+                    admin_notes = excluded.admin_notes,
                     request_status = excluded.request_status
                 """,
                 (
-                    task_payload["request_id"],
-                    task_payload["owner_id"],
-                    task_payload["property_id"],
-                    task_payload["created_at"],
-                    task_payload["updated_at"],
-                    task_payload["title"],
-                    task_payload["property_name"],
-                    task_payload["property_location"],
-                    task_payload["owner_name"],
-                    task_payload["owner_email"],
-                    task_payload["category"],
-                    task_payload["priority"],
-                    task_payload["status"],
-                    task_payload["admin_notes"],
-                    task_payload["request_status"],
+                    merged_task["id"],
+                    merged_task["request_id"],
+                    merged_task["source_type"],
+                    merged_task["source_id"],
+                    merged_task["created_at"],
+                    merged_task["updated_at"],
+                    merged_task["title"],
+                    merged_task["category"],
+                    merged_task["owner_name"],
+                    merged_task["owner_email"],
+                    merged_task["property_id"],
+                    merged_task["property_name"],
+                    merged_task["assigned_to"],
+                    merged_task["priority"],
+                    merged_task["status"],
+                    merged_task["due_date"],
+                    merged_task["notes"],
+                    merged_task["completed_at"],
+                    merged_task["owner_id"],
+                    merged_task["property_location"],
+                    merged_task["admin_notes"],
+                    merged_task["request_status"],
                 ),
             )
     except Exception as exc:
-        app.logger.warning("Operations task upsert failed for %s: %s", request_id, type(exc).__name__)
+        app.logger.warning("Operations task upsert failed for %s: %s", task_id, type(exc).__name__)
         return None
 
-    if task_created:
+    if existing_task is None and append_created_event:
         _append_operations_task_event(
-            request_id,
+            task_id,
             "task_created",
             "Task created",
-            f"{task_payload['title']} · {task_payload['property_location'] or task_payload['property_name']}".strip(" ·"),
+            str(task_payload.get("timeline_detail", "")).strip() or f"{merged_task['title']} · {merged_task['property_name'] or merged_task['property_location']}".strip(" ·"),
             status="NEW",
         )
-    elif current_status != new_status and (status_override is not None or request_status_changed):
-        event_type, event_title = _operations_task_status_event(new_status)
+    elif note_event:
+        _append_operations_task_event(
+            task_id,
+            "note_added",
+            "Note added",
+            merged_task["notes"],
+            status=merged_task["status"],
+        )
+
+    return _find_operations_task(task_id) or merged_task
+
+
+def _upsert_operations_task_from_source(task_payload, append_created_event=False, force_create=False, status_override=None):
+    return _upsert_operations_task(task_payload, append_created_event=append_created_event, status_override=status_override)
+
+
+def _operations_task_payload_from_source(source_type, source_record, status="NEW"):
+    record = source_record or {}
+    normalized_source_type = str(source_type or "").strip().upper()
+    source_id = str(record.get("id", "") or record.get("request_id", "")).strip()
+    if not normalized_source_type or not source_id:
+        return None
+
+    created_at = str(record.get("created_at", "")).strip() or _utc_now_iso()
+    updated_at = str(record.get("updated_at", "")).strip() or str(record.get("last_update_at", "")).strip() or created_at
+    source_category = {
+        "PILOT_REQUEST": "LEAD",
+        "OWNER_REGISTRATION": "OWNER",
+        "PROFESSIONAL_APPLICATION": "PROFESSIONAL",
+        "PARTNER_APPLICATION": "PARTNER",
+        "CONCIERGE_REQUEST": "CONCIERGE",
+        "SERVICE_REQUEST": "SERVICE",
+        "OWNER_SERVICE_REQUEST": "SERVICE",
+    }.get(normalized_source_type, str(record.get("service_category", "")).strip() or str(record.get("category", "")).strip())
+    title = {
+        "PILOT_REQUEST": str(record.get("name", "")).strip() or str(record.get("email", "")).strip() or "Pilot request",
+        "OWNER_REGISTRATION": str(record.get("full_name", "")).strip() or str(record.get("email", "")).strip() or "Owner registration",
+        "PROFESSIONAL_APPLICATION": str(record.get("full_name", "")).strip() or str(record.get("email", "")).strip() or "Professional application",
+        "PARTNER_APPLICATION": str(record.get("company_name", "")).strip() or str(record.get("contact_person", "")).strip() or "Partner application",
+        "CONCIERGE_REQUEST": str(record.get("description", "")).strip() or str(record.get("name", "")).strip() or str(record.get("property_city", "")).strip() or "Concierge request",
+        "SERVICE_REQUEST": str(record.get("description", "")).strip() or str(record.get("property", "")).strip() or str(record.get("property_city", "")).strip() or "Service request",
+        "OWNER_SERVICE_REQUEST": str(record.get("description", "")).strip() or str(record.get("property", "")).strip() or str(record.get("property_city", "")).strip() or "Owner service request",
+    }.get(normalized_source_type, str(record.get("title", "")).strip() or "Task")
+    owner_name = {
+        "PILOT_REQUEST": str(record.get("name", "")).strip(),
+        "OWNER_REGISTRATION": str(record.get("full_name", "")).strip(),
+        "PROFESSIONAL_APPLICATION": str(record.get("full_name", "")).strip(),
+        "PARTNER_APPLICATION": str(record.get("contact_person", "")).strip() or str(record.get("company_name", "")).strip(),
+        "CONCIERGE_REQUEST": str(record.get("name", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("owner_name", "")).strip() or str(record.get("name", "")).strip(),
+        "OWNER_SERVICE_REQUEST": str(record.get("owner_name", "")).strip() or str(record.get("name", "")).strip(),
+    }.get(normalized_source_type, str(record.get("owner_name", "")).strip())
+    owner_email = {
+        "PILOT_REQUEST": str(record.get("email", "")).strip(),
+        "OWNER_REGISTRATION": str(record.get("email", "")).strip(),
+        "PROFESSIONAL_APPLICATION": str(record.get("email", "")).strip(),
+        "PARTNER_APPLICATION": str(record.get("email", "")).strip(),
+        "CONCIERGE_REQUEST": str(record.get("email", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip(),
+        "OWNER_SERVICE_REQUEST": str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip(),
+    }.get(normalized_source_type, str(record.get("owner_email", "")).strip())
+    property_id = str(record.get("property_id", "")).strip()
+    property_name = {
+        "PILOT_REQUEST": str(record.get("city", "")).strip() or str(record.get("property_type", "")).strip(),
+        "OWNER_REGISTRATION": str(record.get("property_name", "")).strip() or str(record.get("city", "")).strip() or str(record.get("property_type", "")).strip(),
+        "PROFESSIONAL_APPLICATION": str(record.get("city", "")).strip() or str(record.get("country", "")).strip(),
+        "PARTNER_APPLICATION": str(record.get("company_name", "")).strip() or str(record.get("city", "")).strip(),
+        "CONCIERGE_REQUEST": str(record.get("service_type", "")).strip() or str(record.get("property_city", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("property", "")).strip() or str(record.get("property_city", "")).strip(),
+        "OWNER_SERVICE_REQUEST": str(record.get("property", "")).strip() or str(record.get("property_city", "")).strip(),
+    }.get(normalized_source_type, str(record.get("property_name", "")).strip())
+    property_location = {
+        "PILOT_REQUEST": str(record.get("city", "")).strip(),
+        "OWNER_REGISTRATION": str(record.get("city", "")).strip(),
+        "PROFESSIONAL_APPLICATION": str(record.get("city", "")).strip(),
+        "PARTNER_APPLICATION": str(record.get("city", "")).strip(),
+        "CONCIERGE_REQUEST": str(record.get("property_city", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("property_city", "")).strip(),
+        "OWNER_SERVICE_REQUEST": str(record.get("property_city", "")).strip(),
+    }.get(normalized_source_type, str(record.get("property_location", "")).strip())
+    notes = {
+        "PILOT_REQUEST": str(record.get("concierge_needs", "")).strip(),
+        "OWNER_REGISTRATION": str(record.get("notes", "")).strip(),
+        "PROFESSIONAL_APPLICATION": str(record.get("short_bio", "")).strip() or str(record.get("description", "")).strip(),
+        "PARTNER_APPLICATION": str(record.get("description", "")).strip(),
+        "CONCIERGE_REQUEST": str(record.get("message", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("notes", "")).strip() or str(record.get("description", "")).strip(),
+        "OWNER_SERVICE_REQUEST": str(record.get("notes", "")).strip() or str(record.get("description", "")).strip(),
+    }.get(normalized_source_type, str(record.get("notes", "")).strip())
+    admin_notes = str(record.get("admin_notes", "")).strip() or str(record.get("internal_notes", "")).strip()
+    if not notes:
+        notes = admin_notes
+    if not admin_notes:
+        admin_notes = notes
+
+    priority = _normalize_operations_task_priority(record.get("priority", "NORMAL"))
+    if normalized_source_type in {"SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"}:
+        priority = _operations_task_priority_from_request(record)
+
+    task_status = _normalize_operations_task_status(status or record.get("status", "NEW"))
+    due_date = str(record.get("due_date", "")).strip() or str(record.get("preferred_date", "")).strip()
+    owner_id = {
+        "OWNER_REGISTRATION": str(record.get("id", "")).strip(),
+        "SERVICE_REQUEST": str(record.get("owner_id", "")).strip() or str(record.get("request_source", "")).strip() or "public",
+        "OWNER_SERVICE_REQUEST": str(record.get("owner_id", "")).strip() or str(record.get("request_source", "")).strip() or "public",
+    }.get(normalized_source_type, str(record.get("owner_id", "")).strip())
+
+    return {
+        "id": source_id,
+        "request_id": source_id,
+        "source_type": normalized_source_type,
+        "source_id": source_id,
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "title": title,
+        "category": source_category,
+        "owner_name": owner_name,
+        "owner_email": owner_email,
+        "property_id": property_id,
+        "property_name": property_name,
+        "assigned_to": str(record.get("assigned_to", "")).strip(),
+        "priority": priority,
+        "status": task_status,
+        "due_date": due_date,
+        "notes": notes,
+        "completed_at": str(record.get("completed_at", "")).strip(),
+        "owner_id": owner_id,
+        "property_location": property_location,
+        "admin_notes": admin_notes,
+        "request_status": _normalize_service_request_status(record.get("status", "new")),
+        "timeline_detail": str(record.get("timeline_detail", "")).strip() or source_category or title,
+    }
+
+
+def _upsert_operations_task_from_service_request(request_record, status_override=None, note_event=False, source_type=None, force_create=False):
+    request_id = str((request_record or {}).get("id", "")).strip()
+    if not request_id:
+        return None
+
+    request_status = _normalize_service_request_status((request_record or {}).get("status", "new"))
+    source_kind = source_type or ("OWNER_SERVICE_REQUEST" if str((request_record or {}).get("request_source", "public")).lower() == "owner" else "CONCIERGE_REQUEST")
+    source_payload = _operations_task_payload_from_source(source_kind, request_record, status_override or _service_request_status_to_operations_status(request_status))
+    if not source_payload:
+        return None
+
+    source_payload["status"] = _normalize_operations_task_status(status_override or _service_request_status_to_operations_status(request_status))
+    source_payload["priority"] = _operations_task_priority_from_request(request_record)
+    source_payload["request_status"] = request_status
+
+    created = _find_operations_task(request_id) is None
+    updated_task = _upsert_operations_task(
+        source_payload,
+        append_created_event=created or force_create,
+        status_override=source_payload["status"] if status_override is not None else None,
+        note_event=note_event,
+    )
+    if created and status_override is not None and updated_task:
+        event_type, event_title = _operations_task_status_event(source_payload["status"])
         _append_operations_task_event(
             request_id,
             event_type,
             event_title,
-            str((request_record or {}).get("service_category", "")).strip(),
-            status=new_status,
+            source_payload["timeline_detail"],
+            status=source_payload["status"],
         )
-    elif note_event:
-        _append_operations_task_event(
-            request_id,
-            "note_added",
-            "Note added",
-            str(task_payload.get("admin_notes", "")).strip(),
-            status=task_payload["status"],
-        )
-
-    return _find_operations_task(request_id) or task_payload
+    return updated_task
 
 
-def _update_operations_task_status(request_id, status, source="board"):
-    task = _find_operations_task(request_id)
+def _update_operations_task_details(task_id, *, status=None, assigned_to=None, notes=None, due_date=None, priority=None, source="detail"):
+    task = _find_operations_task(task_id)
     if not task:
         return None
 
-    new_status = _normalize_operations_task_status(status)
+    task_id = str(task_id or "").strip()
+    new_status = _normalize_operations_task_status(status if status is not None else task.get("status", "NEW"))
+    new_assigned_to = str(assigned_to if assigned_to is not None else task.get("assigned_to", "")).strip()
+    new_notes = str(notes if notes is not None else task.get("admin_notes", "")).strip()
+    new_due_date = str(due_date if due_date is not None else task.get("due_date", "")).strip()
+    new_priority = _normalize_operations_task_priority(priority if priority is not None else task.get("priority", "NORMAL"))
     current_status = _normalize_operations_task_status(task.get("status", "NEW"))
-    if new_status == current_status:
+    current_assigned_to = str(task.get("assigned_to", "")).strip()
+    current_notes = str(task.get("admin_notes", "")).strip()
+    current_due_date = str(task.get("due_date", "")).strip()
+    current_priority = _normalize_operations_task_priority(task.get("priority", "NORMAL"))
+
+    if (
+        new_status == current_status
+        and new_assigned_to == current_assigned_to
+        and new_notes == current_notes
+        and new_due_date == current_due_date
+        and new_priority == current_priority
+    ):
         return task
 
-    request_record = _find_service_request(request_id)
-    if request_record:
-        request_record["status"] = _operations_status_to_service_request_status(new_status)
-        request_record["last_update_at"] = _utc_now_iso()
-        _append_service_request_timeline_event(
-            request_record,
-            "SERVICE_REQUEST_STATUS_UPDATED",
-            f"Operations board moved task to {new_status.replace('_', ' ').title()}",
-            str(task.get("category", "")).strip() or str(task.get("title", "")).strip(),
-            status=request_record["status"],
-        )
-        requests_list = _load_service_requests()
-        for index, record in enumerate(requests_list):
-            if str(record.get("id", "")) == request_id:
-                requests_list[index] = request_record
-                break
-        _save_service_requests(requests_list)
+    completed_at = str(task.get("completed_at", "")).strip()
+    if new_status == "DONE" and current_status != "DONE" and not completed_at:
+        completed_at = _utc_now_iso()
+    if new_status != "DONE":
+        completed_at = "" if current_status != "DONE" else completed_at
 
-    updated_task = _upsert_operations_task_from_service_request(
-        request_record or {
-            "id": request_id,
-            "created_at": task.get("created_at", _utc_now_iso()),
-            "last_update_at": _utc_now_iso(),
-            "status": _operations_status_to_service_request_status(new_status),
-            "owner_id": task.get("owner_id", ""),
-            "owner_name": task.get("owner_name", ""),
-            "owner_email": task.get("owner_email", ""),
-            "property_id": task.get("property_id", ""),
-            "property": task.get("property_name", ""),
-            "property_city": task.get("property_location", ""),
-            "service_category": task.get("category", ""),
-            "description": task.get("title", ""),
-        },
-        status_override=new_status,
-    )
-    return updated_task or task
+    updated_at = _utc_now_iso()
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks
+                SET status = ?, assigned_to = ?, admin_notes = ?, due_date = ?, priority = ?, completed_at = ?, updated_at = ?
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                (new_status, new_assigned_to, new_notes, new_due_date, new_priority, completed_at, updated_at, task_id, task_id, task_id),
+            )
+    except Exception as exc:
+        app.logger.warning("Operations task update failed for %s: %s", task_id, type(exc).__name__)
+        return None
+
+    if new_assigned_to and new_assigned_to != current_assigned_to:
+        _append_operations_task_event(
+            task_id,
+            "assigned",
+            f"Assigned to {new_assigned_to}",
+            current_assigned_to or "Unassigned",
+            status=new_status,
+        )
+
+    if new_status != current_status:
+        event_type = "completed" if new_status == "DONE" else "status_changed"
+        event_title = "Task completed" if new_status == "DONE" else f"Status changed to {new_status.replace('_', ' ').title()}"
+        _append_operations_task_event(
+            task_id,
+            event_type,
+            event_title,
+            f"{current_status.replace('_', ' ').title()} -> {new_status.replace('_', ' ').title()}",
+            status=new_status,
+        )
+        request_record = _find_service_request(task_id)
+        if request_record:
+            request_record["status"] = _operations_status_to_service_request_status(new_status)
+            request_record["last_update_at"] = updated_at
+            _append_service_request_timeline_event(
+                request_record,
+                "SERVICE_REQUEST_STATUS_UPDATED",
+                f"Operations board moved task to {new_status.replace('_', ' ').title()}",
+                str(task.get("category", "")).strip() or str(task.get("title", "")).strip(),
+                status=request_record["status"],
+            )
+            requests_list = _load_service_requests()
+            for index, record in enumerate(requests_list):
+                if str(record.get("id", "")) == task_id:
+                    requests_list[index] = request_record
+                    break
+            _save_service_requests(requests_list)
+
+    if new_notes != current_notes:
+        _append_operations_task_event(
+            task_id,
+            "note_added",
+            "Note added",
+            new_notes,
+            status=new_status,
+        )
+
+        request_record = _find_service_request(task_id)
+        if request_record:
+            request_record["last_update_at"] = updated_at
+            request_record["internal_notes"] = new_notes
+            requests_list = _load_service_requests()
+            for index, record in enumerate(requests_list):
+                if str(record.get("id", "")) == task_id:
+                    requests_list[index] = request_record
+                    break
+            _save_service_requests(requests_list)
+
+    if new_due_date != current_due_date or new_priority != current_priority:
+        request_record = _find_service_request(task_id)
+        if request_record:
+            request_record["last_update_at"] = updated_at
+            requests_list = _load_service_requests()
+            for index, record in enumerate(requests_list):
+                if str(record.get("id", "")) == task_id:
+                    requests_list[index] = request_record
+                    break
+            _save_service_requests(requests_list)
+
+    return _find_operations_task(task_id)
+
+
+def _update_operations_task_status(request_id, status, source="board"):
+    return _update_operations_task_details(request_id, status=status, source=source)
 
 
 def _owner_login_event_detail(login_source, language):
@@ -4686,6 +5096,10 @@ def owners_register():
                         saved_account.get("full_name", ""),
                     )
                     _send_owner_registration_notification_email(saved_account, request.url, current_lang)
+                _upsert_operations_task_from_source(
+                    _operations_task_payload_from_source("OWNER_REGISTRATION", saved_account),
+                    append_created_event=True,
+                )
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
@@ -5130,7 +5544,10 @@ def owners_request_service():
                     "Service request submitted",
                     f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
                 )
-            _upsert_operations_task_from_service_request(request_record)
+            _upsert_operations_task_from_source(
+                _operations_task_payload_from_source("OWNER_SERVICE_REQUEST", request_record),
+                append_created_event=True,
+            )
 
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_email(
@@ -5338,6 +5755,10 @@ def partners_apply():
                 ), 500
 
             admin_detail_url = url_for("admin_partner_application_detail", application_id=record["id"], _external=True)
+            _upsert_operations_task_from_source(
+                _operations_task_payload_from_source("PARTNER_APPLICATION", record),
+                append_created_event=True,
+            )
             _queue_partner_application_notification_email(record, admin_detail_url)
             submitted = True
             return render_template(
@@ -5522,7 +5943,10 @@ def request_service():
 
             submitted = True
             app.logger.info("Saved service request: %s", request_record["id"])
-            _upsert_operations_task_from_service_request(request_record)
+            _upsert_operations_task_from_source(
+                _operations_task_payload_from_source("CONCIERGE_REQUEST", request_record),
+                append_created_event=True,
+            )
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_notification(request_record, admin_detail_url)
 
@@ -5723,6 +6147,10 @@ def professionals_apply():
                 ), 500
 
             admin_detail_url = url_for("admin_professional_detail", application_id=record["id"], _external=True)
+            _upsert_operations_task_from_source(
+                _operations_task_payload_from_source("PROFESSIONAL_APPLICATION", record),
+                append_created_event=True,
+            )
             _queue_professional_application_notification_email(record, admin_detail_url)
             submitted = True
 
@@ -5994,8 +6422,17 @@ def _admin_property_detail_context(property_record):
 
 def _admin_operations_task_is_overdue(task_record):
     status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
-    if status in {"DONE", "ARCHIVED"}:
+    if status == "DONE":
         return False
+
+    due_date = str((task_record or {}).get("due_date", "")).strip()
+    if due_date:
+        try:
+            due_dt = datetime.fromisoformat(due_date)
+        except ValueError:
+            due_dt = None
+        if due_dt and due_dt.date() < datetime.now(timezone.utc).date():
+            return True
 
     request_record = _find_service_request((task_record or {}).get("request_id", ""))
     preferred_date = str((request_record or {}).get("preferred_date", "")).strip()
@@ -8172,6 +8609,10 @@ def api_pilot_request():
         return jsonify({"ok": False, "error": "save_failed"}), 500
 
     admin_detail_url = url_for("admin_pilot_request_detail", request_id=record["id"], _external=True)
+    _upsert_operations_task_from_source(
+        _operations_task_payload_from_source("PILOT_REQUEST", record),
+        append_created_event=True,
+    )
     _queue_pilot_request_email(record)
     _queue_internal_pilot_notification(record, admin_detail_url)
 
@@ -8592,49 +9033,7 @@ def admin_service_request_update(request_id):
 
 
 def _update_operations_task_notes(task_id, notes):
-    task = _find_operations_task(task_id)
-    if not task:
-        return None
-
-    new_notes = str(notes or "").strip()
-    current_notes = str(task.get("admin_notes", "")).strip()
-    if new_notes == current_notes:
-        return task
-
-    try:
-        with _owner_db_connection() as conn:
-            _ensure_owner_db_schema(conn)
-            _migrate_owner_jsonl_backups(conn)
-            conn.execute(
-                """
-                UPDATE operations_tasks
-                SET admin_notes = ?, updated_at = ?
-                WHERE request_id = ?
-                """,
-                (new_notes, _utc_now_iso(), str(task_id or "").strip()),
-            )
-    except Exception as exc:
-        app.logger.warning("Operations task notes update failed for %s: %s", str(task_id or "").strip(), type(exc).__name__)
-        return None
-
-    _append_operations_task_event(
-        task_id,
-        "note_added",
-        "Note added",
-        new_notes,
-        status=task.get("status", "NEW"),
-    )
-    request_record = _find_service_request(task_id)
-    if request_record:
-        request_record["last_update_at"] = _utc_now_iso()
-        requests_list = _load_service_requests()
-        for index, record in enumerate(requests_list):
-            if str(record.get("id", "")) == str(task_id):
-                requests_list[index] = request_record
-                break
-        _save_service_requests(requests_list)
-
-    return _find_operations_task(task_id)
+    return _update_operations_task_details(task_id, notes=notes)
 
 
 @app.get("/admin/operations")
@@ -8652,12 +9051,20 @@ def admin_operations_detail(task_id):
         return Response("Task not found.", status=404, mimetype="text/plain")
 
     if request.method == "POST":
-        status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip()
+        status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
+        assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
+        due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
+        priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
         notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
-        if status_value:
-            _update_operations_task_status(task_id, status_value, source="detail")
-        if notes_value != str(task_record.get("admin_notes", "")).strip():
-            _update_operations_task_notes(task_id, notes_value)
+        _update_operations_task_details(
+            task_id,
+            status=status_value,
+            assigned_to=assigned_to_value,
+            notes=notes_value,
+            due_date=due_date_value,
+            priority=priority_value,
+            source="detail",
+        )
         return redirect(url_for("admin_operations_detail", task_id=task_id))
 
     context = _admin_operations_task_context(task_record)

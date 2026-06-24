@@ -120,6 +120,7 @@
       font-size: 14px;
       font-weight: 600;
     }
+    .admin-operations-form input,
     .admin-operations-form select,
     .admin-operations-form textarea {
       width: 100%;
@@ -238,7 +239,9 @@
       </div>
       <div class="admin-operations-detail-actions">
         <a class="button button--secondary" href="/admin/operations">Back to board</a>
-        <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Open service request</a>
+        {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
+          <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Open service request</a>
+        {% endif %}
       </div>
     </section>
 
@@ -251,11 +254,13 @@
             <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
             <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
             <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
+            <div><dt>Assigned to</dt><dd>{{ task.assigned_to|e or 'Unassigned' }}</dd></div>
+            <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
             <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
             <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
             <div><dt>Task ID</dt><dd>{{ task.request_id|e }}</dd></div>
             <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e }}{% endif %}</dd></div>
-            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} · {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} · {{ task.owner_email|e }}{% endif %}</dd></div>
+            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} / {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} / {{ task.owner_email|e }}{% endif %}</dd></div>
             <div><dt>Location</dt><dd>{% if property_record %}{{ property_record.location|e }}{% else %}{{ task.property_location|e }}{% endif %}</dd></div>
             <div><dt>Overdue</dt><dd>{% if task.overdue %}Yes{% else %}No{% endif %}</dd></div>
           </dl>
@@ -274,7 +279,23 @@
               </select>
             </label>
             <label>
-              <span>Admin notes</span>
+              <span>Assigned operator</span>
+              <input type="text" name="assigned_to" value="{{ task.assigned_to|e }}" placeholder="Operator name">
+            </label>
+            <label>
+              <span>Priority</span>
+              <select name="priority">
+                {% for option in ["LOW", "NORMAL", "HIGH", "URGENT"] %}
+                  <option value="{{ option|e }}" {% if task.priority == option %}selected{% endif %}>{{ option.title()|e }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              <span>Due date</span>
+              <input type="date" name="due_date" value="{{ task.due_date|e }}">
+            </label>
+            <label>
+              <span>Internal notes</span>
               <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
             </label>
             <button class="button button--primary" type="submit">Save task</button>
