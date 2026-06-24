@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Admin Property Detail</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-property-detail-page {
+      background: linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 58%, #f3ecd9 100%);
+      min-height: 100vh;
+      color: #1f2937;
+      padding: 32px 20px 56px;
+    }
+    .admin-property-detail-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .admin-property-detail-hero,
+    .admin-property-detail-panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 28px;
+    }
+    .admin-property-detail-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .admin-property-detail-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .admin-property-detail-copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+      max-width: 780px;
+    }
+    .admin-property-detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-property-detail-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.1);
+      color: #7a6328;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .admin-property-detail-chip--status {
+      background: rgba(31, 41, 55, 0.06);
+      color: #1f2937;
+    }
+    .admin-property-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-property-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 18px;
+    }
+    .admin-property-detail-stack {
+      display: grid;
+      gap: 18px;
+    }
+    .admin-property-detail-section-title {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+    }
+    .admin-property-detail-dl {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-property-detail-dl > div {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.82);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-property-detail-dl dt {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .admin-property-detail-dl dd {
+      margin: 0;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .admin-property-detail-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .admin-property-detail-stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.88);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-property-detail-stat span {
+      display: block;
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .admin-property-detail-stat strong {
+      font-size: 1.1rem;
+      word-break: break-word;
+    }
+    .admin-property-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-property-detail-table th,
+    .admin-property-detail-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      vertical-align: top;
+    }
+    .admin-property-detail-table th {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7a6328;
+    }
+    .admin-property-detail-checklist {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-property-detail-checklist__item {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.86);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-property-detail-checklist__item span {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 15px;
+      color: #1f2937;
+    }
+    .admin-property-detail-checklist__item strong {
+      color: #1f2937;
+      font-size: 14px;
+    }
+    .admin-property-detail-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .admin-property-detail-form label {
+      display: grid;
+      gap: 8px;
+      color: #4b5563;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .admin-property-detail-form textarea {
+      width: 100%;
+      min-height: 160px;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+      resize: vertical;
+    }
+    .admin-property-detail-history {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-property-detail-history__item,
+    .admin-property-detail-timeline__item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.04);
+    }
+    .admin-property-detail-history__topline,
+    .admin-property-detail-timeline__topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .admin-property-detail-history__topline strong,
+    .admin-property-detail-timeline__topline strong {
+      font-size: 1rem;
+    }
+    .admin-property-detail-history__topline time,
+    .admin-property-detail-timeline__topline time {
+      color: #6b7280;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .admin-property-detail-history__item p,
+    .admin-property-detail-timeline__item p {
+      margin: 8px 0 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .admin-property-detail-empty {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    .admin-property-detail-timeline {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-property-detail-layout {
+      display: grid;
+      gap: 18px;
+    }
+    @media (max-width: 920px) {
+      .admin-property-detail-grid,
+      .admin-property-detail-dl {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="admin-property-detail-page">
+  <main class="admin-property-detail-shell">
+    <section class="admin-property-detail-hero">
+      <div>
+        <div class="admin-property-detail-meta">
+          <span class="admin-property-detail-chip">Admin</span>
+          <span class="admin-property-detail-chip">Property operations</span>
+          <span class="admin-property-detail-chip admin-property-detail-chip--status">{{ property.status_label|e }}</span>
+        </div>
+        <h1>{{ property.name|e }}</h1>
+        <p class="admin-property-detail-copy">
+          Inspect the property profile, review the owner linkage, save internal notes, and audit the property timeline in one place.
+        </p>
+      </div>
+      <div class="admin-property-detail-actions">
+        <a class="button button--secondary" href="/admin/properties">Back to properties</a>
+        <a class="button button--ghost" href="/admin">Back to cockpit</a>
+      </div>
+    </section>
+
+    <section class="admin-property-detail-grid">
+      <div class="admin-property-detail-stack">
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Property Profile</p>
+          <h2 class="admin-property-detail-section-title">Property details</h2>
+          <dl class="admin-property-detail-dl">
+            <div><dt>Property name</dt><dd>{{ property.name|e }}</dd></div>
+            <div><dt>Property type</dt><dd>{{ property.property_type|e }}</dd></div>
+            <div><dt>City / location</dt><dd>{{ property.location|e }}</dd></div>
+            <div><dt>Units</dt><dd>{{ property.guest_capacity }}</dd></div>
+            <div><dt>Status</dt><dd>{{ property.status_label|e }}</dd></div>
+            <div><dt>Created at</dt><dd>{{ property.created_at|e }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Readiness Checklist</p>
+          <h2 class="admin-property-detail-section-title">Current readiness</h2>
+          <div class="admin-property-detail-card-grid">
+            <div class="admin-property-detail-stat">
+              <span>Checklist</span>
+              <strong>{{ property.checklist_completed }}/{{ property.checklist_total }}</strong>
+            </div>
+            <div class="admin-property-detail-stat">
+              <span>Progress</span>
+              <strong>{{ property.checklist_percent }}%</strong>
+            </div>
+            <div class="admin-property-detail-stat">
+              <span>Latest requests</span>
+              <strong>{{ service_request_count }}</strong>
+            </div>
+          </div>
+          <div class="admin-property-detail-checklist" style="margin-top: 16px;">
+            {% for item in checklist_items %}
+              <div class="admin-property-detail-checklist__item">
+                <span>{{ item.label }}</span>
+                <strong>{% if item.ready %}Ready{% else %}Pending{% endif %}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Service Request History</p>
+          <h2 class="admin-property-detail-section-title">Latest linked requests</h2>
+          {% if service_requests %}
+            <div class="admin-property-detail-history">
+              {% for request in service_requests %}
+                <div class="admin-property-detail-history__item">
+                  <div class="admin-property-detail-history__topline">
+                    <strong>{{ request.service_category|e }}</strong>
+                    <time>{{ request.created_at|e }}</time>
+                  </div>
+                  <p>
+                    {{ request.status|upper|e }} · {{ request.property|e }}
+                    {% if request.description %}<br>{{ request.description|e }}{% endif %}
+                  </p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-property-detail-empty">No linked service requests are available yet.</p>
+          {% endif %}
+        </article>
+      </div>
+
+      <div class="admin-property-detail-stack">
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Owner Information</p>
+          <h2 class="admin-property-detail-section-title">Owner profile</h2>
+          {% if owner_account %}
+            <dl class="admin-property-detail-dl">
+              <div><dt>Full name</dt><dd>{{ owner_account.full_name|e }}</dd></div>
+              <div><dt>Email</dt><dd>{{ owner_account.email|e }}</dd></div>
+              <div><dt>Phone</dt><dd>{{ owner_account.phone|e }}</dd></div>
+              <div><dt>Language</dt><dd>{{ owner_account.language|upper|e }}</dd></div>
+              <div><dt>Registration date</dt><dd>{{ owner_account.created_at|e }}</dd></div>
+              <div><dt>Last login</dt><dd>{% if owner_account.last_login_at %}{{ owner_account.last_login_at|e }}{% else %}n/a{% endif %}</dd></div>
+            </dl>
+          {% else %}
+            <p class="admin-property-detail-empty">No owner account is linked to this property.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Internal Notes</p>
+          <h2 class="admin-property-detail-section-title">Admin notes</h2>
+          <form class="admin-property-detail-form" method="post" action="/admin/properties/{{ property.id|e }}">
+            <label>
+              <span>Internal notes</span>
+              <textarea name="admin_notes" placeholder="Private operational notes for the admin team">{{ property.admin_notes|e }}</textarea>
+            </label>
+            <button class="button button--primary" type="submit">Save notes</button>
+          </form>
+        </article>
+
+        <article class="admin-property-detail-panel">
+          <p class="eyebrow">Timeline</p>
+          <h2 class="admin-property-detail-section-title">Property timeline</h2>
+          {% if timeline %}
+            <div class="admin-property-detail-timeline">
+              {% for event in timeline %}
+                <div class="admin-property-detail-timeline__item">
+                  <div class="admin-property-detail-timeline__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time>{{ event.created_at|e }}</time>
+                  </div>
+                  {% if event.detail %}
+                    <p>{{ event.detail|e }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-property-detail-empty">No timeline entries yet.</p>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

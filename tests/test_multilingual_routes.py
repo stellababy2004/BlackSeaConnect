@@ -201,6 +201,8 @@ class MultilingualRouteTests(unittest.TestCase):
         repo_root = Path(__file__).resolve().parents[1]
         template_paths = [
             "templates/admin_home.html",
+            "templates/admin_properties.html",
+            "templates/admin_property_detail.html",
             "templates/admin_service_request_detail.html",
             "templates/network.html",
             "templates/network_detail.html",

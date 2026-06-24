@@ -1038,6 +1038,90 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(any(row["event_type"] == "status_changed" for row in activity_rows))
         self.assertTrue(any(row["event_type"] == "note_added" for row in activity_rows))
 
+    def test_admin_property_operations_list_and_detail_persist_notes_and_timeline(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data={"email": "owner@example.com"})
+
+        token = self._read_jsonl("owner_magic_tokens.jsonl")[-1]["token"]
+        self.client.get(f"/auth/owner-magic/{token}")
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            request_response = self.client.post(
+                "/owners/request-service",
+                data={**self._service_request_payload(), "property_id": "property-1"},
+            )
+
+        self.assertEqual(request_response.status_code, 302)
+        request_record = self._read_jsonl("service_requests.jsonl")[0]
+        self.assertEqual(request_record["property_id"], "property-1")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            cockpit = self.client.get("/admin", headers=self._auth_headers())
+
+        self.assertEqual(cockpit.status_code, 200)
+        cockpit_html = cockpit.get_data(as_text=True)
+        self.assertIn('href="/admin/properties"', cockpit_html)
+        self.assertRegex(cockpit_html, r"<span>Total Properties</span>\s*<strong>1</strong>")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            listing = self.client.get("/admin/properties?q=Sea+View&status=setup&property_type=Villa", headers=self._auth_headers())
+
+        self.assertEqual(listing.status_code, 200)
+        listing_html = listing.get_data(as_text=True)
+        self.assertIn("Property Operations", listing_html)
+        self.assertIn("Sea View Villa", listing_html)
+        self.assertIn("owner@example.com", listing_html)
+        self.assertIn("Setup", listing_html)
+        self.assertRegex(listing_html, r"<strong>1</strong> filtered")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            detail = self.client.get("/admin/properties/property-1", headers=self._auth_headers())
+
+        self.assertEqual(detail.status_code, 200)
+        detail_html = detail.get_data(as_text=True)
+        self.assertIn("Property Profile", detail_html)
+        self.assertIn("Owner Information", detail_html)
+        self.assertIn("Readiness Checklist", detail_html)
+        self.assertIn("Service Request History", detail_html)
+        self.assertIn("Internal Notes", detail_html)
+        self.assertIn("Timeline", detail_html)
+        self.assertIn("Property created", detail_html)
+        self.assertIn("Owner assigned", detail_html)
+        self.assertIn("Service request submitted", detail_html)
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            note_response = self.client.post(
+                "/admin/properties/property-1",
+                data={"admin_notes": "Keep an eye on the guest guide."},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(note_response.status_code, 302)
+        self.assertIn("/admin/properties/property-1", note_response.headers["Location"])
+        self.assertEqual(self._read_owner_db_rows("owner_properties")[0]["admin_notes"], "Keep an eye on the guest guide.")
+        self.assertTrue(any(row["event_type"] == "note_added" for row in self._read_owner_db_rows("owner_property_activity_events")))
+
+        request_id = request_record["id"]
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            completed_response = self.client.post(
+                f"/admin/service-requests/{request_id}/update",
+                data={"status": "completed", "internal_notes": "Wrapped up."},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(completed_response.status_code, 302)
+        self.assertIn("service_request_completed", {row["event_type"] for row in self._read_owner_db_rows("owner_property_activity_events")})
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            refreshed_detail = self.client.get("/admin/properties/property-1", headers=self._auth_headers())
+
+        refreshed_html = refreshed_detail.get_data(as_text=True)
+        self.assertIn("Keep an eye on the guest guide.", refreshed_html)
+        self.assertIn("Service request completed", refreshed_html)
+
     def test_jsonl_migration_imports_old_records_idempotently(self):
         self._seed_jsonl("owner_accounts.jsonl", [{
             "id": "owner-legacy",

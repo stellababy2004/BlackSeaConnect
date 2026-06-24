@@ -27,6 +27,7 @@
         <a class="button button--secondary" href="/admin/professionals">View Professional Applications</a>
         <a class="button button--secondary" href="/admin/service-requests">View Service Requests</a>
         <a class="button button--secondary" href="/admin/owner-accounts">View Owner Accounts</a>
+        <a class="button button--secondary" href="/admin/properties">View Properties</a>
         <a class="button button--ghost" href="/admin/pilot-requests/export">Export Leads CSV</a>
         <a class="button button--ghost" href="/admin/partners/export">Export Partners CSV</a>
         <a class="button button--ghost" href="/admin/professionals/export">Export Professionals CSV</a>
@@ -61,6 +62,22 @@
       <article class="admin-kpi-card">
         <span>Owner Accounts</span>
         <strong>{{ owner_accounts }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Total Properties</span>
+        <strong>{{ property_total_count }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Active Properties</span>
+        <strong>{{ active_properties }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Seasonal Properties</span>
+        <strong>{{ seasonal_properties }}</strong>
+      </article>
+      <article class="admin-kpi-card">
+        <span>Inactive Properties</span>
+        <strong>{{ inactive_properties }}</strong>
       </article>
       <article class="admin-kpi-card">
         <span>Active Requests</span>
