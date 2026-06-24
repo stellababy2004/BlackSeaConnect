@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | Operations Board</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-operations-page {
+      background: linear-gradient(180deg, #f6f4ef 0%, #fbfaf7 56%, #efebe2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+    }
+    .admin-operations-shell {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px 20px 52px;
+      display: grid;
+      gap: 18px;
+    }
+    .admin-operations-hero,
+    .admin-operations-panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 26px;
+    }
+    .admin-operations-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .admin-operations-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .admin-operations-copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+      max-width: 900px;
+    }
+    .admin-operations-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-operations-filters {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .admin-operations-filter {
+      display: grid;
+      gap: 8px;
+    }
+    .admin-operations-filter label,
+    .admin-operations-filter span {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      font-weight: 700;
+    }
+    .admin-operations-filter input,
+    .admin-operations-filter select {
+      width: 100%;
+      border: 1px solid rgba(31, 41, 55, 0.12);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .admin-operations-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-operations-kpi {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-operations-kpi span {
+      display: block;
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .admin-operations-kpi strong {
+      font-size: 1.4rem;
+      color: #1f2937;
+    }
+    .admin-operations-board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(280px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .admin-operations-column {
+      min-width: 280px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 520px;
+    }
+    .admin-operations-column__header {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .admin-operations-column__header h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .admin-operations-column__count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.12);
+      color: #7a6328;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .admin-operations-column__body {
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+    .admin-operations-column.is-over {
+      outline: 2px dashed rgba(122, 99, 40, 0.28);
+      outline-offset: 2px;
+    }
+    .admin-operations-card {
+      display: grid;
+      gap: 10px;
+      padding: 16px 16px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: #fff;
+      box-shadow: 0 12px 24px rgba(31, 41, 55, 0.06);
+      color: #1f2937;
+      text-decoration: none;
+    }
+    .admin-operations-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 32px rgba(31, 41, 55, 0.08);
+    }
+    .admin-operations-card__topline,
+    .admin-operations-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .admin-operations-card__title {
+      margin: 0;
+      font-size: 1.02rem;
+      line-height: 1.35;
+    }
+    .admin-operations-card__meta p {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .admin-operations-card__meta strong {
+      color: #1f2937;
+    }
+    .admin-operations-card__empty {
+      margin: 0;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed rgba(31, 41, 55, 0.12);
+      color: #6b7280;
+      line-height: 1.6;
+      background: rgba(251, 247, 238, 0.56);
+    }
+    .admin-operations-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .admin-operations-badge--new,
+    .admin-operations-badge--normal {
+      background: rgba(31, 41, 55, 0.07);
+      color: #1f2937;
+    }
+    .admin-operations-badge--assigned,
+    .admin-operations-badge--high {
+      background: rgba(214, 158, 46, 0.14);
+      color: #8b6d2b;
+    }
+    .admin-operations-badge--in-progress,
+    .admin-operations-badge--urgent {
+      background: rgba(197, 116, 34, 0.16);
+      color: #a85812;
+    }
+    .admin-operations-badge--done {
+      background: rgba(46, 125, 92, 0.14);
+      color: #2f6b4e;
+    }
+    .admin-operations-badge--archived,
+    .admin-operations-card__overdue {
+      background: rgba(170, 47, 47, 0.14);
+      color: #9b3131;
+    }
+    .admin-operations-card__overdue {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .admin-operations-card.is-dragging {
+      opacity: 0.58;
+      transform: rotate(1deg);
+    }
+    @media (max-width: 1200px) {
+      .admin-operations-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .admin-operations-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 760px) {
+      .admin-operations-shell {
+        padding-inline: 14px;
+      }
+      .admin-operations-filters,
+      .admin-operations-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-operations-column {
+        min-width: 260px;
+      }
+    }
+  </style>
+</head>
+<body class="admin-operations-page">
+  <main class="admin-operations-shell">
+    <section class="admin-operations-hero">
+      <div>
+        <p class="eyebrow">OPERATIONS BOARD</p>
+        <h1>Property work in motion</h1>
+        <p class="admin-operations-copy">Track every property-related task from request intake through completion, with drag-and-drop status updates, notes, and an audit trail in SQLite.</p>
+      </div>
+      <div class="admin-operations-actions">
+        <a class="button button--secondary" href="/admin">Back to cockpit</a>
+        <a class="button button--ghost" href="/admin/service-requests">View Service Requests</a>
+        <a class="button button--ghost" href="/admin/properties">View Properties</a>
+      </div>
+    </section>
+
+    <section class="admin-operations-panel">
+      <form class="admin-operations-filters" method="get" action="/admin/operations">
+        <label class="admin-operations-filter">
+          <span>Search</span>
+          <input type="search" name="q" value="{{ filters.search_query|e }}" placeholder="Task title, property, owner, category">
+        </label>
+        <label class="admin-operations-filter">
+          <span>Property</span>
+          <select name="property">
+            <option value="">All properties</option>
+            {% for option in property_options %}
+              <option value="{{ option|e }}" {% if filters.property_filter == option %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-operations-filter">
+          <span>Owner</span>
+          <select name="owner">
+            <option value="">All owners</option>
+            {% for option in owner_options %}
+              <option value="{{ option|e }}" {% if filters.owner_filter == option %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-operations-filter">
+          <span>Category</span>
+          <select name="category">
+            <option value="">All categories</option>
+            {% for option in category_options %}
+              <option value="{{ option|e }}" {% if filters.category_filter == option %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-operations-filter">
+          <span>Status</span>
+          <select name="status">
+            <option value="">All statuses</option>
+            {% for option in status_options %}
+              <option value="{{ option|e }}" {% if filters.status_filter == option %}selected{% endif %}>{{ option|replace('_', ' ')|title|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
+          <button class="button button--primary" type="submit">Apply filters</button>
+          <a class="button button--ghost" href="/admin/operations">Reset</a>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-operations-kpi-grid" aria-label="Operations metrics">
+      <article class="admin-operations-kpi">
+        <span>Open Tasks</span>
+        <strong>{{ counts.open_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Assigned Tasks</span>
+        <strong>{{ counts.assigned_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Completed Tasks</span>
+        <strong>{{ counts.completed_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Overdue Tasks</span>
+        <strong>{{ counts.overdue_tasks }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-operations-board" data-operations-board>
+      {% for status in status_options %}
+        <article class="admin-operations-column" data-status-column="{{ status|e }}">
+          <header class="admin-operations-column__header">
+            <h2>{{ status|replace('_', ' ')|title|e }}</h2>
+            <span class="admin-operations-column__count">{{ columns[status]|length }}</span>
+          </header>
+          <div class="admin-operations-column__body">
+            {% if columns[status] %}
+              {% for task in columns[status] %}
+                <a class="admin-operations-card" href="/admin/operations/{{ task.request_id|e }}" data-task-card draggable="true" data-task-id="{{ task.request_id|e }}">
+                  <div class="admin-operations-card__topline">
+                    <span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span>
+                    <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>Overdue</span>
+                  </div>
+                  <h3 class="admin-operations-card__title">{{ task.title|e }}</h3>
+                  <div class="admin-operations-card__meta">
+                    <p><strong>Property:</strong> {{ task.property_label|e }}</p>
+                    <p><strong>Owner:</strong> {{ task.owner_name|e }}</p>
+                    <p><strong>Category:</strong> {{ task.category|e }}</p>
+                    <p><strong>Priority:</strong> <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></p>
+                    <p><strong>Created:</strong> {{ task.created_at|e }}</p>
+                  </div>
+                </a>
+              {% endfor %}
+            {% else %}
+              <p class="admin-operations-card__empty">No tasks in this column yet. Drag a card here or let the next request flow in.</p>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const columns = Array.from(document.querySelectorAll('[data-status-column]'));
+      const cards = Array.from(document.querySelectorAll('[data-task-card]'));
+
+      const updateTaskStatus = async (taskId, status) => {
+        const response = await fetch(`/admin/operations/${encodeURIComponent(taskId)}/status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ status }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update task status (${response.status})`);
+        }
+      };
+
+      cards.forEach((card) => {
+        card.addEventListener('dragstart', (event) => {
+          card.classList.add('is-dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', card.dataset.taskId || '');
+        });
+
+        card.addEventListener('dragend', () => {
+          card.classList.remove('is-dragging');
+        });
+      });
+
+      columns.forEach((column) => {
+        column.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          column.classList.add('is-over');
+        });
+
+        column.addEventListener('dragleave', () => {
+          column.classList.remove('is-over');
+        });
+
+        column.addEventListener('drop', async (event) => {
+          event.preventDefault();
+          column.classList.remove('is-over');
+          const taskId = event.dataTransfer.getData('text/plain');
+          const status = column.dataset.statusColumn || '';
+          if (!taskId || !status) {
+            return;
+          }
+
+          try {
+            await updateTaskStatus(taskId, status);
+            window.location.reload();
+          } catch (error) {
+            window.alert('Could not update the task status. Please try again.');
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

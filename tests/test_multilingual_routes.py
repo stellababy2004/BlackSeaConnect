@@ -203,6 +203,8 @@ class MultilingualRouteTests(unittest.TestCase):
             "templates/admin_home.html",
             "templates/admin_properties.html",
             "templates/admin_property_detail.html",
+            "templates/admin_operations.html",
+            "templates/admin_operations_detail.html",
             "templates/admin_service_request_detail.html",
             "templates/network.html",
             "templates/network_detail.html",

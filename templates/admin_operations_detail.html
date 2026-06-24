@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | Operations Task</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-operations-detail-page {
+      background: linear-gradient(180deg, #f6f4ef 0%, #fbfaf7 56%, #efebe2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+      padding: 28px 20px 52px;
+    }
+    .admin-operations-detail-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .admin-operations-detail-hero,
+    .admin-operations-detail-panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 26px;
+    }
+    .admin-operations-detail-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .admin-operations-detail-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .admin-operations-detail-copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+      max-width: 880px;
+    }
+    .admin-operations-detail-meta,
+    .admin-operations-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-operations-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.1);
+      color: #7a6328;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .admin-operations-chip--status {
+      background: rgba(31, 41, 55, 0.06);
+      color: #1f2937;
+    }
+    .admin-operations-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 18px;
+    }
+    .admin-operations-stack {
+      display: grid;
+      gap: 18px;
+    }
+    .admin-operations-section-title {
+      margin: 0 0 14px;
+      font-size: 1.15rem;
+    }
+    .admin-operations-dl {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-operations-dl > div {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.82);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-operations-dl dt {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .admin-operations-dl dd {
+      margin: 0;
+      color: #1f2937;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .admin-operations-form {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-operations-form label {
+      display: grid;
+      gap: 8px;
+      color: #4b5563;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .admin-operations-form select,
+    .admin-operations-form textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .admin-operations-form textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+    .admin-operations-list {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-operations-list-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.04);
+    }
+    .admin-operations-list-item__topline {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .admin-operations-list-item__topline time {
+      color: #6b7280;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .admin-operations-list-item p {
+      margin: 8px 0 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .admin-operations-empty {
+      color: #6b7280;
+      margin: 0;
+      line-height: 1.6;
+    }
+    .admin-operations-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-operations-table th,
+    .admin-operations-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      vertical-align: top;
+    }
+    .admin-operations-table th {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7a6328;
+    }
+    .admin-operations-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .admin-operations-badge--new,
+    .admin-operations-badge--normal {
+      background: rgba(31, 41, 55, 0.07);
+      color: #1f2937;
+    }
+    .admin-operations-badge--assigned,
+    .admin-operations-badge--high {
+      background: rgba(214, 158, 46, 0.14);
+      color: #8b6d2b;
+    }
+    .admin-operations-badge--in-progress,
+    .admin-operations-badge--urgent {
+      background: rgba(197, 116, 34, 0.16);
+      color: #a85812;
+    }
+    .admin-operations-badge--done {
+      background: rgba(46, 125, 92, 0.14);
+      color: #2f6b4e;
+    }
+    .admin-operations-badge--archived {
+      background: rgba(170, 47, 47, 0.14);
+      color: #9b3131;
+    }
+    @media (max-width: 920px) {
+      .admin-operations-grid,
+      .admin-operations-dl {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="admin-operations-detail-page">
+  <main class="admin-operations-detail-shell">
+    <section class="admin-operations-detail-hero">
+      <div>
+        <div class="admin-operations-detail-meta">
+          <span class="admin-operations-chip">Admin</span>
+          <span class="admin-operations-chip">Operations</span>
+          <span class="admin-operations-chip admin-operations-chip--status">{{ task.status_label|upper|e }}</span>
+        </div>
+        <h1>{{ task.title|e }}</h1>
+        <p class="admin-operations-detail-copy">Review the linked request, keep the task moving through the board, and capture every decision in the task timeline.</p>
+      </div>
+      <div class="admin-operations-detail-actions">
+        <a class="button button--secondary" href="/admin/operations">Back to board</a>
+        <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Open service request</a>
+      </div>
+    </section>
+
+    <section class="admin-operations-grid">
+      <div class="admin-operations-stack">
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Task profile</p>
+          <h2 class="admin-operations-section-title">Board details</h2>
+          <dl class="admin-operations-dl">
+            <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
+            <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
+            <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
+            <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
+            <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
+            <div><dt>Task ID</dt><dd>{{ task.request_id|e }}</dd></div>
+            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e }}{% endif %}</dd></div>
+            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} · {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} · {{ task.owner_email|e }}{% endif %}</dd></div>
+            <div><dt>Location</dt><dd>{% if property_record %}{{ property_record.location|e }}{% else %}{{ task.property_location|e }}{% endif %}</dd></div>
+            <div><dt>Overdue</dt><dd>{% if task.overdue %}Yes{% else %}No{% endif %}</dd></div>
+          </dl>
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Status and notes</p>
+          <h2 class="admin-operations-section-title">Update workflow and internal notes</h2>
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <label>
+              <span>Status</span>
+              <select name="status" required>
+                {% for option in status_options %}
+                  <option value="{{ option.value|e }}" {% if task.status == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              <span>Admin notes</span>
+              <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
+            </label>
+            <button class="button button--primary" type="submit">Save task</button>
+          </form>
+        </article>
+      </div>
+
+      <div class="admin-operations-stack">
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Related requests</p>
+          <h2 class="admin-operations-section-title">Latest service requests for this property</h2>
+          {% if related_requests %}
+            <table class="admin-operations-table" aria-label="Related service requests">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for request in related_requests %}
+                  {% set request_title = request.description or request.name or request.property %}
+                  <tr>
+                    <td>{{ request_title|e }}</td>
+                    <td>{{ request.service_category|e }}</td>
+                    <td>{{ request.status|replace('_', ' ')|upper|e }}</td>
+                    <td>{{ request.created_at|e }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="admin-operations-empty">No linked service requests yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Timeline</p>
+          <h2 class="admin-operations-section-title">Task activity</h2>
+          {% if timeline %}
+            <div class="admin-operations-list">
+              {% for event in timeline %}
+                <div class="admin-operations-list-item">
+                  <div class="admin-operations-list-item__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time>{{ event.created_at|e }}</time>
+                  </div>
+                  <div class="admin-operations-list-item__topline" style="margin-top: 6px;">
+                    <span class="admin-operations-badge admin-operations-badge--{{ event.status|lower|replace('_', '-')|e }}">{{ event.event_type|replace('_', ' ')|title }}</span>
+                  </div>
+                  {% if event.detail %}
+                    <p>{{ event.detail|e }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-operations-empty">No timeline entries yet.</p>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
