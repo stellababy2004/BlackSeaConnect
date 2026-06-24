@@ -119,6 +119,9 @@ OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
+OWNER_STATUS_VALUES = {"PILOT", "ACTIVE", "INACTIVE", "VIP"}
+OWNER_STATUS_DEFAULT = "PILOT"
+OWNER_LANGUAGE_DEFAULT = "bg"
 OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
@@ -442,12 +445,26 @@ def _normalize_owner_account(record):
         "city",
         "property_name",
         "notes",
+        "internal_notes",
+        "last_login_at",
     ):
         normalized[field] = str(normalized.get(field, "")).strip()
 
     number_of_units = str(normalized.get("number_of_units", "")).strip()
     normalized["number_of_units"] = int(number_of_units) if number_of_units.isdigit() else 0
+    normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
+    normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
     return normalized
+
+
+def _normalize_owner_status(status):
+    normalized = str(status or "").strip().upper()
+    return normalized if normalized in OWNER_STATUS_VALUES else OWNER_STATUS_DEFAULT
+
+
+def _normalize_owner_language(language):
+    normalized = str(language or "").strip().lower()
+    return normalized if normalized in SUPPORTED_LANGUAGES else ""
 
 
 def _owner_db_path():
@@ -472,6 +489,24 @@ def _owner_db_connection():
         conn.close()
 
 
+def _owner_table_columns(conn, table_name):
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {str(row["name"]) for row in rows}
+
+
+def _ensure_owner_account_schema(conn):
+    existing_columns = _owner_table_columns(conn, "owner_accounts")
+    required_columns = {
+        "status": f"TEXT NOT NULL DEFAULT '{OWNER_STATUS_DEFAULT}'",
+        "language": f"TEXT NOT NULL DEFAULT '{OWNER_LANGUAGE_DEFAULT}'",
+        "last_login_at": "TEXT NOT NULL DEFAULT ''",
+        "internal_notes": "TEXT NOT NULL DEFAULT ''",
+    }
+    for column_name, column_sql in required_columns.items():
+        if column_name not in existing_columns:
+            conn.execute(f"ALTER TABLE owner_accounts ADD COLUMN {column_name} {column_sql}")
+
+
 def _ensure_owner_db_schema(conn):
     conn.execute(
         """
@@ -493,7 +528,11 @@ def _ensure_owner_db_schema(conn):
             city TEXT NOT NULL,
             property_name TEXT NOT NULL,
             number_of_units INTEGER NOT NULL,
-            notes TEXT NOT NULL
+            notes TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PILOT',
+            language TEXT NOT NULL DEFAULT 'bg',
+            last_login_at TEXT NOT NULL DEFAULT '',
+            internal_notes TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -542,6 +581,20 @@ def _ensure_owner_db_schema(conn):
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_activity_events (
+            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT NOT NULL UNIQUE,
+            owner_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            detail TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
+    _ensure_owner_account_schema(conn)
 
 
 def _owner_jsonl_signature(path):
@@ -568,6 +621,100 @@ def _owner_db_meta_set(conn, meta_key, meta_value):
     )
 
 
+def _owner_account_from_row(row):
+    return {
+        "email": str(row["email"]),
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "full_name": str(row["full_name"]),
+        "phone": str(row["phone"]),
+        "property_type": str(row["property_type"]),
+        "city": str(row["city"]),
+        "property_name": str(row["property_name"]),
+        "number_of_units": int(row["number_of_units"] or 0),
+        "notes": str(row["notes"]),
+        "status": _normalize_owner_status(row["status"] if "status" in row.keys() else OWNER_STATUS_DEFAULT),
+        "language": _normalize_owner_language(row["language"] if "language" in row.keys() else OWNER_LANGUAGE_DEFAULT) or OWNER_LANGUAGE_DEFAULT,
+        "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
+        "internal_notes": str(row["internal_notes"]) if "internal_notes" in row.keys() else "",
+    }
+
+
+def _load_owner_activity_events(owner_id=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        query = """
+            SELECT id, owner_id, created_at, event_type, title, detail
+            FROM owner_activity_events
+        """
+        params = []
+        target_owner_id = str(owner_id or "").strip()
+        if target_owner_id:
+            query += " WHERE owner_id = ?"
+            params.append(target_owner_id)
+        query += " ORDER BY created_at DESC, sequence DESC"
+        rows = conn.execute(query, params).fetchall()
+
+    return [
+        {
+            "id": str(row["id"]),
+            "owner_id": str(row["owner_id"]),
+            "created_at": str(row["created_at"]),
+            "event_type": str(row["event_type"]),
+            "title": str(row["title"]),
+            "detail": str(row["detail"]),
+        }
+        for row in rows
+    ]
+
+
+def _append_owner_activity_event(owner_id, event_type, title, detail=""):
+    target_owner_id = str(owner_id or "").strip()
+    if not target_owner_id:
+        return None
+
+    event = {
+        "id": uuid4().hex,
+        "owner_id": target_owner_id,
+        "created_at": _utc_now_iso(),
+        "event_type": str(event_type or "").strip(),
+        "title": str(title or "").strip(),
+        "detail": str(detail or "").strip(),
+    }
+    if not event["event_type"] or not event["title"]:
+        return None
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO owner_activity_events (id, owner_id, created_at, event_type, title, detail)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event["id"],
+                    event["owner_id"],
+                    event["created_at"],
+                    event["event_type"],
+                    event["title"],
+                    event["detail"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner activity event append failed for %s: %s", target_owner_id, type(exc).__name__)
+        return None
+    return event
+
+
+def _owner_login_event_detail(login_source, language):
+    source = str(login_source or "").strip() or "magic link"
+    lang = _normalize_owner_language(language) or OWNER_LANGUAGE_DEFAULT
+    return f"Source: {source}; language: {lang}"
+
+
 def _import_owner_accounts_jsonl(conn):
     path = OWNER_ACCOUNTS_JSONL_PATH
     if not path.exists():
@@ -587,17 +734,22 @@ def _import_owner_accounts_jsonl(conn):
             conn.execute(
                 """
                 INSERT INTO owner_accounts (
-                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(email) DO UPDATE SET
                     id = excluded.id,
+                    created_at = excluded.created_at,
                     full_name = excluded.full_name,
                     phone = excluded.phone,
                     property_type = excluded.property_type,
                     city = excluded.city,
                     property_name = excluded.property_name,
                     number_of_units = excluded.number_of_units,
-                    notes = excluded.notes
+                    notes = excluded.notes,
+                    status = excluded.status,
+                    language = excluded.language,
+                    last_login_at = excluded.last_login_at,
+                    internal_notes = excluded.internal_notes
                 """,
                 (
                     normalized["email"],
@@ -610,6 +762,10 @@ def _import_owner_accounts_jsonl(conn):
                     normalized["property_name"],
                     normalized["number_of_units"],
                     normalized["notes"],
+                    normalized["status"],
+                    normalized["language"],
+                    normalized["last_login_at"],
+                    normalized["internal_notes"],
                 ),
             )
 
@@ -783,27 +939,13 @@ def _load_owner_accounts():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
             FROM owner_accounts
             ORDER BY created_at DESC, email DESC
             """
         ).fetchall()
 
-    return [
-        {
-            "email": str(row["email"]),
-            "id": str(row["id"]),
-            "created_at": str(row["created_at"]),
-            "full_name": str(row["full_name"]),
-            "phone": str(row["phone"]),
-            "property_type": str(row["property_type"]),
-            "city": str(row["city"]),
-            "property_name": str(row["property_name"]),
-            "number_of_units": int(row["number_of_units"] or 0),
-            "notes": str(row["notes"]),
-        }
-        for row in rows
-    ]
+    return [_owner_account_from_row(row) for row in rows]
 
 
 def _save_owner_accounts(accounts):
@@ -819,8 +961,8 @@ def _save_owner_accounts(accounts):
                 conn.execute(
                     """
                     INSERT INTO owner_accounts (
-                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["email"],
@@ -833,6 +975,10 @@ def _save_owner_accounts(accounts):
                         normalized["property_name"],
                         normalized["number_of_units"],
                         normalized["notes"],
+                        normalized["status"],
+                        normalized["language"],
+                        normalized["last_login_at"],
+                        normalized["internal_notes"],
                     ),
                 )
     except Exception as exc:
@@ -857,7 +1003,7 @@ def _find_owner_account_by_email(email):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
             FROM owner_accounts
             WHERE email = ?
             LIMIT 1
@@ -866,18 +1012,7 @@ def _find_owner_account_by_email(email):
         ).fetchone()
 
     if row:
-        return {
-            "email": str(row["email"]),
-            "id": str(row["id"]),
-            "created_at": str(row["created_at"]),
-            "full_name": str(row["full_name"]),
-            "phone": str(row["phone"]),
-            "property_type": str(row["property_type"]),
-            "city": str(row["city"]),
-            "property_name": str(row["property_name"]),
-            "number_of_units": int(row["number_of_units"] or 0),
-            "notes": str(row["notes"]),
-        }
+        return _owner_account_from_row(row)
     return None
 
 
@@ -891,7 +1026,7 @@ def _find_owner_account(account_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
             FROM owner_accounts
             WHERE id = ?
             ORDER BY created_at DESC
@@ -901,18 +1036,7 @@ def _find_owner_account(account_id):
         ).fetchone()
 
     if row:
-        return {
-            "email": str(row["email"]),
-            "id": str(row["id"]),
-            "created_at": str(row["created_at"]),
-            "full_name": str(row["full_name"]),
-            "phone": str(row["phone"]),
-            "property_type": str(row["property_type"]),
-            "city": str(row["city"]),
-            "property_name": str(row["property_name"]),
-            "number_of_units": int(row["number_of_units"] or 0),
-            "notes": str(row["notes"]),
-        }
+        return _owner_account_from_row(row)
     return None
 
 
@@ -925,6 +1049,19 @@ def _upsert_owner_account(record):
     existing_account = _find_owner_account_by_email(target_email)
     created = not bool(existing_account)
 
+    if existing_account:
+        normalized["id"] = existing_account.get("id", normalized["id"])
+        normalized["created_at"] = existing_account.get("created_at", normalized["created_at"])
+        normalized["status"] = _normalize_owner_status(record.get("status", existing_account.get("status", OWNER_STATUS_DEFAULT)))
+        normalized["language"] = _normalize_owner_language(record.get("language", existing_account.get("language", OWNER_LANGUAGE_DEFAULT))) or existing_account.get("language", OWNER_LANGUAGE_DEFAULT)
+        normalized["last_login_at"] = str(record.get("last_login_at", existing_account.get("last_login_at", ""))).strip()
+        normalized["internal_notes"] = str(record.get("internal_notes", existing_account.get("internal_notes", ""))).strip()
+    else:
+        normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
+        normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
+        normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
+        normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
+
     try:
         with _owner_db_connection() as conn:
             _ensure_owner_db_schema(conn)
@@ -932,17 +1069,22 @@ def _upsert_owner_account(record):
             conn.execute(
                 """
                 INSERT INTO owner_accounts (
-                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(email) DO UPDATE SET
                     id = excluded.id,
+                    created_at = excluded.created_at,
                     full_name = excluded.full_name,
                     phone = excluded.phone,
                     property_type = excluded.property_type,
                     city = excluded.city,
                     property_name = excluded.property_name,
                     number_of_units = excluded.number_of_units,
-                    notes = excluded.notes
+                    notes = excluded.notes,
+                    status = excluded.status,
+                    language = excluded.language,
+                    last_login_at = excluded.last_login_at,
+                    internal_notes = excluded.internal_notes
                 """,
                 (
                     normalized["email"],
@@ -955,6 +1097,10 @@ def _upsert_owner_account(record):
                     normalized["property_name"],
                     normalized["number_of_units"],
                     normalized["notes"],
+                    normalized["status"],
+                    normalized["language"],
+                    normalized["last_login_at"],
+                    normalized["internal_notes"],
                 ),
             )
     except Exception as exc:
@@ -1948,6 +2094,15 @@ def _send_owner_magic_link_and_log(email, login_url, language, source):
     result = _send_owner_magic_link_with_language(email, login_url, language)
     event_name = "sent" if result.get("ok") else "failed"
     _append_owner_magic_email_event(event_name, email, result.get("reason", ""), source, language, result.get("message_id", ""))
+    if result.get("ok") and str(source or "").strip().lower() == "login":
+        owner_account = _find_owner_account_by_email(email)
+        if owner_account:
+            _append_owner_activity_event(
+                owner_account["id"],
+                "magic_link_sent",
+                "Magic link sent",
+                f"Source: {source}; language: {_normalize_owner_language(language) or OWNER_LANGUAGE_DEFAULT}",
+            )
     return result
 
 
@@ -3508,11 +3663,19 @@ def owners_register():
                 "property_name": form_values["property_name"],
                 "number_of_units": int(form_values["number_of_units"]),
                 "notes": form_values["notes"],
+                "language": current_lang,
+                "status": OWNER_STATUS_DEFAULT,
             }
             saved_account = _upsert_owner_account(account)
             if saved_account:
                 app.logger.info("Owner registration received for %s", _mask_email(saved_account["email"]))
                 if not existing_account:
+                    _append_owner_activity_event(
+                        saved_account["id"],
+                        "owner_registered",
+                        "Owner registered",
+                        saved_account.get("full_name", ""),
+                    )
                     _send_owner_registration_notification_email(saved_account, request.url, current_lang)
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
@@ -3522,6 +3685,12 @@ def owners_register():
                 if not send_result.get("ok"):
                     _consume_owner_magic_token(magic_token["token"])
                     return redirect(url_for("owners_login", registered="1", magic_sent="0", delivery="failed", lang=current_lang))
+                _append_owner_activity_event(
+                    saved_account["id"],
+                    "magic_link_sent",
+                    "Magic link sent",
+                    f"Source: register; language: {email_language}",
+                )
                 submitted = True
                 return redirect(url_for("owners_login", registered="1", magic_sent="1", delivery="sent", magic_recipient=_mask_email(saved_account["email"]), lang=current_lang))
 
@@ -3593,6 +3762,17 @@ def owner_magic_login(token):
     session[OWNER_SESSION_ID_KEY] = owner_account.get("id", "")
     session[OWNER_SESSION_EMAIL_KEY] = owner_account.get("email", "")
     session[OWNER_SESSION_NAME_KEY] = owner_account.get("full_name", "")
+    _upsert_owner_account({
+        **owner_account,
+        "language": current_lang,
+        "last_login_at": _utc_now_iso(),
+    })
+    _append_owner_activity_event(
+        owner_account["id"],
+        "magic_link_login",
+        "Magic link login",
+        _owner_login_event_detail("magic link", current_lang),
+    )
     _consume_owner_magic_token(token)
     return redirect(url_for("owners_dashboard", lang=current_lang))
 
@@ -3668,6 +3848,12 @@ def owners_property_new():
             })
             if saved_property:
                 app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
+                _append_owner_activity_event(
+                    owner_account["id"],
+                    "property_added",
+                    "Property added",
+                    f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
+                )
             return redirect(url_for("owners_dashboard", property_added="1", lang=current_lang))
 
     return render_template(
@@ -3804,6 +3990,13 @@ def owners_request_service():
             SERVICE_REQUESTS_JSONL_PATH.parent.mkdir(exist_ok=True)
             with SERVICE_REQUESTS_JSONL_PATH.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
+
+            _append_owner_activity_event(
+                owner_account["id"],
+                "service_request_submitted",
+                "Service request submitted",
+                f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
+            )
 
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_email(
@@ -4273,6 +4466,144 @@ def _admin_auth_response(status_code, message):
     return response
 
 
+def _admin_owner_accounts_query_value(value):
+    return str(value or "").strip().lower()
+
+
+def _admin_owner_account_properties(owner_id):
+    target_owner_id = str(owner_id or "").strip()
+    if not target_owner_id:
+        return []
+    return [
+        property_record
+        for property_record in _load_owner_properties()
+        if str(property_record.get("owner_id", "")).strip() == target_owner_id
+    ]
+
+
+def _admin_owner_account_service_requests(owner_account):
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    if not owner_email and not owner_id:
+        return []
+
+    requests = []
+    for record in _load_service_requests():
+        if str(record.get("request_source", "public")).lower() != "owner":
+            continue
+        record_owner_email = str(record.get("owner_email", "")).strip().lower()
+        record_owner_id = str(record.get("owner_id", "")).strip()
+        if owner_email and record_owner_email == owner_email:
+            requests.append(record)
+            continue
+        if owner_id and record_owner_id == owner_id:
+            requests.append(record)
+    return requests
+
+
+def _admin_owner_account_timeline(owner_account, properties, service_requests, activity_events, magic_events):
+    timeline = []
+    owner_id = str(owner_account.get("id", "")).strip()
+    owner_email = str(owner_account.get("email", "")).strip().lower()
+
+    if owner_account.get("created_at"):
+        timeline.append({
+            "created_at": str(owner_account.get("created_at", "")),
+            "type": "owner_registered",
+            "title": "Owner registered",
+            "detail": owner_account.get("full_name", ""),
+        })
+
+    for event in magic_events:
+        event_name = str(event.get("event", "")).strip().lower()
+        if event_name == "sent":
+            timeline.append({
+                "created_at": str(event.get("timestamp", event.get("created_at", ""))),
+                "type": "magic_link_sent",
+                "title": "Magic link sent",
+                "detail": f"Source: {event.get('source', '')}",
+            })
+        elif event_name == "owner_registration_notification_failed":
+            timeline.append({
+                "created_at": str(event.get("timestamp", event.get("created_at", ""))),
+                "type": "magic_link_send_failed",
+                "title": "Magic link delivery failed",
+                "detail": str(event.get("reason", "")),
+            })
+
+    for event in activity_events:
+        event_type = str(event.get("event_type", "")).strip()
+        detail = str(event.get("detail", "")).strip()
+        if event_type == "magic_link_login":
+            timeline.append({
+                "created_at": str(event.get("created_at", "")),
+                "type": event_type,
+                "title": "Magic link login",
+                "detail": detail,
+            })
+        elif event_type == "property_added":
+            timeline.append({
+                "created_at": str(event.get("created_at", "")),
+                "type": event_type,
+                "title": "Property added",
+                "detail": detail,
+            })
+        elif event_type == "service_request_submitted":
+            timeline.append({
+                "created_at": str(event.get("created_at", "")),
+                "type": event_type,
+                "title": "Service request submitted",
+                "detail": detail,
+            })
+        elif event_type == "note_added":
+            timeline.append({
+                "created_at": str(event.get("created_at", "")),
+                "type": event_type,
+                "title": "Note added",
+                "detail": detail,
+            })
+        elif event_type == "status_changed":
+            timeline.append({
+                "created_at": str(event.get("created_at", "")),
+                "type": event_type,
+                "title": "Status changed",
+                "detail": detail,
+            })
+
+    for property_record in properties:
+        timeline.append({
+            "created_at": str(property_record.get("created_at", "")),
+            "type": "property_added",
+            "title": "Property added",
+            "detail": f"{property_record.get('name', '')} · {property_record.get('location', '')}",
+        })
+
+    for request_record in service_requests:
+        timeline.append({
+            "created_at": str(request_record.get("created_at", "")),
+            "type": "service_request_submitted",
+            "title": "Service request submitted",
+            "detail": f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
+        })
+
+    deduped_timeline = []
+    seen = set()
+    for item in timeline:
+        signature = (
+            str(item.get("created_at", "")),
+            str(item.get("type", "")),
+            str(item.get("title", "")),
+            str(item.get("detail", "")),
+        )
+        if signature in seen:
+            continue
+        seen.add(signature)
+        deduped_timeline.append(item)
+
+    deduped_timeline.sort(key=lambda item: str(item.get("created_at", "")), reverse=True)
+    return deduped_timeline
+
+
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -4308,11 +4639,140 @@ def admin_owner_magic_events():
 @admin_required
 def admin_owner_accounts():
     owner_accounts = _load_owner_accounts()
+    total_owner_accounts = len(owner_accounts)
+    search_query = request.args.get("q", "").strip()
+    requested_status = str(request.args.get("status", "")).strip().upper()
+    status_filter = requested_status if requested_status in OWNER_STATUS_VALUES else ""
+    requested_language = str(request.args.get("language", "")).strip().lower()
+    language_filter = requested_language if requested_language in SUPPORTED_LANGUAGES else ""
+
+    filtered_owner_accounts = []
+    search_tokens = [token for token in search_query.lower().split() if token]
+    for owner_account in owner_accounts:
+        owner_properties = _admin_owner_account_properties(owner_account.get("id", ""))
+        searchable_parts = [
+            owner_account.get("full_name", ""),
+            owner_account.get("email", ""),
+            owner_account.get("city", ""),
+            owner_account.get("property_name", ""),
+            owner_account.get("property_type", ""),
+        ]
+        searchable_parts.extend(property_record.get("location", "") for property_record in owner_properties)
+        searchable_text = " ".join(searchable_parts).lower()
+        if search_tokens and not all(token in searchable_text for token in search_tokens):
+            continue
+        if status_filter and _normalize_owner_status(owner_account.get("status", "")) != status_filter:
+            continue
+        if language_filter and _normalize_owner_language(owner_account.get("language", "")) != language_filter:
+            continue
+        filtered_owner_accounts.append({
+            **owner_account,
+            "property_count": len(owner_properties),
+        })
+
     return render_template(
         "admin_owner_accounts.html",
-        owner_accounts=owner_accounts,
-        owner_accounts_count=len(owner_accounts),
+        owner_accounts=filtered_owner_accounts,
+        owner_accounts_count=len(filtered_owner_accounts),
+        owner_accounts_total_count=total_owner_accounts,
         owner_accounts_path=str(_owner_db_path().resolve()),
+        search_query=search_query,
+        status_filter=status_filter,
+        language_filter=language_filter,
+        owner_status_options=sorted(OWNER_STATUS_VALUES),
+        owner_language_options=sorted(SUPPORTED_LANGUAGES),
+    )
+
+
+@app.route("/admin/owner-accounts/<owner_id>", methods=["GET", "POST"])
+@admin_required
+def admin_owner_account_detail(owner_id):
+    owner_account = _find_owner_account(owner_id)
+    if not owner_account:
+        return Response("Owner account not found.", status=404, mimetype="text/plain")
+
+    properties = _admin_owner_account_properties(owner_account.get("id", ""))
+    service_requests = _admin_owner_account_service_requests(owner_account)
+    activity_events = _load_owner_activity_events(owner_account.get("id", ""))
+    magic_events = [
+        event
+        for event in _load_owner_magic_email_events()
+        if str(event.get("submitted_email", "")).strip().lower() == str(owner_account.get("email", "")).strip().lower()
+    ]
+
+    if request.method == "POST":
+        new_status = _normalize_owner_status(request.form.get("status", owner_account.get("status", OWNER_STATUS_DEFAULT)))
+        new_notes = str(request.form.get("internal_notes", "")).strip()
+        previous_status = _normalize_owner_status(owner_account.get("status", OWNER_STATUS_DEFAULT))
+        previous_notes = str(owner_account.get("internal_notes", "")).strip()
+
+        if new_status != previous_status or new_notes != previous_notes:
+            updated_account = {
+                **owner_account,
+                "status": new_status,
+                "internal_notes": new_notes,
+            }
+            saved_account = _upsert_owner_account(updated_account)
+            if saved_account:
+                if new_status != previous_status:
+                    _append_owner_activity_event(
+                        saved_account["id"],
+                        "status_changed",
+                        "Status changed",
+                        f"{previous_status} -> {new_status}",
+                    )
+                if new_notes != previous_notes and new_notes:
+                    _append_owner_activity_event(
+                        saved_account["id"],
+                        "note_added",
+                        "Note added",
+                        new_notes,
+                    )
+        return redirect(url_for("admin_owner_account_detail", owner_id=owner_id))
+
+    owner_account = _find_owner_account(owner_id) or owner_account
+    property_count = len(properties)
+    owner_service_request_count = len(service_requests)
+    owner_login_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "magic_link_login"
+    ]
+    owner_registration_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "owner_registered"
+    ]
+    owner_property_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "property_added"
+    ]
+    owner_service_request_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "service_request_submitted"
+    ]
+    owner_note_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "note_added"
+    ]
+    owner_status_events = [
+        event for event in activity_events if str(event.get("event_type", "")).strip() == "status_changed"
+    ]
+    timeline = _admin_owner_account_timeline(owner_account, properties, service_requests, activity_events, magic_events)
+
+    activity_counts = {
+        "registrations": len(owner_registration_events) or 1,
+        "magic_link_logins": len(owner_login_events),
+        "property_creations": len(owner_property_events) or property_count,
+        "service_requests": len(owner_service_request_events) or owner_service_request_count,
+    }
+
+    return render_template(
+        "admin_owner_account_detail.html",
+        owner_account=owner_account,
+        properties=properties,
+        property_count=property_count,
+        service_requests=service_requests,
+        activity_counts=activity_counts,
+        timeline=timeline,
+        owner_status_options=sorted(OWNER_STATUS_VALUES),
+        owner_note_events=owner_note_events,
+        owner_status_events=owner_status_events,
+        owner_registration_events=owner_registration_events,
+        owner_login_events=owner_login_events,
     )
 
 
@@ -4330,11 +4790,21 @@ def admin_seed_owner():
         "property_name": "Stella Appart",
         "number_of_units": 1,
         "notes": "Seeded from admin probe.",
+        "language": "bg",
+        "status": OWNER_STATUS_DEFAULT,
     }
     owner_account, created = _seed_owner_account_if_missing(seed_record)
     if not owner_account:
         app.logger.warning("Admin owner seed failed for %s", _mask_email(seed_record["email"]))
         return _admin_auth_response(500, "Failed to seed owner account.")
+
+    if created:
+        _append_owner_activity_event(
+            owner_account["id"],
+            "owner_registered",
+            "Owner registered",
+            owner_account.get("full_name", ""),
+        )
 
     app.logger.info("Admin owner seed completed for %s (created=%s)", _mask_email(seed_record["email"]), created)
     return redirect(url_for("admin_owner_accounts", seeded="1"))

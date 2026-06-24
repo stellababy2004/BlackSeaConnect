@@ -282,8 +282,8 @@ class OwnerPortalTests(unittest.TestCase):
             "contact_phone": "+359888333444",
         }
 
-    def _seed_owner_account(self, email="owner@blackseaconnect.com"):
-        self._seed_jsonl("owner_accounts.jsonl", [{
+    def _seed_owner_account(self, email="owner@blackseaconnect.com", **overrides):
+        record = {
             "id": "owner-1",
             "created_at": "2026-06-15T10:00:00Z",
             "full_name": "Elena Petrova",
@@ -294,7 +294,13 @@ class OwnerPortalTests(unittest.TestCase):
             "property_name": "Sea View Villa",
             "number_of_units": 2,
             "notes": "",
-        }])
+            "status": "PILOT",
+            "language": "bg",
+            "last_login_at": "",
+            "internal_notes": "",
+        }
+        record.update(overrides)
+        self._seed_jsonl("owner_accounts.jsonl", [record])
 
     def test_owner_registration_creates_account_and_sends_magic_flow(self):
         smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
@@ -818,10 +824,13 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Count: 1", html)
+        self.assertIn("Owner CRM", html)
+        self.assertIn("<strong>1</strong> filtered", html)
         self.assertIn("stoyanova@orange.fr", html)
         self.assertIn("2026-06-15T10:00:00Z", html)
-        self.assertIn("Seed Stella Account", html)
+        self.assertIn("Open profile", html)
+        self.assertIn("PILOT", html)
+        self.assertIn("BG", html)
 
     def test_admin_seed_owner_creates_account_and_enables_login_delivery_sent(self):
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app._send_owner_registration_notification_email") as notify_mock:
@@ -836,7 +845,8 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(accounts_response.status_code, 200)
         html = accounts_response.get_data(as_text=True)
-        self.assertIn("Count: 1", html)
+        self.assertIn("Owner CRM", html)
+        self.assertIn("<strong>1</strong> filtered", html)
         self.assertIn("stoyanova@orange.fr", html)
         self.assertIn("Owner account seeded successfully.", html)
 
@@ -866,8 +876,100 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Count: 1", html)
-        self.assertEqual(html.count("stoyanova@orange.fr"), 1)
+        self.assertIn("<strong>1</strong> filtered", html)
+        self.assertIn("stoyanova@orange.fr", html)
+
+    def test_admin_owner_accounts_support_search_and_filters(self):
+        self._seed_jsonl("owner_accounts.jsonl", [
+            {
+                "id": "owner-a",
+                "created_at": "2026-06-10T10:00:00Z",
+                "full_name": "Elena Petrova",
+                "email": "elena@example.com",
+                "phone": "+359888111222",
+                "property_type": "Villa",
+                "city": "Varna",
+                "property_name": "Sea View Villa",
+                "number_of_units": 2,
+                "notes": "",
+                "status": "ACTIVE",
+                "language": "en",
+                "last_login_at": "2026-06-20T09:15:00Z",
+                "internal_notes": "",
+            },
+            {
+                "id": "owner-b",
+                "created_at": "2026-06-11T10:00:00Z",
+                "full_name": "Maya Ivanova",
+                "email": "maya@example.com",
+                "phone": "+359888333444",
+                "property_type": "Apartment",
+                "city": "Burgas",
+                "property_name": "Harbor Apartment",
+                "number_of_units": 1,
+                "notes": "",
+                "status": "INACTIVE",
+                "language": "bg",
+                "last_login_at": "",
+                "internal_notes": "",
+            },
+        ])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin/owner-accounts?q=Varna&status=active&language=en", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("<strong>1</strong> filtered", html)
+        self.assertIn("<strong>2</strong> total", html)
+        self.assertIn("elena@example.com", html)
+        self.assertNotIn("maya@example.com", html)
+
+    def test_admin_owner_account_detail_shows_timeline_and_persists_notes_and_status(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request(owner_id="owner-1", owner_email="owner@example.com")])
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data={"email": "owner@example.com"})
+
+        token = self._read_jsonl("owner_magic_tokens.jsonl")[-1]["token"]
+        self.client.get(f"/auth/owner-magic/{token}")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin/owner-accounts/owner-1", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Owner profile", html)
+        self.assertIn("Magic link sent", html)
+        self.assertIn("Magic link login", html)
+        self.assertIn("Property added", html)
+        self.assertIn("Service request submitted", html)
+        self.assertIn("Sea View Villa", html)
+        self.assertIn("Account activity summary", html)
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            update_response = self.client.post(
+                "/admin/owner-accounts/owner-1",
+                data={
+                    "status": "active",
+                    "internal_notes": "Prefers SMS follow-up.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(update_response.status_code, 302)
+        self.assertIn("/admin/owner-accounts/owner-1", update_response.headers["Location"])
+
+        account_row = self._read_owner_db_rows("owner_accounts")[0]
+        self.assertEqual(account_row["status"], "ACTIVE")
+        self.assertEqual(account_row["internal_notes"], "Prefers SMS follow-up.")
+        self.assertTrue(account_row["last_login_at"])
+
+        activity_rows = self._read_owner_db_rows("owner_activity_events")
+        self.assertTrue(any(row["event_type"] == "status_changed" for row in activity_rows))
+        self.assertTrue(any(row["event_type"] == "note_added" for row in activity_rows))
 
     def test_jsonl_migration_imports_old_records_idempotently(self):
         self._seed_jsonl("owner_accounts.jsonl", [{
