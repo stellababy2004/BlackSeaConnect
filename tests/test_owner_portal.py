@@ -79,6 +79,36 @@ class ImmediateThread:
             self.target(*self.args, **self.kwargs)
 
 
+class FakeUrlopenResponse:
+    def __init__(self, status=200, body=b'{"ok": true}'):
+        self.status = status
+        self._body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def read(self):
+        return self._body
+
+    def getcode(self):
+        return self.status
+
+
+def fake_urlopen(request, timeout=None):
+    FakeUrlopenResponse.calls.append({
+        "url": getattr(request, "full_url", str(request)),
+        "data": getattr(request, "data", b""),
+        "timeout": timeout,
+    })
+    return FakeUrlopenResponse()
+
+
+FakeUrlopenResponse.calls = []
+
+
 class OwnerPortalTests(unittest.TestCase):
     ADMIN_ENV = {
         "ADMIN_USERNAME": "admin",
@@ -110,6 +140,7 @@ class OwnerPortalTests(unittest.TestCase):
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
         FakeSMTP.sent_messages.clear()
+        FakeUrlopenResponse.calls.clear()
 
     def _auth_headers(self):
         token = base64.b64encode(f"{self.ADMIN_ENV['ADMIN_USERNAME']}:{self.ADMIN_ENV['ADMIN_PASSWORD']}".encode("utf-8")).decode("ascii")
@@ -332,9 +363,10 @@ class OwnerPortalTests(unittest.TestCase):
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0]["email"], "owner@example.com")
-        self.assertEqual(len(FakeSMTP.sent_messages), 2)
+        self.assertEqual(len(FakeSMTP.sent_messages), 3)
         admin_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "[BlackSea Owners] New owner registration")
         owner_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "BlackSea Connect — Вход в портала за собственици")
+        operations_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "[BlackSeaConnect] Operations task notification")
 
         self.assertEqual(admin_message["From"], "BlackSea Connect <concierge@blackseaconnect.com>")
         self.assertEqual(admin_message["To"], "ops@example.com")
@@ -348,6 +380,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Language: bg", admin_message.get_content())
         self.assertIn("Created at:", admin_message.get_content())
         self.assertIn("Source URL: http://localhost/owners/register", admin_message.get_content())
+        self.assertIn("Task title: Elena Petrova", operations_message.get_content())
 
         self.assertIn("BlackSea Connect Owner Portal", owner_message["From"])
         self.assertIn("concierge@blackseaconnect.com", owner_message["From"])
@@ -872,14 +905,16 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(all(event["account_found"] is None for event in events))
 
     def test_owner_registration_notification_failure_does_not_block_magic_link(self):
-        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app._send_owner_registration_notification_email", return_value={"ok": False, "reason": "smtp_send_failed"}), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+        smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app._send_owner_registration_notification_email", return_value={"ok": False, "reason": "smtp_send_failed"}), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/owners/register", data=self._owner_payload())
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
         self.assertIn("delivery=sent", response.headers["Location"])
-        self.assertEqual(len(FakeSMTP.sent_messages), 1)
-        self.assertEqual(FakeSMTP.sent_messages[0]["Subject"], "BlackSea Connect — Вход в портала за собственици")
+        self.assertEqual(len(FakeSMTP.sent_messages), 2)
+        self.assertTrue(any(message["Subject"] == "BlackSea Connect — Вход в портала за собственици" for message in FakeSMTP.sent_messages))
+        self.assertTrue(any(message["Subject"] == "[BlackSeaConnect] Operations task notification" for message in FakeSMTP.sent_messages))
 
     def test_owner_registration_validation_errors_do_not_send_admin_notification(self):
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app._send_owner_registration_notification_email") as notify_mock, patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
@@ -1276,8 +1311,13 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
 
     def test_operations_tasks_are_created_for_public_intakes(self):
-        smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
-        with patch.dict(os.environ, smtp_env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+        smtp_env = {
+            **self.SMTP_ENV,
+            "ADMIN_NOTIFICATION_EMAIL": "ops@example.com",
+            "TELEGRAM_BOT_TOKEN": "bot-token",
+            "TELEGRAM_CHAT_ID": "chat-1",
+        }
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP), patch("app.urllib.request.urlopen", fake_urlopen):
             pilot_response = self.client.post(
                 "/api/pilot-request",
                 json={
@@ -1373,6 +1413,129 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("OWNER_REGISTRATION", source_types)
         self.assertTrue(all(row["status"] == "NEW" for row in tasks))
         self.assertTrue(all(row["priority"] == "NORMAL" for row in tasks))
+
+        notifications = self._read_owner_db_rows("operations_notifications")
+        task_notifications = [row for row in notifications if row["metadata"] == "task_created"]
+        self.assertGreaterEqual(len(task_notifications), 10)
+        self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "EMAIL" for row in task_notifications))
+        self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "TELEGRAM" for row in task_notifications))
+
+    def test_owner_service_request_creates_notification_records(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data={"email": "owner@example.com"})
+
+        token = self._read_jsonl("owner_magic_tokens.jsonl")[-1]["token"]
+        self.client.get(f"/auth/owner-magic/{token}")
+
+        with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com", "TELEGRAM_BOT_TOKEN": "bot-token", "TELEGRAM_CHAT_ID": "chat-1"}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP), patch("app.urllib.request.urlopen", fake_urlopen):
+            response = self.client.post("/owners/request-service", data={**self._service_request_payload(), "property_id": "property-1"})
+
+        self.assertEqual(response.status_code, 302)
+        notifications = self._read_owner_db_rows("operations_notifications")
+        owner_notifications = [row for row in notifications if row["source_type"] == "OWNER_SERVICE_REQUEST"]
+        self.assertTrue(owner_notifications)
+        self.assertTrue(any(row["channel"] == "EMAIL" and row["event_type"] == "notification_sent" for row in owner_notifications))
+        self.assertTrue(any(row["channel"] == "TELEGRAM" and row["event_type"] == "notification_sent" for row in owner_notifications))
+
+    def test_admin_notifications_page_runs_overdue_scan_and_persists_report(self):
+        overdue_due_date = (app_module.datetime.now(app_module.timezone.utc) - app_module.timedelta(days=2)).isoformat(timespec="seconds").replace("+00:00", "Z")
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com", "TELEGRAM_BOT_TOKEN": "bot-token", "TELEGRAM_CHAT_ID": "chat-1"}, clear=True):
+            app_module._set_operations_notification_preferences("admin", operator_name="admin", email_enabled=True, telegram_enabled=True)
+            app_module._upsert_operations_task_from_source(
+                {
+                    "id": "overdue-1",
+                    "request_id": "overdue-1",
+                    "source_type": "PILOT_REQUEST",
+                    "source_id": "overdue-1",
+                    "created_at": "2026-06-20T10:00:00Z",
+                    "updated_at": "2026-06-20T10:00:00Z",
+                    "title": "Overdue pilot request",
+                    "category": "LEAD",
+                    "owner_name": "Pilot Lead",
+                    "owner_email": "pilot@example.com",
+                    "property_name": "Sea View Villa",
+                    "assigned_to": "Mira Ivanova",
+                    "priority": "HIGH",
+                    "status": "ASSIGNED",
+                    "due_date": overdue_due_date,
+                    "notes": "Follow up.",
+                    "completed_at": "",
+                    "owner_id": "",
+                    "property_location": "Varna",
+                    "admin_notes": "",
+                    "request_status": "new",
+                    "timeline_detail": "Pilot request overdue",
+                },
+                append_created_event=True,
+                force_create=True,
+                notify=False,
+            )
+            app_module._upsert_operations_task_from_source(
+                {
+                    "id": "overdue-2",
+                    "request_id": "overdue-2",
+                    "source_type": "PARTNER_APPLICATION",
+                    "source_id": "overdue-2",
+                    "created_at": "2026-06-20T11:00:00Z",
+                    "updated_at": "2026-06-20T11:00:00Z",
+                    "title": "Overdue partner application",
+                    "category": "PARTNER",
+                    "owner_name": "Marta Ivanova",
+                    "owner_email": "partner@example.com",
+                    "property_name": "Sea Breeze Partners",
+                    "assigned_to": "",
+                    "priority": "URGENT",
+                    "status": "NEW",
+                    "due_date": overdue_due_date,
+                    "notes": "Needs review.",
+                    "completed_at": "",
+                    "owner_id": "",
+                    "property_location": "Varna",
+                    "admin_notes": "",
+                    "request_status": "new",
+                    "timeline_detail": "Partner application overdue",
+                },
+                append_created_event=True,
+                force_create=True,
+                notify=False,
+            )
+
+        FakeSMTP.sent_messages.clear()
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com", "TELEGRAM_BOT_TOKEN": "bot-token", "TELEGRAM_CHAT_ID": "chat-1"}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP), patch("app.urllib.request.urlopen", fake_urlopen):
+            response = self.client.get("/admin/notifications", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Operations Notification Center", html)
+        self.assertIn("Overdue alerts", html)
+        self.assertIn("Failed notifications", html)
+        self.assertIn("Save preferences", html)
+        self.assertGreaterEqual(len(FakeSMTP.sent_messages), 1)
+        self.assertTrue(any("Daily overdue tasks report" in message["Subject"] for message in FakeSMTP.sent_messages))
+        self.assertGreaterEqual(len(FakeUrlopenResponse.calls), 1)
+
+        notifications = self._read_owner_db_rows("operations_notifications")
+        self.assertTrue(any(row["event_type"] == "overdue_detected" and row["task_id"] == "overdue-1" for row in notifications))
+        self.assertTrue(any(row["event_type"] == "overdue_detected" and row["task_id"] == "overdue-2" for row in notifications))
+        report_rows = [row for row in notifications if row["source_id"] == "daily-overdue-report"]
+        self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "EMAIL" for row in report_rows))
+        self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "TELEGRAM" for row in report_rows))
+        self.assertTrue(any("open_overdue_tasks" in row["metadata"] for row in report_rows))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            preference_response = self.client.post(
+                "/admin/notifications",
+                data={},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(preference_response.status_code, 302)
+        preferences = self._read_owner_db_rows("operations_notification_preferences")
+        self.assertEqual(preferences[0]["email_enabled"], 0)
+        self.assertEqual(preferences[0]["telegram_enabled"], 0)
 
     def test_jsonl_migration_imports_old_records_idempotently(self):
         self._seed_jsonl("owner_accounts.jsonl", [{

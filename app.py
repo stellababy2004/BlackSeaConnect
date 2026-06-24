@@ -48,6 +48,7 @@ PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
 PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
 _OWNER_DB_SCHEMA_INITIALIZING = False
+_OWNER_DB_BACKFILL_SUPPRESSED = False
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -242,6 +243,20 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "status_changed",
     "completed",
     "note_added",
+}
+
+OPERATIONS_NOTIFICATION_EVENT_VALUES = {
+    "notification_sent",
+    "notification_failed",
+    "overdue_detected",
+    "daily_overdue_report_sent",
+    "daily_overdue_report_failed",
+}
+
+OPERATIONS_NOTIFICATION_CHANNEL_VALUES = {
+    "EMAIL",
+    "TELEGRAM",
+    "SYSTEM",
 }
 
 OPERATIONS_TASK_SOURCE_TYPES = (
@@ -784,6 +799,42 @@ def _ensure_operations_task_schema(conn):
         )
         """
     )
+    _ensure_operations_notification_schema(conn)
+
+
+def _ensure_operations_notification_schema(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS operations_notifications (
+            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT '',
+            title TEXT NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            task_id TEXT NOT NULL DEFAULT '',
+            source_type TEXT NOT NULL DEFAULT '',
+            source_id TEXT NOT NULL DEFAULT '',
+            channel TEXT NOT NULL DEFAULT '',
+            recipient TEXT NOT NULL DEFAULT '',
+            operator_key TEXT NOT NULL DEFAULT '',
+            metadata TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS operations_notification_preferences (
+            operator_key TEXT PRIMARY KEY,
+            operator_name TEXT NOT NULL DEFAULT '',
+            email_enabled INTEGER NOT NULL DEFAULT 1,
+            telegram_enabled INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
 
 
 def _seed_owner_property_activity_backfill(conn):
@@ -846,6 +897,9 @@ def _seed_owner_property_activity_backfill(conn):
 
 
 def _seed_operations_task_backfill(conn):
+    if _OWNER_DB_BACKFILL_SUPPRESSED:
+        return
+
     existing_task_keys = {
         (str(row["source_type"]).strip(), str(row["source_id"]).strip())
         for row in conn.execute("SELECT source_type, source_id FROM operations_tasks").fetchall()
@@ -1511,7 +1565,656 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
     return event
 
 
-def _upsert_operations_task(task_payload, *, append_created_event=False, status_override=None, note_event=False):
+def _operations_notification_from_row(row):
+    if row is None:
+        return None
+
+    return {
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "updated_at": str(row["updated_at"]),
+        "event_type": str(row["event_type"]),
+        "status": str(row["status"]),
+        "title": str(row["title"]),
+        "detail": str(row["detail"]),
+        "task_id": str(row["task_id"]),
+        "source_type": str(row["source_type"]),
+        "source_id": str(row["source_id"]),
+        "channel": str(row["channel"]),
+        "recipient": str(row["recipient"]),
+        "operator_key": str(row["operator_key"]),
+        "metadata": str(row["metadata"]),
+    }
+
+
+def _load_operations_notifications(limit=100, event_type=None, status=None):
+    query = """
+        SELECT id, created_at, updated_at, event_type, status, title, detail, task_id, source_type, source_id, channel, recipient, operator_key, metadata
+        FROM operations_notifications
+    """
+    params = []
+    clauses = []
+    if event_type:
+        clauses.append("event_type = ?")
+        params.append(str(event_type).strip())
+    if status:
+        clauses.append("status = ?")
+        params.append(str(status).strip())
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+    query += " ORDER BY created_at DESC, sequence DESC"
+    if limit is not None:
+        query += " LIMIT ?"
+        params.append(int(limit))
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(query, params).fetchall()
+
+    return [_operations_notification_from_row(row) for row in rows]
+
+
+def _current_admin_operator_key():
+    auth = getattr(request, "authorization", None)
+    username = str(getattr(auth, "username", "") or "").strip()
+    if username:
+        return username
+    return str(os.getenv("ADMIN_USERNAME", "")).strip() or "admin"
+
+
+def _normalize_operations_notification_flag(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on", "enabled"}
+
+
+def _operations_notification_preference_from_row(row):
+    if row is None:
+        return None
+
+    return {
+        "operator_key": str(row["operator_key"]),
+        "operator_name": str(row["operator_name"]),
+        "email_enabled": bool(int(row["email_enabled"] or 0)),
+        "telegram_enabled": bool(int(row["telegram_enabled"] or 0)),
+        "updated_at": str(row["updated_at"]),
+    }
+
+
+def _load_operations_notification_preferences(operator_key=None, create_default=False):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        query = """
+            SELECT operator_key, operator_name, email_enabled, telegram_enabled, updated_at
+            FROM operations_notification_preferences
+        """
+        params = []
+        target_operator_key = str(operator_key or "").strip()
+        if target_operator_key:
+            query += " WHERE operator_key = ?"
+            params.append(target_operator_key)
+        query += " ORDER BY operator_key ASC"
+        rows = conn.execute(query, params).fetchall()
+        if not rows and create_default:
+            default_operator_key = target_operator_key or str(os.getenv("ADMIN_USERNAME", "")).strip() or "admin"
+            default_operator_name = default_operator_key
+            updated_at = _utc_now_iso()
+            conn.execute(
+                """
+                INSERT INTO operations_notification_preferences (
+                    operator_key, operator_name, email_enabled, telegram_enabled, updated_at
+                ) VALUES (?, ?, 1, 1, ?)
+                ON CONFLICT(operator_key) DO UPDATE SET
+                    operator_name = excluded.operator_name,
+                    email_enabled = excluded.email_enabled,
+                    telegram_enabled = excluded.telegram_enabled,
+                    updated_at = excluded.updated_at
+                """,
+                (default_operator_key, default_operator_name, updated_at),
+            )
+            rows = conn.execute(query, params).fetchall()
+
+    preferences = [_operations_notification_preference_from_row(row) for row in rows]
+    if preferences:
+        return preferences
+
+    fallback_key = str(operator_key or "").strip() or str(os.getenv("ADMIN_USERNAME", "")).strip() or "admin"
+    return [{
+        "operator_key": fallback_key,
+        "operator_name": fallback_key,
+        "email_enabled": True,
+        "telegram_enabled": True,
+        "updated_at": _utc_now_iso(),
+    }]
+
+
+def _set_operations_notification_preferences(operator_key, *, operator_name=None, email_enabled=True, telegram_enabled=True):
+    target_operator_key = str(operator_key or "").strip()
+    if not target_operator_key:
+        return None
+
+    updated_at = _utc_now_iso()
+    target_operator_name = str(operator_name or "").strip() or target_operator_key
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        conn.execute(
+            """
+            INSERT INTO operations_notification_preferences (
+                operator_key, operator_name, email_enabled, telegram_enabled, updated_at
+            ) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(operator_key) DO UPDATE SET
+                operator_name = excluded.operator_name,
+                email_enabled = excluded.email_enabled,
+                telegram_enabled = excluded.telegram_enabled,
+                updated_at = excluded.updated_at
+            """,
+            (
+                target_operator_key,
+                target_operator_name,
+                1 if email_enabled else 0,
+                1 if telegram_enabled else 0,
+                updated_at,
+            ),
+        )
+
+    return _load_operations_notification_preferences(target_operator_key, create_default=True)[0]
+
+
+def _append_operations_notification(event_type, title, detail="", *, task_id="", source_type="", source_id="", status="", channel="", recipient="", operator_key="", metadata=""):
+    normalized_event_type = str(event_type or "").strip()
+    normalized_title = str(title or "").strip()
+    if not normalized_event_type or not normalized_title:
+        return None
+
+    created_at = _utc_now_iso()
+    notification = {
+        "id": uuid4().hex,
+        "created_at": created_at,
+        "updated_at": created_at,
+        "event_type": normalized_event_type,
+        "status": str(status or "").strip(),
+        "title": normalized_title,
+        "detail": str(detail or "").strip(),
+        "task_id": str(task_id or "").strip(),
+        "source_type": str(source_type or "").strip(),
+        "source_id": str(source_id or "").strip(),
+        "channel": str(channel or "").strip(),
+        "recipient": str(recipient or "").strip(),
+        "operator_key": str(operator_key or "").strip(),
+        "metadata": str(metadata or "").strip(),
+    }
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO operations_notifications (
+                    id, created_at, updated_at, event_type, status, title, detail, task_id, source_type,
+                    source_id, channel, recipient, operator_key, metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    notification["id"],
+                    notification["created_at"],
+                    notification["updated_at"],
+                    notification["event_type"],
+                    notification["status"],
+                    notification["title"],
+                    notification["detail"],
+                    notification["task_id"],
+                    notification["source_type"],
+                    notification["source_id"],
+                    notification["channel"],
+                    notification["recipient"],
+                    notification["operator_key"],
+                    notification["metadata"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Operations notification append failed for %s: %s", normalized_event_type, type(exc).__name__)
+        return None
+
+    return notification
+
+
+def _build_operations_notification_summary(task_record):
+    created_at = _format_owner_portal_timestamp(task_record.get("created_at", "")) or str(task_record.get("created_at", "")).strip()
+    return {
+        "title": str(task_record.get("title", "")).strip() or "Operations task",
+        "category": str(task_record.get("category", "")).strip() or "n/a",
+        "owner": str(task_record.get("owner_name", "")).strip() or str(task_record.get("owner_email", "")).strip() or "n/a",
+        "property": str(task_record.get("property_name", "")).strip() or str(task_record.get("property_location", "")).strip() or "n/a",
+        "created_at": created_at,
+    }
+
+
+def _build_operations_notification_body(task_record, admin_detail_url):
+    summary = _build_operations_notification_summary(task_record)
+    lines = [
+        f"Task title: {summary['title']}",
+        f"Category: {summary['category']}",
+        f"Owner: {summary['owner']}",
+        f"Property: {summary['property']}",
+        f"Created date: {summary['created_at']}",
+        f"Admin URL: {admin_detail_url}",
+    ]
+    return "\n".join(lines)
+
+
+def _build_operations_notification_telegram_text(task_record, admin_detail_url):
+    summary = _build_operations_notification_summary(task_record)
+    return "\n".join([
+        "Operations task created",
+        f"Task title: {summary['title']}",
+        f"Category: {summary['category']}",
+        f"Owner: {summary['owner']}",
+        f"Property: {summary['property']}",
+        f"Created date: {summary['created_at']}",
+        f"Admin URL: {admin_detail_url}",
+    ])
+
+
+def _send_operations_notification_via_email(task_record, admin_detail_url, recipient_email):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", "").strip()
+
+    if not smtp_host or not smtp_port_raw or not smtp_from or not recipient_email:
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        return False, "smtp_invalid_port"
+
+    message = EmailMessage()
+    message["Subject"] = "[BlackSeaConnect] Operations task notification"
+    message["From"] = smtp_from
+    message["To"] = recipient_email
+    message.set_content(_build_operations_notification_body(task_record, admin_detail_url))
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as client:
+            client.ehlo()
+            try:
+                client.starttls()
+                client.ehlo()
+            except smtplib.SMTPException:
+                pass
+            if smtp_username and smtp_password:
+                client.login(smtp_username, smtp_password)
+            client.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Operations notification email send failed: %s", type(exc).__name__)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+def _send_operations_notification_via_telegram(task_record, admin_detail_url, telegram_bot_token, telegram_chat_id):
+    telegram_text = _build_operations_notification_telegram_text(task_record, admin_detail_url)
+    telegram_url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": telegram_text,
+        "disable_web_page_preview": "true",
+    }
+    data = urllib.parse.urlencode(payload).encode("utf-8")
+    request_obj = urllib.request.Request(telegram_url, data=data, method="POST")
+    request_obj.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+    try:
+        with urllib.request.urlopen(request_obj, timeout=15) as response:
+            response_status = getattr(response, "status", response.getcode())
+            if response_status and 200 <= int(response_status) < 300:
+                return True, None
+            app.logger.warning("Operations notification send failed via Telegram: unexpected status %s.", response_status)
+            return False, "telegram_bad_status"
+    except Exception as exc:
+        app.logger.warning("Operations notification send failed via Telegram: %s", type(exc).__name__)
+        return False, "telegram_send_failed"
+
+
+def _dispatch_operations_notification(task_record, admin_detail_url, notification_type="task_created"):
+    if not task_record:
+        return False, []
+
+    admin_email = os.getenv("ADMIN_NOTIFICATION_EMAIL", "").strip()
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    preferences = _load_operations_notification_preferences(create_default=True)
+    operator_key = preferences[0]["operator_key"] if preferences else _current_admin_operator_key()
+    channels = {
+        "EMAIL": any(pref.get("email_enabled") for pref in preferences),
+        "TELEGRAM": any(pref.get("telegram_enabled") for pref in preferences),
+    }
+    results = []
+    any_success = False
+
+    if not admin_email:
+        return False, results
+
+    admin_detail_url = str(admin_detail_url or "").strip()
+
+    if channels["EMAIL"] and admin_email:
+        email_ok, email_reason = _send_operations_notification_via_email(task_record, admin_detail_url, admin_email)
+        results.append(("EMAIL", email_ok, email_reason))
+        notification = _append_operations_notification(
+            "notification_sent" if email_ok else "notification_failed",
+            "Task notification email sent" if email_ok else "Task notification email failed",
+            _build_operations_notification_body(task_record, admin_detail_url),
+            task_id=task_record.get("id", ""),
+            source_type=task_record.get("source_type", ""),
+            source_id=task_record.get("source_id", ""),
+            status="sent" if email_ok else "failed",
+            channel="EMAIL",
+            recipient=admin_email,
+            operator_key=operator_key,
+            metadata=notification_type,
+        )
+        if notification:
+            _append_operations_task_event(
+                task_record.get("id", ""),
+                "notification_sent" if email_ok else "notification_failed",
+                "Notification sent" if email_ok else "Notification failed",
+                f"EMAIL · {notification['title']}" if email_ok else f"EMAIL · {email_reason or 'smtp_send_failed'}",
+                status=task_record.get("status", "NEW"),
+            )
+        any_success = any_success or email_ok
+    elif channels["EMAIL"]:
+        results.append(("EMAIL", False, "email_not_configured"))
+        _append_operations_notification(
+            "notification_failed",
+            "Task notification email failed",
+            _build_operations_notification_body(task_record, admin_detail_url),
+            task_id=task_record.get("id", ""),
+            source_type=task_record.get("source_type", ""),
+            source_id=task_record.get("source_id", ""),
+            status="failed",
+            channel="EMAIL",
+            recipient=admin_email,
+            operator_key=operator_key,
+            metadata=notification_type,
+        )
+        _append_operations_task_event(
+            task_record.get("id", ""),
+            "notification_failed",
+            "Notification failed",
+            "EMAIL · smtp_not_configured",
+            status=task_record.get("status", "NEW"),
+        )
+
+    if channels["TELEGRAM"] and telegram_bot_token and telegram_chat_id:
+        telegram_ok, telegram_reason = _send_operations_notification_via_telegram(
+            task_record,
+            admin_detail_url,
+            telegram_bot_token,
+            telegram_chat_id,
+        )
+        results.append(("TELEGRAM", telegram_ok, telegram_reason))
+        notification = _append_operations_notification(
+            "notification_sent" if telegram_ok else "notification_failed",
+            "Task notification telegram sent" if telegram_ok else "Task notification telegram failed",
+            _build_operations_notification_body(task_record, admin_detail_url),
+            task_id=task_record.get("id", ""),
+            source_type=task_record.get("source_type", ""),
+            source_id=task_record.get("source_id", ""),
+            status="sent" if telegram_ok else "failed",
+            channel="TELEGRAM",
+            recipient=telegram_chat_id,
+            operator_key=operator_key,
+            metadata=notification_type,
+        )
+        if notification:
+            _append_operations_task_event(
+                task_record.get("id", ""),
+                "notification_sent" if telegram_ok else "notification_failed",
+                "Notification sent" if telegram_ok else "Notification failed",
+                f"TELEGRAM · {notification['title']}" if telegram_ok else f"TELEGRAM · {telegram_reason or 'telegram_send_failed'}",
+                status=task_record.get("status", "NEW"),
+            )
+        any_success = any_success or telegram_ok
+    elif channels["TELEGRAM"]:
+        results.append(("TELEGRAM", False, "telegram_not_configured"))
+        _append_operations_notification(
+            "notification_failed",
+            "Task notification telegram failed",
+            _build_operations_notification_body(task_record, admin_detail_url),
+            task_id=task_record.get("id", ""),
+            source_type=task_record.get("source_type", ""),
+            source_id=task_record.get("source_id", ""),
+            status="failed",
+            channel="TELEGRAM",
+            recipient=telegram_chat_id,
+            operator_key=operator_key,
+            metadata=notification_type,
+        )
+        _append_operations_task_event(
+            task_record.get("id", ""),
+            "notification_failed",
+            "Notification failed",
+            "TELEGRAM · telegram_not_configured",
+            status=task_record.get("status", "NEW"),
+        )
+
+    return any_success, results
+
+
+def _operations_overdue_scan_meta_key():
+    return "operations_notifications_overdue_scan_date"
+
+
+def _build_operations_overdue_report(overdue_tasks):
+    open_overdue_tasks = len(overdue_tasks)
+    assigned_overdue_tasks = sum(1 for task in overdue_tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ASSIGNED")
+    high_priority_overdue_tasks = sum(1 for task in overdue_tasks if _normalize_operations_task_priority(task.get("priority", "NORMAL")) in {"HIGH", "URGENT"})
+    return {
+        "open_overdue_tasks": open_overdue_tasks,
+        "assigned_overdue_tasks": assigned_overdue_tasks,
+        "high_priority_overdue_tasks": high_priority_overdue_tasks,
+        "total_overdue_tasks": open_overdue_tasks,
+    }
+
+
+def _send_operations_overdue_report(report, admin_detail_url):
+    summary_lines = [
+        "Daily overdue tasks report",
+        f"Open overdue tasks: {report['open_overdue_tasks']}",
+        f"Assigned overdue tasks: {report['assigned_overdue_tasks']}",
+        f"High priority overdue tasks: {report['high_priority_overdue_tasks']}",
+        f"Admin URL: {admin_detail_url}",
+    ]
+    summary_body = "\n".join(summary_lines)
+    telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    admin_email = os.getenv("ADMIN_NOTIFICATION_EMAIL", "").strip()
+    preferences = _load_operations_notification_preferences(create_default=True)
+    operator_key = preferences[0]["operator_key"] if preferences else _current_admin_operator_key()
+
+    results = []
+    any_success = False
+
+    if not admin_email:
+        return False, results, summary_body
+
+    if any(pref.get("email_enabled") for pref in preferences) and admin_email:
+        email_ok = False
+        email_reason = "smtp_send_failed"
+        smtp_host = os.getenv("SMTP_HOST", "").strip()
+        smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+        smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+        smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+        smtp_from = os.getenv("SMTP_FROM", "").strip()
+        if smtp_host and smtp_port_raw and smtp_from:
+            try:
+                smtp_port = int(smtp_port_raw)
+            except ValueError:
+                smtp_reason = "smtp_invalid_port"
+                smtp_port = None
+            else:
+                smtp_reason = ""
+
+            if smtp_port is not None:
+                message = EmailMessage()
+                message["Subject"] = "[BlackSeaConnect] Daily overdue tasks report"
+                message["From"] = smtp_from
+                message["To"] = admin_email
+                message.set_content(summary_body)
+                try:
+                    with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as client:
+                        client.ehlo()
+                        try:
+                            client.starttls()
+                            client.ehlo()
+                        except smtplib.SMTPException:
+                            pass
+                        if smtp_username and smtp_password:
+                            client.login(smtp_username, smtp_password)
+                        client.send_message(message)
+                    email_ok = True
+                    email_reason = None
+                except Exception as exc:
+                    app.logger.warning("Operations overdue report email send failed: %s", type(exc).__name__)
+                    email_reason = "smtp_send_failed"
+            else:
+                email_reason = smtp_reason
+        else:
+            email_reason = "smtp_not_configured"
+
+        results.append(("EMAIL", email_ok, email_reason))
+        _append_operations_notification(
+            "notification_sent" if email_ok else "notification_failed",
+            "Daily overdue report sent" if email_ok else "Daily overdue report failed",
+            summary_body,
+            source_type="SYSTEM",
+            source_id="daily-overdue-report",
+            status="sent" if email_ok else "failed",
+            channel="EMAIL",
+            recipient=admin_email,
+            operator_key=operator_key,
+            metadata=json.dumps(report, ensure_ascii=False),
+        )
+        any_success = any_success or email_ok
+    elif any(pref.get("email_enabled") for pref in preferences):
+        results.append(("EMAIL", False, "email_not_configured"))
+
+    if any(pref.get("telegram_enabled") for pref in preferences) and telegram_bot_token and telegram_chat_id:
+        telegram_text = summary_body
+        telegram_url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
+        payload = {
+            "chat_id": telegram_chat_id,
+            "text": telegram_text,
+            "disable_web_page_preview": "true",
+        }
+        data = urllib.parse.urlencode(payload).encode("utf-8")
+        request_obj = urllib.request.Request(telegram_url, data=data, method="POST")
+        request_obj.add_header("Content-Type", "application/x-www-form-urlencoded")
+        try:
+            with urllib.request.urlopen(request_obj, timeout=15) as response:
+                response_status = getattr(response, "status", response.getcode())
+                if response_status and 200 <= int(response_status) < 300:
+                    telegram_ok = True
+                    telegram_reason = None
+                else:
+                    app.logger.warning("Operations overdue report send failed via Telegram: unexpected status %s.", response_status)
+                    telegram_ok = False
+                    telegram_reason = "telegram_bad_status"
+        except Exception as exc:
+            app.logger.warning("Operations overdue report send failed via Telegram: %s", type(exc).__name__)
+            telegram_ok = False
+            telegram_reason = "telegram_send_failed"
+        results.append(("TELEGRAM", telegram_ok, telegram_reason))
+        _append_operations_notification(
+            "notification_sent" if telegram_ok else "notification_failed",
+            "Daily overdue report sent" if telegram_ok else "Daily overdue report failed",
+            summary_body,
+            source_type="SYSTEM",
+            source_id="daily-overdue-report",
+            status="sent" if telegram_ok else "failed",
+            channel="TELEGRAM",
+            recipient=telegram_chat_id,
+            operator_key=operator_key,
+            metadata=json.dumps(report, ensure_ascii=False),
+        )
+        any_success = any_success or telegram_ok
+    elif any(pref.get("telegram_enabled") for pref in preferences):
+        results.append(("TELEGRAM", False, "telegram_not_configured"))
+
+    return any_success, results, summary_body
+
+
+def _run_operations_overdue_monitor(force=False):
+    today = datetime.now(timezone.utc).date().isoformat()
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        meta_key = _operations_overdue_scan_meta_key()
+        if not force and _owner_db_meta_get(conn, meta_key) == today:
+            return {
+                "ran": False,
+                "report": {
+                    "open_overdue_tasks": 0,
+                    "assigned_overdue_tasks": 0,
+                    "high_priority_overdue_tasks": 0,
+                    "total_overdue_tasks": 0,
+                },
+                "sent": False,
+                "results": [],
+            }
+
+        tasks = [
+            task
+            for task in _load_operations_tasks()
+            if _admin_operations_task_is_overdue(task)
+        ]
+        for task in tasks:
+            overdue_detail = f"Due date: {task.get('due_date', '')}"
+            _append_operations_task_event(
+                task.get("id", ""),
+                "overdue_detected",
+                "Task overdue detected",
+                overdue_detail,
+                status=task.get("status", "NEW"),
+            )
+            _append_operations_notification(
+                "overdue_detected",
+                "Task overdue detected",
+                overdue_detail,
+                task_id=task.get("id", ""),
+                source_type=task.get("source_type", ""),
+                source_id=task.get("source_id", ""),
+                status="logged",
+                channel="SYSTEM",
+                operator_key=_current_admin_operator_key(),
+                metadata=task.get("category", ""),
+            )
+
+        report = _build_operations_overdue_report(tasks)
+        admin_detail_url = url_for("admin_notifications", _external=True)
+        sent, results, summary_body = _send_operations_overdue_report(report, admin_detail_url)
+
+        _owner_db_meta_set(conn, meta_key, today)
+
+    return {
+        "ran": True,
+        "report": report,
+        "sent": sent,
+        "results": results,
+        "summary": summary_body,
+    }
+
+
+def _upsert_operations_task(task_payload, *, append_created_event=False, status_override=None, note_event=False, notify=False):
     task_id = str((task_payload or {}).get("id", "")).strip()
     if not task_id:
         return None
@@ -1625,6 +2328,16 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
             str(task_payload.get("timeline_detail", "")).strip() or f"{merged_task['title']} · {merged_task['property_name'] or merged_task['property_location']}".strip(" ·"),
             status="NEW",
         )
+        if notify and merged_task.get("source_type") in {
+            "PILOT_REQUEST",
+            "OWNER_REGISTRATION",
+            "PROFESSIONAL_APPLICATION",
+            "PARTNER_APPLICATION",
+            "CONCIERGE_REQUEST",
+            "OWNER_SERVICE_REQUEST",
+        }:
+            admin_detail_url = url_for("admin_operations_detail", task_id=task_id, _external=True)
+            _dispatch_operations_notification(merged_task, admin_detail_url, notification_type="task_created")
     elif note_event:
         _append_operations_task_event(
             task_id,
@@ -1637,8 +2350,14 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
     return _find_operations_task(task_id) or merged_task
 
 
-def _upsert_operations_task_from_source(task_payload, append_created_event=False, force_create=False, status_override=None):
-    return _upsert_operations_task(task_payload, append_created_event=append_created_event, status_override=status_override)
+def _upsert_operations_task_from_source(task_payload, append_created_event=False, force_create=False, status_override=None, notify=False):
+    global _OWNER_DB_BACKFILL_SUPPRESSED
+    previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
+    _OWNER_DB_BACKFILL_SUPPRESSED = True
+    try:
+        return _upsert_operations_task(task_payload, append_created_event=append_created_event, status_override=status_override, notify=notify)
+    finally:
+        _OWNER_DB_BACKFILL_SUPPRESSED = previous_state
 
 
 def _operations_task_payload_from_source(source_type, source_record, status="NEW"):
@@ -1759,7 +2478,7 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
     }
 
 
-def _upsert_operations_task_from_service_request(request_record, status_override=None, note_event=False, source_type=None, force_create=False):
+def _upsert_operations_task_from_service_request(request_record, status_override=None, note_event=False, source_type=None, force_create=False, notify=False):
     request_id = str((request_record or {}).get("id", "")).strip()
     if not request_id:
         return None
@@ -1774,13 +2493,20 @@ def _upsert_operations_task_from_service_request(request_record, status_override
     source_payload["priority"] = _operations_task_priority_from_request(request_record)
     source_payload["request_status"] = request_status
 
-    created = _find_operations_task(request_id) is None
-    updated_task = _upsert_operations_task(
-        source_payload,
-        append_created_event=created or force_create,
-        status_override=source_payload["status"] if status_override is not None else None,
-        note_event=note_event,
-    )
+    global _OWNER_DB_BACKFILL_SUPPRESSED
+    previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
+    _OWNER_DB_BACKFILL_SUPPRESSED = True
+    try:
+        created = _find_operations_task(request_id) is None
+        updated_task = _upsert_operations_task(
+            source_payload,
+            append_created_event=created or force_create,
+            status_override=source_payload["status"] if status_override is not None else None,
+            note_event=note_event,
+            notify=notify,
+        )
+    finally:
+        _OWNER_DB_BACKFILL_SUPPRESSED = previous_state
     if created and status_override is not None and updated_task:
         event_type, event_title = _operations_task_status_event(source_payload["status"])
         _append_operations_task_event(
@@ -2267,74 +2993,80 @@ def _upsert_owner_account(record):
         return None
 
     target_email = str(normalized.get("email", "")).strip().lower()
-    existing_account = _find_owner_account_by_email(target_email)
-    created = not bool(existing_account)
-
-    if existing_account:
-        normalized["id"] = existing_account.get("id", normalized["id"])
-        normalized["created_at"] = existing_account.get("created_at", normalized["created_at"])
-        normalized["status"] = _normalize_owner_status(record.get("status", existing_account.get("status", OWNER_STATUS_DEFAULT)))
-        normalized["language"] = _normalize_owner_language(record.get("language", existing_account.get("language", OWNER_LANGUAGE_DEFAULT))) or existing_account.get("language", OWNER_LANGUAGE_DEFAULT)
-        normalized["last_login_at"] = str(record.get("last_login_at", existing_account.get("last_login_at", ""))).strip()
-        normalized["internal_notes"] = str(record.get("internal_notes", existing_account.get("internal_notes", ""))).strip()
-    else:
-        normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
-        normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
-        normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
-        normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
-
+    global _OWNER_DB_BACKFILL_SUPPRESSED
+    previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
+    _OWNER_DB_BACKFILL_SUPPRESSED = True
     try:
-        with _owner_db_connection() as conn:
-            _ensure_owner_db_schema(conn)
-            _migrate_owner_jsonl_backups(conn)
-            conn.execute(
-                """
-                INSERT INTO owner_accounts (
-                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(email) DO UPDATE SET
-                    id = excluded.id,
-                    created_at = excluded.created_at,
-                    full_name = excluded.full_name,
-                    phone = excluded.phone,
-                    property_type = excluded.property_type,
-                    city = excluded.city,
-                    property_name = excluded.property_name,
-                    number_of_units = excluded.number_of_units,
-                    notes = excluded.notes,
-                    status = excluded.status,
-                    language = excluded.language,
-                    last_login_at = excluded.last_login_at,
-                    internal_notes = excluded.internal_notes
-                """,
-                (
-                    normalized["email"],
-                    normalized["id"],
-                    normalized["created_at"],
-                    normalized["full_name"],
-                    normalized["phone"],
-                    normalized["property_type"],
-                    normalized["city"],
-                    normalized["property_name"],
-                    normalized["number_of_units"],
-                    normalized["notes"],
-                    normalized["status"],
-                    normalized["language"],
-                    normalized["last_login_at"],
-                    normalized["internal_notes"],
-                ),
-            )
-    except Exception as exc:
-        app.logger.warning("Owner account write failed for %s: %s", _mask_email(target_email), type(exc).__name__)
-        return None
+        existing_account = _find_owner_account_by_email(target_email)
+        created = not bool(existing_account)
 
-    app.logger.info("Owner account created=%s for %s", created, _mask_email(target_email))
-    persisted_account = _find_owner_account_by_email(target_email)
-    if persisted_account:
-        app.logger.info("Owner account persisted for %s", _mask_email(target_email))
-    else:
-        app.logger.warning("Owner account persistence verification failed for %s", _mask_email(target_email))
-    return persisted_account
+        if existing_account:
+            normalized["id"] = existing_account.get("id", normalized["id"])
+            normalized["created_at"] = existing_account.get("created_at", normalized["created_at"])
+            normalized["status"] = _normalize_owner_status(record.get("status", existing_account.get("status", OWNER_STATUS_DEFAULT)))
+            normalized["language"] = _normalize_owner_language(record.get("language", existing_account.get("language", OWNER_LANGUAGE_DEFAULT))) or existing_account.get("language", OWNER_LANGUAGE_DEFAULT)
+            normalized["last_login_at"] = str(record.get("last_login_at", existing_account.get("last_login_at", ""))).strip()
+            normalized["internal_notes"] = str(record.get("internal_notes", existing_account.get("internal_notes", ""))).strip()
+        else:
+            normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
+            normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
+            normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
+            normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
+
+        try:
+            with _owner_db_connection() as conn:
+                _ensure_owner_db_schema(conn)
+                _migrate_owner_jsonl_backups(conn)
+                conn.execute(
+                    """
+                    INSERT INTO owner_accounts (
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(email) DO UPDATE SET
+                        id = excluded.id,
+                        created_at = excluded.created_at,
+                        full_name = excluded.full_name,
+                        phone = excluded.phone,
+                        property_type = excluded.property_type,
+                        city = excluded.city,
+                        property_name = excluded.property_name,
+                        number_of_units = excluded.number_of_units,
+                        notes = excluded.notes,
+                        status = excluded.status,
+                        language = excluded.language,
+                        last_login_at = excluded.last_login_at,
+                        internal_notes = excluded.internal_notes
+                    """,
+                    (
+                        normalized["email"],
+                        normalized["id"],
+                        normalized["created_at"],
+                        normalized["full_name"],
+                        normalized["phone"],
+                        normalized["property_type"],
+                        normalized["city"],
+                        normalized["property_name"],
+                        normalized["number_of_units"],
+                        normalized["notes"],
+                        normalized["status"],
+                        normalized["language"],
+                        normalized["last_login_at"],
+                        normalized["internal_notes"],
+                    ),
+                )
+        except Exception as exc:
+            app.logger.warning("Owner account write failed for %s: %s", _mask_email(target_email), type(exc).__name__)
+            return None
+
+        app.logger.info("Owner account created=%s for %s", created, _mask_email(target_email))
+        persisted_account = _find_owner_account_by_email(target_email)
+        if persisted_account:
+            app.logger.info("Owner account persisted for %s", _mask_email(target_email))
+        else:
+            app.logger.warning("Owner account persistence verification failed for %s", _mask_email(target_email))
+        return persisted_account
+    finally:
+        _OWNER_DB_BACKFILL_SUPPRESSED = previous_state
 
 
 def _ensure_owner_account_exists(record):
@@ -5088,17 +5820,29 @@ def owners_register():
             saved_account = _upsert_owner_account(account)
             if saved_account:
                 app.logger.info("Owner registration received for %s", _mask_email(saved_account["email"]))
-                if not existing_account:
-                    _append_owner_activity_event(
-                        saved_account["id"],
-                        "owner_registered",
-                        "Owner registered",
-                        saved_account.get("full_name", ""),
+                _send_owner_registration_notification_email(saved_account, request.url, current_lang)
+                global _OWNER_DB_BACKFILL_SUPPRESSED
+                previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
+                _OWNER_DB_BACKFILL_SUPPRESSED = True
+                try:
+                    if not existing_account:
+                        _append_owner_activity_event(
+                            saved_account["id"],
+                            "owner_registered",
+                            "Owner registered",
+                            saved_account.get("full_name", ""),
+                        )
+                    _upsert_operations_task_from_source(
+                        _operations_task_payload_from_source("OWNER_REGISTRATION", saved_account),
+                        append_created_event=True,
+                        notify=False,
                     )
-                    _send_owner_registration_notification_email(saved_account, request.url, current_lang)
-                _upsert_operations_task_from_source(
+                finally:
+                    _OWNER_DB_BACKFILL_SUPPRESSED = previous_state
+                _dispatch_operations_notification(
                     _operations_task_payload_from_source("OWNER_REGISTRATION", saved_account),
-                    append_created_event=True,
+                    url_for("admin_operations_detail", task_id=saved_account["id"], _external=True),
+                    notification_type="task_created",
                 )
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
@@ -5530,23 +6274,35 @@ def owners_request_service():
             with SERVICE_REQUESTS_JSONL_PATH.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
 
-            _append_owner_activity_event(
-                owner_account["id"],
-                "service_request_submitted",
-                "Service request submitted",
-                f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
-            )
-            if property_record:
-                _append_property_activity_event(
-                    property_record["id"],
+            global _OWNER_DB_BACKFILL_SUPPRESSED
+            previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
+            _OWNER_DB_BACKFILL_SUPPRESSED = True
+            try:
+                _append_owner_activity_event(
                     owner_account["id"],
                     "service_request_submitted",
                     "Service request submitted",
                     f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
                 )
-            _upsert_operations_task_from_source(
+                if property_record:
+                    _append_property_activity_event(
+                        property_record["id"],
+                        owner_account["id"],
+                        "service_request_submitted",
+                        "Service request submitted",
+                        f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
+                    )
+                _upsert_operations_task_from_source(
+                    _operations_task_payload_from_source("OWNER_SERVICE_REQUEST", request_record),
+                    append_created_event=True,
+                    notify=False,
+                )
+            finally:
+                _OWNER_DB_BACKFILL_SUPPRESSED = previous_state
+            _dispatch_operations_notification(
                 _operations_task_payload_from_source("OWNER_SERVICE_REQUEST", request_record),
-                append_created_event=True,
+                url_for("admin_operations_detail", task_id=request_record["id"], _external=True),
+                notification_type="task_created",
             )
 
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
@@ -5758,6 +6514,7 @@ def partners_apply():
             _upsert_operations_task_from_source(
                 _operations_task_payload_from_source("PARTNER_APPLICATION", record),
                 append_created_event=True,
+                notify=True,
             )
             _queue_partner_application_notification_email(record, admin_detail_url)
             submitted = True
@@ -5946,6 +6703,7 @@ def request_service():
             _upsert_operations_task_from_source(
                 _operations_task_payload_from_source("CONCIERGE_REQUEST", request_record),
                 append_created_event=True,
+                notify=True,
             )
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_notification(request_record, admin_detail_url)
@@ -6150,6 +6908,7 @@ def professionals_apply():
             _upsert_operations_task_from_source(
                 _operations_task_payload_from_source("PROFESSIONAL_APPLICATION", record),
                 append_created_event=True,
+                notify=True,
             )
             _queue_professional_application_notification_email(record, admin_detail_url)
             submitted = True
@@ -6479,6 +7238,7 @@ def _admin_operations_task_context(task_record):
 
 
 def _admin_operations_board_context():
+    overdue_monitor = _run_operations_overdue_monitor()
     owner_accounts = _admin_property_owner_map()
     property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
     tasks = []
@@ -6568,6 +7328,22 @@ def _admin_operations_board_context():
         "owner_options": owner_options,
         "category_options": category_options,
         "status_options": list(OPERATIONS_TASK_STATUS_VALUES),
+        "overdue_monitor": overdue_monitor,
+    }
+
+
+def _admin_notifications_context():
+    overdue_monitor = _run_operations_overdue_monitor()
+    current_operator_key = _current_admin_operator_key()
+    preferences = _load_operations_notification_preferences(current_operator_key, create_default=True)
+    notifications = _load_operations_notifications(limit=100)
+    return {
+        "current_operator_key": current_operator_key,
+        "preferences": preferences,
+        "recent_alerts": notifications[:20],
+        "overdue_alerts": [notification for notification in notifications if notification.get("event_type") == "overdue_detected"],
+        "failed_notifications": [notification for notification in notifications if notification.get("event_type") == "notification_failed"],
+        "overdue_monitor": overdue_monitor,
     }
 
 
@@ -8612,6 +9388,7 @@ def api_pilot_request():
     _upsert_operations_task_from_source(
         _operations_task_payload_from_source("PILOT_REQUEST", record),
         append_created_event=True,
+        notify=True,
     )
     _queue_pilot_request_email(record)
     _queue_internal_pilot_notification(record, admin_detail_url)
@@ -9041,6 +9818,25 @@ def _update_operations_task_notes(task_id, notes):
 def admin_operations():
     context = _admin_operations_board_context()
     return render_template("admin_operations.html", **context)
+
+
+@app.route("/admin/notifications", methods=["GET", "POST"])
+@admin_required
+def admin_notifications():
+    current_operator_key = _current_admin_operator_key()
+    if request.method == "POST":
+        email_enabled = _normalize_operations_notification_flag(request.form.get("email_enabled"))
+        telegram_enabled = _normalize_operations_notification_flag(request.form.get("telegram_enabled"))
+        _set_operations_notification_preferences(
+            current_operator_key,
+            operator_name=current_operator_key,
+            email_enabled=email_enabled,
+            telegram_enabled=telegram_enabled,
+        )
+        return redirect(url_for("admin_notifications"))
+
+    context = _admin_notifications_context()
+    return render_template("admin_notifications.html", **context)
 
 
 @app.route("/admin/operations/<task_id>", methods=["GET", "POST"])

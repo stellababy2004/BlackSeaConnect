@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | Operations Notifications</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-notifications-page {
+      background: linear-gradient(180deg, #f6f4ef 0%, #fbfaf7 56%, #efebe2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+    }
+    .admin-notifications-shell {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px 20px 52px;
+      display: grid;
+      gap: 18px;
+    }
+    .admin-notifications-hero,
+    .admin-notifications-panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 26px;
+    }
+    .admin-notifications-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .admin-notifications-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .admin-notifications-copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+      max-width: 900px;
+    }
+    .admin-notifications-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-notifications-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-notifications-card {
+      border-radius: 20px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(251, 247, 238, 0.95);
+      padding: 18px;
+    }
+    .admin-notifications-card span {
+      display: block;
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .admin-notifications-card strong {
+      font-size: 1.4rem;
+      color: #1f2937;
+    }
+    .admin-notifications-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-notifications-table th,
+    .admin-notifications-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      vertical-align: top;
+    }
+    .admin-notifications-table th {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+    }
+    .admin-notifications-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+    }
+    .admin-notifications-badge--notification_sent,
+    .admin-notifications-badge--overdue_detected {
+      color: #166534;
+      background: rgba(220, 252, 231, 0.9);
+      border-color: rgba(34, 197, 94, 0.22);
+    }
+    .admin-notifications-badge--notification_failed {
+      color: #b91c1c;
+      background: rgba(254, 226, 226, 0.94);
+      border-color: rgba(239, 68, 68, 0.22);
+    }
+    .admin-notifications-badge--daily_overdue_report_sent {
+      color: #0f766e;
+      background: rgba(204, 251, 241, 0.92);
+      border-color: rgba(20, 184, 166, 0.2);
+    }
+    .admin-notifications-badge--daily_overdue_report_failed {
+      color: #991b1b;
+      background: rgba(254, 240, 138, 0.9);
+      border-color: rgba(250, 204, 21, 0.24);
+    }
+    .admin-notifications-form {
+      display: grid;
+      gap: 14px;
+      max-width: 520px;
+    }
+    .admin-notifications-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+    }
+    .admin-notifications-empty {
+      margin: 0;
+      color: #6b7280;
+    }
+    @media (max-width: 960px) {
+      .admin-notifications-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="admin-notifications-page">
+  <main class="admin-notifications-shell">
+    <section class="admin-notifications-hero">
+      <div>
+        <p class="eyebrow">BLACKSEA CONNECT</p>
+        <h1>Operations Notification Center</h1>
+        <p class="admin-notifications-copy">Monitor task alerts, overdue detections, and delivery failures. Notification preferences are stored per operator in SQLite.</p>
+      </div>
+      <div class="admin-notifications-actions">
+        <a class="button button--secondary" href="/admin">Back to Admin</a>
+        <a class="button button--secondary" href="/admin/operations">View Operations</a>
+      </div>
+    </section>
+
+    <section class="admin-notifications-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Settings</p>
+          <h2>Notification preferences for {{ current_operator_key|e }}</h2>
+        </div>
+      </div>
+      {% set preference = preferences[0] if preferences else None %}
+      <form class="admin-notifications-form" method="post" action="/admin/notifications">
+        <label class="admin-notifications-toggle">
+          <input type="checkbox" name="email_enabled" {% if preference is none or preference.email_enabled %}checked{% endif %}>
+          <span>Email notifications enabled</span>
+        </label>
+        <label class="admin-notifications-toggle">
+          <input type="checkbox" name="telegram_enabled" {% if preference is none or preference.telegram_enabled %}checked{% endif %}>
+          <span>Telegram notifications enabled</span>
+        </label>
+        <button class="button button--primary" type="submit">Save preferences</button>
+      </form>
+    </section>
+
+    <section class="admin-notifications-grid" aria-label="Notification summary">
+      <article class="admin-notifications-card">
+        <span>Recent alerts</span>
+        <strong>{{ recent_alerts|length }}</strong>
+      </article>
+      <article class="admin-notifications-card">
+        <span>Overdue alerts</span>
+        <strong>{{ overdue_alerts|length }}</strong>
+      </article>
+      <article class="admin-notifications-card">
+        <span>Failed notifications</span>
+        <strong>{{ failed_notifications|length }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-notifications-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Alerts</p>
+          <h2>Recent alerts</h2>
+        </div>
+      </div>
+      {% if recent_alerts %}
+        <table class="admin-notifications-table" aria-label="Recent alerts">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Event</th>
+              <th>Title</th>
+              <th>Detail</th>
+              <th>Task</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notification in recent_alerts %}
+              <tr>
+                <td><time>{{ notification.created_at|e }}</time></td>
+                <td><span class="admin-notifications-badge admin-notifications-badge--{{ notification.event_type|e }}">{{ notification.event_type|replace('_', ' ')|title }}</span></td>
+                <td>{{ notification.title|e }}</td>
+                <td>{{ notification.detail|e }}</td>
+                <td>{% if notification.task_id %}<a href="/admin/operations/{{ notification.task_id|e }}">{{ notification.task_id|e }}</a>{% else %}System{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="admin-notifications-empty">No alerts yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="admin-notifications-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Overdue</p>
+          <h2>Overdue alerts</h2>
+        </div>
+      </div>
+      {% if overdue_alerts %}
+        <table class="admin-notifications-table" aria-label="Overdue alerts">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Task</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notification in overdue_alerts %}
+              <tr>
+                <td><time>{{ notification.created_at|e }}</time></td>
+                <td>{% if notification.task_id %}<a href="/admin/operations/{{ notification.task_id|e }}">{{ notification.task_id|e }}</a>{% else %}System{% endif %}</td>
+                <td>{{ notification.detail|e }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="admin-notifications-empty">No overdue tasks were detected today.</p>
+      {% endif %}
+    </section>
+
+    <section class="admin-notifications-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Failures</p>
+          <h2>Failed notifications</h2>
+        </div>
+      </div>
+      {% if failed_notifications %}
+        <table class="admin-notifications-table" aria-label="Failed notifications">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Channel</th>
+              <th>Title</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notification in failed_notifications %}
+              <tr>
+                <td><time>{{ notification.created_at|e }}</time></td>
+                <td>{{ notification.channel|e or 'System' }}</td>
+                <td>{{ notification.title|e }}</td>
+                <td>{{ notification.detail|e }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="admin-notifications-empty">No failed notifications yet.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
