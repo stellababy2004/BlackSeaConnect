@@ -73,11 +73,16 @@
     }
     .admin-operations-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
       gap: 18px;
     }
     .admin-operations-stack {
       display: grid;
+      gap: 18px;
+    }
+    .admin-operations-detail-two-up {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
     }
     .admin-operations-section-title {
@@ -138,6 +143,61 @@
     .admin-operations-list {
       display: grid;
       gap: 12px;
+    }
+    .admin-operations-checklist {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-operations-checklist__item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.82);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .admin-operations-checklist__item label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .admin-operations-checklist__item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #8b6d2b;
+    }
+    .admin-operations-comment-box {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-operations-comment {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+    }
+    .admin-operations-comment__meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .admin-operations-attachment-list {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-operations-attachment-empty {
+      color: #6b7280;
+      margin: 0;
+      line-height: 1.6;
     }
     .admin-operations-list-item {
       padding: 14px 16px;
@@ -209,6 +269,11 @@
       background: rgba(197, 116, 34, 0.16);
       color: #a85812;
     }
+    .admin-operations-badge--waiting-owner,
+    .admin-operations-badge--waiting-provider {
+      background: rgba(92, 95, 173, 0.14);
+      color: #4b4f9a;
+    }
     .admin-operations-badge--done {
       background: rgba(46, 125, 92, 0.14);
       color: #2f6b4e;
@@ -235,7 +300,7 @@
           <span class="admin-operations-chip admin-operations-chip--status">{{ task.status_label|upper|e }}</span>
         </div>
         <h1>{{ task.title|e }}</h1>
-        <p class="admin-operations-detail-copy">Review the linked request, keep the task moving through the board, and capture every decision in the task timeline.</p>
+        <p class="admin-operations-detail-copy">Review the property context, keep the task moving through the board, and capture every decision in the task timeline.</p>
       </div>
       <div class="admin-operations-detail-actions">
         <a class="button button--secondary" href="/admin/operations">Back to board</a>
@@ -247,6 +312,17 @@
 
     <section class="admin-operations-grid">
       <div class="admin-operations-stack">
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Property</p>
+          <h2 class="admin-operations-section-title">Property context</h2>
+          <dl class="admin-operations-dl">
+            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Unassigned' }}{% endif %}</dd></div>
+            <div><dt>Address</dt><dd>{% if property_record %}{{ property_record.location|e }}{% else %}{{ task.property_location|e or 'Not set' }}{% endif %}</dd></div>
+            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} / {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} / {{ task.owner_email|e }}{% endif %}</dd></div>
+            <div><dt>Current readiness</dt><dd>{% if property_readiness_percent is not none %}{{ property_readiness_percent|e }}%{% else %}Unknown{% endif %}</dd></div>
+          </dl>
+        </article>
+
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Task profile</p>
           <h2 class="admin-operations-section-title">Board details</h2>
@@ -267,9 +343,10 @@
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Status and notes</p>
-          <h2 class="admin-operations-section-title">Update workflow and internal notes</h2>
+          <p class="eyebrow">Assignment</p>
+          <h2 class="admin-operations-section-title">Assignment and workflow</h2>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="details">
             <label>
               <span>Status</span>
               <select name="status" required>
@@ -294,11 +371,48 @@
               <span>Due date</span>
               <input type="date" name="due_date" value="{{ task.due_date|e }}">
             </label>
+            <button class="button button--primary" type="submit">Save task</button>
+          </form>
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Checklist</p>
+          <h2 class="admin-operations-section-title">Task checklist</h2>
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="checklist">
+            <div class="admin-operations-checklist">
+              {% for item in checklist_items %}
+                <div class="admin-operations-checklist__item">
+                  <label>
+                    <input type="checkbox" name="checklist_{{ item.key|e }}" {% if item.checked %}checked{% endif %}>
+                    <span>{{ item.label|e }}</span>
+                  </label>
+                  {% if item.checked %}
+                    <span class="admin-operations-badge admin-operations-badge--done">Done</span>
+                  {% else %}
+                    <span class="admin-operations-badge">Pending</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+            <button class="button button--primary" type="submit">Save checklist</button>
+          </form>
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Internal notes</p>
+          <h2 class="admin-operations-section-title">Admin-only notes</h2>
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="details">
+            <input type="hidden" name="status" value="{{ task.status|e }}">
+            <input type="hidden" name="assigned_to" value="{{ task.assigned_to|e }}">
+            <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
+            <input type="hidden" name="priority" value="{{ task.priority|e }}">
             <label>
               <span>Internal notes</span>
               <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
             </label>
-            <button class="button button--primary" type="submit">Save task</button>
+            <button class="button button--primary" type="submit">Save notes</button>
           </form>
         </article>
       </div>
@@ -335,8 +449,83 @@
         </article>
 
         <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Assignment history</p>
+          <h2 class="admin-operations-section-title">Recent assignment changes</h2>
+          {% if assignment_history %}
+            <div class="admin-operations-list">
+              {% for event in assignment_history %}
+                <div class="admin-operations-list-item">
+                  <div class="admin-operations-list-item__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time>{{ event.created_at|e }}</time>
+                  </div>
+                  {% if event.detail %}
+                    <p>{{ event.detail|e }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-operations-empty">No assignment changes yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Attachments</p>
+          <h2 class="admin-operations-section-title">Task attachments</h2>
+          {% if attachments %}
+            <div class="admin-operations-attachment-list">
+              {% for attachment in attachments %}
+                <div class="admin-operations-list-item">
+                  <div class="admin-operations-list-item__topline">
+                    <strong>{{ attachment.name|e }}</strong>
+                    <time>{{ attachment.created_at|e }}</time>
+                  </div>
+                  {% if attachment.uploaded_by %}
+                    <p>Uploaded by {{ attachment.uploaded_by|e }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-operations-attachment-empty">No attachments yet. The task is ready for uploads later.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Comments</p>
+          <h2 class="admin-operations-section-title">Internal comments</h2>
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="comment">
+            <label>
+              <span>Add comment</span>
+              <textarea name="comment" placeholder="Add a private comment for the operations team"></textarea>
+            </label>
+            <button class="button button--primary" type="submit">Add comment</button>
+          </form>
+          <div class="admin-operations-comment-box" style="margin-top: 14px;">
+            {% if comments %}
+              {% for comment in comments %}
+                <div class="admin-operations-comment">
+                  <div class="admin-operations-comment__meta">
+                    <strong>{{ comment.operator|e or 'Admin' }}</strong>
+                    <time>{{ comment.created_at|e }}</time>
+                  </div>
+                  <p style="margin: 0; color: #4b5563; line-height: 1.6;">{{ comment.comment|e }}</p>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="admin-operations-attachment-empty">No internal comments yet.</p>
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="admin-operations-detail-panel">
           <p class="eyebrow">Timeline</p>
           <h2 class="admin-operations-section-title">Task activity</h2>
+          {% if assignment_history %}
+            <p class="admin-operations-empty" style="margin-bottom: 12px;">Assignment history is captured in the timeline below.</p>
+          {% endif %}
           {% if timeline %}
             <div class="admin-operations-list">
               {% for event in timeline %}

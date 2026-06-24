@@ -215,18 +215,30 @@ SERVICE_REQUEST_STATUS_ALIASES = {
     "canceled": "cancelled",
     "cancelled": "cancelled",
 }
-OPERATIONS_TASK_STATUS_VALUES = ("NEW", "ASSIGNED", "IN_PROGRESS", "DONE")
+OPERATIONS_TASK_STATUS_VALUES = (
+    "NEW",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "WAITING_OWNER",
+    "WAITING_PROVIDER",
+    "DONE",
+    "ARCHIVED",
+)
 OPERATIONS_TASK_STATUS_ALIASES = {
     "new": "NEW",
     "assigned": "ASSIGNED",
     "in progress": "IN_PROGRESS",
     "in_progress": "IN_PROGRESS",
     "started": "IN_PROGRESS",
+    "waiting owner": "WAITING_OWNER",
+    "waiting_owner": "WAITING_OWNER",
+    "waiting provider": "WAITING_PROVIDER",
+    "waiting_provider": "WAITING_PROVIDER",
     "done": "DONE",
     "completed": "DONE",
-    "archived": "DONE",
-    "cancelled": "DONE",
-    "canceled": "DONE",
+    "archived": "ARCHIVED",
+    "cancelled": "ARCHIVED",
+    "canceled": "ARCHIVED",
 }
 OPERATIONS_TASK_PRIORITY_VALUES = ("LOW", "NORMAL", "HIGH", "URGENT")
 OPERATIONS_TASK_PRIORITY_ALIASES = {
@@ -243,6 +255,8 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "status_changed",
     "completed",
     "note_added",
+    "checklist_updated",
+    "comment_added",
 }
 
 OPERATIONS_NOTIFICATION_EVENT_VALUES = {
@@ -268,6 +282,44 @@ OPERATIONS_TASK_SOURCE_TYPES = (
     "SERVICE_REQUEST",
     "OWNER_SERVICE_REQUEST",
 )
+OPERATIONS_TASK_CHECKLIST_ITEMS = (
+    ("cleaning", "Cleaning"),
+    ("inspection", "Inspection"),
+    ("keys", "Keys"),
+    ("welcome_pack", "Welcome Pack"),
+    ("photos", "Photos"),
+    ("utilities", "Utilities"),
+    ("wifi", "Wi-Fi"),
+    ("parking", "Parking"),
+    ("inventory", "Inventory"),
+)
+OPERATIONS_TASK_BOARD_STATUSES = (
+    "NEW",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "WAITING_OWNER",
+    "WAITING_PROVIDER",
+    "DONE",
+    "ARCHIVED",
+)
+OPERATIONS_TASK_STATUS_LABELS = {
+    "NEW": "New",
+    "ASSIGNED": "Assigned",
+    "IN_PROGRESS": "In Progress",
+    "WAITING_OWNER": "Waiting Owner",
+    "WAITING_PROVIDER": "Waiting Provider",
+    "DONE": "Completed",
+    "ARCHIVED": "Archived",
+}
+OPERATIONS_TASK_STATUS_TONES = {
+    "NEW": "new",
+    "ASSIGNED": "assigned",
+    "IN_PROGRESS": "in-progress",
+    "WAITING_OWNER": "waiting-owner",
+    "WAITING_PROVIDER": "waiting-provider",
+    "DONE": "done",
+    "ARCHIVED": "archived",
+}
 
 
 def _professional_service_category_items():
@@ -345,6 +397,102 @@ def _normalize_operations_task_priority(priority):
     return normalized if normalized in OPERATIONS_TASK_PRIORITY_VALUES else "NORMAL"
 
 
+def _normalize_operations_task_checklist(checklist_value):
+    checklist = {}
+    if isinstance(checklist_value, str):
+        raw_value = checklist_value.strip()
+        if not raw_value:
+            return {key: False for key, _ in OPERATIONS_TASK_CHECKLIST_ITEMS}
+        try:
+            checklist_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            checklist_value = {}
+
+    if isinstance(checklist_value, list):
+        for item in checklist_value:
+            if isinstance(item, dict):
+                key = str(item.get("key", "")).strip()
+                if key:
+                    checklist[key] = bool(item.get("checked"))
+            elif isinstance(item, str):
+                checklist[item.strip()] = True
+    elif isinstance(checklist_value, dict):
+        for key, value in checklist_value.items():
+            normalized_key = str(key or "").strip()
+            if normalized_key:
+                checklist[normalized_key] = bool(value)
+
+    normalized_checklist = {}
+    for key, _label in OPERATIONS_TASK_CHECKLIST_ITEMS:
+        normalized_checklist[key] = bool(checklist.get(key, False))
+    return normalized_checklist
+
+
+def _operations_task_checklist_items(checklist_value=None):
+    normalized = _normalize_operations_task_checklist(checklist_value)
+    return [
+        {
+            "key": key,
+            "label": label,
+            "checked": bool(normalized.get(key, False)),
+        }
+        for key, label in OPERATIONS_TASK_CHECKLIST_ITEMS
+    ]
+
+
+def _operations_task_comments(comments_value):
+    if isinstance(comments_value, str):
+        raw_value = comments_value.strip()
+        if not raw_value:
+            return []
+        try:
+            comments_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            comments_value = []
+
+    if not isinstance(comments_value, list):
+        return []
+
+    comments = []
+    for item in comments_value:
+        if not isinstance(item, dict):
+            continue
+        comments.append({
+            "created_at": str(item.get("created_at", "")).strip(),
+            "operator": str(item.get("operator", "")).strip(),
+            "comment": str(item.get("comment", "")).strip(),
+        })
+    comments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return comments
+
+
+def _operations_task_attachments(attachments_value):
+    if isinstance(attachments_value, str):
+        raw_value = attachments_value.strip()
+        if not raw_value:
+            return []
+        try:
+            attachments_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            attachments_value = []
+
+    if not isinstance(attachments_value, list):
+        return []
+
+    attachments = []
+    for item in attachments_value:
+        if not isinstance(item, dict):
+            continue
+        attachments.append({
+            "created_at": str(item.get("created_at", "")).strip(),
+            "name": str(item.get("name", "")).strip(),
+            "url": str(item.get("url", "")).strip(),
+            "uploaded_by": str(item.get("uploaded_by", "")).strip(),
+        })
+    attachments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return attachments
+
+
 def _service_request_status_to_operations_status(status):
     normalized = _normalize_service_request_status(status)
     return {
@@ -363,24 +511,22 @@ def _operations_status_to_service_request_status(status):
         "ASSIGNED": "assigned",
         "IN_PROGRESS": "in_progress",
         "DONE": "completed",
+        "ARCHIVED": "cancelled",
     }.get(normalized, "new")
 
 
 def _operations_task_status_label(status):
-    return _normalize_operations_task_status(status).replace("_", " ").title()
+    normalized = _normalize_operations_task_status(status)
+    return OPERATIONS_TASK_STATUS_LABELS.get(normalized, normalized.replace("_", " ").title())
+
+
+def _operations_task_board_status_label(status):
+    return _operations_task_status_label(status)
 
 
 def _operations_task_status_tone(status):
     normalized = _normalize_operations_task_status(status)
-    if normalized == "NEW":
-        return "new"
-    if normalized == "ASSIGNED":
-        return "assigned"
-    if normalized == "IN_PROGRESS":
-        return "in-progress"
-    if normalized == "DONE":
-        return "done"
-    return "new"
+    return OPERATIONS_TASK_STATUS_TONES.get(normalized, "new")
 
 
 def _operations_task_priority_label(priority):
@@ -405,6 +551,9 @@ def _operations_task_status_event(status):
         "ASSIGNED": ("assigned", "Assigned"),
         "IN_PROGRESS": ("status_changed", "Status changed to In progress"),
         "DONE": ("completed", "Completed"),
+        "WAITING_OWNER": ("status_changed", "Status changed to Waiting owner"),
+        "WAITING_PROVIDER": ("status_changed", "Status changed to Waiting provider"),
+        "ARCHIVED": ("status_changed", "Status changed to Archived"),
     }.get(normalized, ("task_created", "Task created"))
 
 
@@ -753,7 +902,10 @@ def _ensure_operations_task_schema(conn):
             owner_id TEXT NOT NULL DEFAULT '',
             property_location TEXT NOT NULL DEFAULT '',
             admin_notes TEXT NOT NULL DEFAULT '',
-            request_status TEXT NOT NULL DEFAULT 'new'
+            request_status TEXT NOT NULL DEFAULT 'new',
+            checklist_json TEXT NOT NULL DEFAULT '',
+            attachments_json TEXT NOT NULL DEFAULT '',
+            comments_json TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -781,6 +933,9 @@ def _ensure_operations_task_schema(conn):
         "property_location": "TEXT NOT NULL DEFAULT ''",
         "admin_notes": "TEXT NOT NULL DEFAULT ''",
         "request_status": "TEXT NOT NULL DEFAULT 'new'",
+        "checklist_json": "TEXT NOT NULL DEFAULT ''",
+        "attachments_json": "TEXT NOT NULL DEFAULT ''",
+        "comments_json": "TEXT NOT NULL DEFAULT ''",
     }
     for column_name, column_sql in required_columns.items():
         if column_name not in existing_columns:
@@ -1408,6 +1563,97 @@ def _append_property_activity_event(property_id, owner_id, event_type, title, de
     return event
 
 
+def _operations_task_json_dumps(value):
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def _operations_task_update_json_fields(task_id, *, checklist_json=None, attachments_json=None, comments_json=None, updated_at=None):
+    target_task_id = str(task_id or "").strip()
+    if not target_task_id:
+        return None
+
+    updated_at_value = str(updated_at or "").strip() or _utc_now_iso()
+    set_clauses = ["updated_at = ?"]
+    params = [updated_at_value]
+
+    if checklist_json is not None:
+        set_clauses.append("checklist_json = ?")
+        params.append(str(checklist_json))
+    if attachments_json is not None:
+        set_clauses.append("attachments_json = ?")
+        params.append(str(attachments_json))
+    if comments_json is not None:
+        set_clauses.append("comments_json = ?")
+        params.append(str(comments_json))
+
+    params.extend([target_task_id, target_task_id, target_task_id])
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                f"""
+                UPDATE operations_tasks
+                SET {", ".join(set_clauses)}
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                params,
+            )
+    except Exception as exc:
+        app.logger.warning("Operations task metadata update failed for %s: %s", target_task_id, type(exc).__name__)
+        return None
+
+    return _find_operations_task(target_task_id)
+
+
+def _operations_task_append_checklist_event(task_id, checklist_items):
+    checklist_detail = ", ".join(
+        item["label"]
+        for item in checklist_items
+        if item.get("checked")
+    ) or "Checklist updated"
+    _append_operations_task_event(
+        task_id,
+        "checklist_updated",
+        "Checklist updated",
+        checklist_detail,
+        status=_find_operations_task(task_id).get("status", "NEW") if _find_operations_task(task_id) else "NEW",
+    )
+
+
+def _append_operations_task_comment(task_id, operator, comment):
+    target_task_id = str(task_id or "").strip()
+    normalized_comment = str(comment or "").strip()
+    if not target_task_id or not normalized_comment:
+        return None
+
+    comment_entry = {
+        "created_at": _utc_now_iso(),
+        "operator": str(operator or "").strip() or _current_admin_operator_key(),
+        "comment": normalized_comment,
+    }
+
+    task = _find_operations_task(target_task_id)
+    current_comments = list((task or {}).get("comments") or [])
+    current_comments.append(comment_entry)
+    updated_task = _operations_task_update_json_fields(
+        target_task_id,
+        comments_json=_operations_task_json_dumps(current_comments),
+    )
+    if not updated_task:
+        return None
+
+    _append_operations_task_event(
+        target_task_id,
+        "comment_added",
+        "Comment added",
+        normalized_comment,
+        status=updated_task.get("status", "NEW"),
+    )
+    return comment_entry
+
+
 def _operations_task_from_row(row):
     if row is None:
         return None
@@ -1423,6 +1669,9 @@ def _operations_task_from_row(row):
     if not admin_notes:
         admin_notes = notes
     completed_at = str(row["completed_at"]) if "completed_at" in row.keys() else ""
+    checklist_json = str(row["checklist_json"]) if "checklist_json" in row.keys() else ""
+    attachments_json = str(row["attachments_json"]) if "attachments_json" in row.keys() else ""
+    comments_json = str(row["comments_json"]) if "comments_json" in row.keys() else ""
 
     return {
         "id": task_id,
@@ -1447,6 +1696,12 @@ def _operations_task_from_row(row):
         "completed_at": completed_at,
         "admin_notes": admin_notes,
         "request_status": _normalize_service_request_status(row["request_status"] if "request_status" in row.keys() else "new"),
+        "checklist_json": checklist_json,
+        "checklist_items": _operations_task_checklist_items(checklist_json),
+        "attachments_json": attachments_json,
+        "attachments": _operations_task_attachments(attachments_json),
+        "comments_json": comments_json,
+        "comments": _operations_task_comments(comments_json),
     }
 
 
@@ -1458,7 +1713,7 @@ def _load_operations_tasks():
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
-                   due_date, notes, completed_at, admin_notes, request_status
+                   due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
             """
@@ -1479,7 +1734,7 @@ def _find_operations_task(task_id):
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, priority, status,
-                   due_date, notes, completed_at, admin_notes, request_status
+                   due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
@@ -2227,7 +2482,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         or (task_payload or {}).get("status")
         or (existing_task or {}).get("status", "NEW")
     )
-    if status == "DONE":
+    if status in {"DONE", "ARCHIVED"}:
         completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip() or updated_at
     else:
         completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip()
@@ -2255,6 +2510,9 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         "property_location": str((task_payload or {}).get("property_location", "")).strip() or str((existing_task or {}).get("property_location", "")).strip(),
         "admin_notes": str((task_payload or {}).get("admin_notes", "")).strip() or str((task_payload or {}).get("notes", "")).strip() or str((existing_task or {}).get("admin_notes", "")).strip() or str((existing_task or {}).get("notes", "")).strip(),
         "request_status": _normalize_service_request_status((task_payload or {}).get("request_status", (existing_task or {}).get("request_status", "new"))),
+        "checklist_json": str((task_payload or {}).get("checklist_json", "")).strip() or str((existing_task or {}).get("checklist_json", "")).strip() or _operations_task_json_dumps(_operations_task_checklist_items()),
+        "attachments_json": str((task_payload or {}).get("attachments_json", "")).strip() or str((existing_task or {}).get("attachments_json", "")).strip() or _operations_task_json_dumps([]),
+        "comments_json": str((task_payload or {}).get("comments_json", "")).strip() or str((existing_task or {}).get("comments_json", "")).strip() or _operations_task_json_dumps([]),
     }
 
     try:
@@ -2266,8 +2524,9 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                 INSERT INTO operations_tasks (
                     id, request_id, source_type, source_id, created_at, updated_at, title, category,
                     owner_name, owner_email, property_id, property_name, assigned_to, priority, status,
-                    due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status,
+                    checklist_json, attachments_json, comments_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     request_id = excluded.request_id,
                     source_type = excluded.source_type,
@@ -2289,7 +2548,10 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     owner_id = excluded.owner_id,
                     property_location = excluded.property_location,
                     admin_notes = excluded.admin_notes,
-                    request_status = excluded.request_status
+                    request_status = excluded.request_status,
+                    checklist_json = excluded.checklist_json,
+                    attachments_json = excluded.attachments_json,
+                    comments_json = excluded.comments_json
                 """,
                 (
                     merged_task["id"],
@@ -2314,6 +2576,9 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     merged_task["property_location"],
                     merged_task["admin_notes"],
                     merged_task["request_status"],
+                    merged_task["checklist_json"],
+                    merged_task["attachments_json"],
+                    merged_task["comments_json"],
                 ),
             )
     except Exception as exc:
@@ -2546,10 +2811,10 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
         return task
 
     completed_at = str(task.get("completed_at", "")).strip()
-    if new_status == "DONE" and current_status != "DONE" and not completed_at:
+    if new_status in {"DONE", "ARCHIVED"} and current_status not in {"DONE", "ARCHIVED"} and not completed_at:
         completed_at = _utc_now_iso()
-    if new_status != "DONE":
-        completed_at = "" if current_status != "DONE" else completed_at
+    if new_status not in {"DONE", "ARCHIVED"}:
+        completed_at = "" if current_status not in {"DONE", "ARCHIVED"} else completed_at
 
     updated_at = _utc_now_iso()
 
@@ -2638,6 +2903,37 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, n
             _save_service_requests(requests_list)
 
     return _find_operations_task(task_id)
+
+
+def _update_operations_task_checklist(task_id, checklist_selection):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None
+
+    normalized_checklist = _normalize_operations_task_checklist(checklist_selection)
+    checklist_items = [
+        {
+            "key": key,
+            "label": label,
+            "checked": bool(normalized_checklist.get(key, False)),
+        }
+        for key, label in OPERATIONS_TASK_CHECKLIST_ITEMS
+    ]
+    updated_task = _operations_task_update_json_fields(
+        task_id,
+        checklist_json=_operations_task_json_dumps(checklist_items),
+    )
+    if not updated_task:
+        return None
+
+    _append_operations_task_event(
+        task_id,
+        "checklist_updated",
+        "Checklist updated",
+        ", ".join(item["label"] for item in checklist_items if item["checked"]) or "Checklist updated",
+        status=updated_task.get("status", "NEW"),
+    )
+    return updated_task
 
 
 def _update_operations_task_status(request_id, status, source="board"):
@@ -7181,7 +7477,7 @@ def _admin_property_detail_context(property_record):
 
 def _admin_operations_task_is_overdue(task_record):
     status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
-    if status == "DONE":
+    if status in {"DONE", "ARCHIVED"}:
         return False
 
     due_date = str((task_record or {}).get("due_date", "")).strip()
@@ -7212,6 +7508,11 @@ def _admin_operations_task_is_overdue(task_record):
 def _admin_operations_task_context(task_record):
     owner_account = _find_owner_account(task_record.get("owner_id", ""))
     property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
+    property_readiness_percent = None
+    if property_record:
+        readiness_completed, readiness_total = _owner_property_checklist_completion(property_record)
+        if readiness_total:
+            property_readiness_percent = int(round((readiness_completed / readiness_total) * 100))
     related_requests = []
     if property_record:
         related_requests = _admin_property_service_requests(property_record, owner_account)[:5]
@@ -7221,6 +7522,11 @@ def _admin_operations_task_context(task_record):
             related_requests = [request_record]
 
     timeline_events = _load_operations_task_events(task_record.get("request_id", ""))
+    assignment_history = [
+        event
+        for event in timeline_events
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed"}
+    ]
     return {
         "task": {
             **task_record,
@@ -7232,8 +7538,13 @@ def _admin_operations_task_context(task_record):
         },
         "owner_account": owner_account,
         "property_record": property_record,
+        "property_readiness_percent": property_readiness_percent,
         "related_requests": related_requests,
         "timeline": list(reversed(timeline_events)),
+        "assignment_history": list(reversed(assignment_history)),
+        "checklist_items": task_record.get("checklist_items", _operations_task_checklist_items(task_record.get("checklist_json", ""))),
+        "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
+        "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
     }
 
 
@@ -7263,9 +7574,12 @@ def _admin_operations_board_context():
     search_query = str(request.args.get("q", "")).strip()
     property_filter = str(request.args.get("property", "")).strip()
     owner_filter = str(request.args.get("owner", "")).strip()
+    professional_filter = str(request.args.get("professional", "")).strip()
     category_filter = str(request.args.get("category", "")).strip()
-    requested_status = str(request.args.get("status", "")).strip().upper()
-    status_filter = requested_status if requested_status in OPERATIONS_TASK_STATUS_VALUES else ""
+    priority_filter = str(request.args.get("priority", "")).strip().upper()
+    requested_status = str(request.args.get("status", "")).strip()
+    status_filter = _normalize_operations_task_status(requested_status) if requested_status else ""
+    date_filter = str(request.args.get("date", "")).strip()
 
     search_tokens = [token for token in search_query.lower().split() if token]
     filtered_tasks = []
@@ -7278,6 +7592,7 @@ def _admin_operations_board_context():
                 task.get("owner_email", ""),
                 task.get("category", ""),
                 task.get("property_location", ""),
+                task.get("assigned_to", ""),
             ]
         ).lower()
         if search_tokens and not all(token in searchable_text for token in search_tokens):
@@ -7286,27 +7601,44 @@ def _admin_operations_board_context():
             continue
         if owner_filter and _admin_property_query_value(task.get("owner_name", "")) != _admin_property_query_value(owner_filter) and _admin_property_query_value(task.get("owner_email", "")) != _admin_property_query_value(owner_filter):
             continue
+        if professional_filter and _admin_property_query_value(task.get("assigned_to", "")) != _admin_property_query_value(professional_filter):
+            continue
         if category_filter and _admin_property_query_value(task.get("category", "")) != _admin_property_query_value(category_filter):
+            continue
+        if priority_filter and _normalize_operations_task_priority(task.get("priority", "NORMAL")) != priority_filter:
             continue
         if status_filter and _normalize_operations_task_status(task.get("status", "NEW")) != status_filter:
             continue
+        if date_filter:
+            task_date_candidates = {
+                str(task.get("created_at", "")).strip()[:10],
+                str(task.get("due_date", "")).strip()[:10],
+            }
+            if date_filter not in task_date_candidates:
+                continue
         filtered_tasks.append(task)
 
-    columns = {status: [] for status in OPERATIONS_TASK_STATUS_VALUES}
+    columns = {status: [] for status in OPERATIONS_TASK_BOARD_STATUSES}
     for task in filtered_tasks:
         columns.setdefault(_normalize_operations_task_status(task.get("status", "NEW")), []).append(task)
 
     for status in columns:
         columns[status].sort(key=lambda item: (item.get("overdue", False), item.get("updated_at", ""), item.get("created_at", "")), reverse=True)
 
-    open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "IN_PROGRESS"})
+    open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "IN_PROGRESS", "WAITING_OWNER", "WAITING_PROVIDER"})
     assigned_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ASSIGNED")
-    completed_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "DONE")
+    in_progress_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "IN_PROGRESS")
+    waiting_owner_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER")
+    waiting_provider_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_PROVIDER")
+    completed_today = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"DONE", "ARCHIVED"} and str(task.get("completed_at", "")).strip()[:10] == datetime.now(timezone.utc).date().isoformat())
     overdue_tasks = sum(1 for task in tasks if _admin_operations_task_is_overdue(task))
+    archived_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ARCHIVED")
 
     property_options = sorted({task.get("property_label", "") for task in tasks if task.get("property_label", "")})
     owner_options = sorted({task.get("owner_name", "") for task in tasks if task.get("owner_name", "")})
+    professional_options = sorted({task.get("assigned_to", "") for task in tasks if task.get("assigned_to", "")})
     category_options = sorted({task.get("category", "") for task in tasks if task.get("category", "")})
+    priority_options = [("LOW", "Low"), ("NORMAL", "Normal"), ("HIGH", "High"), ("URGENT", "Urgent")]
 
     return {
         "tasks": filtered_tasks,
@@ -7314,20 +7646,30 @@ def _admin_operations_board_context():
         "counts": {
             "open_tasks": open_tasks,
             "assigned_tasks": assigned_tasks,
-            "completed_tasks": completed_tasks,
+            "in_progress_tasks": in_progress_tasks,
+            "waiting_owner_tasks": waiting_owner_tasks,
+            "waiting_provider_tasks": waiting_provider_tasks,
+            "completed_today": completed_today,
+            "completed_tasks": completed_today,
             "overdue_tasks": overdue_tasks,
+            "archived_tasks": archived_tasks,
         },
         "filters": {
             "search_query": search_query,
             "property_filter": property_filter,
             "owner_filter": owner_filter,
+            "professional_filter": professional_filter,
             "category_filter": category_filter,
+            "priority_filter": priority_filter,
             "status_filter": status_filter,
+            "date_filter": date_filter,
         },
         "property_options": property_options,
         "owner_options": owner_options,
+        "professional_options": professional_options,
         "category_options": category_options,
-        "status_options": list(OPERATIONS_TASK_STATUS_VALUES),
+        "priority_options": priority_options,
+        "status_options": [{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
         "overdue_monitor": overdue_monitor,
     }
 
@@ -9847,27 +10189,38 @@ def admin_operations_detail(task_id):
         return Response("Task not found.", status=404, mimetype="text/plain")
 
     if request.method == "POST":
-        status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
-        assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
-        due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
-        priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
-        notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
-        _update_operations_task_details(
-            task_id,
-            status=status_value,
-            assigned_to=assigned_to_value,
-            notes=notes_value,
-            due_date=due_date_value,
-            priority=priority_value,
-            source="detail",
-        )
+        task_action = str(request.form.get("task_action", "details")).strip().lower()
+        if task_action == "checklist":
+            checklist_selection = {
+                key: request.form.get(f"checklist_{key}") == "on"
+                for key, _label in OPERATIONS_TASK_CHECKLIST_ITEMS
+            }
+            _update_operations_task_checklist(task_id, checklist_selection)
+        elif task_action == "comment":
+            comment_text = str(request.form.get("comment", "")).strip()
+            _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text)
+        else:
+            status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
+            assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
+            due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
+            priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
+            notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
+            _update_operations_task_details(
+                task_id,
+                status=status_value,
+                assigned_to=assigned_to_value,
+                notes=notes_value,
+                due_date=due_date_value,
+                priority=priority_value,
+                source="detail",
+            )
         return redirect(url_for("admin_operations_detail", task_id=task_id))
 
     context = _admin_operations_task_context(task_record)
     return render_template(
         "admin_operations_detail.html",
         **context,
-        status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_STATUS_VALUES],
+        status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
     )
 
 

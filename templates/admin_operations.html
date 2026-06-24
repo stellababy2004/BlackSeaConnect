@@ -57,7 +57,7 @@
     }
     .admin-operations-filters {
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1.5fr) repeat(5, minmax(0, 1fr));
       gap: 12px;
       align-items: end;
     }
@@ -85,7 +85,7 @@
     }
     .admin-operations-kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 12px;
     }
     .admin-operations-kpi {
@@ -109,7 +109,7 @@
     }
     .admin-operations-board {
       display: grid;
-      grid-template-columns: repeat(5, minmax(280px, 1fr));
+      grid-template-columns: repeat(7, minmax(280px, 1fr));
       gap: 14px;
       overflow-x: auto;
       padding-bottom: 6px;
@@ -194,6 +194,11 @@
       line-height: 1.55;
       font-size: 14px;
     }
+    .admin-operations-card__grid {
+      display: grid;
+      gap: 4px 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .admin-operations-card__meta strong {
       color: #1f2937;
     }
@@ -229,6 +234,11 @@
     .admin-operations-badge--urgent {
       background: rgba(197, 116, 34, 0.16);
       color: #a85812;
+    }
+    .admin-operations-badge--waiting-owner,
+    .admin-operations-badge--waiting-provider {
+      background: rgba(92, 95, 173, 0.14);
+      color: #4b4f9a;
     }
     .admin-operations-badge--done {
       background: rgba(46, 125, 92, 0.14);
@@ -280,8 +290,8 @@
     <section class="admin-operations-hero">
       <div>
         <p class="eyebrow">OPERATIONS BOARD</p>
-        <h1>Property work in motion</h1>
-        <p class="admin-operations-copy">Track every property-related task from request intake through completion, with drag-and-drop status updates, notes, and an audit trail in SQLite.</p>
+        <h1>Operations cockpit</h1>
+        <p class="admin-operations-copy">Track every operational task from intake through completion, with drag-and-drop status updates, rich task detail, and an audit trail in SQLite.</p>
       </div>
       <div class="admin-operations-actions">
         <a class="button button--secondary" href="/admin">Back to cockpit</a>
@@ -315,6 +325,15 @@
           </select>
         </label>
         <label class="admin-operations-filter">
+          <span>Professional</span>
+          <select name="professional">
+            <option value="">All professionals</option>
+            {% for option in professional_options %}
+              <option value="{{ option|e }}" {% if filters.professional_filter == option %}selected{% endif %}>{{ option|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-operations-filter">
           <span>Category</span>
           <select name="category">
             <option value="">All categories</option>
@@ -324,13 +343,26 @@
           </select>
         </label>
         <label class="admin-operations-filter">
+          <span>Priority</span>
+          <select name="priority">
+            <option value="">All priorities</option>
+            {% for option, label in priority_options %}
+              <option value="{{ option|e }}" {% if filters.priority_filter == option %}selected{% endif %}>{{ label|e }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="admin-operations-filter">
           <span>Status</span>
           <select name="status">
             <option value="">All statuses</option>
             {% for option in status_options %}
-              <option value="{{ option|e }}" {% if filters.status_filter == option %}selected{% endif %}>{{ option|replace('_', ' ')|title|e }}</option>
+              <option value="{{ option.value|e }}" {% if filters.status_filter == option.value %}selected{% endif %}>{{ option.label|e }}</option>
             {% endfor %}
           </select>
+        </label>
+        <label class="admin-operations-filter">
+          <span>Date</span>
+          <input type="date" name="date" value="{{ filters.date_filter|e }}">
         </label>
         <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
           <button class="button button--primary" type="submit">Apply filters</button>
@@ -349,37 +381,57 @@
         <strong>{{ counts.assigned_tasks }}</strong>
       </article>
       <article class="admin-operations-kpi">
-        <span>Completed Tasks</span>
-        <strong>{{ counts.completed_tasks }}</strong>
+        <span>In Progress</span>
+        <strong>{{ counts.in_progress_tasks }}</strong>
       </article>
       <article class="admin-operations-kpi">
-        <span>Overdue Tasks</span>
+        <span>Waiting Owner</span>
+        <strong>{{ counts.waiting_owner_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Waiting Provider</span>
+        <strong>{{ counts.waiting_provider_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Completed Today</span>
+        <strong>{{ counts.completed_today }}</strong>
+      </article>
+      <article class="admin-operations-kpi">
+        <span>Overdue</span>
         <strong>{{ counts.overdue_tasks }}</strong>
+      </article>
+      <article class="admin-operations-kpi" style="display:none;">
+        <span>Completed Tasks</span>
+        <strong>{{ counts.completed_tasks }}</strong>
       </article>
     </section>
 
     <section class="admin-operations-board" data-operations-board>
       {% for status in status_options %}
-        <article class="admin-operations-column" data-status-column="{{ status|e }}">
+        <article class="admin-operations-column" data-status-column="{{ status.value|e }}">
           <header class="admin-operations-column__header">
-            <h2>{{ status|replace('_', ' ')|title|e }}</h2>
-            <span class="admin-operations-column__count">{{ columns[status]|length }}</span>
+            <h2>{{ status.label|e }}</h2>
+            <span class="admin-operations-column__count">{{ columns[status.value]|length }}</span>
           </header>
           <div class="admin-operations-column__body">
-            {% if columns[status] %}
-              {% for task in columns[status] %}
+            {% if columns[status.value] %}
+              {% for task in columns[status.value] %}
                 <a class="admin-operations-card" href="/admin/operations/{{ task.request_id|e }}" data-task-card draggable="true" data-task-id="{{ task.request_id|e }}">
                   <div class="admin-operations-card__topline">
                     <span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span>
                     <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>Overdue</span>
                   </div>
                   <h3 class="admin-operations-card__title">{{ task.title|e }}</h3>
-                  <div class="admin-operations-card__meta">
+                  <div class="admin-operations-card__meta admin-operations-card__grid">
+                    <p><strong>Category:</strong> <span class="admin-operations-badge">{{ task.category|e }}</span></p>
                     <p><strong>Property:</strong> {{ task.property_label|e }}</p>
                     <p><strong>Owner:</strong> {{ task.owner_name|e }}</p>
-                    <p><strong>Category:</strong> <span class="admin-operations-badge">{{ task.category|e }}</span></p>
+                    <p><strong>City:</strong> {{ task.property_location|e }}</p>
                     <p><strong>Priority:</strong> <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></p>
+                    <p><strong>Assigned:</strong> {{ task.assigned_to|e or 'Unassigned' }}</p>
+                    <p><strong>Task ID:</strong> {{ task.request_id|e }}</p>
                     <p><strong>Created:</strong> {{ task.created_at|e }}</p>
+                    <p><strong>Due:</strong> {{ task.due_date|e or 'Not set' }}</p>
                   </div>
                 </a>
               {% endfor %}

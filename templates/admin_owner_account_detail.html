@@ -253,6 +253,7 @@
       </div>
       <div class="admin-owner-detail-actions">
         <a class="button button--secondary" href="/admin/owner-accounts">Back to owner accounts</a>
+        <a class="button button--ghost" href="{{ url_for('admin_operations', owner=owner_account.email) }}">Open Tasks</a>
         <a class="button button--ghost" href="/admin">Back to cockpit</a>
       </div>
     </section>

@@ -268,6 +268,7 @@
       </div>
       <div class="admin-property-detail-actions">
         <a class="button button--secondary" href="/admin/properties">Back to properties</a>
+        <a class="button button--ghost" href="{{ url_for('admin_operations', property=property.name) }}">Open Active Tasks</a>
         <a class="button button--ghost" href="/admin">Back to cockpit</a>
       </div>
     </section>
