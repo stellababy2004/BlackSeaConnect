@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="{{ page_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | Property Detail</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .owner-property-detail-page {
+      background: linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 60%, #efe8d4 100%);
+      min-height: 100vh;
+      color: #1f2937;
+      padding: 32px 20px 56px;
+    }
+    .owner-property-detail-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .owner-property-detail-hero,
+    .owner-property-detail-panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+      padding: 28px;
+    }
+    .owner-property-detail-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .owner-property-detail-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .owner-property-detail-copy {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+      max-width: 780px;
+    }
+    .owner-property-detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .owner-property-detail-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.1);
+      color: #7a6328;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .owner-property-detail-chip--status {
+      background: rgba(31, 41, 55, 0.06);
+      color: #1f2937;
+    }
+    .owner-property-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .owner-property-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+      gap: 18px;
+    }
+    .owner-property-detail-stack {
+      display: grid;
+      gap: 18px;
+    }
+    .owner-property-detail-section-title {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+    }
+    .owner-property-detail-dl {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .owner-property-detail-dl > div {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.84);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .owner-property-detail-dl dt {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .owner-property-detail-dl dd {
+      margin: 0;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .owner-property-detail-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .owner-property-detail-form label {
+      display: grid;
+      gap: 8px;
+      color: #4b5563;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .owner-property-detail-form select,
+    .owner-property-detail-form textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .owner-property-detail-form textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+    .owner-property-detail-checklist {
+      display: grid;
+      gap: 10px;
+    }
+    .owner-property-detail-checklist__item {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.86);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .owner-property-detail-checklist__item label {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 15px;
+      color: #1f2937;
+    }
+    .owner-property-detail-checklist__item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #9b7b2f;
+    }
+    .owner-property-detail-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .owner-property-detail-stat {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.84);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .owner-property-detail-stat span {
+      display: block;
+      color: #8b6d2b;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .owner-property-detail-stat strong {
+      font-size: 1.1rem;
+    }
+    .owner-property-detail-history {
+      display: grid;
+      gap: 12px;
+    }
+    .owner-property-detail-history__item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.04);
+    }
+    .owner-property-detail-history__topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .owner-property-detail-history__topline strong {
+      font-size: 1rem;
+    }
+    .owner-property-detail-history__topline time {
+      color: #6b7280;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .owner-property-detail-history__item p {
+      margin: 8px 0 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .owner-property-detail-empty {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    @media (max-width: 920px) {
+      .owner-property-detail-grid {
+        grid-template-columns: 1fr;
+      }
+      .owner-property-detail-dl,
+      .owner-property-detail-summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="owner-property-detail-page">
+  <header class="hero hero--home" id="top">
+    <nav class="topbar" aria-label="Primary">
+      <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
+      <div class="topbar__actions">
+        <nav class="site-nav" aria-label="Owner portal">
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Dashboard</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Request service</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Logout</a>
+        </nav>
+        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+          <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if current_lang == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+          <span class="language-switcher__divider" aria-hidden="true">|</span>
+          <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+        </div>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">Back to properties</a>
+      </div>
+    </nav>
+    <div class="hero__content hero__content--home owner-property-detail-shell">
+      <section class="owner-property-detail-hero">
+        <div>
+          <div class="owner-property-detail-meta">
+            <span class="owner-property-detail-chip">Owner portal</span>
+            <span class="owner-property-detail-chip">Property profile</span>
+            <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
+          </div>
+          <h1>{{ property_context.property.name|e }}</h1>
+          <p class="owner-property-detail-copy">
+            Review the property profile, update readiness, and track all service activity attached to this property in one place.
+          </p>
+        </div>
+        <div class="owner-property-detail-actions">
+          <a class="button button--secondary" href="{{ localized_url('/owners/properties') }}">Back to properties</a>
+          <a class="button button--primary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">Request service</a>
+        </div>
+      </section>
+    </div>
+  </header>
+
+  <main class="owner-property-detail-shell">
+    <section class="owner-property-detail-grid">
+      <div class="owner-property-detail-stack">
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Property Profile</p>
+          <h2 class="owner-property-detail-section-title">Property details</h2>
+          <dl class="owner-property-detail-dl">
+            <div><dt>Property name</dt><dd>{{ property_context.property.name|e }}</dd></div>
+            <div><dt>Property type</dt><dd>{{ property_context.property.property_type|e }}</dd></div>
+            <div><dt>City / location</dt><dd>{{ property_context.property.location|e }}</dd></div>
+            <div><dt>Unit count</dt><dd>{{ property_context.property.guest_capacity }}</dd></div>
+            <div><dt>Status</dt><dd>{{ property_context.property.status_label|e }}</dd></div>
+            <div><dt>Created at</dt><dd>{{ property_context.property.created_at|e }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Property Notes</p>
+          <h2 class="owner-property-detail-section-title">Internal notes</h2>
+          <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}">
+            <label>
+              <span>Property notes</span>
+              <textarea name="notes" placeholder="Notes for your local operations team">{{ property_context.property.notes|e }}</textarea>
+            </label>
+
+            <label>
+              <span>Operational status</span>
+              <select name="status" required>
+                <option value="SETUP" {% if property_context.property.status == 'SETUP' %}selected{% endif %}>SETUP</option>
+                <option value="ACTIVE" {% if property_context.property.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+                <option value="SEASONAL" {% if property_context.property.status == 'SEASONAL' %}selected{% endif %}>SEASONAL</option>
+                <option value="INACTIVE" {% if property_context.property.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+              </select>
+            </label>
+
+            <div>
+              <p class="owner-property-detail-section-title" style="font-size: 1rem; margin-bottom: 10px;">Readiness checklist</p>
+              <div class="owner-property-detail-checklist">
+                {% for item in property_context.checklist_items %}
+                  <div class="owner-property-detail-checklist__item">
+                    <label>
+                      <input type="checkbox" name="{{ item.key }}" value="1" {% if item.ready %}checked{% endif %}>
+                      <span>{{ item.label }}</span>
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <button class="button button--primary" type="submit">Save property</button>
+          </form>
+        </article>
+      </div>
+
+      <div class="owner-property-detail-stack">
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Operational Status</p>
+          <h2 class="owner-property-detail-section-title">Readiness summary</h2>
+          <div class="owner-property-detail-summary">
+            <div class="owner-property-detail-stat">
+              <span>Status</span>
+              <strong>{{ property_context.property.status_label|e }}</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Checklist</span>
+              <strong>{{ property_context.property.checklist_completed }}/{{ property_context.property.checklist_total }}</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Progress</span>
+              <strong>{{ property_context.property.checklist_percent }}%</strong>
+            </div>
+          </div>
+          <div class="owner-property-detail-checklist">
+            {% for item in property_context.checklist_items %}
+              <div class="owner-property-detail-checklist__item">
+                <span>{{ item.label }}</span>
+                <strong>{% if item.ready %}Ready{% else %}Pending{% endif %}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Service Request History</p>
+          <h2 class="owner-property-detail-section-title">Recent requests</h2>
+          {% if property_context.service_requests %}
+            <div class="owner-property-detail-history">
+              {% for request in property_context.service_requests %}
+                <div class="owner-property-detail-history__item">
+                  <div class="owner-property-detail-history__topline">
+                    <strong>{{ request.service_category|e }}</strong>
+                    <time>{{ request.created_at|e }}</time>
+                  </div>
+                  <p>
+                    {{ request.status|upper|e }} &middot; {{ request.property|e }}
+                    {% if request.description %}<br>{{ request.description|e }}{% endif %}
+                  </p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="owner-property-detail-empty">No service requests are linked to this property yet.</p>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="/static/js/translations.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

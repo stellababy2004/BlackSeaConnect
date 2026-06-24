@@ -112,6 +112,7 @@
 
       <form class="owner-request-form" method="post" action="/owners/request-service">
         <input type="hidden" name="lang" value="{{ current_lang }}">
+        <input type="hidden" name="property_id" value="{{ form_values.property_id|e }}">
         <div class="owner-request-form__grid">
           <label class="owner-request-form__field">
             <span data-i18n="ownerRequestServicePropertyLabel">Имот</span>

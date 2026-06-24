@@ -616,6 +616,69 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("owner-request-1", html)
         self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 
+    def test_owner_property_management_lists_detail_and_persists_updates(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._seed_jsonl("service_requests.jsonl", [
+            self._demo_owner_request(owner_id="owner-1", owner_email="owner@example.com", property_id="property-1", property="Sea View Villa")
+        ])
+
+        self._login_owner_via_magic(email="owner@example.com")
+
+        list_response = self.client.get("/owners/properties")
+        self.assertEqual(list_response.status_code, 200)
+        list_html = list_response.get_data(as_text=True)
+        self.assertIn("Property Management", list_html)
+        self.assertIn("Sea View Villa", list_html)
+        self.assertIn("/owners/properties/property-1", list_html)
+        self.assertIn("Setup", list_html)
+
+        detail_response = self.client.get("/owners/properties/property-1")
+        self.assertEqual(detail_response.status_code, 200)
+        detail_html = detail_response.get_data(as_text=True)
+        self.assertIn("Property details", detail_html)
+        self.assertIn("Readiness checklist", detail_html)
+        self.assertIn("Recent requests", detail_html)
+        self.assertIn("Sea View Villa", detail_html)
+        self.assertIn("Concierge", detail_html)
+        self.assertIn("property_id=property-1", detail_html)
+
+        update_response = self.client.post(
+            "/owners/properties/property-1",
+            data={
+                "status": "ACTIVE",
+                "notes": "Ready for guests.",
+                "guest_guide_ready": "1",
+                "access_instructions_ready": "1",
+                "emergency_contact_ready": "1",
+            },
+        )
+
+        self.assertEqual(update_response.status_code, 302)
+        self.assertIn("/owners/properties/property-1", update_response.headers["Location"])
+
+        property_row = self._read_owner_db_rows("owner_properties")[0]
+        self.assertEqual(property_row["status"], "ACTIVE")
+        self.assertEqual(property_row["notes"], "Ready for guests.")
+        self.assertEqual(property_row["guest_guide_ready"], 1)
+        self.assertEqual(property_row["access_instructions_ready"], 1)
+        self.assertEqual(property_row["emergency_contact_ready"], 1)
+        self.assertEqual(property_row["cleaning_partner_ready"], 0)
+
+        activity_rows = self._read_owner_db_rows("owner_activity_events")
+        self.assertTrue(any(row["event_type"] == "status_changed" for row in activity_rows))
+        self.assertTrue(any(row["event_type"] == "note_added" for row in activity_rows))
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            request_response = self.client.post(
+                "/owners/request-service",
+                data={**self._service_request_payload(), "property_id": "property-1"},
+            )
+
+        self.assertEqual(request_response.status_code, 302)
+        service_records = self._read_jsonl("service_requests.jsonl")
+        self.assertEqual(service_records[-1]["property_id"], "property-1")
+
     def test_owner_request_service_category_query_prefills_category(self):
         self._login_owner_via_magic()
 
@@ -635,6 +698,7 @@ class OwnerPortalTests(unittest.TestCase):
             "/owners/login",
             "/owners/property/new",
             "/owners/dashboard",
+            "/owners/properties",
             "/owners/request-service",
         ]
 
@@ -661,6 +725,9 @@ class OwnerPortalTests(unittest.TestCase):
                 elif path == "/owners/dashboard":
                     self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html, msg=path)
+                elif path == "/owners/properties":
+                    self.assertIn('data-i18n="ownerProfileDropdownProperties"', html, msg=path)
+                    self.assertIn('body class="owner-properties-page"', html, msg=path)
                 elif path == "/owners/request-service":
                     self.assertIn('data-i18n="ownerRequestServiceCategoryLabel"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-request-service-page"', html, msg=path)

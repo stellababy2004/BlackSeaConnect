@@ -123,10 +123,11 @@ class MultilingualRouteTests(unittest.TestCase):
             "/owners/login": "languageSwitcherLabel",
             "/owners/dashboard": "languageSwitcherLabel",
             "/owners/property/new": "languageSwitcherLabel",
+            "/owners/properties": "languageSwitcherLabel",
             "/owners/request-service": "languageSwitcherLabel",
         }
 
-        owner_routes = {"/owners/dashboard", "/owners/property/new", "/owners/request-service"}
+        owner_routes = {"/owners/dashboard", "/owners/property/new", "/owners/properties", "/owners/request-service"}
 
         for path, switcher_key in routes.items():
             for lang in ("bg", "en", "fr", "ru"):
@@ -181,6 +182,7 @@ class MultilingualRouteTests(unittest.TestCase):
             "/owners/login",
             "/owners/dashboard",
             "/owners/property/new",
+            "/owners/properties",
             "/owners/request-service",
         ]
 
@@ -204,6 +206,8 @@ class MultilingualRouteTests(unittest.TestCase):
             "templates/network_detail.html",
             "templates/owners_register.html",
             "templates/owners_property_new.html",
+            "templates/owners_properties.html",
+            "templates/owners_property_detail.html",
             "templates/owners_request_service.html",
             "templates/partners.html",
             "templates/professionals.html",
@@ -222,6 +226,7 @@ class MultilingualRouteTests(unittest.TestCase):
         routes = [
             "/owners/register",
             "/owners/property/new",
+            "/owners/properties",
             "/owners/request-service",
             "/professionals/apply",
             "/request-service",

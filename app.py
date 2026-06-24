@@ -122,6 +122,14 @@ SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
 OWNER_STATUS_VALUES = {"PILOT", "ACTIVE", "INACTIVE", "VIP"}
 OWNER_STATUS_DEFAULT = "PILOT"
 OWNER_LANGUAGE_DEFAULT = "bg"
+OWNER_PROPERTY_STATUS_VALUES = {"SETUP", "ACTIVE", "SEASONAL", "INACTIVE"}
+OWNER_PROPERTY_STATUS_DEFAULT = "SETUP"
+OWNER_PROPERTY_CHECKLIST_FIELDS = (
+    "guest_guide_ready",
+    "access_instructions_ready",
+    "emergency_contact_ready",
+    "cleaning_partner_ready",
+)
 OWNER_SESSION_ID_KEY = "owner_id"
 OWNER_SESSION_EMAIL_KEY = "owner_email"
 OWNER_SESSION_NAME_KEY = "owner_name"
@@ -467,6 +475,18 @@ def _normalize_owner_language(language):
     return normalized if normalized in SUPPORTED_LANGUAGES else ""
 
 
+def _normalize_owner_property_status(status):
+    normalized = str(status or "").strip().upper()
+    return normalized if normalized in OWNER_PROPERTY_STATUS_VALUES else OWNER_PROPERTY_STATUS_DEFAULT
+
+
+def _normalize_owner_property_checklist_value(value):
+    if isinstance(value, bool):
+        return 1 if value else 0
+    normalized = str(value or "").strip().lower()
+    return 1 if normalized in {"1", "true", "yes", "on", "checked"} else 0
+
+
 def _owner_db_path():
     return Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
 
@@ -505,6 +525,20 @@ def _ensure_owner_account_schema(conn):
     for column_name, column_sql in required_columns.items():
         if column_name not in existing_columns:
             conn.execute(f"ALTER TABLE owner_accounts ADD COLUMN {column_name} {column_sql}")
+
+
+def _ensure_owner_property_schema(conn):
+    existing_columns = _owner_table_columns(conn, "owner_properties")
+    required_columns = {
+        "status": f"TEXT NOT NULL DEFAULT '{OWNER_PROPERTY_STATUS_DEFAULT}'",
+        "guest_guide_ready": "INTEGER NOT NULL DEFAULT 0",
+        "access_instructions_ready": "INTEGER NOT NULL DEFAULT 0",
+        "emergency_contact_ready": "INTEGER NOT NULL DEFAULT 0",
+        "cleaning_partner_ready": "INTEGER NOT NULL DEFAULT 0",
+    }
+    for column_name, column_sql in required_columns.items():
+        if column_name not in existing_columns:
+            conn.execute(f"ALTER TABLE owner_properties ADD COLUMN {column_name} {column_sql}")
 
 
 def _ensure_owner_db_schema(conn):
@@ -549,7 +583,12 @@ def _ensure_owner_db_schema(conn):
             bathrooms INTEGER NOT NULL,
             guest_capacity INTEGER NOT NULL,
             operating_mode TEXT NOT NULL,
-            notes TEXT NOT NULL
+            notes TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'SETUP',
+            guest_guide_ready INTEGER NOT NULL DEFAULT 0,
+            access_instructions_ready INTEGER NOT NULL DEFAULT 0,
+            emergency_contact_ready INTEGER NOT NULL DEFAULT 0,
+            cleaning_partner_ready INTEGER NOT NULL DEFAULT 0
         )
         """
     )
@@ -595,6 +634,7 @@ def _ensure_owner_db_schema(conn):
         """
     )
     _ensure_owner_account_schema(conn)
+    _ensure_owner_property_schema(conn)
 
 
 def _owner_jsonl_signature(path):
@@ -637,6 +677,27 @@ def _owner_account_from_row(row):
         "language": _normalize_owner_language(row["language"] if "language" in row.keys() else OWNER_LANGUAGE_DEFAULT) or OWNER_LANGUAGE_DEFAULT,
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
         "internal_notes": str(row["internal_notes"]) if "internal_notes" in row.keys() else "",
+    }
+
+
+def _owner_property_from_row(row):
+    return {
+        "id": str(row["id"]),
+        "owner_id": str(row["owner_id"]),
+        "created_at": str(row["created_at"]),
+        "name": str(row["name"]),
+        "property_type": str(row["property_type"]),
+        "location": str(row["location"]),
+        "bedrooms": int(row["bedrooms"] or 0),
+        "bathrooms": int(row["bathrooms"] or 0),
+        "guest_capacity": int(row["guest_capacity"] or 0),
+        "operating_mode": str(row["operating_mode"]),
+        "notes": str(row["notes"]),
+        "status": _normalize_owner_property_status(row["status"] if "status" in row.keys() else OWNER_PROPERTY_STATUS_DEFAULT),
+        "guest_guide_ready": bool(int(row["guest_guide_ready"] or 0)) if "guest_guide_ready" in row.keys() else False,
+        "access_instructions_ready": bool(int(row["access_instructions_ready"] or 0)) if "access_instructions_ready" in row.keys() else False,
+        "emergency_contact_ready": bool(int(row["emergency_contact_ready"] or 0)) if "emergency_contact_ready" in row.keys() else False,
+        "cleaning_partner_ready": bool(int(row["cleaning_partner_ready"] or 0)) if "cleaning_partner_ready" in row.keys() else False,
     }
 
 
@@ -789,8 +850,8 @@ def _import_owner_properties_jsonl(conn):
             conn.execute(
                 """
                 INSERT INTO owner_properties (
-                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     owner_id = excluded.owner_id,
                     created_at = excluded.created_at,
@@ -801,7 +862,12 @@ def _import_owner_properties_jsonl(conn):
                     bathrooms = excluded.bathrooms,
                     guest_capacity = excluded.guest_capacity,
                     operating_mode = excluded.operating_mode,
-                    notes = excluded.notes
+                    notes = excluded.notes,
+                    status = excluded.status,
+                    guest_guide_ready = excluded.guest_guide_ready,
+                    access_instructions_ready = excluded.access_instructions_ready,
+                    emergency_contact_ready = excluded.emergency_contact_ready,
+                    cleaning_partner_ready = excluded.cleaning_partner_ready
                 """,
                 (
                     normalized["id"],
@@ -815,6 +881,11 @@ def _import_owner_properties_jsonl(conn):
                     normalized["guest_capacity"],
                     normalized["operating_mode"],
                     normalized["notes"],
+                    normalized["status"],
+                    normalized["guest_guide_ready"],
+                    normalized["access_instructions_ready"],
+                    normalized["emergency_contact_ready"],
+                    normalized["cleaning_partner_ready"],
                 ),
             )
 
@@ -1170,6 +1241,9 @@ def _normalize_owner_property(record):
 
     operating_mode = str(normalized.get("operating_mode", "")).strip().lower()
     normalized["operating_mode"] = "seasonal" if operating_mode == "seasonal" else "year-round"
+    normalized["status"] = _normalize_owner_property_status(normalized.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+    for field in OWNER_PROPERTY_CHECKLIST_FIELDS:
+        normalized[field] = _normalize_owner_property_checklist_value(normalized.get(field, 0))
     return normalized
 
 
@@ -1179,28 +1253,13 @@ def _load_owner_properties():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
+            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready
             FROM owner_properties
             ORDER BY created_at DESC, id DESC
             """
         ).fetchall()
 
-    return [
-        {
-            "id": str(row["id"]),
-            "owner_id": str(row["owner_id"]),
-            "created_at": str(row["created_at"]),
-            "name": str(row["name"]),
-            "property_type": str(row["property_type"]),
-            "location": str(row["location"]),
-            "bedrooms": int(row["bedrooms"] or 0),
-            "bathrooms": int(row["bathrooms"] or 0),
-            "guest_capacity": int(row["guest_capacity"] or 0),
-            "operating_mode": str(row["operating_mode"]),
-            "notes": str(row["notes"]),
-        }
-        for row in rows
-    ]
+    return [_owner_property_from_row(row) for row in rows]
 
 
 def _save_owner_properties(properties):
@@ -1216,8 +1275,8 @@ def _save_owner_properties(properties):
                 conn.execute(
                     """
                     INSERT INTO owner_properties (
-                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["id"],
@@ -1231,6 +1290,11 @@ def _save_owner_properties(properties):
                         normalized["guest_capacity"],
                         normalized["operating_mode"],
                         normalized["notes"],
+                        normalized["status"],
+                        normalized["guest_guide_ready"],
+                        normalized["access_instructions_ready"],
+                        normalized["emergency_contact_ready"],
+                        normalized["cleaning_partner_ready"],
                     ),
                 )
     except Exception as exc:
@@ -1255,8 +1319,8 @@ def _append_owner_property(record):
             conn.execute(
                 """
                 INSERT INTO owner_properties (
-                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     owner_id = excluded.owner_id,
                     created_at = excluded.created_at,
@@ -1267,7 +1331,12 @@ def _append_owner_property(record):
                     bathrooms = excluded.bathrooms,
                     guest_capacity = excluded.guest_capacity,
                     operating_mode = excluded.operating_mode,
-                    notes = excluded.notes
+                    notes = excluded.notes,
+                    status = excluded.status,
+                    guest_guide_ready = excluded.guest_guide_ready,
+                    access_instructions_ready = excluded.access_instructions_ready,
+                    emergency_contact_ready = excluded.emergency_contact_ready,
+                    cleaning_partner_ready = excluded.cleaning_partner_ready
                 """,
                 (
                     normalized["id"],
@@ -1281,12 +1350,70 @@ def _append_owner_property(record):
                     normalized["guest_capacity"],
                     normalized["operating_mode"],
                     normalized["notes"],
+                    normalized["status"],
+                    normalized["guest_guide_ready"],
+                    normalized["access_instructions_ready"],
+                    normalized["emergency_contact_ready"],
+                    normalized["cleaning_partner_ready"],
                 ),
             )
     except Exception as exc:
         app.logger.warning("Owner property write failed for %s: %s", normalized.get("owner_id", ""), type(exc).__name__)
         return None
     return normalized
+
+
+def _find_owner_property(property_id):
+    target_property_id = str(property_id or "").strip()
+    if not target_property_id:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready
+            FROM owner_properties
+            WHERE id = ?
+            LIMIT 1
+            """,
+            (target_property_id,),
+        ).fetchone()
+
+    return _owner_property_from_row(row) if row else None
+
+
+def _owner_properties_for_account(owner_id):
+    target_owner_id = str(owner_id or "").strip()
+    if not target_owner_id:
+        return []
+    return [
+        property_record
+        for property_record in _load_owner_properties()
+        if str(property_record.get("owner_id", "")).strip() == target_owner_id
+    ]
+
+
+def _owner_property_checklist_completion(property_record):
+    completed = sum(1 for field in OWNER_PROPERTY_CHECKLIST_FIELDS if bool(property_record.get(field)))
+    return completed, len(OWNER_PROPERTY_CHECKLIST_FIELDS)
+
+
+def _owner_property_status_label(status):
+    normalized = _normalize_owner_property_status(status)
+    return normalized.title()
+
+
+def _owner_property_status_tone(status):
+    normalized = _normalize_owner_property_status(status)
+    if normalized == "ACTIVE":
+        return "active"
+    if normalized == "SEASONAL":
+        return "seasonal"
+    if normalized == "INACTIVE":
+        return "paused"
+    return "setup"
 
 
 def _load_owner_magic_tokens():
@@ -3203,6 +3330,16 @@ def _owner_dashboard_copy(lang):
 
 
 def _owner_property_status(property_record, has_owner_requests, dashboard_copy):
+    raw_status = str(property_record.get("status", "")).strip().upper()
+    if raw_status in OWNER_PROPERTY_STATUS_VALUES:
+        status_map = {
+            "SETUP": ("setup", dashboard_copy["status_setup"], "ownerDashboardPropertyStatusOnboarding", "setup", dashboard_copy["status_note_setup"]),
+            "ACTIVE": ("active", dashboard_copy["status_active"], "ownerDashboardPropertyStatusActive", "active", dashboard_copy["status_note_active"]),
+            "SEASONAL": ("seasonal", dashboard_copy["status_seasonal"], "ownerDashboardPropertyStatusSeasonal", "seasonal", dashboard_copy["status_note_seasonal"]),
+            "INACTIVE": ("paused", dashboard_copy["status_paused"], "ownerDashboardPropertyStatusPaused", "paused", dashboard_copy["status_note_paused"]),
+        }
+        return status_map[raw_status]
+
     operating_mode = str(property_record.get("operating_mode", "")).strip().lower()
     notes = str(property_record.get("notes", "")).strip().lower()
 
@@ -3245,6 +3382,8 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
     else:
         status_note_key = "ownerPropertyStatusNoteOnboarding"
 
+    checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
+
     return {
         "id": property_record.get("id", ""),
         "name": str(property_record.get("name", "")).strip() or dashboard_copy["property_type_residence"],
@@ -3264,6 +3403,8 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
         "status_note": status_note,
         "status_note_key": status_note_key,
         "created_at": str(property_record.get("created_at", "")).strip(),
+        "checklist_completed": checklist_completed,
+        "checklist_total": checklist_total,
     }
 
 
@@ -3373,7 +3514,7 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     dashboard_copy = _owner_dashboard_copy(current_lang)
     owner_properties = [
         property_record
-        for property_record in _load_owner_properties()
+        for property_record in _owner_properties_for_account(owner_account.get("id", ""))
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
     has_properties = bool(owner_properties)
@@ -3586,6 +3727,98 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     }
 
     return owner_portal
+
+
+def _owner_property_service_requests(owner_account, property_record):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    property_id = str((property_record or {}).get("id", "")).strip()
+    property_name = str((property_record or {}).get("name", "")).strip().lower()
+    property_location = str((property_record or {}).get("location", "")).strip().lower()
+    if not owner_id or not property_id:
+        return []
+
+    matched_requests = []
+    for record in _load_service_requests():
+        if str(record.get("request_source", "public")).lower() != "owner":
+            continue
+        if str(record.get("owner_id", "")).strip() != owner_id:
+            continue
+
+        request_property_id = str(record.get("property_id", "")).strip()
+        request_property_name = str(record.get("property", "")).strip().lower()
+        request_location = str(record.get("property_city", "")).strip().lower()
+
+        if request_property_id and request_property_id == property_id:
+            matched_requests.append(record)
+            continue
+        if property_name and request_property_name == property_name:
+            matched_requests.append(record)
+            continue
+        if property_location and request_location and request_location == property_location:
+            matched_requests.append(record)
+    matched_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return matched_requests
+
+
+def _owner_property_management_context(owner_account):
+    owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
+    property_cards = []
+    for property_record in owner_properties:
+        status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+        checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
+        property_cards.append({
+            **property_record,
+            "status": status,
+            "status_label": _owner_property_status_label(status),
+            "status_tone": _owner_property_status_tone(status),
+            "checklist_completed": checklist_completed,
+            "checklist_total": checklist_total,
+            "checklist_percent": int(round((checklist_completed / checklist_total) * 100)) if checklist_total else 0,
+        })
+    property_cards.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return property_cards
+
+
+def _owner_property_detail_context(owner_account, property_record):
+    status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+    checklist_items = [
+        {
+            "key": "guest_guide_ready",
+            "label": "Guest guide",
+            "ready": bool(property_record.get("guest_guide_ready")),
+        },
+        {
+            "key": "access_instructions_ready",
+            "label": "Access instructions",
+            "ready": bool(property_record.get("access_instructions_ready")),
+        },
+        {
+            "key": "emergency_contact_ready",
+            "label": "Emergency contact",
+            "ready": bool(property_record.get("emergency_contact_ready")),
+        },
+        {
+            "key": "cleaning_partner_ready",
+            "label": "Cleaning partner",
+            "ready": bool(property_record.get("cleaning_partner_ready")),
+        },
+    ]
+    checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
+    service_requests = _owner_property_service_requests(owner_account, property_record)
+    return {
+        "property": {
+            **property_record,
+            "status": status,
+            "status_label": _owner_property_status_label(status),
+            "status_tone": _owner_property_status_tone(status),
+            "checklist_completed": checklist_completed,
+            "checklist_total": checklist_total,
+            "checklist_percent": int(round((checklist_completed / checklist_total) * 100)) if checklist_total else 0,
+        },
+        "checklist_items": checklist_items,
+        "service_requests": service_requests,
+        "history_count": len(service_requests),
+    }
 
 
 def owner_required(view):
@@ -3845,6 +4078,11 @@ def owners_property_new():
                 "guest_capacity": int(form_values["guest_capacity"]),
                 "operating_mode": form_values["operating_mode"],
                 "notes": form_values["notes"],
+                "status": OWNER_PROPERTY_STATUS_DEFAULT,
+                "guest_guide_ready": 0,
+                "access_instructions_ready": 0,
+                "emergency_contact_ready": 0,
+                "cleaning_partner_ready": 0,
             })
             if saved_property:
                 app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
@@ -3905,15 +4143,82 @@ def owners_dashboard():
     )
 
 
+@app.route("/owners/properties", methods=["GET"])
+@owner_required
+def owners_properties():
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    property_cards = _owner_property_management_context(owner_account)
+    return render_template(
+        "owners_properties.html",
+        owner_account=owner_account,
+        current_lang=current_lang,
+        property_cards=property_cards,
+        property_count=len(property_cards),
+    )
+
+
+@app.route("/owners/properties/<property_id>", methods=["GET", "POST"])
+@owner_required
+def owners_property_detail(property_id):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    property_record = _find_owner_property(property_id)
+    if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        return Response("Property not found.", status=404, mimetype="text/plain")
+
+    if request.method == "POST":
+        previous_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+        previous_notes = str(property_record.get("notes", "")).strip()
+        updated_property = {
+            **property_record,
+            "status": _normalize_owner_property_status(request.form.get("status", property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))),
+            "notes": str(request.form.get("notes", property_record.get("notes", ""))).strip(),
+            "guest_guide_ready": _normalize_owner_property_checklist_value(request.form.get("guest_guide_ready")),
+            "access_instructions_ready": _normalize_owner_property_checklist_value(request.form.get("access_instructions_ready")),
+            "emergency_contact_ready": _normalize_owner_property_checklist_value(request.form.get("emergency_contact_ready")),
+            "cleaning_partner_ready": _normalize_owner_property_checklist_value(request.form.get("cleaning_partner_ready")),
+        }
+        saved_property = _append_owner_property(updated_property)
+        if saved_property:
+            if saved_property["status"] != previous_status:
+                _append_owner_activity_event(
+                    owner_account["id"],
+                    "status_changed",
+                    "Status changed",
+                    f"{saved_property.get('name', '')}: {previous_status} -> {saved_property['status']}",
+                )
+            if saved_property.get("notes", "").strip() != previous_notes:
+                _append_owner_activity_event(
+                    owner_account["id"],
+                    "note_added",
+                    "Property notes updated",
+                    saved_property.get("notes", ""),
+                )
+        return redirect(url_for("owners_property_detail", property_id=property_id, lang=current_lang))
+
+    context = _owner_property_detail_context(owner_account, property_record)
+    return render_template(
+        "owners_property_detail.html",
+        owner_account=owner_account,
+        current_lang=current_lang,
+        property_context=context,
+    )
+
+
 @app.route("/owners/request-service", methods=["GET", "POST"])
 @owner_required
 def owners_request_service():
     current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
+    selected_property = _find_owner_property(request.args.get("property_id", ""))
+    if selected_property and str(selected_property.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        selected_property = None
     form_values = {
         "category": _normalize_owner_service_category(request.args.get("category", "")),
         "preferred_date": "",
-        "property": owner_account.get("property_name", "") or owner_account.get("property_type", ""),
+        "property_id": selected_property.get("id", "") if selected_property else "",
+        "property": selected_property.get("name", "") if selected_property else owner_account.get("property_name", "") or owner_account.get("property_type", ""),
         "description": "",
         "urgency": "Standard",
         "contact_preference": "Email",
@@ -3925,6 +4230,7 @@ def owners_request_service():
         form_values.update({
             "category": _normalize_owner_service_category(request.form.get("category", "")),
             "preferred_date": str(request.form.get("preferred_date", "")).strip(),
+            "property_id": str(request.form.get("property_id", "")).strip(),
             "property": str(request.form.get("property", "")).strip(),
             "description": str(request.form.get("notes", request.form.get("description", ""))).strip(),
             "urgency": str(request.form.get("urgency", "")).strip() or "Standard",
@@ -3947,6 +4253,12 @@ def owners_request_service():
             errors["category"] = "categoryInvalidError"
 
         if not errors:
+            property_record = _find_owner_property(form_values["property_id"]) if form_values["property_id"] else None
+            if property_record and str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+                property_record = None
+            if property_record and not form_values["property"]:
+                form_values["property"] = property_record.get("name", "")
+
             request_record = {
                 "id": uuid4().hex,
                 "created_at": _utc_now_iso(),
@@ -3960,6 +4272,7 @@ def owners_request_service():
                 "name": owner_account.get("full_name", ""),
                 "email": owner_account.get("email", ""),
                 "phone": owner_account.get("phone", ""),
+                "property_id": property_record.get("id", "") if property_record else "",
                 "property": form_values["property"],
                 "property_city": owner_account.get("city", ""),
                 "property_type": owner_account.get("property_type", ""),
