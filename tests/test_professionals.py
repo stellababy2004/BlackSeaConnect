@@ -8,6 +8,7 @@ from pathlib import Path
 import uuid
 from unittest.mock import patch
 
+import app as app_module
 from app import app
 
 
@@ -70,6 +71,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
         app.config["TESTING"] = True
+        app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
@@ -148,6 +150,57 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("Transfers", message.get_content())
         self.assertIn("/admin/partners/", message.get_content())
 
+    def test_partner_application_honeypot_blocks_save_and_emails(self):
+        payload = {
+            **self._partner_payload(),
+            "company_website": "https://example.com",
+            "website": "https://spam.example.com",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/partners/apply", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Application received", html)
+        self.assertEqual(self._read_jsonl("partner_applications.jsonl"), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_partner_application_invalid_email_is_rejected_normally(self):
+        payload = {
+            **self._partner_payload(),
+            "company_website": "https://example.com",
+            "email": "not-an-email",
+            "website": "",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/partners/apply", data=payload)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("This field is required.", response.get_data(as_text=True))
+        self.assertEqual(self._read_jsonl("partner_applications.jsonl"), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_partner_application_rate_limit_blocks_after_threshold(self):
+        payload = {
+            **self._partner_payload(),
+            "company_website": "https://example.com",
+            "website": "",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            for _ in range(5):
+                response = self.client.post("/partners/apply", data=payload)
+                self.assertEqual(response.status_code, 200)
+
+            blocked_response = self.client.post("/partners/apply", data=payload)
+
+        self.assertEqual(blocked_response.status_code, 200)
+        self.assertIn("Application received", blocked_response.get_data(as_text=True))
+        self.assertEqual(len(self._read_jsonl("partner_applications.jsonl")), 5)
+        self.assertEqual(len(FakeSMTP.sent_messages), 5)
+
     def test_professional_application_submission_saves_and_emails(self):
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/professionals/apply", data=self._professional_payload())
@@ -167,6 +220,51 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("Nikolay Ivanov", message.get_content())
         self.assertIn("Concierge", message.get_content())
         self.assertIn("/admin/professionals/", message.get_content())
+
+    def test_professional_application_honeypot_blocks_save_and_emails(self):
+        payload = {
+            **self._professional_payload(),
+            "website": "https://spam.example.com",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/professionals/apply", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Заявлението е получено", html)
+        self.assertEqual(self._read_jsonl("professional_applications.jsonl"), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_professional_application_url_heavy_spam_is_blocked(self):
+        payload = {
+            **self._professional_payload(),
+            "short_bio": "Visit http://a.example.com https://b.example.com https://c.example.com for more.",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/professionals/apply", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Заявлението е получено", html)
+        self.assertEqual(self._read_jsonl("professional_applications.jsonl"), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_professional_application_crypto_transfer_spam_is_blocked(self):
+        payload = {
+            **self._professional_payload(),
+            "short_bio": "Send USDT or BTC for urgent wire transfer and investment returns.",
+        }
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/professionals/apply", data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Заявлението е получено", html)
+        self.assertEqual(self._read_jsonl("professional_applications.jsonl"), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
 
     def test_professional_apply_page_uses_i18n_hooks_for_supported_locales(self):
         for lang in ("bg", "fr", "ru"):

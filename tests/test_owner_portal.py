@@ -11,6 +11,7 @@ from pathlib import Path
 import uuid
 from unittest.mock import patch
 
+import app as app_module
 from app import app, _mask_email
 
 
@@ -102,6 +103,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.ADMIN_ENV = {**self.ADMIN_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
         self.SMTP_ENV = {**self.SMTP_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
         app.config["TESTING"] = True
+        app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
@@ -396,6 +398,22 @@ class OwnerPortalTests(unittest.TestCase):
         invalid_html = invalid_post.get_data(as_text=True)
         self.assertIn('name="email" value="owner@example.com"', invalid_html)
         self.assertNotIn('value="/owners/register"', invalid_html)
+
+    def test_owner_registration_honeypot_blocks_account_creation(self):
+        payload = {
+            **self._owner_payload(),
+            "website": "https://spam.example.com",
+        }
+
+        smtp_env = {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}
+        with patch.dict(os.environ, smtp_env, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post("/owners/register", data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/login?magic_sent=1&delivery=generic", response.headers["Location"])
+        self.assertFalse((Path("data") / "owner_accounts.jsonl").exists())
+        self.assertFalse((Path("data") / "owner_magic_tokens.jsonl").exists())
+        self.assertEqual(FakeSMTP.sent_messages, [])
 
     def test_owner_routes_require_login(self):
         response_dashboard = self.client.get("/owners/dashboard")
@@ -1121,6 +1139,112 @@ class OwnerPortalTests(unittest.TestCase):
         refreshed_html = refreshed_detail.get_data(as_text=True)
         self.assertIn("Keep an eye on the guest guide.", refreshed_html)
         self.assertIn("Service request completed", refreshed_html)
+
+    def test_admin_operations_board_updates_sqlite_and_syncs_service_requests(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.client.post("/owners/login", data={"email": "owner@example.com"})
+
+        token = self._read_jsonl("owner_magic_tokens.jsonl")[-1]["token"]
+        self.client.get(f"/auth/owner-magic/{token}")
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            request_response = self.client.post(
+                "/owners/request-service",
+                data={**self._service_request_payload(), "property_id": "property-1"},
+            )
+
+        self.assertEqual(request_response.status_code, 302)
+        request_record = self._read_jsonl("service_requests.jsonl")[0]
+        request_id = request_record["id"]
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            cockpit = self.client.get("/admin", headers=self._auth_headers())
+            board_link = cockpit.get_data(as_text=True)
+            self.assertIn('href="/admin/operations"', board_link)
+            board = self.client.get(
+                "/admin/operations",
+                query_string={
+                    "q": "Sea View",
+                    "property": "Sea View Villa",
+                    "owner": "Elena Petrova",
+                    "category": request_record["service_category"],
+                    "status": "NEW",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(board.status_code, 200)
+        board_html = board.get_data(as_text=True)
+        self.assertIn("Operations Board", board_html)
+        self.assertIn("Open Tasks", board_html)
+        self.assertIn("Sea View Villa", board_html)
+        self.assertIn("Elena Petrova", board_html)
+        self.assertIn(request_record["service_category"], board_html)
+        self.assertIn("Priority", board_html)
+        self.assertIn('draggable="true"', board_html)
+
+        task_rows = self._read_owner_db_rows("operations_tasks")
+        self.assertEqual(len(task_rows), 1)
+        self.assertEqual(task_rows[0]["status"], "NEW")
+        self.assertEqual(task_rows[0]["priority"], "NORMAL")
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            status_response = self.client.post(
+                f"/admin/operations/{request_id}/status",
+                json={"status": "IN_PROGRESS"},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.get_json()["task"]["status"], "IN_PROGRESS")
+
+        task_rows = self._read_owner_db_rows("operations_tasks")
+        self.assertEqual(task_rows[0]["status"], "IN_PROGRESS")
+        self.assertEqual(self._read_jsonl("service_requests.jsonl")[0]["status"], "in_progress")
+        task_events = self._read_owner_db_rows("operations_task_events")
+        self.assertTrue(any(row["event_type"] == "started" for row in task_events))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            detail_response = self.client.get(f"/admin/operations/{request_id}", headers=self._auth_headers())
+
+        self.assertEqual(detail_response.status_code, 200)
+        detail_html = detail_response.get_data(as_text=True)
+        self.assertIn("Task activity", detail_html)
+        self.assertIn("Started", detail_html)
+        self.assertIn("Latest service requests for this property", detail_html)
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            notes_response = self.client.post(
+                f"/admin/operations/{request_id}",
+                data={"status": "IN_PROGRESS", "admin_notes": "Follow up with housekeeping."},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(notes_response.status_code, 302)
+        self.assertEqual(self._read_owner_db_rows("operations_tasks")[0]["admin_notes"], "Follow up with housekeeping.")
+        self.assertTrue(any(row["event_type"] == "note_added" for row in self._read_owner_db_rows("operations_task_events")))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            completed_response = self.client.post(
+                f"/admin/service-requests/{request_id}/update",
+                data={"status": "completed", "internal_notes": "Wrapped up."},
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(completed_response.status_code, 302)
+        self.assertEqual(self._read_owner_db_rows("operations_tasks")[0]["status"], "DONE")
+        self.assertEqual(self._read_jsonl("service_requests.jsonl")[0]["status"], "completed")
+        self.assertTrue(any(row["event_type"] == "completed" for row in self._read_owner_db_rows("operations_task_events")))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            refreshed = self.client.get(f"/admin/operations/{request_id}", headers=self._auth_headers())
+
+        refreshed_html = refreshed.get_data(as_text=True)
+        self.assertIn("Follow up with housekeeping.", refreshed_html)
+        self.assertIn("Completed", refreshed_html)
 
     def test_jsonl_migration_imports_old_records_idempotently(self):
         self._seed_jsonl("owner_accounts.jsonl", [{

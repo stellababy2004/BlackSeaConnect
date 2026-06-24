@@ -6,6 +6,7 @@ import hashlib
 import csv
 import io
 import hmac
+import re
 from functools import wraps
 from contextlib import contextmanager
 from pathlib import Path
@@ -42,6 +43,10 @@ PUBLIC_SITEMAP_PATHS = (
     "/pilot-access",
     *SEO_LANDING_PAGE_ORDER,
 )
+PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
+PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
+PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
+_PUBLIC_FORM_RATE_LIMITS = {}
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -208,6 +213,36 @@ SERVICE_REQUEST_STATUS_ALIASES = {
     "canceled": "cancelled",
     "cancelled": "cancelled",
 }
+OPERATIONS_TASK_STATUS_VALUES = ("NEW", "ASSIGNED", "IN_PROGRESS", "DONE", "ARCHIVED")
+OPERATIONS_TASK_STATUS_ALIASES = {
+    "new": "NEW",
+    "assigned": "ASSIGNED",
+    "in progress": "IN_PROGRESS",
+    "in_progress": "IN_PROGRESS",
+    "started": "IN_PROGRESS",
+    "done": "DONE",
+    "completed": "DONE",
+    "archived": "ARCHIVED",
+    "cancelled": "ARCHIVED",
+    "canceled": "ARCHIVED",
+}
+OPERATIONS_TASK_PRIORITY_VALUES = ("LOW", "NORMAL", "HIGH", "URGENT")
+OPERATIONS_TASK_PRIORITY_ALIASES = {
+    "low": "LOW",
+    "normal": "NORMAL",
+    "standard": "NORMAL",
+    "medium": "NORMAL",
+    "high": "HIGH",
+    "urgent": "URGENT",
+}
+OPERATIONS_TASK_EVENT_VALUES = {
+    "task_created",
+    "assigned",
+    "started",
+    "completed",
+    "archived",
+    "note_added",
+}
 
 
 def _professional_service_category_items():
@@ -271,6 +306,107 @@ def _normalize_application_status(status):
 
 def _application_status_label(status):
     return _normalize_application_status(status).upper()
+
+
+def _normalize_operations_task_status(status):
+    normalized = str(status or "").strip().lower()
+    normalized = OPERATIONS_TASK_STATUS_ALIASES.get(normalized, normalized.upper())
+    return normalized if normalized in OPERATIONS_TASK_STATUS_VALUES else "NEW"
+
+
+def _normalize_operations_task_priority(priority):
+    normalized = str(priority or "").strip().lower()
+    normalized = OPERATIONS_TASK_PRIORITY_ALIASES.get(normalized, normalized.upper())
+    return normalized if normalized in OPERATIONS_TASK_PRIORITY_VALUES else "NORMAL"
+
+
+def _service_request_status_to_operations_status(status):
+    normalized = _normalize_service_request_status(status)
+    return {
+        "new": "NEW",
+        "assigned": "ASSIGNED",
+        "in_progress": "IN_PROGRESS",
+        "completed": "DONE",
+        "cancelled": "ARCHIVED",
+    }.get(normalized, "NEW")
+
+
+def _operations_status_to_service_request_status(status):
+    normalized = _normalize_operations_task_status(status)
+    return {
+        "NEW": "new",
+        "ASSIGNED": "assigned",
+        "IN_PROGRESS": "in_progress",
+        "DONE": "completed",
+        "ARCHIVED": "cancelled",
+    }.get(normalized, "new")
+
+
+def _operations_task_status_label(status):
+    return _normalize_operations_task_status(status).replace("_", " ").title()
+
+
+def _operations_task_status_tone(status):
+    normalized = _normalize_operations_task_status(status)
+    if normalized == "NEW":
+        return "new"
+    if normalized == "ASSIGNED":
+        return "assigned"
+    if normalized == "IN_PROGRESS":
+        return "in-progress"
+    if normalized == "DONE":
+        return "done"
+    return "archived"
+
+
+def _operations_task_priority_label(priority):
+    return _normalize_operations_task_priority(priority).title()
+
+
+def _operations_task_priority_tone(priority):
+    normalized = _normalize_operations_task_priority(priority)
+    if normalized == "URGENT":
+        return "urgent"
+    if normalized == "HIGH":
+        return "high"
+    if normalized == "LOW":
+        return "low"
+    return "normal"
+
+
+def _operations_task_status_event(status):
+    normalized = _normalize_operations_task_status(status)
+    return {
+        "NEW": ("task_created", "Task created"),
+        "ASSIGNED": ("assigned", "Assigned"),
+        "IN_PROGRESS": ("started", "Started"),
+        "DONE": ("completed", "Completed"),
+        "ARCHIVED": ("archived", "Archived"),
+    }.get(normalized, ("task_created", "Task created"))
+
+
+def _operations_task_priority_from_request(record):
+    urgency = str((record or {}).get("urgency", "")).strip().lower()
+    preferred_date = str((record or {}).get("preferred_date", "")).strip()
+    created_at = _parse_iso_datetime(str((record or {}).get("created_at", "")).strip())
+    preferred_dt = None
+    if preferred_date:
+        try:
+            preferred_dt = datetime.fromisoformat(preferred_date)
+        except ValueError:
+            preferred_dt = None
+
+    if urgency in {"urgent", "emergency", "asap"}:
+        return "URGENT"
+    if urgency in {"high", "priority"}:
+        return "HIGH"
+    if preferred_dt and preferred_dt.date() <= datetime.now(timezone.utc).date():
+        return "HIGH"
+    if created_at and datetime.now(timezone.utc) - created_at > timedelta(days=7):
+        return "HIGH"
+    if _normalize_service_request_status((record or {}).get("status", "new")) in {"completed", "cancelled"}:
+        return "LOW"
+    return "NORMAL"
 
 
 def _normalize_application_timeline(timeline, default_type):
@@ -568,6 +704,44 @@ def _ensure_owner_property_activity_schema(conn):
     )
 
 
+def _ensure_operations_task_schema(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS operations_tasks (
+            request_id TEXT PRIMARY KEY,
+            owner_id TEXT NOT NULL,
+            property_id TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            title TEXT NOT NULL,
+            property_name TEXT NOT NULL DEFAULT '',
+            property_location TEXT NOT NULL DEFAULT '',
+            owner_name TEXT NOT NULL DEFAULT '',
+            owner_email TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL DEFAULT '',
+            priority TEXT NOT NULL DEFAULT 'NORMAL',
+            status TEXT NOT NULL DEFAULT 'NEW',
+            admin_notes TEXT NOT NULL DEFAULT '',
+            request_status TEXT NOT NULL DEFAULT 'new'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS operations_task_events (
+            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT NOT NULL UNIQUE,
+            task_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'NEW'
+        )
+        """
+    )
+
+
 def _seed_owner_property_activity_backfill(conn):
     property_rows = conn.execute(
         """
@@ -623,8 +797,90 @@ def _seed_owner_property_activity_backfill(conn):
                 "owner_assigned",
                 "Owner assigned",
                 owner_id,
+                ),
+            )
+
+
+def _seed_operations_task_backfill(conn):
+    existing_task_ids = {
+        str(row["request_id"]).strip()
+        for row in conn.execute("SELECT request_id FROM operations_tasks").fetchall()
+    }
+    for record in _load_service_requests():
+        request_id = str(record.get("id", "")).strip()
+        if not request_id or request_id in existing_task_ids:
+            continue
+
+        owner_id = str(record.get("owner_id", "")).strip()
+        if not owner_id:
+            owner_id = str(record.get("request_source", "")).strip() or "public"
+
+        owner_name = str(record.get("owner_name", "")).strip() or str(record.get("name", "")).strip()
+        owner_email = str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip()
+        property_name = str(record.get("property", "")).strip()
+        property_location = str(record.get("property_city", "")).strip()
+        status = _service_request_status_to_operations_status(record.get("status", "new"))
+        created_at = str(record.get("created_at", "")).strip() or _utc_now_iso()
+        title = str(record.get("description", "")).strip() or property_name or property_location or "Task"
+        conn.execute(
+            """
+            INSERT INTO operations_tasks (
+                request_id, owner_id, property_id, created_at, updated_at, title, property_name,
+                property_location, owner_name, owner_email, category, priority, status, admin_notes, request_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                request_id,
+                owner_id,
+                str(record.get("property_id", "")).strip(),
+                created_at,
+                str(record.get("last_update_at", created_at)).strip() or created_at,
+                title,
+                property_name,
+                property_location,
+                owner_name,
+                owner_email,
+                str(record.get("service_category", "")).strip(),
+                _operations_task_priority_from_request(record),
+                status,
+                "",
+                _normalize_service_request_status(record.get("status", "new")),
             ),
         )
+        task_event_type, task_event_title = _operations_task_status_event(status)
+        conn.execute(
+            """
+            INSERT INTO operations_task_events (
+                id, task_id, created_at, event_type, title, detail, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                f"{request_id}-created",
+                request_id,
+                created_at,
+                "task_created",
+                "Task created",
+                f"{title} · {property_location or property_name}".strip(" ·"),
+                "NEW",
+            ),
+        )
+        if status != "NEW":
+            conn.execute(
+                """
+                INSERT INTO operations_task_events (
+                    id, task_id, created_at, event_type, title, detail, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    f"{request_id}-{status.lower()}",
+                    request_id,
+                    created_at,
+                    task_event_type,
+                    task_event_title,
+                    str(record.get("service_category", "")).strip(),
+                    status,
+                ),
+            )
 
 
 def _ensure_owner_db_schema(conn):
@@ -680,6 +936,7 @@ def _ensure_owner_db_schema(conn):
         """
     )
     _ensure_owner_property_activity_schema(conn)
+    _ensure_operations_task_schema(conn)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS owner_magic_tokens (
@@ -724,6 +981,7 @@ def _ensure_owner_db_schema(conn):
     _ensure_owner_account_schema(conn)
     _ensure_owner_property_schema(conn)
     _seed_owner_property_activity_backfill(conn)
+    _seed_operations_task_backfill(conn)
 
 
 def _owner_jsonl_signature(path):
@@ -935,6 +1193,319 @@ def _append_property_activity_event(property_id, owner_id, event_type, title, de
         app.logger.warning("Property activity event append failed for %s: %s", target_property_id, type(exc).__name__)
         return None
     return event
+
+
+def _operations_task_from_row(row):
+    return {
+        "request_id": str(row["request_id"]),
+        "owner_id": str(row["owner_id"]),
+        "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
+        "created_at": str(row["created_at"]),
+        "updated_at": str(row["updated_at"]),
+        "title": str(row["title"]),
+        "property_name": str(row["property_name"]) if "property_name" in row.keys() else "",
+        "property_location": str(row["property_location"]) if "property_location" in row.keys() else "",
+        "owner_name": str(row["owner_name"]) if "owner_name" in row.keys() else "",
+        "owner_email": str(row["owner_email"]) if "owner_email" in row.keys() else "",
+        "category": str(row["category"]) if "category" in row.keys() else "",
+        "priority": _normalize_operations_task_priority(row["priority"] if "priority" in row.keys() else "NORMAL"),
+        "status": _normalize_operations_task_status(row["status"] if "status" in row.keys() else "NEW"),
+        "admin_notes": str(row["admin_notes"]) if "admin_notes" in row.keys() else "",
+        "request_status": _normalize_service_request_status(row["request_status"] if "request_status" in row.keys() else "new"),
+    }
+
+
+def _load_operations_tasks():
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT request_id, owner_id, property_id, created_at, updated_at, title, property_name, property_location,
+                   owner_name, owner_email, category, priority, status, admin_notes, request_status
+            FROM operations_tasks
+            ORDER BY updated_at DESC, created_at DESC, request_id DESC
+            """
+        ).fetchall()
+
+    return [_operations_task_from_row(row) for row in rows]
+
+
+def _find_operations_task(task_id):
+    target_task_id = str(task_id or "").strip()
+    if not target_task_id:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT request_id, owner_id, property_id, created_at, updated_at, title, property_name, property_location,
+                   owner_name, owner_email, category, priority, status, admin_notes, request_status
+            FROM operations_tasks
+            WHERE request_id = ?
+            LIMIT 1
+            """,
+            (target_task_id,),
+        ).fetchone()
+
+    return _operations_task_from_row(row) if row else None
+
+
+def _load_operations_task_events(task_id=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        query = """
+            SELECT id, task_id, created_at, event_type, title, detail, status
+            FROM operations_task_events
+        """
+        params = []
+        target_task_id = str(task_id or "").strip()
+        if target_task_id:
+            query += " WHERE task_id = ?"
+            params.append(target_task_id)
+        query += " ORDER BY created_at DESC, sequence DESC"
+        rows = conn.execute(query, params).fetchall()
+
+    return [
+        {
+            "id": str(row["id"]),
+            "task_id": str(row["task_id"]),
+            "created_at": str(row["created_at"]),
+            "event_type": str(row["event_type"]),
+            "title": str(row["title"]),
+            "detail": str(row["detail"]),
+            "status": _normalize_operations_task_status(row["status"]),
+        }
+        for row in rows
+    ]
+
+
+def _append_operations_task_event(task_id, event_type, title, detail="", status=None):
+    target_task_id = str(task_id or "").strip()
+    if not target_task_id:
+        return None
+
+    normalized_event_type = str(event_type or "").strip()
+    normalized_title = str(title or "").strip()
+    if not normalized_event_type or not normalized_title:
+        return None
+
+    event = {
+        "id": uuid4().hex,
+        "task_id": target_task_id,
+        "created_at": _utc_now_iso(),
+        "event_type": normalized_event_type,
+        "title": normalized_title,
+        "detail": str(detail or "").strip(),
+        "status": _normalize_operations_task_status(status or "NEW"),
+    }
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO operations_task_events (id, task_id, created_at, event_type, title, detail, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event["id"],
+                    event["task_id"],
+                    event["created_at"],
+                    event["event_type"],
+                    event["title"],
+                    event["detail"],
+                    event["status"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Operations task event append failed for %s: %s", target_task_id, type(exc).__name__)
+        return None
+    return event
+
+
+def _upsert_operations_task_from_service_request(request_record, status_override=None, note_event=False):
+    request_id = str((request_record or {}).get("id", "")).strip()
+    if not request_id:
+        return None
+
+    task = _find_operations_task(request_id)
+    current_status = _normalize_operations_task_status(task.get("status", "NEW")) if task else _service_request_status_to_operations_status((request_record or {}).get("status", "new"))
+    request_status = _normalize_service_request_status((request_record or {}).get("status", "new"))
+    new_status = _normalize_operations_task_status(status_override or _service_request_status_to_operations_status(request_status))
+    task_created = False
+
+    created_at = str((request_record or {}).get("created_at", "")).strip() or _utc_now_iso()
+    updated_at = str((request_record or {}).get("last_update_at", created_at)).strip() or created_at
+    request_status_changed = False
+    if task:
+        current_status = _normalize_operations_task_status(task.get("status", "NEW"))
+        request_status_changed = task.get("request_status") != request_status
+        if status_override is None and request_status_changed:
+            new_status = _service_request_status_to_operations_status(request_status)
+        task_payload = {
+            **task,
+            "owner_id": str((request_record or {}).get("owner_id", task.get("owner_id", ""))).strip(),
+            "property_id": str((request_record or {}).get("property_id", task.get("property_id", ""))).strip(),
+            "created_at": created_at or task.get("created_at", ""),
+            "updated_at": updated_at,
+            "title": str((request_record or {}).get("description", "")).strip() or task.get("title", ""),
+            "property_name": str((request_record or {}).get("property", "")).strip() or task.get("property_name", ""),
+            "property_location": str((request_record or {}).get("property_city", "")).strip() or task.get("property_location", ""),
+            "owner_name": str((request_record or {}).get("owner_name", "")).strip() or task.get("owner_name", ""),
+            "owner_email": str((request_record or {}).get("owner_email", "")).strip() or task.get("owner_email", ""),
+            "category": str((request_record or {}).get("service_category", "")).strip() or task.get("category", ""),
+            "priority": task.get("priority", "NORMAL") or "NORMAL",
+            "status": new_status if status_override is not None or request_status_changed else current_status,
+            "admin_notes": task.get("admin_notes", ""),
+            "request_status": request_status,
+        }
+    else:
+        task_payload = {
+            "request_id": request_id,
+            "owner_id": str((request_record or {}).get("owner_id", "")).strip() or "public",
+            "property_id": str((request_record or {}).get("property_id", "")).strip(),
+            "created_at": created_at,
+            "updated_at": updated_at,
+            "title": str((request_record or {}).get("description", "")).strip() or str((request_record or {}).get("property", "")).strip() or str((request_record or {}).get("property_city", "")).strip() or "Task",
+            "property_name": str((request_record or {}).get("property", "")).strip(),
+            "property_location": str((request_record or {}).get("property_city", "")).strip(),
+            "owner_name": str((request_record or {}).get("owner_name", "")).strip() or str((request_record or {}).get("name", "")).strip(),
+            "owner_email": str((request_record or {}).get("owner_email", "")).strip() or str((request_record or {}).get("email", "")).strip(),
+            "category": str((request_record or {}).get("service_category", "")).strip(),
+            "priority": _operations_task_priority_from_request(request_record),
+            "status": new_status,
+            "admin_notes": "",
+            "request_status": request_status,
+        }
+        task_created = True
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                INSERT INTO operations_tasks (
+                    request_id, owner_id, property_id, created_at, updated_at, title, property_name,
+                    property_location, owner_name, owner_email, category, priority, status, admin_notes, request_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(request_id) DO UPDATE SET
+                    owner_id = excluded.owner_id,
+                    property_id = excluded.property_id,
+                    created_at = excluded.created_at,
+                    updated_at = excluded.updated_at,
+                    title = excluded.title,
+                    property_name = excluded.property_name,
+                    property_location = excluded.property_location,
+                    owner_name = excluded.owner_name,
+                    owner_email = excluded.owner_email,
+                    category = excluded.category,
+                    priority = excluded.priority,
+                    status = excluded.status,
+                    request_status = excluded.request_status
+                """,
+                (
+                    task_payload["request_id"],
+                    task_payload["owner_id"],
+                    task_payload["property_id"],
+                    task_payload["created_at"],
+                    task_payload["updated_at"],
+                    task_payload["title"],
+                    task_payload["property_name"],
+                    task_payload["property_location"],
+                    task_payload["owner_name"],
+                    task_payload["owner_email"],
+                    task_payload["category"],
+                    task_payload["priority"],
+                    task_payload["status"],
+                    task_payload["admin_notes"],
+                    task_payload["request_status"],
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning("Operations task upsert failed for %s: %s", request_id, type(exc).__name__)
+        return None
+
+    if task_created:
+        _append_operations_task_event(
+            request_id,
+            "task_created",
+            "Task created",
+            f"{task_payload['title']} · {task_payload['property_location'] or task_payload['property_name']}".strip(" ·"),
+            status="NEW",
+        )
+    elif current_status != new_status and (status_override is not None or request_status_changed):
+        event_type, event_title = _operations_task_status_event(new_status)
+        _append_operations_task_event(
+            request_id,
+            event_type,
+            event_title,
+            str((request_record or {}).get("service_category", "")).strip(),
+            status=new_status,
+        )
+    elif note_event:
+        _append_operations_task_event(
+            request_id,
+            "note_added",
+            "Note added",
+            str(task_payload.get("admin_notes", "")).strip(),
+            status=task_payload["status"],
+        )
+
+    return _find_operations_task(request_id) or task_payload
+
+
+def _update_operations_task_status(request_id, status, source="board"):
+    task = _find_operations_task(request_id)
+    if not task:
+        return None
+
+    new_status = _normalize_operations_task_status(status)
+    current_status = _normalize_operations_task_status(task.get("status", "NEW"))
+    if new_status == current_status:
+        return task
+
+    request_record = _find_service_request(request_id)
+    if request_record:
+        request_record["status"] = _operations_status_to_service_request_status(new_status)
+        request_record["last_update_at"] = _utc_now_iso()
+        _append_service_request_timeline_event(
+            request_record,
+            "SERVICE_REQUEST_STATUS_UPDATED",
+            f"Operations board moved task to {new_status.replace('_', ' ').title()}",
+            str(task.get("category", "")).strip() or str(task.get("title", "")).strip(),
+            status=request_record["status"],
+        )
+        requests_list = _load_service_requests()
+        for index, record in enumerate(requests_list):
+            if str(record.get("id", "")) == request_id:
+                requests_list[index] = request_record
+                break
+        _save_service_requests(requests_list)
+
+    updated_task = _upsert_operations_task_from_service_request(
+        request_record or {
+            "id": request_id,
+            "created_at": task.get("created_at", _utc_now_iso()),
+            "last_update_at": _utc_now_iso(),
+            "status": _operations_status_to_service_request_status(new_status),
+            "owner_id": task.get("owner_id", ""),
+            "owner_name": task.get("owner_name", ""),
+            "owner_email": task.get("owner_email", ""),
+            "property_id": task.get("property_id", ""),
+            "property": task.get("property_name", ""),
+            "property_city": task.get("property_location", ""),
+            "service_category": task.get("category", ""),
+            "description": task.get("title", ""),
+        },
+        status_override=new_status,
+    )
+    return updated_task or task
 
 
 def _owner_login_event_detail(login_source, language):
@@ -4039,7 +4610,17 @@ def owners_register():
             "property_name": str(request.form.get("property_name", "")).strip(),
             "number_of_units": str(request.form.get("number_of_units", "")).strip(),
             "notes": str(request.form.get("notes", "")).strip(),
+            "website": str(request.form.get("website", "")).strip(),
         })
+
+        if _public_form_honeypot_filled(form_values["website"]):
+            _public_form_audit_event("owner_register", "spam_submission_blocked", "spam_honeypot_blocked")
+            return redirect(url_for("owners_login", magic_sent="1", delivery="generic", lang=current_lang))
+
+        if _public_form_rate_limited("owner_register"):
+            _public_form_audit_event("owner_register", "rate_limit_blocked", "rate_limit_blocked")
+            return redirect(url_for("owners_login", magic_sent="1", delivery="generic", lang=current_lang))
+
         required_fields = {
             "full_name": "fullNameRequiredError",
             "email": "emailRequiredError",
@@ -4052,6 +4633,28 @@ def owners_register():
         for field, error_key in required_fields.items():
             if not form_values[field]:
                 errors[field] = error_key
+
+        if form_values["full_name"] and not _public_form_has_plausible_name(form_values["full_name"]):
+            errors["full_name"] = "fullNameRequiredError"
+
+        if form_values["email"] and not _public_form_has_valid_email(form_values["email"]):
+            errors["email"] = "emailRequiredError"
+
+        if form_values["phone"] and not _public_form_has_minimum_digits(form_values["phone"]):
+            errors["phone"] = "phoneRequiredError"
+
+        if form_values["city"] and not _public_form_has_plausible_location(form_values["city"]):
+            errors["city"] = "cityRequiredError"
+
+        if form_values["property_type"] and not _public_form_has_plausible_name(form_values["property_type"]):
+            errors["property_type"] = "propertyTypeRequiredError"
+
+        if form_values["property_name"] and _public_form_text_is_spam(form_values["property_name"]):
+            errors["property_name"] = "propertyTypeRequiredError"
+
+        if form_values["notes"] and _public_form_text_is_spam(form_values["notes"]):
+            _public_form_audit_event("owner_register", "spam_submission_blocked", "content_spam_detected")
+            return redirect(url_for("owners_login", magic_sent="1", delivery="generic", lang=current_lang))
 
         if form_values["number_of_units"] and not form_values["number_of_units"].isdigit():
             errors["number_of_units"] = "numberOfUnitsInvalidError"
@@ -4527,6 +5130,7 @@ def owners_request_service():
                     "Service request submitted",
                     f"{request_record.get('service_category', '')} · {request_record.get('property', '')}",
                 )
+            _upsert_operations_task_from_service_request(request_record)
 
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_email(
@@ -4601,13 +5205,39 @@ def partners_apply():
             "contact_person": str(request.form.get("contact_person", "")).strip(),
             "email": str(request.form.get("email", "")).strip(),
             "phone": str(request.form.get("phone", "")).strip(),
-            "website": str(request.form.get("website", "")).strip(),
+            "website": str(request.form.get("company_website", request.form.get("website", ""))).strip(),
             "city": str(request.form.get("city", "")).strip(),
             "country": str(request.form.get("country", "")).strip(),
             "service_category": str(request.form.get("service_category", "")).strip(),
             "description": str(request.form.get("description", "")).strip(),
             "years_in_business": str(request.form.get("years_in_business", "")).strip(),
         })
+
+        website_honeypot = str(request.form.get("website", "")).strip() if "company_website" in request.form else ""
+
+        if _public_form_honeypot_filled(website_honeypot):
+            _public_form_audit_event("partner_application", "spam_submission_blocked", "spam_honeypot_blocked")
+            return render_template(
+                "partners_apply.html",
+                service_categories=_partner_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
+
+        if _public_form_rate_limited("partner_application"):
+            _public_form_audit_event("partner_application", "rate_limit_blocked", "rate_limit_blocked")
+            return render_template(
+                "partners_apply.html",
+                service_categories=_partner_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
 
         required_field_error_keys = {
             "company_name": "companyNameRequiredError",
@@ -4625,11 +5255,41 @@ def partners_apply():
             if not form_values[field]:
                 errors[field] = error_key
 
+        if form_values["company_name"] and not _public_form_has_plausible_name(form_values["company_name"]):
+            errors["company_name"] = "companyNameRequiredError"
+
+        if form_values["contact_person"] and not _public_form_has_plausible_name(form_values["contact_person"]):
+            errors["contact_person"] = "contactPersonRequiredError"
+
+        if form_values["email"] and not _public_form_has_valid_email(form_values["email"]):
+            errors["email"] = "emailRequiredError"
+
+        if form_values["phone"] and not _public_form_has_minimum_digits(form_values["phone"]):
+            errors["phone"] = "phoneRequiredError"
+
+        if form_values["city"] and not _public_form_has_plausible_location(form_values["city"]):
+            errors["city"] = "cityRequiredError"
+
+        if form_values["country"] and not _public_form_has_plausible_location(form_values["country"]):
+            errors["country"] = "countryRequiredError"
+
         if form_values["service_category"] and form_values["service_category"] not in PARTNER_SERVICE_CATEGORIES:
             errors["service_category"] = "serviceCategoryInvalidError"
 
         if form_values["years_in_business"] and not form_values["years_in_business"].isdigit():
             errors["years_in_business"] = "yearsInBusinessInvalidError"
+
+        if form_values["description"] and _public_form_text_is_spam(form_values["description"]):
+            _public_form_audit_event("partner_application", "spam_submission_blocked", "content_spam_detected")
+            return render_template(
+                "partners_apply.html",
+                service_categories=_partner_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
 
         if not errors:
             years_in_business = int(form_values["years_in_business"])
@@ -4735,7 +5395,36 @@ def request_service():
             "service_category": str(request.form.get("service_category", "")).strip(),
             "preferred_date": str(request.form.get("preferred_date", "")).strip(),
             "description": str(request.form.get("description", "")).strip(),
+            "website": str(request.form.get("website", "")).strip(),
         })
+
+        if _public_form_honeypot_filled(form_values["website"]):
+            _public_form_audit_event("service_request", "spam_submission_blocked", "spam_honeypot_blocked")
+            submitted = True
+            request_record = {"status": "new", "property_city": "", "service_category": ""}
+            return render_template(
+                "request_service.html",
+                form_values={**form_values, "website": ""},
+                errors={},
+                service_categories=_network_service_category_items(),
+                matching_providers=_service_request_matching_providers(form_values["service_category"]),
+                submitted=True,
+                request_record=request_record,
+            )
+
+        if _public_form_rate_limited("service_request"):
+            _public_form_audit_event("service_request", "rate_limit_blocked", "rate_limit_blocked")
+            submitted = True
+            request_record = {"status": "new", "property_city": "", "service_category": ""}
+            return render_template(
+                "request_service.html",
+                form_values={**form_values, "website": ""},
+                errors={},
+                service_categories=_network_service_category_items(),
+                matching_providers=_service_request_matching_providers(form_values["service_category"]),
+                submitted=True,
+                request_record=request_record,
+            )
 
         required_fields = {
             "name": "nameRequiredError",
@@ -4752,8 +5441,37 @@ def request_service():
             if not form_values[field]:
                 errors[field] = error_key
 
+        if form_values["name"] and not _public_form_has_plausible_name(form_values["name"]):
+            errors["name"] = "nameRequiredError"
+
+        if form_values["email"] and not _public_form_has_valid_email(form_values["email"]):
+            errors["email"] = "emailRequiredError"
+
+        if form_values["phone"] and not _public_form_has_minimum_digits(form_values["phone"]):
+            errors["phone"] = "phoneRequiredError"
+
+        if form_values["property_city"] and not _public_form_has_plausible_location(form_values["property_city"]):
+            errors["property_city"] = "propertyCityRequiredError"
+
+        if form_values["property_type"] and not _public_form_has_plausible_name(form_values["property_type"]):
+            errors["property_type"] = "propertyTypeRequiredError"
+
         if form_values["service_category"] and form_values["service_category"] not in NETWORK_SERVICE_CATEGORIES:
             errors["service_category"] = "serviceCategoryInvalidError"
+
+        if form_values["description"] and _public_form_text_is_spam(form_values["description"]):
+            _public_form_audit_event("service_request", "spam_submission_blocked", "content_spam_detected")
+            submitted = True
+            request_record = {"status": "new", "property_city": "", "service_category": ""}
+            return render_template(
+                "request_service.html",
+                form_values={**form_values, "website": ""},
+                errors={},
+                service_categories=_network_service_category_items(),
+                matching_providers=_service_request_matching_providers(form_values["service_category"]),
+                submitted=True,
+                request_record=request_record,
+            )
 
         if not errors:
             request_record = {
@@ -4804,6 +5522,7 @@ def request_service():
 
             submitted = True
             app.logger.info("Saved service request: %s", request_record["id"])
+            _upsert_operations_task_from_service_request(request_record)
             admin_detail_url = url_for("admin_service_request_detail", request_id=request_record["id"], _external=True)
             _queue_service_request_notification(request_record, admin_detail_url)
 
@@ -4879,7 +5598,32 @@ def professionals_apply():
             "languages": str(request.form.get("languages", "")).strip(),
             "experience": str(request.form.get("experience", "")).strip(),
             "short_bio": str(request.form.get("short_bio", "")).strip(),
+            "website": str(request.form.get("website", "")).strip(),
         })
+
+        if _public_form_honeypot_filled(form_values["website"]):
+            _public_form_audit_event("professional_application", "spam_submission_blocked", "spam_honeypot_blocked")
+            return render_template(
+                "professionals_apply.html",
+                service_categories=_professional_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
+
+        if _public_form_rate_limited("professional_application"):
+            _public_form_audit_event("professional_application", "rate_limit_blocked", "rate_limit_blocked")
+            return render_template(
+                "professionals_apply.html",
+                service_categories=_professional_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
 
         required_field_error_keys = {
             "full_name": "fullNameRequiredError",
@@ -4897,8 +5641,35 @@ def professionals_apply():
             if not form_values[field]:
                 errors[field] = error_key
 
+        if form_values["full_name"] and not _public_form_has_plausible_name(form_values["full_name"]):
+            errors["full_name"] = "fullNameRequiredError"
+
+        if form_values["email"] and not _public_form_has_valid_email(form_values["email"]):
+            errors["email"] = "emailRequiredError"
+
+        if form_values["phone"] and not _public_form_has_minimum_digits(form_values["phone"]):
+            errors["phone"] = "phoneRequiredError"
+
+        if form_values["city"] and not _public_form_has_plausible_location(form_values["city"]):
+            errors["city"] = "cityRequiredError"
+
+        if form_values["country"] and not _public_form_has_plausible_location(form_values["country"]):
+            errors["country"] = "countryRequiredError"
+
         if form_values["professional_category"] and form_values["professional_category"] not in PROFESSIONAL_SERVICE_CATEGORIES:
             errors["professional_category"] = "categoryInvalidError"
+
+        if form_values["short_bio"] and _public_form_text_is_spam(form_values["short_bio"]):
+            _public_form_audit_event("professional_application", "spam_submission_blocked", "content_spam_detected")
+            return render_template(
+                "professionals_apply.html",
+                service_categories=_professional_service_category_items(),
+                submitted=True,
+                application_id="",
+                form_values={**form_values, "website": ""},
+                errors={},
+                save_error=False,
+            )
 
         if not errors:
             experience_value = form_values["experience"]
@@ -5218,6 +5989,148 @@ def _admin_property_detail_context(property_record):
         "property_events": property_events,
         "service_request_count": len(property_service_requests),
         "activity_count": len(timeline),
+    }
+
+
+def _admin_operations_task_is_overdue(task_record):
+    status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
+    if status in {"DONE", "ARCHIVED"}:
+        return False
+
+    request_record = _find_service_request((task_record or {}).get("request_id", ""))
+    preferred_date = str((request_record or {}).get("preferred_date", "")).strip()
+    if preferred_date:
+        try:
+            preferred_dt = datetime.fromisoformat(preferred_date)
+        except ValueError:
+            preferred_dt = None
+        if preferred_dt and preferred_dt.date() < datetime.now(timezone.utc).date():
+            return True
+
+    created_at = _parse_iso_datetime(str((task_record or {}).get("created_at", "")).strip())
+    if created_at and datetime.now(timezone.utc) - created_at > timedelta(days=3):
+        return True
+    return False
+
+
+def _admin_operations_task_context(task_record):
+    owner_account = _find_owner_account(task_record.get("owner_id", ""))
+    property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
+    related_requests = []
+    if property_record:
+        related_requests = _admin_property_service_requests(property_record, owner_account)[:5]
+    else:
+        request_record = _find_service_request(task_record.get("request_id", ""))
+        if request_record:
+            related_requests = [request_record]
+
+    timeline_events = _load_operations_task_events(task_record.get("request_id", ""))
+    return {
+        "task": {
+            **task_record,
+            "status_label": _operations_task_status_label(task_record.get("status", "NEW")),
+            "status_tone": _operations_task_status_tone(task_record.get("status", "NEW")),
+            "priority_label": _operations_task_priority_label(task_record.get("priority", "NORMAL")),
+            "priority_tone": _operations_task_priority_tone(task_record.get("priority", "NORMAL")),
+            "overdue": _admin_operations_task_is_overdue(task_record),
+        },
+        "owner_account": owner_account,
+        "property_record": property_record,
+        "related_requests": related_requests,
+        "timeline": list(reversed(timeline_events)),
+    }
+
+
+def _admin_operations_board_context():
+    owner_accounts = _admin_property_owner_map()
+    property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
+    tasks = []
+    for task_record in _load_operations_tasks():
+        owner_account = owner_accounts.get(str(task_record.get("owner_id", "")).strip()) or _find_owner_account(task_record.get("owner_id", ""))
+        property_record = property_map.get(str(task_record.get("property_id", "")).strip()) or _find_owner_property(task_record.get("property_id", ""))
+        tasks.append({
+            **task_record,
+            "owner_label": _admin_property_owner_label(owner_account),
+            "owner_name": owner_account.get("full_name", "") if owner_account else task_record.get("owner_name", ""),
+            "owner_email": owner_account.get("email", "") if owner_account else task_record.get("owner_email", ""),
+            "property_label": property_record.get("name", "") if property_record else task_record.get("property_name", "") or task_record.get("property_location", ""),
+            "property_location": property_record.get("location", "") if property_record else task_record.get("property_location", ""),
+            "property_type": property_record.get("property_type", "") if property_record else "",
+            "status_label": _operations_task_status_label(task_record.get("status", "NEW")),
+            "status_tone": _operations_task_status_tone(task_record.get("status", "NEW")),
+            "priority_label": _operations_task_priority_label(task_record.get("priority", "NORMAL")),
+            "priority_tone": _operations_task_priority_tone(task_record.get("priority", "NORMAL")),
+            "overdue": _admin_operations_task_is_overdue(task_record),
+        })
+
+    search_query = str(request.args.get("q", "")).strip()
+    property_filter = str(request.args.get("property", "")).strip()
+    owner_filter = str(request.args.get("owner", "")).strip()
+    category_filter = str(request.args.get("category", "")).strip()
+    requested_status = str(request.args.get("status", "")).strip().upper()
+    status_filter = requested_status if requested_status in OPERATIONS_TASK_STATUS_VALUES else ""
+
+    search_tokens = [token for token in search_query.lower().split() if token]
+    filtered_tasks = []
+    for task in tasks:
+        searchable_text = " ".join(
+            [
+                task.get("title", ""),
+                task.get("property_label", ""),
+                task.get("owner_label", ""),
+                task.get("owner_email", ""),
+                task.get("category", ""),
+                task.get("property_location", ""),
+            ]
+        ).lower()
+        if search_tokens and not all(token in searchable_text for token in search_tokens):
+            continue
+        if property_filter and _admin_property_query_value(task.get("property_label", "")) != _admin_property_query_value(property_filter):
+            continue
+        if owner_filter and _admin_property_query_value(task.get("owner_name", "")) != _admin_property_query_value(owner_filter) and _admin_property_query_value(task.get("owner_email", "")) != _admin_property_query_value(owner_filter):
+            continue
+        if category_filter and _admin_property_query_value(task.get("category", "")) != _admin_property_query_value(category_filter):
+            continue
+        if status_filter and _normalize_operations_task_status(task.get("status", "NEW")) != status_filter:
+            continue
+        filtered_tasks.append(task)
+
+    columns = {status: [] for status in OPERATIONS_TASK_STATUS_VALUES}
+    for task in filtered_tasks:
+        columns.setdefault(_normalize_operations_task_status(task.get("status", "NEW")), []).append(task)
+
+    for status in columns:
+        columns[status].sort(key=lambda item: (item.get("overdue", False), item.get("updated_at", ""), item.get("created_at", "")), reverse=True)
+
+    open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "IN_PROGRESS"})
+    assigned_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ASSIGNED")
+    completed_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "DONE")
+    overdue_tasks = sum(1 for task in tasks if _admin_operations_task_is_overdue(task))
+
+    property_options = sorted({task.get("property_label", "") for task in tasks if task.get("property_label", "")})
+    owner_options = sorted({task.get("owner_name", "") for task in tasks if task.get("owner_name", "")})
+    category_options = sorted({task.get("category", "") for task in tasks if task.get("category", "")})
+
+    return {
+        "tasks": filtered_tasks,
+        "columns": columns,
+        "counts": {
+            "open_tasks": open_tasks,
+            "assigned_tasks": assigned_tasks,
+            "completed_tasks": completed_tasks,
+            "overdue_tasks": overdue_tasks,
+        },
+        "filters": {
+            "search_query": search_query,
+            "property_filter": property_filter,
+            "owner_filter": owner_filter,
+            "category_filter": category_filter,
+            "status_filter": status_filter,
+        },
+        "property_options": property_options,
+        "owner_options": owner_options,
+        "category_options": category_options,
+        "status_options": list(OPERATIONS_TASK_STATUS_VALUES),
     }
 
 
@@ -5651,6 +6564,136 @@ def _clean_payload_value(payload, *keys):
 
 def _utc_now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _public_form_client_ip():
+    forwarded_for = str(request.headers.get("X-Forwarded-For", "")).strip()
+    if forwarded_for:
+        return forwarded_for.split(",", 1)[0].strip() or "unknown"
+    remote_addr = str(request.remote_addr or "").strip()
+    return remote_addr or "unknown"
+
+
+def _public_form_rate_limit_key(form_name):
+    return f"{str(form_name or '').strip().lower()}::{_public_form_client_ip()}"
+
+
+def _public_form_rate_limited(form_name):
+    now = datetime.now(timezone.utc).timestamp()
+    cutoff = now - PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS
+    key = _public_form_rate_limit_key(form_name)
+    timestamps = [timestamp for timestamp in _PUBLIC_FORM_RATE_LIMITS.get(key, []) if timestamp >= cutoff]
+    if len(timestamps) >= PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS:
+        _PUBLIC_FORM_RATE_LIMITS[key] = timestamps
+        return True
+
+    timestamps.append(now)
+    _PUBLIC_FORM_RATE_LIMITS[key] = timestamps
+    return False
+
+
+def _public_form_audit_event(form_name, event, reason):
+    if not PUBLIC_FORM_AUDIT_EVENTS_PATH.exists():
+        return None
+
+    timestamp = _utc_now_iso()
+    record = {
+        "id": uuid4().hex,
+        "created_at": timestamp,
+        "timestamp": timestamp,
+        "event": str(event or "").strip(),
+        "form": str(form_name or "").strip(),
+        "reason": str(reason or "").strip(),
+        "ip_bucket": hashlib.sha256(_public_form_client_ip().encode("utf-8")).hexdigest()[:12],
+        "path": request.path,
+    }
+
+    try:
+        with PUBLIC_FORM_AUDIT_EVENTS_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        app.logger.warning("Public form audit append failed for %s: %s", str(form_name or "").strip() or "unknown", type(exc).__name__)
+        return None
+
+    return record
+
+
+_PUBLIC_FORM_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_PUBLIC_FORM_URL_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
+_PUBLIC_FORM_SCAM_RE = re.compile(
+    r"(?i)\b("
+    r"crypto|bitcoin|btc|usdt|wallet|seed phrase|wire transfer|bank transfer|transfer now|urgent payment|"
+    r"gift card|investment|roi|trc20|binance|coinbase"
+    r")\b"
+)
+
+
+def _public_form_has_valid_email(value):
+    email_value = str(value or "").strip()
+    if not email_value or len(email_value) > 254:
+        return False
+
+    parsed_name, parsed_email = parseaddr(email_value)
+    candidate = parsed_email or email_value
+    if parsed_name and parsed_email and parsed_name.strip() and parsed_name.strip() == candidate:
+        candidate = parsed_email
+    return bool(_PUBLIC_FORM_EMAIL_RE.match(candidate))
+
+
+def _public_form_has_minimum_digits(value, minimum=6):
+    return sum(1 for character in str(value or "") if character.isdigit()) >= minimum
+
+
+def _public_form_has_plausible_name(value, minimum_chars=2):
+    text = str(value or "").strip()
+    if len(text) < minimum_chars:
+        return False
+    return any(character.isalpha() for character in text)
+
+
+def _public_form_has_plausible_location(value):
+    text = str(value or "").strip()
+    if len(text) < 2:
+        return False
+
+    letters = sum(1 for character in text if character.isalpha())
+    digits = sum(1 for character in text if character.isdigit())
+    symbols = sum(1 for character in text if not character.isalnum() and not character.isspace())
+    return letters >= 2 and digits <= 2 and symbols <= 4
+
+
+def _public_form_text_is_spam(value):
+    text = str(value or "").strip()
+    if not text:
+        return False
+
+    url_count = len(_PUBLIC_FORM_URL_RE.findall(text))
+    if url_count > 2:
+        return True
+
+    if "graf.org" in text.lower():
+        return True
+
+    if _PUBLIC_FORM_SCAM_RE.search(text):
+        return True
+
+    text_without_urls = _PUBLIC_FORM_URL_RE.sub(" ", text)
+    compact_text = re.sub(r"\s+", "", text_without_urls)
+    if len(compact_text) < 8:
+        return True
+
+    letters = sum(1 for character in compact_text if character.isalpha())
+    if letters < 4:
+        return True
+
+    if compact_text and not any(character.isalpha() for character in compact_text):
+        return True
+
+    return False
+
+
+def _public_form_honeypot_filled(value):
+    return bool(str(value or "").strip())
 
 
 def _normalize_pilot_status(status):
@@ -7064,6 +8107,13 @@ def _update_application_from_form(records, record_id):
 @app.post("/api/pilot-request")
 def api_pilot_request():
     payload = request.get_json(silent=True) or {}
+    if _public_form_honeypot_filled(payload.get("website")):
+        _public_form_audit_event("pilot_request", "spam_submission_blocked", "spam_honeypot_blocked")
+        return jsonify({"ok": True}), 200
+
+    if _public_form_rate_limited("pilot_request"):
+        _public_form_audit_event("pilot_request", "rate_limit_blocked", "rate_limit_blocked")
+        return jsonify({"ok": True}), 200
 
     record = {
         "id": uuid4().hex,
@@ -7089,6 +8139,19 @@ def api_pilot_request():
 
     if missing:
         return jsonify({"ok": False, "error": "missing_fields"}), 400
+
+    if record["name"] and not _public_form_has_plausible_name(record["name"]):
+        return jsonify({"ok": False, "error": "invalid_name"}), 400
+
+    if not _public_form_has_valid_email(record["email"]):
+        return jsonify({"ok": False, "error": "invalid_email"}), 400
+
+    if not _public_form_has_plausible_location(record["city"]):
+        return jsonify({"ok": False, "error": "invalid_city"}), 400
+
+    if _public_form_text_is_spam(record["concierge_needs"]):
+        _public_form_audit_event("pilot_request", "spam_submission_blocked", "content_spam_detected")
+        return jsonify({"ok": True}), 200
 
     _append_pilot_timeline_event(
         record,
@@ -7524,7 +8587,110 @@ def admin_service_request_update(request_id):
         return jsonify({"ok": False, "error": "not_found"}), 404
 
     _save_service_requests(requests_list)
+    _upsert_operations_task_from_service_request(record)
     return redirect(url_for("admin_service_request_detail", request_id=request_id))
+
+
+def _update_operations_task_notes(task_id, notes):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None
+
+    new_notes = str(notes or "").strip()
+    current_notes = str(task.get("admin_notes", "")).strip()
+    if new_notes == current_notes:
+        return task
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks
+                SET admin_notes = ?, updated_at = ?
+                WHERE request_id = ?
+                """,
+                (new_notes, _utc_now_iso(), str(task_id or "").strip()),
+            )
+    except Exception as exc:
+        app.logger.warning("Operations task notes update failed for %s: %s", str(task_id or "").strip(), type(exc).__name__)
+        return None
+
+    _append_operations_task_event(
+        task_id,
+        "note_added",
+        "Note added",
+        new_notes,
+        status=task.get("status", "NEW"),
+    )
+    request_record = _find_service_request(task_id)
+    if request_record:
+        request_record["last_update_at"] = _utc_now_iso()
+        requests_list = _load_service_requests()
+        for index, record in enumerate(requests_list):
+            if str(record.get("id", "")) == str(task_id):
+                requests_list[index] = request_record
+                break
+        _save_service_requests(requests_list)
+
+    return _find_operations_task(task_id)
+
+
+@app.get("/admin/operations")
+@admin_required
+def admin_operations():
+    context = _admin_operations_board_context()
+    return render_template("admin_operations.html", **context)
+
+
+@app.route("/admin/operations/<task_id>", methods=["GET", "POST"])
+@admin_required
+def admin_operations_detail(task_id):
+    task_record = _find_operations_task(task_id)
+    if not task_record:
+        return Response("Task not found.", status=404, mimetype="text/plain")
+
+    if request.method == "POST":
+        status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip()
+        notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
+        if status_value:
+            _update_operations_task_status(task_id, status_value, source="detail")
+        if notes_value != str(task_record.get("admin_notes", "")).strip():
+            _update_operations_task_notes(task_id, notes_value)
+        return redirect(url_for("admin_operations_detail", task_id=task_id))
+
+    context = _admin_operations_task_context(task_record)
+    return render_template(
+        "admin_operations_detail.html",
+        **context,
+        status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_STATUS_VALUES],
+    )
+
+
+@app.post("/admin/operations/<task_id>/status")
+@admin_required
+def admin_operations_status(task_id):
+    payload = request.get_json(silent=True) or {}
+    status_value = str(payload.get("status", request.form.get("status", ""))).strip()
+    if not status_value:
+        return jsonify({"ok": False, "error": "missing_status"}), 400
+
+    updated_task = _update_operations_task_status(task_id, status_value, source="board")
+    if not updated_task:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+
+    return jsonify({
+        "ok": True,
+        "task": {
+            "request_id": updated_task.get("request_id", ""),
+            "status": _normalize_operations_task_status(updated_task.get("status", "NEW")),
+            "status_label": _operations_task_status_label(updated_task.get("status", "NEW")),
+            "status_tone": _operations_task_status_tone(updated_task.get("status", "NEW")),
+            "updated_at": updated_task.get("updated_at", ""),
+        },
+    })
+
 
 @app.get("/admin")
 @admin_required

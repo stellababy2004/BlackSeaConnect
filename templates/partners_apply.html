@@ -64,6 +64,9 @@
       {% endif %}
 
       <form class="pilot-form" method="post" action="/partners/apply">
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <input name="website" type="text" autocomplete="off" tabindex="-1" aria-hidden="true">
+        </div>
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
             <span>Company Name</span>
@@ -87,7 +90,7 @@
           </label>
           <label class="pilot-form__field">
             <span>Website</span>
-            <input name="website" type="url" value="{{ form_values.website|e }}" placeholder="https://example.com">
+            <input name="company_website" type="url" value="{{ form_values.website|e }}" placeholder="https://example.com">
           </label>
           <label class="pilot-form__field">
             <span>City</span>

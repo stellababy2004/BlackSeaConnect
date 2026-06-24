@@ -95,6 +95,9 @@
       </div>
 
       <form class="pilot-form" method="post" action="/request-service">
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <input name="website" type="text" autocomplete="off" tabindex="-1" aria-hidden="true">
+        </div>
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
             <span data-i18n="nameLabel">Name</span>
@@ -223,7 +226,6 @@
   <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>
-
 
 
 

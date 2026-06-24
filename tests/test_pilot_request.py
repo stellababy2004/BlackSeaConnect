@@ -10,6 +10,7 @@ import urllib.error
 import urllib.parse
 from unittest.mock import patch
 
+import app as app_module
 from app import app
 
 
@@ -76,6 +77,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
         app.config["TESTING"] = True
+        app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
@@ -365,6 +367,150 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"ok": True})
         self.assertEqual(len(self._read_requests()), 1)
+
+    def test_honeypot_blocks_save_and_send(self):
+        payload = {
+            "name": "Lead Name",
+            "email": "owner@example.com",
+            "website": "https://example.com",
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+        }
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(self._read_requests(), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_url_heavy_spam_is_blocked(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Visit http://a.example.com http://b.example.com http://c.example.com",
+            "email": "owner@example.com",
+        }
+
+        with patch.dict(os.environ, {
+            "SMTP_HOST": "smtp.zoho.eu",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(self._read_requests(), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_crypto_transfer_spam_is_blocked(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Send USDT or BTC for wire transfer and urgent payment.",
+            "email": "owner@example.com",
+        }
+
+        with patch.dict(os.environ, {
+            "SMTP_HOST": "smtp.zoho.eu",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"ok": True})
+        self.assertEqual(self._read_requests(), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_invalid_email_is_rejected_normally(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "not-an-email",
+        }
+
+        with patch.dict(os.environ, {
+            "SMTP_HOST": "smtp.zoho.eu",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+        }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
+            response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {"ok": False, "error": "invalid_email"})
+        self.assertEqual(self._read_requests(), [])
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+    def test_rate_limit_blocks_after_threshold(self):
+        payload = {
+            "property_type": "villa_residence",
+            "apartment_count": "12",
+            "city": "Varna Marina",
+            "concierge_needs": "Arrivals, cleaning, transfers",
+            "email": "owner@example.com",
+            "current_language": "en",
+        }
+
+        env = {
+            "SMTP_HOST": "smtp.example.com",
+            "SMTP_PORT": "587",
+            "SMTP_USERNAME": "user",
+            "SMTP_PASSWORD": "secret",
+            "SMTP_FROM": "noreply@example.com",
+            "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
+            "RESEND_API_KEY": "re_test_key",
+            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
+        }
+
+        with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
+            for _ in range(5):
+                response = self.client.post("/api/pilot-request", json=payload)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.get_json(), {"ok": True})
+
+            blocked_response = self.client.post("/api/pilot-request", json=payload)
+
+        self.assertEqual(blocked_response.status_code, 200)
+        self.assertEqual(blocked_response.get_json(), {"ok": True})
+        self.assertEqual(len(self._read_requests()), 5)
+        self.assertEqual(len(FakeSMTP.sent_messages), 5)
 
     def test_api_pilot_request_remains_public(self):
         payload = {
