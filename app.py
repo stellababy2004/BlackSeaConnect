@@ -20,7 +20,7 @@ import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
-from flask import Flask, Response, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, g, jsonify, redirect, render_template, render_template_string, request, session, url_for
 
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
@@ -49,6 +49,10 @@ PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
 _OWNER_DB_SCHEMA_INITIALIZING = False
 _OWNER_DB_BACKFILL_SUPPRESSED = False
+DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
+DEMO_SCENARIO = "BlackSea Connect Pilot"
+DEMO_SEASON = "Summer 2026"
+DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -1604,6 +1608,7 @@ def _load_calendar_events(*, owner_id=None, property_ids=None):
         ).fetchall()
 
     events = [_calendar_event_from_row(row) for row in rows]
+    events.extend(_demo_records("calendar_events"))
     if owner_id is not None:
         target_owner_id = str(owner_id or "").strip()
         events = [
@@ -1615,6 +1620,7 @@ def _load_calendar_events(*, owner_id=None, property_ids=None):
     if property_ids is not None:
         allowed_ids = {str(property_id).strip() for property_id in property_ids if str(property_id).strip()}
         events = [event for event in events if not allowed_ids or str(event.get("property_id", "")).strip() in allowed_ids]
+    events.sort(key=_calendar_event_sort_key)
     return events
 
 
@@ -1801,6 +1807,7 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
         ).fetchall()
 
     reservations = [_reservation_from_row(row) for row in rows]
+    reservations.extend(_demo_records("reservations"))
     property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
     owner_map = {str(account.get("id", "")).strip(): account for account in _load_owner_accounts()}
     enriched = []
@@ -1878,7 +1885,9 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
                 return False
         return True
 
-    return [reservation for reservation in enriched if _matches(reservation)]
+    enriched = [reservation for reservation in enriched if _matches(reservation)]
+    enriched.sort(key=lambda item: (str(item.get("arrival_datetime", "")), str(item.get("departure_datetime", "")), str(item.get("id", ""))))
+    return enriched
 
 
 def _find_reservation(reservation_id):
@@ -1900,7 +1909,9 @@ def _find_reservation(reservation_id):
             """,
             (target_id,),
         ).fetchone()
-    return _reservation_from_row(row) if row else None
+    if row:
+        return _reservation_from_row(row)
+    return _demo_reservation_by_id(target_id)
 
 
 def _reservation_status_timeline_title(status):
@@ -4113,7 +4124,7 @@ def _load_owner_activity_events(owner_id=None):
         query += " ORDER BY created_at DESC, sequence DESC"
         rows = conn.execute(query, params).fetchall()
 
-    return [
+    events = [
         {
             "id": str(row["id"]),
             "owner_id": str(row["owner_id"]),
@@ -4124,6 +4135,11 @@ def _load_owner_activity_events(owner_id=None):
         }
         for row in rows
     ]
+    events.extend(_demo_records("owner_activity_events"))
+    if target_owner_id:
+        events = [event for event in events if str(event.get("owner_id", "")).strip() == target_owner_id]
+    events.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return events
 
 
 def _append_owner_activity_event(owner_id, event_type, title, detail=""):
@@ -4181,7 +4197,12 @@ def _load_property_activity_events(property_id=None):
             params.append(target_property_id)
         query += " ORDER BY created_at DESC, sequence DESC"
         rows = conn.execute(query, params).fetchall()
-    return [_property_activity_from_row(row) for row in rows]
+    events = [_property_activity_from_row(row) for row in rows]
+    events.extend(_demo_records("property_activity_events"))
+    if target_property_id:
+        events = [event for event in events if str(event.get("property_id", "")).strip() == target_property_id]
+    events.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return events
 
 
 def _append_property_activity_event(property_id, owner_id, event_type, title, detail=""):
@@ -4589,7 +4610,10 @@ def _load_operations_tasks():
             """
         ).fetchall()
 
-    return [_operations_task_from_row(row) for row in rows]
+    tasks = [_operations_task_from_row(row) for row in rows]
+    tasks.extend(_demo_records("operations_tasks"))
+    tasks.sort(key=lambda item: (str(item.get("updated_at", "")), str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return tasks
 
 
 def _find_operations_task(task_id):
@@ -4612,7 +4636,9 @@ def _find_operations_task(task_id):
             (target_task_id, target_task_id, target_task_id),
         ).fetchone()
 
-    return _operations_task_from_row(row) if row else None
+    if row:
+        return _operations_task_from_row(row)
+    return _demo_operations_task_by_id(target_task_id)
 
 
 def _load_operations_task_events(task_id=None):
@@ -4631,7 +4657,7 @@ def _load_operations_task_events(task_id=None):
         query += " ORDER BY created_at DESC, sequence DESC"
         rows = conn.execute(query, params).fetchall()
 
-    return [
+    events = [
         {
             "id": str(row["id"]),
             "task_id": str(row["task_id"]),
@@ -4643,6 +4669,11 @@ def _load_operations_task_events(task_id=None):
         }
         for row in rows
     ]
+    events.extend(_demo_records("operations_task_events"))
+    if target_task_id:
+        events = [event for event in events if str(event.get("task_id", "")).strip() == target_task_id]
+    events.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return events
 
 
 def _append_operations_task_event(task_id, event_type, title, detail="", status=None):
@@ -6215,7 +6246,10 @@ def _load_owner_accounts():
             """
         ).fetchall()
 
-    return [_owner_account_from_row(row) for row in rows]
+    accounts = [_owner_account_from_row(row) for row in rows]
+    accounts.extend(_demo_records("owner_accounts"))
+    accounts.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("email", ""))), reverse=True)
+    return accounts
 
 
 def _save_owner_accounts(accounts):
@@ -6283,7 +6317,7 @@ def _find_owner_account_by_email(email):
 
     if row:
         return _owner_account_from_row(row)
-    return None
+    return _demo_owner_account_by_email(target_email)
 
 
 def _find_owner_account(account_id):
@@ -6307,7 +6341,7 @@ def _find_owner_account(account_id):
 
     if row:
         return _owner_account_from_row(row)
-    return None
+    return _demo_record_index("owner_accounts").get(target_account_id)
 
 
 def _upsert_owner_account(record):
@@ -6465,7 +6499,10 @@ def _load_owner_properties():
             """
         ).fetchall()
 
-    return [_owner_property_from_row(row) for row in rows]
+    properties = [_owner_property_from_row(row) for row in rows]
+    properties.extend(_demo_records("owner_properties"))
+    properties.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return properties
 
 
 def _save_owner_properties(properties):
@@ -6590,7 +6627,9 @@ def _find_owner_property(property_id):
             (target_property_id,),
         ).fetchone()
 
-    return _owner_property_from_row(row) if row else None
+    if row:
+        return _owner_property_from_row(row)
+    return _demo_property_by_id(target_property_id)
 
 
 def _owner_properties_for_account(owner_id):
@@ -12160,6 +12199,740 @@ def admin_seed_owner():
     return redirect(url_for("admin_owner_accounts", seeded="1"))
 
 
+def _demo_manifest_default():
+    return {
+        "batch_id": DEMO_BATCH_ID,
+        "scenario": f"{DEMO_SCENARIO} | {DEMO_SEASON}",
+        "seed_date": "",
+        "created_by": "demo_engine",
+        "records": {
+            "owner_accounts": [],
+            "owner_properties": [],
+            "reservations": [],
+            "operations_tasks": [],
+            "calendar_events": [],
+            "professional_accounts": [],
+            "owner_activity_events": [],
+            "property_activity_events": [],
+            "operations_task_events": [],
+        },
+    }
+
+
+def _load_demo_manifest():
+    if not DEMO_DATA_MANIFEST_PATH.exists():
+        return None
+
+    try:
+        with DEMO_DATA_MANIFEST_PATH.open("r", encoding="utf-8") as f:
+            manifest = json.load(f)
+    except Exception:
+        return None
+
+    if not isinstance(manifest, dict):
+        return None
+
+    default_manifest = _demo_manifest_default()
+    records = manifest.get("records") if isinstance(manifest.get("records"), dict) else {}
+    default_manifest.update({
+        "batch_id": str(manifest.get("batch_id", default_manifest["batch_id"])).strip() or default_manifest["batch_id"],
+        "scenario": str(manifest.get("scenario", default_manifest["scenario"])).strip() or default_manifest["scenario"],
+        "seed_date": str(manifest.get("seed_date", "")).strip(),
+        "created_by": str(manifest.get("created_by", default_manifest["created_by"])).strip() or default_manifest["created_by"],
+    })
+    for key in default_manifest["records"]:
+        value = records.get(key, [])
+        default_manifest["records"][key] = value if isinstance(value, list) else []
+    return default_manifest
+
+
+def _save_demo_manifest(manifest):
+    DEMO_DATA_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with DEMO_DATA_MANIFEST_PATH.open("w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+def _clear_demo_manifest():
+    if DEMO_DATA_MANIFEST_PATH.exists():
+        try:
+            DEMO_DATA_MANIFEST_PATH.unlink()
+        except PermissionError:
+            DEMO_DATA_MANIFEST_PATH.write_text("", encoding="utf-8")
+
+
+def _demo_records(kind):
+    manifest = _load_demo_manifest()
+    if not manifest:
+        return []
+    records = manifest.get("records", {})
+    value = records.get(kind, [])
+    return list(value) if isinstance(value, list) else []
+
+
+def _demo_record_index(kind):
+    index = {}
+    for record in _demo_records(kind):
+        record_id = str(record.get("id", "")).strip()
+        if record_id:
+            index[record_id] = record
+    return index
+
+
+def _demo_owner_account_by_email(email):
+    target = str(email or "").strip().lower()
+    if not target:
+        return None
+    for record in _demo_records("owner_accounts"):
+        if str(record.get("email", "")).strip().lower() == target:
+            return record
+    return None
+
+
+def _demo_professional_account_by_email(email):
+    target = str(email or "").strip().lower()
+    if not target:
+        return None
+    for record in _demo_records("professional_accounts"):
+        if str(record.get("email", "")).strip().lower() == target:
+            return record
+    return None
+
+
+def _demo_reservation_by_id(reservation_id):
+    target = str(reservation_id or "").strip()
+    if not target:
+        return None
+    return _demo_record_index("reservations").get(target)
+
+
+def _demo_property_by_id(property_id):
+    target = str(property_id or "").strip()
+    if not target:
+        return None
+    return _demo_record_index("owner_properties").get(target)
+
+
+def _demo_operations_task_by_id(task_id):
+    target = str(task_id or "").strip()
+    if not target:
+        return None
+    for record in _demo_records("operations_tasks"):
+        if target in {
+            str(record.get("id", "")).strip(),
+            str(record.get("request_id", "")).strip(),
+            str(record.get("source_id", "")).strip(),
+        }:
+            return record
+    return None
+
+
+def _demo_professional_by_id(professional_id):
+    target = str(professional_id or "").strip()
+    if not target:
+        return None
+    return _demo_record_index("professional_accounts").get(target)
+
+
+def _demo_manifest_summary():
+    manifest = _load_demo_manifest() or _demo_manifest_default()
+    records = manifest["records"]
+    return {
+        "batch_id": manifest.get("batch_id", DEMO_BATCH_ID),
+        "scenario": manifest.get("scenario", f"{DEMO_SCENARIO} | {DEMO_SEASON}"),
+        "seed_date": manifest.get("seed_date", ""),
+        "record_counts": {key: len(value) for key, value in records.items()},
+    }
+
+
+def _demo_operation_event(task_id, created_at, event_type, title, detail="", status="NEW"):
+    return {
+        "id": f"demo-ops-event-{uuid4().hex}",
+        "task_id": task_id,
+        "created_at": created_at,
+        "event_type": event_type,
+        "title": title,
+        "detail": detail,
+        "status": _normalize_operations_task_status(status),
+    }
+
+
+def _demo_reservation_timeline(created_at, title, detail, status):
+    return {
+        "id": f"demo-res-event-{uuid4().hex}",
+        "created_at": created_at,
+        "event_type": "demo_activity",
+        "title": title,
+        "detail": detail,
+        "status": _normalize_reservation_status(status),
+        "visibility": "public",
+    }
+
+
+def _build_demo_data_manifest():
+    batch_id = DEMO_BATCH_ID
+    scenario = f"{DEMO_SCENARIO} | {DEMO_SEASON}"
+    seed_dt = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    seed_iso = seed_dt.isoformat().replace("+00:00", "Z")
+
+    owners = [
+        {"id": "demo-owner-stella", "full_name": "Stella Stoyanova", "email": "stella.stoyanova@blackseaconnect.com", "phone": "+359888100001", "property_type": "Villa", "city": "Sveti Vlas", "property_name": "Marina Horizon", "number_of_units": 4, "notes": "Investor owner with premium seasonal villas."},
+        {"id": "demo-owner-elena", "full_name": "Elena Petrova", "email": "elena.petrova@blackseaconnect.com", "phone": "+359888100002", "property_type": "Apartment", "city": "Sunny Beach", "property_name": "Sunrise Collection", "number_of_units": 3, "notes": "Mixed portfolio focused on short stays."},
+        {"id": "demo-owner-ivan", "full_name": "Ivan Dimitrov", "email": "ivan.dimitrov@blackseaconnect.com", "phone": "+359888100003", "property_type": "Penthouse", "city": "Nessebar", "property_name": "Old Town Residences", "number_of_units": 2, "notes": "High-touch owner with frequent guest changeovers."},
+        {"id": "demo-owner-michael", "full_name": "Michael Brown", "email": "michael.brown@blackseaconnect.com", "phone": "+359888100004", "property_type": "Studio", "city": "Varna", "property_name": "Coastal Studio Group", "number_of_units": 5, "notes": "International owner with direct web bookings."},
+    ]
+    owner_rows = []
+    for index, owner in enumerate(owners, start=1):
+        owner_rows.append({
+            "id": owner["id"],
+            "created_at": seed_iso,
+            "full_name": owner["full_name"],
+            "email": owner["email"],
+            "phone": owner["phone"],
+            "property_type": owner["property_type"],
+            "city": owner["city"],
+            "property_name": owner["property_name"],
+            "number_of_units": owner["number_of_units"],
+            "notes": owner["notes"],
+            "status": "VIP" if index == 1 else "ACTIVE",
+            "language": "en" if index == 4 else "bg",
+            "last_login_at": "",
+            "internal_notes": f"demo_batch_id={batch_id}; demo_scenario={scenario}; created_by=demo_engine",
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+
+    property_specs = [
+        ("Marina Pearl 1", "Luxury Apartment", "Sveti Vlas", 2, 2, 4, "year-round", "ACTIVE"),
+        ("Marina Pearl Studio", "Studio", "Sveti Vlas", 1, 1, 2, "seasonal", "SEASONAL"),
+        ("Sunset Bay Villa", "Villa", "Sunny Beach", 4, 3, 8, "seasonal", "ACTIVE"),
+        ("Sunset Bay Penthouse", "Penthouse", "Sunny Beach", 3, 3, 6, "year-round", "ACTIVE"),
+        ("Old Town Sea View", "Sea View Apartment", "Nessebar", 2, 2, 4, "seasonal", "ACTIVE"),
+        ("Old Town Family Suite", "Family Apartment", "Nessebar", 3, 2, 6, "year-round", "ACTIVE"),
+        ("Port Marina Residence", "Marina Apartment", "Burgas", 2, 2, 4, "seasonal", "SEASONAL"),
+        ("Port Marina Studio", "Studio", "Burgas", 1, 1, 2, "year-round", "ACTIVE"),
+        ("Golden Sands Villa", "Villa", "Varna", 5, 4, 10, "seasonal", "ACTIVE"),
+        ("Golden Sands Loft", "Luxury Apartment", "Varna", 2, 2, 4, "year-round", "ACTIVE"),
+        ("Blue Horizon Penthouse", "Penthouse", "Sozopol", 3, 2, 5, "seasonal", "ACTIVE"),
+        ("Blue Horizon Family", "Family Apartment", "Sozopol", 3, 2, 6, "year-round", "ACTIVE"),
+    ]
+    property_rows = []
+    for index, spec in enumerate(property_specs, start=1):
+        owner = owners[(index - 1) % len(owners)]
+        property_id = f"demo-property-{index:02d}"
+        occupied = index % 3 == 0
+        readiness_score = 74 + (index % 5) * 4
+        next_arrival_dt = seed_dt + timedelta(days=(index % 6) - 1, hours=14 + (index % 3))
+        next_departure_dt = next_arrival_dt + timedelta(days=3 + (index % 4))
+        occupied_percent = 92 if occupied else 48 + (index % 4) * 10
+        property_rows.append({
+            "id": property_id,
+            "owner_id": owner["id"],
+            "created_at": (seed_dt - timedelta(days=index)).isoformat().replace("+00:00", "Z"),
+            "name": spec[0],
+            "property_type": spec[1],
+            "location": spec[2],
+            "bedrooms": spec[3],
+            "bathrooms": spec[4],
+            "guest_capacity": spec[5],
+            "operating_mode": spec[6],
+            "notes": f"{spec[0]} operational profile for summer pilot.",
+            "status": spec[7],
+            "guest_guide_ready": int(index % 2 == 0),
+            "access_instructions_ready": 1,
+            "emergency_contact_ready": int(index % 4 != 0),
+            "cleaning_partner_ready": int(index % 3 != 0),
+            "admin_notes": f"demo_batch_id={batch_id}; readiness={readiness_score}; created_by=demo_engine",
+            "readiness": readiness_score,
+            "health_score": min(98, readiness_score + (8 if occupied else 3)),
+            "next_arrival": next_arrival_dt.isoformat().replace("+00:00", "Z"),
+            "next_departure": next_departure_dt.isoformat().replace("+00:00", "Z"),
+            "occupancy": occupied_percent,
+            "owner": owner["full_name"],
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+
+    reservation_sources = ["Airbnb", "Booking.com", "Vrbo", "Direct Website", "Manual", "iCal"]
+    reservation_statuses = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW", "PENDING"]
+    reservation_rows = []
+    reservation_events = []
+    for index in range(40):
+        property_record = property_rows[index % len(property_rows)]
+        owner_record = next(owner for owner in owner_rows if owner["id"] == property_record["owner_id"])
+        source = reservation_sources[index % len(reservation_sources)]
+        status = reservation_statuses[index % len(reservation_statuses)]
+        guest_first = ["Nadia", "Martin", "Daria", "Hristo", "Sofia", "Peter", "Kristina", "Daniel"][index % 8]
+        guest_last = ["Ivanova", "Petrov", "Georgieva", "Brown", "Dimitrova", "Kolev", "Popova", "Smith"][index % 8]
+        arrival_offset = -4 if index < 4 else 0 if index < 8 else 1 if index < 14 else 3 if index < 22 else 8 if index < 30 else 12
+        stay_length = 2 + (index % 5)
+        arrival_dt = seed_dt + timedelta(days=arrival_offset, hours=15 + (index % 3))
+        departure_dt = arrival_dt + timedelta(days=stay_length)
+        if index < 4:
+            status = "CHECKED_IN"
+        elif index < 8:
+            status = "CONFIRMED"
+        elif index < 14:
+            status = "CONFIRMED"
+        elif index < 22:
+            status = "PENDING"
+        elif index < 30:
+            status = "CHECKED_OUT"
+            arrival_dt = seed_dt - timedelta(days=stay_length + 1, hours=3)
+            departure_dt = seed_dt - timedelta(days=1)
+        elif index < 35:
+            status = "CANCELLED" if index % 2 == 0 else "NO_SHOW"
+            arrival_dt = seed_dt + timedelta(days=5 + (index % 4))
+            departure_dt = arrival_dt + timedelta(days=stay_length)
+        else:
+            status = "CONFIRMED"
+            arrival_dt = seed_dt + timedelta(days=10 + (index % 6))
+            departure_dt = arrival_dt + timedelta(days=stay_length)
+
+        guest_name = f"{guest_first} {guest_last}"
+        reference = f"BSC-S26-{index + 1:04d}"
+        timeline = [
+            _demo_reservation_timeline((arrival_dt - timedelta(days=4)).isoformat().replace("+00:00", "Z"), "Reservation imported", f"{source} reservation received for {property_record['name']}", "PENDING"),
+            _demo_reservation_timeline((arrival_dt - timedelta(days=3)).isoformat().replace("+00:00", "Z"), "Reservation confirmed", f"{guest_name} confirmed for {property_record['name']}", "CONFIRMED"),
+            _demo_reservation_timeline((arrival_dt - timedelta(hours=10)).isoformat().replace("+00:00", "Z"), "Professional assigned", f"{owner_record['full_name']} ownership team notified", "CONFIRMED"),
+            _demo_reservation_timeline(arrival_dt.isoformat().replace("+00:00", "Z"), "Guest checked in", f"{guest_name} arrived at {property_record['name']}", "CHECKED_IN"),
+            _demo_reservation_timeline(departure_dt.isoformat().replace("+00:00", "Z"), "Guest checked out", f"{guest_name} departed {property_record['name']}", "CHECKED_OUT"),
+        ]
+        reservation_rows.append({
+            "id": f"demo-reservation-{index + 1:03d}",
+            "created_at": (arrival_dt - timedelta(days=7)).isoformat().replace("+00:00", "Z"),
+            "updated_at": seed_iso,
+            "property_id": property_record["id"],
+            "reservation_source": source,
+            "reservation_reference": reference,
+            "channel_name": source,
+            "channel_status": "SYNCED",
+            "last_sync": seed_iso,
+            "external_payload": {"reference": reference, "source": source, "demo_batch_id": batch_id, "is_demo": True, "demo_scenario": scenario, "created_by": "demo_engine"},
+            "external_reference": reference,
+            "external_last_sync": seed_iso,
+            "import_batch_id": batch_id,
+            "sync_status": "IDLE",
+            "source_metadata_json": json.dumps({"demo_batch_id": batch_id, "is_demo": True, "demo_scenario": scenario, "created_by": "demo_engine"}, ensure_ascii=False),
+            "source_metadata": {"demo_batch_id": batch_id, "is_demo": True, "demo_scenario": scenario, "created_by": "demo_engine"},
+            "guest_first_name": guest_first,
+            "guest_last_name": guest_last,
+            "guest_email": f"{guest_first.lower()}.{guest_last.lower()}@example.com",
+            "guest_phone": f"+35988{100000 + index:06d}",
+            "adults": 2 + (index % 4),
+            "children": index % 3,
+            "infants": index % 2,
+            "pets": 1 if index % 7 == 0 else 0,
+            "arrival_datetime": arrival_dt.isoformat().replace("+00:00", "Z"),
+            "departure_datetime": departure_dt.isoformat().replace("+00:00", "Z"),
+            "status": status,
+            "notes": f"Pilot reservation {reference} for {property_record['name']} via {source}.",
+            "language": "en",
+            "created_by": "demo_engine",
+            "metadata_json": json.dumps({
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "timeline": timeline,
+            }, ensure_ascii=False),
+            "metadata": {
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "timeline": timeline,
+            },
+            "guest_name": guest_name,
+            "property_name": property_record["name"],
+            "property_location": property_record["location"],
+            "owner_id": property_record["owner_id"],
+            "owner_name": owner_record["full_name"],
+            "owner_email": owner_record["email"],
+            "channel_label": source,
+            "timeline": timeline,
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+        })
+        reservation_events.extend(timeline)
+
+    professional_specs = [
+        ("Cleaning", "Nadia Ivanova", "cleaning"),
+        ("Cleaning", "Martin Petrov", "cleaning"),
+        ("Maintenance", "Daria Georgieva", "maintenance"),
+        ("Electrical", "Hristo Brown", "maintenance"),
+        ("Plumbing", "Sofia Koleva", "maintenance"),
+        ("Guest Relations", "Peter Popov", "guest relations"),
+        ("Airport Transfer", "Kristina Smith", "transfer"),
+        ("Laundry", "Daniel Ivanov", "laundry"),
+        ("Photography", "Mila Petrova", "media"),
+        ("Pool", "Victor Dimitrov", "pool"),
+        ("Garden", "Elena Brown", "garden"),
+        ("Cleaning", "Teodora Georgieva", "cleaning"),
+        ("Maintenance", "Nikolay Petrov", "maintenance"),
+        ("Guest Relations", "Iva Stoyanova", "guest relations"),
+        ("Laundry", "Tanya Ivanova", "laundry"),
+    ]
+    professional_rows = []
+    for index, (category, name, company_hint) in enumerate(professional_specs, start=1):
+        email = f"{name.lower().replace(' ', '.')}@blackseaconnect.com"
+        assigned_open_tasks = 4 + (index % 3)
+        completed_tasks = 9 + (index % 5)
+        professional_rows.append({
+            "id": f"demo-professional-{index:02d}",
+            "created_at": (seed_dt - timedelta(days=index + 3)).isoformat().replace("+00:00", "Z"),
+            "full_name": name,
+            "email": email,
+            "phone": f"+35988{200000 + index:06d}",
+            "company": f"{company_hint.title()} Crew {index}",
+            "service_categories": category,
+            "status": "ACTIVE",
+            "last_login_at": (seed_dt - timedelta(hours=index)).isoformat().replace("+00:00", "Z"),
+            "availability": "Weekdays 08:00-18:00" if index % 2 else "Daily 08:00-20:00",
+            "assigned_operations": assigned_open_tasks,
+            "completed_operations": completed_tasks,
+            "rating": round(4.4 + ((index % 5) * 0.1), 1),
+            "workload": f"{assigned_open_tasks}/{completed_tasks + assigned_open_tasks}",
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+
+    categories = [
+        "Arrival Cleaning",
+        "Departure Cleaning",
+        "Deep Cleaning",
+        "Maintenance",
+        "Check-in Preparation",
+        "Checkout Inspection",
+        "Guest Inspection",
+        "Transfer",
+        "Welcome Pack",
+        "Pool Inspection",
+        "Laundry",
+        "Emergency Maintenance",
+    ]
+    operation_statuses = [
+        "NEW",
+        "ASSIGNED",
+        "ACCEPTED",
+        "IN_PROGRESS",
+        "WAITING_OWNER",
+        "WAITING_PROFESSIONAL",
+        "COMPLETED",
+        "OVERDUE",
+    ]
+    operations_rows = []
+    operations_events = []
+    for index in range(80):
+        reservation = reservation_rows[index % len(reservation_rows)]
+        property_record = property_rows[index % len(property_rows)]
+        owner_record = next(owner for owner in owner_rows if owner["id"] == property_record["owner_id"])
+        professional = professional_rows[index % len(professional_rows)]
+        category = categories[index % len(categories)]
+        status = operation_statuses[index % len(operation_statuses)]
+        created_at = seed_dt - timedelta(days=2 + (index % 10), hours=index % 5)
+        due_dt = seed_dt + timedelta(days=(index % 6) - 2, hours=9 + (index % 4))
+        if index < 18:
+            due_dt = seed_dt
+        if index % 11 == 0:
+            due_dt = seed_dt - timedelta(days=1)
+            status = "OVERDUE"
+        if index % 7 == 0:
+            status = "WAITING_OWNER"
+        elif index % 9 == 0:
+            status = "WAITING_PROFESSIONAL"
+        elif index % 5 == 0:
+            status = "IN_PROGRESS"
+        elif index % 4 == 0:
+            status = "ASSIGNED"
+        if index % 6 == 0:
+            status = "COMPLETED"
+        completed_at = (due_dt + timedelta(hours=2)).isoformat().replace("+00:00", "Z") if status in {"COMPLETED", "ARCHIVED"} else ""
+        task_id = f"demo-task-{index + 1:03d}"
+        title = f"{category} - {property_record['name']}"
+        request_status = "completed" if status in {"COMPLETED", "ARCHIVED"} else "assigned" if status not in {"NEW", "WAITING_OWNER"} else "new"
+        operations_rows.append({
+            "id": task_id,
+            "request_id": task_id,
+            "source_type": "DEMO_ENGINE",
+            "source_id": task_id,
+            "created_at": created_at.isoformat().replace("+00:00", "Z"),
+            "updated_at": seed_iso,
+            "title": title,
+            "category": category,
+            "owner_name": owner_record["full_name"],
+            "owner_email": owner_record["email"],
+            "property_id": property_record["id"],
+            "property_name": property_record["name"],
+            "assigned_to": professional["full_name"] if status != "NEW" else "",
+            "assigned_professional_id": professional["id"] if status != "NEW" else "",
+            "priority": "HIGH" if status in {"OVERDUE", "WAITING_OWNER"} else "NORMAL",
+            "status": status,
+            "due_date": due_dt.isoformat().replace("+00:00", "Z"),
+            "notes": f"{category} for {property_record['name']} managed through the demo engine.",
+            "completed_at": completed_at,
+            "completion_report_json": _operations_task_json_dumps(_operations_task_completion_report({"summary": f"{category} completed for {property_record['name']}"} if status in {"COMPLETED", "ARCHIVED"} else {})),
+            "owner_id": owner_record["id"],
+            "property_location": property_record["location"],
+            "admin_notes": f"demo_batch_id={batch_id}; demo_scenario={scenario}; created_by=demo_engine",
+            "request_status": request_status,
+            "checklist_json": _operations_task_json_dumps([
+                {"label": "Verify keys", "checked": True},
+                {"label": "Confirm access", "checked": status in {"ASSIGNED", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "WAITING_OWNER", "WAITING_PROFESSIONAL"}},
+                {"label": "Close out task", "checked": status in {"COMPLETED", "ARCHIVED"}},
+            ]),
+            "attachments_json": _operations_task_json_dumps([]),
+            "comments_json": _operations_task_json_dumps([
+                {"author": "demo_engine", "created_at": seed_iso, "body": f"{category} tracked for {property_record['name']}."}
+            ] if status in {"COMPLETED", "ARCHIVED"} else []),
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+        operations_events.extend([
+            _demo_operation_event(task_id, (created_at + timedelta(minutes=5)).isoformat().replace("+00:00", "Z"), "task_created", "Task created", property_record["name"], "NEW"),
+            _demo_operation_event(task_id, (created_at + timedelta(minutes=25)).isoformat().replace("+00:00", "Z"), "assigned", "Professional assigned", professional["full_name"], "ASSIGNED"),
+            _demo_operation_event(task_id, (due_dt - timedelta(minutes=45)).isoformat().replace("+00:00", "Z"), "started", "Work started", category, "IN_PROGRESS"),
+            _demo_operation_event(task_id, (due_dt + timedelta(minutes=30)).isoformat().replace("+00:00", "Z"), "completed", "Work completed", property_record["name"], "COMPLETED"),
+        ])
+
+    calendar_rows = []
+    calendar_events = []
+    for index, reservation in enumerate(reservation_rows, start=1):
+        start_dt = _parse_iso_datetime(reservation["arrival_datetime"]) or seed_dt
+        end_dt = _parse_iso_datetime(reservation["departure_datetime"]) or (start_dt + timedelta(days=3))
+        calendar_rows.append({
+            "id": f"demo-calendar-reservation-{index:03d}",
+            "created_at": (start_dt - timedelta(days=5)).isoformat().replace("+00:00", "Z"),
+            "updated_at": seed_iso,
+            "property_id": reservation["property_id"],
+            "owner_id": reservation["owner_id"],
+            "operation_task_id": "",
+            "event_type": "Reservation",
+            "title": reservation["guest_name"],
+            "description": f"{reservation['reservation_source']} booking {reservation['reservation_reference']}",
+            "start_datetime": reservation["arrival_datetime"],
+            "end_datetime": reservation["departure_datetime"],
+            "all_day": 0,
+            "status": "SCHEDULED" if reservation["status"] in {"CONFIRMED", "PENDING"} else "COMPLETED" if reservation["status"] == "CHECKED_OUT" else "CANCELLED" if reservation["status"] in {"CANCELLED", "NO_SHOW"} else "IN_PROGRESS",
+            "assigned_professional": "",
+            "created_by": "demo_engine",
+            "color": "arrival" if reservation["status"] in {"CONFIRMED", "CHECKED_IN"} else "neutral",
+            "metadata_json": json.dumps({
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "reservation_id": reservation["id"],
+                "kind": "reservation",
+                "property_name": reservation["property_name"],
+                "owner_id": reservation["owner_id"],
+            }, ensure_ascii=False),
+            "metadata": {
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "reservation_id": reservation["id"],
+                "kind": "reservation",
+                "property_name": reservation["property_name"],
+                "owner_id": reservation["owner_id"],
+            },
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+        calendar_events.append({
+            "id": f"demo-calendar-checkin-{index:03d}",
+            "created_at": reservation["created_at"],
+            "updated_at": seed_iso,
+            "property_id": reservation["property_id"],
+            "owner_id": reservation["owner_id"],
+            "operation_task_id": "",
+            "event_type": "Check-in" if reservation["status"] != "CHECKED_OUT" else "Check-out",
+            "title": f"{reservation['guest_name']} arrival" if reservation["status"] != "CHECKED_OUT" else f"{reservation['guest_name']} departure",
+            "description": reservation["reservation_reference"],
+            "start_datetime": reservation["arrival_datetime"],
+            "end_datetime": reservation["departure_datetime"],
+            "all_day": 0,
+            "status": "SCHEDULED",
+            "assigned_professional": "",
+            "created_by": "demo_engine",
+            "color": "arrival",
+            "metadata_json": json.dumps({
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "reservation_id": reservation["id"],
+                "kind": "checkin",
+            }, ensure_ascii=False),
+            "metadata": {
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "reservation_id": reservation["id"],
+                "kind": "checkin",
+            },
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+
+    for index, task in enumerate(operations_rows, start=1):
+        due_dt = _parse_iso_datetime(task["due_date"]) or seed_dt
+        calendar_events.append({
+            "id": f"demo-calendar-task-{index:03d}",
+            "created_at": task["created_at"],
+            "updated_at": seed_iso,
+            "property_id": task["property_id"],
+            "owner_id": task["owner_id"],
+            "operation_task_id": task["id"],
+            "event_type": task["category"],
+            "title": task["title"],
+            "description": task["notes"],
+            "start_datetime": task["due_date"],
+            "end_datetime": (due_dt + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
+            "all_day": 0,
+            "status": "SCHEDULED" if task["status"] not in {"COMPLETED", "ARCHIVED"} else "COMPLETED",
+            "assigned_professional": task["assigned_to"],
+            "created_by": "demo_engine",
+            "color": _calendar_event_color(task["category"], task["status"]),
+            "metadata_json": json.dumps({
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "task_id": task["id"],
+                "kind": "operations_task",
+                "property_name": task["property_name"],
+                "property_location": task["property_location"],
+                "priority": task["priority"],
+            }, ensure_ascii=False),
+            "metadata": {
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+                "task_id": task["id"],
+                "kind": "operations_task",
+                "property_name": task["property_name"],
+                "property_location": task["property_location"],
+                "priority": task["priority"],
+            },
+            "demo_batch_id": batch_id,
+            "is_demo": True,
+            "demo_scenario": scenario,
+            "created_by": "demo_engine",
+        })
+
+    owner_activity_events = []
+    property_activity_events = []
+    for index, owner in enumerate(owner_rows, start=1):
+        owner_activity_events.extend([
+            {
+                "id": f"demo-owner-activity-{index:03d}-1",
+                "owner_id": owner["id"],
+                "created_at": (seed_dt - timedelta(days=index)).isoformat().replace("+00:00", "Z"),
+                "event_type": "owner_registered",
+                "title": "Owner profile active",
+                "detail": owner["full_name"],
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+            },
+            {
+                "id": f"demo-owner-activity-{index:03d}-2",
+                "owner_id": owner["id"],
+                "created_at": (seed_dt - timedelta(days=index - 1)).isoformat().replace("+00:00", "Z"),
+                "event_type": "status_changed",
+                "title": "Portfolio ready",
+                "detail": owner["property_name"],
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+            },
+        ])
+
+    for index, property_record in enumerate(property_rows, start=1):
+        property_activity_events.extend([
+            {
+                "id": f"demo-property-activity-{index:03d}-1",
+                "property_id": property_record["id"],
+                "owner_id": property_record["owner_id"],
+                "created_at": (seed_dt - timedelta(days=index // 2)).isoformat().replace("+00:00", "Z"),
+                "event_type": "property_created",
+                "title": "Property added to pilot",
+                "detail": property_record["name"],
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+            },
+            {
+                "id": f"demo-property-activity-{index:03d}-2",
+                "property_id": property_record["id"],
+                "owner_id": property_record["owner_id"],
+                "created_at": (seed_dt - timedelta(hours=index * 3)).isoformat().replace("+00:00", "Z"),
+                "event_type": "checklist_updated",
+                "title": "Readiness checklist updated",
+                "detail": f"Readiness {property_record['readiness']}%",
+                "demo_batch_id": batch_id,
+                "is_demo": True,
+                "demo_scenario": scenario,
+                "created_by": "demo_engine",
+            },
+        ])
+
+    manifest = {
+        "batch_id": batch_id,
+        "scenario": scenario,
+        "seed_date": seed_iso,
+        "created_by": "demo_engine",
+        "records": {
+            "owner_accounts": owner_rows,
+            "owner_properties": property_rows,
+            "reservations": reservation_rows,
+            "operations_tasks": operations_rows,
+            "calendar_events": calendar_rows,
+            "professional_accounts": professional_rows,
+            "owner_activity_events": owner_activity_events,
+            "property_activity_events": property_activity_events,
+            "operations_task_events": operations_events,
+        },
+    }
+    return manifest
+
+
+def _seed_demo_data_manifest():
+    manifest = _load_demo_manifest()
+    if manifest:
+        return manifest, False
+
+    manifest = _build_demo_data_manifest()
+    _save_demo_manifest(manifest)
+    return manifest, True
+
+
+def _clear_demo_data_manifest():
+    existed = DEMO_DATA_MANIFEST_PATH.exists()
+    _clear_demo_manifest()
+    return existed
+
+
 def _clean_payload_value(payload, *keys):
     for key in keys:
         value = payload.get(key, "")
@@ -13049,7 +13822,10 @@ def _load_professional_accounts():
             """
         ).fetchall()
 
-    return [_professional_account_from_row(row) for row in rows]
+    accounts = [_professional_account_from_row(row) for row in rows]
+    accounts.extend(_demo_records("professional_accounts"))
+    accounts.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("full_name", "")), str(item.get("email", ""))), reverse=True)
+    return accounts
 
 
 def _find_professional_account_by_email(email):
@@ -13071,7 +13847,9 @@ def _find_professional_account_by_email(email):
             (target_email,),
         ).fetchone()
 
-    return _professional_account_from_row(row) if row else None
+    if row:
+        return _professional_account_from_row(row)
+    return _demo_professional_account_by_email(target_email)
 
 
 def _find_professional_account(professional_id):
@@ -13093,7 +13871,9 @@ def _find_professional_account(professional_id):
             (target_id,),
         ).fetchone()
 
-    return _professional_account_from_row(row) if row else None
+    if row:
+        return _professional_account_from_row(row)
+    return _demo_professional_by_id(target_id)
 
 
 def _upsert_professional_account(account_record):
@@ -15810,6 +16590,158 @@ def admin_operations_status(task_id):
             "updated_at": updated_task.get("updated_at", ""),
         },
     })
+
+
+def _demo_timeline_event_count():
+    count = len(_demo_records("owner_activity_events"))
+    count += len(_demo_records("property_activity_events"))
+    count += len(_demo_records("operations_task_events"))
+    for reservation in _demo_records("reservations"):
+        metadata = _safe_json_loads(reservation.get("metadata_json", ""), {})
+        timeline = metadata.get("timeline") if isinstance(metadata.get("timeline"), list) else reservation.get("timeline", [])
+        if isinstance(timeline, list):
+            count += len(timeline)
+    return count
+
+
+def _demo_data_page_context():
+    manifest = _load_demo_manifest()
+    summary = _demo_manifest_summary()
+    return {
+        "manifest": manifest,
+        "summary": summary,
+        "counts": {
+            "properties": len(_demo_records("owner_properties")),
+            "reservations": len(_demo_records("reservations")),
+            "operations": len(_demo_records("operations_tasks")),
+            "professionals": len(_demo_records("professional_accounts")),
+            "timeline_events": _demo_timeline_event_count(),
+        },
+        "seeded": bool(manifest),
+    }
+
+
+@app.route("/admin/demo-data", methods=["GET"])
+@admin_required
+def admin_demo_data():
+    context = _demo_data_page_context()
+    message = str(request.args.get("message", "")).strip()
+    notice = {
+        "seeded": "Demo data seeded.",
+        "cleared": "Demo data cleared.",
+        "exists": "Demo data is already seeded.",
+    }.get(message, "")
+    return render_template_string(
+        """
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Enterprise Demo Manager · BlackSea Connect</title>
+          <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+          <style>
+            body.admin-demo-page { margin: 0; background: linear-gradient(180deg, #08111f, #101b2d); color: #f8f4ea; font-family: "Aptos", "Segoe UI", Arial, sans-serif; }
+            .admin-demo-shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 48px; }
+            .admin-demo-card, .admin-demo-panel { background: rgba(7, 16, 30, 0.75); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+            .admin-demo-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 18px; }
+            .admin-demo-stat { padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+            .admin-demo-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+            .admin-demo-actions form { margin: 0; }
+            .admin-demo-muted { color: rgba(248,244,234,0.72); }
+            .admin-demo-notice { margin-bottom: 16px; padding: 14px 16px; border-radius: 16px; background: rgba(217, 179, 108, 0.16); color: #f3d7a1; }
+            .admin-demo-kicker { text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(248,244,234,0.7); }
+            .admin-demo-title { margin: 8px 0 0; font-size: clamp(2rem, 4vw, 3.6rem); line-height: 0.98; }
+            .admin-demo-summary { display: grid; gap: 10px; margin-top: 16px; }
+          </style>
+        </head>
+        <body class="admin-cockpit-page admin-demo-page">
+          <main class="admin-demo-shell">
+            {% if notice %}
+              <div class="admin-demo-notice">{{ notice }}</div>
+            {% endif %}
+            <section class="admin-demo-card">
+              <p class="admin-demo-kicker">Enterprise Demo Manager</p>
+              <h1 class="admin-demo-title">Summer 2026 pilot data for the executive cockpit.</h1>
+              <p class="admin-demo-muted">Seed and clear are optional. Demo records stay isolated in a manifest so production data is untouched.</p>
+              <div class="admin-demo-actions">
+                <form method="post" action="{{ url_for('admin_demo_data_seed') }}">
+                  <button class="button button--primary" type="submit">Seed Demo</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_demo_data_clear') }}">
+                  <button class="button button--secondary" type="submit">Clear Demo</button>
+                </form>
+                <a class="button button--ghost" href="{{ url_for('admin_demo_data') }}">Refresh Dashboard</a>
+                <a class="button button--ghost" href="{{ url_for('admin_home') }}">Back to Cockpit</a>
+              </div>
+            </section>
+
+            <section class="admin-demo-grid">
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Scenario</span>
+                <strong>{{ summary.scenario }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Seed Date</span>
+                <strong>{{ summary.seed_date or 'Not seeded yet' }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Batch ID</span>
+                <strong>{{ summary.batch_id }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Properties</span>
+                <strong>{{ counts.properties }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Reservations</span>
+                <strong>{{ counts.reservations }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Operations</span>
+                <strong>{{ counts.operations }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Professionals</span>
+                <strong>{{ counts.professionals }}</strong>
+              </article>
+              <article class="admin-demo-stat">
+                <span class="admin-demo-muted">Timeline Events</span>
+                <strong>{{ counts.timeline_events }}</strong>
+              </article>
+            </section>
+
+            <section class="admin-demo-card" style="margin-top: 18px;">
+              <div class="admin-demo-summary">
+                <p class="admin-demo-muted">This page reports only demo-scoped records. Production rows are not modified or removed.</p>
+                <p class="admin-demo-muted">Seed twice remains idempotent because the manifest uses a stable batch id and deterministic record ids.</p>
+                <p class="admin-demo-muted">Clear removes the manifest only, which leaves real operational data untouched.</p>
+              </div>
+            </section>
+          </main>
+        </body>
+        </html>
+        """,
+        **context,
+        notice=notice,
+    )
+
+
+@app.post("/admin/demo-data/seed")
+@admin_required
+def admin_demo_data_seed():
+    manifest, created = _seed_demo_data_manifest()
+    message = "seeded" if created else "exists"
+    if manifest:
+        app.logger.info("Demo data manifest ready for batch %s", manifest.get("batch_id", DEMO_BATCH_ID))
+    return redirect(url_for("admin_demo_data", message=message))
+
+
+@app.post("/admin/demo-data/clear")
+@admin_required
+def admin_demo_data_clear():
+    _clear_demo_data_manifest()
+    return redirect(url_for("admin_demo_data", message="cleared"))
 
 
 @app.get("/admin")
