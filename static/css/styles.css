@@ -960,12 +960,6 @@ a {
 .preview-card__meta,
 .status-list {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
-}
-
-.preview-card__topline,
-.preview-card__header,
-.preview-card__meta,
-.status-list {
   position: relative;
   z-index: 1;
 }
@@ -14699,8 +14693,6 @@ main {
 
 /* ===== FINAL BACKGROUND STABILIZATION ===== */
 
-body::before,
-body::after,
 .site-shell::before,
 .site-shell::after {
     display: none !important;
@@ -26014,6 +26006,8 @@ body.operations-demo-page section {
 ========================================================= */
 :root {
   --enterprise-bg:
+    linear-gradient(180deg, rgba(7, 17, 26, 0.52), rgba(7, 17, 26, 0.38) 34%, rgba(7, 17, 26, 0.56)),
+    url("/static/img/blacksea-marina-hero.png") center center / cover fixed no-repeat,
     radial-gradient(circle at 50% 10%, rgba(155, 210, 221, 0.08), transparent 20%),
     radial-gradient(circle at 18% 18%, rgba(197, 151, 61, 0.08), transparent 22%),
     radial-gradient(circle at 84% 12%, rgba(136, 217, 247, 0.07), transparent 20%),
