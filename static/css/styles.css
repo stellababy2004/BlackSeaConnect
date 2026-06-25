@@ -27406,3 +27406,159 @@ body.professional-login-page .professional-login-shell input {
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: var(--champagne-text) !important;
 }
+
+/* Page-specific overrides to beat older light-card selectors. */
+body.operations-demo-page .operations-topbar {
+  width: min(1180px, calc(100vw - 32px)) !important;
+  margin: 18px auto 0 !important;
+  padding: 16px 18px !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: linear-gradient(180deg, rgba(11, 25, 38, 0.94), rgba(9, 18, 28, 0.86)) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.24) !important;
+}
+
+body.operations-demo-page .operations-topbar,
+body.operations-demo-page .operations-topbar__actions,
+body.operations-demo-page .operations-topbar .site-nav,
+body.operations-demo-page .operations-topbar .language-switcher,
+body.operations-demo-page .operations-topbar__status {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav {
+  gap: 10px !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav__link,
+body.operations-demo-page .operations-topbar .language-switcher__button {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: var(--champagne-text) !important;
+}
+
+body.operations-demo-page .operations-hero__copy,
+body.operations-demo-page .operations-hero__preview,
+body.operations-demo-page .operations-panel,
+body.operations-demo-page .operations-panel--wide,
+body.operations-demo-page .operations-modal__dialog,
+body.operations-demo-page .operations-arrival-step,
+body.operations-demo-page .operations-feed__item,
+body.operations-demo-page .operations-property-card,
+body.operations-demo-page .operations-team-card,
+body.operations-demo-page .operations-empty-state,
+body.operations-demo-page .operations-network-card {
+  background: linear-gradient(180deg, rgba(11, 25, 38, 0.92), rgba(9, 18, 28, 0.84)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.24) !important;
+  color: var(--champagne-text) !important;
+}
+
+body.operations-demo-page .operations-hero__copy :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-hero__preview :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-panel :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-panel--wide :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-modal__dialog :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-arrival-step :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-feed__item :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-property-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-team-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label),
+body.operations-demo-page .operations-empty-state :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label) {
+  color: var(--champagne-text) !important;
+  -webkit-text-fill-color: var(--champagne-text) !important;
+}
+
+body.owner-portal-page.owner-login-page .hero__copy,
+body.owner-portal-page.owner-login-page .owner-login-card,
+body.owner-portal-page.owner-login-page .owner-login-panel,
+body.owner-portal-page.owner-login-page .owner-portal-card,
+body.owner-portal-page.owner-request-service-page .hero__copy,
+body.owner-portal-page.owner-request-service-page .owner-request-summary,
+body.owner-portal-page.owner-request-service-page .owner-request-panel,
+body.owner-portal-page.owner-request-service-page .owner-request-next,
+body.owner-portal-page.owner-request-service-page .owner-portal-card,
+body.owner-portal-page.owner-property-page .hero__copy,
+body.owner-portal-page.owner-property-page .owner-property-card,
+body.owner-portal-page.owner-property-page .owner-property-aside,
+body.owner-portal-page.owner-property-page .owner-properties-panel,
+body.professional-login-page .professional-login-shell,
+body.pilot-access-page .hero__copy,
+body.pilot-access-page .cta-panel,
+body.partners-page .hero__copy,
+body.partners-page .cta-panel,
+body.partners-page .admin-empty-state,
+body.professionals-page .hero__copy,
+body.professionals-page .cta-panel,
+body.guest-homepage-page .guest-kpi-card,
+body.guest-homepage-page .guest-dashboard-card,
+body.guest-homepage-page .guest-unified-card,
+body.guest-homepage-page .guest-action-card,
+body.guest-homepage-page .guest-form-panel,
+body.guest-homepage-page .guest-card,
+body.guest-homepage-page .portal-card,
+body.guest-homepage-page .access-card,
+body.guest-homepage-page .concierge-card,
+body.guest-homepage-page .guest-portal-header,
+body.guest-homepage-page .guest-portal-card,
+body.guest-homepage-page .guest-portal-status,
+body.guest-homepage-page .guest-portal-info,
+body.guest-homepage-page .guest-portal-service,
+body.guest-homepage-page .guest-portal-access,
+body.guest-homepage-page .guest-portal-qr,
+body.guest-homepage-page .guest-portal-instructions,
+body.guest-portal-page .guest-portal-header,
+body.guest-portal-page .guest-portal-card,
+body.guest-portal-page .guest-card,
+body.guest-portal-page .portal-card,
+body.guest-portal-page .access-card,
+body.guest-portal-page .concierge-card,
+body.guest-portal-page .guest-portal-status,
+body.guest-portal-page .guest-portal-info,
+body.guest-portal-page .guest-portal-service,
+body.guest-portal-page .guest-portal-access,
+body.guest-portal-page .guest-portal-qr,
+body.guest-portal-page .guest-portal-instructions,
+body.admin-cockpit-page .admin-cockpit-hero,
+body.admin-cockpit-page .admin-cockpit-panel,
+body.admin-cockpit-page .admin-kpi-card,
+body.admin-cockpit-page .admin-empty-state,
+body.admin-cockpit-page .admin-pilot-card,
+body.admin-cockpit-page .admin-mini-card,
+body.admin-cockpit-page .admin-list-card,
+body.admin-cockpit-page .admin-activity-item,
+body.admin-cockpit-page .admin-property-card,
+body.admin-cockpit-page .admin-timeline-card,
+body.admin-cockpit-page .admin-workload-card,
+body.reservations-page .reservations-hero,
+body.reservations-page .reservations-panel,
+body.reservations-page .reservations-summary-card,
+body.reservations-page .reservations-card,
+body.reservations-page .reservations-empty,
+body.reservations-page .reservations-mini-item,
+body.reservations-page .reservation-detail-panel,
+body.reservations-page .reservation-detail-hero {
+  background: linear-gradient(180deg, rgba(11, 25, 38, 0.92), rgba(9, 18, 28, 0.84)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.24) !important;
+  color: var(--champagne-text) !important;
+}
+
+body.owner-portal-page.owner-login-page :where(h1, h2, h3, p, dt, dd, span, a),
+body.owner-portal-page.owner-request-service-page :where(h1, h2, h3, p, dt, dd, span, a),
+body.owner-portal-page.owner-property-page :where(h1, h2, h3, p, dt, dd, span, a),
+body.professional-login-page :where(h1, h2, h3, p, span, label, strong, small, a),
+body.pilot-access-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.partners-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.professionals-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.guest-homepage-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.guest-portal-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.admin-cockpit-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.reservations-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a) {
+  color: var(--champagne-text) !important;
+  -webkit-text-fill-color: var(--champagne-text) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
