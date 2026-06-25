@@ -587,6 +587,671 @@
         align-items: start;
       }
     }
+    .admin-cockpit-page {
+      --glass-bg: rgba(7, 16, 30, 0.68);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+      --text-strong: #fff8eb;
+      --text-soft: rgba(248, 244, 234, 0.72);
+      --text-muted: rgba(248, 244, 234, 0.56);
+    }
+    .admin-cockpit-page .admin-cockpit-hero,
+    .admin-cockpit-page .admin-cockpit-panel,
+    .admin-cockpit-page .admin-dashboard-section,
+    .admin-cockpit-page .admin-kpi-card,
+    .admin-cockpit-page .admin-alert-card,
+    .admin-cockpit-page .admin-risk-card,
+    .admin-cockpit-page .admin-property-card,
+    .admin-cockpit-page .admin-timeline-card,
+    .admin-cockpit-page .admin-workload-card,
+    .admin-cockpit-page .admin-list-card,
+    .admin-cockpit-page .admin-event-row,
+    .admin-cockpit-page .admin-activity-item,
+    .admin-cockpit-page .admin-recommendation-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)) var(--glass-bg);
+      border-color: var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+    .admin-cockpit-page .admin-cockpit-hero {
+      padding: 22px;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .admin-cockpit-page .admin-cockpit-hero h1 {
+      font-size: clamp(2rem, 3.6vw, 4rem);
+    }
+    .admin-hero-copy {
+      margin-top: 10px;
+      max-width: 62ch;
+    }
+    .admin-hero-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .admin-status-chip,
+    .admin-clock-chip,
+    .admin-health-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-strong);
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .admin-status-chip__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #8fe0ac;
+      box-shadow: 0 0 0 6px rgba(143, 224, 172, 0.12);
+      animation: adminPulse 2.2s ease-in-out infinite;
+    }
+    .admin-clock-chip time {
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-health-chip[data-tone="success"] {
+      border-color: rgba(77, 154, 109, 0.35);
+      color: #9be0b1;
+      background: rgba(77, 154, 109, 0.14);
+    }
+    .admin-health-chip[data-tone="warning"] {
+      border-color: rgba(204, 158, 67, 0.35);
+      color: #f0cc82;
+      background: rgba(204, 158, 67, 0.14);
+    }
+    .admin-health-chip[data-tone="danger"] {
+      border-color: rgba(196, 92, 92, 0.38);
+      color: #ffb0b0;
+      background: rgba(196, 92, 92, 0.16);
+    }
+    .admin-hero-stat-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-hero-stat {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .admin-hero-stat span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .admin-hero-stat strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.2;
+      color: var(--text-strong);
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button,
+    .admin-cockpit-page .admin-action-grid .button {
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button:hover,
+    .admin-cockpit-page .admin-cockpit-actions .button:focus-visible,
+    .admin-cockpit-page .admin-action-grid .button:hover,
+    .admin-cockpit-page .admin-action-grid .button:focus-visible,
+    .admin-cockpit-page .admin-kpi-card:hover,
+    .admin-cockpit-page .admin-alert-card:hover,
+    .admin-cockpit-page .admin-risk-card:hover,
+    .admin-cockpit-page .admin-property-card:hover,
+    .admin-cockpit-page .admin-timeline-event:hover,
+    .admin-cockpit-page .admin-activity-item:hover,
+    .admin-cockpit-page .admin-recommendation-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button::after,
+    .admin-cockpit-page .admin-action-grid .button::after,
+    .admin-cockpit-page .admin-kpi-card::after,
+    .admin-cockpit-page .admin-alert-card::after,
+    .admin-cockpit-page .admin-risk-card::after,
+    .admin-cockpit-page .admin-property-card::after,
+    .admin-cockpit-page .admin-timeline-event::after,
+    .admin-cockpit-page .admin-activity-item::after,
+    .admin-cockpit-page .admin-recommendation-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.12) 50%, transparent 100%);
+      transform: translateX(-120%);
+      transition: transform 420ms ease;
+      pointer-events: none;
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button:hover::after,
+    .admin-cockpit-page .admin-action-grid .button:hover::after,
+    .admin-cockpit-page .admin-kpi-card:hover::after,
+    .admin-cockpit-page .admin-alert-card:hover::after,
+    .admin-cockpit-page .admin-risk-card:hover::after,
+    .admin-cockpit-page .admin-property-card:hover::after,
+    .admin-cockpit-page .admin-timeline-event:hover::after,
+    .admin-cockpit-page .admin-activity-item:hover::after,
+    .admin-cockpit-page .admin-recommendation-card:hover::after {
+      transform: translateX(120%);
+    }
+    .admin-cockpit-page .admin-kpi-card {
+      min-height: 172px;
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-cockpit-page .admin-kpi-card .admin-kpi-top,
+    .admin-cockpit-page .admin-alert-card__head,
+    .admin-cockpit-page .admin-risk-card__head,
+    .admin-cockpit-page .admin-property-head,
+    .admin-cockpit-page .admin-timeline-head,
+    .admin-cockpit-page .admin-activity-head {
+      position: relative;
+      z-index: 1;
+    }
+    .admin-cockpit-page .admin-kpi-card h3,
+    .admin-cockpit-page .admin-mini-card h3,
+    .admin-cockpit-page .admin-property-card h3,
+    .admin-cockpit-page .admin-timeline-card h3 {
+      letter-spacing: -0.02em;
+    }
+    .admin-cockpit-page .admin-kpi-value,
+    .admin-cockpit-page .admin-risk-score,
+    .admin-cockpit-page .admin-health-gauge__value {
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-kpi-progress,
+    .admin-sla-progress,
+    .admin-workload-bar,
+    .admin-property-progress {
+      position: relative;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .admin-kpi-progress__fill,
+    .admin-sla-progress__fill,
+    .admin-workload-bar__fill,
+    .admin-property-progress__fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(84, 131, 194, 0.92), rgba(217, 179, 108, 0.94));
+      transition: width 420ms ease;
+    }
+    .admin-kpi-card[data-tone="success"] .admin-kpi-progress__fill,
+    .admin-sla-card[data-tone="success"] .admin-sla-progress__fill,
+    .admin-workload-card[data-tone="success"] .admin-workload-bar__fill,
+    .admin-property-card[data-tone="success"] .admin-property-progress__fill {
+      background: linear-gradient(90deg, rgba(77, 154, 109, 0.92), rgba(147, 221, 173, 0.96));
+    }
+    .admin-kpi-card[data-tone="warning"] .admin-kpi-progress__fill,
+    .admin-sla-card[data-tone="warning"] .admin-sla-progress__fill,
+    .admin-workload-card[data-tone="warning"] .admin-workload-bar__fill,
+    .admin-property-card[data-tone="warning"] .admin-property-progress__fill {
+      background: linear-gradient(90deg, rgba(204, 158, 67, 0.92), rgba(240, 204, 130, 0.96));
+    }
+    .admin-kpi-card[data-tone="danger"] .admin-kpi-progress__fill,
+    .admin-sla-card[data-tone="danger"] .admin-sla-progress__fill,
+    .admin-workload-card[data-tone="danger"] .admin-workload-bar__fill,
+    .admin-property-card[data-tone="danger"] .admin-property-progress__fill {
+      background: linear-gradient(90deg, rgba(196, 92, 92, 0.92), rgba(255, 176, 176, 0.96));
+    }
+    .admin-kpi-meta,
+    .admin-sla-meta,
+    .admin-risk-meta,
+    .admin-property-meta,
+    .admin-activity-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .admin-kpi-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-trend-arrow {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+      flex: none;
+    }
+    .admin-alert-grid,
+    .admin-risk-grid,
+    .admin-workload-grid,
+    .admin-recommendation-grid,
+    .admin-timeline-feed {
+      align-items: stretch;
+    }
+    .admin-alert-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .admin-alert-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-alert-card[data-severity="critical"] {
+      border-color: rgba(255, 138, 138, 0.35);
+      box-shadow: 0 22px 44px rgba(196, 92, 92, 0.18);
+      order: -1;
+    }
+    .admin-alert-card__icon,
+    .admin-event-avatar,
+    .admin-activity-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      flex: none;
+    }
+    .admin-empty-illustration {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .admin-empty-illustration span {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+    .admin-empty-illustration span:nth-child(2) {
+      transform: translateY(-6px);
+      background: rgba(217, 179, 108, 0.18);
+    }
+    .admin-empty-illustration span:nth-child(3) {
+      transform: translateY(6px);
+      background: rgba(84, 131, 194, 0.18);
+    }
+    .admin-risk-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-risk-score-wrap {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+    }
+    .admin-health-gauge {
+      --gauge: 0;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: conic-gradient(rgba(217, 179, 108, 0.95) calc(var(--gauge) * 1%), rgba(255, 255, 255, 0.08) 0);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .admin-health-gauge::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: inherit;
+      background: rgba(7, 16, 30, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .admin-health-gauge__value {
+      position: relative;
+      z-index: 1;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+    .admin-health-gauge__label {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .admin-risk-meter {
+      display: grid;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .admin-risk-meter__bar,
+    .admin-property-meter__bar {
+      height: 10px;
+    }
+    .admin-risk-score-badge {
+      justify-self: start;
+    }
+    .admin-timeline-feed {
+      position: relative;
+      padding-left: 14px;
+    }
+    .admin-timeline-feed::before {
+      content: "";
+      position: absolute;
+      left: 34px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(84, 131, 194, 0.12), rgba(217, 179, 108, 0.42), rgba(84, 131, 194, 0.12));
+    }
+    .admin-timeline-event {
+      position: relative;
+      overflow: hidden;
+      padding: 16px 16px 16px 16px;
+      margin-left: 22px;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-timeline-event::before {
+      content: "";
+      position: absolute;
+      left: -28px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 3px solid rgba(7, 16, 30, 0.92);
+      background: #a8caf5;
+      box-shadow: 0 0 0 6px rgba(168, 202, 245, 0.08);
+    }
+    .admin-timeline-event[data-tone="arrival"]::before {
+      background: #9be0b1;
+      box-shadow: 0 0 0 6px rgba(155, 224, 177, 0.1);
+    }
+    .admin-timeline-event[data-tone="departure"]::before {
+      background: #f0cc82;
+      box-shadow: 0 0 0 6px rgba(240, 204, 130, 0.1);
+    }
+    .admin-timeline-event[data-tone="danger"]::before,
+    .admin-timeline-event[data-tone="critical"]::before {
+      background: #ffb0b0;
+      box-shadow: 0 0 0 6px rgba(255, 176, 176, 0.1);
+    }
+    .admin-timeline-event__icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(217, 179, 108, 0.2), rgba(255, 255, 255, 0.06));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-strong);
+    }
+    .admin-timeline-event__head {
+      margin-bottom: 0;
+      align-items: center;
+    }
+    .admin-timeline-event__meta,
+    .admin-alert-card__meta,
+    .admin-recommendation-card__meta,
+    .admin-risk-card__meta {
+      color: var(--text-soft);
+    }
+    .admin-workload-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-workload-card .admin-summary-list {
+      gap: 10px;
+    }
+    .admin-workload-card__row,
+    .admin-sla-card__row,
+    .admin-property-card__row {
+      display: grid;
+      gap: 8px;
+    }
+    .admin-workload-card__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+    .admin-workload-card__meta strong {
+      font-size: 0.96rem;
+    }
+    .admin-workload-bar__label,
+    .admin-sla-progress__label,
+    .admin-property-progress__label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--text-soft);
+      font-size: 0.86rem;
+    }
+    .admin-workload-day-chart {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      align-items: end;
+      margin-top: 8px;
+    }
+    .admin-workload-day {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+    }
+    .admin-workload-day__bar {
+      width: 100%;
+      min-height: 74px;
+      border-radius: 16px 16px 8px 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      display: grid;
+      align-items: end;
+    }
+    .admin-workload-day__bar span {
+      display: block;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(84, 131, 194, 0.95), rgba(217, 179, 108, 0.92));
+    }
+    .admin-workload-day[data-tone="success"] .admin-workload-day__bar span {
+      background: linear-gradient(180deg, rgba(77, 154, 109, 0.95), rgba(147, 221, 173, 0.9));
+    }
+    .admin-workload-day[data-tone="warning"] .admin-workload-day__bar span {
+      background: linear-gradient(180deg, rgba(204, 158, 67, 0.95), rgba(240, 204, 130, 0.9));
+    }
+    .admin-reservation-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+      min-height: 100%;
+    }
+    .admin-reservation-card__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .admin-reservation-card__left {
+      display: grid;
+      gap: 6px;
+    }
+    .admin-reservation-card__title {
+      display: grid;
+      gap: 4px;
+    }
+    .admin-reservation-card__title strong {
+      font-size: 1rem;
+    }
+    .admin-reservation-card__meta {
+      display: grid;
+      gap: 8px;
+      color: var(--text-soft);
+    }
+    .admin-reservation-card__pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .admin-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(84, 131, 194, 0.22), rgba(217, 179, 108, 0.12));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 800;
+      color: var(--text-strong);
+      flex: none;
+    }
+    .admin-avatar--compact {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+    }
+    .admin-property-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-health-stack {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+    }
+    .admin-property-statuses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .admin-property-metrics span,
+    .admin-summary-list span {
+      align-items: center;
+    }
+    .admin-sla-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 10px;
+    }
+    .admin-sla-card .admin-kpi-value {
+      font-size: clamp(1.65rem, 2.8vw, 2.4rem);
+    }
+    .admin-sla-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .admin-action-grid .button {
+      min-height: 88px;
+      gap: 8px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .admin-action-grid .button strong {
+      font-size: 0.98rem;
+    }
+    .admin-action-grid .button span {
+      color: var(--text-soft);
+    }
+    .admin-activity-item {
+      position: relative;
+      overflow: hidden;
+      padding-left: 18px;
+    }
+    .admin-activity-item__rail {
+      position: absolute;
+      inset: 12px auto 12px 12px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(217, 179, 108, 0.6), rgba(255, 255, 255, 0.02));
+    }
+    .admin-activity-item__content {
+      display: grid;
+      gap: 10px;
+      padding-left: 18px;
+    }
+    .admin-activity-item .admin-activity-meta {
+      position: relative;
+      z-index: 1;
+    }
+    .admin-activity-item time {
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-activity-item .admin-badge {
+      justify-self: start;
+    }
+    .admin-cockpit-page .admin-cockpit-shell {
+      padding-bottom: 56px;
+    }
+    @keyframes adminPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.9); opacity: 0.8; }
+    }
+    @media (max-width: 1100px) {
+      .admin-hero-stat-row,
+      .admin-health-stack {
+        grid-template-columns: 1fr;
+      }
+      .admin-workload-day-chart {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 768px) {
+      .admin-hero-status,
+      .admin-hero-stat-row,
+      .admin-sla-pill-row,
+      .admin-property-statuses,
+      .admin-reservation-card__pills {
+        gap: 8px;
+      }
+      .admin-timeline-feed {
+        padding-left: 4px;
+      }
+      .admin-timeline-feed::before {
+        left: 24px;
+      }
+      .admin-timeline-event {
+        margin-left: 12px;
+      }
+      .admin-workload-day-chart {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .admin-cockpit-page .admin-action-grid .button {
+        min-height: 78px;
+      }
+    }
   </style>
 </head>
 <body class="admin-cockpit-page">
@@ -621,12 +1286,32 @@
           A single command view for reservations, operations, calendar flow, property status, and professional capacity.
           Everything on this page is computed from the existing persistence layer.
         </p>
+        <div class="admin-hero-status" aria-label="Live status summary">
+          <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> Live</span>
+          <span class="admin-clock-chip"><strong>Local time</strong> <time data-admin-clock aria-live="polite">Updating…</time></span>
+          {% set system_health_tone = 'success' if operations_summary.late_operations == 0 and sla_monitoring.late_percent < 10 else 'warning' if operations_summary.late_operations < 4 and sla_monitoring.late_percent < 25 else 'danger' %}
+          <span class="admin-health-chip" data-tone="{{ system_health_tone }}">System {{ 'Healthy' if system_health_tone == 'success' else 'Watch' if system_health_tone == 'warning' else 'Critical' }}</span>
+        </div>
       </div>
       <div class="admin-hero-side">
         <div class="admin-hero-summary">
           <span class="admin-pill admin-pill--primary">Live operating snapshot</span>
           <strong>{{ operations_summary.completed_today }} operations completed today</strong>
           <span class="admin-submeta">{{ professional_summary.available }} professionals available and {{ operations_summary.late_operations }} late operations in view</span>
+        </div>
+        <div class="admin-hero-stat-row" aria-label="Executive health snapshot">
+          <div class="admin-hero-stat">
+            <span>Current queue</span>
+            <strong>{{ operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</strong>
+          </div>
+          <div class="admin-hero-stat">
+            <span>Risk signals</span>
+            <strong>{{ executive_alerts|length }}</strong>
+          </div>
+          <div class="admin-hero-stat">
+            <span>SLA health</span>
+            <strong>{{ sla_monitoring.late_percent }}% late</strong>
+          </div>
         </div>
         <div class="admin-cockpit-actions">
           <a class="button button--primary" href="/admin/operations">Open operations</a>
@@ -652,8 +1337,24 @@
               <span class="admin-badge admin-badge--{{ card.tone }}">{{ card.tone }}</span>
             </div>
             <h3>{{ card.title }}</h3>
-            <div class="admin-kpi-value">{{ card.value }}</div>
-            <div class="admin-kpi-trend">{{ card.trend }}</div>
+            <div class="admin-kpi-value">
+              {% if card.value is number %}
+                <span class="js-count" data-target="{{ card.value }}">0</span>
+              {% else %}
+                {{ card.value }}
+              {% endif %}
+            </div>
+            <div class="admin-kpi-meta">
+              <div class="admin-kpi-trend">
+                <span class="admin-trend-arrow" aria-hidden="true">{% if card.tone == 'success' %}↑{% elif card.tone == 'danger' %}↓{% else %}→{% endif %}</span>
+                <span>{{ card.trend }}</span>
+              </div>
+            </div>
+            {% if card.value is number %}
+              <div class="admin-kpi-progress" aria-hidden="true">
+                <span class="admin-kpi-progress__fill" style="width: {{ 100 if card.value > 100 else card.value }}%;"></span>
+              </div>
+            {% endif %}
           </article>
         {% endfor %}
       </div>
@@ -669,11 +1370,24 @@
       {% if executive_alerts %}
         <div class="admin-alert-grid">
           {% for alert in executive_alerts %}
-            <article class="admin-alert-card">
+            {% set alert_icon = '!' %}
+            {% if 'reservation' in alert.category|lower %}
+              {% set alert_icon = 'R' %}
+            {% elif 'professional' in alert.category|lower %}
+              {% set alert_icon = 'P' %}
+            {% elif 'operation' in alert.category|lower %}
+              {% set alert_icon = 'O' %}
+            {% elif 'owner' in alert.category|lower %}
+              {% set alert_icon = 'S' %}
+            {% endif %}
+            <article class="admin-alert-card" data-severity="{{ alert.severity }}" data-kind="{{ alert.category|lower }}" style="order: {{ 0 if alert.severity == 'critical' else 1 }};">
               <div class="admin-alert-card__head">
-                <div>
-                  <strong>{{ alert.category|replace('_', ' ')|title }}</strong>
-                  <div class="admin-alert-card__meta">{{ alert.created_at_display }}</div>
+                <div class="admin-kpi-meta">
+                  <span class="admin-alert-card__icon" aria-hidden="true">{{ alert_icon }}</span>
+                  <div>
+                    <strong>{{ alert.category|replace('_', ' ')|title }}</strong>
+                    <div class="admin-alert-card__meta">{{ alert.created_at_display }}</div>
+                  </div>
                 </div>
                 <span class="admin-badge admin-badge--{{ alert.tone }}">{{ alert.severity|title }}</span>
               </div>
@@ -682,7 +1396,7 @@
                 {% if alert.reservation %}<span><strong>Reservation</strong><span>{{ alert.reservation }}</span></span>{% endif %}
                 {% if alert.operation %}<span><strong>Operation</strong><span>{{ alert.operation }}</span></span>{% endif %}
               </div>
-              {% if alert.detail %}<div class="admin-meta-line" style="margin-top: 10px;">{{ alert.detail }}</div>{% endif %}
+              {% if alert.detail %}<div class="admin-meta-line">{{ alert.detail }}</div>{% endif %}
               {% if alert.recommended_action %}<p><strong>Recommended action:</strong> {{ alert.recommended_action }}</p>{% endif %}
               {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">Open context</a>{% endif %}
             </article>
@@ -690,6 +1404,9 @@
         </div>
       {% else %}
         <div class="admin-empty-state">
+          <div class="admin-empty-illustration" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
           <h3>No operational alerts right now.</h3>
           <p>The unified alerts engine will surface overdue work, readiness gaps, conflicts, and workload spikes as soon as they appear.</p>
         </div>
@@ -713,9 +1430,21 @@
               </div>
               <span class="admin-badge admin-badge--{{ property.tone }}">{{ property.tier }}</span>
             </div>
-            <div class="admin-risk-score">{{ property.score }}</div>
-            <div class="admin-alert-card__meta">{{ property.badge }}</div>
-            <p>{{ property.summary }}</p>
+            <div class="admin-risk-score-wrap">
+              <div class="admin-health-gauge" style="--gauge: {{ property.score }};" aria-label="Risk score {{ property.score }} out of 100">
+                <div>
+                  <div class="admin-health-gauge__value">{{ property.score }}</div>
+                  <span class="admin-health-gauge__label">Risk score</span>
+                </div>
+              </div>
+              <div class="admin-risk-meter">
+                <span class="admin-badge admin-badge--{{ property.tone }} admin-risk-score-badge">{{ property.badge }}</span>
+                <div class="admin-property-progress admin-property-meter__bar" aria-hidden="true">
+                  <span class="admin-property-progress__fill" style="width: {{ property.score }}%;"></span>
+                </div>
+                <p>{{ property.summary }}</p>
+              </div>
+            </div>
             <div class="admin-risk-factors">
               {% for factor in property.factors %}
                 <span><strong>{{ factor.label }}</strong><span>{{ factor.count }}</span></span>
@@ -736,14 +1465,14 @@
       {% if executive_timeline %}
         <div class="admin-timeline-feed">
           {% for event in executive_timeline %}
-            <article class="admin-timeline-event">
+            <article class="admin-timeline-event" data-tone="{{ event.tone }}" data-kind="{{ event.type|lower|replace(' ', '-') }}" data-timestamp="{{ event.timestamp }}">
               <div class="admin-timeline-event__head">
                 <div class="admin-timeline-event__icon">{{ event.icon }}</div>
                 <div>
                   <strong>{{ event.type }}</strong>
                   <div class="admin-timeline-event__meta">{{ event.timestamp_display }}</div>
                 </div>
-                <span class="admin-badge admin-badge--{{ event.tone }}">{{ event.tone }}</span>
+                <span class="admin-badge admin-badge--{{ event.tone }}">{{ event.type }}</span>
               </div>
               <div class="admin-timeline-event__body">
                 <strong>{{ event.summary }}</strong>
@@ -756,6 +1485,9 @@
         </div>
       {% else %}
         <div class="admin-empty-state">
+          <div class="admin-empty-illustration" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
           <h3>No executive events yet.</h3>
           <p>Reservations, operations, calendar, professionals, owner requests, and system events will populate this feed automatically.</p>
         </div>
@@ -769,6 +1501,10 @@
           <h2>Live workload distribution</h2>
         </div>
       </div>
+      {% set top_professional_max = workload_distribution.top_professionals[0].count if workload_distribution.top_professionals else 1 %}
+      {% set top_property_max = workload_distribution.top_properties[0].count if workload_distribution.top_properties else 1 %}
+      {% set top_city_max = workload_distribution.by_city[0].count if workload_distribution.by_city else 1 %}
+      {% set top_category_max = workload_distribution.by_category[0].count if workload_distribution.by_category else 1 %}
       <div class="admin-workload-grid">
         <article class="admin-workload-card">
           <div class="admin-section-head">
@@ -776,9 +1512,17 @@
               <h3>Top busiest professionals</h3>
             </div>
           </div>
-          <div class="admin-summary-list">
+          <div class="admin-list-stack">
             {% for item in workload_distribution.top_professionals %}
-              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+              <div class="admin-workload-card__row">
+                <div class="admin-workload-card__meta">
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.count }} tasks</span>
+                </div>
+                <div class="admin-workload-bar" aria-hidden="true">
+                  <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_professional_max * 100)|round(0) if top_professional_max else 0 }}%;"></span>
+                </div>
+              </div>
             {% endfor %}
           </div>
         </article>
@@ -788,9 +1532,17 @@
               <h3>Top busiest properties</h3>
             </div>
           </div>
-          <div class="admin-summary-list">
+          <div class="admin-list-stack">
             {% for item in workload_distribution.top_properties %}
-              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+              <div class="admin-workload-card__row">
+                <div class="admin-workload-card__meta">
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.count }} tasks</span>
+                </div>
+                <div class="admin-workload-bar" aria-hidden="true">
+                  <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_property_max * 100)|round(0) if top_property_max else 0 }}%;"></span>
+                </div>
+              </div>
             {% endfor %}
           </div>
         </article>
@@ -800,9 +1552,17 @@
               <h3>Operations by city</h3>
             </div>
           </div>
-          <div class="admin-summary-list">
+          <div class="admin-list-stack">
             {% for item in workload_distribution.by_city %}
-              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+              <div class="admin-workload-card__row">
+                <div class="admin-workload-card__meta">
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.count }} tasks</span>
+                </div>
+                <div class="admin-workload-bar" aria-hidden="true">
+                  <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_city_max * 100)|round(0) if top_city_max else 0 }}%;"></span>
+                </div>
+              </div>
             {% endfor %}
           </div>
         </article>
@@ -812,9 +1572,17 @@
               <h3>Operations by category</h3>
             </div>
           </div>
-          <div class="admin-summary-list">
+          <div class="admin-list-stack">
             {% for item in workload_distribution.by_category %}
-              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+              <div class="admin-workload-card__row">
+                <div class="admin-workload-card__meta">
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.count }} tasks</span>
+                </div>
+                <div class="admin-workload-bar" aria-hidden="true">
+                  <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_category_max * 100)|round(0) if top_category_max else 0 }}%;"></span>
+                </div>
+              </div>
             {% endfor %}
           </div>
         </article>
@@ -824,10 +1592,18 @@
               <h3>Upcoming workload</h3>
             </div>
           </div>
-          <div class="admin-summary-list">
+          <div class="admin-workload-day-chart">
             {% for item in workload_distribution.by_day %}
-              <span><strong>{{ item.label }}</strong><span>{{ item.count }}</span></span>
+              <div class="admin-workload-day" data-tone="{% if item.count == 0 %}neutral{% elif item.count >= 3 %}warning{% else %}success{% endif %}">
+                <div class="admin-workload-day__bar">
+                  <span style="height: {{ 12 if item.count == 0 else 100 if item.count >= 5 else item.count * 20 }}%;"></span>
+                </div>
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.count }}</span>
+              </div>
             {% endfor %}
+          </div>
+          <div class="admin-summary-list">
             <span><strong>Upcoming total</strong><span>{{ workload_distribution.upcoming_workload }}</span></span>
             <span><strong>Late workload</strong><span>{{ workload_distribution.late_workload }}</span></span>
           </div>
@@ -843,7 +1619,7 @@
         </div>
       </div>
       <div class="admin-kpi-grid">
-        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_completion_time == 'Pending' %}neutral{% else %}success{% endif %}">
+        <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.average_completion_time == 'Pending' %}neutral{% else %}success{% endif %}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">CT</span>
             <span class="admin-badge admin-badge--neutral">SLA</span>
@@ -851,8 +1627,11 @@
           <h3>Average completion time</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_completion_time }}</div>
           <div class="admin-kpi-trend">Completion speed across finished operations</div>
+          <div class="admin-sla-pill-row">
+            <span class="admin-badge admin-badge--neutral">Enterprise metric</span>
+          </div>
         </article>
-        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_assignment_time == 'Pending' %}neutral{% else %}info{% endif %}">
+        <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.average_assignment_time == 'Pending' %}neutral{% else %}info{% endif %}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">AT</span>
             <span class="admin-badge admin-badge--info">SLA</span>
@@ -860,8 +1639,11 @@
           <h3>Average assignment time</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_assignment_time }}</div>
           <div class="admin-kpi-trend">Time from creation to assignment</div>
+          <div class="admin-sla-pill-row">
+            <span class="admin-badge admin-badge--info">Enterprise metric</span>
+          </div>
         </article>
-        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_response_time == 'Pending' %}neutral{% else %}warning{% endif %}">
+        <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.average_response_time == 'Pending' %}neutral{% else %}warning{% endif %}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">RT</span>
             <span class="admin-badge admin-badge--warning">SLA</span>
@@ -869,8 +1651,11 @@
           <h3>Average response time</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_response_time }}</div>
           <div class="admin-kpi-trend">Time to first recorded action</div>
+          <div class="admin-sla-pill-row">
+            <span class="admin-badge admin-badge--warning">Enterprise metric</span>
+          </div>
         </article>
-        <article class="admin-kpi-card" data-tone="warning">
+        <article class="admin-kpi-card admin-sla-card" data-tone="warning">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">L%</span>
             <span class="admin-badge admin-badge--warning">SLA</span>
@@ -878,8 +1663,11 @@
           <h3>Late</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.late_percent }}%</div>
           <div class="admin-kpi-trend">Open operations already past due</div>
+          <div class="admin-sla-progress" aria-hidden="true">
+            <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.late_percent }}%;"></span>
+          </div>
         </article>
-        <article class="admin-kpi-card" data-tone="success">
+        <article class="admin-kpi-card admin-sla-card" data-tone="success">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">C%</span>
             <span class="admin-badge admin-badge--success">SLA</span>
@@ -887,8 +1675,11 @@
           <h3>Completed</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.completed_percent }}%</div>
           <div class="admin-kpi-trend">Finished operations overall</div>
+          <div class="admin-sla-progress" aria-hidden="true">
+            <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.completed_percent }}%;"></span>
+          </div>
         </article>
-        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.waiting_percent > 40 %}danger{% else %}info{% endif %}">
+        <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.waiting_percent > 40 %}danger{% else %}info{% endif %}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">W%</span>
             <span class="admin-badge admin-badge--info">SLA</span>
@@ -896,6 +1687,9 @@
           <h3>Waiting</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.waiting_percent }}%</div>
           <div class="admin-kpi-trend">Operations waiting on owner or provider</div>
+          <div class="admin-sla-progress" aria-hidden="true">
+            <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.waiting_percent }}%;"></span>
+          </div>
         </article>
       </div>
     </section>
@@ -947,21 +1741,36 @@
               <div class="admin-time-group">
                 <h3>{{ group.label }}</h3>
                 {% for item in group['items'] %}
-                  <div class="admin-event-row">
+                  <div class="admin-event-row admin-operation-card" data-tone="{{ item.tone }}">
                     <div class="admin-event-head">
-                      <div>
-                        <strong>{{ item.category }} - {{ item.title }}</strong>
-                        <div class="admin-meta-line">{{ item.detail }}</div>
+                      <div class="admin-kpi-meta" style="align-items: flex-start;">
+                        <span class="admin-avatar admin-avatar--compact" aria-hidden="true">{{ (item.owner or item.property or item.category)[:1]|upper }}</span>
+                        <div>
+                          <strong>{{ item.category }} - {{ item.title }}</strong>
+                          <div class="admin-meta-line">{{ item.detail }}</div>
+                        </div>
                       </div>
-                      <span class="admin-badge admin-badge--{{ item.tone }}">{{ item.status }}</span>
+                      <div class="admin-sla-pill-row">
+                        <span class="admin-badge admin-badge--{{ item.tone }}">{{ item.status }}</span>
+                        <span class="admin-badge admin-badge--neutral">{{ item.time_label }}</span>
+                      </div>
                     </div>
-                    <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
+                    <div class="admin-property-meta">
+                      <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
+                      <div class="admin-sla-pill-row">
+                        <a class="button button--secondary" href="/admin/operations">Open board</a>
+                        <a class="button button--secondary" href="/admin/calendar">Calendar</a>
+                      </div>
+                    </div>
                   </div>
                 {% endfor %}
               </div>
             {% endfor %}
           {% else %}
             <div class="admin-empty-state">
+              <div class="admin-empty-illustration" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
               <h3>No operations scheduled for today.</h3>
               <p>As reservations, calendar events, and operations tasks arrive, they will appear here grouped by time.</p>
             </div>
@@ -1010,24 +1819,41 @@
             {% if group['items'] %}
               <div class="admin-reservation-timeline">
                 {% for reservation in group['items'] %}
-                  <div class="admin-list-card">
-                    <div class="admin-event-head">
-                      <div>
-                        <strong>{{ reservation.property }}</strong>
-                        <div class="admin-meta-line">{{ reservation.guest }}</div>
+                  <div class="admin-list-card admin-reservation-card" data-tone="{{ reservation.status_tone }}">
+                    <div class="admin-reservation-card__top">
+                      <div class="admin-kpi-meta">
+                        <span class="admin-avatar admin-avatar--compact" aria-hidden="true">{{ reservation.guest[:1]|upper }}</span>
+                        <div class="admin-reservation-card__title">
+                          <strong>{{ reservation.property }}</strong>
+                          <div class="admin-meta-line">{{ reservation.guest }}</div>
+                        </div>
                       </div>
-                      <span class="admin-badge admin-badge--{{ reservation.status_tone }}">{{ reservation.status }}</span>
+                      <div class="admin-sla-pill-row">
+                        <span class="admin-badge admin-badge--{{ reservation.status_tone }}">{{ reservation.status }}</span>
+                        <span class="admin-badge admin-badge--neutral">{{ reservation.channel }}</span>
+                      </div>
                     </div>
-                    <div class="admin-property-metrics">
-                      <span><strong>Arrival</strong><span>{{ reservation.arrival_display }}</span></span>
-                      <span><strong>Departure</strong><span>{{ reservation.departure_display }}</span></span>
-                      <span><strong>Channel</strong><span>{{ reservation.channel }}</span></span>
+                    <div class="admin-reservation-card__meta">
+                      <div class="admin-reservation-card__pills">
+                        <span class="admin-badge admin-badge--arrival">Arrival {{ reservation.arrival_display }}</span>
+                        <span class="admin-badge admin-badge--departure">Departure {{ reservation.departure_display }}</span>
+                      </div>
+                      <div class="admin-property-progress" aria-hidden="true">
+                        <span class="admin-property-progress__fill" style="width: 100%;"></span>
+                      </div>
+                      <div class="admin-property-metrics">
+                        <span><strong>Occupancy</strong><span>{{ reservation.status }}</span></span>
+                        <span><strong>Channel</strong><span>{{ reservation.channel }}</span></span>
+                      </div>
                     </div>
                   </div>
                 {% endfor %}
               </div>
             {% else %}
               <div class="admin-empty-state">
+                <div class="admin-empty-illustration" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
                 <h3>No reservations in this window.</h3>
                 <p>Today, tomorrow, and the next 7 days will populate automatically from the reservation source of truth.</p>
               </div>
@@ -1046,7 +1872,7 @@
       </div>
       <div class="admin-property-grid">
         {% for property in property_status_cards %}
-          <article class="admin-property-card">
+          <article class="admin-property-card" data-tone="{{ property.tone }}">
             <div class="admin-property-head">
               <div>
                 <strong>{{ property.name }}</strong>
@@ -1054,14 +1880,29 @@
               </div>
               <span class="admin-badge admin-badge--{{ property.tone }}">{{ property.state }}</span>
             </div>
-            {% if property.risk_score is defined %}
-              <div class="admin-submeta" style="margin-top: 10px;">
-                <span class="admin-badge admin-badge--{{ property.risk_tone }}">{{ property.risk_label }}</span>
-                <span style="margin-left: 10px;">Risk score {{ property.risk_score }}/100</span>
+            <div class="admin-health-stack">
+              <div class="admin-health-gauge" style="--gauge: {{ property.health }};" aria-label="Readiness {{ property.health }} percent">
+                <div>
+                  <div class="admin-health-gauge__value">{{ property.health }}%</div>
+                  <span class="admin-health-gauge__label">Readiness</span>
+                </div>
               </div>
-            {% endif %}
+              <div class="admin-property-meta">
+                <div class="admin-property-statuses">
+                  <span class="admin-badge {% if property.cleaning_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">Cleaning {% if property.cleaning_required %}needed{% else %}ready{% endif %}</span>
+                  <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">Maintenance {% if property.maintenance_required %}flagged{% else %}clear{% endif %}</span>
+                  <span class="admin-badge admin-badge--info">Availability {{ property.availability }}%</span>
+                  {% if property.risk_score is defined %}
+                    <span class="admin-badge admin-badge--{{ property.risk_tone }}">Risk {{ property.risk_score }}/100</span>
+                    <span class="admin-submeta">Risk score {{ property.risk_score }}/100</span>
+                  {% endif %}
+                </div>
+                <div class="admin-property-progress" aria-hidden="true">
+                  <span class="admin-property-progress__fill" style="width: {{ property.health }}%;"></span>
+                </div>
+              </div>
+            </div>
             <div class="admin-property-metrics">
-              <span><strong>Health</strong><span>{{ property.health }}%</span></span>
               <span><strong>Occupancy</strong><span>{{ property.occupancy }}%</span></span>
               <span><strong>Availability</strong><span>{{ property.availability }}%</span></span>
               <span><strong>Checklist</strong><span>{{ property.checklist_done }}/{{ property.checklist_total }}</span></span>
@@ -1119,6 +1960,7 @@
       <div class="admin-action-grid">
         {% for action in quick_actions %}
           <a class="button {% if action.tone == 'primary' %}button--primary{% else %}button--secondary{% endif %}" href="{{ action.href }}">
+            <span class="admin-avatar admin-avatar--compact" aria-hidden="true">{{ action.label[:1]|upper }}</span>
             <strong>{{ action.label }}</strong>
             <span>Open the relevant workspace</span>
           </a>
@@ -1136,15 +1978,19 @@
       {% if recent_activity %}
         <div class="admin-list-stack">
           {% for event in recent_activity %}
-            <div class="admin-activity-item">
+            <div class="admin-activity-item" data-timestamp="{{ event.created_at }}">
+              <span class="admin-activity-item__rail" aria-hidden="true"></span>
               <div class="admin-activity-head">
-                <div>
+                <div class="admin-kpi-meta">
+                  <span class="admin-activity-avatar" aria-hidden="true">{{ event.type[:1]|upper }}</span>
+                  <div>
                   <strong>{{ event.title }}</strong>
                   <div class="admin-meta-line">{{ event.detail }}</div>
+                  </div>
                 </div>
-                <div class="admin-submeta">
+                <div class="admin-submeta admin-activity-meta">
                   <span class="admin-badge admin-badge--{{ event.status }}">{{ event.type|replace('_', ' ')|title }}</span>
-                  <span style="margin-left: 10px;">{{ event.created_at }}</span>
+                  <time data-relative-time>{{ event.created_at }}</time>
                 </div>
               </div>
             </div>
@@ -1152,11 +1998,110 @@
         </div>
       {% else %}
         <div class="admin-empty-state">
+          <div class="admin-empty-illustration" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
           <h3>No activity yet.</h3>
           <p>Reservation, operation, calendar, assignment, professional, and owner events will appear here as they are created.</p>
         </div>
       {% endif %}
     </section>
   </main>
+  <script>
+    (function () {
+      const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const clockNode = document.querySelector('[data-admin-clock]');
+      function updateClock() {
+        if (!clockNode) {
+          return;
+        }
+        const now = new Date();
+        clockNode.textContent = new Intl.DateTimeFormat(undefined, {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(now);
+      }
+      updateClock();
+      window.setInterval(updateClock, 30000);
+
+      function animateCount(node) {
+        const target = Number(node.getAttribute('data-target'));
+        if (!Number.isFinite(target)) {
+          return;
+        }
+        if (reduceMotion) {
+          node.textContent = String(target);
+          return;
+        }
+        const duration = 900;
+        const start = performance.now();
+        function frame(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          node.textContent = String(Math.round(target * eased));
+          if (progress < 1) {
+            window.requestAnimationFrame(frame);
+          }
+        }
+        window.requestAnimationFrame(frame);
+      }
+
+      document.querySelectorAll('.js-count').forEach(animateCount);
+
+      function parseAdminTimestamp(value) {
+        if (!value) {
+          return null;
+        }
+        const isoDate = new Date(value);
+        if (!Number.isNaN(isoDate.getTime())) {
+          return isoDate;
+        }
+        const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})\s*[·\.]\s*(\d{2}):(\d{2})\s*UTC$/i);
+        if (!match) {
+          return null;
+        }
+        const day = Number(match[1]);
+        const month = Number(match[2]) - 1;
+        const year = Number(match[3]);
+        const hour = Number(match[4]);
+        const minute = Number(match[5]);
+        return new Date(Date.UTC(year, month, day, hour, minute));
+      }
+
+      function formatRelativeTime(date) {
+        const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
+        if (diffMinutes < 1) {
+          return 'just now';
+        }
+        if (diffMinutes < 60) {
+          return `${diffMinutes}m ago`;
+        }
+        const diffHours = Math.round(diffMinutes / 60);
+        if (diffHours < 24) {
+          return `${diffHours}h ago`;
+        }
+        const diffDays = Math.round(diffHours / 24);
+        return `${diffDays}d ago`;
+      }
+
+      function updateRelativeTimes() {
+        document.querySelectorAll('[data-relative-time]').forEach((node) => {
+          const wrapper = node.closest('[data-timestamp]');
+          const parsed = wrapper ? parseAdminTimestamp(wrapper.getAttribute('data-timestamp')) : null;
+          if (parsed) {
+            node.textContent = formatRelativeTime(parsed);
+          }
+        });
+      }
+
+      updateRelativeTimes();
+      window.setInterval(updateRelativeTimes, 60000);
+    })();
+  </script>
 </body>
 </html>
