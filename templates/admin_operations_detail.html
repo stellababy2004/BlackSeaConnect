@@ -144,6 +144,21 @@
     .admin-operations-inline-actions .button {
       white-space: nowrap;
     }
+    .admin-operations-comment-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .admin-operations-comment-body {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .admin-operations-detail-meta--spaced {
+      margin-top: 8px;
+    }
     .admin-operations-progress {
       display: grid;
       gap: 8px;
@@ -260,6 +275,12 @@
       align-items: center;
       gap: 8px;
       justify-content: space-between;
+    }
+    .admin-operations-timeline-item__title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .admin-operations-detail-hero h1 {
       margin: 10px 0 8px;
@@ -604,7 +625,7 @@
           {% if task.overdue %}
             <span class="admin-operations-sla__warning">Overdue</span>
           {% endif %}
-          <dl class="admin-operations-dl" style="margin-top:14px;">
+          <dl class="admin-operations-dl u-mt-14">
             <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
             <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
             <div><dt>Time remaining</dt><dd>{{ sla_time_remaining|e }}</dd></div>
@@ -706,7 +727,7 @@
             <p>Prepare before photos, after photos, invoice, receipt, and damage photo references here. SQLite references only for now.</p>
           </div>
           {% if attachments %}
-            <div class="admin-operations-attachment-list" style="margin-top:14px;">
+            <div class="admin-operations-attachment-list u-mt-14">
               {% for attachment in attachments %}
                 <div class="admin-operations-list-item">
                   <div class="admin-operations-list-item__topline">
@@ -722,7 +743,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-operations-attachment-empty" style="margin-top:14px;">No attachments yet. The task is ready for uploads later.</p>
+            <p class="admin-operations-attachment-empty u-mt-14">No attachments yet. The task is ready for uploads later.</p>
           {% endif %}
         </article>
 
@@ -757,7 +778,7 @@
               <div><dt>Service category</dt><dd>{{ assigned_professional_account.service_categories|e or 'Not set' }}</dd></div>
               <div><dt>Status</dt><dd><span class="admin-operations-badge">{{ task.status_label|e }}</span></dd></div>
             </dl>
-            <div class="admin-operations-contact-actions" style="margin-top:14px;">
+            <div class="admin-operations-contact-actions u-mt-14">
               <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Mailto</a>
               <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Tel</a>
               <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">Copy email</button>
@@ -778,7 +799,7 @@
               <div><dt>Status</dt><dd>{{ linked_reservation.status.replace('_', ' ').title() }}</dd></div>
               <div><dt>Stay</dt><dd>{{ linked_reservation.arrival_datetime|e }} - {{ linked_reservation.departure_datetime|e }}</dd></div>
             </dl>
-            <div style="margin-top:14px;">
+            <div class="u-mt-14">
               <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">Open reservation</a>
             </div>
           {% else %}
@@ -795,7 +816,7 @@
             <div><dt>Phone</dt><dd>{% if owner_account %}{{ owner_account.phone|e or 'Not set' }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
             <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</dd></div>
           </dl>
-          <div class="admin-operations-contact-actions" style="margin-top:14px;">
+          <div class="admin-operations-contact-actions u-mt-14">
             <a class="button button--ghost" href="mailto:{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Mailto</a>
             <a class="button button--ghost" href="tel:{% if owner_account %}{{ owner_account.phone|e }}{% else %}{{ task.owner_name|e }}{% endif %}">Tel</a>
             <button class="button button--ghost" type="button" data-copy="{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Copy email</button>
@@ -876,7 +897,7 @@
             </label>
             <button class="button button--primary" type="submit">Add comment</button>
           </form>
-          <div class="admin-operations-comment-box" style="margin-top: 14px;">
+          <div class="admin-operations-comment-box u-mt-14">
             {% if comments %}
               {% for comment in comments %}
                 <div class="admin-operations-comment">
@@ -884,11 +905,11 @@
                     <strong>{{ comment.operator|e or 'Admin' }}</strong>
                     <time>{{ comment.created_at|e }}</time>
                   </div>
-                  <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+                  <div class="admin-operations-comment-types">
                     <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ comment.type|e }}</span>
                     <span class="admin-operations-note-type admin-operations-note-type--general">{{ comment.author_role|e or 'Operations' }}</span>
                   </div>
-                  <p style="margin: 0; color: #4b5563; line-height: 1.6;">{{ comment.comment|e }}</p>
+                  <p class="admin-operations-comment-body">{{ comment.comment|e }}</p>
                 </div>
               {% endfor %}
             {% else %}
@@ -901,14 +922,14 @@
           <p class="eyebrow">Timeline</p>
           <h2 class="admin-operations-section-title">Task activity</h2>
           {% if assignment_history %}
-            <p class="admin-operations-empty" style="margin-bottom: 12px;">Assignment history is captured in the timeline below.</p>
+            <p class="admin-operations-empty u-mb-12">Assignment history is captured in the timeline below.</p>
           {% endif %}
           {% if timeline %}
             <div class="admin-operations-timeline-rail">
               {% for event in timeline %}
                 <div class="admin-operations-list-item admin-operations-timeline-item">
                   <div class="admin-operations-timeline-item__header">
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <div class="admin-operations-timeline-item__title">
                       <span class="admin-operations-timeline-item__icon">
                         {% if event.event_type == 'professional_completed' %}C{% elif event.event_type == 'professional_accepted' %}A{% elif event.event_type == 'professional_started' %}S{% elif event.event_type == 'professional_paused' %}P{% elif event.event_type == 'professional_resumed' %}R{% elif event.event_type == 'attachment_added' %}U{% elif event.event_type == 'comment_added_internal' %}N{% else %}•{% endif %}
                       </span>
@@ -916,7 +937,7 @@
                     </div>
                     <time>{{ event.created_at|e }}</time>
                   </div>
-                  <div class="admin-operations-detail-meta" style="margin-top: 8px;">
+                  <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
                     <span class="admin-operations-chip">{{ event.event_type|replace('_', ' ')|title }}</span>
                     <span class="admin-operations-chip admin-operations-chip--status">{{ event.status|e }}</span>
                   </div>
