@@ -26007,3 +26007,436 @@ body.operations-demo-page section {
 :where(.action-tile)::before {
   opacity: 0.08;
 }
+
+/* =========================================================
+   ENTERPRISE DESIGN SYSTEM V2 CONSISTENCY LAYER
+   Final override pass to normalize presentation across pages.
+========================================================= */
+:root {
+  --enterprise-bg:
+    radial-gradient(circle at 50% 10%, rgba(155, 210, 221, 0.08), transparent 20%),
+    radial-gradient(circle at 18% 18%, rgba(197, 151, 61, 0.08), transparent 22%),
+    radial-gradient(circle at 84% 12%, rgba(136, 217, 247, 0.07), transparent 20%),
+    linear-gradient(180deg, #07111a 0%, #0a1a29 36%, #0e2638 100%);
+  --enterprise-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02)), rgba(8, 28, 43, 0.56);
+  --enterprise-surface-strong: linear-gradient(180deg, rgba(12, 28, 41, 0.92), rgba(8, 22, 33, 0.82)), rgba(8, 28, 43, 0.82);
+  --enterprise-border: 1px solid rgba(255, 255, 255, 0.12);
+  --enterprise-border-strong: 1px solid rgba(255, 255, 255, 0.18);
+  --enterprise-shadow: 0 18px 42px rgba(2, 10, 18, 0.22);
+  --enterprise-shadow-lift: 0 24px 60px rgba(2, 10, 18, 0.28);
+  --enterprise-radius: 24px;
+  --enterprise-radius-lg: 28px;
+  --enterprise-radius-sm: 18px;
+  --enterprise-blur: 20px;
+  --enterprise-pad: 24px;
+  --enterprise-pad-lg: 28px;
+  --enterprise-gap: 16px;
+  --enterprise-gap-lg: 24px;
+  --enterprise-nav-height: 64px;
+  --enterprise-button-height: 48px;
+  --enterprise-title: clamp(1.9rem, 2.8vw, 3rem);
+  --enterprise-subtitle: clamp(1.15rem, 1.7vw, 1.4rem);
+  --enterprise-body: 0.98rem;
+  --enterprise-label: 0.74rem;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--enterprise-bg) !important;
+  color: var(--text) !important;
+}
+
+body {
+  font-family: var(--font-body) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(136, 217, 247, 0.12), transparent 24%),
+    radial-gradient(circle at 86% 12%, rgba(197, 151, 61, 0.10), transparent 22%),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.04), transparent 18%);
+}
+
+body::after {
+  background:
+    linear-gradient(90deg, rgba(7, 17, 26, 0.16), transparent 18%, transparent 82%, rgba(7, 17, 26, 0.16)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 20%, rgba(7, 17, 26, 0.08));
+}
+
+:where(h1, h2, h3, h4, .section-title, .empty-title, .action-title, .metric-value, .kpi-value, .admin-kpi-value) {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+:where(h1) {
+  font-size: var(--enterprise-title) !important;
+  line-height: 1.06;
+}
+
+:where(h2, .section-title, .section-heading h2) {
+  font-size: var(--enterprise-subtitle) !important;
+  line-height: 1.14;
+}
+
+:where(h3) {
+  font-size: 1.02rem !important;
+  line-height: 1.24;
+}
+
+:where(p, li, dd, dt, .section-subtitle, .section-heading__copy, .action-description, .empty-description, .hero__text) {
+  font-size: var(--enterprise-body);
+  line-height: 1.65;
+}
+
+:where(.topbar, .navbar, .site-nav, .language-switcher) {
+  backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+}
+
+:where(.topbar, .navbar) {
+  min-height: var(--enterprise-nav-height);
+  padding: 14px 18px !important;
+  border-radius: 999px !important;
+  border: var(--enterprise-border) !important;
+  background: var(--enterprise-surface) !important;
+  box-shadow: var(--enterprise-shadow) !important;
+}
+
+:where(.topbar, .topbar__actions, .site-nav, .language-switcher) {
+  gap: 12px !important;
+}
+
+:where(.site-nav) {
+  align-items: center !important;
+}
+
+:where(.site-nav__link) {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 999px !important;
+  border: var(--enterprise-border) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(245, 248, 252, 0.88) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+}
+
+:where(.site-nav__link:hover, .site-nav__link:focus-visible) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--text) !important;
+  transform: translateY(-1px);
+}
+
+:where(.site-nav__link.is-active) {
+  background: rgba(255, 220, 170, 0.10) !important;
+  border-color: rgba(255, 220, 170, 0.20) !important;
+  color: rgba(255, 238, 210, 0.98) !important;
+}
+
+:where(.language-switcher) {
+  min-height: 38px;
+  padding: 8px 12px !important;
+  border-radius: 999px !important;
+  border: var(--enterprise-border) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+:where(.language-switcher__button) {
+  color: rgba(245, 248, 252, 0.72) !important;
+}
+
+:where(.button, .operations-button, .operations-mobile-dock__button) {
+  min-height: var(--enterprise-button-height) !important;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  text-decoration: none !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease !important;
+}
+
+:where(.button:hover, .button:focus-visible, .operations-button:hover, .operations-button:focus-visible, .operations-mobile-dock__button:hover, .operations-mobile-dock__button:focus-visible) {
+  transform: translateY(-1px);
+}
+
+:where(.button--primary, .operations-button--primary) {
+  background: linear-gradient(135deg, #ffd8a0 0%, #98e6ff 56%, #65bee8 100%) !important;
+  color: #082236 !important;
+  box-shadow: 0 14px 34px rgba(117, 198, 235, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
+}
+
+:where(.button--secondary, .button--ghost, .button--tertiary, .operations-button--secondary, .operations-mobile-dock__button--secondary) {
+  border: var(--enterprise-border) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  color: rgba(245, 248, 252, 0.92) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+:where(.button--secondary:hover, .button--secondary:focus-visible, .button--ghost:hover, .button--ghost:focus-visible, .button--tertiary:hover, .button--tertiary:focus-visible, .operations-button--secondary:hover, .operations-button--secondary:focus-visible, .operations-mobile-dock__button--secondary:hover, .operations-mobile-dock__button--secondary:focus-visible) {
+  background: rgba(255, 255, 255, 0.055) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: var(--text) !important;
+}
+
+:where(.button--danger, .btn-danger, .operations-button--danger) {
+  min-height: var(--enterprise-button-height) !important;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 126, 126, 0.22) !important;
+  background: rgba(255, 126, 126, 0.12) !important;
+  color: #ffd5d5 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+:where(.button--danger:hover, .button--danger:focus-visible, .btn-danger:hover, .btn-danger:focus-visible, .operations-button--danger:hover, .operations-button--danger:focus-visible) {
+  background: rgba(255, 126, 126, 0.18) !important;
+  border-color: rgba(255, 126, 126, 0.30) !important;
+}
+
+:where(.glass-card, .empty-state, .section-card, .form-card, .timeline-card, .request-card, .feature-card, .trust-card, .preview-card, .owner-portal-card, .admin-kpi-card, .admin-empty-state, .operations-empty-state, .panel, .action-tile, .reservations-card, .reservations-panel, .reservations-empty, .reservation-detail-panel, .reservation-detail-hero, .admin-cockpit-hero, .admin-cockpit-panel) {
+  border-radius: var(--enterprise-radius-lg) !important;
+  border: var(--enterprise-border) !important;
+  background: var(--enterprise-surface) !important;
+  backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+  box-shadow: var(--enterprise-shadow) !important;
+}
+
+:where(.glass-card, .empty-state, .section-card, .form-card, .timeline-card, .request-card, .feature-card, .trust-card, .preview-card, .owner-portal-card, .admin-kpi-card, .admin-empty-state, .operations-empty-state, .panel, .action-tile, .reservations-card, .reservations-panel, .reservation-detail-panel, .admin-cockpit-panel) {
+  padding: var(--enterprise-pad-lg) !important;
+}
+
+:where(.feature-card, .trust-card, .preview-card, .owner-portal-card, .admin-kpi-card, .admin-empty-state, .operations-empty-state, .reservations-card, .reservations-panel, .reservation-detail-panel, .admin-cockpit-panel, .action-tile) {
+  display: grid;
+  gap: var(--enterprise-gap) !important;
+}
+
+:where(.preview-card, .owner-portal-card, .admin-kpi-card, .reservation-detail-panel, .admin-cockpit-panel, .reservations-card, .reservations-panel) {
+  min-width: 0;
+}
+
+:where(.hero__copy, .home-product__preview, .home-product__kpi, .owner-portal-card, .owner-fit-card, .reservations-card, .reservations-panel, .reservation-detail-hero, .reservation-detail-panel, .admin-cockpit-hero, .admin-cockpit-panel, .admin-kpi-card, .admin-empty-state, .operations-empty-state, .form-card, .panel, .action-tile, .empty-state) {
+  background: var(--enterprise-surface-strong) !important;
+}
+
+:where(.preview-card, .home-product__kpi, .admin-kpi-card, .kpi-card, .metric, .action-tile) {
+  gap: 12px !important;
+}
+
+:where(.kpi-card, .home-product__kpi, .admin-kpi-card) {
+  padding: 18px 20px !important;
+}
+
+:where(.kpi-card, .home-product__kpi, .admin-kpi-card) :where(.kpi-value, .admin-kpi-value, .metric-value, .home-product__kpi-value) {
+  font-size: clamp(1.6rem, 3vw, 2.4rem) !important;
+  line-height: 1 !important;
+}
+
+:where(.badge, .status-badge, .timeline-tag, .owner-status-badge, .operations-list__badge, .guest-portal-badge, .admin-pill, .reservations-badge, .reservations-chip, .reservation-detail-badge, .reservation-detail-chip, .table-status) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 28px !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(245, 248, 252, 0.88) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+:where(label, .form-label, .field-label, .admin-label, .reservation-detail-dl dt) {
+  display: inline-block;
+  margin: 0 0 8px !important;
+  color: rgba(225, 236, 246, 0.72) !important;
+  font-size: var(--enterprise-label) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+:where(input, select, textarea, .form-control, .form-select) {
+  min-height: 50px !important;
+  padding: 0 16px !important;
+  border-radius: var(--enterprise-radius-sm) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text) !important;
+}
+
+:where(textarea, .form-control--textarea, .textarea-enterprise) {
+  min-height: 120px !important;
+  padding: 14px 16px !important;
+}
+
+:where(input::placeholder, select::placeholder, textarea::placeholder, .form-control::placeholder, .form-select::placeholder) {
+  color: rgba(225, 236, 246, 0.56) !important;
+}
+
+:where(input:focus, select:focus, textarea:focus, .form-control:focus, .form-select:focus) {
+  outline: none !important;
+  border-color: rgba(136, 217, 247, 0.42) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 0 0 3px rgba(136, 217, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+:where(form, .form-card, .pilot-form, .pilot-access-form, .pilot-request-form, .guest-concierge-form-card, .request-form, .owner-register-form, .owner-login-form, .professional-apply-form, .reservation-detail-form, .admin-request-detail-form, .admin-form, .search-form) {
+  width: min(100%, 860px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: var(--enterprise-pad-lg) !important;
+  border-radius: var(--enterprise-radius-lg) !important;
+  border: var(--enterprise-border) !important;
+  background: var(--enterprise-surface-strong) !important;
+  backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--enterprise-blur)) saturate(120%) !important;
+  box-shadow: var(--enterprise-shadow-lift) !important;
+}
+
+:where(form) {
+  display: grid;
+  gap: var(--enterprise-gap) !important;
+}
+
+:where(.panel-header, .section-header, .section-heading, .admin-section-head, .reservation-detail-hero, .admin-cockpit-hero) {
+  gap: 12px !important;
+}
+
+:where(.section-header, .section-heading, .admin-section-head) {
+  flex-direction: column !important;
+}
+
+:where(.section-heading__eyebrow, .eyebrow, .preview-card__label) {
+  margin-bottom: 12px !important;
+  font-size: var(--enterprise-label) !important;
+  letter-spacing: 0.16em !important;
+  color: rgba(255, 220, 170, 0.88) !important;
+}
+
+:where(.section-heading__copy, .section-subtitle) {
+  max-width: 66ch;
+  color: var(--muted) !important;
+}
+
+:where(.timeline-list, .reservations-list, .reservation-detail-rail, .admin-card-grid, .admin-section-grid, .admin-action-grid, .owner-portal-grid, .owner-fit-grid, .home-product__grid, .home-product__kpis) {
+  gap: var(--enterprise-gap-lg) !important;
+}
+
+:where(.timeline-event, .timeline-item, .reservations-card, .reservation-detail-item, .reservation-detail-comment, .reservation-detail-list-item) {
+  border-radius: var(--enterprise-radius-sm) !important;
+  border: var(--enterprise-border) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+:where(.empty-state, .admin-empty-state, .operations-empty-state, .reservations-empty) {
+  text-align: center;
+}
+
+:where(.empty-state h1, .empty-state h2, .empty-state h3, .empty-state p, .admin-empty-state h1, .admin-empty-state h2, .admin-empty-state h3, .admin-empty-state p, .operations-empty-state h1, .operations-empty-state h2, .operations-empty-state h3, .operations-empty-state p) {
+  max-width: 68ch;
+}
+
+:where(.hero__content, .hero__content--home, .reservation-detail-grid, .admin-cockpit-grid, .admin-two-up, .admin-three-up, .admin-four-up, .reservations-grid, .owner-portal-grid, .owner-fit-grid) {
+  gap: var(--enterprise-gap-lg) !important;
+}
+
+:where(.hero__content--home .hero__copy, .owner-portal-card, .owner-fit-card, .preview-card, .reservations-card, .reservation-detail-panel, .admin-cockpit-hero, .admin-cockpit-panel) {
+  padding: var(--enterprise-pad-lg) !important;
+}
+
+:where(.hero__content--home .hero__copy) {
+  max-width: 760px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+:where(.hero--home .hero__copy) {
+  border-radius: 32px !important;
+}
+
+:where(.admin-cockpit-page .admin-cockpit-hero, .admin-cockpit-page .admin-cockpit-panel, .admin-cockpit-page .admin-kpi-card, .admin-cockpit-page .admin-empty-state) {
+  background: var(--enterprise-surface-strong) !important;
+  border: var(--enterprise-border) !important;
+  border-radius: var(--enterprise-radius-lg) !important;
+  box-shadow: var(--enterprise-shadow) !important;
+}
+
+:where(.reservation-detail-page .reservation-detail-hero, .reservation-detail-page .reservation-detail-panel, .reservations-dashboard-page .reservations-card, .reservations-dashboard-page .reservations-panel, .reservations-dashboard-page .reservations-empty) {
+  background: var(--enterprise-surface-strong) !important;
+  border: var(--enterprise-border) !important;
+  box-shadow: var(--enterprise-shadow) !important;
+}
+
+@media (max-width: 1024px) {
+  :where(.hero__content, .hero__content--home, .reservation-detail-grid, .admin-cockpit-grid, .admin-two-up, .admin-three-up, .admin-four-up, .reservations-grid, .owner-portal-grid, .owner-fit-grid) {
+    gap: 18px !important;
+  }
+
+  :where(.hero__content) {
+    grid-template-columns: 1fr !important;
+    padding-top: 76px !important;
+  }
+
+  :where(.hero__content--home .hero__copy, .reservation-detail-hero, .admin-cockpit-hero, .admin-cockpit-panel, .reservations-card, .reservations-panel, .form-card, form) {
+    padding: 22px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  :where(.topbar, .navbar) {
+    border-radius: 28px !important;
+    padding: 12px 14px !important;
+  }
+
+  :where(.topbar, .topbar__actions, .site-nav, .language-switcher) {
+    gap: 8px !important;
+  }
+
+  :where(.site-nav__link, .language-switcher__button) {
+    font-size: 0.72rem !important;
+  }
+
+  :where(.button, .operations-button, .operations-mobile-dock__button) {
+    width: 100%;
+  }
+
+  :where(.hero__content--home .hero__copy, .reservation-detail-hero, .reservation-detail-panel, .admin-cockpit-hero, .admin-cockpit-panel, .reservations-card, .reservations-panel, .form-card, form, .panel, .action-tile, .empty-state) {
+    padding: 20px !important;
+    border-radius: 24px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :where(.hero__content, .hero__content--home, .reservation-detail-grid, .admin-cockpit-grid, .admin-two-up, .admin-three-up, .admin-four-up, .reservations-grid, .owner-portal-grid, .owner-fit-grid) {
+    gap: 14px !important;
+  }
+
+  :where(.section-heading__eyebrow, .eyebrow, .preview-card__label) {
+    letter-spacing: 0.14em !important;
+  }
+
+  :where(h1) {
+    font-size: clamp(1.8rem, 8vw, 2.4rem) !important;
+  }
+
+  :where(h2, .section-title, .section-heading h2) {
+    font-size: clamp(1.2rem, 5vw, 1.65rem) !important;
+  }
+}
