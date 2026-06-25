@@ -27013,3 +27013,396 @@ body.reservations-page :where(.reservations-hero, .reservations-panel, .reservat
 body.reservations-page :where(h1, h2, h3, p, span, strong, time, dd, dt, a, label) {
   color: var(--text) !important;
 }
+
+/* Unified champagne card system: one surface language across the site. */
+:root {
+  --champagne-text: #f7edd8;
+  --champagne-text-soft: rgba(247, 237, 216, 0.74);
+  --champagne-text-muted: rgba(247, 237, 216, 0.58);
+  --champagne-accent: #e6c986;
+  --champagne-surface: linear-gradient(180deg, rgba(11, 25, 38, 0.92), rgba(9, 18, 28, 0.84)), rgba(9, 18, 28, 0.9);
+  --champagne-border: 1px solid rgba(255, 255, 255, 0.10);
+  --champagne-shadow: 0 18px 42px rgba(2, 10, 18, 0.24);
+  --champagne-radius: 24px;
+  --champagne-blur: 18px;
+}
+
+body :where(
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .guest-card,
+  .guest-access-card,
+  .guest-sidecard,
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-portal-header,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  .partner-card,
+  .professional-card,
+  .resource-card,
+  .home-resource-card,
+  .showcase-panel,
+  .cta-panel,
+  .professional-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile,
+  .owner-properties-panel,
+  .owner-properties-hero,
+  .owner-property-card,
+  .owner-property-aside,
+  .owner-request-summary,
+  .owner-request-panel,
+  .owner-request-next,
+  .owner-login-card,
+  .owner-login-panel,
+  .professional-login-shell,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .admin-pilot-list .admin-pilot-card,
+  .admin-mini-card,
+  .admin-list-card,
+  .admin-activity-item,
+  .admin-property-card,
+  .admin-timeline-card,
+  .admin-workload-card,
+  .operations-hero__preview,
+  .operations-panel,
+  .operations-panel--wide,
+  .operations-modal__dialog,
+  .operations-list__item,
+  .operations-workflow__step,
+  .operations-notification,
+  .operations-sla__item,
+  .operations-network-card,
+  .operations-empty-state,
+  .operations-preview-card,
+  .operations-team-card,
+  .professional-login-page .professional-login-shell
+) {
+  border-radius: var(--champagne-radius) !important;
+  border: var(--champagne-border) !important;
+  background: var(--champagne-surface) !important;
+  box-shadow: var(--champagne-shadow) !important;
+  backdrop-filter: blur(var(--champagne-blur)) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--champagne-blur)) saturate(120%) !important;
+  color: var(--champagne-text) !important;
+}
+
+body :where(
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .guest-card,
+  .guest-access-card,
+  .guest-sidecard,
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-portal-header,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  .partner-card,
+  .professional-card,
+  .resource-card,
+  .home-resource-card,
+  .showcase-panel,
+  .cta-panel,
+  .professional-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile,
+  .owner-properties-panel,
+  .owner-properties-hero,
+  .owner-property-card,
+  .owner-property-aside,
+  .owner-request-summary,
+  .owner-request-panel,
+  .owner-request-next,
+  .owner-login-card,
+  .owner-login-panel,
+  .professional-login-page .professional-login-shell,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .admin-pilot-list .admin-pilot-card,
+  .admin-mini-card,
+  .admin-list-card,
+  .admin-activity-item,
+  .admin-property-card,
+  .admin-timeline-card,
+  .admin-workload-card,
+  .operations-hero__preview,
+  .operations-panel,
+  .operations-panel--wide,
+  .operations-modal__dialog,
+  .operations-list__item,
+  .operations-workflow__step,
+  .operations-notification,
+  .operations-sla__item,
+  .operations-network-card,
+  .operations-empty-state,
+  .operations-preview-card,
+  .operations-team-card
+) :where(h1, h2, h3, h4, h5, h6, p, span, strong, small, time, dd, dt, li, label, a) {
+  color: var(--champagne-text) !important;
+  -webkit-text-fill-color: var(--champagne-text) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+body :where(
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .guest-card,
+  .guest-access-card,
+  .guest-sidecard,
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-portal-header,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  .partner-card,
+  .professional-card,
+  .resource-card,
+  .home-resource-card,
+  .showcase-panel,
+  .cta-panel,
+  .professional-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile,
+  .owner-properties-panel,
+  .owner-properties-hero,
+  .owner-property-card,
+  .owner-property-aside,
+  .owner-request-summary,
+  .owner-request-panel,
+  .owner-request-next,
+  .owner-login-card,
+  .owner-login-panel,
+  .professional-login-page .professional-login-shell,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .admin-pilot-list .admin-pilot-card,
+  .admin-mini-card,
+  .admin-list-card,
+  .admin-activity-item,
+  .admin-property-card,
+  .admin-timeline-card,
+  .admin-workload-card,
+  .operations-hero__preview,
+  .operations-panel,
+  .operations-panel--wide,
+  .operations-modal__dialog,
+  .operations-list__item,
+  .operations-workflow__step,
+  .operations-notification,
+  .operations-sla__item,
+  .operations-network-card,
+  .operations-empty-state,
+  .operations-preview-card,
+  .operations-team-card
+) :where(input, select, textarea, .form-control, .form-select) {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--champagne-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+body :where(
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .guest-card,
+  .guest-access-card,
+  .guest-sidecard,
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-portal-header,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  .partner-card,
+  .professional-card,
+  .resource-card,
+  .home-resource-card,
+  .showcase-panel,
+  .cta-panel,
+  .professional-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile,
+  .owner-properties-panel,
+  .owner-properties-hero,
+  .owner-property-card,
+  .owner-property-aside,
+  .owner-request-summary,
+  .owner-request-panel,
+  .owner-request-next,
+  .owner-login-card,
+  .owner-login-panel,
+  .professional-login-page .professional-login-shell,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .admin-pilot-list .admin-pilot-card,
+  .admin-mini-card,
+  .admin-list-card,
+  .admin-activity-item,
+  .admin-property-card,
+  .admin-timeline-card,
+  .admin-workload-card,
+  .operations-hero__preview,
+  .operations-panel,
+  .operations-panel--wide,
+  .operations-modal__dialog,
+  .operations-list__item,
+  .operations-workflow__step,
+  .operations-notification,
+  .operations-sla__item,
+  .operations-network-card,
+  .operations-empty-state,
+  .operations-preview-card,
+  .operations-team-card
+) :where(input::placeholder, select::placeholder, textarea::placeholder, .form-control::placeholder, .form-select::placeholder) {
+  color: var(--champagne-text-muted) !important;
+}
+
+body :where(.section-heading__eyebrow, .eyebrow, .preview-card__label) {
+  color: var(--champagne-accent) !important;
+}
+
+body.professional-login-page {
+  color: var(--champagne-text) !important;
+}
+
+body.professional-login-page .professional-login-shell {
+  background: var(--champagne-surface) !important;
+  border: var(--champagne-border) !important;
+  box-shadow: var(--champagne-shadow) !important;
+}
+
+body.professional-login-page .professional-login-shell :where(h1, p, span, label, strong, small, a) {
+  color: var(--champagne-text) !important;
+  -webkit-text-fill-color: var(--champagne-text) !important;
+}
+
+body.professional-login-page .professional-login-shell .professional-login-note {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: var(--champagne-text) !important;
+}
+
+body.professional-login-page .professional-login-shell input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: var(--champagne-text) !important;
+}
