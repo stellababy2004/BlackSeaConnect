@@ -60,9 +60,9 @@
         {% if provider.photo_url or provider.logo_url %}
           <div class="network-detail__media">
             {% if provider.photo_url %}
-              <img src="{{ provider.photo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-width:640px;max-height:280px;object-fit:cover;border-radius:28px;display:block;margin:1.5rem 0 1rem;">
+              <img class="media-frame" src="{{ provider.photo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="max-width:640px;max-height:280px;margin:1.5rem 0 1rem;">
             {% else %}
-              <img src="{{ provider.logo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="width:100%;max-width:320px;max-height:200px;object-fit:contain;border-radius:28px;display:block;margin:1.5rem 0 1rem;background:rgba(255,255,255,0.04);padding:16px;">
+              <img class="media-frame media-frame--contain" src="{{ provider.logo_url|e }}" alt="{{ provider.company_name|e }}" loading="lazy" style="max-width:320px;max-height:200px;margin:1.5rem 0 1rem;">
             {% endif %}
           </div>
         {% endif %}
@@ -174,7 +174,6 @@
   <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>
-
 
 
 

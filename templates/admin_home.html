@@ -140,7 +140,7 @@
           <strong>{{ calendar_widget.summary.overdue_events }}</strong>
         </article>
       </div>
-      <div class="admin-activity-list" style="margin-top: 16px;">
+      <div class="admin-activity-list u-mt-16">
         {% if calendar_widget.upcoming_events %}
           {% for event in calendar_widget.upcoming_events %}
             <div class="admin-activity-item">
@@ -191,7 +191,7 @@
           <strong>{{ reservation_widget.stats.inspections }}</strong>
         </article>
       </div>
-      <div class="admin-activity-list" style="margin-top: 16px;">
+      <div class="admin-activity-list u-mt-16">
         {% if reservation_widget.current_guests %}
           {% for reservation in reservation_widget.current_guests %}
             <div class="admin-activity-item">

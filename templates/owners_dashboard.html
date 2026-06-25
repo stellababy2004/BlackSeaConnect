@@ -225,14 +225,14 @@
                 <span class="owner-kpi-card__support">Closed events</span>
               </article>
             </div>
-            <div class="hero__cta" style="margin-top: 14px;">
+            <div class="hero__cta u-mt-14">
               <a class="button button--primary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
               <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
             </div>
           </article>
           <article class="owner-portal-card owner-portal-card--activity">
-            <div class="owner-portal-card__header" style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-              <p class="owner-portal-card__eyebrow" style="margin:0;">Upcoming events</p>
+            <div class="owner-portal-card__header u-flex-between">
+              <p class="owner-portal-card__eyebrow u-mb-0">Upcoming events</p>
               <a class="button button--ghost" href="{{ localized_url('/owners/calendar') }}">View calendar</a>
             </div>
             {% if owner_portal.calendar_widget.upcoming_events %}
