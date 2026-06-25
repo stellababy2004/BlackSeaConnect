@@ -1655,6 +1655,19 @@ def _reservation_status_label(status):
     return _normalize_reservation_status(status).replace("_", " ").title()
 
 
+def _reservation_status_tone(status):
+    normalized = _normalize_reservation_status(status)
+    if normalized in {"CONFIRMED", "CHECKED_IN"}:
+        return "success"
+    if normalized == "PENDING":
+        return "warning"
+    if normalized in {"CANCELLED", "NO_SHOW"}:
+        return "danger"
+    if normalized == "CHECKED_OUT":
+        return "neutral"
+    return "info"
+
+
 def _reservation_calendar_status(status, *, kind="reservation"):
     normalized_status = _normalize_reservation_status(status)
     if kind == "blocked_dates":
@@ -13717,23 +13730,429 @@ def _build_admin_dashboard():
     professional_applications = _load_professional_applications()
     owner_accounts = _load_owner_accounts()
     owner_properties = _load_owner_properties()
+    reservations = _load_reservations()
+    operations_tasks = _load_operations_tasks()
+    professional_accounts = _load_professional_accounts()
+    calendar_events = _load_calendar_events()
+    operations_notifications = _load_operations_notifications(limit=100)
+    property_activity_events = _load_property_activity_events()
+    owner_activity_events = _load_owner_activity_events()
     service_requests = _load_service_requests()
     pilot_counts = _pilot_status_counts(pilot_requests)
     partner_counts = _partner_application_status_counts(partner_applications)
     professional_counts = _professional_application_status_counts(professional_applications)
     service_request_counts = _service_request_status_counts(service_requests)
-    property_status_counts = {status: 0 for status in OWNER_PROPERTY_STATUS_VALUES}
-    for property_record in owner_properties:
-        normalized_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
-        if normalized_status in property_status_counts:
-            property_status_counts[normalized_status] += 1
-    calendar_context = _build_calendar_page_context("admin")
-    calendar_widget = _calendar_dashboard_widget(calendar_context["calendar_events"], scope="admin")
-    reservation_widget = _reservation_dashboard_widgets(_load_reservations(), scope="admin")
+    property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in owner_properties}
+    owner_map = {str(account.get("id", "")).strip(): account for account in owner_accounts}
+    task_map = {str(task.get("id", "")).strip(): task for task in operations_tasks}
+    enriched_calendar_events = [_calendar_enrich_event(event, property_map, owner_map, task_map) for event in calendar_events]
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    today = datetime.now(timezone.utc).date()
+    tomorrow = today + timedelta(days=1)
+    week_end = today + timedelta(days=6)
+    all_property_ids = [str(property_record.get("id", "")).strip() for property_record in owner_properties if str(property_record.get("id", "")).strip()]
+    occupancy_engine = _reservation_occupancy_engine(reservations, property_ids=all_property_ids)
     requests_this_month = sum(1 for record in service_requests if str(record.get("created_at", "")).startswith(current_month))
     active_requests = sum(1 for record in service_requests if _normalize_service_request_status(record.get("status", "new")) in {"new", "assigned", "in_progress"})
     completed_requests = service_request_counts["completed"]
+    property_status_counts = {status: 0 for status in OWNER_PROPERTY_STATUS_VALUES}
+    property_status_cards = []
+    property_health_scores = []
+    occupied_today = 0
+    available_today = 0
+    upcoming_arrivals = 0
+    upcoming_departures = 0
+    reservations_this_month = 0
+    for property_record in owner_properties:
+        availability = _property_availability_engine(property_record, reservations=reservations, operations_tasks=operations_tasks)
+        normalized_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+        if normalized_status in property_status_counts:
+            property_status_counts[normalized_status] += 1
+        state = availability["state"]
+        checklist_done, checklist_total = _owner_property_checklist_completion(property_record)
+        checklist_ratio = checklist_done / max(checklist_total, 1)
+        status_score_map = {
+            "Occupied": 82,
+            "Available": 90,
+            "Preparing": 76,
+            "Cleaning": 68,
+            "Maintenance": 48,
+            "Blocked": 35,
+            "Ready": 96,
+        }
+        health_score = int(round(min(100, max(0, status_score_map.get(state, 72) + (checklist_ratio * 16) + (availability["occupancy_percent"] * 0.12)))))
+        property_health_scores.append(health_score)
+        property_status_cards.append({
+            "id": property_record.get("id", ""),
+            "name": property_record.get("name", "") or property_record.get("location", "") or property_record.get("id", ""),
+            "location": property_record.get("location", ""),
+            "state": state,
+            "tone": _owner_property_status_tone(normalized_status),
+            "health": health_score,
+            "occupancy": availability["occupancy_percent"],
+            "availability": availability["availability_percent"],
+            "current_guest": availability.get("current_guest"),
+            "next_arrival": availability.get("upcoming_arrival"),
+            "next_departure": availability.get("upcoming_departure"),
+            "cleaning_required": availability.get("cleaning_required", False),
+            "maintenance_required": availability.get("maintenance_required", False),
+            "preparation_required": availability.get("preparation_required", False),
+            "checklist_done": checklist_done,
+            "checklist_total": checklist_total,
+        })
+
+    reservation_groups = {"today": [], "tomorrow": [], "next_7_days": []}
+    reservation_timeline_groups = [
+        {"label": "Today", "items": []},
+        {"label": "Tomorrow", "items": []},
+        {"label": "Next 7 days", "items": []},
+    ]
+    reservation_timeline_items = []
+    for reservation in reservations:
+        arrival_dt, departure_dt = _reservation_date_bounds(reservation)
+        if arrival_dt and today <= arrival_dt.date() <= week_end:
+            if arrival_dt.date() == today:
+                bucket = "today"
+            elif arrival_dt.date() == tomorrow:
+                bucket = "tomorrow"
+            else:
+                bucket = "next_7_days"
+            reservation_groups[bucket].append(reservation)
+            reservations_this_month += 1 if arrival_dt.strftime("%Y-%m") == current_month else 0
+            upcoming_arrivals += 1 if arrival_dt.date() >= today else 0
+        if departure_dt and departure_dt.date() >= today:
+            upcoming_departures += 1
+        if arrival_dt and arrival_dt.date() == today:
+            occupied_today += 1 if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"} else 0
+        if not arrival_dt or not departure_dt:
+            continue
+        if arrival_dt.date() > today and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"PENDING", "CONFIRMED", "CHECKED_IN"}:
+            available_today += 1
+        if arrival_dt.strftime("%Y-%m") == current_month:
+            reservations_this_month += 0
+        if arrival_dt.date() == today and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"PENDING", "CONFIRMED", "CHECKED_IN"}:
+            available_today += 0
+
+        bucket = "today" if arrival_dt.date() == today else "tomorrow" if arrival_dt.date() == tomorrow else "next_7_days" if arrival_dt.date() <= week_end else ""
+        if bucket:
+            reservation_timeline_items.append({
+                "bucket": bucket,
+                "property": reservation.get("property_name", "") or reservation.get("property_label", "") or reservation.get("property_id", ""),
+                "guest": reservation.get("guest_label", "") or reservation.get("guest_name", "") or "Guest",
+                "arrival": arrival_dt,
+                "departure": departure_dt,
+                "status": _reservation_status_label(reservation.get("status", "PENDING")),
+                "status_tone": _reservation_status_tone(reservation.get("status", "PENDING")),
+                "channel": reservation.get("channel_name", "") or reservation.get("reservation_source", "Manual"),
+            })
+
+    for reservation_item in sorted(reservation_timeline_items, key=lambda item: (item["arrival"], item["departure"], item["property"], item["guest"])):
+        reservation_timeline_groups[0 if reservation_item["bucket"] == "today" else 1 if reservation_item["bucket"] == "tomorrow" else 2]["items"].append({
+            **reservation_item,
+            "arrival_display": reservation_item["arrival"].astimezone(timezone.utc).strftime("%d.%m · %H:%M UTC"),
+            "departure_display": reservation_item["departure"].astimezone(timezone.utc).strftime("%d.%m · %H:%M UTC"),
+        })
+
+    operations_events = []
+    for event in enriched_calendar_events:
+        start_dt = _parse_iso_datetime(event.get("start_datetime", ""))
+        if not start_dt or start_dt.date() != today:
+            continue
+        category = _normalize_calendar_event_type(event.get("event_type", ""))
+        if category not in {"Cleaning", "Check-in", "Check-out", "Inspection", "Maintenance", "Arrival", "Departure"}:
+            continue
+        operations_events.append({
+            "time": start_dt,
+            "time_label": start_dt.astimezone(timezone.utc).strftime("%H:%M"),
+            "category": category,
+            "title": event.get("title", "") or category,
+            "detail": event.get("property_label", "") or event.get("owner_label", ""),
+            "status": _normalize_calendar_event_status(event.get("status", "")),
+            "tone": event.get("color", "") or "neutral",
+            "property": event.get("property_label", ""),
+            "owner": event.get("owner_label", ""),
+        })
+    for reservation in reservations:
+        arrival_dt, departure_dt = _reservation_date_bounds(reservation)
+        if arrival_dt and arrival_dt.date() == today:
+            operations_events.append({
+                "time": arrival_dt,
+                "time_label": arrival_dt.astimezone(timezone.utc).strftime("%H:%M"),
+                "category": "Check-in",
+                "title": reservation.get("guest_label", "") or "Check-in",
+                "detail": reservation.get("property_name", ""),
+                "status": _reservation_status_label(reservation.get("status", "PENDING")),
+                "tone": "arrival",
+                "property": reservation.get("property_name", ""),
+                "owner": reservation.get("owner_name", ""),
+            })
+        if departure_dt and departure_dt.date() == today:
+            operations_events.append({
+                "time": departure_dt,
+                "time_label": departure_dt.astimezone(timezone.utc).strftime("%H:%M"),
+                "category": "Check-out",
+                "title": reservation.get("guest_label", "") or "Check-out",
+                "detail": reservation.get("property_name", ""),
+                "status": _reservation_status_label(reservation.get("status", "PENDING")),
+                "tone": "departure",
+                "property": reservation.get("property_name", ""),
+                "owner": reservation.get("owner_name", ""),
+            })
+
+    operations_events.sort(key=lambda item: (item["time"], item["category"], item["property"], item["title"]))
+    today_operations_groups = []
+    current_time_label = None
+    current_group = None
+    for item in operations_events:
+        if item["time_label"] != current_time_label:
+            current_group = {"label": item["time_label"], "items": []}
+            today_operations_groups.append(current_group)
+            current_time_label = item["time_label"]
+        current_group["items"].append(item)
+
+    heatmap_counts = {}
+    for event in enriched_calendar_events:
+        start_dt = _parse_iso_datetime(event.get("start_datetime", ""))
+        if not start_dt:
+            continue
+        day = start_dt.date()
+        if today <= day <= week_end:
+            heatmap_counts[day.isoformat()] = heatmap_counts.get(day.isoformat(), 0) + 1
+    for task in operations_tasks:
+        due_dt = _parse_iso_datetime(str(task.get("due_date", "")).strip())
+        if due_dt and today <= due_dt.date() <= week_end:
+            heatmap_counts[due_dt.date().isoformat()] = heatmap_counts.get(due_dt.date().isoformat(), 0) + 1
+
+    operations_heatmap = []
+    max_heat = max(heatmap_counts.values(), default=1)
+    for offset in range(7):
+        day = today + timedelta(days=offset)
+        count = heatmap_counts.get(day.isoformat(), 0)
+        operations_heatmap.append({
+            "label": day.strftime("%A"),
+            "short_label": day.strftime("%a"),
+            "count": count,
+            "width": max(12, int(round((count / max_heat) * 100))) if count else 12,
+            "tone": "success" if count >= max_heat * 0.75 and count else "warning" if count else "muted",
+        })
+
+    open_operations = [
+        task for task in operations_tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"}
+    ]
+    waiting_owner = [task for task in open_operations if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER"]
+    waiting_professional = [
+        task for task in open_operations
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and str(task.get("assigned_professional_id", "")).strip()
+    ]
+    waiting_operations = [task for task in open_operations if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OPERATIONS"]
+    completed_today = [
+        task for task in operations_tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"}
+        and str(task.get("completed_at", "")).strip()[:10] == today.isoformat()
+    ]
+    overdue_operations = [
+        task for task in open_operations
+        if str(task.get("due_date", "")).strip()[:10] and str(task.get("due_date", "")).strip()[:10] < today.isoformat()
+    ]
+    completion_minutes = []
+    on_time_completed = 0
+    completed_with_due = 0
+    open_incidents = 0
+    for task in operations_tasks:
+        category_text = " ".join([
+            str(task.get("category", "")),
+            str(task.get("title", "")),
+            str(task.get("notes", "")),
+            str(task.get("admin_notes", "")),
+        ]).lower()
+        if any(marker in category_text for marker in ("incident", "issue", "problem", "emergency", "maintenance", "blocked")) and _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}:
+            open_incidents += 1
+        created_at = _parse_iso_datetime(task.get("created_at", ""))
+        completed_at = _parse_iso_datetime(task.get("completed_at", ""))
+        due_dt = _parse_iso_datetime(task.get("due_date", ""))
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"} and created_at and completed_at and completed_at >= created_at:
+            completion_minutes.append(int((completed_at - created_at).total_seconds() / 60))
+        if completed_at and due_dt:
+            completed_with_due += 1
+            if completed_at <= due_dt:
+                on_time_completed += 1
+    average_completion_time = int(round(sum(completion_minutes) / len(completion_minutes))) if completion_minutes else None
+    sla_health = int(round((on_time_completed / max(completed_with_due, 1)) * 100)) if completed_with_due else max(0, 100 - (len(overdue_operations) * 8))
+    sla_health = max(0, min(100, sla_health))
+
+    active_professionals = [professional for professional in professional_accounts if _normalize_professional_account_status(professional.get("status", "PENDING")) in {"ACTIVE", "APPROVED"}]
+    busy_professional_ids = {
+        str(task.get("assigned_professional_id", "")).strip()
+        for task in open_operations
+        if str(task.get("assigned_professional_id", "")).strip()
+    }
+    assigned_professionals = [professional for professional in active_professionals if str(professional.get("id", "")).strip() in busy_professional_ids]
+    available_professionals = [professional for professional in active_professionals if str(professional.get("id", "")).strip() not in busy_professional_ids]
+    assigned_today_tasks = [
+        task for task in operations_tasks
+        if str(task.get("assigned_professional_id", "")).strip()
+        and str(task.get("created_at", "")).strip()[:10] == today.isoformat()
+    ]
+    completed_today_tasks = [
+        task for task in operations_tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"}
+        and str(task.get("completed_at", "")).strip()[:10] == today.isoformat()
+    ]
+    average_workload = round(len(open_operations) / max(len(active_professionals), 1), 1)
+
+    operations_summary = {
+        "late_operations": len(overdue_operations),
+        "waiting_owner": len(waiting_owner),
+        "waiting_professional": len(waiting_professional),
+        "waiting_operations": len(waiting_operations),
+        "completed_today": len(completed_today),
+        "average_completion_time": _format_owner_portal_duration(average_completion_time) if average_completion_time is not None else "Pending",
+        "open_incidents": open_incidents,
+    }
+
+    professional_summary = {
+        "assigned_today": len(assigned_today_tasks),
+        "completed_today": len(completed_today_tasks),
+        "available": len(available_professionals),
+        "busy": len(assigned_professionals),
+        "average_workload": f"{average_workload:.1f} tasks/professional",
+    }
+
+    executive_kpis = [
+        {"icon": "properties", "title": "Properties", "value": len(owner_properties), "trend": f"{property_status_counts.get('ACTIVE', 0)} active in scope", "tone": "neutral"},
+        {"icon": "occupied", "title": "Occupied Today", "value": sum(1 for reservation in reservations if _reservation_is_occupying(reservation, today)), "trend": "Properties currently hosting guests", "tone": "success"},
+        {"icon": "available", "title": "Available Today", "value": sum(1 for property_record in owner_properties if _property_availability_engine(property_record, reservations=reservations, operations_tasks=operations_tasks)["state"] in {"Available", "Ready"}), "trend": "Ready for assignment", "tone": "success"},
+        {"icon": "arrivals", "title": "Upcoming Arrivals", "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and today <= arrival_dt.date() <= week_end), "trend": "Next 7 days", "tone": "info"},
+        {"icon": "departures", "title": "Upcoming Departures", "value": sum(1 for reservation in reservations if (departure_dt := _reservation_date_bounds(reservation)[1]) and today <= departure_dt.date() <= week_end), "trend": "Next 7 days", "tone": "info"},
+        {"icon": "bookings", "title": "Reservations This Month", "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and arrival_dt.strftime("%Y-%m") == current_month), "trend": "Arrival date basis", "tone": "neutral"},
+        {"icon": "operations", "title": "Operations Open", "value": len(open_operations), "trend": f"{len(overdue_operations)} overdue", "tone": "warning"},
+        {"icon": "waiting", "title": "Operations Waiting", "value": len(waiting_owner) + len(waiting_professional) + len(waiting_operations), "trend": "Owner + professional + operations", "tone": "warning"},
+        {"icon": "overdue", "title": "Operations Overdue", "value": len(overdue_operations), "trend": "Past due date", "tone": "danger"},
+        {"icon": "professionals", "title": "Professionals Assigned", "value": len(assigned_professionals), "trend": "Busy on open tasks", "tone": "info"},
+        {"icon": "professionals", "title": "Professionals Available", "value": len(available_professionals), "trend": "Active and free", "tone": "success"},
+        {"icon": "occupancy", "title": "Average Occupancy %", "value": occupancy_engine["occupancy_percent"], "trend": f"{occupancy_engine['available_days']} available days", "tone": "success" if occupancy_engine["occupancy_percent"] >= 75 else "warning"},
+        {"icon": "health", "title": "Property Health Average", "value": int(round(sum(property_health_scores) / max(len(property_health_scores), 1))) if property_health_scores else 0, "trend": "Readiness and status blend", "tone": "info"},
+        {"icon": "revenue", "title": "Revenue", "value": "Pending", "trend": "Channel sync placeholder", "tone": "neutral"},
+        {"icon": "sla", "title": "SLA Health", "value": f"{sla_health}%", "trend": "On-time completion rate", "tone": "success" if sla_health >= 85 else "warning" if sla_health >= 60 else "danger"},
+    ]
+
+    unified_activity = []
+    for reservation in reservations:
+        for event in _reservation_timeline_events(reservation)[-3:]:
+            parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+            if not parsed_at:
+                continue
+            unified_activity.append({
+                "source": "reservation",
+                "created_at": parsed_at,
+                "title": event.get("title", "") or "Reservation event",
+                "detail": event.get("detail", "") or reservation.get("property_name", ""),
+                "tone": "arrival" if "check-in" in str(event.get("title", "")).lower() else "departure" if "check-out" in str(event.get("title", "")).lower() else "neutral",
+            })
+
+    for notification in operations_notifications[:20]:
+        parsed_at = _parse_iso_datetime(notification.get("created_at", ""))
+        if not parsed_at:
+            continue
+        unified_activity.append({
+            "source": "operation",
+            "created_at": parsed_at,
+            "title": notification.get("title", "") or notification.get("event_type", "").replace("_", " ").title(),
+            "detail": notification.get("detail", "") or notification.get("channel", ""),
+            "tone": "danger" if notification.get("status") == "failed" else "success" if notification.get("status") == "sent" else "warning",
+        })
+
+    for event in enriched_calendar_events[:30]:
+        parsed_at = _parse_iso_datetime(event.get("start_datetime", "")) or _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        unified_activity.append({
+            "source": "calendar",
+            "created_at": parsed_at,
+            "title": event.get("title", "") or event.get("event_type", "Calendar event"),
+            "detail": event.get("property_label", "") or event.get("owner_label", ""),
+            "tone": "info" if not event.get("is_overdue") else "warning",
+        })
+
+    for event in owner_activity_events[:20]:
+        parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        unified_activity.append({
+            "source": "owner",
+            "created_at": parsed_at,
+            "title": event.get("title", "") or "Owner activity",
+            "detail": event.get("detail", ""),
+            "tone": "info",
+        })
+
+    for event in property_activity_events[:20]:
+        parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        unified_activity.append({
+            "source": "property",
+            "created_at": parsed_at,
+            "title": event.get("title", "") or "Property activity",
+            "detail": event.get("detail", ""),
+            "tone": "neutral",
+        })
+
+    for record in professional_applications[:20]:
+        for event in _professional_application_timeline_events(record)[-3:]:
+            parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+            if not parsed_at:
+                continue
+            unified_activity.append({
+                "source": "professional",
+                "created_at": parsed_at,
+                "title": event.get("title", "") or "Professional activity",
+                "detail": event.get("detail", "") or record.get("city", ""),
+                "tone": "success" if _normalize_professional_status(record.get("status")) == "converted" else "warning",
+            })
+
+    unified_activity.sort(key=lambda item: item["created_at"], reverse=True)
+    recent_activity = [
+        {
+            "type": item["source"],
+            "created_at": item["created_at"].astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC"),
+            "title": item["title"],
+            "detail": item["detail"],
+            "status": item["tone"],
+        }
+        for item in unified_activity[:12]
+    ]
+
+    calendar_widget = _calendar_dashboard_widget(enriched_calendar_events, scope="admin")
+    reservation_widget = {
+        "todays_check_ins": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today][:5],
+        "todays_check_outs": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() == today][:5],
+        "current_guests": [reservation for reservation in reservations if _reservation_is_occupying(reservation, today)][:5],
+        "cleaning_queue": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() >= today][:5],
+        "inspections": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() >= today][:5],
+        "todays_operations": [task for task in operations_tasks if str(task.get("due_date", "")).strip()[:10] == today.isoformat()][:5],
+        "late_operations": overdue_operations[:5],
+        "property_occupancy": occupancy_engine,
+        "cleaning_today": [task for task in operations_tasks if str(task.get("due_date", "")).strip()[:10] == today.isoformat() and "clean" in str(task.get("category", "")).lower()][:5],
+        "checkins": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today][:5],
+        "revenue_placeholder": "Pending channel revenue sync",
+        "stats": {
+            "todays_check_ins": sum(1 for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today),
+            "todays_check_outs": sum(1 for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() == today),
+            "occupancy": occupancy_engine["occupancy_percent"],
+            "availability": occupancy_engine["availability_percent"],
+            "cleaning_queue": len([reservation for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() >= today]),
+            "inspections": len([reservation for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() >= today]),
+            "arrivals_today": sum(1 for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today),
+            "departures_today": sum(1 for reservation in reservations if _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[1].date() == today),
+            "cleaning_today": len([task for task in operations_tasks if str(task.get("due_date", "")).strip()[:10] == today.isoformat() and "clean" in str(task.get("category", "")).lower()]),
+            "checkins": sum(1 for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today),
+            "late_operations": len(overdue_operations),
+            "todays_operations": len([task for task in operations_tasks if str(task.get("due_date", "")).strip()[:10] == today.isoformat()]),
+            "revenue": 0,
+        },
+    }
 
     return {
         "total_leads": len(pilot_requests),
@@ -13756,6 +14175,23 @@ def _build_admin_dashboard():
         "service_requests_this_month": requests_this_month,
         "partner_status_counts": partner_counts,
         "professional_status_counts": professional_counts,
+        "executive_kpis": executive_kpis,
+        "today_operations_groups": today_operations_groups,
+        "operations_heatmap": operations_heatmap,
+        "reservation_timeline_groups": reservation_timeline_groups,
+        "property_status_cards": property_status_cards,
+        "operations_summary": operations_summary,
+        "professional_summary": professional_summary,
+        "quick_actions": [
+            {"label": "Create Reservation", "href": "/admin/reservations", "tone": "primary"},
+            {"label": "Create Operation", "href": "/admin/operations", "tone": "secondary"},
+            {"label": "Open Calendar", "href": "/admin/calendar", "tone": "secondary"},
+            {"label": "Open Reservations", "href": "/admin/reservations", "tone": "secondary"},
+            {"label": "Open Operations", "href": "/admin/operations", "tone": "secondary"},
+            {"label": "Import Reservations", "href": "/admin/reservations/import", "tone": "secondary"},
+            {"label": "Add Property", "href": "/admin/properties", "tone": "secondary"},
+            {"label": "Add Professional", "href": "/admin/professionals", "tone": "secondary"},
+        ],
         "pipeline": [
             {"key": "new", "label": "New", "count": pilot_counts["new"]},
             {"key": "contacted", "label": "Contacted", "count": pilot_counts["contacted"]},
@@ -13779,7 +14215,7 @@ def _build_admin_dashboard():
         ],
         "calendar_widget": calendar_widget,
         "reservation_widget": reservation_widget,
-        "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, partner_applications, professional_applications),
+        "recent_activity": recent_activity,
     }
 
 
@@ -14691,7 +15127,7 @@ def admin_operations_status(task_id):
 @admin_required
 def admin_home():
     dashboard = _build_admin_dashboard()
-    return render_template("admin_home.html", **dashboard)
+    return render_template("admin_home_exec.html", **dashboard)
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
 

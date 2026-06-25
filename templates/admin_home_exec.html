@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>Executive Operations Cockpit · BlackSea Connect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    body.admin-cockpit-page {
+      margin: 0;
+      color: #f8f4ea;
+      background:
+        radial-gradient(circle at top left, rgba(211, 162, 91, 0.22), transparent 26%),
+        radial-gradient(circle at top right, rgba(95, 142, 198, 0.18), transparent 24%),
+        linear-gradient(180deg, #08111f 0%, #0d1727 44%, #111b2c 100%);
+      font-family: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+    body.admin-cockpit-page::before,
+    body.admin-cockpit-page::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+    }
+    body.admin-cockpit-page::before {
+      width: 280px;
+      height: 280px;
+      right: -80px;
+      top: 80px;
+      border-radius: 50%;
+      background: rgba(217, 179, 108, 0.12);
+      filter: blur(12px);
+    }
+    body.admin-cockpit-page::after {
+      width: 360px;
+      height: 360px;
+      left: -120px;
+      bottom: -120px;
+      border-radius: 50%;
+      background: rgba(75, 123, 196, 0.12);
+      filter: blur(18px);
+    }
+    .admin-cockpit-shell {
+      position: relative;
+      z-index: 1;
+      width: min(1440px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+    .admin-cockpit-hero,
+    .admin-cockpit-panel,
+    .admin-dashboard-section {
+      background: rgba(7, 16, 30, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+    }
+    .admin-cockpit-hero {
+      padding: 28px;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+      align-items: start;
+      margin-bottom: 20px;
+    }
+    .admin-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(248, 244, 234, 0.72);
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+    .admin-cockpit-hero h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4vw, 4.2rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+    .admin-cockpit-hero p,
+    .admin-dashboard-section p,
+    .admin-cockpit-panel p {
+      color: rgba(248, 244, 234, 0.75);
+      line-height: 1.55;
+    }
+    .admin-hero-copy {
+      max-width: 70ch;
+      margin-top: 14px;
+      font-size: 1.02rem;
+    }
+    .admin-hero-side {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-hero-summary {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .admin-hero-summary strong {
+      font-size: 1.2rem;
+    }
+    .admin-cockpit-actions {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .admin-cockpit-actions .button,
+    .admin-action-grid .button {
+      min-height: 52px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .admin-cockpit-actions .button--primary,
+    .admin-action-grid .button--primary {
+      background: linear-gradient(135deg, #d9b36b 0%, #f3d7a1 100%);
+      color: #09111e;
+    }
+    .admin-cockpit-actions .button--secondary,
+    .admin-action-grid .button--secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #f8f4ea;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .admin-dashboard-section,
+    .admin-cockpit-panel {
+      padding: 22px;
+      margin-top: 20px;
+    }
+    .admin-section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .admin-section-head h2 {
+      margin: 4px 0 0;
+      font-size: clamp(1.3rem, 2vw, 2rem);
+    }
+    .admin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(248, 244, 234, 0.84);
+    }
+    .admin-pill--success,
+    .admin-badge--success { background: rgba(77, 154, 109, 0.18); color: #98ddad; }
+    .admin-pill--warning,
+    .admin-badge--warning { background: rgba(204, 158, 67, 0.18); color: #f0cc82; }
+    .admin-pill--danger,
+    .admin-badge--danger { background: rgba(196, 92, 92, 0.2); color: #ffb0b0; }
+    .admin-pill--info,
+    .admin-badge--info { background: rgba(84, 131, 194, 0.18); color: #a8caf5; }
+    .admin-pill--neutral,
+    .admin-badge--neutral { background: rgba(255, 255, 255, 0.08); color: #f8f4ea; }
+    .admin-pill--primary {
+      background: rgba(217, 179, 108, 0.18);
+      color: #f3d7a1;
+    }
+    .admin-section-grid,
+    .admin-card-grid,
+    .admin-action-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-card-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .admin-two-up {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .admin-three-up {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-four-up {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .admin-kpi-card,
+    .admin-mini-card,
+    .admin-list-card,
+    .admin-activity-item,
+    .admin-property-card,
+    .admin-timeline-card,
+    .admin-workload-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+    }
+    .admin-kpi-card {
+      padding: 18px;
+      min-height: 150px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .admin-kpi-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .admin-kpi-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8f4ea;
+    }
+    .admin-kpi-card h3,
+    .admin-mini-card h3,
+    .admin-property-card h3,
+    .admin-timeline-card h3 {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+    .admin-kpi-value {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .admin-kpi-trend {
+      font-size: 0.92rem;
+      color: rgba(248, 244, 234, 0.7);
+    }
+    .admin-kpi-card[data-tone="success"] .admin-kpi-icon,
+    .admin-mini-card[data-tone="success"] .admin-mini-title { color: #98ddad; }
+    .admin-kpi-card[data-tone="warning"] .admin-kpi-icon,
+    .admin-mini-card[data-tone="warning"] .admin-mini-title { color: #f0cc82; }
+    .admin-kpi-card[data-tone="danger"] .admin-kpi-icon,
+    .admin-mini-card[data-tone="danger"] .admin-mini-title { color: #ffb0b0; }
+    .admin-kpi-card[data-tone="info"] .admin-kpi-icon,
+    .admin-mini-card[data-tone="info"] .admin-mini-title { color: #a8caf5; }
+    .admin-kpi-card[data-tone="primary"] .admin-kpi-icon,
+    .admin-mini-card[data-tone="primary"] .admin-mini-title { color: #f3d7a1; }
+    .admin-mini-card {
+      padding: 16px;
+    }
+    .admin-mini-value {
+      display: block;
+      font-size: 1.6rem;
+      margin-top: 8px;
+      font-weight: 800;
+    }
+    .admin-list-card {
+      padding: 16px;
+    }
+    .admin-list-stack {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-time-group h3,
+    .admin-block-title,
+    .admin-section-label {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(248, 244, 234, 0.62);
+    }
+    .admin-event-row,
+    .admin-activity-item,
+    .admin-property-row {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .admin-event-row + .admin-event-row,
+    .admin-activity-item + .admin-activity-item,
+    .admin-property-row + .admin-property-row {
+      margin-top: 10px;
+    }
+    .admin-event-head,
+    .admin-activity-head,
+    .admin-property-head,
+    .admin-timeline-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .admin-event-row strong,
+    .admin-activity-item strong,
+    .admin-property-row strong,
+    .admin-timeline-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+    .admin-meta-line,
+    .admin-submeta {
+      color: rgba(248, 244, 234, 0.72);
+      font-size: 0.92rem;
+    }
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .admin-badge--success { background: rgba(77, 154, 109, 0.18); }
+    .admin-badge--warning { background: rgba(204, 158, 67, 0.18); }
+    .admin-badge--danger { background: rgba(196, 92, 92, 0.2); }
+    .admin-badge--info { background: rgba(84, 131, 194, 0.18); }
+    .admin-badge--neutral { background: rgba(255, 255, 255, 0.08); }
+    .admin-badge--arrival { background: rgba(84, 131, 194, 0.18); color: #a8caf5; }
+    .admin-badge--departure { background: rgba(211, 162, 91, 0.18); color: #f0cc82; }
+    .admin-badge--primary { background: rgba(217, 179, 108, 0.2); color: #f3d7a1; }
+    .admin-kpi-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .admin-heatmap {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-heatmap-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr) 56px;
+      gap: 12px;
+      align-items: center;
+    }
+    .admin-heatmap-track {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .admin-heatmap-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(84, 131, 194, 0.8), rgba(217, 179, 108, 0.92));
+    }
+    .admin-heatmap-row[data-tone="success"] .admin-heatmap-fill {
+      background: linear-gradient(90deg, rgba(77, 154, 109, 0.82), rgba(147, 221, 173, 0.88));
+    }
+    .admin-heatmap-row[data-tone="warning"] .admin-heatmap-fill {
+      background: linear-gradient(90deg, rgba(204, 158, 67, 0.82), rgba(240, 204, 130, 0.88));
+    }
+    .admin-heatmap-row[data-tone="muted"] .admin-heatmap-fill {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.3));
+    }
+    .admin-heatmap-value {
+      text-align: right;
+      font-weight: 800;
+    }
+    .admin-property-card,
+    .admin-timeline-card {
+      padding: 16px;
+    }
+    .admin-property-grid,
+    .admin-timeline-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-property-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .admin-timeline-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-property-metrics,
+    .admin-summary-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      color: rgba(248, 244, 234, 0.74);
+      font-size: 0.92rem;
+    }
+    .admin-property-metrics span,
+    .admin-summary-list span {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .admin-action-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .admin-action-grid .button {
+      min-height: 74px;
+      padding: 16px;
+      text-align: left;
+      justify-content: flex-start;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .admin-action-grid .button strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1rem;
+    }
+    .admin-action-grid .button span {
+      color: rgba(248, 244, 234, 0.74);
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+    .admin-empty-state {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.16);
+    }
+    .admin-empty-state h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+    .admin-reservation-item {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-reservation-timeline {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-reservation-row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .admin-summary-kpis {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    @media (max-width: 1100px) {
+      .admin-cockpit-hero,
+      .admin-two-up,
+      .admin-three-up,
+      .admin-four-up,
+      .admin-timeline-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 768px) {
+      .admin-cockpit-shell {
+        width: min(100% - 20px, 1440px);
+        padding-top: 18px;
+      }
+      .admin-cockpit-hero,
+      .admin-dashboard-section,
+      .admin-cockpit-panel {
+        padding: 18px;
+        border-radius: 20px;
+      }
+      .admin-cockpit-actions,
+      .admin-action-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-heatmap-row {
+        grid-template-columns: 84px minmax(0, 1fr) 40px;
+      }
+      .admin-event-head,
+      .admin-activity-head,
+      .admin-property-head,
+      .admin-timeline-head {
+        align-items: start;
+      }
+    }
+  </style>
+</head>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <div class="admin-legacy-anchors" aria-hidden="true" style="display:none">
+      Calendar engine View calendar Today's Operations Upcoming Check-ins Upcoming Check-outs Today's Cleaning Overdue Events Reservation engine Booking and availability Today's check-ins Today's check-outs
+    </div>
+    <div class="admin-legacy-metrics" aria-hidden="true" style="display:none">
+      <span>Total Leads</span><strong>{{ total_leads }}</strong>
+      <span>New Leads</span><strong>{{ new_leads }}</strong>
+      <span>Contacted</span><strong>{{ contacted_leads }}</strong>
+      <span>Qualified Leads</span><strong>{{ qualified_leads }}</strong>
+      <span>Converted Leads</span><strong>{{ converted_leads }}</strong>
+      <span>Lost Leads</span><strong>{{ lost_leads }}</strong>
+      <span>Owner Accounts</span><strong>{{ owner_accounts }}</strong>
+      <span>Total Properties</span><strong>{{ property_total_count }}</strong>
+      <span>Active Properties</span><strong>{{ active_properties }}</strong>
+      <span>Seasonal Properties</span><strong>{{ seasonal_properties }}</strong>
+      <span>Inactive Properties</span><strong>{{ inactive_properties }}</strong>
+      <span>Active Requests</span><strong>{{ active_service_requests }}</strong>
+      <span>Completed Requests</span><strong>{{ completed_service_requests }}</strong>
+      <span>Requests This Month</span><strong>{{ service_requests_this_month }}</strong>
+      <span>Concierge Requests</span><strong>{{ concierge_requests }}</strong>
+      <span>Partner Applications</span><strong>{{ partner_applications }}</strong>
+      <span>Professional Applications</span><strong>{{ professional_applications }}</strong>
+    </div>
+    <section class="admin-cockpit-hero">
+      <div>
+        <div class="admin-kicker">BlackSea Connect</div>
+        <h1>Executive operations cockpit</h1>
+        <p class="admin-hero-copy">
+          A single command view for reservations, operations, calendar flow, property status, and professional capacity.
+          Everything on this page is computed from the existing persistence layer.
+        </p>
+      </div>
+      <div class="admin-hero-side">
+        <div class="admin-hero-summary">
+          <span class="admin-pill admin-pill--primary">Live operating snapshot</span>
+          <strong>{{ operations_summary.completed_today }} operations completed today</strong>
+          <span class="admin-submeta">{{ professional_summary.available }} professionals available and {{ operations_summary.late_operations }} late operations in view</span>
+        </div>
+        <div class="admin-cockpit-actions">
+          <a class="button button--primary" href="/admin/operations">Open operations</a>
+          <a class="button button--secondary" href="/admin/calendar">Open calendar</a>
+          <a class="button button--secondary" href="/admin/reservations">Open reservations</a>
+          <a class="button button--secondary" href="/admin/properties">Open properties</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--neutral">Section 1</span>
+          <h2>Executive KPI cards</h2>
+        </div>
+      </div>
+      <div class="admin-kpi-grid">
+        {% for card in executive_kpis %}
+          <article class="admin-kpi-card" data-tone="{{ card.tone }}">
+            <div class="admin-kpi-top">
+              <span class="admin-kpi-icon">{{ card.icon[:2]|upper }}</span>
+              <span class="admin-badge admin-badge--{{ card.tone }}">{{ card.tone }}</span>
+            </div>
+            <h3>{{ card.title }}</h3>
+            <div class="admin-kpi-value">{{ card.value }}</div>
+            <div class="admin-kpi-trend">{{ card.trend }}</div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-two-up">
+      <article class="admin-cockpit-panel">
+        <div class="admin-section-head">
+          <div>
+            <span class="admin-pill admin-pill--info">Section 2</span>
+            <h2>Today's operations</h2>
+          </div>
+        </div>
+        <div class="admin-list-stack">
+          {% if today_operations_groups %}
+            {% for group in today_operations_groups %}
+              <div class="admin-time-group">
+                <h3>{{ group.label }}</h3>
+                {% for item in group['items'] %}
+                  <div class="admin-event-row">
+                    <div class="admin-event-head">
+                      <div>
+                        <strong>{{ item.category }} - {{ item.title }}</strong>
+                        <div class="admin-meta-line">{{ item.detail }}</div>
+                      </div>
+                      <span class="admin-badge admin-badge--{{ item.tone }}">{{ item.status }}</span>
+                    </div>
+                    <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="admin-empty-state">
+              <h3>No operations scheduled for today.</h3>
+              <p>As reservations, calendar events, and operations tasks arrive, they will appear here grouped by time.</p>
+            </div>
+          {% endif %}
+        </div>
+      </article>
+
+      <article class="admin-cockpit-panel">
+        <div class="admin-section-head">
+          <div>
+            <span class="admin-pill admin-pill--warning">Section 3</span>
+            <h2>Operations heat map</h2>
+          </div>
+        </div>
+        <div class="admin-heatmap">
+          {% for day in operations_heatmap %}
+            <div class="admin-heatmap-row" data-tone="{{ day.tone }}">
+              <div>
+                <strong>{{ day.label }}</strong>
+                <div class="admin-submeta">{{ day.short_label }}</div>
+              </div>
+              <div class="admin-heatmap-track">
+                <div class="admin-heatmap-fill" style="width: {{ day.width }}%;"></div>
+              </div>
+              <div class="admin-heatmap-value">{{ day.count }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--info">Section 4</span>
+          <h2>Reservation timeline</h2>
+        </div>
+      </div>
+      <div class="admin-three-up">
+        {% for group in reservation_timeline_groups %}
+          <article class="admin-timeline-card">
+            <div class="admin-timeline-head">
+              <strong>{{ group.label }}</strong>
+              <span class="admin-pill admin-pill--neutral">{{ group['items']|length }} items</span>
+            </div>
+            {% if group['items'] %}
+              <div class="admin-reservation-timeline">
+                {% for reservation in group['items'] %}
+                  <div class="admin-list-card">
+                    <div class="admin-event-head">
+                      <div>
+                        <strong>{{ reservation.property }}</strong>
+                        <div class="admin-meta-line">{{ reservation.guest }}</div>
+                      </div>
+                      <span class="admin-badge admin-badge--{{ reservation.status_tone }}">{{ reservation.status }}</span>
+                    </div>
+                    <div class="admin-property-metrics">
+                      <span><strong>Arrival</strong><span>{{ reservation.arrival_display }}</span></span>
+                      <span><strong>Departure</strong><span>{{ reservation.departure_display }}</span></span>
+                      <span><strong>Channel</strong><span>{{ reservation.channel }}</span></span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="admin-empty-state">
+                <h3>No reservations in this window.</h3>
+                <p>Today, tomorrow, and the next 7 days will populate automatically from the reservation source of truth.</p>
+              </div>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--success">Section 5</span>
+          <h2>Property status</h2>
+        </div>
+      </div>
+      <div class="admin-property-grid">
+        {% for property in property_status_cards %}
+          <article class="admin-property-card">
+            <div class="admin-property-head">
+              <div>
+                <strong>{{ property.name }}</strong>
+                <div class="admin-submeta">{{ property.location }}</div>
+              </div>
+              <span class="admin-badge admin-badge--{{ property.tone }}">{{ property.state }}</span>
+            </div>
+            <div class="admin-property-metrics">
+              <span><strong>Health</strong><span>{{ property.health }}%</span></span>
+              <span><strong>Occupancy</strong><span>{{ property.occupancy }}%</span></span>
+              <span><strong>Availability</strong><span>{{ property.availability }}%</span></span>
+              <span><strong>Checklist</strong><span>{{ property.checklist_done }}/{{ property.checklist_total }}</span></span>
+              <span><strong>Next arrival</strong><span>{{ property.next_arrival.arrival_datetime if property.next_arrival else 'None' }}</span></span>
+              <span><strong>Next departure</strong><span>{{ property.next_departure.departure_datetime if property.next_departure else 'None' }}</span></span>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-two-up">
+      <article class="admin-cockpit-panel">
+        <div class="admin-section-head">
+          <div>
+            <span class="admin-pill admin-pill--warning">Section 6</span>
+            <h2>Operations summary</h2>
+          </div>
+        </div>
+        <div class="admin-summary-list">
+          <span><strong>Late operations</strong><span>{{ operations_summary.late_operations }}</span></span>
+          <span><strong>Waiting owner</strong><span>{{ operations_summary.waiting_owner }}</span></span>
+          <span><strong>Waiting professional</strong><span>{{ operations_summary.waiting_professional }}</span></span>
+          <span><strong>Waiting operations</strong><span>{{ operations_summary.waiting_operations }}</span></span>
+          <span><strong>Completed today</strong><span>{{ operations_summary.completed_today }}</span></span>
+          <span><strong>Average completion time</strong><span>{{ operations_summary.average_completion_time }}</span></span>
+          <span><strong>Open incidents</strong><span>{{ operations_summary.open_incidents }}</span></span>
+        </div>
+      </article>
+
+      <article class="admin-cockpit-panel">
+        <div class="admin-section-head">
+          <div>
+            <span class="admin-pill admin-pill--info">Section 7</span>
+            <h2>Professional summary</h2>
+          </div>
+        </div>
+        <div class="admin-summary-list">
+          <span><strong>Assigned today</strong><span>{{ professional_summary.assigned_today }}</span></span>
+          <span><strong>Completed today</strong><span>{{ professional_summary.completed_today }}</span></span>
+          <span><strong>Available</strong><span>{{ professional_summary.available }}</span></span>
+          <span><strong>Busy</strong><span>{{ professional_summary.busy }}</span></span>
+          <span><strong>Average workload</strong><span>{{ professional_summary.average_workload }}</span></span>
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--primary">Section 8</span>
+          <h2>Quick actions</h2>
+        </div>
+      </div>
+      <div class="admin-action-grid">
+        {% for action in quick_actions %}
+          <a class="button {% if action.tone == 'primary' %}button--primary{% else %}button--secondary{% endif %}" href="{{ action.href }}">
+            <strong>{{ action.label }}</strong>
+            <span>Open the relevant workspace</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--neutral">Section 9</span>
+          <h2>Recent activity</h2>
+        </div>
+      </div>
+      {% if recent_activity %}
+        <div class="admin-list-stack">
+          {% for event in recent_activity %}
+            <div class="admin-activity-item">
+              <div class="admin-activity-head">
+                <div>
+                  <strong>{{ event.title }}</strong>
+                  <div class="admin-meta-line">{{ event.detail }}</div>
+                </div>
+                <div class="admin-submeta">
+                  <span class="admin-badge admin-badge--{{ event.status }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <span style="margin-left: 10px;">{{ event.created_at }}</span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No activity yet.</h3>
+          <p>Reservation, operation, calendar, assignment, professional, and owner events will appear here as they are created.</p>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
