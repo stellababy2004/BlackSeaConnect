@@ -296,6 +296,7 @@ RESERVATION_STATUS_VALUES = (
     "CHECKED_IN",
     "CHECKED_OUT",
     "CANCELLED",
+    "NO_SHOW",
 )
 RESERVATION_STATUS_ALIASES = {
     "pending": "PENDING",
@@ -308,29 +309,33 @@ RESERVATION_STATUS_ALIASES = {
     "checked_out": "CHECKED_OUT",
     "cancelled": "CANCELLED",
     "canceled": "CANCELLED",
+    "no show": "NO_SHOW",
+    "no-show": "NO_SHOW",
+    "noshow": "NO_SHOW",
 }
 RESERVATION_SOURCE_VALUES = (
-    "Manual Reservation",
-    "Direct Booking",
-    "CSV Import",
+    "Manual",
+    "CSV",
     "iCal",
-    "Google Calendar",
     "Airbnb",
     "Booking.com",
-    "VRBO",
+    "Vrbo",
+    "Direct Website",
 )
 RESERVATION_SOURCE_ALIASES = {
-    "manual": "Manual Reservation",
-    "manual reservation": "Manual Reservation",
-    "direct booking": "Direct Booking",
-    "csv": "CSV Import",
-    "csv import": "CSV Import",
+    "manual": "Manual",
+    "manual reservation": "Manual",
+    "direct booking": "Direct Website",
+    "direct website": "Direct Website",
+    "website": "Direct Website",
+    "csv": "CSV",
+    "csv import": "CSV",
     "ical": "iCal",
-    "google calendar": "Google Calendar",
+    "google calendar": "iCal",
     "airbnb": "Airbnb",
     "booking.com": "Booking.com",
     "booking": "Booking.com",
-    "vrbo": "VRBO",
+    "vrbo": "Vrbo",
 }
 CALENDAR_EVENT_TYPE_VALUES = (
     "Check-in",
@@ -359,7 +364,17 @@ CALENDAR_EVENT_TYPE_ALIASES = {
     "reservation": "Reservation",
     "clean": "Cleaning",
     "cleaning": "Cleaning",
+    "arrival cleaning": "Cleaning",
+    "departure cleaning": "Cleaning",
+    "mid-stay cleaning": "Cleaning",
+    "mid stay cleaning": "Cleaning",
+    "check-in preparation": "Check-in",
+    "checkin preparation": "Check-in",
+    "welcome pack": "Concierge",
+    "guest inspection": "Inspection",
+    "checkout inspection": "Inspection",
     "inspection": "Inspection",
+    "maintenance review": "Maintenance",
     "maintenance": "Maintenance",
     "airport": "Airport Transfer",
     "airport transfer": "Airport Transfer",
@@ -1612,11 +1627,28 @@ def _normalize_reservation_status(status):
 def _normalize_reservation_source(source):
     normalized = str(source or "").strip()
     if not normalized:
-        return "Manual Reservation"
+        return "Manual"
     lookup = RESERVATION_SOURCE_ALIASES.get(normalized.lower())
     if lookup:
         return lookup
-    return normalized if normalized in RESERVATION_SOURCE_VALUES else "Manual Reservation"
+    return normalized if normalized in RESERVATION_SOURCE_VALUES else "Manual"
+
+
+def _normalize_reservation_channel_status(status):
+    normalized = str(status or "").strip().upper()
+    if not normalized:
+        return "SYNCED"
+    aliases = {
+        "MANUAL": "MANUAL",
+        "PENDING": "PENDING",
+        "SYNCING": "SYNCING",
+        "SYNCED": "SYNCED",
+        "FAILED": "FAILED",
+        "ERROR": "FAILED",
+        "ARCHIVED": "ARCHIVED",
+        "UNKNOWN": "UNKNOWN",
+    }
+    return aliases.get(normalized, normalized if normalized in {"MANUAL", "PENDING", "SYNCING", "SYNCED", "FAILED", "ARCHIVED", "UNKNOWN"} else "SYNCED")
 
 
 def _reservation_status_label(status):
@@ -1631,7 +1663,7 @@ def _reservation_calendar_status(status, *, kind="reservation"):
         return "IN_PROGRESS"
     if normalized_status in {"CHECKED_OUT"}:
         return "COMPLETED"
-    if normalized_status in {"CANCELLED"}:
+    if normalized_status in {"CANCELLED", "NO_SHOW"}:
         return "CANCELLED"
     return "SCHEDULED"
 
@@ -1666,22 +1698,59 @@ def _reservation_metadata_from_row(row):
     return _safe_json_loads(metadata_json, {})
 
 
+def _reservation_external_payload_from_row(row):
+    if row is None:
+        return {}
+    if "external_payload" in row.keys():
+        payload = _safe_json_loads(str(row["external_payload"]), {})
+        if payload:
+            return payload
+    return _safe_json_loads(str(row["source_metadata_json"]) if "source_metadata_json" in row.keys() else "", {})
+
+
+def _reservation_channel_name_from_row(row, reservation_source):
+    if row is not None and "channel_name" in row.keys():
+        return _normalize_reservation_source(row["channel_name"])
+    return _normalize_reservation_source(reservation_source)
+
+
+def _reservation_channel_status_from_row(row):
+    if row is not None and "channel_status" in row.keys():
+        return _normalize_reservation_channel_status(row["channel_status"])
+    if row is not None and "sync_status" in row.keys():
+        return _normalize_reservation_channel_status(row["sync_status"])
+    return "SYNCED"
+
+
 def _reservation_from_row(row):
     if row is None:
         return None
 
     metadata = _reservation_metadata_from_row(row)
+    reservation_source = _normalize_reservation_source(row["reservation_source"] if "reservation_source" in row.keys() else "Manual")
+    reservation_reference = str(row["reservation_reference"]) if "reservation_reference" in row.keys() else ""
+    if not reservation_reference:
+        reservation_reference = str(row["external_reference"]) if "external_reference" in row.keys() else ""
+    last_sync = str(row["last_sync"]) if "last_sync" in row.keys() else ""
+    if not last_sync:
+        last_sync = str(row["external_last_sync"]) if "external_last_sync" in row.keys() else ""
+    external_payload = _reservation_external_payload_from_row(row)
     return {
         "id": str(row["id"]),
         "created_at": str(row["created_at"]),
         "updated_at": str(row["updated_at"]),
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
-        "reservation_source": _normalize_reservation_source(row["reservation_source"] if "reservation_source" in row.keys() else "Manual Reservation"),
-        "external_reference": str(row["external_reference"]) if "external_reference" in row.keys() else "",
-        "external_last_sync": str(row["external_last_sync"]) if "external_last_sync" in row.keys() else "",
+        "reservation_source": reservation_source,
+        "reservation_reference": reservation_reference,
+        "channel_name": _reservation_channel_name_from_row(row, reservation_source),
+        "channel_status": _reservation_channel_status_from_row(row),
+        "last_sync": last_sync,
+        "external_payload": external_payload,
+        "external_reference": reservation_reference,
+        "external_last_sync": last_sync,
         "import_batch_id": str(row["import_batch_id"]) if "import_batch_id" in row.keys() else "",
         "sync_status": str(row["sync_status"]) if "sync_status" in row.keys() else "IDLE",
-        "source_metadata_json": str(row["source_metadata_json"]) if "source_metadata_json" in row.keys() else "{}",
+        "source_metadata_json": str(row["source_metadata_json"]) if "source_metadata_json" in row.keys() else json.dumps(external_payload, ensure_ascii=False, separators=(",", ":")) if external_payload else "{}",
         "guest_first_name": str(row["guest_first_name"]) if "guest_first_name" in row.keys() else "",
         "guest_last_name": str(row["guest_last_name"]) if "guest_last_name" in row.keys() else "",
         "guest_email": str(row["guest_email"]) if "guest_email" in row.keys() else "",
@@ -1698,7 +1767,7 @@ def _reservation_from_row(row):
         "created_by": str(row["created_by"]) if "created_by" in row.keys() else "",
         "metadata_json": str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}",
         "metadata": metadata,
-        "source_metadata": _safe_json_loads(str(row["source_metadata_json"])) if "source_metadata_json" in row.keys() else {},
+        "source_metadata": _safe_json_loads(str(row["source_metadata_json"])) if "source_metadata_json" in row.keys() else external_payload,
     }
 
 
@@ -1708,10 +1777,11 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
-                   external_last_sync, import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email,
-                   guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
-                   language, created_by, metadata_json
+            SELECT id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+                   channel_status, last_sync, external_payload, external_reference, guest_first_name, external_last_sync,
+                   import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email, guest_phone, adults,
+                   children, infants, pets, arrival_datetime, departure_datetime, status, notes, language, created_by,
+                   metadata_json
             FROM reservations
             ORDER BY arrival_datetime ASC, updated_at DESC, id ASC
             """
@@ -1770,7 +1840,10 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
             return False
         if status_filter and _normalize_reservation_status(reservation.get("status", "")) != status_filter:
             return False
-        if source_filter and source_filter not in str(reservation.get("reservation_source", "")).strip().lower():
+        if source_filter and source_filter not in " ".join([
+            str(reservation.get("reservation_source", "")).strip().lower(),
+            str(reservation.get("channel_name", "")).strip().lower(),
+        ]):
             return False
         if arrival_filter and not str(reservation.get("arrival_datetime", "")).startswith(arrival_filter):
             return False
@@ -1783,7 +1856,9 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
                 reservation.get("property_name", ""),
                 reservation.get("property_location", ""),
                 reservation.get("reservation_source", ""),
+                reservation.get("channel_name", ""),
                 reservation.get("external_reference", ""),
+                reservation.get("reservation_reference", ""),
                 reservation.get("notes", ""),
             ]).lower()
             if search not in haystack:
@@ -1802,16 +1877,104 @@ def _find_reservation(reservation_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
-                   external_last_sync, import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email,
-                   guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
-                   language, created_by, metadata_json
+            SELECT id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+                   channel_status, last_sync, external_payload, external_reference, guest_first_name, external_last_sync,
+                   import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email, guest_phone, adults,
+                   children, infants, pets, arrival_datetime, departure_datetime, status, notes, language, created_by,
+                   metadata_json
             FROM reservations
             WHERE id = ?
             """,
             (target_id,),
         ).fetchone()
     return _reservation_from_row(row) if row else None
+
+
+def _reservation_status_timeline_title(status):
+    normalized = _normalize_reservation_status(status)
+    return {
+        "PENDING": "Reservation created",
+        "CONFIRMED": "Confirmed",
+        "CHECKED_IN": "Guest checked in",
+        "CHECKED_OUT": "Guest checked out",
+        "CANCELLED": "Reservation cancelled",
+        "NO_SHOW": "No show recorded",
+    }.get(normalized, _reservation_status_label(normalized))
+
+
+def _reservation_status_timeline_detail(status, reservation=None):
+    reservation = reservation or {}
+    normalized = _normalize_reservation_status(status)
+    source = _normalize_reservation_source(reservation.get("reservation_source", "Manual"))
+    reference = str(reservation.get("reservation_reference", reservation.get("external_reference", ""))).strip()
+    parts = []
+    if source:
+        parts.append(source)
+    if reference:
+        parts.append(f"Ref {reference}")
+    if normalized in {"CHECKED_IN", "CHECKED_OUT"}:
+        arrival = str(reservation.get("arrival_datetime", "")).strip()
+        departure = str(reservation.get("departure_datetime", "")).strip()
+        if arrival:
+            parts.append(f"Arrival {arrival}")
+        if departure:
+            parts.append(f"Departure {departure}")
+    return " · ".join(part for part in parts if part)
+
+
+def _reservation_seed_timeline_events(reservation):
+    reservation = reservation or {}
+    created_at = str(reservation.get("created_at", "")).strip()
+    updated_at = str(reservation.get("updated_at", "")).strip() or created_at
+    last_sync = str(reservation.get("last_sync", reservation.get("external_last_sync", ""))).strip()
+    source = _normalize_reservation_source(reservation.get("reservation_source", "Manual"))
+    status = _normalize_reservation_status(reservation.get("status", "PENDING"))
+    metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+    kind = str(metadata.get("kind", "reservation")).strip().lower() or "reservation"
+    arrival_dt, _ = _calendar_parse_datetime(reservation.get("arrival_datetime", ""))
+    departure_dt, _ = _calendar_parse_datetime(reservation.get("departure_datetime", ""))
+    reference = str(reservation.get("reservation_reference", reservation.get("external_reference", ""))).strip()
+    seed_events = []
+
+    if created_at:
+        seed_events.append({
+            "type": "reservation_created" if kind != "blocked_dates" else "blocked_dates_created",
+            "created_at": created_at,
+            "title": "Reservation created" if kind != "blocked_dates" else "Blocked dates created",
+            "detail": _reservation_status_timeline_detail(status, reservation),
+            "status": status,
+            "visibility": "public",
+            "author": str(reservation.get("created_by", "")).strip() or "system",
+        })
+
+    if source and source != "Manual":
+        seed_events.append({
+            "type": "reservation_imported",
+            "created_at": last_sync or updated_at or created_at,
+            "title": f"Imported from {source}",
+            "detail": reference or _reservation_status_timeline_detail(status, reservation),
+            "status": status,
+            "visibility": "public",
+            "author": "system",
+        })
+
+    if status in {"CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW"}:
+        state_event_time = updated_at or last_sync or created_at or _utc_now_iso()
+        if status == "CHECKED_IN" and arrival_dt:
+            state_event_time = arrival_dt.isoformat()
+        elif status in {"CHECKED_OUT", "NO_SHOW"} and departure_dt:
+            state_event_time = departure_dt.isoformat()
+        seed_events.append({
+            "type": "reservation_status_changed",
+            "created_at": state_event_time,
+            "title": _reservation_status_timeline_title(status),
+            "detail": _reservation_status_timeline_detail(status, reservation),
+            "status": status,
+            "visibility": "public",
+            "author": str(reservation.get("created_by", "")).strip() or "system",
+        })
+
+    return seed_events
 
 
 def _reservation_timeline_events(reservation):
@@ -1832,20 +1995,22 @@ def _reservation_timeline_events(reservation):
             "visibility": str(entry.get("visibility", "public")).strip().lower() or "public",
             "author": str(entry.get("author", "")).strip(),
         })
-    if normalized:
-        return normalized
-    created_at = str((reservation or {}).get("created_at", "")).strip()
-    if not created_at:
-        return []
-    return [{
-        "type": "reservation_created",
-        "created_at": created_at,
-        "title": "Reservation created",
-        "detail": f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {str((reservation or {}).get('property_name', '')).strip()}",
-        "status": _normalize_reservation_status((reservation or {}).get("status", "PENDING")),
-        "visibility": "public",
-        "author": str((reservation or {}).get("created_by", "")).strip(),
-    }]
+    seeded = _reservation_seed_timeline_events(reservation)
+    merged = []
+    seen = set()
+    for entry in normalized + seeded:
+        signature = (
+            str(entry.get("type", "")).strip(),
+            str(entry.get("created_at", "")).strip(),
+            str(entry.get("title", "")).strip(),
+            str(entry.get("detail", "")).strip(),
+        )
+        if signature in seen:
+            continue
+        seen.add(signature)
+        merged.append(entry)
+    merged.sort(key=lambda item: str(item.get("created_at", "")))
+    return merged
 
 
 def _reservation_comments(reservation, owner_view=False):
@@ -1961,6 +2126,10 @@ def _reservation_calendar_event(reservation):
         "source": "reservation",
         "reservation_id": str(reservation.get("id", "")).strip(),
         "reservation_source": str(reservation.get("reservation_source", "")).strip(),
+        "reservation_reference": str(reservation.get("reservation_reference", reservation.get("external_reference", ""))).strip(),
+        "channel_name": str(reservation.get("channel_name", "")).strip(),
+        "channel_status": str(reservation.get("channel_status", "")).strip(),
+        "last_sync": str(reservation.get("last_sync", reservation.get("external_last_sync", ""))).strip(),
         "external_reference": str(reservation.get("external_reference", "")).strip(),
         "guest_name": _reservation_guest_name(reservation),
         "guest_email": str(reservation.get("guest_email", "")).strip(),
@@ -2006,24 +2175,57 @@ def _upsert_reservation_calendar_event(reservation):
     return payload
 
 
+def _reservation_task_due_date(value, fallback=""):
+    parsed, _all_day = _calendar_parse_datetime(value)
+    if parsed:
+        return parsed.date().isoformat()
+    fallback_text = str(fallback or "").strip()
+    return fallback_text[:10] if fallback_text else ""
+
+
 def _reservation_operations_task_payloads(reservation):
     reservation = reservation or {}
     metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
     if str(metadata.get("kind", "")).strip().lower() == "blocked_dates":
         return []
+
     reservation_id = str(reservation.get("id", "")).strip()
     property_name = str(reservation.get("property_name", "")).strip()
     property_location = str(reservation.get("property_location", "")).strip()
     guest_name = _reservation_guest_name(reservation) or "Guest"
     guest_label = guest_name or "Guest"
+    status = _normalize_reservation_status(reservation.get("status", "PENDING"))
+    arrival_due = _reservation_task_due_date(reservation.get("arrival_datetime", ""), reservation.get("created_at", ""))
+    departure_due = _reservation_task_due_date(reservation.get("departure_datetime", ""), reservation.get("created_at", ""))
+    arrival_dt, departure_dt = None, None
+    parsed_arrival, _ = _calendar_parse_datetime(reservation.get("arrival_datetime", ""))
+    parsed_departure, _ = _calendar_parse_datetime(reservation.get("departure_datetime", ""))
+    arrival_dt = parsed_arrival
+    departure_dt = parsed_departure
+    stay_days = 0
+    if arrival_dt and departure_dt:
+        stay_days = max((departure_dt.date() - arrival_dt.date()).days, 0)
+    midpoint_due = ""
+    if arrival_dt and departure_dt and stay_days > 2:
+        midpoint_due = (arrival_dt + ((departure_dt - arrival_dt) / 2)).date().isoformat()
+
     templates = [
-        ("checkin", "Check-in", "Check-in task", reservation.get("arrival_datetime", "")),
-        ("cleaning", "Cleaning", "Cleaning task", reservation.get("departure_datetime", "")),
-        ("inspection", "Inspection", "Inspection task", reservation.get("departure_datetime", "")),
-        ("checkout", "Check-out", "Check-out task", reservation.get("departure_datetime", "")),
+        ("arrival-cleaning", "Arrival Cleaning", "Arrival cleaning", arrival_due, "cleaning"),
+        ("checkin-preparation", "Check-in Preparation", "Check-in preparation", arrival_due, "preparation"),
+        ("welcome-pack", "Welcome Pack", "Welcome pack", arrival_due, "welcome"),
+        ("guest-inspection", "Guest Inspection", "Guest inspection", arrival_due, "inspection"),
     ]
+    if status in {"CHECKED_IN", "CHECKED_OUT"} and midpoint_due:
+        templates.append(("midstay-cleaning", "Mid-stay Cleaning", "Mid-stay cleaning", midpoint_due, "cleaning"))
+    if status in {"CHECKED_OUT"}:
+        templates.extend([
+            ("checkout-inspection", "Checkout Inspection", "Checkout inspection", departure_due, "inspection"),
+            ("departure-cleaning", "Departure Cleaning", "Departure cleaning", departure_due, "cleaning"),
+            ("maintenance-review", "Maintenance Review", "Maintenance review", departure_due, "maintenance"),
+        ])
+
     payloads = []
-    for suffix, category, label, due_date in templates:
+    for suffix, category, label, due_date, phase in templates:
         payloads.append({
             "id": f"{reservation_id}:{suffix}",
             "request_id": reservation_id,
@@ -2046,9 +2248,11 @@ def _reservation_operations_task_payloads(reservation):
             "completed_at": "",
             "owner_id": str(reservation.get("owner_id", "")).strip(),
             "property_location": property_location,
-            "admin_notes": f"Reservation source: {reservation.get('reservation_source', 'Manual Reservation')}",
+            "admin_notes": f"Reservation source: {reservation.get('reservation_source', 'Manual')}",
             "request_status": "new",
             "timeline_detail": f"{guest_label} · {property_name or property_location}".strip(" ·"),
+            "phase": phase,
+            "reservation_status": status,
         })
     return payloads
 
@@ -2065,6 +2269,124 @@ def _ensure_reservation_operations_tasks(reservation):
         if created:
             created_tasks.append(created)
     return created_tasks
+
+
+def _reservation_sync_derived_state(reservation, *, append_timeline_event=None):
+    reservation = reservation or {}
+    reservation_id = str(reservation.get("id", "")).strip()
+    if not reservation_id:
+        return None
+
+    refreshed = _find_reservation(reservation_id) or reservation
+    _upsert_reservation_calendar_event(refreshed)
+    linked_tasks = _ensure_reservation_operations_tasks(refreshed)
+    metadata = refreshed.get("metadata") if isinstance(refreshed.get("metadata"), dict) else {}
+    metadata["linked_operations"] = [task.get("id", "") for task in linked_tasks if task]
+    _reservation_write_metadata(reservation_id, metadata, status=refreshed.get("status", "PENDING"))
+    refreshed = _find_reservation(reservation_id) or refreshed
+
+    if append_timeline_event:
+        event_type, title, detail, status, author, visibility = append_timeline_event
+        _reservation_append_timeline_event(
+            reservation_id,
+            event_type,
+            title,
+            detail,
+            status=status or refreshed.get("status", "PENDING"),
+            author=author or "system",
+            visibility=visibility or "public",
+        )
+        refreshed = _find_reservation(reservation_id) or refreshed
+
+    return refreshed
+
+
+def _reservation_transition_timeline_event(status, reservation=None):
+    normalized = _normalize_reservation_status(status)
+    event_type = {
+        "CONFIRMED": "reservation_confirmed",
+        "CHECKED_IN": "reservation_checked_in",
+        "CHECKED_OUT": "reservation_checked_out",
+        "CANCELLED": "reservation_cancelled",
+        "NO_SHOW": "reservation_no_show",
+    }.get(normalized, "reservation_updated")
+    title = _reservation_status_timeline_title(normalized)
+    detail = _reservation_status_timeline_detail(normalized, reservation)
+    return event_type, title, detail
+
+
+def _update_reservation_status(reservation_id, status, *, author="system", detail=""):
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return None
+    current_status = _normalize_reservation_status(reservation.get("status", "PENDING"))
+    new_status = _normalize_reservation_status(status)
+    if new_status == current_status:
+        return _reservation_sync_derived_state(reservation)
+
+    updated_at = _utc_now_iso()
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        conn.execute(
+            """
+            UPDATE reservations
+            SET status = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (new_status, updated_at, str(reservation_id).strip()),
+        )
+
+    updated_reservation = _find_reservation(reservation_id)
+    event_type, title, default_detail = _reservation_transition_timeline_event(new_status, updated_reservation)
+    return _reservation_sync_derived_state(
+        updated_reservation,
+        append_timeline_event=(
+            event_type,
+            title,
+            str(detail or default_detail).strip(),
+            new_status,
+            author,
+            "public",
+        ),
+    )
+
+
+def _reservation_operation_event_from_task(task, status):
+    category = str((task or {}).get("category", "")).strip()
+    normalized_status = _normalize_operations_task_status(status)
+    category_lower = category.lower()
+    if normalized_status == "COMPLETED":
+        if "clean" in category_lower:
+            return "cleaning_completed", "Cleaning completed"
+        if "checkout" in category_lower or "check-out" in category_lower:
+            return "checkout_completed", "Checkout completed"
+        if "inspection" in category_lower:
+            return "inspection_completed", "Inspection completed"
+        if "maintenance" in category_lower:
+            return "maintenance_review_completed", "Maintenance review completed"
+        return "operation_completed", "Operation completed"
+    return "operation_updated", f"{category or 'Operation'} updated"
+
+
+def _sync_reservation_from_operation_task(task, status):
+    task = task or {}
+    if str(task.get("source_type", "")).strip().upper() != "RESERVATION":
+        return None
+    reservation_id = str(task.get("source_id", "") or task.get("request_id", "")).strip()
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return None
+    event_type, title = _reservation_operation_event_from_task(task, status)
+    return _reservation_append_timeline_event(
+        reservation_id,
+        event_type,
+        title,
+        str(task.get("title", "")).strip() or str(task.get("category", "")).strip(),
+        status=reservation.get("status", "PENDING"),
+        visibility="public",
+        author="system:operations",
+    )
 
 
 def _create_reservation(reservation_payload, *, created_by="system"):
@@ -2087,6 +2409,21 @@ def _create_reservation(reservation_payload, *, created_by="system"):
     metadata.setdefault("kind", str((reservation_payload or {}).get("kind", "reservation")).strip().lower() or "reservation")
     metadata.setdefault("title", str((reservation_payload or {}).get("title", "")).strip())
     reservation_source = _normalize_reservation_source((reservation_payload or {}).get("reservation_source", "Manual Reservation"))
+    reservation_reference = str((reservation_payload or {}).get("reservation_reference", "")).strip()
+    if not reservation_reference:
+        reservation_reference = str((reservation_payload or {}).get("external_reference", "")).strip()
+    channel_name = _normalize_reservation_source((reservation_payload or {}).get("channel_name", reservation_source))
+    channel_status = _normalize_reservation_channel_status((reservation_payload or {}).get("channel_status", (reservation_payload or {}).get("sync_status", "SYNCED")))
+    last_sync = str((reservation_payload or {}).get("last_sync", "")).strip()
+    if not last_sync:
+        last_sync = str((reservation_payload or {}).get("external_last_sync", "")).strip()
+    external_payload_value = (reservation_payload or {}).get("external_payload")
+    if external_payload_value is None:
+        external_payload_value = _safe_json_loads(str((reservation_payload or {}).get("source_metadata_json", "{}")), {})
+    if isinstance(external_payload_value, str):
+        external_payload_json = external_payload_value if external_payload_value.strip() else "{}"
+    else:
+        external_payload_json = json.dumps(external_payload_value or {}, ensure_ascii=False, separators=(",", ":"))
     status = _normalize_reservation_status((reservation_payload or {}).get("status", "PENDING"))
     if metadata.get("kind") == "blocked_dates":
         status = "CONFIRMED"
@@ -2096,11 +2433,16 @@ def _create_reservation(reservation_payload, *, created_by="system"):
         "updated_at": updated_at,
         "property_id": property_id,
         "reservation_source": reservation_source,
-        "external_reference": str((reservation_payload or {}).get("external_reference", "")).strip(),
-        "external_last_sync": str((reservation_payload or {}).get("external_last_sync", "")).strip(),
+        "reservation_reference": reservation_reference,
+        "channel_name": channel_name,
+        "channel_status": channel_status,
+        "last_sync": last_sync,
+        "external_payload": external_payload_json,
+        "external_reference": reservation_reference,
+        "external_last_sync": last_sync,
         "import_batch_id": str((reservation_payload or {}).get("import_batch_id", "")).strip(),
         "sync_status": str((reservation_payload or {}).get("sync_status", "IDLE")).strip() or "IDLE",
-        "source_metadata_json": str((reservation_payload or {}).get("source_metadata_json", "{}")).strip() or "{}",
+        "source_metadata_json": external_payload_json,
         "guest_first_name": str((reservation_payload or {}).get("guest_first_name", "")).strip(),
         "guest_last_name": str((reservation_payload or {}).get("guest_last_name", "")).strip(),
         "guest_email": str((reservation_payload or {}).get("guest_email", "")).strip(),
@@ -2124,16 +2466,22 @@ def _create_reservation(reservation_payload, *, created_by="system"):
         conn.execute(
             """
             INSERT INTO reservations (
-                id, created_at, updated_at, property_id, reservation_source, external_reference, external_last_sync,
+                id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+                channel_status, last_sync, external_payload, external_reference, external_last_sync,
                 import_batch_id, sync_status, source_metadata_json, guest_first_name, guest_last_name, guest_email,
                 guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
                 language, created_by, metadata_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 created_at = excluded.created_at,
                 updated_at = excluded.updated_at,
                 property_id = excluded.property_id,
                 reservation_source = excluded.reservation_source,
+                reservation_reference = excluded.reservation_reference,
+                channel_name = excluded.channel_name,
+                channel_status = excluded.channel_status,
+                last_sync = excluded.last_sync,
+                external_payload = excluded.external_payload,
                 external_reference = excluded.external_reference,
                 external_last_sync = excluded.external_last_sync,
                 import_batch_id = excluded.import_batch_id,
@@ -2161,6 +2509,11 @@ def _create_reservation(reservation_payload, *, created_by="system"):
                 record["updated_at"],
                 record["property_id"],
                 record["reservation_source"],
+                record["reservation_reference"],
+                record["channel_name"],
+                record["channel_status"],
+                record["last_sync"],
+                record["external_payload"],
                 record["external_reference"],
                 record["external_last_sync"],
                 record["import_batch_id"],
@@ -2186,21 +2539,17 @@ def _create_reservation(reservation_payload, *, created_by="system"):
 
     reservation = _find_reservation(reservation_id)
     if reservation:
-        _reservation_append_timeline_event(
-            reservation_id,
-            "reservation_created",
-            "Reservation created",
-            f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {reservation.get('property_name', '')}",
-            status=reservation.get("status", "PENDING"),
-            author=str(created_by).strip() or "system",
+        reservation = _reservation_sync_derived_state(
+            reservation,
+            append_timeline_event=(
+                "reservation_created",
+                "Reservation created" if reservation.get("metadata", {}).get("kind", "reservation") != "blocked_dates" else "Blocked dates created",
+                f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {reservation.get('property_name', '')}",
+                reservation.get("status", "PENDING"),
+                str(created_by).strip() or "system",
+                "public",
+            ),
         )
-        _upsert_reservation_calendar_event(reservation)
-        linked_tasks = _ensure_reservation_operations_tasks(reservation)
-        reservation = _find_reservation(reservation_id)
-        metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
-        metadata["linked_operations"] = [task.get("id", "") for task in linked_tasks if task]
-        _reservation_write_metadata(reservation_id, metadata, status=reservation.get("status", "PENDING"))
-        reservation = _find_reservation(reservation_id)
         _append_operations_notification(
             "reservation_created",
             "Reservation created",
@@ -2235,7 +2584,7 @@ def _reservation_property_status(property_record, reservations=None):
     for reservation in reservations:
         if str(reservation.get("property_id", "")).strip() != property_id:
             continue
-        if _normalize_reservation_status(reservation.get("status", "PENDING")) == "CANCELLED":
+        if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CANCELLED", "NO_SHOW"}:
             continue
         arrival_dt, _ = _calendar_parse_datetime(reservation.get("arrival_datetime", ""))
         departure_dt, _ = _calendar_parse_datetime(reservation.get("departure_datetime", ""))
@@ -2251,13 +2600,115 @@ def _reservation_property_status(property_record, reservations=None):
         return "Occupied"
     if blocked_calendar_events:
         return "Blocked"
-    if any(event for event in _load_operations_tasks() if str(event.get("property_id", "")).strip() == property_id and _normalize_operations_task_status(event.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and "clean" in str(event.get("category", "")).lower()):
-        return "Cleaning Scheduled"
-    if any(event for event in _load_operations_tasks() if str(event.get("property_id", "")).strip() == property_id and _normalize_operations_task_status(event.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and "inspect" in str(event.get("category", "")).lower()):
+    active_tasks = [
+        event for event in _load_operations_tasks()
+        if str(event.get("property_id", "")).strip() == property_id
+        and _normalize_operations_task_status(event.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"}
+    ]
+    if any("maint" in str(event.get("category", "")).lower() for event in active_tasks):
         return "Maintenance"
+    if any("clean" in str(event.get("category", "")).lower() for event in active_tasks):
+        return "Cleaning"
+    if any("preparation" in str(event.get("category", "")).lower() or "welcome" in str(event.get("category", "")).lower() for event in active_tasks):
+        return "Preparation"
     if upcoming_reservation:
         return "Ready" if _normalize_reservation_status(upcoming_reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"} else "Available"
     return "Available"
+
+
+def _reservation_is_stay(reservation):
+    metadata = (reservation or {}).get("metadata") if isinstance((reservation or {}).get("metadata"), dict) else {}
+    return str(metadata.get("kind", "reservation")).strip().lower() != "blocked_dates"
+
+
+def _reservation_date_bounds(reservation):
+    arrival_dt, _ = _calendar_parse_datetime((reservation or {}).get("arrival_datetime", ""))
+    departure_dt, _ = _calendar_parse_datetime((reservation or {}).get("departure_datetime", ""))
+    return arrival_dt, departure_dt
+
+
+def _reservation_is_occupying(reservation, target_date=None):
+    if not _reservation_is_stay(reservation):
+        return False
+    if _normalize_reservation_status((reservation or {}).get("status", "PENDING")) not in {"CONFIRMED", "CHECKED_IN", "CHECKED_OUT"}:
+        return False
+    arrival_dt, departure_dt = _reservation_date_bounds(reservation)
+    if not arrival_dt or not departure_dt:
+        return False
+    target_date = target_date or datetime.now(timezone.utc).date()
+    return arrival_dt.date() <= target_date < departure_dt.date()
+
+
+def _reservation_occupancy_engine(reservations, *, property_ids=None, days=30):
+    today = datetime.now(timezone.utc).date()
+    target_property_ids = {str(property_id).strip() for property_id in (property_ids or []) if str(property_id).strip()}
+    if not target_property_ids:
+        target_property_ids = {str(reservation.get("property_id", "")).strip() for reservation in reservations if str(reservation.get("property_id", "")).strip()}
+    total_property_days = max(len(target_property_ids), 1) * max(days, 1)
+    occupied_days = 0
+    blocked_days = 0
+
+    for offset in range(days):
+        day = today + timedelta(days=offset)
+        for property_id in target_property_ids:
+            property_reservations = [reservation for reservation in reservations if str(reservation.get("property_id", "")).strip() == property_id]
+            if any(_reservation_is_occupying(reservation, day) for reservation in property_reservations):
+                occupied_days += 1
+                continue
+            if any(str((reservation.get("metadata") or {}).get("kind", "")).strip().lower() == "blocked_dates" and _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[1] and _reservation_date_bounds(reservation)[0].date() <= day < _reservation_date_bounds(reservation)[1].date() for reservation in property_reservations):
+                blocked_days += 1
+
+    available_days = max(total_property_days - occupied_days - blocked_days, 0)
+    return {
+        "occupied_days": occupied_days,
+        "available_days": available_days,
+        "blocked_days": blocked_days,
+        "occupancy_percent": int(round((occupied_days / total_property_days) * 100)) if total_property_days else 0,
+        "availability_percent": int(round((available_days / total_property_days) * 100)) if total_property_days else 0,
+    }
+
+
+def _property_availability_engine(property_record, reservations=None, operations_tasks=None):
+    property_record = property_record or {}
+    property_id = str(property_record.get("id", "")).strip()
+    reservations = [reservation for reservation in (reservations or _load_reservations(property_ids=[property_id])) if str(reservation.get("property_id", "")).strip() == property_id]
+    operations_tasks = operations_tasks or _load_operations_tasks()
+    today = datetime.now(timezone.utc).date()
+    active_reservations = [
+        reservation for reservation in reservations
+        if _reservation_is_stay(reservation)
+        and _normalize_reservation_status(reservation.get("status", "PENDING")) not in {"CANCELLED", "NO_SHOW"}
+    ]
+    current_guest = next((reservation for reservation in active_reservations if _reservation_is_occupying(reservation, today)), None)
+    upcoming_arrivals = sorted(
+        [reservation for reservation in active_reservations if (arrival := _reservation_date_bounds(reservation)[0]) and arrival.date() >= today],
+        key=lambda reservation: str(reservation.get("arrival_datetime", "")),
+    )
+    upcoming_departures = sorted(
+        [reservation for reservation in active_reservations if (departure := _reservation_date_bounds(reservation)[1]) and departure.date() >= today],
+        key=lambda reservation: str(reservation.get("departure_datetime", "")),
+    )
+    active_property_tasks = [
+        task for task in operations_tasks
+        if str(task.get("property_id", "")).strip() == property_id
+        and _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "WAITING_OPERATIONS"}
+    ]
+    cleaning_required = any("clean" in str(task.get("category", "")).lower() for task in active_property_tasks)
+    occupancy = _reservation_occupancy_engine(reservations, property_ids=[property_id])
+    days_free = occupancy["available_days"]
+    return {
+        "property_id": property_id,
+        "state": _reservation_property_status(property_record, reservations),
+        "availability_percent": occupancy["availability_percent"],
+        "occupancy_percent": occupancy["occupancy_percent"],
+        "upcoming_arrival": upcoming_arrivals[0] if upcoming_arrivals else None,
+        "upcoming_departure": upcoming_departures[0] if upcoming_departures else None,
+        "current_guest": current_guest,
+        "days_free": days_free,
+        "cleaning_required": cleaning_required,
+        "maintenance_required": any("maint" in str(task.get("category", "")).lower() for task in active_property_tasks),
+        "preparation_required": any("preparation" in str(task.get("category", "")).lower() or "welcome" in str(task.get("category", "")).lower() for task in active_property_tasks),
+    }
 
 
 def _reservation_dashboard_widgets(reservations, *, scope="owner"):
@@ -2265,6 +2716,22 @@ def _reservation_dashboard_widgets(reservations, *, scope="owner"):
     now = datetime.now(timezone.utc)
     today = now.date()
     tomorrow = today + timedelta(days=1)
+    property_ids = {str(reservation.get("property_id", "")).strip() for reservation in reservations if str(reservation.get("property_id", "")).strip()}
+    occupancy_engine = _reservation_occupancy_engine(reservations, property_ids=property_ids)
+    operations_tasks = _load_operations_tasks()
+    open_operations = [
+        task for task in operations_tasks
+        if (not property_ids or str(task.get("property_id", "")).strip() in property_ids)
+        and _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "WAITING_OPERATIONS"}
+    ]
+    todays_operations = [
+        task for task in open_operations
+        if str(task.get("due_date", "")).strip()[:10] == today.isoformat()
+    ]
+    late_operations = [
+        task for task in open_operations
+        if str(task.get("due_date", "")).strip()[:10] and str(task.get("due_date", "")).strip()[:10] < today.isoformat()
+    ]
 
     def _reservation_date(value):
         return _calendar_parse_datetime(value)[0]
@@ -2291,12 +2758,19 @@ def _reservation_dashboard_widgets(reservations, *, scope="owner"):
             "upcoming_arrivals": upcoming_arrivals[:5],
             "upcoming_departures": upcoming_departures[:5],
             "current_guests": current_guests[:5],
+            "todays_operations": todays_operations[:5],
             "next_cleaning": next_cleaning,
+            "occupancy": occupancy_engine,
+            "revenue_placeholder": "Pending channel revenue sync",
             "stats": {
                 "upcoming_arrivals": len(upcoming_arrivals),
                 "upcoming_departures": len(upcoming_departures),
                 "current_guests": len(current_guests),
+                "todays_operations": len(todays_operations),
                 "next_cleaning": 1 if next_cleaning else 0,
+                "occupancy": occupancy_engine["occupancy_percent"],
+                "availability": occupancy_engine["availability_percent"],
+                "revenue": 0,
             },
         }
 
@@ -2324,19 +2798,34 @@ def _reservation_dashboard_widgets(reservations, *, scope="owner"):
         if _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() >= today
         and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"}
     ]
-    occupancy = int(round((len(current_guests) / len(reservations)) * 100)) if reservations else 0
+    cleaning_today = [task for task in todays_operations if "clean" in str(task.get("category", "")).lower()]
+    checkins = [reservation for reservation in todays_check_ins if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"PENDING", "CONFIRMED", "CHECKED_IN"}]
     return {
         "todays_check_ins": todays_check_ins[:5],
         "todays_check_outs": todays_check_outs[:5],
         "current_guests": current_guests[:5],
         "cleaning_queue": cleaning_queue[:5],
         "inspections": inspections[:5],
+        "todays_operations": todays_operations[:5],
+        "late_operations": late_operations[:5],
+        "property_occupancy": occupancy_engine,
+        "cleaning_today": cleaning_today[:5],
+        "checkins": checkins[:5],
+        "revenue_placeholder": "Pending channel revenue sync",
         "stats": {
             "todays_check_ins": len(todays_check_ins),
             "todays_check_outs": len(todays_check_outs),
-            "occupancy": occupancy,
+            "occupancy": occupancy_engine["occupancy_percent"],
+            "availability": occupancy_engine["availability_percent"],
             "cleaning_queue": len(cleaning_queue),
             "inspections": len(inspections),
+            "arrivals_today": len(todays_check_ins),
+            "departures_today": len(todays_check_outs),
+            "cleaning_today": len(cleaning_today),
+            "checkins": len(checkins),
+            "late_operations": len(late_operations),
+            "todays_operations": len(todays_operations),
+            "revenue": 0,
         },
     }
 
@@ -2355,6 +2844,7 @@ def _reservation_list_context(*, owner_account=None, scope="admin", filters=None
     calendar_map = {str(event.get("metadata", {}).get("reservation_id", "")).strip() or str(event.get("operation_task_id", "")).strip(): event for event in calendar_events}
     property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
     owner_map = {str(account.get("id", "")).strip(): account for account in _load_owner_accounts()}
+    operations_tasks = _load_operations_tasks()
     for reservation in reservations:
         reservation["calendar_event"] = calendar_map.get(reservation.get("id", ""), _reservation_calendar_event(reservation))
         reservation["linked_operations"] = _reservation_linked_operations(reservation)
@@ -2365,6 +2855,7 @@ def _reservation_list_context(*, owner_account=None, scope="admin", filters=None
         reservation["property_name"] = str(property_record.get("name", "")).strip()
         reservation["property_location"] = str(property_record.get("location", "")).strip()
         reservation["property_status"] = _reservation_property_status(property_record, reservations)
+        reservation["property_availability"] = _property_availability_engine(property_record, reservations, operations_tasks)
     return {
         "reservations": reservations,
         "filters": filters or {},
@@ -2405,6 +2896,7 @@ def _reservation_detail_context(reservation, *, scope="admin", owner_account=Non
     property_reservations = _load_reservations(property_ids=[reservation.get("property_id", "")])
     owner_account_record = _find_owner_account(str((property_record or {}).get("owner_id", "")).strip()) if property_record else {}
     calendar_events = _load_calendar_events(property_ids=[reservation.get("property_id", "")])
+    operations_tasks = _load_operations_tasks()
     linked_operations = _reservation_linked_operations(reservation)
     timeline_events = _reservation_timeline_events(reservation)
     if scope == "owner":
@@ -2433,6 +2925,7 @@ def _reservation_detail_context(reservation, *, scope="admin", owner_account=Non
         "linked_operations": linked_operations,
         "calendar_event": calendar_event,
         "property_status": _reservation_property_status(property_record, property_reservations),
+        "property_availability": _property_availability_engine(property_record, property_reservations, operations_tasks),
     }
     return {
         "reservation": enriched_reservation,
@@ -2444,6 +2937,7 @@ def _reservation_detail_context(reservation, *, scope="admin", owner_account=Non
         "timeline": enriched_reservation["timeline"],
         "comments": enriched_reservation["comments"],
         "property_status": enriched_reservation["property_status"],
+        "property_availability": enriched_reservation["property_availability"],
         "can_view_internal_comments": scope == "admin",
         "status_options": [{"value": status, "label": _reservation_status_label(status)} for status in RESERVATION_STATUS_VALUES],
     }
@@ -2566,8 +3060,14 @@ def _reservation_import_build_preview_item(item, *, adapter_key, batch_id, conte
     source_metadata = source_metadata or {}
     normalized_item = dict(item or {})
     normalized_item["reservation_source"] = _normalize_reservation_source(imported_source or normalized_item.get("reservation_source", "Manual Reservation"))
+    normalized_item["reservation_reference"] = _reservation_import_normalize_text(normalized_item.get("reservation_reference", normalized_item.get("external_reference", "")))
+    normalized_item["external_reference"] = _reservation_import_normalize_text(normalized_item.get("external_reference", normalized_item["reservation_reference"]))
+    normalized_item["channel_name"] = _normalize_reservation_source(normalized_item.get("channel_name", normalized_item["reservation_source"]))
+    normalized_item["channel_status"] = _normalize_reservation_channel_status(normalized_item.get("channel_status", "SYNCED"))
+    normalized_item["last_sync"] = ""
     normalized_item["import_batch_id"] = batch_id
     normalized_item["source_metadata_json"] = json.dumps(source_metadata, ensure_ascii=False, separators=(",", ":"))
+    normalized_item["external_payload"] = json.dumps(source_metadata, ensure_ascii=False, separators=(",", ":"))
     normalized_item["sync_status"] = "PREVIEW"
     normalized_item["external_last_sync"] = ""
     normalized_item["created_by"] = _reservation_import_normalize_text(context.get("created_by", "")) or "system"
@@ -2635,7 +3135,7 @@ def _reservation_import_build_preview_item(item, *, adapter_key, batch_id, conte
 
 class ReservationImportAdapter:
     adapter_key = "base"
-    source_label = "Manual Reservation"
+    source_label = "Manual"
 
     def parse(self, payload, *, context=None):
         raise NotImplementedError
@@ -2643,7 +3143,7 @@ class ReservationImportAdapter:
 
 class ManualReservationAdapter(ReservationImportAdapter):
     adapter_key = "manual"
-    source_label = "Manual Reservation"
+    source_label = "Manual"
 
     def parse(self, payload, *, context=None):
         context = context or {}
@@ -2677,7 +3177,7 @@ class ManualReservationAdapter(ReservationImportAdapter):
 
 class CSVReservationAdapter(ReservationImportAdapter):
     adapter_key = "csv"
-    source_label = "CSV Import"
+    source_label = "CSV"
 
     def parse(self, payload, *, context=None):
         context = context or {}
@@ -2706,7 +3206,7 @@ class CSVReservationAdapter(ReservationImportAdapter):
                 "pets": int(normalized_row.get("pets", "0") or 0),
                 "arrival_datetime": normalized_row.get("arrival", "") or normalized_row.get("arrival_datetime", ""),
                 "departure_datetime": normalized_row.get("departure", "") or normalized_row.get("departure_datetime", ""),
-                "external_reference": normalized_row.get("external_reference", ""),
+                "external_reference": normalized_row.get("external_reference", "") or normalized_row.get("external reference", ""),
                 "notes": normalized_row.get("notes", ""),
                 "status": _normalize_reservation_status(normalized_row.get("status", "PENDING")),
             }
@@ -2781,12 +3281,12 @@ class ICalReservationAdapter(ReservationImportAdapter):
 
 class GoogleCalendarReservationAdapter(ICalReservationAdapter):
     adapter_key = "google_calendar"
-    source_label = "Google Calendar"
+    source_label = "iCal"
 
 
 class OTAReservationAdapter(ICalReservationAdapter):
     adapter_key = "ota"
-    source_label = "OTA Adapter"
+    source_label = "Direct Website"
 
 
 class ReservationImporter:
@@ -2877,6 +3377,11 @@ class ReservationImporter:
                 "updated_at": _utc_now_iso(),
                 "property_id": item.get("property_id", ""),
                 "reservation_source": preview_payload.get("source", item.get("reservation_source", "Manual Reservation")),
+                "reservation_reference": item.get("reservation_reference", item.get("external_reference", "")),
+                "channel_name": item.get("channel_name", preview_payload.get("source", item.get("reservation_source", "Manual Reservation"))),
+                "channel_status": "SYNCED",
+                "last_sync": _utc_now_iso(),
+                "external_payload": item.get("external_payload", item.get("source_metadata_json", "{}")),
                 "external_reference": item.get("external_reference", ""),
                 "external_last_sync": _utc_now_iso(),
                 "import_batch_id": preview_payload.get("batch_id", ""),
@@ -3379,7 +3884,12 @@ def _ensure_owner_db_schema(conn):
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 property_id TEXT NOT NULL,
-                reservation_source TEXT NOT NULL DEFAULT 'Manual Reservation',
+                reservation_source TEXT NOT NULL DEFAULT 'Manual',
+                reservation_reference TEXT NOT NULL DEFAULT '',
+                channel_name TEXT NOT NULL DEFAULT 'Manual',
+                channel_status TEXT NOT NULL DEFAULT 'SYNCED',
+                last_sync TEXT NOT NULL DEFAULT '',
+                external_payload TEXT NOT NULL DEFAULT '{}',
                 external_reference TEXT NOT NULL DEFAULT '',
                 external_last_sync TEXT NOT NULL DEFAULT '',
                 import_batch_id TEXT NOT NULL DEFAULT '',
@@ -3405,7 +3915,12 @@ def _ensure_owner_db_schema(conn):
         )
         existing_reservation_columns = _owner_table_columns(conn, "reservations")
         reservation_required_columns = {
-            "reservation_source": "TEXT NOT NULL DEFAULT 'Manual Reservation'",
+            "reservation_source": "TEXT NOT NULL DEFAULT 'Manual'",
+            "reservation_reference": "TEXT NOT NULL DEFAULT ''",
+            "channel_name": "TEXT NOT NULL DEFAULT 'Manual'",
+            "channel_status": "TEXT NOT NULL DEFAULT 'SYNCED'",
+            "last_sync": "TEXT NOT NULL DEFAULT ''",
+            "external_payload": "TEXT NOT NULL DEFAULT '{}'",
             "external_reference": "TEXT NOT NULL DEFAULT ''",
             "external_last_sync": "TEXT NOT NULL DEFAULT ''",
             "import_batch_id": "TEXT NOT NULL DEFAULT ''",
@@ -5295,6 +5810,7 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
             f"{current_status.replace('_', ' ').title()} -> {new_status.replace('_', ' ').title()}",
             status=new_status,
         )
+        _sync_reservation_from_operation_task({**task, "id": task_id, "status": new_status}, new_status)
         request_record = _find_service_request(task_id)
         if request_record:
             request_record["status"] = _operations_status_to_service_request_status(new_status)
@@ -8226,6 +8742,7 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
         status_note_key = "ownerPropertyStatusNoteOnboarding"
 
     checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
+    availability = _property_availability_engine(property_record, _load_reservations(property_ids=[property_record.get("id", "")]))
 
     return {
         "id": property_record.get("id", ""),
@@ -8248,6 +8765,7 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
         "created_at": str(property_record.get("created_at", "")).strip(),
         "checklist_completed": checklist_completed,
         "checklist_total": checklist_total,
+        "availability": availability,
     }
 
 
@@ -9010,6 +9528,8 @@ def _owner_property_detail_context(owner_account, property_record):
     checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
     service_requests = _owner_property_service_requests(owner_account, property_record)
     calendar = _property_calendar_context(property_record, owner_account)
+    property_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "")])
+    availability = _property_availability_engine(property_record, property_reservations)
     return {
         "property": {
             **property_record,
@@ -9019,10 +9539,12 @@ def _owner_property_detail_context(owner_account, property_record):
             "checklist_completed": checklist_completed,
             "checklist_total": checklist_total,
             "checklist_percent": int(round((checklist_completed / checklist_total) * 100)) if checklist_total else 0,
+            "availability": availability,
         },
         "checklist_items": checklist_items,
         "service_requests": service_requests,
         "calendar": calendar,
+        "availability": availability,
         "history_count": len(service_requests),
     }
 
@@ -9480,7 +10002,17 @@ def owners_reservations():
             "id": "",
             "property_id": property_id,
             "reservation_source": str(request.form.get("reservation_source", "Manual Reservation")).strip() or "Manual Reservation",
+            "reservation_reference": str(request.form.get("reservation_reference", request.form.get("external_reference", ""))).strip(),
             "external_reference": str(request.form.get("external_reference", "")).strip(),
+            "channel_name": str(request.form.get("channel_name", request.form.get("reservation_source", "Manual Reservation"))).strip(),
+            "channel_status": str(request.form.get("channel_status", "SYNCED")).strip(),
+            "last_sync": str(request.form.get("last_sync", "")).strip(),
+            "external_payload": {
+                "kind": metadata_kind,
+                "title": str(request.form.get("title", "")).strip(),
+                "notes": str(request.form.get("notes", "")).strip(),
+                "source": str(request.form.get("reservation_source", "Manual Reservation")).strip(),
+            },
             "guest_first_name": str(request.form.get("guest_first_name", "")).strip(),
             "guest_last_name": str(request.form.get("guest_last_name", "")).strip(),
             "guest_email": str(request.form.get("guest_email", "")).strip(),
@@ -10798,6 +11330,8 @@ def _admin_property_detail_context(property_record):
     property_events = _load_property_activity_events(property_record.get("id", ""))
     timeline = _admin_property_activity_timeline(property_record, owner_account, property_service_requests, property_events)
     calendar = _property_calendar_context(property_record, owner_account)
+    property_reservations = _load_reservations(property_ids=[property_record.get("id", "")])
+    availability = _property_availability_engine(property_record, property_reservations)
 
     checklist_items = [
         {
@@ -10841,6 +11375,7 @@ def _admin_property_detail_context(property_record):
         "timeline": timeline,
         "property_events": property_events,
         "calendar": calendar,
+        "availability": availability,
         "service_request_count": len(property_service_requests),
         "activity_count": len(timeline),
     }
@@ -14037,6 +14572,15 @@ def admin_reservation_detail(reservation_id):
         if action == "comment":
             comment_text = str(request.form.get("comment", "")).strip()
             _reservation_append_comment(reservation_id, comment_text, author=_current_admin_operator_key(), visibility="internal")
+        elif action == "status":
+            status_value = str(request.form.get("status", "")).strip()
+            if status_value:
+                _update_reservation_status(
+                    reservation_id,
+                    status_value,
+                    author=_current_admin_operator_key(),
+                    detail=str(request.form.get("status_detail", "")).strip(),
+                )
         return redirect(url_for("admin_reservation_detail", reservation_id=reservation_id))
 
     context = _reservation_detail_context(reservation, scope="admin")

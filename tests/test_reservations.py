@@ -319,7 +319,11 @@ class ReservationEngineTests(unittest.TestCase):
         self.assertEqual(len(reservations), 1)
         reservation = reservations[0]
         self.assertEqual(reservation["guest_first_name"], "Anna")
-        self.assertEqual(reservation["reservation_source"], "CSV Import")
+        self.assertEqual(reservation["reservation_source"], "CSV")
+        self.assertEqual(reservation["channel_name"], "CSV")
+        self.assertEqual(reservation["channel_status"], "SYNCED")
+        self.assertEqual(reservation["reservation_reference"], "CSV-001")
+        self.assertNotEqual(reservation["last_sync"], "")
         self.assertEqual(reservation["sync_status"], "IMPORTED")
         self.assertNotEqual(reservation["import_batch_id"], "")
         self.assertNotEqual(reservation["external_last_sync"], "")
@@ -329,6 +333,65 @@ class ReservationEngineTests(unittest.TestCase):
         self.assertEqual(len(linked_operations), 4)
         calendar_event = next(event for event in app_module._load_calendar_events() if event.get("metadata", {}).get("reservation_id") == reservation["id"])
         self.assertEqual(calendar_event["event_type"], "Reservation")
+
+    def test_reservation_lifecycle_transitions_sync_operations_timeline_and_availability(self):
+        arrival = datetime.now(timezone.utc) - timedelta(days=1)
+        departure = datetime.now(timezone.utc) + timedelta(days=4)
+
+        with patch.dict(os.environ, self.env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self._seed_owner(owner_id="owner-1", email="owner-one@example.com", full_name="Elena Petrova", city="Varna")
+            property_record = self._seed_property(property_id="property-1", owner_id="owner-1", name="Sea View Villa", location="Varna")
+            reservation = app_module._create_reservation({
+                "property_id": "property-1",
+                "reservation_source": "Airbnb",
+                "reservation_reference": "AIR-OTA-001",
+                "channel_name": "Airbnb",
+                "channel_status": "SYNCED",
+                "last_sync": datetime.now(timezone.utc).isoformat(),
+                "external_payload": {"adapter": "airbnb", "reservation_id": "AIR-OTA-001"},
+                "guest_first_name": "Mila",
+                "guest_last_name": "Stone",
+                "guest_email": "mila@example.com",
+                "arrival_datetime": arrival.strftime("%Y-%m-%dT%H:%M"),
+                "departure_datetime": departure.strftime("%Y-%m-%dT%H:%M"),
+                "status": "CONFIRMED",
+                "notes": "OTA lifecycle test.",
+            }, created_by="system:test")
+
+            checked_in = app_module._update_reservation_status(reservation["id"], "CHECKED_IN", author="admin:test")
+            checked_out = app_module._update_reservation_status(reservation["id"], "CHECKED_OUT", author="admin:test")
+
+            cleaning_task = next(task for task in app_module._load_operations_tasks() if task["source_id"] == reservation["id"] and "Cleaning" in task["category"])
+            with app.test_request_context("/admin/operations"):
+                completed_task = app_module._update_operations_task_status(cleaning_task["id"], "COMPLETED", source="test")
+
+        self.assertEqual(checked_in["status"], "CHECKED_IN")
+        self.assertEqual(checked_out["status"], "CHECKED_OUT")
+        self.assertEqual(completed_task["status"], "COMPLETED")
+
+        refreshed = app_module._find_reservation(reservation["id"])
+        timeline_titles = [event["title"] for event in app_module._reservation_timeline_events(refreshed)]
+        self.assertIn("Imported from Airbnb", timeline_titles)
+        self.assertIn("Guest checked in", timeline_titles)
+        self.assertIn("Guest checked out", timeline_titles)
+        self.assertIn("Cleaning completed", timeline_titles)
+
+        linked_operations = [task for task in app_module._load_operations_tasks() if task["source_type"] == "RESERVATION" and task["source_id"] == reservation["id"]]
+        categories = {task["category"] for task in linked_operations}
+        self.assertIn("Arrival Cleaning", categories)
+        self.assertIn("Check-in Preparation", categories)
+        self.assertIn("Welcome Pack", categories)
+        self.assertIn("Guest Inspection", categories)
+        self.assertIn("Departure Cleaning", categories)
+        self.assertIn("Maintenance Review", categories)
+
+        reservation_event = next(event for event in app_module._load_calendar_events() if event.get("metadata", {}).get("reservation_id") == reservation["id"])
+        self.assertEqual(reservation_event["status"], "COMPLETED")
+
+        availability = app_module._property_availability_engine(property_record, app_module._load_reservations(property_ids=["property-1"]))
+        self.assertGreaterEqual(availability["availability_percent"], 0)
+        self.assertGreaterEqual(availability["occupancy_percent"], 0)
+        self.assertTrue(availability["cleaning_required"])
 
     def test_reservation_import_ical_parsing_duplicate_detection_and_rollback(self):
         ics_text = """BEGIN:VCALENDAR
