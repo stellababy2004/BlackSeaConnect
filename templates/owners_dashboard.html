@@ -29,6 +29,7 @@
         <nav class="site-nav" aria-label="{{ ui.nav_portal }}">
           <a class="site-nav__link is-active" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ ui.nav_portal }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ ui.nav_request_service }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/reservations') }}">Reservations</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/calendar') }}">Calendar</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">{{ ui.nav_logout }}</a>
           <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ ui.nav_home }}</a>
@@ -249,6 +250,66 @@
               </div>
             {% else %}
               <p class="owner-portal-card__subcopy">No calendar events are scheduled yet.</p>
+            {% endif %}
+          </article>
+        </div>
+      </section>
+
+      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-reservations-title">
+        <div class="section-heading">
+          <p class="section-heading__eyebrow">Booking engine</p>
+          <h2 id="owner-reservations-title">Reservations and availability</h2>
+        </div>
+        <div class="owner-portal-grid owner-portal-grid--overview">
+          <article class="owner-portal-card owner-portal-card--snapshot">
+            <p class="owner-portal-card__eyebrow">Reservation widgets</p>
+            <div class="owner-kpi-grid">
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Upcoming arrivals</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.reservation_widget.stats.upcoming_arrivals }}</strong>
+                <span class="owner-kpi-card__support">Synced from reservations</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Upcoming departures</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.reservation_widget.stats.upcoming_departures }}</strong>
+                <span class="owner-kpi-card__support">Departure coordination</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Current guests</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.reservation_widget.stats.current_guests }}</strong>
+                <span class="owner-kpi-card__support">In-house stays</span>
+              </article>
+              <article class="owner-kpi-card">
+                <p class="owner-kpi-card__label">Next cleaning</p>
+                <strong class="owner-kpi-card__value">{{ owner_portal.reservation_widget.stats.next_cleaning }}</strong>
+                <span class="owner-kpi-card__support">Turnover planning</span>
+              </article>
+            </div>
+            <div class="hero__cta" style="margin-top: 14px;">
+              <a class="button button--primary" href="{{ localized_url('/owners/reservations') }}">Open reservations</a>
+              <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+            </div>
+          </article>
+          <article class="owner-portal-card owner-portal-card--activity">
+            <div class="owner-portal-card__header" style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+              <p class="owner-portal-card__eyebrow" style="margin:0;">Upcoming arrivals</p>
+              <a class="button button--ghost" href="{{ localized_url('/owners/reservations') }}">View reservations</a>
+            </div>
+            {% if owner_portal.reservation_widget.upcoming_arrivals %}
+              <div class="owner-activity-list">
+                {% for reservation in owner_portal.reservation_widget.upcoming_arrivals %}
+                  <div class="owner-activity-item">
+                    <div class="owner-activity-item__meta">
+                      <span class="owner-status-badge owner-status-badge--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
+                      <time>{{ reservation.arrival_datetime|e }}</time>
+                    </div>
+                    <strong>{{ reservation.guest_label|e }}</strong>
+                    <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="owner-portal-card__subcopy">No upcoming arrivals yet.</p>
             {% endif %}
           </article>
         </div>

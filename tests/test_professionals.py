@@ -827,7 +827,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
 
         self.assertEqual(complete_response.status_code, 302)
         task_record = app_module._find_operations_task("task-lifecycle")
-        self.assertEqual(task_record["status"], "DONE")
+        self.assertIn(task_record["status"], {"DONE", "COMPLETED"})
         events = app_module._load_operations_task_events("task-lifecycle")
         event_types = [event["event_type"] for event in events]
         self.assertIn("professional_accepted", event_types)
@@ -840,5 +840,79 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn(calendar_events[0]["status"], {"DONE", "COMPLETED"})
 
         notifications = app_module._load_operations_notifications()
+        self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
+        self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
+
+    def test_professional_arrival_workflow_completion_report_and_placeholders(self):
+        self._seed_professional_account(
+            full_name="Workflow Professional",
+            email="workflow-pro@example.com",
+            status="ACTIVE",
+            professional_category="Maintenance",
+            account_id="professional-workflow-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("workflow-pro@example.com")
+        self.assertIsNotNone(account)
+        today = datetime.now(timezone.utc).date().isoformat()
+        self._seed_operations_task(
+            "task-workflow",
+            title="Workflow task",
+            due_date=today,
+            status="ASSIGNED",
+            assigned_professional_id=account["id"],
+            assigned_to="Workflow Professional",
+        )
+
+        self._login_professional_via_magic("workflow-pro@example.com")
+        FakeSMTP.sent_messages.clear()
+
+        with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "accept"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "on_the_way"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "arrived"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "pause", "note": "Waiting for a spare key."}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "resume"}).status_code, 302)
+            self.assertEqual(self.client.post(
+                "/professionals/tasks/task-workflow",
+                data={
+                    "task_action": "complete",
+                    "completed_work": "Replaced the filter and verified the unit.",
+                    "materials_used": "Filter cartridge, cleaning spray",
+                    "time_spent_minutes": "95",
+                    "recommendations": "Schedule a follow-up inspection next month.",
+                    "follow_up_needed": "None",
+                    "completion_notes": "Closeout notes saved.",
+                    "attachment_category": "after_photos",
+                    "attachment_name": "after-photo-placeholder.jpg",
+                },
+            ).status_code, 302)
+
+        task_record = app_module._find_operations_task("task-workflow")
+        self.assertEqual(task_record["status"], "COMPLETED")
+        self.assertEqual(task_record["completion_report"]["completed_work"], "Replaced the filter and verified the unit.")
+        self.assertEqual(task_record["completion_report"]["materials_used"], "Filter cartridge, cleaning spray")
+        self.assertEqual(task_record["completion_report"]["time_spent_minutes"], "95")
+        self.assertEqual(task_record["completion_report"]["recommendations"], "Schedule a follow-up inspection next month.")
+        self.assertEqual(task_record["completion_report"]["follow_up_needed"], "None")
+        self.assertTrue(any(item.get("category") == "after_photos" for item in task_record["attachments"]))
+
+        events = app_module._load_operations_task_events("task-workflow")
+        event_types = [event["event_type"] for event in events]
+        self.assertIn("professional_accepted", event_types)
+        self.assertIn("professional_on_the_way", event_types)
+        self.assertIn("professional_arrived", event_types)
+        self.assertIn("professional_paused", event_types)
+        self.assertIn("professional_resumed", event_types)
+        self.assertIn("professional_completed", event_types)
+        self.assertIn("attachment_added", event_types)
+        self.assertIn("completion_report_updated", event_types)
+        self.assertTrue(any(event["event_type"] == "workflow_transitioned" for event in events))
+
+        calendar_events = [event for event in app_module._load_calendar_events() if event.get("operation_task_id") == "task-workflow"]
+        self.assertTrue(calendar_events)
+        self.assertEqual(calendar_events[0]["status"], "COMPLETED")
+
+        notifications = app_module._load_operations_notifications()
+        self.assertTrue(any(row["metadata"] == "professional_workflow" for row in notifications))
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))

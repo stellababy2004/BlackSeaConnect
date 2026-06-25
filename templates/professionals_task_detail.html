@@ -7,83 +7,232 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .professional-task-page { min-height: 100vh; background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%); color:#1f2937; padding:28px 20px 52px; }
-    .professional-task-shell { max-width: 1240px; margin: 0 auto; display:grid; gap:18px; }
+    .professional-task-shell { max-width: 1280px; margin: 0 auto; display:grid; gap:18px; }
     .professional-panel { background: rgba(255,255,255,0.86); border:1px solid rgba(155,123,47,0.16); border-radius:28px; box-shadow:0 18px 48px rgba(31,41,55,0.08); backdrop-filter:blur(18px); padding:26px; }
+    .professional-hero { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap; }
     .professional-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
+    .professional-grid { display:grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap:18px; }
+    .professional-grid-two-up { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px; }
+    .professional-stack { display:grid; gap:18px; }
     .professional-task-actions { display:flex; gap:10px; flex-wrap:wrap; }
     .professional-form { display:grid; gap:12px; }
-    .professional-form textarea { width:100%; min-height:120px; border-radius:16px; border:1px solid rgba(31,41,55,0.14); padding:12px 14px; font:inherit; resize:vertical; }
+    .professional-form textarea,
+    .professional-form input,
+    .professional-form select { width:100%; border-radius:16px; border:1px solid rgba(31,41,55,0.14); padding:12px 14px; font:inherit; background:#fff; color:#1f2937; }
+    .professional-form textarea { min-height:120px; resize:vertical; }
+    .professional-form small { color:#6b7280; line-height:1.55; }
+    .professional-dl { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
+    .professional-dl > div { padding:14px; border-radius:18px; background:rgba(251,247,238,0.86); border:1px solid rgba(31,41,55,0.06); }
+    .professional-dl dt { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#8b6d2b; font-weight:700; margin-bottom:6px; }
+    .professional-dl dd { margin:0; line-height:1.55; word-break:break-word; }
+    .professional-list { display:grid; gap:10px; }
+    .professional-list-item { padding:14px 16px; border-radius:18px; background:rgba(255,255,255,0.74); border:1px solid rgba(31,41,55,0.08); }
+    .professional-list-item__topline { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .professional-list-item p { margin:8px 0 0; color:#4b5563; line-height:1.6; }
     .professional-timeline { display:grid; gap:10px; }
-    .professional-timeline__item { padding:14px 16px; border-radius:18px; background:rgba(255,255,255,0.74); border:1px solid rgba(31,41,55,0.08); }
-    .professional-timeline__topline { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
-    .professional-timeline__item p { margin:8px 0 0; color:#4b5563; line-height:1.6; }
+    .professional-kicker { color:#8b6d2b; text-transform:uppercase; letter-spacing:0.08em; font-size:12px; font-weight:700; }
+    .professional-photo-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
+    .professional-photo-slot { padding:14px; border-radius:18px; border:1px dashed rgba(31,41,55,0.14); background:rgba(251,247,238,0.56); }
+    .professional-photo-slot strong { display:block; margin-bottom:6px; }
+    .professional-photo-slot p { margin:0; color:#6b7280; line-height:1.55; }
+    .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; }
+    @media (max-width: 920px) {
+      .professional-grid,
+      .professional-grid-two-up,
+      .professional-dl { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body class="professional-task-page">
   <main class="professional-task-shell">
-    <section class="professional-panel">
-      <div class="professional-meta">
-        <span class="professional-badge">{{ task.status_label|e }}</span>
-        <span class="professional-badge">{{ task.priority_label|e }}</span>
-        <span class="professional-badge">{{ task.assigned_professional_label|e }}</span>
+    <section class="professional-panel professional-hero">
+      <div>
+        <div class="professional-meta">
+          <span class="professional-badge">{{ task.status_label|e }}</span>
+          <span class="professional-badge">{{ task.priority_label|e }}</span>
+          <span class="professional-badge">{{ task.assigned_professional_label|e }}</span>
+        </div>
+        <h1 style="margin:10px 0 8px;">{{ task.title|e }}</h1>
+        <p style="margin:0;color:#4b5563;line-height:1.65;">{{ task.property_name|e or task.property_location|e or 'Property not set' }}</p>
+        <p style="margin:0;color:#4b5563;line-height:1.65;">Due date: {{ task.due_date|e or 'Not set' }}</p>
       </div>
-      <h1 style="margin:10px 0 8px;">{{ task.title|e }}</h1>
-      <p style="margin:0;color:#4b5563;line-height:1.65;">{{ task.property_name|e or task.property_location|e }}</p>
-      <p style="margin:0;color:#4b5563;line-height:1.65;">Due date: {{ task.due_date|e or 'Not set' }}</p>
-      <div class="professional-task-actions" style="margin-top:16px;">
+      <div class="professional-task-actions">
         <a class="button button--secondary" href="/professionals/tasks">Back to tasks</a>
         <a class="button button--ghost" href="/professionals/dashboard">Dashboard</a>
       </div>
     </section>
 
-    <section class="professional-task-shell" style="grid-template-columns:minmax(0,1fr) minmax(0,0.9fr);">
-      <article class="professional-panel">
-        <div class="professional-task-actions">
-          <form method="post" action="/professionals/tasks/{{ task.request_id|e }}">
-            <input type="hidden" name="task_action" value="accept">
-            <button class="button button--primary" type="submit">Accept task</button>
-          </form>
-          <form method="post" action="/professionals/tasks/{{ task.request_id|e }}">
-            <input type="hidden" name="task_action" value="start">
-            <button class="button button--secondary" type="submit">Mark in progress</button>
-          </form>
-        </div>
-        <form class="professional-form" method="post" action="/professionals/tasks/{{ task.request_id|e }}" style="margin-top:18px;">
-          <input type="hidden" name="task_action" value="complete">
-          <label>
-            <span>Completion note</span>
-            <textarea name="note" placeholder="What was completed? Any follow-up items?"></textarea>
-          </label>
-          <button class="button button--primary" type="submit">Mark completed</button>
-        </form>
-        <form class="professional-form" method="post" action="/professionals/tasks/{{ task.request_id|e }}" style="margin-top:18px;">
-          <input type="hidden" name="task_action" value="comment">
-          <label>
-            <span>Internal comment</span>
-            <textarea name="note" placeholder="Share an internal update with the operations team"></textarea>
-          </label>
-          <button class="button button--secondary" type="submit">Add comment</button>
-        </form>
-      </article>
+    <section class="professional-grid">
+      <div class="professional-stack">
+        <article class="professional-panel">
+          <p class="professional-kicker">Task summary</p>
+          <h2>Execution details</h2>
+          <dl class="professional-dl">
+            <div><dt>Assignment</dt><dd>{{ task.assigned_professional_label|e }}</dd></div>
+            <div><dt>Priority</dt><dd>{{ task.priority_label|e }}</dd></div>
+            <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
+            <div><dt>Category</dt><dd>{{ task.category|e or 'Operational task' }}</dd></div>
+            <div><dt>Property</dt><dd>{{ task.property_name|e or task.property_location|e or 'Not set' }}</dd></div>
+            <div><dt>Owner</dt><dd>{{ task.owner_name|e or task.owner_email|e or 'Not set' }}</dd></div>
+          </dl>
+        </article>
 
-      <article class="professional-panel">
-        <p class="eyebrow">Timeline</p>
-        <h2>Task history</h2>
-        <div class="professional-timeline">
-          {% for event in timeline %}
-            <div class="professional-timeline__item">
-              <div class="professional-timeline__topline">
-                <strong>{{ event.title|e }}</strong>
-                <time>{{ event.created_at|e }}</time>
-              </div>
-              {% if event.detail %}<p>{{ event.detail|e }}</p>{% endif %}
+        <article class="professional-panel">
+          <p class="professional-kicker">Property and owner</p>
+          <h2>Context</h2>
+          <dl class="professional-dl">
+            <div><dt>Property info</dt><dd>{{ task.property_location|e or 'Location not set' }}</dd></div>
+            <div><dt>Owner info</dt><dd>{{ task.owner_name|e or 'Owner not set' }}{% if task.owner_email %}<br>{{ task.owner_email|e }}{% endif %}</dd></div>
+            <div><dt>Contact buttons</dt><dd class="professional-task-actions"><a class="button button--ghost" href="mailto:{{ task.owner_email|e }}">Email owner</a>{% if task.owner_email %}<a class="button button--ghost" href="tel:{{ task.owner_email|e }}">Call owner</a>{% endif %}</dd></div>
+            <div><dt>Navigation</dt><dd class="professional-task-actions"><a class="button button--secondary" href="/admin/operations/{{ task.request_id|e }}">Open Operations detail</a></dd></div>
+          </dl>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Status controls</p>
+          <h2>Arrival workflow</h2>
+          <div class="professional-status-controls">
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">Accept task</button></form>
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--secondary" type="submit">On My Way</button></form>
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--secondary" type="submit">Arrived</button></form>
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="start"><button class="button button--secondary" type="submit">Start Work</button></form>
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="pause"><button class="button button--ghost" type="submit">Pause</button></form>
+            <form method="post" action="/professionals/tasks/{{ task.request_id|e }}"><input type="hidden" name="task_action" value="resume"><button class="button button--ghost" type="submit">Resume</button></form>
+          </div>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Completion report</p>
+          <h2>Report and closeout</h2>
+          <form class="professional-form" method="post" action="/professionals/tasks/{{ task.request_id|e }}" enctype="multipart/form-data">
+            <input type="hidden" name="task_action" value="complete">
+            <label><span>Completed work</span><textarea name="completed_work" placeholder="Summarize what was completed."></textarea></label>
+            <label><span>Materials used</span><textarea name="materials_used" placeholder="List materials, parts, or supplies used."></textarea></label>
+            <label><span>Time spent (minutes)</span><input type="number" name="time_spent_minutes" min="0" placeholder="90"></label>
+            <label><span>Recommendations</span><textarea name="recommendations" placeholder="Any recommendations for Operations or the owner?"></textarea></label>
+            <label><span>Follow-up needed</span><textarea name="follow_up_needed" placeholder="Describe any follow-up that remains."></textarea></label>
+            <label><span>Completion notes</span><textarea name="completion_notes" placeholder="Optional note for the completion timeline."></textarea></label>
+            <label><span>Evidence placeholder category</span>
+              <select name="attachment_category">
+                <option value="">No evidence placeholder</option>
+                <option value="before_photos">Before photos</option>
+                <option value="after_photos">After photos</option>
+                <option value="damage_photos">Damage photos</option>
+                <option value="invoice_photos">Invoice photos</option>
+                <option value="receipt_photos">Receipt photos</option>
+              </select>
+            </label>
+            <label><span>Evidence file</span><input type="file" name="attachment_file"></label>
+            <label><span>Evidence note</span><input type="text" name="attachment_name" placeholder="Optional file name or placeholder note"></label>
+            <div class="professional-photo-grid">
+              <div class="professional-photo-slot"><strong>Before photos</strong><p>Placeholder only, references saved in SQLite.</p></div>
+              <div class="professional-photo-slot"><strong>After photos</strong><p>Placeholder only, references saved in SQLite.</p></div>
+              <div class="professional-photo-slot"><strong>Damage photos</strong><p>Placeholder only, references saved in SQLite.</p></div>
+              <div class="professional-photo-slot"><strong>Invoice photos</strong><p>Placeholder only, references saved in SQLite.</p></div>
+              <div class="professional-photo-slot"><strong>Receipt photos</strong><p>Placeholder only, references saved in SQLite.</p></div>
             </div>
-          {% else %}
-            <p>No timeline entries yet.</p>
-          {% endfor %}
-        </div>
-      </article>
+            <button class="button button--primary" type="submit">Complete Work</button>
+          </form>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Internal comments</p>
+          <h2>Operations discussion</h2>
+          <form class="professional-form" method="post" action="/professionals/tasks/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="comment">
+            <label>
+              <span>Add internal comment</span>
+              <textarea name="note" placeholder="Share an update with Operations. Owners do not see this."></textarea>
+            </label>
+            <button class="button button--secondary" type="submit">Add comment</button>
+          </form>
+        </article>
+      </div>
+
+      <div class="professional-stack">
+        <article class="professional-panel">
+          <p class="professional-kicker">Checklist</p>
+          <h2>Task checklist</h2>
+          <div class="professional-list">
+            {% for item in task.checklist_items or [] %}
+              <div class="professional-list-item">
+                <div class="professional-list-item__topline">
+                  <strong>{{ item.label|e }}</strong>
+                  <span class="professional-badge">{{ 'Done' if item.checked else 'Open' }}</span>
+                </div>
+              </div>
+            {% else %}
+              <p>No checklist items are configured yet.</p>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Attachments</p>
+          <h2>Before / after evidence</h2>
+          <div class="professional-list">
+            {% for attachment in task.attachments or [] %}
+              <div class="professional-list-item">
+                <div class="professional-list-item__topline">
+                  <strong>{{ attachment.name|e }}</strong>
+                  <time>{{ attachment.created_at|e }}</time>
+                </div>
+                <p>{% if attachment.slot %}{{ attachment.slot|replace('_', ' ')|title|e }}{% elif attachment.category %}{{ attachment.category|replace('_', ' ')|title|e }}{% else %}Attachment{% endif %}{% if attachment.uploaded_by %} · {{ attachment.uploaded_by|e }}{% endif %}</p>
+              </div>
+            {% else %}
+              <p>No attachment placeholders yet.</p>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Completion report</p>
+          <h2>Latest report</h2>
+          <div class="professional-list">
+            <div class="professional-list-item">
+              <div class="professional-list-item__topline">
+                <strong>Completed work</strong>
+              </div>
+              <p>{{ task.completion_report.completed_work|e or 'No completion report saved yet.' }}</p>
+            </div>
+            <div class="professional-list-item">
+              <div class="professional-list-item__topline"><strong>Materials used</strong></div>
+              <p>{{ task.completion_report.materials_used|e or 'Not recorded.' }}</p>
+            </div>
+            <div class="professional-list-item">
+              <div class="professional-list-item__topline"><strong>Recommendations</strong></div>
+              <p>{{ task.completion_report.recommendations|e or 'Not recorded.' }}</p>
+            </div>
+            <div class="professional-list-item">
+              <div class="professional-list-item__topline"><strong>Follow-up needed</strong></div>
+              <p>{{ task.completion_report.follow_up_needed|e or 'Not recorded.' }}</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="professional-panel">
+          <p class="professional-kicker">Timeline</p>
+          <h2>Task history</h2>
+          <div class="professional-timeline">
+            {% for event in timeline %}
+              <div class="professional-list-item">
+                <div class="professional-list-item__topline">
+                  <strong>{{ event.title|e }}</strong>
+                  <time>{{ event.created_at|e }}</time>
+                </div>
+                <div class="professional-meta" style="margin-top:8px;">
+                  <span class="professional-badge">{{ event.event_type|replace('_', ' ')|title|e }}</span>
+                  <span class="professional-badge">{{ event.status|e }}</span>
+                </div>
+                {% if event.detail %}<p>{{ event.detail|e }}</p>{% endif %}
+              </div>
+            {% else %}
+              <p>No timeline entries yet.</p>
+            {% endfor %}
+          </div>
+        </article>
+      </div>
     </section>
   </main>
 </body>

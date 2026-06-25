@@ -223,24 +223,37 @@ SERVICE_REQUEST_STATUS_ALIASES = {
 OPERATIONS_TASK_STATUS_VALUES = (
     "NEW",
     "ASSIGNED",
+    "ACCEPTED",
+    "ON_THE_WAY",
+    "ARRIVED",
     "IN_PROGRESS",
+    "PAUSED",
     "WAITING_OWNER",
-    "WAITING_PROVIDER",
-    "DONE",
+    "WAITING_OPERATIONS",
+    "COMPLETED",
     "ARCHIVED",
 )
 OPERATIONS_TASK_STATUS_ALIASES = {
     "new": "NEW",
     "assigned": "ASSIGNED",
+    "accepted": "ACCEPTED",
+    "on the way": "ON_THE_WAY",
+    "on_the_way": "ON_THE_WAY",
+    "on-my-way": "ON_THE_WAY",
+    "on my way": "ON_THE_WAY",
+    "arrived": "ARRIVED",
     "in progress": "IN_PROGRESS",
     "in_progress": "IN_PROGRESS",
     "started": "IN_PROGRESS",
+    "paused": "PAUSED",
     "waiting owner": "WAITING_OWNER",
     "waiting_owner": "WAITING_OWNER",
-    "waiting provider": "WAITING_PROVIDER",
-    "waiting_provider": "WAITING_PROVIDER",
-    "done": "DONE",
-    "completed": "DONE",
+    "waiting operations": "WAITING_OPERATIONS",
+    "waiting_operations": "WAITING_OPERATIONS",
+    "waiting provider": "WAITING_OPERATIONS",
+    "waiting_provider": "WAITING_OPERATIONS",
+    "done": "COMPLETED",
+    "completed": "COMPLETED",
     "archived": "ARCHIVED",
     "cancelled": "ARCHIVED",
     "canceled": "ARCHIVED",
@@ -259,18 +272,70 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "assigned",
     "status_changed",
     "completed",
+    "audit_logged",
+    "workflow_transitioned",
     "note_added",
     "checklist_updated",
     "comment_added",
+    "comment_added_internal",
+    "attachment_added",
+    "completion_report_updated",
     "professional_assigned",
     "professional_accepted",
     "professional_started",
+    "professional_on_the_way",
+    "professional_arrived",
+    "professional_paused",
+    "professional_resumed",
     "professional_completed",
     "professional_comment_added",
+}
+RESERVATION_STATUS_VALUES = (
+    "PENDING",
+    "CONFIRMED",
+    "CHECKED_IN",
+    "CHECKED_OUT",
+    "CANCELLED",
+)
+RESERVATION_STATUS_ALIASES = {
+    "pending": "PENDING",
+    "confirmed": "CONFIRMED",
+    "checked in": "CHECKED_IN",
+    "checkin": "CHECKED_IN",
+    "checked_in": "CHECKED_IN",
+    "checked out": "CHECKED_OUT",
+    "checkout": "CHECKED_OUT",
+    "checked_out": "CHECKED_OUT",
+    "cancelled": "CANCELLED",
+    "canceled": "CANCELLED",
+}
+RESERVATION_SOURCE_VALUES = (
+    "Manual Reservation",
+    "Direct Booking",
+    "CSV Import",
+    "iCal",
+    "Google Calendar",
+    "Airbnb",
+    "Booking.com",
+    "VRBO",
+)
+RESERVATION_SOURCE_ALIASES = {
+    "manual": "Manual Reservation",
+    "manual reservation": "Manual Reservation",
+    "direct booking": "Direct Booking",
+    "csv": "CSV Import",
+    "csv import": "CSV Import",
+    "ical": "iCal",
+    "google calendar": "Google Calendar",
+    "airbnb": "Airbnb",
+    "booking.com": "Booking.com",
+    "booking": "Booking.com",
+    "vrbo": "VRBO",
 }
 CALENDAR_EVENT_TYPE_VALUES = (
     "Check-in",
     "Check-out",
+    "Reservation",
     "Cleaning",
     "Inspection",
     "Maintenance",
@@ -291,6 +356,7 @@ CALENDAR_EVENT_TYPE_ALIASES = {
     "check out": "Check-out",
     "check-out": "Check-out",
     "checkout": "Check-out",
+    "reservation": "Reservation",
     "clean": "Cleaning",
     "cleaning": "Cleaning",
     "inspection": "Inspection",
@@ -327,6 +393,7 @@ CALENDAR_EXTERNAL_INTEGRATION_POINTS = (
     "Outlook",
 )
 CALENDAR_EVENT_COLOR_BY_TYPE = {
+    "Reservation": "blue",
     "Cleaning": "green",
     "Inspection": "blue",
     "Maintenance": "orange",
@@ -370,6 +437,7 @@ OPERATIONS_TASK_SOURCE_TYPES = (
     "CONCIERGE_REQUEST",
     "SERVICE_REQUEST",
     "OWNER_SERVICE_REQUEST",
+    "RESERVATION",
 )
 OPERATIONS_TASK_CHECKLIST_ITEMS = (
     ("cleaning", "Cleaning"),
@@ -385,28 +453,40 @@ OPERATIONS_TASK_CHECKLIST_ITEMS = (
 OPERATIONS_TASK_BOARD_STATUSES = (
     "NEW",
     "ASSIGNED",
+    "ACCEPTED",
+    "ON_THE_WAY",
+    "ARRIVED",
     "IN_PROGRESS",
+    "PAUSED",
     "WAITING_OWNER",
-    "WAITING_PROVIDER",
-    "DONE",
+    "WAITING_OPERATIONS",
+    "COMPLETED",
     "ARCHIVED",
 )
 OPERATIONS_TASK_STATUS_LABELS = {
     "NEW": "New",
     "ASSIGNED": "Assigned",
+    "ACCEPTED": "Accepted",
+    "ON_THE_WAY": "On the Way",
+    "ARRIVED": "Arrived",
     "IN_PROGRESS": "In Progress",
+    "PAUSED": "Paused",
     "WAITING_OWNER": "Waiting Owner",
-    "WAITING_PROVIDER": "Waiting Provider",
-    "DONE": "Completed",
+    "WAITING_OPERATIONS": "Waiting Operations",
+    "COMPLETED": "Completed",
     "ARCHIVED": "Archived",
 }
 OPERATIONS_TASK_STATUS_TONES = {
     "NEW": "new",
     "ASSIGNED": "assigned",
+    "ACCEPTED": "assigned",
+    "ON_THE_WAY": "in-progress",
+    "ARRIVED": "in-progress",
     "IN_PROGRESS": "in-progress",
+    "PAUSED": "waiting-provider",
     "WAITING_OWNER": "waiting-owner",
-    "WAITING_PROVIDER": "waiting-provider",
-    "DONE": "done",
+    "WAITING_OPERATIONS": "waiting-provider",
+    "COMPLETED": "done",
     "ARCHIVED": "archived",
 }
 
@@ -550,6 +630,9 @@ def _operations_task_comments(comments_value):
             "created_at": str(item.get("created_at", "")).strip(),
             "operator": str(item.get("operator", "")).strip(),
             "comment": str(item.get("comment", "")).strip(),
+            "type": str(item.get("type", "General")).strip() or "General",
+            "visibility": str(item.get("visibility", "internal")).strip() or "internal",
+            "author_role": str(item.get("author_role", "")).strip(),
         })
     comments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return comments
@@ -577,9 +660,42 @@ def _operations_task_attachments(attachments_value):
             "name": str(item.get("name", "")).strip(),
             "url": str(item.get("url", "")).strip(),
             "uploaded_by": str(item.get("uploaded_by", "")).strip(),
+            "category": str(item.get("category", "")).strip(),
+            "slot": str(item.get("slot", "")).strip(),
+            "mime_type": str(item.get("mime_type", "")).strip(),
         })
     attachments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return attachments
+
+
+def _operations_task_completion_report(report_value):
+    if isinstance(report_value, str):
+        raw_value = report_value.strip()
+        if not raw_value:
+            return {
+                "completed_work": "",
+                "materials_used": "",
+                "time_spent_minutes": "",
+                "recommendations": "",
+                "follow_up_needed": "",
+                "notes": "",
+            }
+        try:
+            report_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            report_value = {}
+
+    if not isinstance(report_value, dict):
+        report_value = {}
+
+    return {
+        "completed_work": str(report_value.get("completed_work", "")).strip(),
+        "materials_used": str(report_value.get("materials_used", "")).strip(),
+        "time_spent_minutes": str(report_value.get("time_spent_minutes", "")).strip(),
+        "recommendations": str(report_value.get("recommendations", "")).strip(),
+        "follow_up_needed": str(report_value.get("follow_up_needed", "")).strip(),
+        "notes": str(report_value.get("notes", "")).strip(),
+    }
 
 
 def _service_request_status_to_operations_status(status):
@@ -588,8 +704,8 @@ def _service_request_status_to_operations_status(status):
         "new": "NEW",
         "assigned": "ASSIGNED",
         "in_progress": "IN_PROGRESS",
-        "completed": "DONE",
-        "cancelled": "DONE",
+        "completed": "COMPLETED",
+        "cancelled": "ARCHIVED",
     }.get(normalized, "NEW")
 
 
@@ -598,8 +714,14 @@ def _operations_status_to_service_request_status(status):
     return {
         "NEW": "new",
         "ASSIGNED": "assigned",
+        "ACCEPTED": "in_progress",
+        "ON_THE_WAY": "in_progress",
+        "ARRIVED": "in_progress",
         "IN_PROGRESS": "in_progress",
-        "DONE": "completed",
+        "PAUSED": "in_progress",
+        "WAITING_OWNER": "in_progress",
+        "WAITING_OPERATIONS": "in_progress",
+        "COMPLETED": "completed",
         "ARCHIVED": "cancelled",
     }.get(normalized, "new")
 
@@ -638,10 +760,14 @@ def _operations_task_status_event(status):
     return {
         "NEW": ("status_changed", "Status changed to New"),
         "ASSIGNED": ("assigned", "Assigned"),
+        "ACCEPTED": ("status_changed", "Status changed to Accepted"),
+        "ON_THE_WAY": ("status_changed", "Status changed to On the way"),
+        "ARRIVED": ("status_changed", "Status changed to Arrived"),
         "IN_PROGRESS": ("status_changed", "Status changed to In progress"),
-        "DONE": ("completed", "Completed"),
+        "PAUSED": ("status_changed", "Status changed to Paused"),
         "WAITING_OWNER": ("status_changed", "Status changed to Waiting owner"),
-        "WAITING_PROVIDER": ("status_changed", "Status changed to Waiting provider"),
+        "WAITING_OPERATIONS": ("status_changed", "Status changed to Waiting operations"),
+        "COMPLETED": ("completed", "Completed"),
         "ARCHIVED": ("status_changed", "Status changed to Archived"),
     }.get(normalized, ("task_created", "Task created"))
 
@@ -989,6 +1115,7 @@ def _ensure_operations_task_schema(conn):
                 status TEXT NOT NULL DEFAULT 'NEW',
             notes TEXT NOT NULL DEFAULT '',
             completed_at TEXT NOT NULL DEFAULT '',
+            completion_report_json TEXT NOT NULL DEFAULT '',
             owner_id TEXT NOT NULL DEFAULT '',
             property_location TEXT NOT NULL DEFAULT '',
             admin_notes TEXT NOT NULL DEFAULT '',
@@ -1020,6 +1147,7 @@ def _ensure_operations_task_schema(conn):
         "due_date": "TEXT NOT NULL DEFAULT ''",
         "notes": "TEXT NOT NULL DEFAULT ''",
         "completed_at": "TEXT NOT NULL DEFAULT ''",
+        "completion_report_json": "TEXT NOT NULL DEFAULT ''",
         "owner_id": "TEXT NOT NULL DEFAULT ''",
         "property_location": "TEXT NOT NULL DEFAULT ''",
         "admin_notes": "TEXT NOT NULL DEFAULT ''",
@@ -1131,8 +1259,14 @@ def _normalize_calendar_event_status(status):
         "NEW": "SCHEDULED",
         "ASSIGNED": "SCHEDULED",
         "WAITING_OWNER": "SCHEDULED",
-        "WAITING_PROVIDER": "SCHEDULED",
+        "WAITING_OPERATIONS": "IN_PROGRESS",
+        "WAITING_PROVIDER": "IN_PROGRESS",
+        "ACCEPTED": "IN_PROGRESS",
+        "ON_THE_WAY": "IN_PROGRESS",
+        "ARRIVED": "IN_PROGRESS",
+        "PAUSED": "IN_PROGRESS",
         "DONE": "COMPLETED",
+        "COMPLETED": "COMPLETED",
         "ARCHIVED": "CANCELLED",
         "INPROGRESS": "IN_PROGRESS",
         "IN-PROGRESS": "IN_PROGRESS",
@@ -1222,10 +1356,16 @@ def _calendar_task_status(task_record):
     status_map = {
         "NEW": "SCHEDULED",
         "ASSIGNED": "SCHEDULED",
+        "ACCEPTED": "IN_PROGRESS",
+        "ON_THE_WAY": "IN_PROGRESS",
+        "ARRIVED": "IN_PROGRESS",
         "IN_PROGRESS": "IN_PROGRESS",
+        "PAUSED": "IN_PROGRESS",
         "WAITING_OWNER": "SCHEDULED",
-        "WAITING_PROVIDER": "SCHEDULED",
+        "WAITING_OPERATIONS": "IN_PROGRESS",
+        "WAITING_PROVIDER": "IN_PROGRESS",
         "DONE": "COMPLETED",
+        "COMPLETED": "COMPLETED",
         "ARCHIVED": "CANCELLED",
     }
     return status_map.get(status, "SCHEDULED")
@@ -1461,6 +1601,823 @@ def _load_calendar_events(*, owner_id=None, property_ids=None):
         allowed_ids = {str(property_id).strip() for property_id in property_ids if str(property_id).strip()}
         events = [event for event in events if not allowed_ids or str(event.get("property_id", "")).strip() in allowed_ids]
     return events
+
+
+def _normalize_reservation_status(status):
+    normalized = str(status or "").strip().lower()
+    normalized = RESERVATION_STATUS_ALIASES.get(normalized, normalized.upper())
+    return normalized if normalized in RESERVATION_STATUS_VALUES else "PENDING"
+
+
+def _normalize_reservation_source(source):
+    normalized = str(source or "").strip()
+    if not normalized:
+        return "Manual Reservation"
+    lookup = RESERVATION_SOURCE_ALIASES.get(normalized.lower())
+    if lookup:
+        return lookup
+    return normalized if normalized in RESERVATION_SOURCE_VALUES else "Manual Reservation"
+
+
+def _reservation_status_label(status):
+    return _normalize_reservation_status(status).replace("_", " ").title()
+
+
+def _reservation_calendar_status(status, *, kind="reservation"):
+    normalized_status = _normalize_reservation_status(status)
+    if kind == "blocked_dates":
+        return "BLOCKED"
+    if normalized_status in {"CHECKED_IN"}:
+        return "IN_PROGRESS"
+    if normalized_status in {"CHECKED_OUT"}:
+        return "COMPLETED"
+    if normalized_status in {"CANCELLED"}:
+        return "CANCELLED"
+    return "SCHEDULED"
+
+
+def _reservation_event_type(metadata=None):
+    metadata = metadata or {}
+    if str(metadata.get("kind", "")).strip() == "blocked_dates":
+        return "Blocked Dates"
+    return "Reservation"
+
+
+def _reservation_guest_name(reservation):
+    first_name = str((reservation or {}).get("guest_first_name", "")).strip()
+    last_name = str((reservation or {}).get("guest_last_name", "")).strip()
+    return " ".join(part for part in [first_name, last_name] if part).strip()
+
+
+def _reservation_metadata_from_row(row):
+    metadata_json = str(row["metadata_json"]) if row and "metadata_json" in row.keys() else ""
+    try:
+        return json.loads(metadata_json) if metadata_json else {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def _reservation_from_row(row):
+    if row is None:
+        return None
+
+    metadata = _reservation_metadata_from_row(row)
+    return {
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "updated_at": str(row["updated_at"]),
+        "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
+        "reservation_source": _normalize_reservation_source(row["reservation_source"] if "reservation_source" in row.keys() else "Manual Reservation"),
+        "external_reference": str(row["external_reference"]) if "external_reference" in row.keys() else "",
+        "guest_first_name": str(row["guest_first_name"]) if "guest_first_name" in row.keys() else "",
+        "guest_last_name": str(row["guest_last_name"]) if "guest_last_name" in row.keys() else "",
+        "guest_email": str(row["guest_email"]) if "guest_email" in row.keys() else "",
+        "guest_phone": str(row["guest_phone"]) if "guest_phone" in row.keys() else "",
+        "adults": int(row["adults"] or 0) if "adults" in row.keys() else 0,
+        "children": int(row["children"] or 0) if "children" in row.keys() else 0,
+        "infants": int(row["infants"] or 0) if "infants" in row.keys() else 0,
+        "pets": int(row["pets"] or 0) if "pets" in row.keys() else 0,
+        "arrival_datetime": str(row["arrival_datetime"]) if "arrival_datetime" in row.keys() else "",
+        "departure_datetime": str(row["departure_datetime"]) if "departure_datetime" in row.keys() else "",
+        "status": _normalize_reservation_status(row["status"] if "status" in row.keys() else "PENDING"),
+        "notes": str(row["notes"]) if "notes" in row.keys() else "",
+        "language": str(row["language"]) if "language" in row.keys() else "en",
+        "created_by": str(row["created_by"]) if "created_by" in row.keys() else "",
+        "metadata_json": str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}",
+        "metadata": metadata,
+    }
+
+
+def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
+                   guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
+                   departure_datetime, status, notes, language, created_by, metadata_json
+            FROM reservations
+            ORDER BY arrival_datetime ASC, updated_at DESC, id ASC
+            """
+        ).fetchall()
+
+    reservations = [_reservation_from_row(row) for row in rows]
+    property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
+    owner_map = {str(account.get("id", "")).strip(): account for account in _load_owner_accounts()}
+    enriched = []
+    for reservation in reservations:
+        property_record = property_map.get(str(reservation.get("property_id", "")).strip(), {})
+        owner_account = owner_map.get(str(property_record.get("owner_id", "")).strip(), {})
+        reservation_copy = {
+            **reservation,
+            "property_name": str(property_record.get("name", "")).strip(),
+            "property_location": str(property_record.get("location", "")).strip(),
+            "owner_id": str(property_record.get("owner_id", "")).strip(),
+            "owner_name": str(owner_account.get("full_name", "")).strip(),
+            "owner_email": str(owner_account.get("email", "")).strip(),
+            "guest_name": _reservation_guest_name(reservation),
+            "guest_label": _reservation_guest_name(reservation) or "Blocked dates",
+            "property_label": str(property_record.get("name", "")).strip() or reservation.get("property_id", ""),
+            "timeline": list(reversed(_reservation_timeline_events(reservation))),
+            "comments": _reservation_comments(reservation, owner_view=False),
+            "linked_operations": _reservation_linked_operations(reservation),
+        }
+        reservation_copy["calendar_event"] = _reservation_calendar_event(reservation_copy)
+        reservation_copy["property_status"] = _reservation_property_status(property_record, reservations)
+        enriched.append(reservation_copy)
+
+    target_owner_id = str(owner_id or "").strip()
+    if target_owner_id:
+        enriched = [reservation for reservation in enriched if str(reservation.get("owner_id", "")).strip() == target_owner_id]
+
+    allowed_ids = {str(property_id).strip() for property_id in (property_ids or []) if str(property_id).strip()}
+    if allowed_ids:
+        enriched = [reservation for reservation in enriched if str(reservation.get("property_id", "")).strip() in allowed_ids]
+
+    filters = filters or {}
+    property_filter = str(filters.get("property", "")).strip()
+    owner_filter = str(filters.get("owner", "")).strip()
+    guest_filter = str(filters.get("guest", "")).strip().lower()
+    status_filter = _normalize_reservation_status(filters.get("status", "")) if str(filters.get("status", "")).strip() else ""
+    source_filter = str(filters.get("source", "")).strip().lower()
+    arrival_filter = str(filters.get("arrival", "")).strip()
+    departure_filter = str(filters.get("departure", "")).strip()
+    search = str(filters.get("search", "")).strip().lower()
+
+    def _matches(reservation):
+        if property_filter and property_filter not in {str(reservation.get("property_id", "")).strip(), str(reservation.get("property_name", "")).strip()}:
+            return False
+        if owner_filter and owner_filter not in {str(reservation.get("owner_id", "")).strip(), str(reservation.get("owner_name", "")).strip()}:
+            return False
+        guest_name = str(reservation.get("guest_name", "")).strip().lower()
+        if guest_filter and guest_filter not in guest_name:
+            return False
+        if status_filter and _normalize_reservation_status(reservation.get("status", "")) != status_filter:
+            return False
+        if source_filter and source_filter not in str(reservation.get("reservation_source", "")).strip().lower():
+            return False
+        if arrival_filter and not str(reservation.get("arrival_datetime", "")).startswith(arrival_filter):
+            return False
+        if departure_filter and not str(reservation.get("departure_datetime", "")).startswith(departure_filter):
+            return False
+        if search:
+            haystack = " ".join([
+                reservation.get("guest_name", ""),
+                reservation.get("guest_email", ""),
+                reservation.get("property_name", ""),
+                reservation.get("property_location", ""),
+                reservation.get("reservation_source", ""),
+                reservation.get("external_reference", ""),
+                reservation.get("notes", ""),
+            ]).lower()
+            if search not in haystack:
+                return False
+        return True
+
+    return [reservation for reservation in enriched if _matches(reservation)]
+
+
+def _find_reservation(reservation_id):
+    target_id = str(reservation_id or "").strip()
+    if not target_id:
+        return None
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        row = conn.execute(
+            """
+            SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
+                   guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
+                   departure_datetime, status, notes, language, created_by, metadata_json
+            FROM reservations
+            WHERE id = ?
+            """,
+            (target_id,),
+        ).fetchone()
+    return _reservation_from_row(row) if row else None
+
+
+def _reservation_timeline_events(reservation):
+    metadata = (reservation or {}).get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+    timeline = metadata.get("timeline") if isinstance(metadata.get("timeline"), list) else []
+    normalized = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+        normalized.append({
+            "type": str(entry.get("type", "")).strip() or "reservation_event",
+            "created_at": str(entry.get("created_at", "")).strip() or str((reservation or {}).get("created_at", "")).strip(),
+            "title": str(entry.get("title", "")).strip(),
+            "detail": str(entry.get("detail", "")).strip(),
+            "status": _normalize_reservation_status(entry.get("status", (reservation or {}).get("status", "PENDING"))),
+            "visibility": str(entry.get("visibility", "public")).strip().lower() or "public",
+            "author": str(entry.get("author", "")).strip(),
+        })
+    if normalized:
+        return normalized
+    created_at = str((reservation or {}).get("created_at", "")).strip()
+    if not created_at:
+        return []
+    return [{
+        "type": "reservation_created",
+        "created_at": created_at,
+        "title": "Reservation created",
+        "detail": f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {str((reservation or {}).get('property_name', '')).strip()}",
+        "status": _normalize_reservation_status((reservation or {}).get("status", "PENDING")),
+        "visibility": "public",
+        "author": str((reservation or {}).get("created_by", "")).strip(),
+    }]
+
+
+def _reservation_comments(reservation, owner_view=False):
+    metadata = (reservation or {}).get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+    comments = metadata.get("comments") if isinstance(metadata.get("comments"), list) else []
+    normalized = []
+    for entry in comments:
+        if not isinstance(entry, dict):
+            continue
+        visibility = str(entry.get("visibility", "public")).strip().lower() or "public"
+        if owner_view and visibility != "public":
+            continue
+        normalized.append({
+            "created_at": str(entry.get("created_at", "")).strip(),
+            "author": str(entry.get("author", "")).strip() or "system",
+            "visibility": visibility,
+            "body": str(entry.get("body", "")).strip(),
+        })
+    return normalized
+
+
+def _reservation_write_metadata(reservation_id, metadata, *, status=None, updated_at=None):
+    if not reservation_id:
+        return None
+    reservation_id = str(reservation_id).strip()
+    metadata = metadata if isinstance(metadata, dict) else {}
+    metadata_json = json.dumps(metadata, ensure_ascii=False, separators=(",", ":"))
+    updated_at = updated_at or _utc_now_iso()
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        conn.execute(
+            """
+            UPDATE reservations
+            SET metadata_json = ?, updated_at = ?, status = COALESCE(?, status)
+            WHERE id = ?
+            """,
+            (metadata_json, updated_at, status or "", reservation_id),
+        )
+    return _find_reservation(reservation_id)
+
+
+def _reservation_append_timeline_event(reservation_id, event_type, title, detail="", status=None, *, visibility="public", author="system"):
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return None
+    metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+    timeline = list(metadata.get("timeline") or [])
+    timeline.append({
+        "type": event_type,
+        "created_at": _utc_now_iso(),
+        "title": title,
+        "detail": detail,
+        "status": _normalize_reservation_status(status or reservation.get("status", "PENDING")),
+        "visibility": str(visibility).strip().lower() or "public",
+        "author": author,
+    })
+    metadata["timeline"] = timeline
+    return _reservation_write_metadata(reservation_id, metadata, status=status or reservation.get("status", "PENDING"))
+
+
+def _reservation_append_comment(reservation_id, comment, *, author="operations", visibility="internal"):
+    comment_text = str(comment or "").strip()
+    if not comment_text:
+        return None
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return None
+    metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+    comments = list(metadata.get("comments") or [])
+    comments.append({
+        "created_at": _utc_now_iso(),
+        "author": author,
+        "visibility": str(visibility).strip().lower() or "internal",
+        "body": comment_text,
+    })
+    metadata["comments"] = comments
+    updated = _reservation_write_metadata(reservation_id, metadata)
+    _reservation_append_timeline_event(
+        reservation_id,
+        "comment_added",
+        "Comment added",
+        comment_text,
+        status=reservation.get("status", "PENDING"),
+        visibility=visibility,
+        author=author,
+    )
+    return updated
+
+
+def _reservation_calendar_event(reservation):
+    reservation = reservation or {}
+    metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+    kind = str(metadata.get("kind", "reservation")).strip().lower() or "reservation"
+    event_type = _reservation_event_type(metadata)
+    calendar_status = _reservation_calendar_status(reservation.get("status", "PENDING"), kind=kind)
+    arrival = str(reservation.get("arrival_datetime", "")).strip()
+    departure = str(reservation.get("departure_datetime", "")).strip()
+    if not arrival:
+        arrival = reservation.get("created_at", "") or _utc_now_iso()
+    if not departure:
+        departure = arrival
+    if kind == "blocked_dates":
+        calendar_status = "BLOCKED"
+    start_datetime, end_datetime, all_day = _calendar_event_bounds(arrival, departure, False)
+    title = str(metadata.get("title", "")).strip() or _reservation_guest_name(reservation) or "Blocked dates"
+    description = str(reservation.get("notes", "")).strip()
+    property_name = str(reservation.get("property_name", "")).strip()
+    owner_name = str(reservation.get("owner_name", "")).strip()
+    payload_metadata = {
+        "source": "reservation",
+        "reservation_id": str(reservation.get("id", "")).strip(),
+        "reservation_source": str(reservation.get("reservation_source", "")).strip(),
+        "external_reference": str(reservation.get("external_reference", "")).strip(),
+        "guest_name": _reservation_guest_name(reservation),
+        "guest_email": str(reservation.get("guest_email", "")).strip(),
+        "property_name": property_name,
+        "property_location": str(reservation.get("property_location", "")).strip(),
+        "owner_name": owner_name,
+        "owner_email": str(reservation.get("owner_email", "")).strip(),
+        "kind": kind,
+    }
+    return {
+        "id": str(reservation.get("id", "")).strip(),
+        "created_at": str(reservation.get("created_at", "")).strip(),
+        "updated_at": str(reservation.get("updated_at", "")).strip() or _utc_now_iso(),
+        "property_id": str(reservation.get("property_id", "")).strip(),
+        "owner_id": str(reservation.get("owner_id", "")).strip(),
+        "operation_task_id": str(reservation.get("id", "")).strip(),
+        "event_type": event_type,
+        "title": title,
+        "description": description,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "all_day": all_day,
+        "status": calendar_status,
+        "assigned_professional": "",
+        "created_by": f"system:reservation:{str(reservation.get('created_by', '')).strip() or 'manual'}",
+        "color": _calendar_event_color(event_type, calendar_status),
+        "metadata_json": json.dumps(payload_metadata, ensure_ascii=False, separators=(",", ":")),
+    }
+
+
+def _upsert_reservation_calendar_event(reservation):
+    payload = _reservation_calendar_event(reservation)
+    if not payload:
+        return None
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            _persist_calendar_event(conn, payload)
+    except Exception as exc:
+        app.logger.warning("Reservation calendar sync failed for %s: %s", str((reservation or {}).get("id", "")).strip(), type(exc).__name__)
+        return None
+    return payload
+
+
+def _reservation_operations_task_payloads(reservation):
+    reservation = reservation or {}
+    metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+    if str(metadata.get("kind", "")).strip().lower() == "blocked_dates":
+        return []
+    reservation_id = str(reservation.get("id", "")).strip()
+    property_name = str(reservation.get("property_name", "")).strip()
+    property_location = str(reservation.get("property_location", "")).strip()
+    guest_name = _reservation_guest_name(reservation) or "Guest"
+    guest_label = guest_name or "Guest"
+    templates = [
+        ("checkin", "Check-in", "Check-in task", reservation.get("arrival_datetime", "")),
+        ("cleaning", "Cleaning", "Cleaning task", reservation.get("departure_datetime", "")),
+        ("inspection", "Inspection", "Inspection task", reservation.get("departure_datetime", "")),
+        ("checkout", "Check-out", "Check-out task", reservation.get("departure_datetime", "")),
+    ]
+    payloads = []
+    for suffix, category, label, due_date in templates:
+        payloads.append({
+            "id": f"{reservation_id}:{suffix}",
+            "request_id": reservation_id,
+            "source_type": "RESERVATION",
+            "source_id": reservation_id,
+            "created_at": reservation.get("created_at", "") or _utc_now_iso(),
+            "updated_at": _utc_now_iso(),
+            "title": f"{guest_label} {label}".strip(),
+            "category": category,
+            "owner_name": str(reservation.get("owner_name", "")).strip(),
+            "owner_email": str(reservation.get("owner_email", "")).strip(),
+            "property_id": str(reservation.get("property_id", "")).strip(),
+            "property_name": property_name,
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "due_date": str(due_date or "").strip(),
+            "notes": str(reservation.get("notes", "")).strip(),
+            "completed_at": "",
+            "owner_id": str(reservation.get("owner_id", "")).strip(),
+            "property_location": property_location,
+            "admin_notes": f"Reservation source: {reservation.get('reservation_source', 'Manual Reservation')}",
+            "request_status": "new",
+            "timeline_detail": f"{guest_label} · {property_name or property_location}".strip(" ·"),
+        })
+    return payloads
+
+
+def _ensure_reservation_operations_tasks(reservation):
+    payloads = _reservation_operations_task_payloads(reservation)
+    created_tasks = []
+    for payload in payloads:
+        existing_task = _find_operations_task(payload["id"])
+        if existing_task:
+            created_tasks.append(existing_task)
+            continue
+        created = _upsert_operations_task(payload, append_created_event=True, status_override="NEW", notify=False)
+        if created:
+            created_tasks.append(created)
+    return created_tasks
+
+
+def _create_reservation(reservation_payload, *, created_by="system"):
+    reservation_id = str((reservation_payload or {}).get("id", "")).strip() or uuid4().hex
+    property_id = str((reservation_payload or {}).get("property_id", "")).strip()
+    if not property_id:
+        return None
+    property_record = _find_owner_property(property_id)
+    if not property_record:
+        return None
+    owner_id = str(property_record.get("owner_id", "")).strip()
+    owner_account = _find_owner_account(owner_id)
+    created_at = str((reservation_payload or {}).get("created_at", "")).strip() or _utc_now_iso()
+    updated_at = str((reservation_payload or {}).get("updated_at", "")).strip() or created_at
+    metadata = reservation_payload.get("metadata", {}) if isinstance(reservation_payload, dict) else {}
+    if not isinstance(metadata, dict):
+        metadata = {}
+    metadata.setdefault("timeline", [])
+    metadata.setdefault("comments", [])
+    metadata.setdefault("kind", str((reservation_payload or {}).get("kind", "reservation")).strip().lower() or "reservation")
+    metadata.setdefault("title", str((reservation_payload or {}).get("title", "")).strip())
+    reservation_source = _normalize_reservation_source((reservation_payload or {}).get("reservation_source", "Manual Reservation"))
+    status = _normalize_reservation_status((reservation_payload or {}).get("status", "PENDING"))
+    if metadata.get("kind") == "blocked_dates":
+        status = "CONFIRMED"
+    record = {
+        "id": reservation_id,
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "property_id": property_id,
+        "reservation_source": reservation_source,
+        "external_reference": str((reservation_payload or {}).get("external_reference", "")).strip(),
+        "guest_first_name": str((reservation_payload or {}).get("guest_first_name", "")).strip(),
+        "guest_last_name": str((reservation_payload or {}).get("guest_last_name", "")).strip(),
+        "guest_email": str((reservation_payload or {}).get("guest_email", "")).strip(),
+        "guest_phone": str((reservation_payload or {}).get("guest_phone", "")).strip(),
+        "adults": int(reservation_payload.get("adults", 1) or 1),
+        "children": int(reservation_payload.get("children", 0) or 0),
+        "infants": int(reservation_payload.get("infants", 0) or 0),
+        "pets": int(reservation_payload.get("pets", 0) or 0),
+        "arrival_datetime": str((reservation_payload or {}).get("arrival_datetime", "")).strip(),
+        "departure_datetime": str((reservation_payload or {}).get("departure_datetime", "")).strip(),
+        "status": status,
+        "notes": str((reservation_payload or {}).get("notes", "")).strip(),
+        "language": str((reservation_payload or {}).get("language", "en")).strip() or "en",
+        "created_by": str((reservation_payload or {}).get("created_by", created_by)).strip() or created_by,
+        "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+    }
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        conn.execute(
+            """
+            INSERT INTO reservations (
+                id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
+                guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
+                departure_datetime, status, notes, language, created_by, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                created_at = excluded.created_at,
+                updated_at = excluded.updated_at,
+                property_id = excluded.property_id,
+                reservation_source = excluded.reservation_source,
+                external_reference = excluded.external_reference,
+                guest_first_name = excluded.guest_first_name,
+                guest_last_name = excluded.guest_last_name,
+                guest_email = excluded.guest_email,
+                guest_phone = excluded.guest_phone,
+                adults = excluded.adults,
+                children = excluded.children,
+                infants = excluded.infants,
+                pets = excluded.pets,
+                arrival_datetime = excluded.arrival_datetime,
+                departure_datetime = excluded.departure_datetime,
+                status = excluded.status,
+                notes = excluded.notes,
+                language = excluded.language,
+                created_by = excluded.created_by,
+                metadata_json = excluded.metadata_json
+            """,
+            (
+                record["id"],
+                record["created_at"],
+                record["updated_at"],
+                record["property_id"],
+                record["reservation_source"],
+                record["external_reference"],
+                record["guest_first_name"],
+                record["guest_last_name"],
+                record["guest_email"],
+                record["guest_phone"],
+                record["adults"],
+                record["children"],
+                record["infants"],
+                record["pets"],
+                record["arrival_datetime"],
+                record["departure_datetime"],
+                record["status"],
+                record["notes"],
+                record["language"],
+                record["created_by"],
+                record["metadata_json"],
+            ),
+        )
+
+    reservation = _find_reservation(reservation_id)
+    if reservation:
+        _reservation_append_timeline_event(
+            reservation_id,
+            "reservation_created",
+            "Reservation created",
+            f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {reservation.get('property_name', '')}",
+            status=reservation.get("status", "PENDING"),
+            author=str(created_by).strip() or "system",
+        )
+        _upsert_reservation_calendar_event(reservation)
+        linked_tasks = _ensure_reservation_operations_tasks(reservation)
+        reservation = _find_reservation(reservation_id)
+        metadata = reservation.get("metadata") if isinstance(reservation.get("metadata"), dict) else {}
+        metadata["linked_operations"] = [task.get("id", "") for task in linked_tasks if task]
+        _reservation_write_metadata(reservation_id, metadata, status=reservation.get("status", "PENDING"))
+        reservation = _find_reservation(reservation_id)
+        _append_operations_notification(
+            "reservation_created",
+            "Reservation created",
+            f"{_reservation_guest_name(reservation) or 'Blocked dates'} · {reservation.get('property_name', '')}",
+            task_id=reservation_id,
+            source_type="RESERVATION",
+            source_id=reservation_id,
+            status=reservation.get("status", "PENDING"),
+            channel="SYSTEM",
+            recipient=str(owner_account.get("email", "")).strip(),
+            metadata=json.dumps({
+                "reservation_id": reservation_id,
+                "property_id": property_id,
+                "kind": metadata.get("kind", "reservation"),
+            }, ensure_ascii=False, separators=(",", ":")),
+        )
+    return reservation
+
+
+def _reservation_property_status(property_record, reservations=None):
+    property_record = property_record or {}
+    reservations = reservations or []
+    property_id = str(property_record.get("id", "")).strip()
+    today = datetime.now(timezone.utc)
+    blocked_calendar_events = [
+        event for event in _load_calendar_events(property_ids=[property_id])
+        if _normalize_calendar_event_type(event.get("event_type", "")) in {"Blocked Dates", "Personal Stay"} and _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+    ]
+
+    current_reservation = None
+    upcoming_reservation = None
+    for reservation in reservations:
+        if str(reservation.get("property_id", "")).strip() != property_id:
+            continue
+        if _normalize_reservation_status(reservation.get("status", "PENDING")) == "CANCELLED":
+            continue
+        arrival_dt, _ = _calendar_parse_datetime(reservation.get("arrival_datetime", ""))
+        departure_dt, _ = _calendar_parse_datetime(reservation.get("departure_datetime", ""))
+        if str((reservation.get("metadata") or {}).get("kind", "")).strip().lower() == "blocked_dates" and arrival_dt and departure_dt and arrival_dt <= today <= departure_dt:
+            return "Blocked"
+        if arrival_dt and departure_dt and arrival_dt <= today <= departure_dt:
+            current_reservation = reservation
+            break
+        if arrival_dt and arrival_dt > today and upcoming_reservation is None:
+            upcoming_reservation = reservation
+
+    if current_reservation:
+        return "Occupied"
+    if blocked_calendar_events:
+        return "Blocked"
+    if any(event for event in _load_operations_tasks() if str(event.get("property_id", "")).strip() == property_id and _normalize_operations_task_status(event.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and "clean" in str(event.get("category", "")).lower()):
+        return "Cleaning Scheduled"
+    if any(event for event in _load_operations_tasks() if str(event.get("property_id", "")).strip() == property_id and _normalize_operations_task_status(event.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and "inspect" in str(event.get("category", "")).lower()):
+        return "Maintenance"
+    if upcoming_reservation:
+        return "Ready" if _normalize_reservation_status(upcoming_reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"} else "Available"
+    return "Available"
+
+
+def _reservation_dashboard_widgets(reservations, *, scope="owner"):
+    reservations = reservations or []
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    tomorrow = today + timedelta(days=1)
+
+    def _reservation_date(value):
+        return _calendar_parse_datetime(value)[0]
+
+    if scope == "owner":
+        current_guests = [
+            reservation for reservation in reservations
+            if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"}
+            and _reservation_date(reservation.get("arrival_datetime", "")) and _reservation_date(reservation.get("departure_datetime", ""))
+            and _reservation_date(reservation.get("arrival_datetime", "")).date() <= today <= _reservation_date(reservation.get("departure_datetime", "")).date()
+        ]
+        upcoming_arrivals = [
+            reservation for reservation in reservations
+            if _reservation_date(reservation.get("arrival_datetime", "")) and _reservation_date(reservation.get("arrival_datetime", "")).date() >= today
+            and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"PENDING", "CONFIRMED"}
+        ]
+        upcoming_departures = [
+            reservation for reservation in reservations
+            if _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() >= today
+            and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CHECKED_IN", "CONFIRMED"}
+        ]
+        next_cleaning = next((reservation for reservation in reservations if str((reservation.get("metadata") or {}).get("kind", "")).strip() != "blocked_dates" and _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() >= today), None)
+        return {
+            "upcoming_arrivals": upcoming_arrivals[:5],
+            "upcoming_departures": upcoming_departures[:5],
+            "current_guests": current_guests[:5],
+            "next_cleaning": next_cleaning,
+            "stats": {
+                "upcoming_arrivals": len(upcoming_arrivals),
+                "upcoming_departures": len(upcoming_departures),
+                "current_guests": len(current_guests),
+                "next_cleaning": 1 if next_cleaning else 0,
+            },
+        }
+
+    todays_check_ins = [
+        reservation for reservation in reservations
+        if _reservation_date(reservation.get("arrival_datetime", "")) and _reservation_date(reservation.get("arrival_datetime", "")).date() == today
+    ]
+    todays_check_outs = [
+        reservation for reservation in reservations
+        if _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() == today
+    ]
+    current_guests = [
+        reservation for reservation in reservations
+        if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"}
+        and _reservation_date(reservation.get("arrival_datetime", "")) and _reservation_date(reservation.get("departure_datetime", ""))
+        and _reservation_date(reservation.get("arrival_datetime", "")).date() <= today <= _reservation_date(reservation.get("departure_datetime", "")).date()
+    ]
+    cleaning_queue = [
+        reservation for reservation in reservations
+        if str((reservation.get("metadata") or {}).get("kind", "")).strip() != "blocked_dates"
+        and _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() >= today
+    ]
+    inspections = [
+        reservation for reservation in reservations
+        if _reservation_date(reservation.get("departure_datetime", "")) and _reservation_date(reservation.get("departure_datetime", "")).date() >= today
+        and _normalize_reservation_status(reservation.get("status", "PENDING")) in {"CONFIRMED", "CHECKED_IN"}
+    ]
+    occupancy = int(round((len(current_guests) / len(reservations)) * 100)) if reservations else 0
+    return {
+        "todays_check_ins": todays_check_ins[:5],
+        "todays_check_outs": todays_check_outs[:5],
+        "current_guests": current_guests[:5],
+        "cleaning_queue": cleaning_queue[:5],
+        "inspections": inspections[:5],
+        "stats": {
+            "todays_check_ins": len(todays_check_ins),
+            "todays_check_outs": len(todays_check_outs),
+            "occupancy": occupancy,
+            "cleaning_queue": len(cleaning_queue),
+            "inspections": len(inspections),
+        },
+    }
+
+
+def _reservation_list_context(*, owner_account=None, scope="admin", filters=None):
+    owner_account = owner_account or {}
+    if scope == "owner":
+        owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
+        property_ids = [property_record.get("id", "") for property_record in owner_properties]
+        reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=property_ids, filters=filters)
+    else:
+        reservations = _load_reservations(filters=filters)
+        owner_properties = _load_owner_properties()
+
+    calendar_events = _load_calendar_events(property_ids=[reservation.get("property_id", "") for reservation in reservations] if reservations else None)
+    calendar_map = {str(event.get("metadata", {}).get("reservation_id", "")).strip() or str(event.get("operation_task_id", "")).strip(): event for event in calendar_events}
+    property_map = {str(property_record.get("id", "")).strip(): property_record for property_record in _load_owner_properties()}
+    owner_map = {str(account.get("id", "")).strip(): account for account in _load_owner_accounts()}
+    for reservation in reservations:
+        reservation["calendar_event"] = calendar_map.get(reservation.get("id", ""), _reservation_calendar_event(reservation))
+        reservation["linked_operations"] = _reservation_linked_operations(reservation)
+        property_record = property_map.get(str(reservation.get("property_id", "")).strip(), {})
+        owner_account_record = owner_map.get(str(property_record.get("owner_id", "")).strip(), {})
+        reservation["owner_name"] = str(owner_account_record.get("full_name", "")).strip()
+        reservation["owner_email"] = str(owner_account_record.get("email", "")).strip()
+        reservation["property_name"] = str(property_record.get("name", "")).strip()
+        reservation["property_location"] = str(property_record.get("location", "")).strip()
+        reservation["property_status"] = _reservation_property_status(property_record, reservations)
+    return {
+        "reservations": reservations,
+        "filters": filters or {},
+        "property_options": sorted({reservation.get("property_name", "") for reservation in reservations if reservation.get("property_name", "")}),
+        "owner_options": sorted({reservation.get("owner_name", "") for reservation in reservations if reservation.get("owner_name", "")}),
+        "guest_options": sorted({reservation.get("guest_name", "") for reservation in reservations if reservation.get("guest_name", "")}),
+        "source_options": list(RESERVATION_SOURCE_VALUES),
+        "status_options": list(RESERVATION_STATUS_VALUES),
+        "widgets": _reservation_dashboard_widgets(reservations, scope=scope),
+        "calendar_summary": _calendar_widget_summary(_load_calendar_events(property_ids=[reservation.get("property_id", "") for reservation in reservations] if reservations else None)),
+        "scope": scope,
+        "owner_properties": owner_properties,
+    }
+
+
+def _reservation_linked_operations(reservation):
+    reservation_id = str((reservation or {}).get("id", "")).strip()
+    if not reservation_id:
+        return []
+    linked = []
+    for task in _load_operations_tasks():
+        if str(task.get("source_type", "")).strip().upper() != "RESERVATION":
+            continue
+        if str(task.get("source_id", "")).strip() != reservation_id:
+            continue
+        linked.append({
+            **task,
+            "status_label": _operations_task_status_label(task.get("status", "NEW")),
+            "status_tone": _operations_task_status_tone(task.get("status", "NEW")),
+        })
+    return linked
+
+
+def _reservation_detail_context(reservation, *, scope="admin", owner_account=None):
+    reservation = reservation or {}
+    owner_account = owner_account or {}
+    property_record = _find_owner_property(reservation.get("property_id", ""))
+    property_reservations = _load_reservations(property_ids=[reservation.get("property_id", "")])
+    owner_account_record = _find_owner_account(str((property_record or {}).get("owner_id", "")).strip()) if property_record else {}
+    calendar_events = _load_calendar_events(property_ids=[reservation.get("property_id", "")])
+    linked_operations = _reservation_linked_operations(reservation)
+    timeline_events = _reservation_timeline_events(reservation)
+    if scope == "owner":
+        timeline_events = [event for event in timeline_events if str(event.get("visibility", "public")).strip().lower() == "public"]
+    reservation_event = _reservation_calendar_event({
+        **reservation,
+        "property_name": str((property_record or {}).get("name", "")).strip(),
+        "property_location": str((property_record or {}).get("location", "")).strip(),
+        "owner_name": str((owner_account_record or {}).get("full_name", "")).strip(),
+        "owner_email": str((owner_account_record or {}).get("email", "")).strip(),
+    })
+    calendar_event = next(
+        (event for event in calendar_events if str(event.get("metadata", {}).get("reservation_id", "")).strip() == str(reservation.get("id", "")).strip()),
+        reservation_event,
+    )
+    enriched_reservation = {
+        **reservation,
+        "property_name": str((property_record or {}).get("name", "")).strip(),
+        "property_location": str((property_record or {}).get("location", "")).strip(),
+        "owner_id": str((property_record or {}).get("owner_id", "")).strip(),
+        "owner_name": str((owner_account_record or {}).get("full_name", "")).strip(),
+        "owner_email": str((owner_account_record or {}).get("email", "")).strip(),
+        "guest_name": _reservation_guest_name(reservation) or "Blocked dates",
+        "timeline": list(reversed(timeline_events)),
+        "comments": _reservation_comments(reservation, owner_view=(scope == "owner")),
+        "linked_operations": linked_operations,
+        "calendar_event": calendar_event,
+        "property_status": _reservation_property_status(property_record, property_reservations),
+    }
+    return {
+        "reservation": enriched_reservation,
+        "property_record": property_record or {},
+        "owner_account": owner_account_record or owner_account or {},
+        "linked_operations": linked_operations,
+        "calendar_event": calendar_event,
+        "calendar_events": calendar_events,
+        "timeline": enriched_reservation["timeline"],
+        "comments": enriched_reservation["comments"],
+        "property_status": enriched_reservation["property_status"],
+        "can_view_internal_comments": scope == "admin",
+        "status_options": [{"value": status, "label": _reservation_status_label(status)} for status in RESERVATION_STATUS_VALUES],
+    }
 def _seed_owner_property_activity_backfill(conn):
     property_rows = conn.execute(
         """
@@ -1841,6 +2798,33 @@ def _ensure_owner_db_schema(conn):
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS reservations (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                property_id TEXT NOT NULL,
+                reservation_source TEXT NOT NULL DEFAULT 'Manual Reservation',
+                external_reference TEXT NOT NULL DEFAULT '',
+                guest_first_name TEXT NOT NULL DEFAULT '',
+                guest_last_name TEXT NOT NULL DEFAULT '',
+                guest_email TEXT NOT NULL DEFAULT '',
+                guest_phone TEXT NOT NULL DEFAULT '',
+                adults INTEGER NOT NULL DEFAULT 1,
+                children INTEGER NOT NULL DEFAULT 0,
+                infants INTEGER NOT NULL DEFAULT 0,
+                pets INTEGER NOT NULL DEFAULT 0,
+                arrival_datetime TEXT NOT NULL DEFAULT '',
+                departure_datetime TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'PENDING',
+                notes TEXT NOT NULL DEFAULT '',
+                language TEXT NOT NULL DEFAULT 'en',
+                created_by TEXT NOT NULL DEFAULT '',
+                metadata_json TEXT NOT NULL DEFAULT '{}'
+            )
+            """
+        )
         _ensure_owner_property_activity_schema(conn)
         _ensure_operations_task_schema(conn)
         _ensure_calendar_event_schema(conn)
@@ -2133,7 +3117,7 @@ def _operations_task_json_dumps(value):
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
 
 
-def _operations_task_update_json_fields(task_id, *, checklist_json=None, attachments_json=None, comments_json=None, updated_at=None):
+def _operations_task_update_json_fields(task_id, *, checklist_json=None, attachments_json=None, comments_json=None, completion_report_json=None, updated_at=None):
     target_task_id = str(task_id or "").strip()
     if not target_task_id:
         return None
@@ -2151,6 +3135,9 @@ def _operations_task_update_json_fields(task_id, *, checklist_json=None, attachm
     if comments_json is not None:
         set_clauses.append("comments_json = ?")
         params.append(str(comments_json))
+    if completion_report_json is not None:
+        set_clauses.append("completion_report_json = ?")
+        params.append(str(completion_report_json))
 
     params.extend([target_task_id, target_task_id, target_task_id])
 
@@ -2188,7 +3175,7 @@ def _operations_task_append_checklist_event(task_id, checklist_items):
     )
 
 
-def _append_operations_task_comment(task_id, operator, comment):
+def _append_operations_task_comment(task_id, operator, comment, comment_type="General"):
     target_task_id = str(task_id or "").strip()
     normalized_comment = str(comment or "").strip()
     if not target_task_id or not normalized_comment:
@@ -2198,6 +3185,9 @@ def _append_operations_task_comment(task_id, operator, comment):
         "created_at": _utc_now_iso(),
         "operator": str(operator or "").strip() or _current_admin_operator_key(),
         "comment": normalized_comment,
+        "type": str(comment_type or "").strip() or "General",
+        "visibility": "internal",
+        "author_role": "operations",
     }
 
     task = _find_operations_task(target_task_id)
@@ -2212,12 +3202,204 @@ def _append_operations_task_comment(task_id, operator, comment):
 
     _append_operations_task_event(
         target_task_id,
-        "comment_added",
+        "comment_added_internal",
         "Comment added",
         normalized_comment,
         status=updated_task.get("status", "NEW"),
     )
     return comment_entry
+
+
+def _append_operations_task_attachment(task_id, *, name, uploaded_by="", category="", slot="", mime_type="", url=""):
+    target_task_id = str(task_id or "").strip()
+    normalized_name = str(name or "").strip()
+    if not target_task_id or not normalized_name:
+        return None
+
+    attachment_entry = {
+        "created_at": _utc_now_iso(),
+        "name": normalized_name,
+        "url": str(url or "").strip(),
+        "uploaded_by": str(uploaded_by or "").strip() or _current_admin_operator_key(),
+        "category": str(category or "").strip(),
+        "slot": str(slot or "").strip(),
+        "mime_type": str(mime_type or "").strip(),
+    }
+
+    task = _find_operations_task(target_task_id)
+    current_attachments = list((task or {}).get("attachments") or [])
+    current_attachments.append(attachment_entry)
+    updated_task = _operations_task_update_json_fields(
+        target_task_id,
+        attachments_json=_operations_task_json_dumps(current_attachments),
+    )
+    if not updated_task:
+        return None
+
+    _append_operations_task_event(
+        target_task_id,
+        "attachment_added",
+        "Attachment added",
+        f"{attachment_entry['slot'] or attachment_entry['category'] or 'Attachment'} · {normalized_name}",
+        status=updated_task.get("status", "NEW"),
+    )
+    return attachment_entry
+
+
+def _update_operations_task_completion_report(task_id, report_data):
+    target_task_id = str(task_id or "").strip()
+    if not target_task_id:
+        return None
+
+    report_entry = _operations_task_completion_report(report_data)
+    updated_task = _operations_task_update_json_fields(
+        target_task_id,
+        completion_report_json=_operations_task_json_dumps(report_entry),
+    )
+    if not updated_task:
+        return None
+
+    _append_operations_task_event(
+        target_task_id,
+        "completion_report_updated",
+        "Completion report updated",
+        report_entry.get("completed_work", "") or "Completion report saved",
+        status=updated_task.get("status", "NEW"),
+    )
+    return report_entry
+
+
+def _append_professional_workflow_notification(task, event_type, title, detail, status, recipient="", metadata=""):
+    _append_operations_notification(
+        event_type,
+        title,
+        detail,
+        task_id=task.get("id", ""),
+        source_type=task.get("source_type", ""),
+        source_id=task.get("source_id", ""),
+        status=status,
+        channel="SYSTEM",
+        recipient=recipient,
+        operator_key=_current_admin_operator_key(),
+        metadata=metadata,
+    )
+    _append_operations_task_event(
+        task.get("id", ""),
+        event_type,
+        title,
+        detail,
+        status=status,
+    )
+
+
+def _professional_task_transition(task, professional_account, action, *, note_text="", report_data=None, attachment_data=None):
+    task_id = str((task or {}).get("id", "")).strip()
+    if not task_id:
+        return None
+
+    current_status = _normalize_operations_task_status((task or {}).get("status", "NEW"))
+    action = str(action or "").strip().lower()
+    target_status = None
+    event_type = None
+    event_title = None
+    event_detail = ""
+
+    if action == "accept" and current_status in {"NEW", "ASSIGNED"}:
+        target_status = "ACCEPTED"
+        event_type = "professional_accepted"
+        event_title = "Professional accepted task"
+        event_detail = _professional_account_display_label(professional_account)
+    elif action == "on_the_way" and current_status in {"ACCEPTED", "ASSIGNED"}:
+        target_status = "ON_THE_WAY"
+        event_type = "professional_on_the_way"
+        event_title = "Professional on the way"
+        event_detail = _professional_account_display_label(professional_account)
+    elif action == "arrived" and current_status in {"ON_THE_WAY", "ACCEPTED"}:
+        target_status = "ARRIVED"
+        event_type = "professional_arrived"
+        event_title = "Professional arrived"
+        event_detail = _professional_account_display_label(professional_account)
+    elif action == "start" and current_status in {"ACCEPTED", "ON_THE_WAY", "ARRIVED", "PAUSED"}:
+        target_status = "IN_PROGRESS"
+        event_type = "professional_started"
+        event_title = "Professional started task"
+        event_detail = _professional_account_display_label(professional_account)
+    elif action == "pause" and current_status in {"IN_PROGRESS", "ARRIVED"}:
+        target_status = "PAUSED"
+        event_type = "professional_paused"
+        event_title = "Professional paused task"
+        event_detail = note_text or _professional_account_display_label(professional_account)
+    elif action == "resume" and current_status == "PAUSED":
+        target_status = "IN_PROGRESS"
+        event_type = "professional_resumed"
+        event_title = "Professional resumed task"
+        event_detail = _professional_account_display_label(professional_account)
+    elif action == "complete":
+        target_status = "COMPLETED"
+        event_type = "professional_completed"
+        event_title = "Professional completed task"
+        event_detail = note_text or _professional_account_display_label(professional_account)
+
+    if attachment_data:
+        slot = str(attachment_data.get("slot", "")).strip()
+        category = str(attachment_data.get("category", "")).strip()
+        filename = str(attachment_data.get("filename", "")).strip()
+        mime_type = str(attachment_data.get("mime_type", "")).strip()
+        if slot or category or filename:
+            _append_operations_task_attachment(
+                task_id,
+                name=filename or f"{slot or category or 'attachment'} placeholder",
+                uploaded_by=_professional_account_display_label(professional_account),
+                category=category,
+                slot=slot,
+                mime_type=mime_type,
+            )
+
+    if note_text:
+        _append_operations_task_comment(
+            task_id,
+            _professional_account_display_label(professional_account),
+            note_text,
+        )
+
+    if report_data is not None:
+        _update_operations_task_completion_report(task_id, report_data)
+
+    if target_status is None:
+        return _find_operations_task(task_id)
+
+    updated_task = _update_operations_task_details(
+        task_id,
+        status=target_status,
+        assigned_to=(task or {}).get("assigned_to", ""),
+        assigned_professional_id=(professional_account or {}).get("id", ""),
+        source="professional",
+    )
+    if not updated_task:
+        return None
+
+    _append_operations_task_event(
+        task_id,
+        event_type,
+        event_title,
+        event_detail,
+        status=target_status,
+    )
+    _append_operations_notification(
+        event_type,
+        event_title,
+        event_detail,
+        task_id=task_id,
+        source_type=updated_task.get("source_type", ""),
+        source_id=updated_task.get("source_id", ""),
+        status=target_status,
+        channel="SYSTEM",
+        recipient=(professional_account or {}).get("email", ""),
+        operator_key=_current_admin_operator_key(),
+        metadata="professional_workflow",
+    )
+
+    return _find_operations_task(task_id)
 
 
 def _operations_task_from_row(row):
@@ -2238,6 +3420,7 @@ def _operations_task_from_row(row):
     checklist_json = str(row["checklist_json"]) if "checklist_json" in row.keys() else ""
     attachments_json = str(row["attachments_json"]) if "attachments_json" in row.keys() else ""
     comments_json = str(row["comments_json"]) if "comments_json" in row.keys() else ""
+    completion_report_json = str(row["completion_report_json"]) if "completion_report_json" in row.keys() else ""
 
     return {
         "id": task_id,
@@ -2261,6 +3444,8 @@ def _operations_task_from_row(row):
         "due_date": str(row["due_date"]) if "due_date" in row.keys() else "",
         "notes": notes,
         "completed_at": completed_at,
+        "completion_report_json": completion_report_json,
+        "completion_report": _operations_task_completion_report(completion_report_json),
         "admin_notes": admin_notes,
         "request_status": _normalize_service_request_status(row["request_status"] if "request_status" in row.keys() else "new"),
         "checklist_json": checklist_json,
@@ -2280,7 +3465,7 @@ def _load_operations_tasks():
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
             """
@@ -2301,7 +3486,7 @@ def _find_operations_task(task_id):
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
@@ -3090,7 +4275,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         or (task_payload or {}).get("status")
         or (existing_task or {}).get("status", "NEW")
     )
-    if status in {"DONE", "ARCHIVED"}:
+    if status in {"COMPLETED", "ARCHIVED"}:
         completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip() or updated_at
     else:
         completed_at = str((task_payload or {}).get("completed_at", "")).strip() or str((existing_task or {}).get("completed_at", "")).strip()
@@ -3115,6 +4300,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         "due_date": str((task_payload or {}).get("due_date", "")).strip() or str((existing_task or {}).get("due_date", "")).strip(),
         "notes": str((task_payload or {}).get("notes", "")).strip() or str((task_payload or {}).get("admin_notes", "")).strip() or str((existing_task or {}).get("notes", "")).strip() or str((existing_task or {}).get("admin_notes", "")).strip(),
         "completed_at": completed_at,
+        "completion_report_json": str((task_payload or {}).get("completion_report_json", "")).strip() or str((existing_task or {}).get("completion_report_json", "")).strip() or _operations_task_json_dumps(_operations_task_completion_report({})),
         "owner_id": str((task_payload or {}).get("owner_id", "")).strip() or str((existing_task or {}).get("owner_id", "")).strip(),
         "property_location": str((task_payload or {}).get("property_location", "")).strip() or str((existing_task or {}).get("property_location", "")).strip(),
         "admin_notes": str((task_payload or {}).get("admin_notes", "")).strip() or str((task_payload or {}).get("notes", "")).strip() or str((existing_task or {}).get("admin_notes", "")).strip() or str((existing_task or {}).get("notes", "")).strip(),
@@ -3133,9 +4319,9 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                 INSERT INTO operations_tasks (
                     id, request_id, source_type, source_id, created_at, updated_at, title, category,
                     owner_name, owner_email, property_id, property_name, assigned_to, assigned_professional_id, priority, status,
-                    due_date, notes, completed_at, owner_id, property_location, admin_notes, request_status,
+                    due_date, notes, completed_at, completion_report_json, owner_id, property_location, admin_notes, request_status,
                     checklist_json, attachments_json, comments_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     request_id = excluded.request_id,
                     source_type = excluded.source_type,
@@ -3155,6 +4341,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     due_date = excluded.due_date,
                     notes = excluded.notes,
                     completed_at = excluded.completed_at,
+                    completion_report_json = excluded.completion_report_json,
                     owner_id = excluded.owner_id,
                     property_location = excluded.property_location,
                     admin_notes = excluded.admin_notes,
@@ -3183,6 +4370,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     merged_task["due_date"],
                     merged_task["notes"],
                     merged_task["completed_at"],
+                    merged_task["completion_report_json"],
                     merged_task["owner_id"],
                     merged_task["property_location"],
                     merged_task["admin_notes"],
@@ -3437,10 +4625,10 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
         return task
 
     completed_at = str(task.get("completed_at", "")).strip()
-    if new_status in {"DONE", "ARCHIVED"} and current_status not in {"DONE", "ARCHIVED"} and not completed_at:
+    if new_status in {"COMPLETED", "ARCHIVED"} and current_status not in {"COMPLETED", "ARCHIVED"} and not completed_at:
         completed_at = _utc_now_iso()
-    if new_status not in {"DONE", "ARCHIVED"}:
-        completed_at = "" if current_status not in {"DONE", "ARCHIVED"} else completed_at
+    if new_status not in {"COMPLETED", "ARCHIVED"}:
+        completed_at = "" if current_status not in {"COMPLETED", "ARCHIVED"} else completed_at
 
     updated_at = _utc_now_iso()
 
@@ -3508,8 +4696,8 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
             )
 
     if new_status != current_status:
-        event_type = "completed" if new_status == "DONE" else "status_changed"
-        event_title = "Task completed" if new_status == "DONE" else f"Status changed to {new_status.replace('_', ' ').title()}"
+        event_type = "completed" if new_status == "COMPLETED" else "status_changed"
+        event_title = "Task completed" if new_status == "COMPLETED" else f"Status changed to {new_status.replace('_', ' ').title()}"
         _append_operations_task_event(
             task_id,
             event_type,
@@ -3535,8 +4723,9 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
                     break
             _save_service_requests(requests_list)
 
-    if new_status == "DONE" and current_status != "DONE":
+    if new_status == "COMPLETED" and current_status != "COMPLETED":
         admin_email = os.getenv("ADMIN_NOTIFICATION_EMAIL", "").strip() or os.getenv("ADMIN_EMAIL", "").strip()
+        owner_email = str(task.get("owner_email", "")).strip()
         completion_body = "\n".join([
             "BlackSea Connect task completed",
             "",
@@ -3555,10 +4744,32 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
             source_id=task.get("source_id", ""),
             status="sent",
             channel="EMAIL",
-            recipient=admin_email,
+            recipient=owner_email or admin_email,
             operator_key=_current_admin_operator_key(),
             metadata="professional_completion",
         )
+        _append_operations_task_event(
+            task_id,
+            "workflow_transitioned",
+            "Ready for owner review",
+            f"{task.get('title', '')} is ready for owner review",
+            status=new_status,
+        )
+        if owner_email:
+            owner_body = "\n".join([
+                "BlackSea Connect work completed",
+                "",
+                f"Task: {task.get('title', '')}",
+                f"Property: {task.get('property_name', '') or task.get('property_location', '')}",
+                f"Professional: {new_assigned_to or new_assigned_professional_id or 'n/a'}",
+                f"Status: {new_status}",
+                f"Review link: {url_for('owners_dashboard', _external=True)}",
+            ])
+            _send_plaintext_email(
+                owner_email,
+                "[BlackSeaConnect] Work completed on your property",
+                owner_body,
+            )
         if admin_email:
             _send_plaintext_email(
                 admin_email,
@@ -6894,8 +8105,10 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         for property_record in _owner_properties_for_account(owner_account.get("id", ""))
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
+    owner_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "") for property_record in owner_properties])
     owner_calendar_context = _build_calendar_page_context("owner", owner_account)
     calendar_widget = _calendar_dashboard_widget(owner_calendar_context["calendar_events"], scope="owner")
+    reservation_widget = _reservation_dashboard_widgets(owner_reservations, scope="owner")
     has_properties = bool(owner_properties)
     property_cards = [_owner_property_card_context(property_record, bool(owner_requests), dashboard_copy) for property_record in owner_properties]
     primary_property = property_cards[0] if property_cards else None
@@ -7100,6 +8313,7 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             for record in owner_requests[:3]
         ],
         "calendar_widget": calendar_widget,
+        "reservation_widget": reservation_widget,
         "summary_line": dashboard_copy["hero_summary_line"],
         "status_note_key": status_note_key,
         "last_completed_task_key": last_completed_task_key,
@@ -7656,6 +8870,97 @@ def owners_calendar():
         owner_account=owner_account,
         **context,
     )
+
+
+@app.route("/owners/reservations", methods=["GET", "POST"])
+@owner_required
+def owners_reservations():
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
+    if request.method == "POST":
+        property_id = str(request.form.get("property_id", "")).strip()
+        property_record = _find_owner_property(property_id)
+        if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+            return Response("Property not found.", status=404, mimetype="text/plain")
+
+        reservation_kind = str(request.form.get("reservation_kind", "reservation")).strip().lower()
+        metadata_kind = "blocked_dates" if reservation_kind == "blocked_dates" else "reservation"
+        reservation_payload = {
+            "id": "",
+            "property_id": property_id,
+            "reservation_source": str(request.form.get("reservation_source", "Manual Reservation")).strip() or "Manual Reservation",
+            "external_reference": str(request.form.get("external_reference", "")).strip(),
+            "guest_first_name": str(request.form.get("guest_first_name", "")).strip(),
+            "guest_last_name": str(request.form.get("guest_last_name", "")).strip(),
+            "guest_email": str(request.form.get("guest_email", "")).strip(),
+            "guest_phone": str(request.form.get("guest_phone", "")).strip(),
+            "adults": int(str(request.form.get("adults", "1")).strip() or 1),
+            "children": int(str(request.form.get("children", "0")).strip() or 0),
+            "infants": int(str(request.form.get("infants", "0")).strip() or 0),
+            "pets": int(str(request.form.get("pets", "0")).strip() or 0),
+            "arrival_datetime": str(request.form.get("arrival_datetime", "")).strip(),
+            "departure_datetime": str(request.form.get("departure_datetime", "")).strip(),
+            "status": "CONFIRMED" if metadata_kind == "blocked_dates" else _normalize_reservation_status(request.form.get("status", "PENDING")),
+            "notes": str(request.form.get("notes", "")).strip(),
+            "language": current_lang,
+            "created_by": f"owner:{owner_account.get('id', '')}",
+            "metadata": {
+                "kind": metadata_kind,
+                "title": str(request.form.get("title", "")).strip(),
+                "notes": str(request.form.get("notes", "")).strip(),
+            },
+            "kind": metadata_kind,
+            "title": str(request.form.get("title", "")).strip(),
+        }
+        created_reservation = _create_reservation(reservation_payload, created_by=f"owner:{owner_account.get('id', '')}")
+        if not created_reservation:
+            return Response("Failed to create reservation.", status=400, mimetype="text/plain")
+        return redirect(url_for("owner_reservation_detail", reservation_id=created_reservation["id"], lang=current_lang))
+
+    filters = {
+        "property": str(request.args.get("property", "")).strip(),
+        "owner": str(request.args.get("owner", "")).strip(),
+        "guest": str(request.args.get("guest", "")).strip(),
+        "status": str(request.args.get("status", "")).strip(),
+        "arrival": str(request.args.get("arrival", "")).strip(),
+        "departure": str(request.args.get("departure", "")).strip(),
+        "source": str(request.args.get("source", "")).strip(),
+        "search": str(request.args.get("q", "")).strip(),
+    }
+    context = _reservation_list_context(owner_account=owner_account, scope="owner", filters=filters)
+    context.update({
+        "current_lang": current_lang,
+        "owner_account": owner_account,
+        "owner_properties": owner_properties,
+        "page_title": "Reservations",
+        "page_meta": "Owner reservation workspace",
+        "create_allowed": True,
+        "filters": filters,
+    })
+    return render_template("reservations_dashboard.html", **context)
+
+
+@app.get("/owners/reservations/<reservation_id>")
+@owner_required
+def owner_reservation_detail(reservation_id):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return Response("Reservation not found.", status=404, mimetype="text/plain")
+    property_record = _find_owner_property(reservation.get("property_id", ""))
+    if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        return Response("Reservation not found.", status=404, mimetype="text/plain")
+
+    context = _reservation_detail_context(reservation, scope="owner", owner_account=owner_account)
+    context.update({
+        "current_lang": current_lang,
+        "owner_account": owner_account,
+        "page_title": "Reservation detail",
+        "page_meta": "Owner reservation detail",
+    })
+    return render_template("reservation_detail.html", **context)
 
 
 @app.route("/owners/properties", methods=["GET"])
@@ -8615,29 +9920,87 @@ def professionals_task_detail(task_id):
     if request.method == "POST":
         action = str(request.form.get("task_action", "")).strip().lower()
         note_text = str(request.form.get("note", "")).strip()
-        current_status = _normalize_operations_task_status(task_record.get("status", "NEW"))
+        report_data = {
+            "completed_work": str(request.form.get("completed_work", "")).strip(),
+            "materials_used": str(request.form.get("materials_used", "")).strip(),
+            "time_spent_minutes": str(request.form.get("time_spent_minutes", "")).strip(),
+            "recommendations": str(request.form.get("recommendations", "")).strip(),
+            "follow_up_needed": str(request.form.get("follow_up_needed", "")).strip(),
+            "notes": str(request.form.get("completion_notes", "")).strip(),
+        }
+        attachment_slot = str(request.form.get("attachment_slot", "")).strip()
+        attachment_category = str(request.form.get("attachment_category", "")).strip()
+        attachment_name = str(request.form.get("attachment_name", "")).strip()
+        attachment_file = request.files.get("attachment_file")
+        attachment_data = None
+        if action == "attachment" or attachment_slot or attachment_category or attachment_name or attachment_file:
+            attachment_data = {
+                "slot": attachment_slot,
+                "category": attachment_category,
+                "filename": attachment_name or (attachment_file.filename if attachment_file and attachment_file.filename else ""),
+                "mime_type": attachment_file.mimetype if attachment_file else "",
+            }
         if action == "accept":
-            _update_operations_task_details(task_id, status="ASSIGNED", assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
-            _append_operations_task_event(task_id, "professional_accepted", "Professional accepted task", _professional_account_display_label(professional_account), status="ASSIGNED")
+            _professional_task_transition(task_record, professional_account, "accept")
+        elif action in {"on_the_way", "ontheway"}:
+            _professional_task_transition(task_record, professional_account, "on_the_way")
+        elif action == "arrived":
+            _professional_task_transition(task_record, professional_account, "arrived")
         elif action == "start":
-            _update_operations_task_details(task_id, status="IN_PROGRESS", assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
-            _append_operations_task_event(task_id, "professional_started", "Professional started task", _professional_account_display_label(professional_account), status="IN_PROGRESS")
+            _professional_task_transition(task_record, professional_account, "start")
+        elif action == "pause":
+            _professional_task_transition(task_record, professional_account, "pause", note_text=note_text)
+        elif action == "resume":
+            _professional_task_transition(task_record, professional_account, "resume")
         elif action == "complete":
-            completion_status = "DONE"
-            _update_operations_task_details(task_id, status=completion_status, assigned_to=task_record.get("assigned_to", ""), assigned_professional_id=professional_account.get("id", ""), source="professional")
-            if note_text:
-                _append_operations_task_comment(task_id, _professional_account_display_label(professional_account), note_text)
-            _append_operations_task_event(task_id, "professional_completed", "Professional completed task", note_text or _professional_account_display_label(professional_account), status=completion_status)
+            _professional_task_transition(task_record, professional_account, "complete", note_text=note_text, report_data=report_data, attachment_data=attachment_data)
         elif action == "comment" and note_text:
             _append_operations_task_comment(task_id, _professional_account_display_label(professional_account), note_text)
-            _append_operations_task_event(task_id, "professional_comment_added", "Professional comment added", note_text, status=current_status)
+            _append_operations_task_event(task_id, "professional_comment_added", "Professional comment added", note_text, status=_normalize_operations_task_status(task_record.get("status", "NEW")))
+            _append_operations_notification(
+                "professional_comment_added",
+                "Professional comment added",
+                note_text,
+                task_id=task_id,
+                source_type=task_record.get("source_type", ""),
+                source_id=task_record.get("source_id", ""),
+                status=_normalize_operations_task_status(task_record.get("status", "NEW")),
+                channel="SYSTEM",
+                recipient=str(os.getenv("ADMIN_NOTIFICATION_EMAIL", "")).strip() or _current_admin_operator_key(),
+                operator_key=_current_admin_operator_key(),
+                metadata="professional_comment",
+            )
+        elif action == "attachment":
+            if attachment_data:
+                attachment_entry = _append_operations_task_attachment(
+                    task_id,
+                    name=attachment_data.get("filename", "") or f"{attachment_data.get('slot', '') or attachment_data.get('category', '') or 'attachment'} placeholder",
+                    uploaded_by=_professional_account_display_label(professional_account),
+                    category=attachment_data.get("category", ""),
+                    slot=attachment_data.get("slot", ""),
+                    mime_type=attachment_data.get("mime_type", ""),
+                )
+                if attachment_entry:
+                    _append_operations_notification(
+                        "attachment_added",
+                        "Professional attachment placeholder added",
+                        f"{attachment_entry.get('slot', '') or attachment_entry.get('category', '') or 'Attachment'} · {attachment_entry.get('name', '')}",
+                        task_id=task_id,
+                        source_type=task_record.get("source_type", ""),
+                        source_id=task_record.get("source_id", ""),
+                        status=_normalize_operations_task_status(task_record.get("status", "NEW")),
+                        channel="SYSTEM",
+                        recipient=str(os.getenv("ADMIN_NOTIFICATION_EMAIL", "")).strip() or _current_admin_operator_key(),
+                        operator_key=_current_admin_operator_key(),
+                        metadata="professional_attachment",
+                    )
         return redirect(url_for("professionals_task_detail", task_id=task_id))
 
     refreshed_task = _find_operations_task(task_id) or task_record
     timeline_events = [
         event
         for event in _load_operations_task_events(refreshed_task.get("request_id", ""))
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "note_added", "comment_added", "professional_assigned", "professional_accepted", "professional_started", "professional_completed", "professional_comment_added"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "comment_added", "comment_added_internal", "attachment_added", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added"}
     ]
     return render_template(
         "professionals_task_detail.html",
@@ -8895,7 +10258,7 @@ def _admin_property_detail_context(property_record):
 
 def _admin_operations_task_is_overdue(task_record):
     status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
-    if status in {"DONE", "ARCHIVED"}:
+    if status in {"COMPLETED", "ARCHIVED"}:
         return False
 
     due_date = str((task_record or {}).get("due_date", "")).strip()
@@ -8923,10 +10286,54 @@ def _admin_operations_task_is_overdue(task_record):
     return False
 
 
+def _format_task_deadline_remaining(task_record):
+    due_date = str((task_record or {}).get("due_date", "")).strip()
+    if not due_date:
+        return "No due date"
+
+    due_dt = None
+    try:
+        due_dt = datetime.fromisoformat(due_date)
+    except ValueError:
+        try:
+            due_dt = datetime.fromisoformat(f"{due_date}T23:59:59+00:00")
+        except ValueError:
+            due_dt = None
+
+    if due_dt is None:
+        return due_date
+
+    if due_dt.tzinfo is None:
+        due_dt = due_dt.replace(tzinfo=timezone.utc)
+
+    remaining = due_dt - datetime.now(timezone.utc)
+    if remaining.total_seconds() <= 0:
+        return "Overdue"
+
+    total_minutes = int(remaining.total_seconds() // 60)
+    days, remainder_minutes = divmod(total_minutes, 60 * 24)
+    hours, minutes = divmod(remainder_minutes, 60)
+    parts = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if not parts:
+        parts.append(f"{minutes}m")
+    return " ".join(parts) + " remaining"
+
+
 def _admin_operations_task_context(task_record):
     owner_account = _find_owner_account(task_record.get("owner_id", ""))
     property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
     professional_account = _find_professional_account(task_record.get("assigned_professional_id", ""))
+    linked_reservation = None
+    if str(task_record.get("source_type", "")).strip().upper() == "RESERVATION":
+        linked_reservation = _find_reservation(task_record.get("source_id", "")) or _find_reservation(task_record.get("request_id", ""))
+    checklist_items = task_record.get("checklist_items", _operations_task_checklist_items(task_record.get("checklist_json", "")))
+    checklist_completed_count = sum(1 for item in checklist_items if item.get("checked"))
+    checklist_total_count = len(checklist_items)
+    checklist_percentage = int(round((checklist_completed_count / checklist_total_count) * 100)) if checklist_total_count else 0
     property_readiness_percent = None
     if property_record:
         readiness_completed, readiness_total = _owner_property_checklist_completion(property_record)
@@ -8944,7 +10351,7 @@ def _admin_operations_task_context(task_record):
     assignment_history = [
         event
         for event in timeline_events
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "professional_assigned", "professional_accepted", "professional_started", "professional_completed", "professional_comment_added"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "comment_added_internal", "attachment_added", "completion_report_updated"}
     ]
     assignable_professionals = [
         account
@@ -8964,13 +10371,20 @@ def _admin_operations_task_context(task_record):
         "owner_account": owner_account,
         "property_record": property_record,
         "property_readiness_percent": property_readiness_percent,
+        "assigned_professional_account": professional_account,
+        "linked_reservation": linked_reservation,
+        "sla_time_remaining": _format_task_deadline_remaining(task_record),
         "related_requests": related_requests,
         "timeline": list(reversed(timeline_events)),
         "assignment_history": list(reversed(assignment_history)),
         "professional_accounts": assignable_professionals,
-        "checklist_items": task_record.get("checklist_items", _operations_task_checklist_items(task_record.get("checklist_json", ""))),
+        "checklist_items": checklist_items,
+        "checklist_completed_count": checklist_completed_count,
+        "checklist_total_count": checklist_total_count,
+        "checklist_percentage": checklist_percentage,
         "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
+        "completion_report": task_record.get("completion_report", _operations_task_completion_report(task_record.get("completion_report_json", ""))),
     }
 
 
@@ -9052,12 +10466,12 @@ def _admin_operations_board_context():
     for status in columns:
         columns[status].sort(key=lambda item: (item.get("overdue", False), item.get("updated_at", ""), item.get("created_at", "")), reverse=True)
 
-    open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "IN_PROGRESS", "WAITING_OWNER", "WAITING_PROVIDER"})
+    open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"})
     assigned_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ASSIGNED")
     in_progress_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "IN_PROGRESS")
     waiting_owner_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER")
-    waiting_provider_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_PROVIDER")
-    completed_today = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"DONE", "ARCHIVED"} and str(task.get("completed_at", "")).strip()[:10] == datetime.now(timezone.utc).date().isoformat())
+    waiting_provider_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OPERATIONS")
+    completed_today = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"} and str(task.get("completed_at", "")).strip()[:10] == datetime.now(timezone.utc).date().isoformat())
     overdue_tasks = sum(1 for task in tasks if _admin_operations_task_is_overdue(task))
     archived_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ARCHIVED")
 
@@ -10548,12 +11962,57 @@ def _professional_tasks_for_account(professional_account):
     return tasks
 
 
+def _professional_task_assignment_events(task_id):
+    return [
+        event
+        for event in _load_operations_task_events(task_id)
+        if str(event.get("event_type", "")).strip() in {"assigned", "professional_assigned"}
+    ]
+
+
+def _professional_recent_notifications(professional_account, tasks):
+    account = professional_account or {}
+    recipient_email = str(account.get("email", "")).strip()
+    task_ids = {str(task.get("id", "")).strip() for task in tasks if str(task.get("id", "")).strip()}
+    notifications = []
+    for notification in _load_operations_notifications(limit=50):
+        if recipient_email and str(notification.get("recipient", "")).strip() == recipient_email:
+            notifications.append(notification)
+            continue
+        if str(notification.get("task_id", "")).strip() in task_ids:
+            notifications.append(notification)
+    notifications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+    return notifications[:6]
+
+
+def _professional_average_completion_minutes(tasks):
+    durations = []
+    for task in tasks:
+        if _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}:
+            continue
+        created_at = _parse_iso_datetime(str(task.get("created_at", "")).strip())
+        completed_at = _parse_iso_datetime(str(task.get("completed_at", "")).strip())
+        if not created_at or not completed_at or completed_at < created_at:
+            continue
+        durations.append(int((completed_at - created_at).total_seconds() / 60))
+    if not durations:
+        return None
+    return int(round(sum(durations) / len(durations)))
+
+
 def _professional_dashboard_context(professional_account):
     tasks = _professional_tasks_for_account(professional_account)
     today = datetime.now(timezone.utc).date()
-    today_tasks = []
+    today_count = 0
+    assigned_today_count = 0
+    in_progress_count = 0
+    waiting_owner_count = 0
     upcoming_tasks = []
     completed_tasks = []
+    completion_today_count = 0
+    professional_id = str((professional_account or {}).get("id", "")).strip()
+    recent_notifications = _professional_recent_notifications(professional_account, tasks)
+    average_completion_minutes = _professional_average_completion_minutes(tasks)
     for task in tasks:
         due_date = str(task.get("due_date", "")).strip()
         due_dt = None
@@ -10562,26 +12021,44 @@ def _professional_dashboard_context(professional_account):
                 due_dt = datetime.fromisoformat(due_date)
             except ValueError:
                 due_dt = None
-        if _normalize_operations_task_status(task.get("status", "NEW")) in {"DONE", "ARCHIVED"}:
+        status = _normalize_operations_task_status(task.get("status", "NEW"))
+        if status in {"COMPLETED", "ARCHIVED"}:
             completed_tasks.append(task)
+            if str(task.get("completed_at", "")).strip()[:10] == today.isoformat():
+                completion_today_count += 1
             continue
         if due_dt and due_dt.date() == today:
-            today_tasks.append(task)
-        elif due_dt and due_dt.date() > today:
+            today_count += 1
+        if due_dt and due_dt.date() > today:
             upcoming_tasks.append(task)
+        if status in {"IN_PROGRESS", "PAUSED", "ARRIVED", "ON_THE_WAY"}:
+            in_progress_count += 1
+        if status == "WAITING_OWNER":
+            waiting_owner_count += 1
+        if professional_id and str(task.get("assigned_professional_id", "")).strip() == professional_id:
+            if str(task.get("created_at", "")).strip()[:10] == today.isoformat():
+                assigned_today_count += 1
+                continue
+            if any(str(event.get("created_at", "")).strip()[:10] == today.isoformat() for event in _professional_task_assignment_events(task.get("id", ""))):
+                assigned_today_count += 1
 
-    assigned_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"DONE", "ARCHIVED"}]
+    assigned_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}]
     return {
         "professional_account": professional_account,
         "assigned_tasks": assigned_tasks,
-        "today_tasks": today_tasks,
         "upcoming_tasks": upcoming_tasks,
         "completed_tasks": completed_tasks,
         "total_count": len(tasks),
         "assigned_count": len(assigned_tasks),
-        "today_count": len(today_tasks),
+        "assigned_today_count": assigned_today_count,
+        "today_count": today_count,
+        "in_progress_count": in_progress_count,
+        "waiting_owner_count": waiting_owner_count,
+        "completed_today_count": completion_today_count,
         "upcoming_count": len(upcoming_tasks),
         "completed_count": len(completed_tasks),
+        "average_completion_minutes": average_completion_minutes,
+        "recent_notifications": recent_notifications,
         "display_name": _professional_account_display_label(professional_account),
     }
 
@@ -11127,6 +12604,7 @@ def _build_admin_dashboard():
             property_status_counts[normalized_status] += 1
     calendar_context = _build_calendar_page_context("admin")
     calendar_widget = _calendar_dashboard_widget(calendar_context["calendar_events"], scope="admin")
+    reservation_widget = _reservation_dashboard_widgets(_load_reservations(), scope="admin")
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
     requests_this_month = sum(1 for record in service_requests if str(record.get("created_at", "")).startswith(current_month))
     active_requests = sum(1 for record in service_requests if _normalize_service_request_status(record.get("status", "new")) in {"new", "assigned", "in_progress"})
@@ -11175,6 +12653,7 @@ def _build_admin_dashboard():
             {"key": "lost", "label": "Lost", "count": professional_counts["lost"]},
         ],
         "calendar_widget": calendar_widget,
+        "reservation_widget": reservation_widget,
         "recent_activity": _admin_activity_feed(pilot_requests, concierge_requests, partner_applications, professional_applications),
     }
 
@@ -11886,6 +13365,51 @@ def _update_operations_task_notes(task_id, notes):
     return _update_operations_task_details(task_id, notes=notes)
 
 
+@app.get("/admin/reservations")
+@admin_required
+def admin_reservations():
+    filters = {
+        "property": str(request.args.get("property", "")).strip(),
+        "owner": str(request.args.get("owner", "")).strip(),
+        "guest": str(request.args.get("guest", "")).strip(),
+        "status": str(request.args.get("status", "")).strip(),
+        "arrival": str(request.args.get("arrival", "")).strip(),
+        "departure": str(request.args.get("departure", "")).strip(),
+        "source": str(request.args.get("source", "")).strip(),
+        "search": str(request.args.get("q", "")).strip(),
+    }
+    context = _reservation_list_context(scope="admin", filters=filters)
+    context.update({
+        "page_title": "Reservations",
+        "page_meta": "Admin reservation workspace",
+        "create_allowed": False,
+        "filters": filters,
+    })
+    return render_template("reservations_dashboard.html", **context)
+
+
+@app.route("/admin/reservations/<reservation_id>", methods=["GET", "POST"])
+@admin_required
+def admin_reservation_detail(reservation_id):
+    reservation = _find_reservation(reservation_id)
+    if not reservation:
+        return Response("Reservation not found.", status=404, mimetype="text/plain")
+
+    if request.method == "POST":
+        action = str(request.form.get("reservation_action", "comment")).strip().lower()
+        if action == "comment":
+            comment_text = str(request.form.get("comment", "")).strip()
+            _reservation_append_comment(reservation_id, comment_text, author=_current_admin_operator_key(), visibility="internal")
+        return redirect(url_for("admin_reservation_detail", reservation_id=reservation_id))
+
+    context = _reservation_detail_context(reservation, scope="admin")
+    context.update({
+        "page_title": "Reservation detail",
+        "page_meta": "Admin reservation detail",
+    })
+    return render_template("reservation_detail.html", **context)
+
+
 @app.get("/admin/operations")
 @admin_required
 def admin_operations():
@@ -11929,7 +13453,8 @@ def admin_operations_detail(task_id):
             _update_operations_task_checklist(task_id, checklist_selection)
         elif task_action == "comment":
             comment_text = str(request.form.get("comment", "")).strip()
-            _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text)
+            comment_type = str(request.form.get("comment_type", "General")).strip() or "General"
+            _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text, comment_type=comment_type)
         else:
             status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
             assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()

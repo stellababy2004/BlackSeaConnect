@@ -18,10 +18,51 @@
       padding: 28px 20px 52px;
     }
     .admin-operations-detail-shell {
-      max-width: 1200px;
+      max-width: 1480px;
       margin: 0 auto;
       display: grid;
       gap: 18px;
+    }
+    .admin-operations-sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(246, 244, 239, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(155, 123, 47, 0.12);
+      border-radius: 22px;
+      box-shadow: 0 16px 38px rgba(31, 41, 55, 0.08);
+      padding: 12px 14px;
+    }
+    .admin-operations-sticky-bar__grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) repeat(4, minmax(0, 0.8fr)) auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-operations-sticky-bar__meta {
+      display: grid;
+      gap: 2px;
+    }
+    .admin-operations-sticky-bar__meta span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #8b6d2b;
+      font-weight: 700;
+    }
+    .admin-operations-sticky-bar__meta strong {
+      font-size: 0.98rem;
+      color: #1f2937;
+    }
+    .admin-operations-sticky-bar__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .admin-operations-sticky-bar__actions .button {
+      white-space: nowrap;
     }
     .admin-operations-detail-hero,
     .admin-operations-detail-panel {
@@ -38,6 +79,187 @@
       justify-content: space-between;
       gap: 16px;
       align-items: flex-start;
+    }
+    .admin-operations-workflow {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-operations-workflow__rail {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .admin-operations-workflow__step {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.82);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+      color: #6b7280;
+      text-align: center;
+      font-weight: 700;
+    }
+    .admin-operations-workflow__step.is-active {
+      background: linear-gradient(180deg, rgba(255, 251, 240, 1) 0%, rgba(244, 232, 199, 1) 100%);
+      border-color: rgba(155, 123, 47, 0.24);
+      color: #6d5420;
+      box-shadow: 0 12px 24px rgba(155, 123, 47, 0.12);
+    }
+    .admin-operations-sla {
+      border-left: 4px solid #8b6d2b;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(251, 247, 238, 0.95) 100%);
+    }
+    .admin-operations-sla.is-overdue {
+      border-left-color: #b45309;
+      background: linear-gradient(180deg, rgba(255, 247, 237, 0.96) 0%, rgba(254, 242, 242, 0.96) 100%);
+    }
+    .admin-operations-sla__warning {
+      display: inline-flex;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      background: rgba(180, 83, 9, 0.14);
+      color: #b45309;
+    }
+    .admin-operations-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .admin-operations-sidebar {
+      position: sticky;
+      top: 92px;
+      display: grid;
+      gap: 18px;
+    }
+    .admin-operations-contact-actions,
+    .admin-operations-inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .admin-operations-contact-actions .button,
+    .admin-operations-inline-actions .button {
+      white-space: nowrap;
+    }
+    .admin-operations-progress {
+      display: grid;
+      gap: 8px;
+    }
+    .admin-operations-progress__bar {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(31, 41, 55, 0.08);
+    }
+    .admin-operations-progress__bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #8b6d2b 0%, #b88a33 100%);
+      border-radius: 999px;
+    }
+    .admin-operations-dropzone {
+      border: 1px dashed rgba(31, 41, 55, 0.18);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(251, 247, 238, 0.96) 0%, rgba(255, 255, 255, 0.9) 100%);
+      padding: 18px;
+      min-height: 138px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: 6px;
+    }
+    .admin-operations-dropzone strong {
+      font-size: 1rem;
+      color: #1f2937;
+    }
+    .admin-operations-dropzone p {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.55;
+    }
+    .admin-operations-note-type {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+    }
+    .admin-operations-note-type--urgent {
+      background: rgba(185, 28, 28, 0.14);
+      color: #b91c1c;
+    }
+    .admin-operations-note-type--owner {
+      background: rgba(37, 99, 235, 0.14);
+      color: #2563eb;
+    }
+    .admin-operations-note-type--professional {
+      background: rgba(14, 116, 144, 0.14);
+      color: #0f766e;
+    }
+    .admin-operations-note-type--completion {
+      background: rgba(46, 125, 92, 0.14);
+      color: #2f6b4e;
+    }
+    .admin-operations-note-type--general {
+      background: rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+    }
+    .admin-operations-timeline-rail {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      padding-left: 18px;
+    }
+    .admin-operations-timeline-rail::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: rgba(155, 123, 47, 0.22);
+    }
+    .admin-operations-timeline-item {
+      position: relative;
+    }
+    .admin-operations-timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -22px;
+      top: 18px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #8b6d2b;
+      box-shadow: 0 0 0 4px rgba(155, 123, 47, 0.08);
+    }
+    .admin-operations-timeline-item__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: rgba(155, 123, 47, 0.12);
+      color: #7a6328;
+      font-size: 14px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .admin-operations-timeline-item__header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: space-between;
     }
     .admin-operations-detail-hero h1 {
       margin: 10px 0 8px;
@@ -223,6 +445,11 @@
       color: #4b5563;
       line-height: 1.6;
     }
+    .admin-operations-completion-highlight {
+      background: linear-gradient(180deg, rgba(255, 252, 244, 0.96) 0%, rgba(241, 236, 221, 0.96) 100%);
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      box-shadow: 0 16px 32px rgba(155, 123, 47, 0.08);
+    }
     .admin-operations-empty {
       color: #6b7280;
       margin: 0;
@@ -283,15 +510,64 @@
       color: #9b3131;
     }
     @media (max-width: 920px) {
+      .admin-operations-sticky-bar__grid,
       .admin-operations-grid,
+      .admin-operations-workspace,
       .admin-operations-dl {
         grid-template-columns: 1fr;
+      }
+      .admin-operations-sidebar {
+        position: static;
+        top: auto;
+      }
+      .admin-operations-workflow__rail {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .admin-operations-sticky-bar {
+        top: 0;
+        padding: 10px;
+      }
+      .admin-operations-workflow__rail {
+        grid-template-columns: 1fr;
+      }
+      .admin-operations-sticky-bar__actions {
+        justify-content: flex-start;
       }
     }
   </style>
 </head>
 <body class="admin-operations-detail-page">
   <main class="admin-operations-detail-shell">
+    <section class="admin-operations-sticky-bar" aria-label="Task quick actions">
+      <div class="admin-operations-sticky-bar__grid">
+        <div class="admin-operations-sticky-bar__meta">
+          <span>Current status</span>
+          <strong>{{ task.status_label|e }}</strong>
+        </div>
+        <div class="admin-operations-sticky-bar__meta">
+          <span>Priority</span>
+          <strong>{{ task.priority_label|e }}</strong>
+        </div>
+        <div class="admin-operations-sticky-bar__meta">
+          <span>Assigned</span>
+          <strong>{{ task.assigned_professional_label|e or 'Unassigned' }}</strong>
+        </div>
+        <div class="admin-operations-sticky-bar__meta">
+          <span>Due date</span>
+          <strong>{{ task.due_date|e or 'Not set' }}</strong>
+        </div>
+        <div class="admin-operations-sticky-bar__actions">
+          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Save</button>
+          <a class="button button--secondary" href="/admin/operations">Back to Operations</a>
+          <a class="button button--ghost" href="/admin/calendar">Open Calendar</a>
+          <button class="button button--ghost" type="button" disabled title="Backend placeholder">Notify Owner</button>
+          <button class="button button--ghost" type="button" disabled title="Backend placeholder">Notify Professional</button>
+        </div>
+      </div>
+    </section>
+
     <section class="admin-operations-detail-hero">
       <div>
         <div class="admin-operations-detail-meta">
@@ -310,42 +586,51 @@
       </div>
     </section>
 
-    <section class="admin-operations-grid">
-      <div class="admin-operations-stack">
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Property</p>
-          <h2 class="admin-operations-section-title">Property context</h2>
-          <dl class="admin-operations-dl">
-            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Unassigned' }}{% endif %}</dd></div>
-            <div><dt>Address</dt><dd>{% if property_record %}{{ property_record.location|e }}{% else %}{{ task.property_location|e or 'Not set' }}{% endif %}</dd></div>
-            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} / {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} / {{ task.owner_email|e }}{% endif %}</dd></div>
-            <div><dt>Current readiness</dt><dd>{% if property_readiness_percent is not none %}{{ property_readiness_percent|e }}%{% else %}Unknown{% endif %}</dd></div>
-          </dl>
-        </article>
+    <section class="admin-operations-workflow">
+      <div class="admin-operations-workflow__rail" aria-label="Task workflow">
+        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Owner</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Operations</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'PAUSED', 'WAITING_OWNER', 'WAITING_OPERATIONS'] %}is-active{% endif %}">Professional</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['COMPLETED', 'ARCHIVED'] %}is-active{% endif %}">Completed</div>
+      </div>
+      <p class="sr-only">Owner -> Operations -> Professional -> Completed</p>
+    </section>
 
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Task profile</p>
-          <h2 class="admin-operations-section-title">Board details</h2>
-          <dl class="admin-operations-dl">
-            <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
-            <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
-            <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
-            <div><dt>Assigned to</dt><dd>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</dd></div>
-            <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
+    <section class="admin-operations-workspace">
+      <div class="admin-operations-stack">
+        <article class="admin-operations-detail-panel admin-operations-sla {% if task.overdue %}is-overdue{% endif %}">
+          <p class="eyebrow">SLA / Deadline</p>
+          <h2 class="admin-operations-section-title">Operational deadline</h2>
+          {% if task.overdue %}
+            <span class="admin-operations-sla__warning">Overdue</span>
+          {% endif %}
+          <dl class="admin-operations-dl" style="margin-top:14px;">
             <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
-            <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
-            <div><dt>Task ID</dt><dd>{{ task.request_id|e }}</dd></div>
-            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e }}{% endif %}</dd></div>
-            <div><dt>Owner</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }} / {{ owner_account.email|e }}{% else %}{{ task.owner_name|e }} / {{ task.owner_email|e }}{% endif %}</dd></div>
-            <div><dt>Location</dt><dd>{% if property_record %}{{ property_record.location|e }}{% else %}{{ task.property_location|e }}{% endif %}</dd></div>
+            <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
+            <div><dt>Time remaining</dt><dd>{{ sla_time_remaining|e }}</dd></div>
+            <div><dt>Priority</dt><dd>{{ task.priority_label|e }}</dd></div>
+            <div><dt>Status</dt><dd>{{ task.status_label|e }}</dd></div>
             <div><dt>Overdue</dt><dd>{% if task.overdue %}Yes{% else %}No{% endif %}</dd></div>
           </dl>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Assignment</p>
+          <p class="eyebrow">Task overview</p>
+          <h2 class="admin-operations-section-title">Board details</h2>
+          <dl class="admin-operations-dl">
+            <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
+            <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
+            <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
+            <div><dt>Assigned to</dt><dd>{{ task.assigned_professional_label|e or task.assigned_to|e or 'No professional assigned yet.' }}</dd></div>
+            <div><dt>Task ID</dt><dd>{{ task.request_id|e }}</dd></div>
+            <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Workflow controls</p>
           <h2 class="admin-operations-section-title">Assignment and workflow</h2>
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+          <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="details">
             <label>
               <span>Status</span>
@@ -376,13 +661,22 @@
               <span>Due date</span>
               <input type="date" name="due_date" value="{{ task.due_date|e }}">
             </label>
-            <button class="button button--primary" type="submit">Save task</button>
+            <label>
+              <span>Admin notes</span>
+              <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
+            </label>
           </form>
         </article>
 
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Checklist</p>
-          <h2 class="admin-operations-section-title">Task checklist</h2>
+          <h2 class="admin-operations-section-title">Checklist progress</h2>
+          <div class="admin-operations-progress">
+            <strong>Checklist: {{ checklist_completed_count }} / {{ checklist_total_count }} completed - {{ checklist_percentage }}%</strong>
+            <div class="admin-operations-progress__bar" aria-label="Checklist completion">
+              <span style="width: {{ checklist_percentage }}%;"></span>
+            </div>
+          </div>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="checklist">
             <div class="admin-operations-checklist">
@@ -405,25 +699,110 @@
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Internal notes</p>
-          <h2 class="admin-operations-section-title">Admin-only notes</h2>
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
-            <input type="hidden" name="task_action" value="details">
-            <input type="hidden" name="status" value="{{ task.status|e }}">
-            <input type="hidden" name="assigned_to" value="{{ task.assigned_to|e }}">
-            <input type="hidden" name="assigned_professional_id" value="{{ task.assigned_professional_id|e }}">
-            <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
-            <input type="hidden" name="priority" value="{{ task.priority|e }}">
-            <label>
-              <span>Internal notes</span>
-              <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
-            </label>
-            <button class="button button--primary" type="submit">Save notes</button>
-          </form>
+          <p class="eyebrow">Attachments</p>
+          <h2 class="admin-operations-section-title">Upload placeholders</h2>
+          <div class="admin-operations-dropzone">
+            <strong>Upload photos, invoices, receipts, or inspection evidence</strong>
+            <p>Prepare before photos, after photos, invoice, receipt, and damage photo references here. SQLite references only for now.</p>
+          </div>
+          {% if attachments %}
+            <div class="admin-operations-attachment-list" style="margin-top:14px;">
+              {% for attachment in attachments %}
+                <div class="admin-operations-list-item">
+                  <div class="admin-operations-list-item__topline">
+                    <strong>{{ attachment.name|e }}</strong>
+                    <time>{{ attachment.created_at|e }}</time>
+                  </div>
+                  <p>
+                    {% if attachment.slot %}Slot: {{ attachment.slot|replace('_', ' ')|title|e }}{% endif %}
+                    {% if attachment.category %}{% if attachment.slot %} · {% endif %}Category: {{ attachment.category|replace('_', ' ')|title|e }}{% endif %}
+                    {% if attachment.uploaded_by %} · Uploaded by {{ attachment.uploaded_by|e }}{% endif %}
+                  </p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-operations-attachment-empty" style="margin-top:14px;">No attachments yet. The task is ready for uploads later.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel admin-operations-completion-highlight">
+          <p class="eyebrow">Completion report</p>
+          <h2 class="admin-operations-section-title">Professional closeout</h2>
+          {% if completion_report and (completion_report.completed_work or completion_report.materials_used or completion_report.recommendations or completion_report.follow_up_needed or completion_report.notes) %}
+            <dl class="admin-operations-dl">
+              <div><dt>Completed work</dt><dd>{{ completion_report.completed_work|e or 'Not recorded' }}</dd></div>
+              <div><dt>Materials used</dt><dd>{{ completion_report.materials_used|e or 'Not recorded' }}</dd></div>
+              <div><dt>Time spent</dt><dd>{{ completion_report.time_spent_minutes|e or 'Not recorded' }}</dd></div>
+              <div><dt>Recommendations</dt><dd>{{ completion_report.recommendations|e or 'Not recorded' }}</dd></div>
+              <div><dt>Follow-up needed</dt><dd>{{ completion_report.follow_up_needed|e or 'Not recorded' }}</dd></div>
+              <div><dt>Evidence</dt><dd>Attached evidence placeholder available in attachments.</dd></div>
+            </dl>
+          {% else %}
+            <p class="admin-operations-empty">No completion report has been submitted yet.</p>
+          {% endif %}
         </article>
       </div>
 
-      <div class="admin-operations-stack">
+      <aside class="admin-operations-sidebar">
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Assignment card</p>
+          <h2 class="admin-operations-section-title">Assigned professional</h2>
+          {% if assigned_professional_account %}
+            <dl class="admin-operations-dl">
+              <div><dt>Name</dt><dd>{{ assigned_professional_account.full_name|e }}</dd></div>
+              <div><dt>Company</dt><dd>{{ assigned_professional_account.company|e or 'Not set' }}</dd></div>
+              <div><dt>Phone</dt><dd>{{ assigned_professional_account.phone|e or 'Not set' }}</dd></div>
+              <div><dt>Email</dt><dd>{{ assigned_professional_account.email|e or 'Not set' }}</dd></div>
+              <div><dt>Service category</dt><dd>{{ assigned_professional_account.service_categories|e or 'Not set' }}</dd></div>
+              <div><dt>Status</dt><dd><span class="admin-operations-badge">{{ task.status_label|e }}</span></dd></div>
+            </dl>
+            <div class="admin-operations-contact-actions" style="margin-top:14px;">
+              <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Mailto</a>
+              <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Tel</a>
+              <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">Copy email</button>
+              <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">Copy phone</button>
+            </div>
+          {% else %}
+            <p class="admin-operations-empty">No professional assigned yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Linked reservation</p>
+          <h2 class="admin-operations-section-title">Reservation reference</h2>
+          {% if linked_reservation %}
+            <dl class="admin-operations-dl">
+              <div><dt>Guest</dt><dd>{{ linked_reservation.guest_name|e }}</dd></div>
+              <div><dt>Property</dt><dd>{{ linked_reservation.property_name|e }}</dd></div>
+              <div><dt>Status</dt><dd>{{ linked_reservation.status.replace('_', ' ').title() }}</dd></div>
+              <div><dt>Stay</dt><dd>{{ linked_reservation.arrival_datetime|e }} - {{ linked_reservation.departure_datetime|e }}</dd></div>
+            </dl>
+            <div style="margin-top:14px;">
+              <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">Open reservation</a>
+            </div>
+          {% else %}
+            <p class="admin-operations-empty">This task is not linked to a reservation source.</p>
+          {% endif %}
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Owner contact</p>
+          <h2 class="admin-operations-section-title">Owner and property</h2>
+          <dl class="admin-operations-dl">
+            <div><dt>Owner name</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
+            <div><dt>Email</dt><dd>{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e or 'Not set' }}{% endif %}</dd></div>
+            <div><dt>Phone</dt><dd>{% if owner_account %}{{ owner_account.phone|e or 'Not set' }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
+            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</dd></div>
+          </dl>
+          <div class="admin-operations-contact-actions" style="margin-top:14px;">
+            <a class="button button--ghost" href="mailto:{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Mailto</a>
+            <a class="button button--ghost" href="tel:{% if owner_account %}{{ owner_account.phone|e }}{% else %}{{ task.owner_name|e }}{% endif %}">Tel</a>
+            <button class="button button--ghost" type="button" data-copy="{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Copy email</button>
+            <button class="button button--ghost" type="button" data-copy="{% if owner_account %}{{ owner_account.phone|e }}{% else %}{{ task.owner_name|e }}{% endif %}">Copy phone</button>
+          </div>
+        </article>
+
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Related requests</p>
           <h2 class="admin-operations-section-title">Latest service requests for this property</h2>
@@ -477,32 +856,20 @@
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Attachments</p>
-          <h2 class="admin-operations-section-title">Task attachments</h2>
-          {% if attachments %}
-            <div class="admin-operations-attachment-list">
-              {% for attachment in attachments %}
-                <div class="admin-operations-list-item">
-                  <div class="admin-operations-list-item__topline">
-                    <strong>{{ attachment.name|e }}</strong>
-                    <time>{{ attachment.created_at|e }}</time>
-                  </div>
-                  {% if attachment.uploaded_by %}
-                    <p>Uploaded by {{ attachment.uploaded_by|e }}</p>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="admin-operations-attachment-empty">No attachments yet. The task is ready for uploads later.</p>
-          {% endif %}
-        </article>
-
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Comments</p>
-          <h2 class="admin-operations-section-title">Internal comments</h2>
+          <p class="eyebrow">Internal notes</p>
+          <h2 class="admin-operations-section-title">Admin-only notes</h2>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="comment">
+            <label>
+              <span>Note type</span>
+              <select name="comment_type">
+                <option value="General">General</option>
+                <option value="Urgent">Urgent</option>
+                <option value="Owner">Owner</option>
+                <option value="Professional">Professional</option>
+                <option value="Completion">Completion</option>
+              </select>
+            </label>
             <label>
               <span>Add comment</span>
               <textarea name="comment" placeholder="Add a private comment for the operations team"></textarea>
@@ -516,6 +883,10 @@
                   <div class="admin-operations-comment__meta">
                     <strong>{{ comment.operator|e or 'Admin' }}</strong>
                     <time>{{ comment.created_at|e }}</time>
+                  </div>
+                  <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+                    <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ comment.type|e }}</span>
+                    <span class="admin-operations-note-type admin-operations-note-type--general">{{ comment.author_role|e or 'Operations' }}</span>
                   </div>
                   <p style="margin: 0; color: #4b5563; line-height: 1.6;">{{ comment.comment|e }}</p>
                 </div>
@@ -533,15 +904,21 @@
             <p class="admin-operations-empty" style="margin-bottom: 12px;">Assignment history is captured in the timeline below.</p>
           {% endif %}
           {% if timeline %}
-            <div class="admin-operations-list">
+            <div class="admin-operations-timeline-rail">
               {% for event in timeline %}
-                <div class="admin-operations-list-item">
-                  <div class="admin-operations-list-item__topline">
-                    <strong>{{ event.title|e }}</strong>
+                <div class="admin-operations-list-item admin-operations-timeline-item">
+                  <div class="admin-operations-timeline-item__header">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <span class="admin-operations-timeline-item__icon">
+                        {% if event.event_type == 'professional_completed' %}C{% elif event.event_type == 'professional_accepted' %}A{% elif event.event_type == 'professional_started' %}S{% elif event.event_type == 'professional_paused' %}P{% elif event.event_type == 'professional_resumed' %}R{% elif event.event_type == 'attachment_added' %}U{% elif event.event_type == 'comment_added_internal' %}N{% else %}•{% endif %}
+                      </span>
+                      <strong>{{ event.title|e }}</strong>
+                    </div>
                     <time>{{ event.created_at|e }}</time>
                   </div>
-                  <div class="admin-operations-list-item__topline" style="margin-top: 6px;">
-                    <span class="admin-operations-badge admin-operations-badge--{{ event.status|lower|replace('_', '-')|e }}">{{ event.event_type|replace('_', ' ')|title }}</span>
+                  <div class="admin-operations-detail-meta" style="margin-top: 8px;">
+                    <span class="admin-operations-chip">{{ event.event_type|replace('_', ' ')|title }}</span>
+                    <span class="admin-operations-chip admin-operations-chip--status">{{ event.status|e }}</span>
                   </div>
                   {% if event.detail %}
                     <p>{{ event.detail|e }}</p>
@@ -553,8 +930,27 @@
             <p class="admin-operations-empty">No timeline entries yet.</p>
           {% endif %}
         </article>
-      </div>
+      </aside>
     </section>
   </main>
+  <script>
+    (function () {
+      const buttons = document.querySelectorAll('[data-copy]');
+      buttons.forEach((button) => {
+        button.addEventListener('click', async () => {
+          const value = button.getAttribute('data-copy') || '';
+          if (!value) return;
+          try {
+            await navigator.clipboard.writeText(value);
+            const original = button.textContent;
+            button.textContent = 'Copied';
+            window.setTimeout(() => { button.textContent = original; }, 1200);
+          } catch (error) {
+            console.warn('Clipboard copy failed', error);
+          }
+        });
+      });
+    }());
+  </script>
 </body>
 </html>

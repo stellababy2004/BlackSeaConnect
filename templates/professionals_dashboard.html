@@ -35,7 +35,7 @@
     }
     .professional-dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 12px;
     }
     .professional-kpi {
@@ -46,6 +46,7 @@
     }
     .professional-kpi span { display:block; color:#8b6d2b; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
     .professional-kpi strong { display:block; margin-top:6px; font-size:1.4rem; }
+    .professional-kpi small { display:block; margin-top:4px; color:#6b7280; }
     .professional-task-list { display:grid; gap:12px; }
     .professional-task-card {
       padding: 16px;
@@ -69,8 +70,36 @@
       font-weight:700;
     }
     .professional-task-card p { margin: 0; color:#4b5563; }
+    .professional-grid-two-up {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+      gap: 18px;
+    }
+    .professional-notification-list {
+      display: grid;
+      gap: 10px;
+    }
+    .professional-notification {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .professional-notification__topline {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+      margin-bottom:6px;
+    }
+    .professional-notification p {
+      margin: 0;
+      color:#4b5563;
+      line-height:1.55;
+    }
     @media (max-width: 920px) {
       .professional-dashboard-grid { grid-template-columns: 1fr 1fr; }
+      .professional-grid-two-up { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .professional-dashboard-grid { grid-template-columns: 1fr; }
@@ -93,32 +122,59 @@
     </section>
 
     <section class="professional-dashboard-grid">
-      <article class="professional-kpi"><span>Assigned</span><strong>{{ assigned_count }}</strong></article>
-      <article class="professional-kpi"><span>Today</span><strong>{{ today_count }}</strong></article>
-      <article class="professional-kpi"><span>Upcoming</span><strong>{{ upcoming_count }}</strong></article>
-      <article class="professional-kpi"><span>Completed</span><strong>{{ completed_count }}</strong></article>
+      <article class="professional-kpi"><span>Assigned Today</span><strong>{{ assigned_today_count }}</strong><small>Tasks assigned or accepted today</small></article>
+      <article class="professional-kpi"><span>In Progress</span><strong>{{ in_progress_count }}</strong></article>
+      <article class="professional-kpi"><span>Waiting Owner</span><strong>{{ waiting_owner_count }}</strong></article>
+      <article class="professional-kpi"><span>Completed Today</span><strong>{{ completed_today_count }}</strong></article>
+      <article class="professional-kpi"><span>Upcoming Visits</span><strong>{{ upcoming_count }}</strong></article>
+      <article class="professional-kpi"><span>Average Completion Time</span><strong>{% if average_completion_minutes is not none %}{{ average_completion_minutes }} min{% else %}n/a{% endif %}</strong></article>
+      <article class="professional-kpi"><span>Today</span><strong>{{ today_count }}</strong><small>Legacy workload view</small></article>
+      <article class="professional-kpi"><span>Upcoming</span><strong>{{ upcoming_count }}</strong><small>Legacy workload view</small></article>
+      <article class="professional-kpi"><span>Completed</span><strong>{{ completed_count }}</strong><small>Legacy workload view</small></article>
     </section>
 
-    <section class="professional-panel">
-      <div class="section-heading">
-        <p class="section-heading__eyebrow">Assigned tasks</p>
-        <h2>Active workload</h2>
-      </div>
-      <div class="professional-task-list">
-        {% for task in assigned_tasks[:5] %}
-          <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
-            <div class="professional-task-card__meta">
-              <span class="professional-badge">{{ task.status_label|e }}</span>
-              <span class="professional-badge">{{ task.priority_label|e }}</span>
-              <time>{{ task.due_date|e or 'No due date' }}</time>
+    <section class="professional-grid-two-up">
+      <article class="professional-panel">
+        <div class="section-heading">
+          <p class="section-heading__eyebrow">Assigned tasks</p>
+          <h2>Active workload</h2>
+        </div>
+        <div class="professional-task-list">
+          {% for task in assigned_tasks[:5] %}
+            <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
+              <div class="professional-task-card__meta">
+                <span class="professional-badge">{{ task.status_label|e }}</span>
+                <span class="professional-badge">{{ task.priority_label|e }}</span>
+                <time>{{ task.due_date|e or 'No due date' }}</time>
+              </div>
+              <strong>{{ task.title|e }}</strong>
+              <p>{{ task.property_name|e or task.property_location|e }}</p>
+            </a>
+          {% else %}
+            <p>No assigned tasks yet.</p>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="professional-panel">
+        <div class="section-heading">
+          <p class="section-heading__eyebrow">Notifications</p>
+          <h2>Recent notifications</h2>
+        </div>
+        <div class="professional-notification-list">
+          {% for notification in recent_notifications %}
+            <div class="professional-notification">
+              <div class="professional-notification__topline">
+                <strong>{{ notification.title|e }}</strong>
+                <time>{{ notification.created_at|e }}</time>
+              </div>
+              {% if notification.detail %}<p>{{ notification.detail|e }}</p>{% endif %}
             </div>
-            <strong>{{ task.title|e }}</strong>
-            <p>{{ task.property_name|e or task.property_location|e }}</p>
-          </a>
-        {% else %}
-          <p>No assigned tasks yet.</p>
-        {% endfor %}
-      </div>
+          {% else %}
+            <p>No recent notifications.</p>
+          {% endfor %}
+        </div>
+      </article>
     </section>
   </main>
 </body>

@@ -28,6 +28,7 @@
         <a class="button button--secondary" href="/admin/service-requests">View Service Requests</a>
         <a class="button button--secondary" href="/admin/operations">View Operations</a>
         <a class="button button--secondary" href="/admin/calendar">View Calendar</a>
+        <a class="button button--secondary" href="/admin/reservations">View Reservations</a>
         <a class="button button--secondary" href="/admin/notifications">View Notifications</a>
         <a class="button button--secondary" href="/admin/owner-accounts">View Owner Accounts</a>
         <a class="button button--secondary" href="/admin/properties">View Properties</a>
@@ -154,6 +155,57 @@
           <div class="admin-empty-state">
             <h3>No scheduled events yet.</h3>
             <p>The shared calendar will surface task-driven events, visits, and owner dates here.</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Reservation engine</p>
+          <h2>Booking and availability</h2>
+        </div>
+        <a class="button button--ghost" href="/admin/reservations">View reservations</a>
+      </div>
+      <div class="admin-kpi-grid">
+        <article class="admin-kpi-card">
+          <span>Today's check-ins</span>
+          <strong>{{ reservation_widget.stats.todays_check_ins }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Today's check-outs</span>
+          <strong>{{ reservation_widget.stats.todays_check_outs }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Occupancy</span>
+          <strong>{{ reservation_widget.stats.occupancy }}%</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Cleaning queue</span>
+          <strong>{{ reservation_widget.stats.cleaning_queue }}</strong>
+        </article>
+        <article class="admin-kpi-card">
+          <span>Inspections</span>
+          <strong>{{ reservation_widget.stats.inspections }}</strong>
+        </article>
+      </div>
+      <div class="admin-activity-list" style="margin-top: 16px;">
+        {% if reservation_widget.current_guests %}
+          {% for reservation in reservation_widget.current_guests %}
+            <div class="admin-activity-item">
+              <div class="admin-activity-meta">
+                <span class="admin-pilot-status admin-pilot-status--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
+                <time>{{ reservation.arrival_datetime|e }}</time>
+              </div>
+              <strong>{{ reservation.guest_label|e }}</strong>
+              <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="admin-empty-state">
+            <h3>No active reservations yet.</h3>
+            <p>Reservations will appear here as soon as they are created or imported.</p>
           </div>
         {% endif %}
       </div>

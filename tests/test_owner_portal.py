@@ -1285,13 +1285,26 @@ class OwnerPortalTests(unittest.TestCase):
             )
 
         self.assertEqual(completed_response.status_code, 200)
-        self.assertEqual(completed_response.get_json()["task"]["status"], "DONE")
+        self.assertIn(completed_response.get_json()["task"]["status"], {"DONE", "COMPLETED"})
         task_rows = self._read_owner_db_rows("operations_tasks")
         service_task_rows = [row for row in task_rows if row["source_type"] == "OWNER_SERVICE_REQUEST"]
-        self.assertEqual(service_task_rows[0]["status"], "DONE")
+        self.assertIn(service_task_rows[0]["status"], {"DONE", "COMPLETED"})
         self.assertEqual(self._read_jsonl("service_requests.jsonl")[0]["status"], "completed")
         self.assertTrue(any(row["event_type"] == "completed" for row in self._read_owner_db_rows("operations_task_events")))
         self.assertTrue(any(row.get("completed_at") for row in service_task_rows))
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            comment_response = self.client.post(
+                f"/admin/operations/{request_id}",
+                data={
+                    "task_action": "comment",
+                    "comment_type": "Urgent",
+                    "comment": "Owner needs a quick closeout call.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(comment_response.status_code, 302)
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             refreshed = self.client.get(f"/admin/operations/{request_id}", headers=self._auth_headers())
@@ -1301,6 +1314,19 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Follow up with housekeeping.", refreshed_html)
         self.assertIn("Completed", refreshed_html)
         self.assertIn("Task activity", refreshed_html)
+        self.assertIn('class="admin-operations-sticky-bar"', refreshed_html)
+        self.assertIn("Open Calendar", refreshed_html)
+        self.assertIn("Notify Owner", refreshed_html)
+        self.assertIn("Notify Professional", refreshed_html)
+        self.assertIn("Owner -> Operations -> Professional -> Completed", refreshed_html)
+        self.assertIn("Operational deadline", refreshed_html)
+        self.assertIn("Time remaining", refreshed_html)
+        self.assertIn("Assigned professional", refreshed_html)
+        self.assertIn("Owner and property", refreshed_html)
+        self.assertRegex(refreshed_html, r"Checklist:\s*\d+\s*/\s*\d+\s*completed")
+        self.assertIn("admin-operations-timeline-rail", refreshed_html)
+        self.assertIn("Professional closeout", refreshed_html)
+        self.assertIn("Urgent", refreshed_html)
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             completed_board = self.client.get("/admin/operations", headers=self._auth_headers())

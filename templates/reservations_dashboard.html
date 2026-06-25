@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="{{ current_lang if current_lang is defined and current_lang else 'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | {{ page_title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .reservations-page {
+      min-height: 100vh;
+      padding: 24px 18px 56px;
+      background:
+        radial-gradient(circle at top left, rgba(155, 123, 47, 0.22), transparent 30%),
+        radial-gradient(circle at top right, rgba(28, 145, 147, 0.14), transparent 28%),
+        linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 55%, #efe8d4 100%);
+      color: #1f2937;
+    }
+    .reservations-shell {
+      max-width: 1560px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .reservations-hero,
+    .reservations-panel {
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+    }
+    .reservations-hero {
+      padding: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .reservations-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .reservations-copy {
+      max-width: 860px;
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+    }
+    .reservations-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .reservations-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .reservations-summary-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .reservations-summary-card span {
+      display: block;
+      margin-bottom: 6px;
+      color: #8b6d2b;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .reservations-summary-card strong {
+      font-size: 1.45rem;
+    }
+    .reservations-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .reservations-stack {
+      display: grid;
+      gap: 18px;
+    }
+    .reservations-panel {
+      padding: 22px;
+    }
+    .reservations-filter-grid,
+    .reservations-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .reservations-filter-grid label,
+    .reservations-form-grid label,
+    .reservations-form label {
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5563;
+    }
+    .reservations-filter-grid input,
+    .reservations-filter-grid select,
+    .reservations-form-grid input,
+    .reservations-form-grid select,
+    .reservations-form textarea,
+    .reservations-form input,
+    .reservations-form select {
+      width: 100%;
+      border: 1px solid rgba(31, 41, 55, 0.12);
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .reservations-form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .reservations-form__actions,
+    .reservations-card__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .reservations-list {
+      display: grid;
+      gap: 14px;
+    }
+    .reservations-card {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      box-shadow: 0 12px 24px rgba(31, 41, 55, 0.05);
+    }
+    .reservations-card__topline,
+    .reservations-card__meta,
+    .reservations-card__footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+    .reservations-chip,
+    .reservations-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+    }
+    .reservations-badge--occupied { background: rgba(46, 125, 92, 0.14); color: #2f6b4e; }
+    .reservations-badge--available { background: rgba(28, 145, 147, 0.14); color: #0f766e; }
+    .reservations-badge--blocked { background: rgba(113, 128, 150, 0.16); color: #526170; }
+    .reservations-badge--maintenance { background: rgba(197, 116, 34, 0.16); color: #a85812; }
+    .reservations-badge--cleaning { background: rgba(34, 139, 77, 0.14); color: #2f6b4e; }
+    .reservations-badge--ready { background: rgba(61, 97, 199, 0.14); color: #3557a8; }
+    .reservations-card h3,
+    .reservations-panel h2 {
+      margin: 0;
+    }
+    .reservations-card p {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .reservations-side {
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+    }
+    .reservations-empty {
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px dashed rgba(31, 41, 55, 0.16);
+      background: rgba(251, 247, 238, 0.9);
+      color: #6b7280;
+      line-height: 1.65;
+    }
+    .reservations-mini-list {
+      display: grid;
+      gap: 10px;
+    }
+    .reservations-mini-item {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(251, 247, 238, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .reservations-mini-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .reservations-mini-item span {
+      color: #6b7280;
+      font-size: 14px;
+    }
+    @media (max-width: 980px) {
+      .reservations-grid,
+      .reservations-summary,
+      .reservations-filter-grid,
+      .reservations-form-grid {
+        grid-template-columns: 1fr;
+      }
+      .reservations-side {
+        position: static;
+        top: auto;
+      }
+    }
+  </style>
+</head>
+<body class="reservations-page">
+  <main class="reservations-shell">
+    <section class="reservations-hero">
+      <div>
+        <p class="eyebrow">BlackSea Connect</p>
+        <h1>{{ page_title }}</h1>
+        <p class="reservations-copy">
+          {% if scope == 'owner' %}
+            Manage your reservations, create manual stays, block dates, and keep the calendar synchronized with operations.
+          {% else %}
+            Review every reservation across the portfolio with live filters, linked operations, and calendar synchronization.
+          {% endif %}
+        </p>
+      </div>
+      <div class="reservations-actions">
+        {% if scope == 'owner' %}
+          <a class="button button--primary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Back to dashboard</a>
+        {% else %}
+          <a class="button button--primary" href="{{ localized_url('/admin/calendar') }}">Open calendar</a>
+          <a class="button button--secondary" href="{{ localized_url('/admin') }}">Back to admin</a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="reservations-summary" aria-label="Reservation widgets">
+      {% if scope == 'owner' %}
+        <article class="reservations-summary-card">
+          <span>Upcoming arrivals</span>
+          <strong>{{ widgets.stats.upcoming_arrivals }}</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Upcoming departures</span>
+          <strong>{{ widgets.stats.upcoming_departures }}</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Current guests</span>
+          <strong>{{ widgets.stats.current_guests }}</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Next cleaning</span>
+          <strong>{{ widgets.stats.next_cleaning }}</strong>
+        </article>
+      {% else %}
+        <article class="reservations-summary-card">
+          <span>Today's check-ins</span>
+          <strong>{{ widgets.stats.todays_check_ins }}</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Today's check-outs</span>
+          <strong>{{ widgets.stats.todays_check_outs }}</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Occupancy</span>
+          <strong>{{ widgets.stats.occupancy }}%</strong>
+        </article>
+        <article class="reservations-summary-card">
+          <span>Cleaning queue</span>
+          <strong>{{ widgets.stats.cleaning_queue }}</strong>
+        </article>
+      {% endif %}
+    </section>
+
+    <section class="reservations-grid">
+      <div class="reservations-stack">
+        {% if scope == 'owner' and create_allowed %}
+          <article class="reservations-panel">
+            <div class="section-heading">
+              <p class="section-heading__eyebrow">Create reservation</p>
+              <h2>Manual reservation or block dates</h2>
+            </div>
+            <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}">
+              <div class="reservations-form-grid">
+                <label>
+                  <span>Reservation type</span>
+                  <select name="reservation_kind">
+                    <option value="reservation">Manual reservation</option>
+                    <option value="blocked_dates">Block dates</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Property</span>
+                  <select name="property_id" required>
+                    <option value="">Select property</option>
+                    {% for property in owner_properties %}
+                      <option value="{{ property.id|e }}">{{ property.name|e }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  <span>Reservation source</span>
+                  <select name="reservation_source">
+                    {% for source in source_options %}
+                      <option value="{{ source|e }}">{{ source }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  <span>Status</span>
+                  <select name="status">
+                    {% for status in status_options %}
+                      <option value="{{ status|e }}">{{ status.replace('_', ' ').title() }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+              </div>
+              <div class="reservations-form-grid" style="margin-top: 12px;">
+                <label><span>Guest first name</span><input name="guest_first_name" placeholder="Elena"></label>
+                <label><span>Guest last name</span><input name="guest_last_name" placeholder="Petrova"></label>
+                <label><span>Guest email</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
+                <label><span>Guest phone</span><input name="guest_phone" placeholder="+359..."></label>
+                <label><span>Adults</span><input name="adults" type="number" min="0" value="1"></label>
+                <label><span>Children</span><input name="children" type="number" min="0" value="0"></label>
+                <label><span>Infants</span><input name="infants" type="number" min="0" value="0"></label>
+                <label><span>Pets</span><input name="pets" type="number" min="0" value="0"></label>
+                <label><span>Arrival</span><input name="arrival_datetime" type="datetime-local" required></label>
+                <label><span>Departure</span><input name="departure_datetime" type="datetime-local" required></label>
+              </div>
+              <label style="margin-top: 12px;">
+                <span>External reference</span>
+                <input name="external_reference" placeholder="Manual / Airbnb / CSV / iCal reference">
+              </label>
+              <label style="margin-top: 12px;">
+                <span>Notes</span>
+                <textarea name="notes" placeholder="Private reservation notes or blocking details"></textarea>
+              </label>
+              <div class="reservations-form__actions" style="margin-top: 12px;">
+                <button class="button button--primary" type="submit">Save reservation</button>
+                <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+              </div>
+            </form>
+          </article>
+        {% else %}
+          <article class="reservations-panel">
+            <div class="section-heading">
+              <p class="section-heading__eyebrow">Filters</p>
+              <h2>Search reservations</h2>
+            </div>
+            <form class="reservations-form" method="get" action="{{ localized_url('/admin/reservations') }}">
+              <div class="reservations-filter-grid">
+                <label><span>Property</span><input name="property" value="{{ filters.property|e }}" placeholder="Property"></label>
+                <label><span>Owner</span><input name="owner" value="{{ filters.owner|e }}" placeholder="Owner"></label>
+                <label><span>Guest</span><input name="guest" value="{{ filters.guest|e }}" placeholder="Guest"></label>
+                <label><span>Status</span><input name="status" value="{{ filters.status|e }}" placeholder="CONFIRMED"></label>
+                <label><span>Arrival</span><input name="arrival" value="{{ filters.arrival|e }}" placeholder="2026-06-25"></label>
+                <label><span>Departure</span><input name="departure" value="{{ filters.departure|e }}" placeholder="2026-06-30"></label>
+                <label><span>Source</span><input name="source" value="{{ filters.source|e }}" placeholder="Manual Reservation"></label>
+                <label><span>Search</span><input name="q" value="{{ filters.search|e }}" placeholder="Guest, property, notes"></label>
+              </div>
+              <div class="reservations-form__actions" style="margin-top: 12px;">
+                <button class="button button--primary" type="submit">Apply filters</button>
+                <a class="button button--secondary" href="{{ localized_url('/admin/reservations') }}">Reset</a>
+              </div>
+            </form>
+          </article>
+        {% endif %}
+
+        <article class="reservations-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Reservations</p>
+            <h2>Reservation list</h2>
+          </div>
+          {% if reservations %}
+            <div class="reservations-list">
+              {% for reservation in reservations %}
+                <article class="reservations-card">
+                  <div class="reservations-card__topline">
+                    <div>
+                      <h3>{{ reservation.guest_label|e }}</h3>
+                      <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
+                    </div>
+                    <span class="reservations-badge reservations-badge--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
+                  </div>
+                  <div class="reservations-card__meta">
+                    <span class="reservations-chip">{{ reservation.status.replace('_', ' ').title() }}</span>
+                    <span class="reservations-chip">{{ reservation.reservation_source|e }}</span>
+                    <span class="reservations-chip">{{ reservation.arrival_datetime|e }} - {{ reservation.departure_datetime|e }}</span>
+                  </div>
+                  <p>
+                    {% if reservation.guest_name %}
+                      {{ reservation.guest_email|e }}{% if reservation.guest_phone %} · {{ reservation.guest_phone|e }}{% endif %}
+                    {% else %}
+                      Blocked dates or private stay placeholder.
+                    {% endif %}
+                  </p>
+                  <div class="reservations-card__footer">
+                    <span>Operations: {{ reservation.linked_operations|length }}</span>
+                    <div class="reservations-card__actions">
+                      {% if scope == 'owner' %}
+                        <a class="button button--ghost" href="{{ localized_url('/owners/reservations/' ~ reservation.id) }}">Open detail</a>
+                      {% else %}
+                        <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ reservation.id) }}">Open detail</a>
+                      {% endif %}
+                      {% if reservation.calendar_event %}
+                        <a class="button button--ghost" href="{{ localized_url('/admin/calendar?property=' ~ reservation.property_name) }}">Calendar</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="reservations-empty">
+              <h3>No reservations yet.</h3>
+              <p>The booking engine will surface every manual stay, imported reservation, and blocked period here once created.</p>
+            </div>
+          {% endif %}
+        </article>
+      </div>
+
+      <aside class="reservations-side">
+        <article class="reservations-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Calendar</p>
+            <h2>Synced schedule</h2>
+          </div>
+          <p class="reservations-copy" style="margin-bottom: 12px;">Reservations sync to the calendar engine automatically and drive operations tasks, property status, and notifications.</p>
+          <div class="reservations-mini-list">
+            {% if reservations %}
+              {% for reservation in reservations[:5] %}
+                <div class="reservations-mini-item">
+                  <strong>{{ reservation.guest_label|e }}</strong>
+                  <span>{{ reservation.arrival_datetime|e }} - {{ reservation.departure_datetime|e }}</span>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="reservations-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Property status</p>
+            <h2>Calculated state</h2>
+          </div>
+          {% if reservations %}
+            <div class="reservations-mini-list">
+              {% for reservation in reservations[:5] %}
+                <div class="reservations-mini-item">
+                  <strong>{{ reservation.property_name|e }}</strong>
+                  <span>{{ reservation.property_status }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="reservations-empty">Property states will appear after the first reservation is created.</div>
+          {% endif %}
+        </article>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
