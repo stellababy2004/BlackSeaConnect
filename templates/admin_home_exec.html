@@ -1252,6 +1252,139 @@
         min-height: 78px;
       }
     }
+    .admin-cockpit-page {
+      color: #fdf9f0;
+      --admin-card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      --admin-card-border: rgba(255, 255, 255, 0.12);
+      --admin-card-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+      --admin-card-radius: 22px;
+      --admin-card-padding: 18px;
+      --admin-text-primary: #fdf9f0;
+      --admin-text-secondary: rgba(253, 249, 240, 0.84);
+      --admin-text-muted: rgba(253, 249, 240, 0.66);
+    }
+    .admin-cockpit-page .admin-cockpit-hero,
+    .admin-cockpit-page .admin-cockpit-panel,
+    .admin-cockpit-page .admin-dashboard-section,
+    .admin-cockpit-page .admin-kpi-card,
+    .admin-cockpit-page .admin-alert-card,
+    .admin-cockpit-page .admin-risk-card,
+    .admin-cockpit-page .admin-property-card,
+    .admin-cockpit-page .admin-timeline-card,
+    .admin-cockpit-page .admin-workload-card,
+    .admin-cockpit-page .admin-list-card,
+    .admin-cockpit-page .admin-event-row,
+    .admin-cockpit-page .admin-activity-item,
+    .admin-cockpit-page .admin-recommendation-card {
+      border-radius: var(--admin-card-radius);
+      border-color: var(--admin-card-border);
+      box-shadow: var(--admin-card-shadow);
+      background: var(--admin-card-bg) rgba(7, 16, 30, 0.74);
+    }
+    .admin-cockpit-page .admin-cockpit-hero,
+    .admin-cockpit-page .admin-cockpit-panel,
+    .admin-cockpit-page .admin-dashboard-section {
+      padding: 22px;
+    }
+    .admin-cockpit-page .admin-kpi-card,
+    .admin-cockpit-page .admin-alert-card,
+    .admin-cockpit-page .admin-risk-card,
+    .admin-cockpit-page .admin-property-card,
+    .admin-cockpit-page .admin-timeline-card,
+    .admin-cockpit-page .admin-workload-card,
+    .admin-cockpit-page .admin-list-card,
+    .admin-cockpit-page .admin-event-row,
+    .admin-cockpit-page .admin-activity-item,
+    .admin-cockpit-page .admin-recommendation-card {
+      padding: var(--admin-card-padding);
+    }
+    .admin-cockpit-page p,
+    .admin-cockpit-page .admin-submeta,
+    .admin-cockpit-page .admin-meta-line,
+    .admin-cockpit-page .admin-alert-card__meta,
+    .admin-cockpit-page .admin-recommendation-card__meta,
+    .admin-cockpit-page .admin-risk-card__meta,
+    .admin-cockpit-page .admin-timeline-event__meta,
+    .admin-cockpit-page .admin-kpi-trend,
+    .admin-cockpit-page .admin-action-grid .button span,
+    .admin-cockpit-page .admin-workload-card__meta span,
+    .admin-cockpit-page .admin-workload-day span,
+    .admin-cockpit-page .admin-property-metrics,
+    .admin-cockpit-page .admin-summary-list,
+    .admin-cockpit-page .admin-reservation-card__meta,
+    .admin-cockpit-page .admin-health-gauge__label {
+      color: var(--admin-text-secondary);
+    }
+    .admin-cockpit-page .admin-cockpit-hero h1,
+    .admin-cockpit-page .admin-section-head h2,
+    .admin-cockpit-page .admin-kpi-card h3,
+    .admin-cockpit-page .admin-mini-card h3,
+    .admin-cockpit-page .admin-property-card h3,
+    .admin-cockpit-page .admin-timeline-card h3,
+    .admin-cockpit-page .admin-risk-card strong,
+    .admin-cockpit-page .admin-alert-card strong,
+    .admin-cockpit-page .admin-recommendation-card strong,
+    .admin-cockpit-page .admin-workload-card strong,
+    .admin-cockpit-page .admin-reservation-card strong,
+    .admin-cockpit-page .admin-activity-item strong {
+      color: var(--admin-text-primary);
+    }
+    .admin-cockpit-page .admin-cockpit-hero p,
+    .admin-cockpit-page .admin-cockpit-panel p,
+    .admin-cockpit-page .admin-dashboard-section p {
+      color: var(--admin-text-secondary);
+    }
+    .admin-cockpit-page .admin-pill,
+    .admin-cockpit-page .admin-badge {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .admin-cockpit-page .button {
+      min-height: 52px;
+      border-radius: 16px;
+      font-weight: 700;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+    .admin-cockpit-page .button:hover,
+    .admin-cockpit-page .button:focus-visible {
+      transform: translateY(-1px);
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button,
+    .admin-cockpit-page .admin-action-grid .button {
+      border-radius: 18px;
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button span,
+    .admin-cockpit-page .admin-action-grid .button span {
+      color: var(--admin-text-secondary);
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button strong,
+    .admin-cockpit-page .admin-action-grid .button strong {
+      color: var(--admin-text-primary);
+    }
+    .admin-cockpit-page .admin-kpi-value,
+    .admin-cockpit-page .admin-risk-score,
+    .admin-cockpit-page .admin-health-gauge__value {
+      color: var(--admin-text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-cockpit-page .admin-kpi-trend {
+      color: var(--admin-text-secondary);
+    }
+    .admin-cockpit-page .admin-summary-list span,
+    .admin-cockpit-page .admin-property-metrics span {
+      gap: 12px;
+      align-items: center;
+    }
+    .admin-cockpit-page .admin-summary-list strong,
+    .admin-cockpit-page .admin-property-metrics strong {
+      color: var(--admin-text-primary);
+      font-weight: 700;
+    }
   </style>
 </head>
 <body class="admin-cockpit-page">
