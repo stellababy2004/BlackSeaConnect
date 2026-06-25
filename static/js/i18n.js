@@ -1,5 +1,6 @@
 ﻿(function () {
   const DEFAULT_LANG = "bg";
+  const FALLBACK_LANG = "en";
   const SUPPORTED_LANGS = new Set(["bg", "en", "fr", "ru"]);
   const PAGE_NAMESPACE_BY_PATH = {
     "/": "home",
@@ -159,8 +160,8 @@
 
   function getTranslation(lang, key, pageNamespace) {
     const translations = window.BlackSeaI18N || {};
-    const dictionary = translations[lang] || translations.bg || {};
-    const fallbackDictionary = translations.bg || translations.en || translations.ru || {};
+    const dictionary = translations[lang] || translations[FALLBACK_LANG] || translations[DEFAULT_LANG] || {};
+    const fallbackDictionary = translations[FALLBACK_LANG] || translations[DEFAULT_LANG] || {};
     let value;
 
     if (!key) {
@@ -319,7 +320,7 @@
     function applyLanguage(lang, options) {
       const settings = options || {};
       const activeLang = translations[lang] ? lang : defaultLang;
-      const dictionary = translations[activeLang] || translations[defaultLang] || {};
+      const dictionary = translations[activeLang] || translations[FALLBACK_LANG] || translations[defaultLang] || {};
       const nodes = document.querySelectorAll("[data-i18n]:not([data-i18n-html])");
       const htmlNodes = document.querySelectorAll("[data-i18n-html]");
       const attrNodes = document.querySelectorAll("[data-i18n-attr]");

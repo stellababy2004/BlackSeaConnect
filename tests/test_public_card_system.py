@@ -24,6 +24,18 @@ class PublicCardSystemTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, self.styles)
 
+    def test_surface_component_classes_are_defined(self):
+        for selector in [
+            ".surface-light",
+            ".surface-dark",
+            ".surface-form",
+            ".surface-empty",
+            ".surface-kpi",
+            ".surface-hero",
+        ]:
+            with self.subTest(selector=selector):
+                self.assertIn(selector, self.styles)
+
     def test_public_card_system_covers_key_selectors(self):
         for selector in [
             ".glass-card",

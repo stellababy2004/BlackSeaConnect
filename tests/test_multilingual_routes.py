@@ -450,6 +450,25 @@ class MultilingualRouteTests(unittest.TestCase):
                 self.assertIn(href, property_html)
         self.assertIn('name="lang" value="fr"', property_html)
 
+        guest_html = self.client.get("/guest/a-302?lang=ru").get_data(as_text=True)
+        for href in [
+            'href="/services?lang=ru"',
+            'href="/partners?lang=ru"',
+            'href="/professionals?lang=ru"',
+            'href="/pilot-access?lang=ru"',
+        ]:
+            with self.subTest(page="guest", href=href):
+                self.assertIn(href, guest_html)
+
+        partners_html = self.client.get("/partners?lang=en").get_data(as_text=True)
+        for href in [
+            'href="/services?lang=en"',
+            'href="/guest/a-302?lang=en"',
+            'href="/pilot-access?lang=en"',
+        ]:
+            with self.subTest(page="partners", href=href):
+                self.assertIn(href, partners_html)
+
     def test_internal_links_preserve_existing_query_params_on_owner_flows(self):
         self._login_owner()
         response = self.client.get("/owners/request-service?category=cleaning&utm_source=nav&lang=fr")
@@ -523,6 +542,130 @@ class MultilingualRouteTests(unittest.TestCase):
         self.assertEqual(bg_guest["actionDashboard"], "Панел за престоя")
         self.assertEqual(bg_guest["actionRequest"], "Поискай съдействие")
         self.assertEqual(bg_guest["actionHelper"], "Бързи действия за госта · без инсталиране, директно от телефона.")
+
+    def test_guest_and_partners_routes_render_the_selected_language(self):
+        guest_en = self.client.get("/guest/a-302?lang=en").get_data(as_text=True)
+        guest_en_hero = guest_en.split('<div class="hero__copy guest-hero__copy">', 1)[1].split('<div class="hero__cta">', 1)[0]
+        self.assertIn("A calm companion portal for your arrival, access and concierge support.", guest_en_hero)
+        self.assertNotIn("Спокоен companion portal за вашето пристигане, достъп и concierge поддръжка.", guest_en_hero)
+
+        guest_ru = self.client.get("/guest/a-302?lang=ru").get_data(as_text=True)
+        guest_ru_hero = guest_ru.split('<div class="hero__copy guest-hero__copy">', 1)[1].split('<div class="hero__cta">', 1)[0]
+        self.assertIn("Спокойный портал-спутник для прибытия, доступа и помощи консьержа.", guest_ru_hero)
+        self.assertNotIn("A calm companion portal for your arrival, access and concierge support.", guest_ru_hero)
+
+        partners_bg = self.client.get("/partners?lang=bg").get_data(as_text=True)
+        partners_bg_hero = partners_bg.split('<div class="hero__copy">', 1)[1].split('<div class="hero__cta">', 1)[0]
+        self.assertIn("Надеждни партньори за крайбрежни операции, подкрепа на гости и ежедневна координация.", partners_bg_hero)
+        self.assertNotIn("Contact:", partners_bg)
+        self.assertNotIn("Trusted partners for coastal operations, guest support and daily follow-up.", partners_bg)
+
+    def test_language_switcher_preserves_next_parameter(self):
+        response = self.client.get("/guest/a-302?lang=en&next=%2Fowners%2Fdashboard")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        for lang in ("bg", "en", "fr", "ru"):
+            with self.subTest(lang=lang):
+                self.assertIn("next=%2Fowners%2Fdashboard", html)
+                self.assertIn(f"lang={lang}", html)
+                self.assertIn(f'href="/guest/a-302?next=%2Fowners%2Fdashboard&amp;lang={lang}"', html)
+
+    def test_missing_translation_falls_back_to_english(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        script = textwrap.dedent(
+            """
+            const fs = require('fs');
+            const vm = require('vm');
+
+            function createNode(tagName, key, text) {
+              return {
+                tagName,
+                textContent: text,
+                attributes: { 'data-i18n': key },
+                classList: { toggle() {} },
+                getAttribute(name) {
+                  return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null;
+                },
+                setAttribute(name, value) {
+                  this.attributes[name] = value;
+                }
+              };
+            }
+
+            const node = createNode('P', 'common.fallbackKey', 'Bulgarian fallback');
+            const document = {
+              readyState: 'complete',
+              documentElement: { lang: '' },
+              querySelectorAll(selector) {
+                if (selector === '[data-i18n]:not([data-i18n-html])') {
+                  return [node];
+                }
+                if (selector === '[data-i18n-html]') {
+                  return [];
+                }
+                if (selector === '[data-i18n-attr]') {
+                  return [];
+                }
+                if (selector === 'title[data-i18n]') {
+                  return null;
+                }
+                return [];
+              },
+              querySelector() {
+                return null;
+              },
+              addEventListener() {}
+            };
+
+            const window = {
+              document,
+              location: { href: 'https://example.com/?lang=bg', search: '?lang=bg', hostname: 'example.com', pathname: '/' },
+              history: { replaceState() {} },
+              dispatchEvent() {},
+              setTimeout(fn) {
+                if (typeof fn === 'function') {
+                  fn();
+                }
+                return 0;
+              },
+              clearTimeout() {},
+              console: { log() {}, warn() {}, error() {} },
+              CustomEvent: function CustomEvent(type, init) {
+                return { type, detail: init && init.detail };
+              },
+              BlackSeaI18N: {
+                bg: { common: {} },
+                en: { common: { fallbackKey: 'English fallback' } }
+              }
+            };
+
+            window.window = window;
+            const sandbox = { window, document, fs, vm, console: window.console, URLSearchParams, CustomEvent: window.CustomEvent };
+            globalThis.window = window;
+            globalThis.document = document;
+            __MODULE_LOADER__
+            vm.runInNewContext(fs.readFileSync('static/js/i18n.js', 'utf8'), sandbox);
+
+            console.log(JSON.stringify({
+              htmlLang: document.documentElement.lang,
+              text: node.textContent
+            }));
+            """
+        )
+        script = script.replace("__MODULE_LOADER__", self._i18n_module_loader_js())
+        result = subprocess.run(
+            ["node", "-e", script],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["htmlLang"], "bg")
+        self.assertEqual(payload["text"], "English fallback")
 
     def test_modular_i18n_bundle_exposes_expected_namespaces_and_keys(self):
         repo_root = Path(__file__).resolve().parents[1]

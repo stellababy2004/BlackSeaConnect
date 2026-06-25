@@ -7857,6 +7857,44 @@ def _build_home_counters():
     }
 
 
+_PUBLIC_I18N_CACHE = {}
+
+
+def _load_public_i18n_bundle(namespace):
+    namespace = str(namespace or "").strip()
+    if not namespace:
+        return {}
+
+    bundle_name = re.sub(r"(?<!^)(?=[A-Z])", "-", namespace).lower()
+
+    cached = _PUBLIC_I18N_CACHE.get(namespace)
+    if cached is not None:
+        return cached
+
+    bundle_path = Path(app.root_path) / "static" / "js" / "i18n" / f"{bundle_name}.js"
+    if not bundle_path.exists():
+        _PUBLIC_I18N_CACHE[namespace] = {}
+        return {}
+
+    try:
+        bundle_text = bundle_path.read_text(encoding="utf-8")
+        marker = f'window.BlackSeaI18NModules["{namespace}"] = '
+        marker_index = bundle_text.find(marker)
+        if marker_index == -1:
+            raise ValueError(f"Missing bundle marker for {namespace}")
+        object_start = bundle_text.find("{", marker_index)
+        object_end = bundle_text.rfind("};")
+        if object_start == -1 or object_end == -1 or object_end <= object_start:
+            raise ValueError(f"Missing bundle payload for {namespace}")
+        bundle = json.loads(bundle_text[object_start:object_end + 1])
+    except Exception as exc:
+        app.logger.warning("Failed to load public i18n bundle %s: %s", namespace, type(exc).__name__)
+        bundle = {}
+
+    _PUBLIC_I18N_CACHE[namespace] = bundle
+    return bundle
+
+
 @app.context_processor
 def inject_public_site_settings():
     current_lang = _resolve_current_language()
@@ -7902,11 +7940,30 @@ def inject_public_site_settings():
             rebuilt_path = f"{rebuilt_path}#{parsed.fragment}"
         return rebuilt_path
 
+    def public_i18n(namespace, key, fallback=""):
+        bundle = _load_public_i18n_bundle(namespace)
+        if not bundle:
+            return fallback
+
+        lang_candidates = [current_lang]
+        if "en" not in lang_candidates:
+            lang_candidates.append("en")
+
+        for lang in lang_candidates:
+            namespace_copy = bundle.get(lang, {}).get(namespace, {})
+            if isinstance(namespace_copy, dict) and key in namespace_copy:
+                value = namespace_copy.get(key)
+                if value is not None and value != "":
+                    return value
+
+        return fallback
+
     return {
         "site_url": SITE_URL,
         "language_switch_url": language_switch_url,
         "localized_url": localized_url,
         "page_lang": current_page_language(),
+        "public_i18n": public_i18n,
     }
 
 

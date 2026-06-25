@@ -33,14 +33,14 @@
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="heroEyebrow">Професионална регистрация</p>
-        <h1 data-i18n="heroTitle">Присъединете се към професионалната мрежа на BlackSea Connect.</h1>
+        <p class="eyebrow" data-i18n="heroEyebrow">{{ public_i18n('professionalsApply', 'heroEyebrow', 'Professional registration') }}</p>
+        <h1 data-i18n="heroTitle">{{ public_i18n('professionalsApply', 'heroTitle', 'Join the BlackSea Connect professional network.') }}</h1>
         <p class="hero__text" data-i18n="heroIntro">
-          Споделете вашите данни и ще прегледаме заявлението ви за пилотната фаза по българското Черноморие.
+          {{ public_i18n('professionalsApply', 'heroIntro', 'Share your details and we will review your application for the pilot phase.') }}
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#professional-form" data-i18n="heroPrimaryCta">Отвори формата за кандидатстване</a>
-          <a class="button button--secondary" href="{{ localized_url('/professionals') }}" data-i18n="heroSecondaryCta">Виж професионалната мрежа</a>
+          <a class="button button--primary" href="#professional-form" data-i18n="heroPrimaryCta">{{ public_i18n('professionalsApply', 'heroPrimaryCta', 'Open the application form') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/professionals') }}" data-i18n="heroSecondaryCta">{{ public_i18n('professionalsApply', 'heroSecondaryCta', 'View the professional network') }}</a>
         </div>
       </div>
     </div>
@@ -50,19 +50,19 @@
     {% if submitted %}
       <section class="cta-panel">
         <div class="cta-panel__content">
-          <p class="section-heading__eyebrow" data-i18n="successEyebrow">Заявлението е получено</p>
-          <h2 data-i18n="successTitle">Благодарим ви. Вашето професионално заявление е в очакване на преглед.</h2>
-          <p class="cta-panel__copy" data-i18n="successCopy">Записахме регистрацията ви и ще я прегледаме по време на пилотната фаза. Ранният достъп остава безплатен, докато мрежата се оформя.</p>
+          <p class="section-heading__eyebrow" data-i18n="successEyebrow">{{ public_i18n('professionalsApply', 'successEyebrow', 'Application received') }}</p>
+          <h2 data-i18n="successTitle">{{ public_i18n('professionalsApply', 'successTitle', 'Thank you. Your professional application is waiting for review.') }}</h2>
+          <p class="cta-panel__copy" data-i18n="successCopy">{{ public_i18n('professionalsApply', 'successCopy', 'We saved your registration and will review it during the pilot phase. Early access remains free while the network is taking shape.') }}</p>
         </div>
-        <a class="button button--primary" href="{{ localized_url('/professionals') }}" data-i18n="successPrimaryCta">Върни се към професионалистите</a>
+        <a class="button button--primary" href="{{ localized_url('/professionals') }}" data-i18n="successPrimaryCta">{{ public_i18n('professionalsApply', 'successPrimaryCta', 'Back to professionals') }}</a>
       </section>
     {% endif %}
 
     <section class="cta-panel cta-panel--pilot" id="professional-form" aria-labelledby="professional-form-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="formEyebrow">Формуляр за регистрация</p>
-        <h2 id="professional-form-title" data-i18n="formTitle">Разкажете ни за вашата експертиза, град и езици.</h2>
-        <p class="cta-panel__copy" data-i18n="formCopy">Искаме само детайлите, нужни да разберем съвместимост, локация и капацитет. Ранният достъп е безплатен по време на пилотната фаза.</p>
+        <p class="section-heading__eyebrow" data-i18n="formEyebrow">{{ public_i18n('professionalsApply', 'formEyebrow', 'Registration form') }}</p>
+        <h2 id="professional-form-title" data-i18n="formTitle">{{ public_i18n('professionalsApply', 'formTitle', 'Tell us about your expertise, city and languages.') }}</h2>
+        <p class="cta-panel__copy" data-i18n="formCopy">{{ public_i18n('professionalsApply', 'formCopy', 'We only need the details required to understand fit, location and capacity. Early access is free during the pilot phase.') }}</p>
       </div>
 
       {% if save_error %}
