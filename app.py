@@ -1649,12 +1649,21 @@ def _reservation_guest_name(reservation):
     return " ".join(part for part in [first_name, last_name] if part).strip()
 
 
+def _safe_json_loads(value, default=None):
+    if default is None:
+        default = {}
+    text = str(value or "").strip()
+    if not text:
+        return default
+    try:
+        return json.loads(text)
+    except (TypeError, json.JSONDecodeError):
+        return default
+
+
 def _reservation_metadata_from_row(row):
     metadata_json = str(row["metadata_json"]) if row and "metadata_json" in row.keys() else ""
-    try:
-        return json.loads(metadata_json) if metadata_json else {}
-    except json.JSONDecodeError:
-        return {}
+    return _safe_json_loads(metadata_json, {})
 
 
 def _reservation_from_row(row):
@@ -1669,6 +1678,10 @@ def _reservation_from_row(row):
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
         "reservation_source": _normalize_reservation_source(row["reservation_source"] if "reservation_source" in row.keys() else "Manual Reservation"),
         "external_reference": str(row["external_reference"]) if "external_reference" in row.keys() else "",
+        "external_last_sync": str(row["external_last_sync"]) if "external_last_sync" in row.keys() else "",
+        "import_batch_id": str(row["import_batch_id"]) if "import_batch_id" in row.keys() else "",
+        "sync_status": str(row["sync_status"]) if "sync_status" in row.keys() else "IDLE",
+        "source_metadata_json": str(row["source_metadata_json"]) if "source_metadata_json" in row.keys() else "{}",
         "guest_first_name": str(row["guest_first_name"]) if "guest_first_name" in row.keys() else "",
         "guest_last_name": str(row["guest_last_name"]) if "guest_last_name" in row.keys() else "",
         "guest_email": str(row["guest_email"]) if "guest_email" in row.keys() else "",
@@ -1685,6 +1698,7 @@ def _reservation_from_row(row):
         "created_by": str(row["created_by"]) if "created_by" in row.keys() else "",
         "metadata_json": str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}",
         "metadata": metadata,
+        "source_metadata": _safe_json_loads(str(row["source_metadata_json"])) if "source_metadata_json" in row.keys() else {},
     }
 
 
@@ -1695,8 +1709,9 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
         rows = conn.execute(
             """
             SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
-                   guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
-                   departure_datetime, status, notes, language, created_by, metadata_json
+                   external_last_sync, import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email,
+                   guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
+                   language, created_by, metadata_json
             FROM reservations
             ORDER BY arrival_datetime ASC, updated_at DESC, id ASC
             """
@@ -1788,8 +1803,9 @@ def _find_reservation(reservation_id):
         row = conn.execute(
             """
             SELECT id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
-                   guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
-                   departure_datetime, status, notes, language, created_by, metadata_json
+                   external_last_sync, import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email,
+                   guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
+                   language, created_by, metadata_json
             FROM reservations
             WHERE id = ?
             """,
@@ -2081,6 +2097,10 @@ def _create_reservation(reservation_payload, *, created_by="system"):
         "property_id": property_id,
         "reservation_source": reservation_source,
         "external_reference": str((reservation_payload or {}).get("external_reference", "")).strip(),
+        "external_last_sync": str((reservation_payload or {}).get("external_last_sync", "")).strip(),
+        "import_batch_id": str((reservation_payload or {}).get("import_batch_id", "")).strip(),
+        "sync_status": str((reservation_payload or {}).get("sync_status", "IDLE")).strip() or "IDLE",
+        "source_metadata_json": str((reservation_payload or {}).get("source_metadata_json", "{}")).strip() or "{}",
         "guest_first_name": str((reservation_payload or {}).get("guest_first_name", "")).strip(),
         "guest_last_name": str((reservation_payload or {}).get("guest_last_name", "")).strip(),
         "guest_email": str((reservation_payload or {}).get("guest_email", "")).strip(),
@@ -2104,16 +2124,21 @@ def _create_reservation(reservation_payload, *, created_by="system"):
         conn.execute(
             """
             INSERT INTO reservations (
-                id, created_at, updated_at, property_id, reservation_source, external_reference, guest_first_name,
-                guest_last_name, guest_email, guest_phone, adults, children, infants, pets, arrival_datetime,
-                departure_datetime, status, notes, language, created_by, metadata_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, created_at, updated_at, property_id, reservation_source, external_reference, external_last_sync,
+                import_batch_id, sync_status, source_metadata_json, guest_first_name, guest_last_name, guest_email,
+                guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
+                language, created_by, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 created_at = excluded.created_at,
                 updated_at = excluded.updated_at,
                 property_id = excluded.property_id,
                 reservation_source = excluded.reservation_source,
                 external_reference = excluded.external_reference,
+                external_last_sync = excluded.external_last_sync,
+                import_batch_id = excluded.import_batch_id,
+                sync_status = excluded.sync_status,
+                source_metadata_json = excluded.source_metadata_json,
                 guest_first_name = excluded.guest_first_name,
                 guest_last_name = excluded.guest_last_name,
                 guest_email = excluded.guest_email,
@@ -2137,6 +2162,10 @@ def _create_reservation(reservation_payload, *, created_by="system"):
                 record["property_id"],
                 record["reservation_source"],
                 record["external_reference"],
+                record["external_last_sync"],
+                record["import_batch_id"],
+                record["sync_status"],
+                record["source_metadata_json"],
                 record["guest_first_name"],
                 record["guest_last_name"],
                 record["guest_email"],
@@ -2417,6 +2446,551 @@ def _reservation_detail_context(reservation, *, scope="admin", owner_account=Non
         "property_status": enriched_reservation["property_status"],
         "can_view_internal_comments": scope == "admin",
         "status_options": [{"value": status, "label": _reservation_status_label(status)} for status in RESERVATION_STATUS_VALUES],
+    }
+
+
+def _reservation_import_batch_id():
+    return uuid4().hex
+
+
+def _reservation_import_normalize_text(value):
+    return str(value or "").strip()
+
+
+def _reservation_import_split_guest_name(value):
+    text = _reservation_import_normalize_text(value)
+    if not text:
+        return "", ""
+    if "," in text:
+        parts = [part.strip() for part in text.split(",", 1)]
+        return parts[1] if len(parts) > 1 else "", parts[0]
+    parts = text.split()
+    if len(parts) == 1:
+        return parts[0], ""
+    return " ".join(parts[:-1]).strip(), parts[-1].strip()
+
+
+def _reservation_import_interval_overlaps(start_a, end_a, start_b, end_b):
+    if not all([start_a, end_a, start_b, end_b]):
+        return False
+    return start_a < end_b and start_b < end_a
+
+
+def _reservation_import_parse_date(value):
+    parsed, _all_day = _calendar_parse_datetime(value)
+    return parsed
+
+
+def _reservation_import_property_candidates():
+    properties = _load_owner_properties()
+    return [{
+        **property_record,
+        "normalized_name": _reservation_import_normalize_text(property_record.get("name", "")).lower(),
+    } for property_record in properties]
+
+
+def _reservation_import_match_property(item, context=None):
+    context = context or {}
+    manual_property_id = _reservation_import_normalize_text(context.get("manual_property_id", ""))
+    property_map = context.get("property_map") if isinstance(context.get("property_map"), dict) else {}
+    property_name = _reservation_import_normalize_text(item.get("property_name", "")).lower()
+    external_reference = _reservation_import_normalize_text(item.get("external_reference", "")).lower()
+
+    if external_reference:
+        for reservation in _load_reservations():
+            if _reservation_import_normalize_text(reservation.get("external_reference", "")).lower() != external_reference:
+                continue
+            property_record = _find_owner_property(reservation.get("property_id", ""))
+            if property_record:
+                return property_record
+
+    if manual_property_id:
+        property_record = _find_owner_property(manual_property_id)
+        if property_record:
+            return property_record
+
+    if property_name in property_map:
+        property_record = _find_owner_property(property_map[property_name])
+        if property_record:
+            return property_record
+
+    for property_record in _reservation_import_property_candidates():
+        if property_name and property_record.get("normalized_name") == property_name:
+            return property_record
+
+    return None
+
+
+def _reservation_import_overlap_conflicts(property_id, arrival_dt, departure_dt, *, reservation_id="", source_reference="", guest_email=""):
+    conflicts = []
+    if not property_id or not arrival_dt or not departure_dt:
+        return conflicts
+    for reservation in _load_reservations(property_ids=[property_id]):
+        existing_id = str(reservation.get("id", "")).strip()
+        if reservation_id and existing_id == reservation_id:
+            continue
+        if _normalize_reservation_status(reservation.get("status", "PENDING")) == "CANCELLED":
+            continue
+        existing_arrival = _reservation_import_parse_date(reservation.get("arrival_datetime", ""))
+        existing_departure = _reservation_import_parse_date(reservation.get("departure_datetime", ""))
+        if not existing_arrival or not existing_departure:
+            continue
+        if source_reference and _reservation_import_normalize_text(reservation.get("external_reference", "")).lower() == source_reference.lower():
+            conflicts.append({
+                "type": "duplicate",
+                "reservation_id": existing_id,
+                "property_id": property_id,
+                "reason": "duplicate external reference",
+            })
+            continue
+        if guest_email and _reservation_import_normalize_text(reservation.get("guest_email", "")).lower() == guest_email.lower() and _reservation_import_interval_overlaps(arrival_dt, departure_dt, existing_arrival, existing_departure):
+            conflicts.append({
+                "type": "duplicate",
+                "reservation_id": existing_id,
+                "property_id": property_id,
+                "reason": "duplicate guest stay",
+            })
+            continue
+        if _reservation_import_interval_overlaps(arrival_dt, departure_dt, existing_arrival, existing_departure):
+            conflicts.append({
+                "type": "conflict",
+                "reservation_id": existing_id,
+                "property_id": property_id,
+                "reason": "date overlap",
+            })
+    return conflicts
+
+
+def _reservation_import_build_preview_item(item, *, adapter_key, batch_id, context=None, source_metadata=None, imported_source=""):
+    context = context or {}
+    source_metadata = source_metadata or {}
+    normalized_item = dict(item or {})
+    normalized_item["reservation_source"] = _normalize_reservation_source(imported_source or normalized_item.get("reservation_source", "Manual Reservation"))
+    normalized_item["import_batch_id"] = batch_id
+    normalized_item["source_metadata_json"] = json.dumps(source_metadata, ensure_ascii=False, separators=(",", ":"))
+    normalized_item["sync_status"] = "PREVIEW"
+    normalized_item["external_last_sync"] = ""
+    normalized_item["created_by"] = _reservation_import_normalize_text(context.get("created_by", "")) or "system"
+    if not normalized_item.get("guest_first_name") and normalized_item.get("guest_name"):
+        first_name, last_name = _reservation_import_split_guest_name(normalized_item.get("guest_name", ""))
+        normalized_item["guest_first_name"] = first_name
+        normalized_item["guest_last_name"] = last_name
+    matched_property = _reservation_import_match_property(normalized_item, context=context)
+    if matched_property:
+        normalized_item["property_id"] = str(matched_property.get("id", "")).strip()
+        normalized_item["property_name"] = str(matched_property.get("name", "")).strip()
+        normalized_item["owner_id"] = str(matched_property.get("owner_id", "")).strip()
+
+    arrival_dt = _reservation_import_parse_date(normalized_item.get("arrival_datetime", ""))
+    departure_dt = _reservation_import_parse_date(normalized_item.get("departure_datetime", ""))
+    normalized_item["arrival_parsed"] = arrival_dt.isoformat() if arrival_dt else ""
+    normalized_item["departure_parsed"] = departure_dt.isoformat() if departure_dt else ""
+    normalized_item["validation_errors"] = []
+    normalized_item["validation_warnings"] = []
+    normalized_item["validation_state"] = "new"
+    normalized_item["matched_property"] = {
+        "id": normalized_item.get("property_id", ""),
+        "name": normalized_item.get("property_name", ""),
+        "owner_id": normalized_item.get("owner_id", ""),
+    } if normalized_item.get("property_id") else {}
+    if not normalized_item.get("property_id"):
+        normalized_item["validation_errors"].append("missing_property")
+    if normalized_item.get("property_name") and not matched_property:
+        normalized_item["validation_errors"].append("unknown_property")
+    if not arrival_dt or not departure_dt or departure_dt <= arrival_dt:
+        normalized_item["validation_errors"].append("invalid_dates")
+    if arrival_dt and arrival_dt.tzinfo is None:
+        normalized_item["validation_warnings"].append("timezone_issue")
+
+    existing_reservation = None
+    if normalized_item.get("external_reference"):
+        for reservation in _load_reservations(property_ids=[normalized_item.get("property_id", "")]):
+            if _reservation_import_normalize_text(reservation.get("external_reference", "")).lower() == _reservation_import_normalize_text(normalized_item.get("external_reference", "")).lower():
+                existing_reservation = reservation
+                break
+
+    if existing_reservation:
+        normalized_item["validation_state"] = "updated"
+        normalized_item["existing_reservation_id"] = existing_reservation.get("id", "")
+    else:
+        normalized_item["existing_reservation_id"] = ""
+
+    conflicts = _reservation_import_overlap_conflicts(
+        normalized_item.get("property_id", ""),
+        arrival_dt,
+        departure_dt,
+        reservation_id=normalized_item.get("existing_reservation_id", ""),
+        source_reference=normalized_item.get("external_reference", ""),
+        guest_email=normalized_item.get("guest_email", ""),
+    )
+    normalized_item["validation_conflicts"] = conflicts
+    normalized_item["validation_state"] = "conflict" if any(conflict.get("type") == "conflict" for conflict in conflicts) else normalized_item["validation_state"]
+    if any(conflict.get("type") == "duplicate" for conflict in conflicts):
+        normalized_item["validation_state"] = "duplicate"
+
+    if normalized_item["validation_errors"]:
+        normalized_item["validation_state"] = "error"
+    return normalized_item
+
+
+class ReservationImportAdapter:
+    adapter_key = "base"
+    source_label = "Manual Reservation"
+
+    def parse(self, payload, *, context=None):
+        raise NotImplementedError
+
+
+class ManualReservationAdapter(ReservationImportAdapter):
+    adapter_key = "manual"
+    source_label = "Manual Reservation"
+
+    def parse(self, payload, *, context=None):
+        context = context or {}
+        item = {
+            "property_name": _reservation_import_normalize_text(payload.get("property_name", "")),
+            "property_id": _reservation_import_normalize_text(payload.get("property_id", "")),
+            "guest_first_name": _reservation_import_normalize_text(payload.get("guest_first_name", "")),
+            "guest_last_name": _reservation_import_normalize_text(payload.get("guest_last_name", "")),
+            "guest_email": _reservation_import_normalize_text(payload.get("guest_email", "")),
+            "guest_phone": _reservation_import_normalize_text(payload.get("guest_phone", "")),
+            "adults": int(str(payload.get("adults", 1)).strip() or 1),
+            "children": int(str(payload.get("children", 0)).strip() or 0),
+            "infants": int(str(payload.get("infants", 0)).strip() or 0),
+            "pets": int(str(payload.get("pets", 0)).strip() or 0),
+            "arrival_datetime": _reservation_import_normalize_text(payload.get("arrival_datetime", "")),
+            "departure_datetime": _reservation_import_normalize_text(payload.get("departure_datetime", "")),
+            "external_reference": _reservation_import_normalize_text(payload.get("external_reference", "")),
+            "notes": _reservation_import_normalize_text(payload.get("notes", "")),
+            "status": _normalize_reservation_status(payload.get("status", "PENDING")),
+            "guest_name": _reservation_import_normalize_text(payload.get("guest_name", "")),
+        }
+        batch_id = context.get("batch_id") or _reservation_import_batch_id()
+        preview_item = _reservation_import_build_preview_item(item, adapter_key=self.adapter_key, batch_id=batch_id, context=context, source_metadata={"adapter": self.adapter_key}, imported_source=self.source_label)
+        return {
+            "adapter": self.adapter_key,
+            "source": self.source_label,
+            "batch_id": batch_id,
+            "items": [preview_item],
+        }
+
+
+class CSVReservationAdapter(ReservationImportAdapter):
+    adapter_key = "csv"
+    source_label = "CSV Import"
+
+    def parse(self, payload, *, context=None):
+        context = context or {}
+        csv_text = _reservation_import_normalize_text(payload.get("csv_text", ""))
+        if not csv_text:
+            raise ValueError("missing_csv")
+        batch_id = context.get("batch_id") or _reservation_import_batch_id()
+        rows = []
+        reader = csv.DictReader(io.StringIO(csv_text))
+        for index, row in enumerate(reader, start=1):
+            normalized_row = {str(key or "").strip().lower(): str(value or "").strip() for key, value in row.items()}
+            guest_name = normalized_row.get("guest", "")
+            guest_first_name = normalized_row.get("guest_first_name", "")
+            guest_last_name = normalized_row.get("guest_last_name", "")
+            if guest_name and not (guest_first_name or guest_last_name):
+                guest_first_name, guest_last_name = _reservation_import_split_guest_name(guest_name)
+            item = {
+                "property_name": normalized_row.get("property", "") or normalized_row.get("property_name", ""),
+                "guest_first_name": guest_first_name,
+                "guest_last_name": guest_last_name,
+                "guest_email": normalized_row.get("email", "") or normalized_row.get("guest_email", ""),
+                "guest_phone": normalized_row.get("phone", "") or normalized_row.get("guest_phone", ""),
+                "adults": int(normalized_row.get("adults", "1") or 1),
+                "children": int(normalized_row.get("children", "0") or 0),
+                "infants": int(normalized_row.get("infants", "0") or 0),
+                "pets": int(normalized_row.get("pets", "0") or 0),
+                "arrival_datetime": normalized_row.get("arrival", "") or normalized_row.get("arrival_datetime", ""),
+                "departure_datetime": normalized_row.get("departure", "") or normalized_row.get("departure_datetime", ""),
+                "external_reference": normalized_row.get("external_reference", ""),
+                "notes": normalized_row.get("notes", ""),
+                "status": _normalize_reservation_status(normalized_row.get("status", "PENDING")),
+            }
+            preview_item = _reservation_import_build_preview_item(item, adapter_key=self.adapter_key, batch_id=batch_id, context={**context, "created_by": context.get("created_by", "")}, source_metadata={"adapter": self.adapter_key, "row_number": index, "headers": list(row.keys())}, imported_source=self.source_label)
+            rows.append(preview_item)
+        return {"adapter": self.adapter_key, "source": self.source_label, "batch_id": batch_id, "items": rows}
+
+
+class ICalReservationAdapter(ReservationImportAdapter):
+    adapter_key = "ical"
+    source_label = "iCal"
+
+    def parse(self, payload, *, context=None):
+        context = context or {}
+        batch_id = context.get("batch_id") or _reservation_import_batch_id()
+        ics_text = _reservation_import_normalize_text(payload.get("ics_text", ""))
+        ics_url = _reservation_import_normalize_text(payload.get("ics_url", ""))
+        if not ics_text and ics_url:
+            with urllib.request.urlopen(ics_url, timeout=10) as response:
+                ics_text = response.read().decode("utf-8", errors="replace")
+        if not ics_text:
+            raise ValueError("missing_ics")
+
+        lines = []
+        for line in str(ics_text).splitlines():
+            stripped = line.rstrip("\r\n")
+            if not stripped:
+                continue
+            if stripped[:1] in {" ", "\t"} and lines:
+                lines[-1] += stripped[1:]
+            else:
+                lines.append(stripped)
+
+        events = []
+        current = None
+        for line in lines:
+            if line == "BEGIN:VEVENT":
+                current = {}
+                continue
+            if line == "END:VEVENT":
+                if current:
+                    events.append(current)
+                current = None
+                continue
+            if current is None or ":" not in line:
+                continue
+            head, value = line.split(":", 1)
+            key = head.split(";", 1)[0].strip().upper()
+            current[key] = value.strip()
+
+        items = []
+        for index, event in enumerate(events, start=1):
+            summary = event.get("SUMMARY", "")
+            description = event.get("DESCRIPTION", "")
+            location = event.get("LOCATION", "")
+            status = event.get("STATUS", "PENDING")
+            start_value = event.get("DTSTART", "")
+            end_value = event.get("DTEND", "")
+            item = {
+                "property_name": location or summary,
+                "guest_name": summary,
+                "notes": description,
+                "arrival_datetime": start_value,
+                "departure_datetime": end_value,
+                "external_reference": event.get("UID", ""),
+                "status": "CANCELLED" if str(status).upper() == "CANCELLED" else "CONFIRMED",
+            }
+            preview_item = _reservation_import_build_preview_item(item, adapter_key=self.adapter_key, batch_id=batch_id, context=context, source_metadata={"adapter": self.adapter_key, "uid": event.get("UID", ""), "summary": summary, "description": description, "location": location, "status": status}, imported_source=self.source_label)
+            items.append(preview_item)
+        return {"adapter": self.adapter_key, "source": self.source_label, "batch_id": batch_id, "items": items}
+
+
+class GoogleCalendarReservationAdapter(ICalReservationAdapter):
+    adapter_key = "google_calendar"
+    source_label = "Google Calendar"
+
+
+class OTAReservationAdapter(ICalReservationAdapter):
+    adapter_key = "ota"
+    source_label = "OTA Adapter"
+
+
+class ReservationImporter:
+    def __init__(self, adapters=None):
+        adapters = adapters or []
+        self.adapters = {adapter.adapter_key: adapter for adapter in adapters}
+
+    def get_adapter(self, adapter_key):
+        return self.adapters.get(str(adapter_key or "").strip())
+
+    def preview(self, adapter_key, payload, *, context=None):
+        context = context or {}
+        adapter = self.get_adapter(adapter_key)
+        if not adapter:
+            raise ValueError("unknown_adapter")
+        parsed = adapter.parse(payload or {}, context=context)
+        items = parsed.get("items", [])
+        report = {
+            "new_reservations": [],
+            "updated_reservations": [],
+            "duplicates": [],
+            "conflicts": [],
+            "errors": [],
+            "warnings": [],
+        }
+        signature_index = set()
+        for item in items:
+            signature = "|".join([
+                _reservation_import_normalize_text(item.get("property_id", "")).lower(),
+                _reservation_import_normalize_text(item.get("external_reference", "")).lower(),
+                _reservation_import_normalize_text(item.get("arrival_datetime", "")),
+                _reservation_import_normalize_text(item.get("departure_datetime", "")),
+                _reservation_import_normalize_text(item.get("guest_email", "")).lower(),
+            ])
+            if signature in signature_index:
+                item["validation_state"] = "duplicate"
+                item["validation_errors"].append("duplicate_in_batch")
+            else:
+                signature_index.add(signature)
+            report["warnings"].extend(item.get("validation_warnings", []))
+            if item["validation_state"] == "updated":
+                report["updated_reservations"].append(item)
+            elif item["validation_state"] == "duplicate":
+                report["duplicates"].append(item)
+            elif item["validation_state"] == "conflict":
+                report["conflicts"].append(item)
+            elif item["validation_state"] == "error":
+                report["errors"].append(item)
+            else:
+                report["new_reservations"].append(item)
+        report["ready_to_import"] = not (report["errors"] or report["duplicates"] or report["conflicts"])
+        return {
+            "adapter": parsed.get("adapter", adapter_key),
+            "source": parsed.get("source", adapter.source_label),
+            "batch_id": parsed.get("batch_id") or _reservation_import_batch_id(),
+            "items": items,
+            "report": report,
+            "context": context,
+        }
+
+    def import_preview(self, preview_payload, *, created_by="system"):
+        if isinstance(preview_payload, str):
+            preview_payload = json.loads(preview_payload)
+        preview_payload = preview_payload if isinstance(preview_payload, dict) else {}
+        report = preview_payload.get("report") if isinstance(preview_payload.get("report"), dict) else {}
+        if report.get("errors") or report.get("duplicates") or report.get("conflicts"):
+            return {"ok": False, "preview": preview_payload, "created": [], "updated": [], "errors": report}
+
+        created_records = []
+        updated_records = []
+        for item in preview_payload.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            metadata = {
+                "kind": "reservation",
+                "title": item.get("guest_name", "") or item.get("property_name", "") or "Imported reservation",
+                "timeline": [],
+                "comments": [],
+                "import_batch_id": preview_payload.get("batch_id", ""),
+                "source_adapter": preview_payload.get("adapter", ""),
+                "source_label": preview_payload.get("source", ""),
+                "source_metadata": item.get("source_metadata_json", "{}"),
+                "sync_status": "IMPORTED",
+            }
+            reservation_payload = {
+                "id": item.get("existing_reservation_id", "") or uuid4().hex,
+                "created_at": _utc_now_iso(),
+                "updated_at": _utc_now_iso(),
+                "property_id": item.get("property_id", ""),
+                "reservation_source": preview_payload.get("source", item.get("reservation_source", "Manual Reservation")),
+                "external_reference": item.get("external_reference", ""),
+                "external_last_sync": _utc_now_iso(),
+                "import_batch_id": preview_payload.get("batch_id", ""),
+                "sync_status": "IMPORTED",
+                "source_metadata_json": item.get("source_metadata_json", "{}"),
+                "guest_first_name": item.get("guest_first_name", ""),
+                "guest_last_name": item.get("guest_last_name", ""),
+                "guest_email": item.get("guest_email", ""),
+                "guest_phone": item.get("guest_phone", ""),
+                "adults": int(item.get("adults", 1) or 1),
+                "children": int(item.get("children", 0) or 0),
+                "infants": int(item.get("infants", 0) or 0),
+                "pets": int(item.get("pets", 0) or 0),
+                "arrival_datetime": item.get("arrival_datetime", ""),
+                "departure_datetime": item.get("departure_datetime", ""),
+                "status": item.get("status", "PENDING"),
+                "notes": item.get("notes", ""),
+                "language": item.get("language", "en"),
+                "created_by": created_by,
+                "metadata": metadata,
+                "kind": "reservation",
+                "title": metadata["title"],
+            }
+            existing_id = item.get("existing_reservation_id", "")
+            saved = _create_reservation(reservation_payload, created_by=created_by)
+            if existing_id:
+                updated_records.append(saved)
+            else:
+                created_records.append(saved)
+        return {
+            "ok": True,
+            "preview": preview_payload,
+            "created": created_records,
+            "updated": updated_records,
+            "errors": {},
+        }
+
+
+_RESERVATION_IMPORTER = ReservationImporter([
+    ManualReservationAdapter(),
+    CSVReservationAdapter(),
+    ICalReservationAdapter(),
+    GoogleCalendarReservationAdapter(),
+    OTAReservationAdapter(),
+])
+
+
+def _reservation_importer():
+    return _RESERVATION_IMPORTER
+
+
+def _reservation_import_request_payload(source_key):
+    source_key = str(source_key or "").strip().lower()
+    if source_key == "manual":
+        return {
+            "property_id": str(request.form.get("property_id", "")).strip(),
+            "property_name": str(request.form.get("property_name", "")).strip(),
+            "guest_name": str(request.form.get("guest_name", "")).strip(),
+            "guest_first_name": str(request.form.get("guest_first_name", "")).strip(),
+            "guest_last_name": str(request.form.get("guest_last_name", "")).strip(),
+            "guest_email": str(request.form.get("guest_email", "")).strip(),
+            "guest_phone": str(request.form.get("guest_phone", "")).strip(),
+            "adults": str(request.form.get("adults", "1")).strip() or "1",
+            "children": str(request.form.get("children", "0")).strip() or "0",
+            "infants": str(request.form.get("infants", "0")).strip() or "0",
+            "pets": str(request.form.get("pets", "0")).strip() or "0",
+            "arrival_datetime": str(request.form.get("arrival_datetime", "")).strip(),
+            "departure_datetime": str(request.form.get("departure_datetime", "")).strip(),
+            "external_reference": str(request.form.get("external_reference", "")).strip(),
+            "notes": str(request.form.get("notes", "")).strip(),
+            "status": str(request.form.get("status", "PENDING")).strip(),
+        }
+    if source_key == "csv":
+        uploaded_file = request.files.get("csv_file")
+        csv_text = ""
+        if uploaded_file and uploaded_file.filename:
+            csv_text = uploaded_file.read().decode("utf-8-sig", errors="replace")
+        else:
+            csv_text = str(request.form.get("csv_text", "")).strip()
+        return {
+            "csv_text": csv_text,
+        }
+    if source_key in {"ical", "google_calendar", "ota"}:
+        uploaded_file = request.files.get("ics_file")
+        ics_text = ""
+        if uploaded_file and uploaded_file.filename:
+            ics_text = uploaded_file.read().decode("utf-8-sig", errors="replace")
+        return {
+            "ics_text": ics_text,
+            "ics_url": str(request.form.get("ics_url", "")).strip(),
+        }
+    return {}
+
+
+def _reservation_import_page_context(*, scope="admin", current_source="manual", preview=None, validation_error="", import_result=None):
+    properties = _load_owner_properties()
+    return {
+        "page_title": "Reservation import",
+        "page_meta": "Reservation import wizard",
+        "scope": scope,
+        "current_source": current_source,
+        "import_sources": [
+            {"key": "manual", "label": "Manual"},
+            {"key": "csv", "label": "CSV"},
+            {"key": "ical", "label": "iCal"},
+            {"key": "google_calendar", "label": "Google Calendar"},
+            {"key": "ota", "label": "OTA"},
+            {"key": "direct_booking", "label": "Direct Booking"},
+            {"key": "api", "label": "API"},
+        ],
+        "property_options": properties,
+        "preview": preview or {},
+        "validation_error": validation_error,
+        "import_result": import_result or {},
     }
 def _seed_owner_property_activity_backfill(conn):
     property_rows = conn.execute(
@@ -2807,6 +3381,10 @@ def _ensure_owner_db_schema(conn):
                 property_id TEXT NOT NULL,
                 reservation_source TEXT NOT NULL DEFAULT 'Manual Reservation',
                 external_reference TEXT NOT NULL DEFAULT '',
+                external_last_sync TEXT NOT NULL DEFAULT '',
+                import_batch_id TEXT NOT NULL DEFAULT '',
+                sync_status TEXT NOT NULL DEFAULT 'IDLE',
+                source_metadata_json TEXT NOT NULL DEFAULT '{}',
                 guest_first_name TEXT NOT NULL DEFAULT '',
                 guest_last_name TEXT NOT NULL DEFAULT '',
                 guest_email TEXT NOT NULL DEFAULT '',
@@ -2825,6 +3403,18 @@ def _ensure_owner_db_schema(conn):
             )
             """
         )
+        existing_reservation_columns = _owner_table_columns(conn, "reservations")
+        reservation_required_columns = {
+            "reservation_source": "TEXT NOT NULL DEFAULT 'Manual Reservation'",
+            "external_reference": "TEXT NOT NULL DEFAULT ''",
+            "external_last_sync": "TEXT NOT NULL DEFAULT ''",
+            "import_batch_id": "TEXT NOT NULL DEFAULT ''",
+            "sync_status": "TEXT NOT NULL DEFAULT 'IDLE'",
+            "source_metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        }
+        for column_name, column_sql in reservation_required_columns.items():
+            if column_name not in existing_reservation_columns:
+                conn.execute(f"ALTER TABLE reservations ADD COLUMN {column_name} {column_sql}")
         _ensure_owner_property_activity_schema(conn)
         _ensure_operations_task_schema(conn)
         _ensure_calendar_event_schema(conn)
@@ -13386,6 +13976,53 @@ def admin_reservations():
         "filters": filters,
     })
     return render_template("reservations_dashboard.html", **context)
+
+
+@app.route("/admin/reservations/import", methods=["GET", "POST"])
+@admin_required
+def admin_reservation_import():
+    current_source = str(request.values.get("source", "manual")).strip().lower() or "manual"
+    preview = {}
+    import_result = {}
+    validation_error = ""
+    preview_payload_json = ""
+    if request.method == "POST":
+        action = str(request.form.get("import_action", "preview")).strip().lower() or "preview"
+        payload = _reservation_import_request_payload(current_source)
+        context = {
+            "created_by": _current_admin_operator_key(),
+            "manual_property_id": str(request.form.get("manual_property_id", "")).strip(),
+        }
+        try:
+            if action == "import":
+                preview_payload_json = str(request.form.get("preview_payload_json", "")).strip()
+                if preview_payload_json:
+                    preview = json.loads(preview_payload_json)
+                else:
+                    preview = _reservation_importer().preview(current_source, payload, context=context)
+                import_result = _reservation_importer().import_preview(preview, created_by=_current_admin_operator_key())
+                if import_result.get("ok"):
+                    return redirect(url_for("admin_reservations", imported=1, lang=_resolve_current_language()))
+                validation_error = "Import blocked by validation."
+            else:
+                preview = _reservation_importer().preview(current_source, payload, context=context)
+        except (ValueError, json.JSONDecodeError) as exc:
+            validation_error = str(exc) or "Import validation failed."
+            preview = {}
+
+    if preview and not preview_payload_json:
+        preview_payload_json = json.dumps(preview, ensure_ascii=False)
+
+    context = _reservation_import_page_context(
+        scope="admin",
+        current_source=current_source,
+        preview=preview,
+        validation_error=validation_error,
+        import_result=import_result,
+    )
+    context["preview_payload_json"] = preview_payload_json
+    context["current_lang"] = _resolve_current_language()
+    return render_template("admin_reservation_import.html", **context)
 
 
 @app.route("/admin/reservations/<reservation_id>", methods=["GET", "POST"])

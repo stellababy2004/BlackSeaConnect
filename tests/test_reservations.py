@@ -3,6 +3,7 @@ import os
 import shutil
 import unittest
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from pathlib import Path
 import uuid
 from unittest.mock import patch
@@ -281,6 +282,98 @@ class ReservationEngineTests(unittest.TestCase):
         admin_detail_html = admin_detail.get_data(as_text=True)
         self.assertIn("Blocked", admin_detail_html)
         self.assertIn("Reservation activity", admin_detail_html)
+
+    def test_reservation_import_csv_preview_and_commit(self):
+        csv_text = (
+            "Property,Guest,Arrival,Departure,Adults,Children,Email,Phone,Notes,External Reference\n"
+            "Sea View Villa,Anna Ivanova,2026-07-01T14:00,2026-07-05T11:00,2,1,anna@example.com,+359888111222,CSV note,CSV-001\n"
+        )
+
+        with patch.dict(os.environ, self.env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self._seed_owner(owner_id="owner-1", email="owner-one@example.com", full_name="Elena Petrova", city="Varna")
+            self._seed_property(property_id="property-1", owner_id="owner-1", name="Sea View Villa", location="Varna")
+            preview_response = self.client.post(
+                "/admin/reservations/import",
+                data={
+                    "source": "csv",
+                    "import_action": "preview",
+                    "csv_text": csv_text,
+                },
+                headers=self._auth_headers(),
+            )
+            self.assertEqual(preview_response.status_code, 200)
+            preview_html = preview_response.get_data(as_text=True)
+            self.assertIn("Anna Ivanova", preview_html)
+
+            preview = app_module._reservation_importer().preview(
+                "csv",
+                {"csv_text": csv_text},
+                context={"created_by": "admin", "manual_property_id": "property-1"},
+            )
+            self.assertTrue(preview["report"]["ready_to_import"])
+            self.assertEqual(preview["report"]["new_reservations"][0]["validation_state"], "new")
+            import_result = app_module._reservation_importer().import_preview(preview, created_by="admin")
+
+        self.assertTrue(import_result["ok"])
+        reservations = app_module._load_reservations()
+        self.assertEqual(len(reservations), 1)
+        reservation = reservations[0]
+        self.assertEqual(reservation["guest_first_name"], "Anna")
+        self.assertEqual(reservation["reservation_source"], "CSV Import")
+        self.assertEqual(reservation["sync_status"], "IMPORTED")
+        self.assertNotEqual(reservation["import_batch_id"], "")
+        self.assertNotEqual(reservation["external_last_sync"], "")
+        self.assertEqual(reservation["source_metadata"]["adapter"], "csv")
+
+        linked_operations = [task for task in app_module._load_operations_tasks() if task["source_type"] == "RESERVATION" and task["source_id"] == reservation["id"]]
+        self.assertEqual(len(linked_operations), 4)
+        calendar_event = next(event for event in app_module._load_calendar_events() if event.get("metadata", {}).get("reservation_id") == reservation["id"])
+        self.assertEqual(calendar_event["event_type"], "Reservation")
+
+    def test_reservation_import_ical_parsing_duplicate_detection_and_rollback(self):
+        ics_text = """BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:ical-001
+SUMMARY:Anna Ivanova
+DESCRIPTION:Imported from iCal
+DTSTART:20260710T140000Z
+DTEND:20260714T110000Z
+LOCATION:Sea View Villa
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:ical-001
+SUMMARY:Anna Ivanova
+DESCRIPTION:Imported from iCal
+DTSTART:20260710T140000Z
+DTEND:20260714T110000Z
+LOCATION:Sea View Villa
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR"""
+
+        with patch.dict(os.environ, self.env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            self._seed_owner(owner_id="owner-1", email="owner-one@example.com", full_name="Elena Petrova", city="Varna")
+            self._seed_property(property_id="property-1", owner_id="owner-1", name="Sea View Villa", location="Varna")
+
+            preview = app_module._reservation_importer().preview(
+                "ical",
+                {"ics_text": ics_text},
+                context={"created_by": "admin"},
+            )
+
+            self.assertEqual(len(preview["items"]), 2)
+            self.assertEqual(preview["items"][0]["property_id"], "property-1")
+            self.assertEqual(preview["items"][0]["validation_state"], "new")
+            self.assertFalse(preview["report"]["ready_to_import"])
+            self.assertEqual(len(preview["report"]["duplicates"]), 1)
+
+            import_result = app_module._reservation_importer().import_preview(preview, created_by="admin")
+
+        self.assertFalse(import_result["ok"])
+        self.assertEqual(app_module._load_reservations(), [])
+        self.assertFalse(any(task["source_type"] == "RESERVATION" for task in app_module._load_operations_tasks()))
 
 
 if __name__ == "__main__":

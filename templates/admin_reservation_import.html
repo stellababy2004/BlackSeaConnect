@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="{{ current_lang if current_lang is defined and current_lang else 'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <title>BlackSea Connect | {{ page_title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .reservation-import-page {
+      min-height: 100vh;
+      padding: 24px 18px 56px;
+      background:
+        radial-gradient(circle at top left, rgba(155, 123, 47, 0.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(28, 145, 147, 0.16), transparent 26%),
+        linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 54%, #efe8d4 100%);
+      color: #1f2937;
+    }
+    .reservation-import-shell {
+      max-width: 1560px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .reservation-import-hero,
+    .reservation-import-panel {
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(155, 123, 47, 0.16);
+      border-radius: 28px;
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+    }
+    .reservation-import-hero {
+      padding: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .reservation-import-hero h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .reservation-import-copy {
+      max-width: 900px;
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.65;
+    }
+    .reservation-import-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .reservation-import-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .reservation-import-step {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .reservation-import-step span {
+      display: block;
+      margin-bottom: 6px;
+      color: #8b6d2b;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .reservation-import-step strong {
+      font-size: 1.1rem;
+    }
+    .reservation-import-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .reservation-import-stack {
+      display: grid;
+      gap: 18px;
+    }
+    .reservation-import-panel {
+      padding: 22px;
+    }
+    .reservation-import-form-grid,
+    .reservation-import-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .reservation-import-panel label,
+    .reservation-import-form label {
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5563;
+    }
+    .reservation-import-panel input,
+    .reservation-import-panel select,
+    .reservation-import-panel textarea,
+    .reservation-import-form input,
+    .reservation-import-form select,
+    .reservation-import-form textarea {
+      width: 100%;
+      border: 1px solid rgba(31, 41, 55, 0.12);
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #fff;
+      color: #1f2937;
+      font: inherit;
+    }
+    .reservation-import-panel textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .reservation-import-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .reservation-import-source-note {
+      margin: 0 0 14px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    .reservation-import-report {
+      display: grid;
+      gap: 12px;
+    }
+    .reservation-import-report__group {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(251, 247, 238, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.06);
+    }
+    .reservation-import-report__group strong {
+      display: block;
+    }
+    .reservation-import-report__list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding-left: 18px;
+      color: #4b5563;
+    }
+    .reservation-import-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+    .reservation-import-table th,
+    .reservation-import-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      vertical-align: top;
+    }
+    .reservation-import-table th {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b6d2b;
+      background: rgba(251, 247, 238, 0.95);
+    }
+    .reservation-import-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(31, 41, 55, 0.08);
+      color: #1f2937;
+    }
+    .reservation-import-side {
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+    }
+    .reservation-import-empty {
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px dashed rgba(31, 41, 55, 0.16);
+      background: rgba(251, 247, 238, 0.9);
+      color: #6b7280;
+      line-height: 1.65;
+    }
+    .reservation-import-muted {
+      color: #6b7280;
+    }
+    .reservation-import-hidden {
+      display: none;
+    }
+    @media (max-width: 980px) {
+      .reservation-import-grid,
+      .reservation-import-steps,
+      .reservation-import-form-grid,
+      .reservation-import-filter-grid {
+        grid-template-columns: 1fr;
+      }
+      .reservation-import-side {
+        position: static;
+        top: auto;
+      }
+    }
+  </style>
+</head>
+<body class="reservation-import-page">
+  <main class="reservation-import-shell">
+    <section class="reservation-import-hero">
+      <div>
+        <p class="eyebrow">BlackSea Connect</p>
+        <h1>{{ page_title }}</h1>
+        <p class="reservation-import-copy">
+          Unified reservation import pipeline for CSV, iCal, Google Calendar, OTA adapters, manual entry, and future connectors.
+          Preview first, validate before saving, and keep calendar, operations, notifications, and timeline synchronized.
+        </p>
+      </div>
+      <div class="reservation-import-actions">
+        <a class="button button--primary" href="{{ localized_url('/admin/reservations') }}">Back to reservations</a>
+        <a class="button button--secondary" href="{{ localized_url('/admin') }}">Back to admin</a>
+      </div>
+    </section>
+
+    <section class="reservation-import-steps" aria-label="Import steps">
+      <article class="reservation-import-step"><span>Step 1</span><strong>Select source</strong></article>
+      <article class="reservation-import-step"><span>Step 2</span><strong>Upload or enter data</strong></article>
+      <article class="reservation-import-step"><span>Step 3</span><strong>Validate</strong></article>
+      <article class="reservation-import-step"><span>Step 4</span><strong>Preview</strong></article>
+      <article class="reservation-import-step"><span>Step 5</span><strong>Import</strong></article>
+    </section>
+
+    <section class="reservation-import-grid">
+      <div class="reservation-import-stack">
+        <article class="reservation-import-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Import wizard</p>
+            <h2>Source and data</h2>
+          </div>
+          {% if validation_error %}
+            <div class="reservation-import-empty" style="margin-bottom: 14px;">{{ validation_error }}</div>
+          {% endif %}
+          <form class="reservation-import-form" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="preview_payload_json" value="{{ preview_payload_json|default('')|e }}">
+            <div class="reservation-import-form-grid">
+              <label>
+                <span>Source</span>
+                <select name="source">
+                  {% for option in import_sources %}
+                    <option value="{{ option.key }}" {% if option.key == current_source %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label>
+                <span>Manual property match</span>
+                <select name="manual_property_id">
+                  <option value="">Auto-match</option>
+                  {% for property in property_options %}
+                    <option value="{{ property.id|e }}">{{ property.name|e }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+
+            {% if current_source == 'manual' %}
+              <div class="reservation-import-form-grid" style="margin-top: 12px;">
+                <label><span>Property ID</span><input name="property_id" placeholder="Property id"></label>
+                <label><span>Property name</span><input name="property_name" placeholder="Sea View Villa"></label>
+                <label><span>Guest first name</span><input name="guest_first_name" placeholder="Elena"></label>
+                <label><span>Guest last name</span><input name="guest_last_name" placeholder="Petrova"></label>
+                <label><span>Guest email</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
+                <label><span>Guest phone</span><input name="guest_phone" placeholder="+359..."></label>
+                <label><span>Adults</span><input name="adults" type="number" min="0" value="1"></label>
+                <label><span>Children</span><input name="children" type="number" min="0" value="0"></label>
+                <label><span>Infants</span><input name="infants" type="number" min="0" value="0"></label>
+                <label><span>Pets</span><input name="pets" type="number" min="0" value="0"></label>
+                <label><span>Arrival</span><input name="arrival_datetime" type="datetime-local"></label>
+                <label><span>Departure</span><input name="departure_datetime" type="datetime-local"></label>
+                <label><span>External reference</span><input name="external_reference" placeholder="Manual / source reference"></label>
+                <label><span>Status</span><input name="status" placeholder="CONFIRMED"></label>
+              </div>
+              <label style="margin-top: 12px;">
+                <span>Notes</span>
+                <textarea name="notes" placeholder="Internal notes for the reservation"></textarea>
+              </label>
+            {% elif current_source == 'csv' %}
+              <p class="reservation-import-source-note">Upload a CSV file or paste CSV text. Supported fields include Property, Guest, Arrival, Departure, Adults, Children, Email, Phone, and Notes.</p>
+              <div class="reservation-import-form-grid">
+                <label><span>CSV file</span><input name="csv_file" type="file" accept=".csv,text/csv"></label>
+                <label><span>Or CSV text</span><textarea name="csv_text" placeholder="Property,Guest,Arrival,Departure,..."></textarea></label>
+              </div>
+            {% elif current_source in ['ical', 'google_calendar', 'ota'] %}
+              <p class="reservation-import-source-note">Upload an .ics file or provide a URL. The parser extracts UID, SUMMARY, DESCRIPTION, DTSTART, DTEND, LOCATION, and STATUS without starting live sync.</p>
+              <div class="reservation-import-form-grid">
+                <label><span>ICS file</span><input name="ics_file" type="file" accept=".ics,text/calendar"></label>
+                <label><span>Calendar URL</span><input name="ics_url" placeholder="https://.../calendar.ics"></label>
+              </div>
+            {% else %}
+              <div class="reservation-import-empty" style="margin-top: 12px;">
+                This adapter is reserved as an extension point for future direct booking and API connectors.
+              </div>
+            {% endif %}
+
+            <div class="reservation-import-actions-row" style="margin-top: 14px;">
+              <button class="button button--primary" type="submit" name="import_action" value="preview">Validate and preview</button>
+              {% if preview and preview.report and preview.report.ready_to_import %}
+                <button class="button button--secondary" type="submit" name="import_action" value="import">Confirm import</button>
+              {% endif %}
+            </div>
+          </form>
+        </article>
+
+        <article class="reservation-import-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Preview</p>
+            <h2>Validation report and records</h2>
+          </div>
+          {% if preview and preview.report %}
+            <div class="reservation-import-report">
+              <div class="reservation-import-form-grid">
+                <div class="reservation-import-report__group">
+                  <strong>New reservations</strong>
+                  <span>{{ preview.report.new_reservations|length }}</span>
+                </div>
+                <div class="reservation-import-report__group">
+                  <strong>Updated reservations</strong>
+                  <span>{{ preview.report.updated_reservations|length }}</span>
+                </div>
+                <div class="reservation-import-report__group">
+                  <strong>Duplicates</strong>
+                  <span>{{ preview.report.duplicates|length }}</span>
+                </div>
+                <div class="reservation-import-report__group">
+                  <strong>Conflicts</strong>
+                  <span>{{ preview.report.conflicts|length }}</span>
+                </div>
+              </div>
+              {% if preview.report.errors %}
+                <div class="reservation-import-report__group">
+                  <strong>Errors</strong>
+                  <ul class="reservation-import-report__list">
+                    {% for item in preview.report.errors %}
+                      <li>{{ item.guest_name or item.property_name or 'Reservation row' }}: {{ item.validation_errors|join(', ') }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+              {% if preview.report.warnings %}
+                <div class="reservation-import-report__group">
+                  <strong>Warnings</strong>
+                  <ul class="reservation-import-report__list">
+                    {% for warning in preview.report.warnings %}
+                      <li>{{ warning }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+              {% if preview["items"] %}
+                <div class="reservation-import-report__group">
+                  <strong>Parsed items</strong>
+                  <div style="overflow-x:auto;">
+                    <table class="reservation-import-table">
+                      <thead>
+                        <tr>
+                          <th>Guest</th>
+                          <th>Property</th>
+                          <th>Dates</th>
+                          <th>Status</th>
+                          <th>Result</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for item in preview["items"] %}
+                          <tr>
+                            <td>{{ (item.guest_first_name ~ ' ' ~ item.guest_last_name)|trim or item.guest_name or 'Blocked dates' }}</td>
+                            <td>{{ item.property_name or item.property_id or 'Unmatched' }}</td>
+                            <td>{{ item.arrival_datetime }} - {{ item.departure_datetime }}</td>
+                            <td>{{ item.status or 'PENDING' }}</td>
+                            <td><span class="reservation-import-chip">{{ item.validation_state }}</span></td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="reservation-import-empty">Upload a file or fill the manual form, then preview the import to see validation, matching, duplicates, and conflicts before anything is saved.</div>
+          {% endif %}
+        </article>
+      </div>
+
+      <aside class="reservation-import-side">
+        <article class="reservation-import-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Adapters</p>
+            <h2>Extension points</h2>
+          </div>
+          <div class="reservation-import-report">
+            <div class="reservation-import-report__group">
+              <strong>Live now</strong>
+              <span class="reservation-import-muted">Manual, CSV, iCal parser, Google Calendar scaffold, OTA scaffold</span>
+            </div>
+            <div class="reservation-import-report__group">
+              <strong>Prepared for later</strong>
+              <span class="reservation-import-muted">Airbnb, Booking.com, VRBO, Outlook, Apple Calendar, direct booking, and API connectors.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="reservation-import-panel">
+          <div class="section-heading">
+            <p class="section-heading__eyebrow">Synchronization</p>
+            <h2>What updates on import</h2>
+          </div>
+          <div class="reservation-import-report">
+            <div class="reservation-import-report__group"><strong>Calendar</strong><span class="reservation-import-muted">Events are created through the reservation engine.</span></div>
+            <div class="reservation-import-report__group"><strong>Operations</strong><span class="reservation-import-muted">Check-in, cleaning, inspection, and check-out tasks are generated automatically.</span></div>
+            <div class="reservation-import-report__group"><strong>Notifications</strong><span class="reservation-import-muted">Import events are announced in the notification center.</span></div>
+            <div class="reservation-import-report__group"><strong>Timeline</strong><span class="reservation-import-muted">Every accepted import gets a timestamped audit trail.</span></div>
+          </div>
+        </article>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
