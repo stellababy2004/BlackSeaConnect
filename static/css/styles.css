@@ -26884,3 +26884,132 @@ body.reservations-page :where(
 body.reservations-page {
   color: var(--text);
 }
+
+body.guest-homepage-page :where(
+  .guest-kpi-card,
+  .guest-dashboard-card,
+  .guest-unified-card,
+  .guest-action-card,
+  .guest-form-panel,
+  .guest-card,
+  .portal-card,
+  .access-card,
+  .concierge-card,
+  .guest-portal-header,
+  .guest-portal-card,
+  .guest-portal-status,
+  .guest-portal-info,
+  .guest-portal-service,
+  .guest-portal-access,
+  .guest-portal-qr,
+  .guest-portal-instructions,
+  .feature-card,
+  .trust-card,
+  .cta-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy
+) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.70), rgba(243, 248, 252, 0.58)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+  backdrop-filter: blur(18px) saturate(124%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(124%) !important;
+}
+
+body.guest-homepage-page :where(.guest-kpi-card h1, .guest-kpi-card h2, .guest-kpi-card h3, .guest-kpi-card p, .guest-unified-card h1, .guest-unified-card h2, .guest-unified-card h3, .guest-unified-card p, .guest-action-card h1, .guest-action-card h2, .guest-action-card h3, .guest-action-card p, .guest-form-panel h1, .guest-form-panel h2, .guest-form-panel h3, .guest-form-panel p, .guest-portal-card h1, .guest-portal-card h2, .guest-portal-card h3, .guest-portal-card p, .hero__copy h1, .hero__copy p, .trust-card h1, .trust-card h2, .trust-card h3, .trust-card p, .cta-panel h1, .cta-panel h2, .cta-panel p) {
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-login-page :where(.hero__copy, .owner-login-card, .owner-login-panel, .owner-portal-card) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(243, 248, 252, 0.60)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-login-page :where(h1, h2, h3, p, dt, dd, span, a) {
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-request-service-page :where(.hero__copy, .owner-request-summary, .owner-request-panel, .owner-request-next, .owner-portal-card) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(243, 248, 252, 0.60)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-property-page :where(.hero__copy, .owner-property-card, .owner-property-aside, .owner-properties-panel, .owner-portal-card) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(243, 248, 252, 0.60)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page :where(.owner-portal-card, .owner-kpi-card, .owner-health-item, .owner-team-list__item, .owner-action-card, .owner-notification-item, .owner-activity-item, .owner-portal-hero__panel) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(243, 248, 252, 0.60)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.owner-portal-page.owner-portal-dashboard-page :where(h1, h2, h3, h4, p, li, dd, dt, time, strong, span, a, label) {
+  color: #10223d !important;
+}
+
+body.professionals-apply-page :where(.hero__copy, .cta-panel, .admin-empty-state, .pilot-form, .pilot-form__field, .pilot-form__footer, .hero__content--home .hero__copy) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.70), rgba(243, 248, 252, 0.58)),
+    rgba(246, 249, 252, 0.74) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.professionals-apply-page :where(h1, h2, h3, p, label, span, dd, dt, a) {
+  color: #10223d !important;
+}
+
+body.admin-cockpit-page :where(.admin-cockpit-hero, .admin-cockpit-panel, .admin-kpi-card, .admin-empty-state) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background:
+    linear-gradient(180deg, rgba(11, 25, 38, 0.86), rgba(9, 18, 28, 0.78)),
+    rgba(9, 18, 28, 0.84) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.18) !important;
+  color: var(--text) !important;
+}
+
+body.admin-cockpit-page :where(h1, h2, h3, p, span, strong, time, dd, dt, a, label) {
+  color: var(--text) !important;
+}
+
+body.reservations-page :where(.reservations-hero, .reservations-panel, .reservations-summary-card, .reservations-card, .reservations-empty, .reservations-mini-item, .reservation-detail-panel, .reservation-detail-hero) {
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background:
+    linear-gradient(180deg, rgba(11, 25, 38, 0.86), rgba(9, 18, 28, 0.78)),
+    rgba(9, 18, 28, 0.84) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.18) !important;
+  color: var(--text) !important;
+}
+
+body.reservations-page :where(h1, h2, h3, p, span, strong, time, dd, dt, a, label) {
+  color: var(--text) !important;
+}

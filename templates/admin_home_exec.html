@@ -1385,6 +1385,27 @@
       color: var(--admin-text-primary);
       font-weight: 700;
     }
+    .admin-cockpit-page :where(
+      .admin-cockpit-hero,
+      .admin-cockpit-panel,
+      .admin-dashboard-section,
+      .admin-kpi-card,
+      .admin-mini-card,
+      .admin-list-card,
+      .admin-activity-item,
+      .admin-property-card,
+      .admin-timeline-card,
+      .admin-workload-card
+    ) :where(h1, h2, h3, h4, h5, h6, p, span, strong, small, time, dd, dt, li, label) {
+      color: #f8f4ea !important;
+      -webkit-text-fill-color: #f8f4ea !important;
+      text-shadow: none !important;
+      opacity: 1 !important;
+    }
+    .admin-cockpit-page :where(.admin-kpi-value, .admin-hero-stat strong, .admin-status-chip, .admin-clock-chip, .admin-health-chip) {
+      color: #f8f4ea !important;
+      -webkit-text-fill-color: #f8f4ea !important;
+    }
   </style>
 </head>
 <body class="admin-cockpit-page">
