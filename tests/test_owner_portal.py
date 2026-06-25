@@ -205,6 +205,265 @@ class OwnerPortalTests(unittest.TestCase):
             for record in records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
+    def _insert_owner_db_rows(self, table_name, rows):
+        db_path = Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        with app_module._owner_db_connection() as conn:
+            app_module._ensure_owner_db_schema(conn)
+            if table_name == "professional_accounts":
+                conn.executemany(
+                    """
+                    INSERT INTO professional_accounts (email, id, created_at, full_name, phone, company, service_categories, status, last_login_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(email) DO UPDATE SET
+                        id = excluded.id,
+                        created_at = excluded.created_at,
+                        full_name = excluded.full_name,
+                        phone = excluded.phone,
+                        company = excluded.company,
+                        service_categories = excluded.service_categories,
+                        status = excluded.status,
+                        last_login_at = excluded.last_login_at
+                    """,
+                    [
+                        (
+                            row.get("email", ""),
+                            row.get("id", ""),
+                            row.get("created_at", ""),
+                            row.get("full_name", ""),
+                            row.get("phone", ""),
+                            row.get("company", ""),
+                            row.get("service_categories", ""),
+                            row.get("status", "PENDING"),
+                            row.get("last_login_at", ""),
+                        )
+                        for row in rows
+                    ],
+                )
+            elif table_name == "calendar_events":
+                conn.executemany(
+                    """
+                    INSERT INTO calendar_events (
+                        id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
+                        start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at,
+                        property_id = excluded.property_id,
+                        owner_id = excluded.owner_id,
+                        operation_task_id = excluded.operation_task_id,
+                        event_type = excluded.event_type,
+                        title = excluded.title,
+                        description = excluded.description,
+                        start_datetime = excluded.start_datetime,
+                        end_datetime = excluded.end_datetime,
+                        all_day = excluded.all_day,
+                        status = excluded.status,
+                        assigned_professional = excluded.assigned_professional,
+                        created_by = excluded.created_by,
+                        color = excluded.color,
+                        metadata_json = excluded.metadata_json
+                    """,
+                    [
+                        (
+                            row.get("id", ""),
+                            row.get("created_at", ""),
+                            row.get("updated_at", row.get("created_at", "")),
+                            row.get("property_id", ""),
+                            row.get("owner_id", ""),
+                            row.get("operation_task_id", ""),
+                            row.get("event_type", "Other"),
+                            row.get("title", ""),
+                            row.get("description", ""),
+                            row.get("start_datetime", ""),
+                            row.get("end_datetime", ""),
+                            int(row.get("all_day", 0) or 0),
+                            row.get("status", "SCHEDULED"),
+                            row.get("assigned_professional", ""),
+                            row.get("created_by", ""),
+                            row.get("color", "grey"),
+                            row.get("metadata_json", "{}"),
+                        )
+                        for row in rows
+                    ],
+                )
+            elif table_name == "reservations":
+                conn.executemany(
+                    """
+                    INSERT INTO reservations (
+                        id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+                        channel_status, last_sync, external_payload, external_reference, external_last_sync,
+                        import_batch_id, sync_status, source_metadata_json, guest_first_name, guest_last_name, guest_email,
+                        guest_phone, adults, children, infants, pets, arrival_datetime, departure_datetime, status, notes,
+                        language, created_by, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at,
+                        property_id = excluded.property_id,
+                        reservation_source = excluded.reservation_source,
+                        reservation_reference = excluded.reservation_reference,
+                        channel_name = excluded.channel_name,
+                        channel_status = excluded.channel_status,
+                        last_sync = excluded.last_sync,
+                        external_payload = excluded.external_payload,
+                        external_reference = excluded.external_reference,
+                        external_last_sync = excluded.external_last_sync,
+                        import_batch_id = excluded.import_batch_id,
+                        sync_status = excluded.sync_status,
+                        source_metadata_json = excluded.source_metadata_json,
+                        guest_first_name = excluded.guest_first_name,
+                        guest_last_name = excluded.guest_last_name,
+                        guest_email = excluded.guest_email,
+                        guest_phone = excluded.guest_phone,
+                        adults = excluded.adults,
+                        children = excluded.children,
+                        infants = excluded.infants,
+                        pets = excluded.pets,
+                        arrival_datetime = excluded.arrival_datetime,
+                        departure_datetime = excluded.departure_datetime,
+                        status = excluded.status,
+                        notes = excluded.notes,
+                        language = excluded.language,
+                        created_by = excluded.created_by,
+                        metadata_json = excluded.metadata_json
+                    """,
+                    [
+                        (
+                            row.get("id", ""),
+                            row.get("created_at", ""),
+                            row.get("updated_at", row.get("created_at", "")),
+                            row.get("property_id", ""),
+                            row.get("reservation_source", "Manual"),
+                            row.get("reservation_reference", ""),
+                            row.get("channel_name", "Manual"),
+                            row.get("channel_status", "SYNCED"),
+                            row.get("last_sync", ""),
+                            row.get("external_payload", "{}"),
+                            row.get("external_reference", ""),
+                            row.get("external_last_sync", ""),
+                            row.get("import_batch_id", ""),
+                            row.get("sync_status", "IDLE"),
+                            row.get("source_metadata_json", "{}"),
+                            row.get("guest_first_name", ""),
+                            row.get("guest_last_name", ""),
+                            row.get("guest_email", ""),
+                            row.get("guest_phone", ""),
+                            int(row.get("adults", 1) or 1),
+                            int(row.get("children", 0) or 0),
+                            int(row.get("infants", 0) or 0),
+                            int(row.get("pets", 0) or 0),
+                            row.get("arrival_datetime", ""),
+                            row.get("departure_datetime", ""),
+                            row.get("status", "PENDING"),
+                            row.get("notes", ""),
+                            row.get("language", "en"),
+                            row.get("created_by", ""),
+                            row.get("metadata_json", "{}"),
+                        )
+                        for row in rows
+                    ],
+                )
+            elif table_name == "operations_tasks":
+                conn.executemany(
+                    """
+                    INSERT INTO operations_tasks (
+                        id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+                        category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id,
+                        priority, status, due_date, notes, completed_at, completion_report_json, admin_notes, request_status,
+                        checklist_json, attachments_json, comments_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        request_id = excluded.request_id,
+                        source_type = excluded.source_type,
+                        source_id = excluded.source_id,
+                        owner_id = excluded.owner_id,
+                        property_id = excluded.property_id,
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at,
+                        title = excluded.title,
+                        category = excluded.category,
+                        property_name = excluded.property_name,
+                        property_location = excluded.property_location,
+                        owner_name = excluded.owner_name,
+                        owner_email = excluded.owner_email,
+                        assigned_to = excluded.assigned_to,
+                        assigned_professional_id = excluded.assigned_professional_id,
+                        priority = excluded.priority,
+                        status = excluded.status,
+                        due_date = excluded.due_date,
+                        notes = excluded.notes,
+                        completed_at = excluded.completed_at,
+                        completion_report_json = excluded.completion_report_json,
+                        admin_notes = excluded.admin_notes,
+                        request_status = excluded.request_status,
+                        checklist_json = excluded.checklist_json,
+                        attachments_json = excluded.attachments_json,
+                        comments_json = excluded.comments_json
+                    """,
+                    [
+                        (
+                            row.get("id", ""),
+                            row.get("request_id", ""),
+                            row.get("source_type", ""),
+                            row.get("source_id", ""),
+                            row.get("owner_id", ""),
+                            row.get("property_id", ""),
+                            row.get("created_at", ""),
+                            row.get("updated_at", row.get("created_at", "")),
+                            row.get("title", ""),
+                            row.get("category", ""),
+                            row.get("property_name", ""),
+                            row.get("property_location", ""),
+                            row.get("owner_name", ""),
+                            row.get("owner_email", ""),
+                            row.get("assigned_to", ""),
+                            row.get("assigned_professional_id", ""),
+                            row.get("priority", "NORMAL"),
+                            row.get("status", "NEW"),
+                            row.get("due_date", ""),
+                            row.get("notes", ""),
+                            row.get("completed_at", ""),
+                            row.get("completion_report_json", "{}"),
+                            row.get("admin_notes", ""),
+                            row.get("request_status", "new"),
+                            row.get("checklist_json", "[]"),
+                            row.get("attachments_json", "[]"),
+                            row.get("comments_json", "[]"),
+                        )
+                        for row in rows
+                    ],
+                )
+            elif table_name == "operations_task_events":
+                conn.executemany(
+                    """
+                    INSERT INTO operations_task_events (id, task_id, created_at, event_type, title, detail, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        task_id = excluded.task_id,
+                        created_at = excluded.created_at,
+                        event_type = excluded.event_type,
+                        title = excluded.title,
+                        detail = excluded.detail,
+                        status = excluded.status
+                    """,
+                    [
+                        (
+                            row.get("id", ""),
+                            row.get("task_id", ""),
+                            row.get("created_at", ""),
+                            row.get("event_type", ""),
+                            row.get("title", ""),
+                            row.get("detail", ""),
+                            row.get("status", "NEW"),
+                        )
+                        for row in rows
+                    ],
+                )
+            else:
+                raise ValueError(f"Unsupported table: {table_name}")
+
     def _owner_payload(self, email="owner@example.com"):
         return {
             "full_name": "Elena Petrova",
@@ -1335,6 +1594,344 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertRegex(completed_board_html, r"Open Tasks</span>\s*<strong>1</strong>")
         self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>0</strong>")
         self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
+
+    def test_admin_executive_dashboard_computed_layers_surface_alerts_risk_workload_and_recommendations(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request(
+            id="owner-request-old",
+            created_at="2026-06-22T08:00:00+00:00",
+            last_update_at="2026-06-22T08:00:00+00:00",
+            owner_id="owner-1",
+            owner_email="owner@example.com",
+            property="Sea View Villa",
+            property_city="Varna",
+            status="new",
+        )])
+
+        app_module._load_owner_properties()
+
+        self._insert_owner_db_rows("professional_accounts", [{
+            "email": "mira@example.com",
+            "id": "pro-1",
+            "created_at": "2026-06-20T09:00:00+00:00",
+            "full_name": "Mira Ivanova",
+            "phone": "+359888444555",
+            "company": "Mira Cleaning",
+            "service_categories": "Cleaning",
+            "status": "ACTIVE",
+            "last_login_at": "2026-06-24T09:00:00+00:00",
+        }])
+
+        task_rows = [
+            {
+                "id": "alert-overdue",
+                "request_id": "alert-overdue",
+                "source_type": "SERVICE_REQUEST",
+                "source_id": "alert-overdue",
+                "owner_id": "owner-1",
+                "property_id": "property-1",
+                "created_at": "2026-06-24T08:00:00+00:00",
+                "updated_at": "2026-06-24T08:00:00+00:00",
+                "title": "Overdue cleaning",
+                "category": "CLEANING",
+                "property_name": "Sea View Villa",
+                "property_location": "Varna",
+                "owner_name": "Elena Petrova",
+                "owner_email": "owner@example.com",
+                "assigned_to": "",
+                "assigned_professional_id": "",
+                "priority": "HIGH",
+                "status": "NEW",
+                "due_date": "2026-06-24",
+                "notes": "Turnover is late.",
+                "completed_at": "",
+                "completion_report_json": "{}",
+                "admin_notes": "",
+                "request_status": "new",
+                "checklist_json": "[]",
+                "attachments_json": "[]",
+                "comments_json": "[]",
+            },
+            {
+                "id": "alert-nodue",
+                "request_id": "alert-nodue",
+                "source_type": "SERVICE_REQUEST",
+                "source_id": "alert-nodue",
+                "owner_id": "owner-1",
+                "property_id": "property-1",
+                "created_at": "2026-06-25T08:00:00+00:00",
+                "updated_at": "2026-06-25T08:00:00+00:00",
+                "title": "Inspection preparation",
+                "category": "INSPECTION",
+                "property_name": "Sea View Villa",
+                "property_location": "Varna",
+                "owner_name": "Elena Petrova",
+                "owner_email": "owner@example.com",
+                "assigned_to": "",
+                "assigned_professional_id": "",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "due_date": "",
+                "notes": "No due date set.",
+                "completed_at": "",
+                "completion_report_json": "{}",
+                "admin_notes": "",
+                "request_status": "new",
+                "checklist_json": "[]",
+                "attachments_json": "[]",
+                "comments_json": "[]",
+            },
+        ]
+        for index in range(6):
+            timestamp = f"2026-06-25T0{index}:30:00+00:00"
+            task_rows.append({
+                "id": f"pro-task-{index + 1}",
+                "request_id": f"pro-task-{index + 1}",
+                "source_type": "SERVICE_REQUEST",
+                "source_id": f"pro-task-{index + 1}",
+                "owner_id": "owner-1",
+                "property_id": "property-1",
+                "created_at": timestamp,
+                "updated_at": timestamp,
+                "title": f"Assigned task {index + 1}",
+                "category": "SERVICE",
+                "property_name": "Sea View Villa",
+                "property_location": "Varna",
+                "owner_name": "Elena Petrova",
+                "owner_email": "owner@example.com",
+                "assigned_to": "Mira Ivanova",
+                "assigned_professional_id": "pro-1",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "due_date": "2026-06-27",
+                "notes": "Busy workload",
+                "completed_at": "",
+                "completion_report_json": "{}",
+                "admin_notes": "",
+                "request_status": "new",
+                "checklist_json": "[]",
+                "attachments_json": "[]",
+                "comments_json": "[]",
+            })
+        self._insert_owner_db_rows("operations_tasks", task_rows)
+
+        self._insert_owner_db_rows("reservations", [
+            {
+                "id": "res-1",
+                "created_at": "2026-06-24T07:00:00+00:00",
+                "updated_at": "2026-06-24T07:00:00+00:00",
+                "property_id": "property-1",
+                "reservation_source": "Manual",
+                "reservation_reference": "R1",
+                "channel_name": "Manual",
+                "channel_status": "SYNCED",
+                "last_sync": "2026-06-24T07:00:00+00:00",
+                "external_payload": "{}",
+                "external_reference": "R1",
+                "external_last_sync": "2026-06-24T07:00:00+00:00",
+                "import_batch_id": "",
+                "sync_status": "IDLE",
+                "source_metadata_json": "{}",
+                "guest_first_name": "Anna",
+                "guest_last_name": "Petrova",
+                "guest_email": "anna@example.com",
+                "guest_phone": "+359888100100",
+                "adults": 2,
+                "children": 0,
+                "infants": 0,
+                "pets": 0,
+                "arrival_datetime": "2026-06-25T10:00:00+00:00",
+                "departure_datetime": "2026-06-26T10:00:00+00:00",
+                "status": "CONFIRMED",
+                "notes": "",
+                "language": "en",
+                "created_by": "system",
+                "metadata_json": "{\"timeline\":[],\"comments\":[]}",
+            },
+            {
+                "id": "res-2",
+                "created_at": "2026-06-24T08:00:00+00:00",
+                "updated_at": "2026-06-24T08:00:00+00:00",
+                "property_id": "property-1",
+                "reservation_source": "Manual",
+                "reservation_reference": "R2",
+                "channel_name": "Manual",
+                "channel_status": "SYNCED",
+                "last_sync": "2026-06-24T08:00:00+00:00",
+                "external_payload": "{}",
+                "external_reference": "R2",
+                "external_last_sync": "2026-06-24T08:00:00+00:00",
+                "import_batch_id": "",
+                "sync_status": "IDLE",
+                "source_metadata_json": "{}",
+                "guest_first_name": "Nina",
+                "guest_last_name": "Koleva",
+                "guest_email": "nina@example.com",
+                "guest_phone": "+359888100101",
+                "adults": 2,
+                "children": 0,
+                "infants": 0,
+                "pets": 0,
+                "arrival_datetime": "2026-06-25T18:00:00+00:00",
+                "departure_datetime": "2026-06-27T10:00:00+00:00",
+                "status": "CONFIRMED",
+                "notes": "",
+                "language": "en",
+                "created_by": "system",
+                "metadata_json": "{\"timeline\":[],\"comments\":[]}",
+            },
+        ])
+
+        self._insert_owner_db_rows("calendar_events", [{
+            "id": "calendar-conflict-1",
+            "created_at": "2026-06-25T09:00:00+00:00",
+            "updated_at": "2026-06-25T09:00:00+00:00",
+            "property_id": "property-1",
+            "owner_id": "owner-1",
+            "operation_task_id": "",
+            "event_type": "Inspection",
+            "title": "Inspection block",
+            "description": "Overlaps with arrival.",
+            "start_datetime": "2026-06-25T12:00:00+00:00",
+            "end_datetime": "2026-06-25T13:00:00+00:00",
+            "all_day": 0,
+            "status": "SCHEDULED",
+            "assigned_professional": "",
+            "created_by": "admin",
+            "color": "blue",
+            "metadata_json": "{}",
+        }])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Executive alerts", html)
+        self.assertIn("Operational risk", html)
+        self.assertIn("Unified timeline", html)
+        self.assertIn("Live workload distribution", html)
+        self.assertIn("SLA monitoring", html)
+        self.assertIn("Smart recommendations", html)
+        self.assertIn("Overdue Operations", html)
+        self.assertIn("Properties Without Readiness", html)
+        self.assertIn("Operations Without Due Dates", html)
+        self.assertIn("Professionals Overloaded", html)
+        self.assertIn("Assign cleaner to Sea View Villa", html)
+        self.assertIn("Move operation to another team", html)
+        self.assertIn("Sea View Villa", html)
+        self.assertRegex(html, r"Risk score\s*\d+/100")
+        self.assertIn("Average completion time", html)
+        self.assertIn("Average assignment time", html)
+        self.assertIn("Average response time", html)
+        self.assertIn("Mira Ivanova", html)
+        self.assertIn("Varna", html)
+
+    def test_admin_executive_timeline_orders_newest_first_and_sla_metrics_render(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        app_module._load_owner_properties()
+
+        self._insert_owner_db_rows("operations_tasks", [{
+            "id": "sla-task-1",
+            "request_id": "sla-task-1",
+            "source_type": "SERVICE_REQUEST",
+            "source_id": "sla-task-1",
+            "owner_id": "owner-1",
+            "property_id": "property-1",
+            "created_at": "2026-06-24T08:00:00+00:00",
+            "updated_at": "2026-06-24T10:00:00+00:00",
+            "title": "SLA maintenance",
+            "category": "SERVICE",
+            "property_name": "Sea View Villa",
+            "property_location": "Varna",
+            "owner_name": "Elena Petrova",
+            "owner_email": "owner@example.com",
+            "assigned_to": "Mira Ivanova",
+            "assigned_professional_id": "pro-2",
+            "priority": "NORMAL",
+            "status": "COMPLETED",
+            "due_date": "2026-06-24",
+            "notes": "SLA test task",
+            "completed_at": "2026-06-24T10:00:00+00:00",
+            "completion_report_json": "{}",
+            "admin_notes": "",
+            "request_status": "completed",
+            "checklist_json": "[]",
+            "attachments_json": "[]",
+            "comments_json": "[]",
+        }])
+        self._insert_owner_db_rows("operations_task_events", [
+            {
+                "id": "sla-task-1-event-1",
+                "task_id": "sla-task-1",
+                "created_at": "2026-06-24T07:50:00+00:00",
+                "event_type": "note_added",
+                "title": "Older event",
+                "detail": "older",
+                "status": "NEW",
+            },
+            {
+                "id": "sla-task-1-event-2",
+                "task_id": "sla-task-1",
+                "created_at": "2026-06-24T08:10:00+00:00",
+                "event_type": "comment_added_internal",
+                "title": "First response",
+                "detail": "response",
+                "status": "NEW",
+            },
+            {
+                "id": "sla-task-1-event-3",
+                "task_id": "sla-task-1",
+                "created_at": "2026-06-24T08:30:00+00:00",
+                "event_type": "assigned",
+                "title": "Assigned",
+                "detail": "assignment",
+                "status": "ASSIGNED",
+            },
+            {
+                "id": "sla-task-1-event-4",
+                "task_id": "sla-task-1",
+                "created_at": "2026-06-24T10:00:00+00:00",
+                "event_type": "completed",
+                "title": "Completed",
+                "detail": "done",
+                "status": "COMPLETED",
+            },
+        ])
+        self._insert_owner_db_rows("calendar_events", [{
+            "id": "timeline-calendar-latest",
+            "created_at": "2026-06-25T11:00:00+00:00",
+            "updated_at": "2026-06-25T11:00:00+00:00",
+            "property_id": "property-1",
+            "owner_id": "owner-1",
+            "operation_task_id": "",
+            "event_type": "Inspection",
+            "title": "Latest event",
+            "description": "Newest timeline item",
+            "start_datetime": "2026-06-25T11:00:00+00:00",
+            "end_datetime": "2026-06-25T12:00:00+00:00",
+            "all_day": 0,
+            "status": "SCHEDULED",
+            "assigned_professional": "",
+            "created_by": "admin",
+            "color": "blue",
+            "metadata_json": "{}",
+        }])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get("/admin", headers=self._auth_headers())
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Unified timeline", html)
+        self.assertLess(html.index("Latest event"), html.index("Older event"))
+        self.assertIn("2h 00m", html)
+        self.assertIn("30m", html)
+        self.assertIn("Average completion time", html)
+        self.assertIn("Average assignment time", html)
+        self.assertIn("Average response time", html)
 
     def test_operations_tasks_are_created_for_public_intakes(self):
         smtp_env = {

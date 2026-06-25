@@ -11668,6 +11668,69 @@ def _admin_notifications_context():
     }
 
 
+def _admin_executive_alert_tone(severity):
+    normalized = str(severity or "").strip().lower()
+    return {
+        "critical": "danger",
+        "high": "danger",
+        "medium": "warning",
+        "low": "info",
+        "info": "info",
+    }.get(normalized, "neutral")
+
+
+def _admin_executive_risk_band(score):
+    normalized = max(0, min(100, int(score or 0)))
+    if normalized <= 20:
+        return {"label": "Excellent", "tone": "success"}
+    if normalized <= 40:
+        return {"label": "Normal", "tone": "neutral"}
+    if normalized <= 60:
+        return {"label": "Attention", "tone": "warning"}
+    if normalized <= 80:
+        return {"label": "High Risk", "tone": "danger"}
+    return {"label": "Critical", "tone": "danger"}
+
+
+def _admin_executive_timestamp_display(value):
+    dt = value if isinstance(value, datetime) else _parse_iso_datetime(value)
+    if not dt:
+        return ""
+    return dt.astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC")
+
+
+def _admin_executive_record_alert(*, severity, category, property_label="", reservation_label="", operation_label="", created_at=None, recommended_action="", detail="", link=""):
+    alert_dt = created_at if isinstance(created_at, datetime) else _parse_iso_datetime(created_at) or datetime.now(timezone.utc)
+    return {
+        "severity": str(severity or "medium").strip().lower(),
+        "category": str(category or "").strip(),
+        "property": str(property_label or "").strip(),
+        "reservation": str(reservation_label or "").strip(),
+        "operation": str(operation_label or "").strip(),
+        "created_at": alert_dt.astimezone(timezone.utc).isoformat(),
+        "created_at_display": _admin_executive_timestamp_display(alert_dt),
+        "recommended_action": str(recommended_action or "").strip(),
+        "detail": str(detail or "").strip(),
+        "link": str(link or "").strip(),
+        "tone": _admin_executive_alert_tone(severity),
+    }
+
+
+def _admin_executive_record_timeline_event(*, timestamp, icon, event_type, property_label="", summary="", actor="", link="", tone="neutral"):
+    event_dt = timestamp if isinstance(timestamp, datetime) else _parse_iso_datetime(timestamp) or datetime.now(timezone.utc)
+    return {
+        "timestamp": event_dt.astimezone(timezone.utc).isoformat(),
+        "timestamp_display": _admin_executive_timestamp_display(event_dt),
+        "icon": str(icon or "").strip(),
+        "type": str(event_type or "").strip(),
+        "property": str(property_label or "").strip(),
+        "summary": str(summary or "").strip(),
+        "actor": str(actor or "").strip(),
+        "link": str(link or "").strip(),
+        "tone": str(tone or "neutral").strip(),
+    }
+
+
 def _admin_owner_account_properties(owner_id):
     target_owner_id = str(owner_id or "").strip()
     if not target_owner_id:
@@ -13746,6 +13809,7 @@ def _build_admin_dashboard():
     owner_map = {str(account.get("id", "")).strip(): account for account in owner_accounts}
     task_map = {str(task.get("id", "")).strip(): task for task in operations_tasks}
     enriched_calendar_events = [_calendar_enrich_event(event, property_map, owner_map, task_map) for event in calendar_events]
+    now = datetime.now(timezone.utc)
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
     today = datetime.now(timezone.utc).date()
     tomorrow = today + timedelta(days=1)
@@ -13971,6 +14035,12 @@ def _build_admin_dashboard():
         created_at = _parse_iso_datetime(task.get("created_at", ""))
         completed_at = _parse_iso_datetime(task.get("completed_at", ""))
         due_dt = _parse_iso_datetime(task.get("due_date", ""))
+        if created_at and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        if completed_at and completed_at.tzinfo is None:
+            completed_at = completed_at.replace(tzinfo=timezone.utc)
+        if due_dt and due_dt.tzinfo is None:
+            due_dt = due_dt.replace(tzinfo=timezone.utc)
         if _normalize_operations_task_status(task.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"} and created_at and completed_at and completed_at >= created_at:
             completion_minutes.append(int((completed_at - created_at).total_seconds() / 60))
         if completed_at and due_dt:
@@ -14124,6 +14194,619 @@ def _build_admin_dashboard():
         for item in unified_activity[:12]
     ]
 
+    overload_threshold_raw = os.getenv("EXECUTIVE_OVERLOAD_THRESHOLD", "5")
+    try:
+        overload_threshold = max(1, int(overload_threshold_raw))
+    except ValueError:
+        overload_threshold = 5
+
+    open_task_statuses = {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"}
+    completed_task_statuses = {"COMPLETED", "ARCHIVED"}
+    property_tasks_map = {}
+    property_reservations_map = {}
+    property_calendar_map = {}
+    professional_task_counts = {}
+    professional_labels = {}
+    workload_by_city = {}
+    workload_by_day = {}
+    workload_by_category = {}
+    workload_by_property = {}
+
+    for task in operations_tasks:
+        status = _normalize_operations_task_status(task.get("status", "NEW"))
+        property_id = str(task.get("property_id", "")).strip()
+        property_label = property_map.get(property_id, {}).get("name", "") or str(task.get("property_name", "")).strip() or str(task.get("property_location", "")).strip() or property_id or "Unknown property"
+        property_location = property_map.get(property_id, {}).get("location", "") or str(task.get("property_location", "")).strip() or "Unknown city"
+        assigned_professional_id = str(task.get("assigned_professional_id", "")).strip()
+        assigned_professional_label = str(task.get("assigned_to", "")).strip() or assigned_professional_id or "Unassigned"
+        if assigned_professional_id:
+            professional_account = _find_professional_account(assigned_professional_id)
+            if professional_account:
+                assigned_professional_label = _professional_account_display_label(professional_account)
+                professional_labels[assigned_professional_id] = assigned_professional_label
+        property_tasks_map.setdefault(property_id, []).append(task)
+        if property_id:
+            workload_by_property[property_label] = workload_by_property.get(property_label, 0) + (1 if status in open_task_statuses else 0)
+        if status in open_task_statuses:
+            workload_by_city[property_location] = workload_by_city.get(property_location, 0) + 1
+            workload_by_category[str(task.get("category", "")).strip() or "Uncategorised"] = workload_by_category.get(str(task.get("category", "")).strip() or "Uncategorised", 0) + 1
+            due_dt = _parse_iso_datetime(str(task.get("due_date", "")).strip())
+            if due_dt:
+                workload_by_day[due_dt.date().isoformat()] = workload_by_day.get(due_dt.date().isoformat(), 0) + 1
+            if assigned_professional_id:
+                professional_task_counts[assigned_professional_id] = professional_task_counts.get(assigned_professional_id, 0) + 1
+            else:
+                professional_task_counts[assigned_professional_label] = professional_task_counts.get(assigned_professional_label, 0) + 1
+
+    for reservation in reservations:
+        property_id = str(reservation.get("property_id", "")).strip()
+        if property_id:
+            property_reservations_map.setdefault(property_id, []).append(reservation)
+
+    for event in enriched_calendar_events:
+        property_id = str(event.get("property_id", "")).strip()
+        if property_id:
+            property_calendar_map.setdefault(property_id, []).append(event)
+
+    professional_task_cards = []
+    for professional_account in active_professionals:
+        professional_id = str(professional_account.get("id", "")).strip()
+        professional_name = _professional_account_display_label(professional_account)
+        task_count = professional_task_counts.get(professional_id, 0)
+        professional_task_cards.append({
+            "id": professional_id,
+            "name": professional_name,
+            "email": professional_account.get("email", ""),
+            "company": professional_account.get("company", ""),
+            "count": task_count,
+            "tone": "danger" if task_count > overload_threshold else "warning" if task_count == overload_threshold else "info",
+        })
+    for label, task_count in professional_task_counts.items():
+        if label in professional_labels:
+            continue
+        professional_task_cards.append({
+            "id": label,
+            "name": label,
+            "email": "",
+            "company": "",
+            "count": task_count,
+            "tone": "danger" if task_count > overload_threshold else "warning" if task_count == overload_threshold else "info",
+        })
+    professional_task_cards.sort(key=lambda item: (item["count"], item["name"]), reverse=True)
+
+    workload_distribution = {
+        "top_professionals": professional_task_cards[:5],
+        "top_properties": [
+            {"name": name, "count": count}
+            for name, count in sorted(workload_by_property.items(), key=lambda item: (item[1], item[0]), reverse=True)[:5]
+        ],
+        "by_city": [
+            {"name": name, "count": count}
+            for name, count in sorted(workload_by_city.items(), key=lambda item: (item[1], item[0]), reverse=True)[:5]
+        ],
+        "by_day": [
+            {
+                "date": day.isoformat(),
+                "label": day.strftime("%a"),
+                "count": workload_by_day.get(day.isoformat(), 0),
+            }
+            for day in [today + timedelta(days=offset) for offset in range(7)]
+        ],
+        "by_category": [
+            {"name": name, "count": count}
+            for name, count in sorted(workload_by_category.items(), key=lambda item: (item[1], item[0]), reverse=True)[:8]
+        ],
+        "upcoming_workload": sum(1 for task in operations_tasks if _normalize_operations_task_status(task.get("status", "NEW")) in open_task_statuses and _parse_iso_datetime(str(task.get("due_date", "")).strip()) and today <= _parse_iso_datetime(str(task.get("due_date", "")).strip()).date() <= week_end),
+        "late_workload": len(overdue_operations),
+    }
+
+    sla_assignment_minutes = []
+    sla_response_minutes = []
+    sla_completion_minutes = []
+    reopened_tasks = 0
+    tasks_with_due_dates = 0
+    tasks_completed_on_time = 0
+    tasks_waiting = 0
+    for task in operations_tasks:
+        task_created_at = _parse_iso_datetime(str(task.get("created_at", "")).strip())
+        task_completed_at = _parse_iso_datetime(str(task.get("completed_at", "")).strip())
+        task_due_at = _parse_iso_datetime(str(task.get("due_date", "")).strip())
+        if task_created_at and task_created_at.tzinfo is None:
+            task_created_at = task_created_at.replace(tzinfo=timezone.utc)
+        if task_completed_at and task_completed_at.tzinfo is None:
+            task_completed_at = task_completed_at.replace(tzinfo=timezone.utc)
+        if task_due_at and task_due_at.tzinfo is None:
+            task_due_at = task_due_at.replace(tzinfo=timezone.utc)
+        task_status = _normalize_operations_task_status(task.get("status", "NEW"))
+        if task_status in {"WAITING_OWNER", "WAITING_OPERATIONS"}:
+            tasks_waiting += 1
+        if task_due_at:
+            tasks_with_due_dates += 1
+        if task_status in completed_task_statuses and task_created_at and task_completed_at and task_completed_at >= task_created_at:
+            sla_completion_minutes.append(int((task_completed_at - task_created_at).total_seconds() / 60))
+            if task_due_at and task_completed_at <= task_due_at:
+                tasks_completed_on_time += 1
+        timeline_events = _load_operations_task_events(task.get("request_id", "") or task.get("id", ""))
+        if task_created_at and timeline_events:
+            parsed_events = [(_parse_iso_datetime(event.get("created_at", "")), str(event.get("event_type", "")).strip().lower()) for event in timeline_events]
+            parsed_events = [(event_dt, event_type) for event_dt, event_type in parsed_events if event_dt and event_dt >= task_created_at]
+            if parsed_events:
+                first_event_dt = min(event_dt for event_dt, _ in parsed_events)
+                sla_response_minutes.append(int((first_event_dt - task_created_at).total_seconds() / 60))
+                assignment_events = [
+                    event_dt for event_dt, event_type in parsed_events
+                    if event_type in {"assigned", "professional_assigned", "professional_accepted", "status_changed"}
+                ]
+                if assignment_events:
+                    sla_assignment_minutes.append(int((min(assignment_events) - task_created_at).total_seconds() / 60))
+        if any(str(event.get("event_type", "")).strip().lower() == "reopened" for event in timeline_events):
+            reopened_tasks += 1
+
+    sla_monitoring = {
+        "average_completion_time": _format_owner_portal_duration(int(round(sum(sla_completion_minutes) / len(sla_completion_minutes)))) if sla_completion_minutes else "Pending",
+        "average_assignment_time": _format_owner_portal_duration(int(round(sum(sla_assignment_minutes) / len(sla_assignment_minutes)))) if sla_assignment_minutes else "Pending",
+        "average_response_time": _format_owner_portal_duration(int(round(sum(sla_response_minutes) / len(sla_response_minutes)))) if sla_response_minutes else "Pending",
+        "late_percent": int(round((len(overdue_operations) / max(len(open_operations), 1)) * 100)) if open_operations else 0,
+        "completed_percent": int(round((sum(1 for task in operations_tasks if _normalize_operations_task_status(task.get("status", "NEW")) in completed_task_statuses) / max(len(operations_tasks), 1)) * 100)) if operations_tasks else 0,
+        "waiting_percent": int(round((tasks_waiting / max(len(operations_tasks), 1)) * 100)) if operations_tasks else 0,
+        "reopened_percent": int(round((reopened_tasks / max(len(operations_tasks), 1)) * 100)) if operations_tasks else 0,
+    }
+
+    executive_alerts = []
+    property_risk_map = {}
+    property_risk_cards = []
+
+    for property_record in owner_properties:
+        property_id = str(property_record.get("id", "")).strip()
+        property_name = property_record.get("name", "") or property_record.get("location", "") or property_id or "Property"
+        property_location = property_record.get("location", "")
+        property_tasks = property_tasks_map.get(property_id, [])
+        property_reservations = property_reservations_map.get(property_id, [])
+        property_calendar_events = property_calendar_map.get(property_id, [])
+        readiness_completed, readiness_total = _owner_property_checklist_completion(property_record)
+        readiness_percent = int(round((readiness_completed / max(readiness_total, 1)) * 100)) if readiness_total else 0
+        open_property_tasks = [task for task in property_tasks if _normalize_operations_task_status(task.get("status", "NEW")) in open_task_statuses]
+        overdue_property_tasks = [task for task in open_property_tasks if _admin_operations_task_is_overdue(task)]
+        unassigned_property_tasks = [task for task in open_property_tasks if not str(task.get("assigned_professional_id", "")).strip() and not str(task.get("assigned_to", "")).strip()]
+        property_service_requests = [
+            record for record in service_requests
+            if str(record.get("property_id", "")).strip() == property_id
+            or str(record.get("property", "")).strip().lower() == property_name.lower()
+            or str(record.get("property_city", "")).strip().lower() == str(property_location).strip().lower()
+        ]
+        pending_owner_requests = []
+        for record in property_service_requests:
+            request_status = _normalize_service_request_status(record.get("status", "new"))
+            created_at = _parse_iso_datetime(record.get("created_at", ""))
+            if request_status in {"new", "assigned", "in_progress"} and created_at and now - created_at > timedelta(hours=48):
+                pending_owner_requests.append(record)
+
+        reservations_sorted = sorted(
+            [
+                reservation for reservation in property_reservations
+                if _normalize_reservation_status(reservation.get("status", "PENDING")) not in {"CANCELLED", "NO_SHOW"}
+            ],
+            key=lambda reservation: (_reservation_date_bounds(reservation)[0] or datetime.max.replace(tzinfo=timezone.utc), _reservation_date_bounds(reservation)[1] or datetime.max.replace(tzinfo=timezone.utc)),
+        )
+        arrival_within_24h = []
+        missing_cleaning = []
+        calendar_conflicts = []
+        overlapping_reservations = []
+
+        for reservation in reservations_sorted:
+            arrival_dt, departure_dt = _reservation_date_bounds(reservation)
+            if arrival_dt and now <= arrival_dt <= now + timedelta(hours=24):
+                arrival_within_24h.append(reservation)
+            if arrival_dt and departure_dt:
+                for calendar_event in property_calendar_events:
+                    event_start = _parse_iso_datetime(calendar_event.get("start_datetime", ""))
+                    event_end = _parse_iso_datetime(calendar_event.get("end_datetime", ""))
+                    if not event_start:
+                        continue
+                    if not event_end:
+                        event_end = event_start + timedelta(hours=1)
+                    if event_start < departure_dt and event_end > arrival_dt and _normalize_calendar_event_type(calendar_event.get("event_type", "")) not in {"Blocked Dates"}:
+                        calendar_conflicts.append(calendar_event)
+                        break
+            if arrival_dt and departure_dt:
+                cleaning_tasks = [
+                    task for task in open_property_tasks
+                    if "clean" in f"{task.get('category', '')} {task.get('title', '')}".lower()
+                ]
+                if arrival_dt <= now + timedelta(hours=24) and not cleaning_tasks:
+                    missing_cleaning.append(reservation)
+
+        for previous_reservation, next_reservation in zip(reservations_sorted, reservations_sorted[1:]):
+            previous_arrival, previous_departure = _reservation_date_bounds(previous_reservation)
+            next_arrival, next_departure = _reservation_date_bounds(next_reservation)
+            if previous_arrival and previous_departure and next_arrival and previous_departure > next_arrival:
+                overlapping_reservations.append((previous_reservation, next_reservation))
+
+        property_alert_created_at = now
+        risk_score = 0
+        risk_score += min(30, len(overdue_property_tasks) * 12)
+        risk_score += min(15, len(unassigned_property_tasks) * 8)
+        risk_score += min(20, len(overlapping_reservations) * 15)
+        risk_score += min(10, len(calendar_conflicts) * 8)
+        risk_score += min(10, len(pending_owner_requests) * 6)
+        risk_score += min(10, len([task for task in open_property_tasks if not str(task.get("due_date", "")).strip()]) * 5)
+        risk_score += min(10, max(0, 100 - readiness_percent))
+        risk_score += min(10, len(missing_cleaning) * 8)
+        risk_score += min(10, len(arrival_within_24h) * 4 if readiness_percent < 100 else 0)
+        risk_score = max(0, min(100, risk_score))
+        band = _admin_executive_risk_band(risk_score)
+        property_risk_map[property_id] = {
+            "risk_score": risk_score,
+            "risk_label": band["label"],
+            "risk_tone": band["tone"],
+            "risk_badge": f"{risk_score} / 100",
+            "risk_summary": f"{band['label']} risk",
+        }
+        property_risk_cards.append({
+            "id": property_id,
+            "name": property_name,
+            "location": property_location,
+            "score": risk_score,
+            "tier": band["label"],
+            "tone": band["tone"],
+            "badge": f"{risk_score} / 100",
+            "summary": f"{len(overdue_property_tasks)} overdue, {len(unassigned_property_tasks)} unassigned, {len(arrival_within_24h)} arrivals in 24h",
+            "factors": [
+                {"label": "Overdue operations", "count": len(overdue_property_tasks)},
+                {"label": "Unassigned operations", "count": len(unassigned_property_tasks)},
+                {"label": "Calendar conflicts", "count": len(calendar_conflicts)},
+                {"label": "Overlapping reservations", "count": len(overlapping_reservations)},
+                {"label": "Owner requests waiting", "count": len(pending_owner_requests)},
+                {"label": "Missing cleaning", "count": len(missing_cleaning)},
+            ],
+        })
+
+        if overdue_property_tasks:
+            for task in overdue_property_tasks:
+                executive_alerts.append(_admin_executive_record_alert(
+                    severity="critical",
+                    category="overdue_operations",
+                    property_label=property_name,
+                    operation_label=task.get("title", "") or task.get("category", "") or task.get("id", ""),
+                    created_at=task.get("updated_at", task.get("created_at", now.isoformat())),
+                    recommended_action=f"Complete overdue operation for {property_name}",
+                    detail=str(task.get("notes", "")).strip() or str(task.get("admin_notes", "")).strip() or "Operation is past due",
+                    link=f"/admin/operations/{task.get('id', '')}",
+                ))
+
+        for task in unassigned_property_tasks:
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="high",
+                category="unassigned_operations",
+                property_label=property_name,
+                operation_label=task.get("title", "") or task.get("category", "") or task.get("id", ""),
+                created_at=task.get("updated_at", task.get("created_at", now.isoformat())),
+                recommended_action=f"Assign a professional to {property_name}",
+                detail="Operation has no assigned professional",
+                link=f"/admin/operations/{task.get('id', '')}",
+            ))
+
+        for task in open_property_tasks:
+            if str(task.get("due_date", "")).strip():
+                continue
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="medium",
+                category="operations_without_due_dates",
+                property_label=property_name,
+                operation_label=task.get("title", "") or task.get("category", "") or task.get("id", ""),
+                created_at=task.get("updated_at", task.get("created_at", now.isoformat())),
+                recommended_action=f"Add a due date to {task.get('title', '') or property_name}",
+                detail="Open operation is missing a due date",
+                link=f"/admin/operations/{task.get('id', '')}",
+            ))
+
+        for request_record in pending_owner_requests:
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="warning",
+                category="owner_requests_waiting",
+                property_label=property_name,
+                reservation_label="",
+                operation_label=str(request_record.get("name", "")).strip() or str(request_record.get("service_category", "")).strip() or request_record.get("id", ""),
+                created_at=request_record.get("created_at", now.isoformat()),
+                recommended_action=f"Follow up the owner request for {property_name}",
+                detail="Owner request has been waiting longer than 48 hours",
+                link="/admin/service-requests",
+            ))
+
+        if readiness_percent < 100:
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="warning" if readiness_percent >= 60 else "high",
+                category="properties_without_readiness",
+                property_label=property_name,
+                created_at=property_alert_created_at,
+                recommended_action=f"Finish the readiness checklist for {property_name}",
+                detail=f"Readiness is at {readiness_percent}%",
+                link=f"/admin/properties/{property_id}",
+            ))
+
+        for reservation in arrival_within_24h:
+            reservation_label = reservation.get("property_name", "") or reservation.get("guest_label", "") or reservation.get("id", "")
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="critical" if readiness_percent < 70 else "high",
+                category="reservations_arriving_within_24h_without_completed_preparation",
+                property_label=property_name,
+                reservation_label=reservation_label,
+                created_at=reservation.get("updated_at", reservation.get("arrival_datetime", now.isoformat())),
+                recommended_action=f"Prepare {property_name} before arrival",
+                detail="Upcoming arrival still needs preparation",
+                link=f"/admin/reservations/{reservation.get('id', '')}",
+            ))
+
+        for reservation in missing_cleaning:
+            reservation_label = reservation.get("property_name", "") or reservation.get("guest_label", "") or reservation.get("id", "")
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="warning",
+                category="reservations_missing_assigned_cleaning",
+                property_label=property_name,
+                reservation_label=reservation_label,
+                created_at=reservation.get("updated_at", reservation.get("arrival_datetime", now.isoformat())),
+                recommended_action=f"Assign cleaning to {property_name}",
+                detail="Reservation is approaching without an assigned cleaning task",
+                link=f"/admin/reservations/{reservation.get('id', '')}",
+            ))
+
+        for calendar_event in calendar_conflicts:
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="warning",
+                category="calendar_conflicts",
+                property_label=property_name,
+                created_at=calendar_event.get("start_datetime", now.isoformat()),
+                recommended_action=f"Resolve the calendar overlap for {property_name}",
+                detail=calendar_event.get("title", "") or "Calendar event overlaps with a reservation",
+                link="/admin/calendar",
+            ))
+
+        for previous_reservation, next_reservation in overlapping_reservations:
+            executive_alerts.append(_admin_executive_record_alert(
+                severity="critical",
+                category="overlapping_reservations",
+                property_label=property_name,
+                reservation_label=f"{previous_reservation.get('id', '')} / {next_reservation.get('id', '')}",
+                created_at=next_reservation.get("updated_at", next_reservation.get("arrival_datetime", now.isoformat())),
+                recommended_action=f"Review overlapping reservations for {property_name}",
+                detail="Reservations share overlapping occupancy windows",
+                link=f"/admin/properties/{property_id}",
+            ))
+
+    for professional_account in active_professionals:
+        professional_id = str(professional_account.get("id", "")).strip()
+        task_count = professional_task_counts.get(professional_id, 0)
+        if task_count <= overload_threshold:
+            continue
+        professional_name = _professional_account_display_label(professional_account)
+        executive_alerts.append(_admin_executive_record_alert(
+            severity="high" if task_count <= overload_threshold + 2 else "critical",
+            category="professionals_overloaded",
+            property_label="",
+            operation_label=professional_name,
+            created_at=professional_account.get("last_login_at", professional_account.get("created_at", now.isoformat())),
+            recommended_action=f"Move work away from {professional_name}",
+            detail=f"{task_count} open operations assigned",
+            link="/admin/professionals",
+        ))
+
+    severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+    executive_alerts.sort(key=lambda item: (severity_rank.get(item["severity"], 0), item["created_at"]), reverse=True)
+    executive_alerts = executive_alerts[:24]
+
+    for card in property_status_cards:
+        risk_data = property_risk_map.get(str(card.get("id", "")).strip(), {})
+        if risk_data:
+            card.update(risk_data)
+
+    property_risk_cards.sort(key=lambda item: (item["score"], item["name"]), reverse=True)
+
+    executive_timeline = []
+    for reservation in reservations:
+        property_id = str(reservation.get("property_id", "")).strip()
+        property_label = property_map.get(property_id, {}).get("name", "") or reservation.get("property_name", "") or property_id
+        link = f"/admin/reservations/{reservation.get('id', '')}"
+        actor = reservation.get("guest_label", "") or reservation.get("guest_name", "") or reservation.get("created_by", "") or "Guest"
+        for event in _reservation_timeline_events(reservation)[-4:]:
+            parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+            if not parsed_at:
+                continue
+            executive_timeline.append(_admin_executive_record_timeline_event(
+                timestamp=parsed_at,
+                icon="RSV",
+                event_type="Reservation",
+                property_label=property_label,
+                summary=event.get("title", "") or "Reservation event",
+                actor=actor,
+                link=link,
+                tone="arrival" if "check-in" in str(event.get("title", "")).lower() else "departure" if "check-out" in str(event.get("title", "")).lower() else "info",
+            ))
+
+    for task in operations_tasks:
+        link = f"/admin/operations/{task.get('id', '')}"
+        property_id = str(task.get("property_id", "")).strip()
+        property_label = property_map.get(property_id, {}).get("name", "") or task.get("property_name", "") or task.get("property_location", "") or property_id
+        for event in _load_operations_task_events(task.get("request_id", "") or task.get("id", ""))[:4]:
+            parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+            if not parsed_at:
+                continue
+            executive_timeline.append(_admin_executive_record_timeline_event(
+                timestamp=parsed_at,
+                icon="OPS",
+                event_type="Operation",
+                property_label=property_label,
+                summary=event.get("title", "") or "Operation event",
+                actor=task.get("assigned_to", "") or professional_labels.get(str(task.get("assigned_professional_id", "")).strip(), "") or "Operations",
+                link=link,
+                tone=_operations_task_status_tone(event.get("status", task.get("status", "NEW"))),
+            ))
+
+    for event in enriched_calendar_events:
+        parsed_at = _parse_iso_datetime(event.get("start_datetime", "")) or _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        property_id = str(event.get("property_id", "")).strip()
+        property_label = property_map.get(property_id, {}).get("name", "") or event.get("property_label", "") or property_id
+        executive_timeline.append(_admin_executive_record_timeline_event(
+            timestamp=parsed_at,
+            icon="CAL",
+            event_type="Calendar",
+            property_label=property_label,
+            summary=event.get("title", "") or event.get("event_type", "") or "Calendar event",
+            actor=event.get("created_by", "") or event.get("owner_label", "") or "Calendar",
+            link="/admin/calendar",
+            tone="warning" if event.get("is_overdue") else "info",
+        ))
+
+    for professional_account in professional_accounts:
+        created_at = _parse_iso_datetime(professional_account.get("created_at", ""))
+        if not created_at:
+            continue
+        executive_timeline.append(_admin_executive_record_timeline_event(
+            timestamp=created_at,
+            icon="PRO",
+            event_type="Professional",
+            property_label=str(professional_account.get("city", "")).strip(),
+            summary=professional_account.get("full_name", "") or professional_account.get("company", "") or "Professional account",
+            actor=professional_account.get("email", "") or professional_account.get("full_name", "") or "Professional",
+            link="/admin/professionals",
+            tone="success" if _normalize_professional_account_status(professional_account.get("status", "PENDING")) in {"ACTIVE", "APPROVED"} else "warning",
+        ))
+
+    for request_record in service_requests:
+        for event in _service_request_timeline_events(request_record)[-4:]:
+            parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+            if not parsed_at:
+                continue
+            property_id = str(request_record.get("property_id", "")).strip()
+            property_label = property_map.get(property_id, {}).get("name", "") or request_record.get("property", "") or request_record.get("property_city", "") or property_id
+            executive_timeline.append(_admin_executive_record_timeline_event(
+                timestamp=parsed_at,
+                icon="OWN",
+                event_type="Owner request",
+                property_label=property_label,
+                summary=event.get("title", "") or "Owner request",
+                actor=request_record.get("name", "") or request_record.get("owner_name", "") or request_record.get("email", "") or "Owner",
+                link="/admin/service-requests",
+                tone="warning" if _normalize_service_request_status(request_record.get("status", "new")) in {"new", "assigned"} else "info",
+            ))
+
+    for event in operations_notifications[:20]:
+        parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        executive_timeline.append(_admin_executive_record_timeline_event(
+            timestamp=parsed_at,
+            icon="SYS",
+            event_type="System",
+            property_label="",
+            summary=event.get("title", "") or event.get("event_type", "") or "System event",
+            actor=event.get("channel", "") or "System",
+            link="/admin/notifications",
+            tone="danger" if event.get("status") == "failed" else "info",
+        ))
+
+    for event in property_activity_events[:20]:
+        parsed_at = _parse_iso_datetime(event.get("created_at", ""))
+        if not parsed_at:
+            continue
+        property_id = str(event.get("property_id", "")).strip()
+        property_label = property_map.get(property_id, {}).get("name", "") or event.get("title", "") or property_id
+        executive_timeline.append(_admin_executive_record_timeline_event(
+            timestamp=parsed_at,
+            icon="PRP",
+            event_type="Property",
+            property_label=property_label,
+            summary=event.get("title", "") or "Property event",
+            actor=event.get("detail", "") or "System",
+            link=f"/admin/properties/{property_id}" if property_id else "/admin/properties",
+            tone="neutral",
+        ))
+
+    executive_timeline.sort(key=lambda item: item["timestamp"], reverse=True)
+    executive_timeline = executive_timeline[:40]
+
+    smart_recommendations = []
+    recommendation_signatures = set()
+
+    def _add_recommendation(title, detail, link):
+        signature = (title, detail, link)
+        if signature in recommendation_signatures:
+            return
+        recommendation_signatures.add(signature)
+        smart_recommendations.append({
+            "title": title,
+            "detail": detail,
+            "link": link,
+        })
+
+    for alert in executive_alerts[:12]:
+        if alert["category"] == "unassigned_operations" and alert["property"]:
+            _add_recommendation(
+                f"Assign cleaner to {alert['property']}",
+                alert["detail"] or "Operational task is waiting for assignment",
+                alert["link"] or "/admin/operations",
+            )
+        elif alert["category"] == "reservations_arriving_within_24h_without_completed_preparation" and alert["property"]:
+            _add_recommendation(
+                f"Prepare {alert['property']} for arrival",
+                "Arrival is less than 24 hours away",
+                alert["link"] or "/admin/reservations",
+            )
+        elif alert["category"] == "professionals_overloaded" and alert["operation"]:
+            _add_recommendation(
+                f"Move operation to another team",
+                f"{alert['operation']} is carrying too many open tasks",
+                alert["link"] or "/admin/professionals",
+            )
+        elif alert["category"] == "operations_without_due_dates":
+            _add_recommendation(
+                "Add due dates to open operations",
+                alert["operation"] or "An open operation is missing a due date",
+                alert["link"] or "/admin/operations",
+            )
+        elif alert["category"] == "owner_requests_waiting" and alert["property"]:
+            _add_recommendation(
+                f"Follow up owner request for {alert['property']}",
+                "The owner has been waiting too long for an update",
+                alert["link"] or "/admin/service-requests",
+            )
+
+    for card in property_risk_cards[:8]:
+        if card["score"] <= 40:
+            continue
+        _add_recommendation(
+            f"Reduce risk on {card['name']}",
+            card["summary"],
+            f"/admin/properties/{card['id']}",
+        )
+
+    for property_record in owner_properties:
+        property_id = str(property_record.get("id", "")).strip()
+        property_name = property_record.get("name", "") or property_id or "Property"
+        readiness_completed, readiness_total = _owner_property_checklist_completion(property_record)
+        readiness_percent = int(round((readiness_completed / max(readiness_total, 1)) * 100)) if readiness_total else 0
+        property_reservations = property_reservations_map.get(property_id, [])
+        upcoming_pending = [
+            reservation for reservation in property_reservations
+            if _normalize_reservation_status(reservation.get("status", "PENDING")) in {"PENDING", "CONFIRMED"}
+            and (_reservation_date_bounds(reservation)[0] and now <= _reservation_date_bounds(reservation)[0] <= now + timedelta(hours=48))
+        ]
+        if readiness_percent == 100 and not [task for task in property_tasks_map.get(property_id, []) if _normalize_operations_task_status(task.get("status", "NEW")) in open_task_statuses and _admin_operations_task_is_overdue(task)] and upcoming_pending:
+            _add_recommendation(
+                f"Reservation can now be confirmed for {property_name}",
+                "Readiness is complete and the next reservation is clear to confirm",
+                f"/admin/properties/{property_id}",
+            )
+        elif readiness_percent == 100 and not upcoming_pending and not property_tasks_map.get(property_id, []):
+            _add_recommendation(
+                f"Property ready for next reservation",
+                property_name,
+                f"/admin/properties/{property_id}",
+            )
+
+    smart_recommendations = smart_recommendations[:12]
+
     calendar_widget = _calendar_dashboard_widget(enriched_calendar_events, scope="admin")
     reservation_widget = {
         "todays_check_ins": [reservation for reservation in reservations if _reservation_date_bounds(reservation)[0] and _reservation_date_bounds(reservation)[0].date() == today][:5],
@@ -14176,6 +14859,12 @@ def _build_admin_dashboard():
         "partner_status_counts": partner_counts,
         "professional_status_counts": professional_counts,
         "executive_kpis": executive_kpis,
+        "executive_alerts": executive_alerts,
+        "property_risk_cards": property_risk_cards,
+        "executive_timeline": executive_timeline,
+        "workload_distribution": workload_distribution,
+        "sla_monitoring": sla_monitoring,
+        "smart_recommendations": smart_recommendations,
         "today_operations_groups": today_operations_groups,
         "operations_heatmap": operations_heatmap,
         "reservation_timeline_groups": reservation_timeline_groups,

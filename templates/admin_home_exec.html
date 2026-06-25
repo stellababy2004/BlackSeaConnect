@@ -421,6 +421,82 @@
       justify-content: space-between;
       gap: 10px;
     }
+    .admin-alert-grid,
+    .admin-recommendation-grid,
+    .admin-timeline-feed,
+    .admin-workload-grid,
+    .admin-risk-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .admin-alert-card,
+    .admin-recommendation-card,
+    .admin-timeline-event,
+    .admin-risk-card {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+    }
+    .admin-alert-card__head,
+    .admin-recommendation-card__head,
+    .admin-timeline-event__head,
+    .admin-risk-card__head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .admin-alert-card__meta,
+    .admin-recommendation-card__meta,
+    .admin-timeline-event__meta,
+    .admin-risk-card__meta {
+      color: rgba(248, 244, 234, 0.72);
+      font-size: 0.92rem;
+    }
+    .admin-risk-score {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .admin-risk-factors {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+      color: rgba(248, 244, 234, 0.72);
+      font-size: 0.9rem;
+    }
+    .admin-risk-factors span {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .admin-timeline-event__body,
+    .admin-recommendation-card__body {
+      display: grid;
+      gap: 8px;
+    }
+    .admin-timeline-event__icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+    .admin-workload-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .admin-workload-card .admin-summary-list {
+      margin-top: 8px;
+    }
     .admin-action-grid {
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
@@ -492,6 +568,13 @@
       }
       .admin-cockpit-actions,
       .admin-action-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-workload-grid,
+      .admin-alert-grid,
+      .admin-recommendation-grid,
+      .admin-timeline-feed,
+      .admin-risk-grid {
         grid-template-columns: 1fr;
       }
       .admin-heatmap-row {
@@ -576,6 +659,280 @@
       </div>
     </section>
 
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--danger">Executive Alerts</span>
+          <h2>Executive alerts</h2>
+        </div>
+      </div>
+      {% if executive_alerts %}
+        <div class="admin-alert-grid">
+          {% for alert in executive_alerts %}
+            <article class="admin-alert-card">
+              <div class="admin-alert-card__head">
+                <div>
+                  <strong>{{ alert.category|replace('_', ' ')|title }}</strong>
+                  <div class="admin-alert-card__meta">{{ alert.created_at_display }}</div>
+                </div>
+                <span class="admin-badge admin-badge--{{ alert.tone }}">{{ alert.severity|title }}</span>
+              </div>
+              <div class="admin-summary-list">
+                {% if alert.property %}<span><strong>Property</strong><span>{{ alert.property }}</span></span>{% endif %}
+                {% if alert.reservation %}<span><strong>Reservation</strong><span>{{ alert.reservation }}</span></span>{% endif %}
+                {% if alert.operation %}<span><strong>Operation</strong><span>{{ alert.operation }}</span></span>{% endif %}
+              </div>
+              {% if alert.detail %}<div class="admin-meta-line" style="margin-top: 10px;">{{ alert.detail }}</div>{% endif %}
+              {% if alert.recommended_action %}<p><strong>Recommended action:</strong> {{ alert.recommended_action }}</p>{% endif %}
+              {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">Open context</a>{% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No operational alerts right now.</h3>
+          <p>The unified alerts engine will surface overdue work, readiness gaps, conflicts, and workload spikes as soon as they appear.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--warning">Operational Risk</span>
+          <h2>Operational risk</h2>
+        </div>
+      </div>
+      <div class="admin-risk-grid">
+        {% for property in property_risk_cards %}
+          <article class="admin-risk-card" data-tone="{{ property.tone }}">
+            <div class="admin-risk-card__head">
+              <div>
+                <strong>{{ property.name }}</strong>
+                <div class="admin-risk-card__meta">{{ property.location }}</div>
+              </div>
+              <span class="admin-badge admin-badge--{{ property.tone }}">{{ property.tier }}</span>
+            </div>
+            <div class="admin-risk-score">{{ property.score }}</div>
+            <div class="admin-alert-card__meta">{{ property.badge }}</div>
+            <p>{{ property.summary }}</p>
+            <div class="admin-risk-factors">
+              {% for factor in property.factors %}
+                <span><strong>{{ factor.label }}</strong><span>{{ factor.count }}</span></span>
+              {% endfor %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--info">Executive Timeline</span>
+          <h2>Unified timeline</h2>
+        </div>
+      </div>
+      {% if executive_timeline %}
+        <div class="admin-timeline-feed">
+          {% for event in executive_timeline %}
+            <article class="admin-timeline-event">
+              <div class="admin-timeline-event__head">
+                <div class="admin-timeline-event__icon">{{ event.icon }}</div>
+                <div>
+                  <strong>{{ event.type }}</strong>
+                  <div class="admin-timeline-event__meta">{{ event.timestamp_display }}</div>
+                </div>
+                <span class="admin-badge admin-badge--{{ event.tone }}">{{ event.tone }}</span>
+              </div>
+              <div class="admin-timeline-event__body">
+                <strong>{{ event.summary }}</strong>
+                {% if event.property %}<div class="admin-meta-line">{{ event.property }}</div>{% endif %}
+                {% if event.actor %}<div class="admin-meta-line">Actor: {{ event.actor }}</div>{% endif %}
+                {% if event.link %}<a class="button button--secondary" href="{{ event.link }}">Open source</a>{% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No executive events yet.</h3>
+          <p>Reservations, operations, calendar, professionals, owner requests, and system events will populate this feed automatically.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--primary">Live Workload</span>
+          <h2>Live workload distribution</h2>
+        </div>
+      </div>
+      <div class="admin-workload-grid">
+        <article class="admin-workload-card">
+          <div class="admin-section-head">
+            <div>
+              <h3>Top busiest professionals</h3>
+            </div>
+          </div>
+          <div class="admin-summary-list">
+            {% for item in workload_distribution.top_professionals %}
+              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="admin-workload-card">
+          <div class="admin-section-head">
+            <div>
+              <h3>Top busiest properties</h3>
+            </div>
+          </div>
+          <div class="admin-summary-list">
+            {% for item in workload_distribution.top_properties %}
+              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="admin-workload-card">
+          <div class="admin-section-head">
+            <div>
+              <h3>Operations by city</h3>
+            </div>
+          </div>
+          <div class="admin-summary-list">
+            {% for item in workload_distribution.by_city %}
+              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="admin-workload-card">
+          <div class="admin-section-head">
+            <div>
+              <h3>Operations by category</h3>
+            </div>
+          </div>
+          <div class="admin-summary-list">
+            {% for item in workload_distribution.by_category %}
+              <span><strong>{{ item.name }}</strong><span>{{ item.count }}</span></span>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="admin-workload-card">
+          <div class="admin-section-head">
+            <div>
+              <h3>Upcoming workload</h3>
+            </div>
+          </div>
+          <div class="admin-summary-list">
+            {% for item in workload_distribution.by_day %}
+              <span><strong>{{ item.label }}</strong><span>{{ item.count }}</span></span>
+            {% endfor %}
+            <span><strong>Upcoming total</strong><span>{{ workload_distribution.upcoming_workload }}</span></span>
+            <span><strong>Late workload</strong><span>{{ workload_distribution.late_workload }}</span></span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--info">SLA Monitoring</span>
+          <h2>SLA monitoring</h2>
+        </div>
+      </div>
+      <div class="admin-kpi-grid">
+        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_completion_time == 'Pending' %}neutral{% else %}success{% endif %}">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">CT</span>
+            <span class="admin-badge admin-badge--neutral">SLA</span>
+          </div>
+          <h3>Average completion time</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.average_completion_time }}</div>
+          <div class="admin-kpi-trend">Completion speed across finished operations</div>
+        </article>
+        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_assignment_time == 'Pending' %}neutral{% else %}info{% endif %}">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">AT</span>
+            <span class="admin-badge admin-badge--info">SLA</span>
+          </div>
+          <h3>Average assignment time</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.average_assignment_time }}</div>
+          <div class="admin-kpi-trend">Time from creation to assignment</div>
+        </article>
+        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.average_response_time == 'Pending' %}neutral{% else %}warning{% endif %}">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">RT</span>
+            <span class="admin-badge admin-badge--warning">SLA</span>
+          </div>
+          <h3>Average response time</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.average_response_time }}</div>
+          <div class="admin-kpi-trend">Time to first recorded action</div>
+        </article>
+        <article class="admin-kpi-card" data-tone="warning">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">L%</span>
+            <span class="admin-badge admin-badge--warning">SLA</span>
+          </div>
+          <h3>Late</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.late_percent }}%</div>
+          <div class="admin-kpi-trend">Open operations already past due</div>
+        </article>
+        <article class="admin-kpi-card" data-tone="success">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">C%</span>
+            <span class="admin-badge admin-badge--success">SLA</span>
+          </div>
+          <h3>Completed</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.completed_percent }}%</div>
+          <div class="admin-kpi-trend">Finished operations overall</div>
+        </article>
+        <article class="admin-kpi-card" data-tone="{% if sla_monitoring.waiting_percent > 40 %}danger{% else %}info{% endif %}">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">W%</span>
+            <span class="admin-badge admin-badge--info">SLA</span>
+          </div>
+          <h3>Waiting</h3>
+          <div class="admin-kpi-value">{{ sla_monitoring.waiting_percent }}%</div>
+          <div class="admin-kpi-trend">Operations waiting on owner or provider</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="admin-dashboard-section">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-pill admin-pill--primary">Smart Recommendations</span>
+          <h2>Smart recommendations</h2>
+        </div>
+      </div>
+      {% if smart_recommendations %}
+        <div class="admin-recommendation-grid">
+          {% for item in smart_recommendations %}
+            <article class="admin-recommendation-card">
+              <div class="admin-recommendation-card__head">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  {% if item.link %}<div class="admin-alert-card__meta">{{ item.link }}</div>{% endif %}
+                </div>
+                <span class="admin-badge admin-badge--primary">Computed</span>
+              </div>
+              <div class="admin-recommendation-card__body">
+                <p>{{ item.detail }}</p>
+                {% if item.link %}<a class="button button--secondary" href="{{ item.link }}">Open context</a>{% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>No recommendations right now.</h3>
+          <p>As alerts, risk, and workload shift, the dashboard will suggest the next best operational action.</p>
+        </div>
+      {% endif %}
+    </section>
+
     <section class="admin-two-up">
       <article class="admin-cockpit-panel">
         <div class="admin-section-head">
@@ -640,7 +997,7 @@
       <div class="admin-section-head">
         <div>
           <span class="admin-pill admin-pill--info">Section 4</span>
-          <h2>Reservation timeline</h2>
+          <h2>Reservations overview</h2>
         </div>
       </div>
       <div class="admin-three-up">
@@ -684,7 +1041,7 @@
       <div class="admin-section-head">
         <div>
           <span class="admin-pill admin-pill--success">Section 5</span>
-          <h2>Property status</h2>
+          <h2>Property health</h2>
         </div>
       </div>
       <div class="admin-property-grid">
@@ -697,6 +1054,12 @@
               </div>
               <span class="admin-badge admin-badge--{{ property.tone }}">{{ property.state }}</span>
             </div>
+            {% if property.risk_score is defined %}
+              <div class="admin-submeta" style="margin-top: 10px;">
+                <span class="admin-badge admin-badge--{{ property.risk_tone }}">{{ property.risk_label }}</span>
+                <span style="margin-left: 10px;">Risk score {{ property.risk_score }}/100</span>
+              </div>
+            {% endif %}
             <div class="admin-property-metrics">
               <span><strong>Health</strong><span>{{ property.health }}%</span></span>
               <span><strong>Occupancy</strong><span>{{ property.occupancy }}%</span></span>
@@ -733,7 +1096,7 @@
         <div class="admin-section-head">
           <div>
             <span class="admin-pill admin-pill--info">Section 7</span>
-            <h2>Professional summary</h2>
+            <h2>Professional capacity</h2>
           </div>
         </div>
         <div class="admin-summary-list">
