@@ -26705,3 +26705,182 @@ body.operations-demo-page :where(input, select, textarea, .form-control, .form-s
     font-size: clamp(1.2rem, 5vw, 1.65rem) !important;
   }
 }
+
+/* Final visual QA override: only two surface families, with shared geometry. */
+:root {
+  --surface-family-radius: 24px;
+  --surface-family-blur: 18px;
+  --surface-family-shadow: 0 18px 42px rgba(2, 10, 18, 0.18);
+  --surface-light-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(243, 248, 252, 0.56)), rgba(246, 249, 252, 0.72);
+  --surface-light-border: 1px solid rgba(15, 35, 69, 0.12);
+  --surface-dark-fill: linear-gradient(180deg, rgba(11, 25, 38, 0.86), rgba(9, 18, 28, 0.78)), rgba(9, 18, 28, 0.84);
+  --surface-dark-border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body:not(.admin-cockpit-page):not(.operations-demo-page):not(.reservations-page) :where(
+  .surface-light,
+  .surface-form,
+  .surface-empty,
+  .surface-kpi,
+  .surface-hero,
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .guest-card,
+  .guest-access-card,
+  .guest-sidecard,
+  .partner-card,
+  .resource-card,
+  .home-resource-card,
+  .showcase-panel,
+  .cta-panel,
+  .professional-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile,
+  .owner-properties-panel,
+  .owner-properties-hero,
+  .owner-property-card,
+  .owner-property-aside,
+  .owner-request-summary,
+  .owner-request-panel,
+  .owner-request-next
+) {
+  border-radius: var(--surface-family-radius) !important;
+  border: var(--surface-light-border) !important;
+  background: var(--surface-light-fill) !important;
+  box-shadow: var(--surface-family-shadow) !important;
+  color: #10223d !important;
+  backdrop-filter: blur(var(--surface-family-blur)) saturate(124%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-family-blur)) saturate(124%) !important;
+}
+
+body.admin-cockpit-page :where(
+  .surface-dark,
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .operations-empty-state,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-empty,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .hero__copy,
+  .hero__content--home .hero__copy,
+  .panel,
+  .action-tile
+),
+body.operations-demo-page :where(
+  .surface-dark,
+  .glass-card,
+  .empty-state,
+  .section-card,
+  .form-card,
+  .timeline-card,
+  .request-card,
+  .feature-card,
+  .trust-card,
+  .preview-card,
+  .owner-portal-card,
+  .owner-kpi-card,
+  .admin-kpi-card,
+  .admin-empty-state,
+  .operations-empty-state,
+  .reservations-card,
+  .reservations-panel,
+  .reservations-empty,
+  .reservation-detail-panel,
+  .reservation-detail-hero,
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .operations-hero__copy,
+  .operations-preview-card,
+  .operations-panel,
+  .operations-empty-state,
+  .panel,
+  .action-tile
+),
+body.reservations-page :where(
+  .surface-dark,
+  .reservations-hero,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero
+) {
+  border-radius: var(--surface-family-radius) !important;
+  border: var(--surface-dark-border) !important;
+  background: var(--surface-dark-fill) !important;
+  box-shadow: var(--surface-family-shadow) !important;
+  color: var(--text) !important;
+  backdrop-filter: blur(var(--surface-family-blur)) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-family-blur)) saturate(120%) !important;
+}
+
+body:not(.admin-cockpit-page):not(.operations-demo-page):not(.reservations-page) :where(
+  input,
+  select,
+  textarea,
+  .form-control,
+  .form-select
+) {
+  border: 1px solid rgba(15, 35, 69, 0.14) !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  color: #10223d !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76) !important;
+}
+
+body.admin-cockpit-page :where(
+  input,
+  select,
+  textarea,
+  .form-control,
+  .form-select
+),
+body.operations-demo-page :where(
+  input,
+  select,
+  textarea,
+  .form-control,
+  .form-select
+),
+body.reservations-page :where(
+  input,
+  select,
+  textarea,
+  .form-control,
+  .form-select
+) {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--text) !important;
+}
+
+body.reservations-page {
+  color: var(--text);
+}
