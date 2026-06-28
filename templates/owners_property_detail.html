@@ -336,19 +336,356 @@
   </header>
 
   <main class="owner-property-detail-shell">
+    {% set knowledge = property_context.knowledge if property_context.knowledge else {} %}
     <section class="owner-property-detail-grid">
       <div class="owner-property-detail-stack">
         <article class="owner-property-detail-panel">
           <p class="eyebrow">Property Profile</p>
           <h2 class="owner-property-detail-section-title">Property details</h2>
+          {% set profile = property_context.property.property_profile if property_context.property.property_profile else {} %}
           <dl class="owner-property-detail-dl">
             <div><dt>Property name</dt><dd>{{ property_context.property.name|e }}</dd></div>
             <div><dt>Property type</dt><dd>{{ property_context.property.property_type|e }}</dd></div>
             <div><dt>City / location</dt><dd>{{ property_context.property.location|e }}</dd></div>
+            <div><dt>Address</dt><dd>{{ profile.address|e if profile else property_context.property.location|e }}</dd></div>
+            <div><dt>City</dt><dd>{{ profile.city|e if profile else property_context.property.location|e }}</dd></div>
+            <div><dt>Country</dt><dd>{{ profile.country|e if profile else '' }}</dd></div>
             <div><dt>Unit count</dt><dd>{{ property_context.property.guest_capacity }}</dd></div>
+            <div><dt>Floor</dt><dd>{{ profile.floor|e if profile else '' }}</dd></div>
+            <div><dt>Elevator</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
+            <div><dt>Parking</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
             <div><dt>Status</dt><dd>{{ property_context.property.status_label|e }}</dd></div>
             <div><dt>Created at</dt><dd>{{ property_context.property.created_at|e }}</dd></div>
+            <div><dt>Readiness</dt><dd>{{ property_context.property.readiness_percent }}%</dd></div>
+            <div><dt>Last updated</dt><dd>{{ property_context.property.last_updated_at|e }}</dd></div>
           </dl>
+        </article>
+
+        <article class="owner-property-detail-panel owner-property-knowledge-panel">
+          <p class="eyebrow">Property Knowledge</p>
+          <h2 class="owner-property-detail-section-title">Knowledge hub</h2>
+          <p class="owner-property-detail-copy">
+            This is the single source of truth for the property. Owners, operations, professionals, reservations, and future AI experiences can read from the same knowledge model.
+          </p>
+
+          <div class="owner-property-detail-summary owner-property-detail-summary--health">
+            <div class="owner-property-detail-stat">
+              <span>Property Health</span>
+              <strong>{{ property_context.property_health.overall }}</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Knowledge Completeness</span>
+              <strong>{{ property_context.property_health.metrics["Knowledge Completeness"] }}%</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Documentation</span>
+              <strong>{{ property_context.property_health.metrics["Documentation"] }}%</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Safety</span>
+              <strong>{{ property_context.property_health.metrics["Safety"] }}%</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Readiness</span>
+              <strong>{{ property_context.property_health.metrics["Readiness"] }}%</strong>
+            </div>
+            <div class="owner-property-detail-stat">
+              <span>Maintenance</span>
+              <strong>{{ property_context.property_health.metrics["Maintenance"] }}%</strong>
+            </div>
+          </div>
+
+          <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="status" value="{{ property_context.property.status|e }}">
+            <input type="hidden" name="notes" value="{{ property_context.property.notes|e }}">
+            {% for field in ['guest_guide_ready', 'access_instructions_ready', 'emergency_contact_ready', 'cleaning_partner_ready'] %}
+              <input type="hidden" name="{{ field }}" value="{% if property_context.property[field] %}1{% endif %}">
+            {% endfor %}
+
+            <section class="owner-property-knowledge-section">
+              <h3>General</h3>
+              <div class="owner-property-knowledge-grid">
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
+                  <span>Property description</span>
+                  <textarea name="knowledge_description" rows="4">{{ knowledge.general.description|e }}</textarea>
+                </label>
+                <label class="owner-property-knowledge-field"><span>Building</span><input type="text" name="knowledge_building" value="{{ knowledge.general.building|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Apartment</span><input type="text" name="knowledge_apartment" value="{{ knowledge.general.apartment|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Neighbourhood</span><input type="text" name="knowledge_neighbourhood" value="{{ knowledge.general.neighbourhood|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Languages spoken</span><input type="text" name="knowledge_languages_spoken" value="{{ knowledge.general.languages_spoken|e }}"></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
+                  <span>Emergency contacts</span>
+                  <textarea name="knowledge_emergency_contacts" rows="3">{{ knowledge.general.emergency_contacts|e }}</textarea>
+                </label>
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Access</h3>
+              <div class="owner-property-knowledge-grid">
+                <label class="owner-property-knowledge-field"><span>Building entrance code</span><input type="text" name="access_building_entrance_code" value="{{ knowledge.access.building_entrance_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Apartment code</span><input type="text" name="access_apartment_code" value="{{ knowledge.access.apartment_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Key safe code</span><input type="text" name="access_key_safe_code" value="{{ knowledge.access.key_safe_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Smart lock</span><input type="text" name="access_smart_lock" value="{{ knowledge.access.smart_lock|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Garage access</span><input type="text" name="access_garage_access" value="{{ knowledge.access.garage_access|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Parking space</span><input type="text" name="access_parking_space" value="{{ knowledge.access.parking_space|e }}"></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Gate instructions</span><textarea name="access_gate_instructions" rows="3">{{ knowledge.access.gate_instructions|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Intercom</span><input type="text" name="access_intercom" value="{{ knowledge.access.intercom|e }}"></label>
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>WiFi</h3>
+              <div class="owner-property-knowledge-grid">
+                <label class="owner-property-knowledge-field"><span>Network name</span><input type="text" name="wifi_network_name" value="{{ knowledge.wifi.network_name|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Password</span><input type="text" name="wifi_password" value="{{ knowledge.wifi.password|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Router location</span><input type="text" name="wifi_router_location" value="{{ knowledge.wifi.router_location|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>Backup router</span><input type="text" name="wifi_backup_router" value="{{ knowledge.wifi.backup_router|e }}"></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Troubleshooting notes</span><textarea name="wifi_troubleshooting_notes" rows="3">{{ knowledge.wifi.troubleshooting_notes|e }}</textarea></label>
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Appliances</h3>
+              {% set appliance_items = [
+                ('coffee_machine', 'Coffee machine'),
+                ('dishwasher', 'Dishwasher'),
+                ('oven', 'Oven'),
+                ('microwave', 'Microwave'),
+                ('washing_machine', 'Washing machine'),
+                ('dryer', 'Dryer'),
+                ('tv', 'TV'),
+                ('air_conditioner', 'Air conditioner')
+              ] %}
+              <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
+                {% for key, label in appliance_items %}
+                  {% set item = knowledge.appliances[key] if knowledge.appliances and knowledge.appliances[key] else {} %}
+                  <article class="owner-property-knowledge-card">
+                    <h4>{{ label }}</h4>
+                    <label class="owner-property-knowledge-field"><span>Brand</span><input type="text" name="appliance_{{ key }}_brand" value="{{ item.brand|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Model</span><input type="text" name="appliance_{{ key }}_model" value="{{ item.model|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Serial number</span><input type="text" name="appliance_{{ key }}_serial_number" value="{{ item.serial_number|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Manual reference</span><input type="text" name="appliance_{{ key }}_manual" value="{{ item.manual|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Video reference</span><input type="text" name="appliance_{{ key }}_video" value="{{ item.video|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Warranty expiry</span><input type="text" name="appliance_{{ key }}_warranty_expiry" value="{{ item.warranty_expiry|e }}"></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Maintenance notes</span><textarea name="appliance_{{ key }}_maintenance_notes" rows="3">{{ item.maintenance_notes|e }}</textarea></label>
+                  </article>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>House manual</h3>
+              <div class="owner-property-knowledge-grid">
+                <label class="owner-property-knowledge-field"><span>Arrival</span><textarea name="manual_arrival" rows="3">{{ knowledge.house_manual.arrival|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Departure</span><textarea name="manual_departure" rows="3">{{ knowledge.house_manual.departure|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Trash</span><textarea name="manual_trash" rows="3">{{ knowledge.house_manual.trash|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Parking</span><textarea name="manual_parking" rows="3">{{ knowledge.house_manual.parking|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Pool</span><textarea name="manual_pool" rows="3">{{ knowledge.house_manual.pool|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Beach</span><textarea name="manual_beach" rows="3">{{ knowledge.house_manual.beach|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Heating</span><textarea name="manual_heating" rows="3">{{ knowledge.house_manual.heating|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Air conditioning</span><textarea name="manual_air_conditioning" rows="3">{{ knowledge.house_manual.air_conditioning|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>Neighbours</span><textarea name="manual_neighbours" rows="3">{{ knowledge.house_manual.neighbours|e }}</textarea></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Local recommendations</span><textarea name="manual_local_recommendations" rows="3">{{ knowledge.house_manual.local_recommendations|e }}</textarea></label>
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Emergency</h3>
+              {% set emergency_items = [
+                ('police', 'Police'),
+                ('medical', 'Medical'),
+                ('electrician', 'Electrician'),
+                ('plumber', 'Plumber'),
+                ('property_manager', 'Property manager'),
+                ('owner', 'Owner'),
+                ('insurance', 'Insurance'),
+                ('utility_companies', 'Utility companies')
+              ] %}
+              <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
+                {% for key, label in emergency_items %}
+                  {% set item = knowledge.emergency[key] if knowledge.emergency and knowledge.emergency[key] else {} %}
+                  <article class="owner-property-knowledge-card">
+                    <h4>{{ label }}</h4>
+                    <label class="owner-property-knowledge-field"><span>Phone</span><input type="text" name="emergency_{{ key }}_phone" value="{{ item.phone|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Email</span><input type="text" name="emergency_{{ key }}_email" value="{{ item.email|e }}"></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="emergency_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                  </article>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Service providers</h3>
+              {% set provider_items = [
+                ('cleaning_company', 'Cleaning company'),
+                ('electrician', 'Electrician'),
+                ('plumber', 'Plumber'),
+                ('hvac', 'HVAC'),
+                ('pool_maintenance', 'Pool maintenance'),
+                ('gardener', 'Gardener'),
+                ('laundry', 'Laundry'),
+                ('pest_control', 'Pest control')
+              ] %}
+              <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
+                {% for key, label in provider_items %}
+                  {% set item = knowledge.service_providers[key] if knowledge.service_providers and knowledge.service_providers[key] else {} %}
+                  <article class="owner-property-knowledge-card">
+                    <h4>{{ label }}</h4>
+                    <label class="owner-property-knowledge-field"><span>Name</span><input type="text" name="provider_{{ key }}_name" value="{{ item.name|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Phone</span><input type="text" name="provider_{{ key }}_phone" value="{{ item.phone|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Email</span><input type="text" name="provider_{{ key }}_email" value="{{ item.email|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Availability</span><input type="text" name="provider_{{ key }}_availability" value="{{ item.availability|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Rating</span><input type="text" name="provider_{{ key }}_rating" value="{{ item.rating|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Preferred</span><input type="checkbox" name="provider_{{ key }}_preferred" value="1" {% if item.preferred %}checked{% endif %}></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="provider_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                  </article>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Seasonal tasks</h3>
+              {% set seasonal_items = [
+                ('open_pool', 'Open pool'),
+                ('close_pool', 'Close pool'),
+                ('winter_inspection', 'Winter inspection'),
+                ('ac_maintenance', 'AC maintenance'),
+                ('boiler_inspection', 'Boiler inspection'),
+                ('smoke_detector', 'Smoke detector'),
+                ('fire_extinguisher', 'Fire extinguisher')
+              ] %}
+              <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
+                {% for key, label in seasonal_items %}
+                  {% set item = knowledge.seasonal_tasks[key] if knowledge.seasonal_tasks and knowledge.seasonal_tasks[key] else {} %}
+                  <article class="owner-property-knowledge-card">
+                    <h4>{{ label }}</h4>
+                    <label class="owner-property-knowledge-field"><span>Cadence</span><input type="text" name="seasonal_{{ key }}_cadence" value="{{ item.cadence|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>Target date</span><input type="text" name="seasonal_{{ key }}_target_date" value="{{ item.target_date|e }}" placeholder="YYYY-MM-DD"></label>
+                    <label class="owner-property-knowledge-field"><span>Active</span><input type="checkbox" name="seasonal_{{ key }}_active" value="1" {% if item.active %}checked{% endif %}></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="seasonal_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                  </article>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="owner-property-knowledge-section">
+              <h3>Document center</h3>
+              <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
+                <span>Upload documents</span>
+                <input type="file" name="knowledge_documents" multiple accept="application/pdf,image/*,video/*">
+              </label>
+              {% if property_context.documents %}
+                <div class="owner-property-knowledge-documents">
+                  {% for document in property_context.documents %}
+                    <article class="owner-property-knowledge-document">
+                      <strong>{{ document.filename|default(document.name, true)|e }}</strong>
+                      <p>{{ document.kind|default(document.content_type, true)|e }}</p>
+                    </article>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="owner-property-detail-empty">No documents uploaded yet.</p>
+              {% endif %}
+            </section>
+
+            <div class="owner-property-actions">
+              <a class="button button--secondary" href="{{ localized_url('/owners/properties') }}">Back to properties</a>
+              <button class="button button--primary" type="submit">Save knowledge hub</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Property Gallery</p>
+          <h2 class="owner-property-detail-section-title">Gallery</h2>
+          {% if property_context.photos %}
+            <div class="owner-property-detail-gallery">
+              <div class="owner-property-detail-gallery__cover">
+                {% set cover_photo = property_context.property.cover_photo if property_context.property.cover_photo else property_context.photos[0] %}
+                <img src="{{ property_context.property.cover_photo_url or localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ cover_photo.id) }}" alt="{{ property_context.property.name|e }}" loading="lazy">
+              </div>
+              <div class="owner-property-detail-gallery__grid">
+                {% for photo in property_context.photos %}
+                  <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" class="owner-property-detail-gallery__thumb">
+                    <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" alt="{{ property_context.property.name|e }} photo {{ loop.index }}" loading="lazy">
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <p class="owner-property-detail-empty">No photos have been uploaded yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Amenities</p>
+          <h2 class="owner-property-detail-section-title">Amenities</h2>
+          <div class="owner-property-detail-badges">
+            {% for key, label in [
+              ('wifi', 'Wifi'),
+              ('air_conditioning', 'Air conditioning'),
+              ('heating', 'Heating'),
+              ('pool', 'Pool'),
+              ('beach_access', 'Beach access'),
+              ('kitchen', 'Kitchen'),
+              ('coffee_machine', 'Coffee machine'),
+              ('tv', 'TV'),
+              ('washing_machine', 'Washing machine'),
+              ('dryer', 'Dryer'),
+              ('balcony', 'Balcony'),
+              ('garden', 'Garden'),
+              ('bbq', 'BBQ'),
+              ('workspace', 'Workspace'),
+              ('pet_friendly', 'Pet friendly'),
+            ] %}
+              <span class="owner-property-detail-chip {% if property_context.amenities[key] %}owner-property-detail-chip--status{% endif %}">{{ label }}</span>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Access information</p>
+          <h2 class="owner-property-detail-section-title">Access information</h2>
+          <dl class="owner-property-detail-dl">
+            <div><dt>Wifi name</dt><dd>{{ property_context.access_information.wifi_name|e }}</dd></div>
+            <div><dt>Wifi password</dt><dd>{{ property_context.access_information.wifi_password|e }}</dd></div>
+            <div><dt>Building code</dt><dd>{{ property_context.access_information.building_code|e }}</dd></div>
+            <div><dt>Apartment code</dt><dd>{{ property_context.access_information.apartment_code|e }}</dd></div>
+            <div><dt>Key safe code</dt><dd>{{ property_context.access_information.key_safe_code|e }}</dd></div>
+            <div><dt>Emergency contact</dt><dd>{{ property_context.access_information.emergency_contact|e }}</dd></div>
+            <div><dt>Parking instructions</dt><dd>{{ property_context.access_information.parking_instructions|e }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Documents</p>
+          <h2 class="owner-property-detail-section-title">Documents</h2>
+          {% if property_context.documents %}
+            <div class="owner-property-detail-history">
+              {% for document in property_context.documents %}
+                <div class="owner-property-detail-history__item">
+                  <div class="owner-property-detail-history__topline">
+                    <strong>{{ document.filename|e }}</strong>
+                    <time>{{ document.uploaded_at|e }}</time>
+                  </div>
+                  <p>{{ document.kind|e }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="owner-property-detail-empty">No documents have been uploaded yet.</p>
+          {% endif %}
+        </article>
+
+        <article class="owner-property-detail-panel">
+          <p class="eyebrow">Welcome instructions</p>
+          <h2 class="owner-property-detail-section-title">Welcome instructions</h2>
+          {% if property_context.welcome_instructions %}
+            <p class="owner-property-detail-copy">{{ property_context.welcome_instructions|e }}</p>
+          {% else %}
+            <p class="owner-property-detail-empty">No welcome instructions have been added yet.</p>
+          {% endif %}
         </article>
 
         <article class="owner-property-detail-panel">

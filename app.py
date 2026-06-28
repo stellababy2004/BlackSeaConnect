@@ -20,7 +20,8 @@ import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
-from flask import Flask, Response, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for
+from flask import Flask, Response, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
+from werkzeug.utils import secure_filename
 
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
@@ -141,6 +142,49 @@ OWNER_PROPERTY_CHECKLIST_FIELDS = (
     "access_instructions_ready",
     "emergency_contact_ready",
     "cleaning_partner_ready",
+)
+OWNER_PROPERTY_ASSETS_DIR = Path("data") / "owner_property_assets"
+OWNER_PROPERTY_UPLOADS_DIR = Path("data") / "owner_property_uploads"
+OWNER_PROPERTY_MEDIA_LIMIT = 20
+OWNER_PROPERTY_DOCUMENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
+OWNER_PROPERTY_APPLIANCE_FIELDS = (
+    ("coffee_machine", "Coffee machine"),
+    ("dishwasher", "Dishwasher"),
+    ("oven", "Oven"),
+    ("microwave", "Microwave"),
+    ("washing_machine", "Washing machine"),
+    ("dryer", "Dryer"),
+    ("tv", "TV"),
+    ("air_conditioner", "Air conditioner"),
+)
+OWNER_PROPERTY_SERVICE_PROVIDER_FIELDS = (
+    ("cleaning_company", "Cleaning company"),
+    ("electrician", "Electrician"),
+    ("plumber", "Plumber"),
+    ("hvac", "HVAC"),
+    ("pool_maintenance", "Pool maintenance"),
+    ("gardener", "Gardener"),
+    ("laundry", "Laundry"),
+    ("pest_control", "Pest control"),
+)
+OWNER_PROPERTY_SEASONAL_TASK_FIELDS = (
+    ("open_pool", "Open pool"),
+    ("close_pool", "Close pool"),
+    ("winter_inspection", "Winter inspection"),
+    ("ac_maintenance", "AC maintenance"),
+    ("boiler_inspection", "Boiler inspection"),
+    ("smoke_detector", "Smoke detector"),
+    ("fire_extinguisher", "Fire extinguisher"),
+)
+OWNER_PROPERTY_EMERGENCY_FIELDS = (
+    ("police", "Police"),
+    ("medical", "Medical"),
+    ("electrician", "Electrician"),
+    ("plumber", "Plumber"),
+    ("property_manager", "Property manager"),
+    ("owner", "Owner"),
+    ("insurance", "Insurance"),
+    ("utility_companies", "Utility companies"),
 )
 OWNER_PROPERTY_ACTIVITY_EVENT_VALUES = {
     "property_created",
@@ -1053,10 +1097,11 @@ def _owner_db_path():
 def _owner_db_connection():
     db_path = _owner_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+    conn = sqlite3.connect(str(db_path), timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = MEMORY")
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 30000")
     try:
         yield conn
         conn.commit()
@@ -1094,6 +1139,7 @@ def _ensure_owner_property_schema(conn):
         "emergency_contact_ready": "INTEGER NOT NULL DEFAULT 0",
         "cleaning_partner_ready": "INTEGER NOT NULL DEFAULT 0",
         "admin_notes": "TEXT NOT NULL DEFAULT ''",
+        "knowledge_json": "TEXT NOT NULL DEFAULT ''",
     }
     for column_name, column_sql in required_columns.items():
         if column_name not in existing_columns:
@@ -3633,7 +3679,15 @@ def _seed_operations_task_backfill(conn):
             force_create=True,
         )
 
-    for record in _load_owner_accounts():
+    owner_account_rows = conn.execute(
+        """
+        SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+        FROM owner_accounts
+        ORDER BY created_at DESC, email DESC
+        """
+    ).fetchall()
+    for row in owner_account_rows:
+        record = _owner_account_from_row(row)
         source_id = str(record.get("id", "")).strip()
         if not source_id or _has_task("OWNER_REGISTRATION", source_id):
             continue
@@ -4100,6 +4154,7 @@ def _owner_property_from_row(row):
         "emergency_contact_ready": bool(int(row["emergency_contact_ready"] or 0)) if "emergency_contact_ready" in row.keys() else False,
         "cleaning_partner_ready": bool(int(row["cleaning_partner_ready"] or 0)) if "cleaning_partner_ready" in row.keys() else False,
         "admin_notes": str(row["admin_notes"]) if "admin_notes" in row.keys() else "",
+        "knowledge_json": str(row["knowledge_json"]) if "knowledge_json" in row.keys() else "",
     }
 
 
@@ -6222,6 +6277,8 @@ def _import_owner_magic_email_events_jsonl(conn):
 
 
 def _migrate_owner_jsonl_backups(conn):
+    if _OWNER_DB_SCHEMA_INITIALIZING:
+        return
     migrations = (
         ("owner_accounts_jsonl_signature", OWNER_ACCOUNTS_JSONL_PATH, _import_owner_accounts_jsonl),
         ("owner_properties_jsonl_signature", OWNER_PROPERTIES_JSONL_PATH, _import_owner_properties_jsonl),
@@ -6468,6 +6525,678 @@ def _owner_property_fallback_id(record):
     return f"property-{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:16]}"
 
 
+def _owner_property_assets_path(property_id):
+    target_property_id = str(property_id or "").strip()
+    if not target_property_id:
+        return None
+    return OWNER_PROPERTY_ASSETS_DIR / f"{target_property_id}.json"
+
+
+def _owner_property_upload_dir(property_id):
+    target_property_id = str(property_id or "").strip()
+    if not target_property_id:
+        return None
+    return OWNER_PROPERTY_UPLOADS_DIR / target_property_id
+
+
+def _owner_property_default_assets():
+    appliance_defaults = {key: {"name": label, "brand": "", "model": "", "serial_number": "", "manual": "", "video": "", "maintenance_notes": "", "warranty_expiry": ""} for key, label in OWNER_PROPERTY_APPLIANCE_FIELDS}
+    provider_defaults = {key: {"name": label, "phone": "", "email": "", "availability": "", "notes": "", "rating": "", "preferred": False} for key, label in OWNER_PROPERTY_SERVICE_PROVIDER_FIELDS}
+    seasonal_task_defaults = {key: {"name": label, "cadence": "", "target_date": "", "notes": "", "active": False} for key, label in OWNER_PROPERTY_SEASONAL_TASK_FIELDS}
+    emergency_defaults = {key: {"name": label, "phone": "", "email": "", "notes": ""} for key, label in OWNER_PROPERTY_EMERGENCY_FIELDS}
+    return {
+        "profile": {
+            "address": "",
+            "city": "",
+            "country": "",
+            "capacity": "",
+            "bedrooms": "",
+            "bathrooms": "",
+            "floor": "",
+            "elevator": "",
+            "parking": "",
+        },
+        "general": {
+            "description": "",
+            "building": "",
+            "apartment": "",
+            "neighbourhood": "",
+            "languages_spoken": "",
+            "emergency_contacts": "",
+        },
+        "access": {
+            "building_entrance_code": "",
+            "apartment_code": "",
+            "key_safe_code": "",
+            "smart_lock": "",
+            "garage_access": "",
+            "parking_space": "",
+            "gate_instructions": "",
+            "intercom": "",
+        },
+        "wifi": {
+            "network_name": "",
+            "password": "",
+            "router_location": "",
+            "backup_router": "",
+            "troubleshooting_notes": "",
+        },
+        "appliances": appliance_defaults,
+        "house_manual": {
+            "arrival": "",
+            "departure": "",
+            "trash": "",
+            "parking": "",
+            "pool": "",
+            "beach": "",
+            "heating": "",
+            "air_conditioning": "",
+            "neighbours": "",
+            "local_recommendations": "",
+        },
+        "emergency": emergency_defaults,
+        "service_providers": provider_defaults,
+        "seasonal_tasks": seasonal_task_defaults,
+        "property_health": {
+            "overall": "",
+            "knowledge_completeness": 0,
+            "documentation": 0,
+            "safety": 0,
+            "readiness": 0,
+            "maintenance": 0,
+        },
+        "photos": [],
+        "documents": [],
+        "amenities": {},
+        "house_rules": {},
+        "access_information": {},
+        "welcome_instructions": "",
+        "last_updated_at": "",
+    }
+
+
+def _owner_property_parse_json(value, fallback=None):
+    if isinstance(value, (dict, list)):
+        return value
+    raw_value = str(value or "").strip()
+    if not raw_value:
+        return fallback if fallback is not None else {}
+    try:
+        parsed = json.loads(raw_value)
+    except Exception:
+        return fallback if fallback is not None else {}
+    if isinstance(parsed, (dict, list)):
+        return parsed
+    return fallback if fallback is not None else {}
+
+
+def _owner_property_merge_section(default_section, stored_section):
+    merged = dict(default_section or {})
+    if not isinstance(stored_section, dict):
+        return merged
+    for key, value in stored_section.items():
+        if key in merged:
+            merged[key] = value
+    return merged
+
+
+def _owner_property_knowledge_health(knowledge, property_record=None):
+    knowledge = knowledge if isinstance(knowledge, dict) else _owner_property_default_assets()
+    property_record = property_record or {}
+    profile = knowledge.get("profile", {}) if isinstance(knowledge.get("profile", {}), dict) else {}
+    general = knowledge.get("general", {}) if isinstance(knowledge.get("general", {}), dict) else {}
+    access = knowledge.get("access", {}) if isinstance(knowledge.get("access", {}), dict) else {}
+    wifi = knowledge.get("wifi", {}) if isinstance(knowledge.get("wifi", {}), dict) else {}
+    house_manual = knowledge.get("house_manual", {}) if isinstance(knowledge.get("house_manual", {}), dict) else {}
+    amenities = knowledge.get("amenities", {}) if isinstance(knowledge.get("amenities", {}), dict) else {}
+    house_rules = knowledge.get("house_rules", {}) if isinstance(knowledge.get("house_rules", {}), dict) else {}
+    emergency = knowledge.get("emergency", {}) if isinstance(knowledge.get("emergency", {}), dict) else {}
+    appliances = knowledge.get("appliances", {}) if isinstance(knowledge.get("appliances", {}), dict) else {}
+    service_providers = knowledge.get("service_providers", {}) if isinstance(knowledge.get("service_providers", {}), dict) else {}
+    seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
+    documents = knowledge.get("documents", []) if isinstance(knowledge.get("documents", []), list) else []
+    photos = knowledge.get("photos", []) if isinstance(knowledge.get("photos", []), list) else []
+
+    score_groups = [
+        (
+            "Knowledge Completeness",
+            sum(
+                bool(str(value).strip())
+                for value in (
+                    general.get("description", ""),
+                    general.get("building", ""),
+                    general.get("apartment", ""),
+                    general.get("neighbourhood", ""),
+                    general.get("languages_spoken", ""),
+                )
+            ),
+            5,
+        ),
+        (
+            "Documentation",
+            sum(
+                bool(item)
+                for item in (
+                    documents,
+                    photos,
+                    str(knowledge.get("welcome_instructions", "")).strip(),
+                )
+            ),
+            3,
+        ),
+        (
+            "Safety",
+            sum(
+                bool(str(value.get("phone", "")).strip() or str(value.get("email", "")).strip() or str(value.get("notes", "")).strip())
+                for value in emergency.values()
+                if isinstance(value, dict)
+            )
+            + sum(bool(str(value).strip()) for value in (access.get("building_entrance_code", ""), access.get("apartment_code", ""), access.get("key_safe_code", ""), access.get("smart_lock", ""))),
+            max(len(emergency) + 4, 1),
+        ),
+        (
+            "Readiness",
+            sum(bool(str(value).strip()) for value in (wifi.get("network_name", ""), wifi.get("password", ""), wifi.get("router_location", ""), house_manual.get("arrival", ""), house_manual.get("departure", "")))
+            + sum(bool(value) for value in amenities.values())
+            + sum(bool(str(value).strip()) for value in (knowledge.get("welcome_instructions", ""), property_record.get("name", ""), property_record.get("location", ""))),
+            10,
+        ),
+        (
+            "Maintenance",
+            sum(
+                bool(str(item.get("brand", "")).strip() or str(item.get("model", "")).strip() or str(item.get("maintenance_notes", "")).strip())
+                for item in appliances.values()
+                if isinstance(item, dict)
+            )
+            + sum(
+                bool(str(item.get("name", "")).strip() and (str(item.get("cadence", "")).strip() or str(item.get("target_date", "")).strip()))
+                for item in seasonal_tasks.values()
+                if isinstance(item, dict)
+            )
+            + sum(
+                bool(str(item.get("name", "")).strip() or str(item.get("availability", "")).strip() or str(item.get("notes", "")).strip())
+                for item in service_providers.values()
+                if isinstance(item, dict)
+            ),
+            max(len(appliances) + len(seasonal_tasks) + len(service_providers), 1),
+        ),
+    ]
+
+    scores = {}
+    for name, filled, total in score_groups:
+        total = max(int(total), 1)
+        ratio = max(0, min(float(filled) / float(total), 1.0))
+        scores[name] = int(round(ratio * 100))
+
+    overall = int(round(sum(scores.values()) / len(scores))) if scores else 0
+    if overall >= 85:
+        label = "Excellent"
+    elif overall >= 60:
+        label = "Good"
+    else:
+        label = "Needs Attention"
+
+    return {
+        "overall": label,
+        "score": overall,
+        "metrics": scores,
+    }
+
+
+def _owner_property_knowledge_calendar_payload(property_record, knowledge):
+    property_record = property_record or {}
+    knowledge = knowledge if isinstance(knowledge, dict) else {}
+    seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
+    events = []
+    for task_key, task in seasonal_tasks.items():
+        if not isinstance(task, dict):
+            continue
+        if not bool(task.get("active")):
+            continue
+        title = str(task.get("name", "")).strip()
+        if not title:
+            continue
+        target_date = str(task.get("target_date", "")).strip()
+        if not target_date:
+            continue
+        events.append({
+            "id": f"seasonal-{property_record.get('id', '')}-{task_key}",
+            "created_at": property_record.get("created_at", "") or _utc_now_iso(),
+            "updated_at": _utc_now_iso(),
+            "property_id": property_record.get("id", ""),
+            "owner_id": property_record.get("owner_id", ""),
+            "operation_task_id": "",
+            "event_type": "Seasonal Preparation",
+            "title": title,
+            "description": str(task.get("notes", "")).strip(),
+            "start_datetime": target_date,
+            "end_datetime": target_date,
+            "all_day": True,
+            "status": "SCHEDULED",
+            "assigned_professional": "",
+            "created_by": "owner-knowledge-hub",
+            "color": "orange",
+            "metadata_json": json.dumps({
+                "source": "property_knowledge",
+                "property_id": str(property_record.get("id", "")).strip(),
+                "owner_id": str(property_record.get("owner_id", "")).strip(),
+                "seasonal_task_key": task_key,
+            }, ensure_ascii=False),
+        })
+    return events
+
+
+def _owner_property_save_knowledge_calendar_events(property_record, knowledge):
+    property_id = str((property_record or {}).get("id", "")).strip()
+    if not property_id:
+        return False
+    events = _owner_property_knowledge_calendar_payload(property_record, knowledge)
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            existing_rows = conn.execute(
+                "SELECT id FROM calendar_events WHERE created_by = 'owner-knowledge-hub' AND property_id = ?",
+                (property_id,),
+            ).fetchall()
+            existing_ids = {str(row["id"]).strip() for row in existing_rows}
+            desired_ids = {str(event["id"]).strip() for event in events}
+            for stale_id in existing_ids - desired_ids:
+                conn.execute("DELETE FROM calendar_events WHERE id = ?", (stale_id,))
+            for event in events:
+                _persist_calendar_event(conn, event)
+    except Exception as exc:
+        app.logger.warning("Owner property seasonal calendar sync failed for %s: %s", property_id, type(exc).__name__)
+        return False
+    return True
+
+
+def _owner_property_knowledge_from_form(form, current_knowledge=None):
+    knowledge = _owner_property_default_assets()
+    if isinstance(current_knowledge, dict):
+        for key, value in current_knowledge.items():
+            if key in knowledge:
+                knowledge[key] = value
+
+    profile = knowledge.get("profile", {}) if isinstance(knowledge.get("profile", {}), dict) else {}
+    general = knowledge.get("general", {}) if isinstance(knowledge.get("general", {}), dict) else {}
+    access = knowledge.get("access", {}) if isinstance(knowledge.get("access", {}), dict) else {}
+    wifi = knowledge.get("wifi", {}) if isinstance(knowledge.get("wifi", {}), dict) else {}
+    house_manual = knowledge.get("house_manual", {}) if isinstance(knowledge.get("house_manual", {}), dict) else {}
+    amenities = knowledge.get("amenities", {}) if isinstance(knowledge.get("amenities", {}), dict) else {}
+    house_rules = knowledge.get("house_rules", {}) if isinstance(knowledge.get("house_rules", {}), dict) else {}
+    emergency = knowledge.get("emergency", {}) if isinstance(knowledge.get("emergency", {}), dict) else {}
+    appliances = knowledge.get("appliances", {}) if isinstance(knowledge.get("appliances", {}), dict) else {}
+    service_providers = knowledge.get("service_providers", {}) if isinstance(knowledge.get("service_providers", {}), dict) else {}
+    seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
+
+    profile.update({
+        "address": str(form.get("address", profile.get("address", ""))).strip(),
+        "city": str(form.get("city", profile.get("city", ""))).strip(),
+        "country": str(form.get("country", profile.get("country", ""))).strip(),
+        "capacity": str(form.get("capacity", profile.get("capacity", ""))).strip(),
+        "bedrooms": str(form.get("bedrooms", profile.get("bedrooms", ""))).strip(),
+        "bathrooms": str(form.get("bathrooms", profile.get("bathrooms", ""))).strip(),
+        "floor": str(form.get("floor", profile.get("floor", ""))).strip(),
+        "elevator": str(form.get("elevator", profile.get("elevator", ""))).strip(),
+        "parking": str(form.get("parking", profile.get("parking", ""))).strip(),
+    })
+
+    general.update({
+        "description": str(form.get("knowledge_description", general.get("description", ""))).strip(),
+        "building": str(form.get("knowledge_building", general.get("building", ""))).strip(),
+        "apartment": str(form.get("knowledge_apartment", general.get("apartment", ""))).strip(),
+        "neighbourhood": str(form.get("knowledge_neighbourhood", general.get("neighbourhood", ""))).strip(),
+        "languages_spoken": str(form.get("knowledge_languages_spoken", general.get("languages_spoken", ""))).strip(),
+        "emergency_contacts": str(form.get("knowledge_emergency_contacts", general.get("emergency_contacts", ""))).strip(),
+    })
+
+    access.update({
+        "building_entrance_code": str(form.get("access_building_entrance_code", access.get("building_entrance_code", ""))).strip(),
+        "apartment_code": str(form.get("access_apartment_code", access.get("apartment_code", ""))).strip(),
+        "key_safe_code": str(form.get("access_key_safe_code", access.get("key_safe_code", ""))).strip(),
+        "smart_lock": str(form.get("access_smart_lock", access.get("smart_lock", ""))).strip(),
+        "garage_access": str(form.get("access_garage_access", access.get("garage_access", ""))).strip(),
+        "parking_space": str(form.get("access_parking_space", access.get("parking_space", ""))).strip(),
+        "gate_instructions": str(form.get("access_gate_instructions", access.get("gate_instructions", ""))).strip(),
+        "intercom": str(form.get("access_intercom", access.get("intercom", ""))).strip(),
+    })
+
+    wifi.update({
+        "network_name": str(form.get("wifi_network_name", wifi.get("network_name", ""))).strip(),
+        "password": str(form.get("wifi_password", wifi.get("password", ""))).strip(),
+        "router_location": str(form.get("wifi_router_location", wifi.get("router_location", ""))).strip(),
+        "backup_router": str(form.get("wifi_backup_router", wifi.get("backup_router", ""))).strip(),
+        "troubleshooting_notes": str(form.get("wifi_troubleshooting_notes", wifi.get("troubleshooting_notes", ""))).strip(),
+    })
+
+    house_manual.update({
+        "arrival": str(form.get("manual_arrival", house_manual.get("arrival", ""))).strip(),
+        "departure": str(form.get("manual_departure", house_manual.get("departure", ""))).strip(),
+        "trash": str(form.get("manual_trash", house_manual.get("trash", ""))).strip(),
+        "parking": str(form.get("manual_parking", house_manual.get("parking", ""))).strip(),
+        "pool": str(form.get("manual_pool", house_manual.get("pool", ""))).strip(),
+        "beach": str(form.get("manual_beach", house_manual.get("beach", ""))).strip(),
+        "heating": str(form.get("manual_heating", house_manual.get("heating", ""))).strip(),
+        "air_conditioning": str(form.get("manual_air_conditioning", house_manual.get("air_conditioning", ""))).strip(),
+        "neighbours": str(form.get("manual_neighbours", house_manual.get("neighbours", ""))).strip(),
+        "local_recommendations": str(form.get("manual_local_recommendations", house_manual.get("local_recommendations", ""))).strip(),
+    })
+
+    for key, label in OWNER_PROPERTY_EMERGENCY_FIELDS:
+        entry = dict(emergency.get(key, {})) if isinstance(emergency.get(key, {}), dict) else {}
+        entry.update({
+            "name": label,
+            "phone": str(form.get(f"emergency_{key}_phone", entry.get("phone", ""))).strip(),
+            "email": str(form.get(f"emergency_{key}_email", entry.get("email", ""))).strip(),
+            "notes": str(form.get(f"emergency_{key}_notes", entry.get("notes", ""))).strip(),
+        })
+        emergency[key] = entry
+
+    for key, label in OWNER_PROPERTY_APPLIANCE_FIELDS:
+        entry = dict(appliances.get(key, {})) if isinstance(appliances.get(key, {}), dict) else {}
+        entry.update({
+            "name": label,
+            "brand": str(form.get(f"appliance_{key}_brand", entry.get("brand", ""))).strip(),
+            "model": str(form.get(f"appliance_{key}_model", entry.get("model", ""))).strip(),
+            "serial_number": str(form.get(f"appliance_{key}_serial_number", entry.get("serial_number", ""))).strip(),
+            "manual": str(form.get(f"appliance_{key}_manual", entry.get("manual", ""))).strip(),
+            "video": str(form.get(f"appliance_{key}_video", entry.get("video", ""))).strip(),
+            "maintenance_notes": str(form.get(f"appliance_{key}_maintenance_notes", entry.get("maintenance_notes", ""))).strip(),
+            "warranty_expiry": str(form.get(f"appliance_{key}_warranty_expiry", entry.get("warranty_expiry", ""))).strip(),
+        })
+        appliances[key] = entry
+
+    for key, label in OWNER_PROPERTY_SERVICE_PROVIDER_FIELDS:
+        entry = dict(service_providers.get(key, {})) if isinstance(service_providers.get(key, {}), dict) else {}
+        entry.update({
+            "name": str(form.get(f"provider_{key}_name", entry.get("name", label))).strip() or label,
+            "phone": str(form.get(f"provider_{key}_phone", entry.get("phone", ""))).strip(),
+            "email": str(form.get(f"provider_{key}_email", entry.get("email", ""))).strip(),
+            "availability": str(form.get(f"provider_{key}_availability", entry.get("availability", ""))).strip(),
+            "notes": str(form.get(f"provider_{key}_notes", entry.get("notes", ""))).strip(),
+            "rating": str(form.get(f"provider_{key}_rating", entry.get("rating", ""))).strip(),
+            "preferred": _owner_property_form_flag(form.get(f"provider_{key}_preferred", entry.get("preferred", False))),
+        })
+        service_providers[key] = entry
+
+    for key, label in OWNER_PROPERTY_SEASONAL_TASK_FIELDS:
+        entry = dict(seasonal_tasks.get(key, {})) if isinstance(seasonal_tasks.get(key, {}), dict) else {}
+        entry.update({
+            "name": label,
+            "cadence": str(form.get(f"seasonal_{key}_cadence", entry.get("cadence", ""))).strip(),
+            "target_date": str(form.get(f"seasonal_{key}_target_date", entry.get("target_date", ""))).strip(),
+            "notes": str(form.get(f"seasonal_{key}_notes", entry.get("notes", ""))).strip(),
+            "active": _owner_property_form_flag(form.get(f"seasonal_{key}_active", entry.get("active", False))),
+        })
+        seasonal_tasks[key] = entry
+
+    knowledge.update({
+        "profile": profile,
+        "general": general,
+        "access": access,
+        "wifi": wifi,
+        "house_manual": house_manual,
+        "emergency": emergency,
+        "appliances": appliances,
+        "service_providers": service_providers,
+        "seasonal_tasks": seasonal_tasks,
+        "amenities": {
+            "wifi": _owner_property_form_flag(form.get("amenity_wifi", amenities.get("wifi", False))),
+            "air_conditioning": _owner_property_form_flag(form.get("amenity_air_conditioning", amenities.get("air_conditioning", False))),
+            "heating": _owner_property_form_flag(form.get("amenity_heating", amenities.get("heating", False))),
+            "pool": _owner_property_form_flag(form.get("amenity_pool", amenities.get("pool", False))),
+            "beach_access": _owner_property_form_flag(form.get("amenity_beach_access", amenities.get("beach_access", False))),
+            "kitchen": _owner_property_form_flag(form.get("amenity_kitchen", amenities.get("kitchen", False))),
+            "coffee_machine": _owner_property_form_flag(form.get("amenity_coffee_machine", amenities.get("coffee_machine", False))),
+            "tv": _owner_property_form_flag(form.get("amenity_tv", amenities.get("tv", False))),
+            "washing_machine": _owner_property_form_flag(form.get("amenity_washing_machine", amenities.get("washing_machine", False))),
+            "dryer": _owner_property_form_flag(form.get("amenity_dryer", amenities.get("dryer", False))),
+            "balcony": _owner_property_form_flag(form.get("amenity_balcony", amenities.get("balcony", False))),
+            "garden": _owner_property_form_flag(form.get("amenity_garden", amenities.get("garden", False))),
+            "bbq": _owner_property_form_flag(form.get("amenity_bbq", amenities.get("bbq", False))),
+            "workspace": _owner_property_form_flag(form.get("amenity_workspace", amenities.get("workspace", False))),
+            "pet_friendly": _owner_property_form_flag(form.get("amenity_pet_friendly", amenities.get("pet_friendly", False))),
+        },
+        "house_rules": {
+            "check_in": str(form.get("house_rule_check_in", house_rules.get("check_in", ""))).strip(),
+            "check_out": str(form.get("house_rule_check_out", house_rules.get("check_out", ""))).strip(),
+            "smoking": str(form.get("house_rule_smoking", house_rules.get("smoking", ""))).strip(),
+            "pets": str(form.get("house_rule_pets", house_rules.get("pets", ""))).strip(),
+            "parties": str(form.get("house_rule_parties", house_rules.get("parties", ""))).strip(),
+        },
+        "welcome_instructions": str(form.get("welcome_instructions", knowledge.get("welcome_instructions", ""))).strip(),
+    })
+
+    return knowledge
+
+
+def _owner_property_readiness_sections(property_record):
+    property_record = property_record or {}
+    knowledge = _owner_property_default_assets()
+    stored_knowledge = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
+    if isinstance(stored_knowledge, dict):
+        for key, value in stored_knowledge.items():
+            if key in knowledge:
+                knowledge[key] = value
+
+    profile = knowledge.get("profile", {}) if isinstance(knowledge.get("profile", {}), dict) else {}
+    photos = knowledge.get("photos", []) if isinstance(knowledge.get("photos", []), list) else []
+    documents = knowledge.get("documents", []) if isinstance(knowledge.get("documents", []), list) else []
+    amenities = knowledge.get("amenities", {}) if isinstance(knowledge.get("amenities", {}), dict) else {}
+    house_rules = knowledge.get("house_rules", {}) if isinstance(knowledge.get("house_rules", {}), dict) else {}
+    access_information = knowledge.get("access", {}) if isinstance(knowledge.get("access", {}), dict) else {}
+    wifi = knowledge.get("wifi", {}) if isinstance(knowledge.get("wifi", {}), dict) else {}
+    general = knowledge.get("general", {}) if isinstance(knowledge.get("general", {}), dict) else {}
+    house_manual = knowledge.get("house_manual", {}) if isinstance(knowledge.get("house_manual", {}), dict) else {}
+    emergency = knowledge.get("emergency", {}) if isinstance(knowledge.get("emergency", {}), dict) else {}
+    appliances = knowledge.get("appliances", {}) if isinstance(knowledge.get("appliances", {}), dict) else {}
+    service_providers = knowledge.get("service_providers", {}) if isinstance(knowledge.get("service_providers", {}), dict) else {}
+    seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
+
+    return [
+        {
+            "key": "property_information",
+            "ready": bool(
+                str(property_record.get("name", "")).strip()
+                and str(property_record.get("property_type", "")).strip()
+                and (
+                    str(property_record.get("location", "")).strip()
+                    or str(profile.get("address", "")).strip()
+                    or str(profile.get("city", "")).strip()
+                    or str(profile.get("country", "")).strip()
+                )
+            ),
+        },
+        {"key": "photos", "ready": bool(photos)},
+        {"key": "general", "ready": any(bool(str(value).strip()) for value in general.values())},
+        {"key": "amenities", "ready": any(bool(value) for value in amenities.values())},
+        {"key": "access_information", "ready": any(bool(str(value).strip()) for value in access_information.values())},
+        {"key": "wifi", "ready": any(bool(str(value).strip()) for value in wifi.values())},
+        {"key": "documents", "ready": bool(documents)},
+        {"key": "welcome_instructions", "ready": bool(str(knowledge.get("welcome_instructions", "")).strip())},
+        {"key": "house_rules", "ready": any(bool(str(value).strip()) for value in house_rules.values())},
+        {"key": "house_manual", "ready": any(bool(str(value).strip()) for value in house_manual.values())},
+        {"key": "emergency", "ready": any(bool(str(value.get("phone", "")).strip() or str(value.get("email", "")).strip() or str(value.get("notes", "")).strip()) for value in emergency.values() if isinstance(value, dict))},
+        {"key": "appliances", "ready": any(bool(str(item.get("brand", "")).strip() or str(item.get("model", "")).strip()) for item in appliances.values() if isinstance(item, dict))},
+        {"key": "service_providers", "ready": any(bool(str(item.get("name", "")).strip() and (str(item.get("phone", "")).strip() or str(item.get("email", "")).strip())) for item in service_providers.values() if isinstance(item, dict))},
+        {"key": "seasonal_tasks", "ready": any(bool(item.get("active")) for item in seasonal_tasks.values() if isinstance(item, dict))},
+    ]
+
+
+def _owner_property_assets_readiness(property_record):
+    sections = _owner_property_readiness_sections(property_record)
+    ready_count = sum(1 for section in sections if section["ready"])
+    total = len(sections)
+    return ready_count, total, int(round((ready_count / total) * 100)) if total else 0
+
+
+def _owner_property_merge_assets(property_record):
+    property_record = dict(property_record or {})
+    property_id = str(property_record.get("id", "")).strip()
+    if not property_id:
+        return property_record
+
+    assets = _owner_property_default_assets()
+    stored_assets = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
+    if isinstance(stored_assets, dict) and stored_assets:
+        for key, value in stored_assets.items():
+            if key in assets:
+                assets[key] = value
+    else:
+        path = _owner_property_assets_path(property_id)
+        if path and path.exists():
+            try:
+                loaded_assets = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                loaded_assets = {}
+            if isinstance(loaded_assets, dict):
+                for key, value in loaded_assets.items():
+                    if key in assets:
+                        assets[key] = value
+
+    if not any(str(value).strip() for value in assets.get("access", {}).values()) and isinstance(assets.get("access_information", {}), dict):
+        legacy_access = dict(assets.get("access_information", {}))
+        assets["access"] = {
+            "building_entrance_code": str(legacy_access.get("building_code", "")).strip(),
+            "apartment_code": str(legacy_access.get("apartment_code", "")).strip(),
+            "key_safe_code": str(legacy_access.get("key_safe_code", "")).strip(),
+            "smart_lock": "",
+            "garage_access": "",
+            "parking_space": "",
+            "gate_instructions": str(legacy_access.get("parking_instructions", "")).strip(),
+            "intercom": "",
+        }
+    if not any(str(value).strip() for value in assets.get("access_information", {}).values()) and isinstance(assets.get("access", {}), dict):
+        assets["access_information"] = dict(assets.get("access", {}))
+    if not any(str(value).strip() for value in assets.get("wifi", {}).values()) and isinstance(assets.get("access_information", {}), dict):
+        legacy_access = dict(assets.get("access_information", {}))
+        assets["wifi"] = {
+            "network_name": str(legacy_access.get("wifi_name", "")).strip(),
+            "password": str(legacy_access.get("wifi_password", "")).strip(),
+            "router_location": "",
+            "backup_router": "",
+            "troubleshooting_notes": "",
+        }
+    if not any(str(value).strip() for value in assets.get("general", {}).values()) and isinstance(assets.get("access_information", {}), dict):
+        legacy_access = dict(assets.get("access_information", {}))
+        assets["general"] = {
+            **assets.get("general", {}),
+            "emergency_contacts": str(legacy_access.get("emergency_contact", "")).strip(),
+        }
+
+    photos = assets.get("photos", []) if isinstance(assets.get("photos", []), list) else []
+    documents = assets.get("documents", []) if isinstance(assets.get("documents", []), list) else []
+    cover_photo = next((item for item in photos if item.get("is_cover")), photos[0] if photos else {})
+    readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness({**property_record, "assets": assets})
+    updated_at = str(assets.get("last_updated_at", "")).strip() or str(property_record.get("created_at", "")).strip()
+
+    property_record.update({
+        "assets": assets,
+        "property_profile": assets.get("profile", {}),
+        "photos": photos,
+        "documents": documents,
+        "amenities": assets.get("amenities", {}),
+        "house_rules": assets.get("house_rules", {}),
+        "access_information": assets.get("access", {}),
+        "general": assets.get("general", {}),
+        "wifi": assets.get("wifi", {}),
+        "house_manual": assets.get("house_manual", {}),
+        "emergency": assets.get("emergency", {}),
+        "appliances": assets.get("appliances", {}),
+        "service_providers": assets.get("service_providers", {}),
+        "seasonal_tasks": assets.get("seasonal_tasks", {}),
+        "welcome_instructions": str(assets.get("welcome_instructions", "")).strip(),
+        "property_health": assets.get("property_health", {}),
+        "cover_photo": cover_photo,
+        "cover_photo_id": str(cover_photo.get("id", "")).strip(),
+        "cover_photo_url": url_for("owner_property_media", property_id=property_id, asset_id=cover_photo.get("id", "")) if cover_photo and has_request_context() else "",
+        "readiness_completed": readiness_completed,
+        "readiness_total": readiness_total,
+        "readiness_percent": readiness_percent,
+        "last_updated_at": updated_at,
+    })
+    return property_record
+
+
+def _owner_property_save_assets(property_id, assets):
+    target_property_id = str(property_id or "").strip()
+    if not target_property_id:
+        return False
+
+    normalized = _owner_property_default_assets()
+    if isinstance(assets, dict):
+        for key, value in assets.items():
+            if key in normalized:
+                normalized[key] = value
+
+    normalized["last_updated_at"] = _utc_now_iso()
+    if isinstance(normalized.get("access", {}), dict) and not any(str(value).strip() for value in normalized.get("access_information", {}).values() if not isinstance(value, dict)):
+        normalized["access_information"] = dict(normalized.get("access", {}))
+    if isinstance(normalized.get("access_information", {}), dict) and not any(str(value).strip() for value in normalized.get("access", {}).values() if not isinstance(value, dict)):
+        normalized["access"] = dict(normalized.get("access_information", {}))
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                "UPDATE owner_properties SET knowledge_json = ? WHERE id = ?",
+                (json.dumps(normalized, ensure_ascii=False), target_property_id),
+            )
+    except Exception as exc:
+        app.logger.warning("Owner property knowledge write failed for %s: %s", target_property_id, type(exc).__name__)
+        return False
+    return True
+
+
+def _owner_property_media_filename(asset_id, original_filename):
+    base_name = secure_filename(str(original_filename or "").strip()) or "upload"
+    suffix = Path(base_name).suffix.lower()
+    safe_asset_id = secure_filename(str(asset_id or "").strip()) or uuid4().hex
+    if suffix and len(suffix) <= 6:
+        return f"{safe_asset_id}{suffix}"
+    return f"{safe_asset_id}"
+
+
+def _owner_property_media_path(property_id, stored_filename):
+    upload_dir = _owner_property_upload_dir(property_id)
+    if not upload_dir:
+        return None
+    return upload_dir / stored_filename
+
+
+def _owner_property_form_flag(value):
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on", "checked"}
+
+
+def _owner_property_media_record(*, file_storage, asset_kind, is_cover=False):
+    original_filename = str(getattr(file_storage, "filename", "") or "").strip()
+    media_id = uuid4().hex
+    stored_filename = _owner_property_media_filename(media_id, original_filename)
+    return {
+        "id": media_id,
+        "kind": asset_kind,
+        "filename": original_filename,
+        "stored_filename": stored_filename,
+        "content_type": str(getattr(file_storage, "content_type", "") or "").strip(),
+        "size": int(getattr(file_storage, "content_length", 0) or 0),
+        "uploaded_at": _utc_now_iso(),
+        "is_cover": bool(is_cover),
+    }
+
+
+def _owner_property_reorder_media(items, requested_order):
+    items = list(items or [])
+    order = [str(item_id).strip() for item_id in str(requested_order or "").split(",") if str(item_id).strip()]
+    if not order:
+        return items
+    item_map = {str(item.get("id", "")).strip(): item for item in items if str(item.get("id", "")).strip()}
+    ordered_items = [item_map[item_id] for item_id in order if item_id in item_map]
+    seen_ids = {str(item.get("id", "")).strip() for item in ordered_items}
+    ordered_items.extend([item for item in items if str(item.get("id", "")).strip() not in seen_ids])
+    return ordered_items
+
+
 def _normalize_owner_property(record):
     if not isinstance(record, dict):
         return None
@@ -6491,6 +7220,11 @@ def _normalize_owner_property(record):
     for field in OWNER_PROPERTY_CHECKLIST_FIELDS:
         normalized[field] = _normalize_owner_property_checklist_value(normalized.get(field, 0))
     normalized["admin_notes"] = str(normalized.get("admin_notes", "")).strip()
+    knowledge_value = normalized.get("knowledge_json", "")
+    if isinstance(knowledge_value, (dict, list)):
+        normalized["knowledge_json"] = json.dumps(knowledge_value, ensure_ascii=False)
+    else:
+        normalized["knowledge_json"] = str(knowledge_value or "").strip()
     return normalized
 
 
@@ -6500,14 +7234,15 @@ def _load_owner_properties():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
+            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
             FROM owner_properties
             ORDER BY created_at DESC, id DESC
             """
         ).fetchall()
 
-    properties = [_owner_property_from_row(row) for row in rows]
+    properties = [_owner_property_merge_assets(_owner_property_from_row(row)) for row in rows]
     properties.extend(_demo_records("owner_properties"))
+    properties = [_owner_property_merge_assets(property_record) for property_record in properties]
     properties.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
     return properties
 
@@ -6525,8 +7260,8 @@ def _save_owner_properties(properties):
                 conn.execute(
                     """
                     INSERT INTO owner_properties (
-                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["id"],
@@ -6546,6 +7281,7 @@ def _save_owner_properties(properties):
                         normalized["emergency_contact_ready"],
                         normalized["cleaning_partner_ready"],
                         normalized["admin_notes"],
+                        str(normalized.get("knowledge_json", "")),
                     ),
                 )
     except Exception as exc:
@@ -6570,8 +7306,8 @@ def _append_owner_property(record):
             conn.execute(
                 """
                 INSERT INTO owner_properties (
-                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     owner_id = excluded.owner_id,
                     created_at = excluded.created_at,
@@ -6588,7 +7324,8 @@ def _append_owner_property(record):
                     access_instructions_ready = excluded.access_instructions_ready,
                     emergency_contact_ready = excluded.emergency_contact_ready,
                     cleaning_partner_ready = excluded.cleaning_partner_ready,
-                    admin_notes = excluded.admin_notes
+                    admin_notes = excluded.admin_notes,
+                    knowledge_json = excluded.knowledge_json
                 """,
                 (
                     normalized["id"],
@@ -6608,6 +7345,7 @@ def _append_owner_property(record):
                     normalized["emergency_contact_ready"],
                     normalized["cleaning_partner_ready"],
                     normalized["admin_notes"],
+                    str(normalized.get("knowledge_json", "")),
                 ),
             )
     except Exception as exc:
@@ -6626,7 +7364,7 @@ def _find_owner_property(property_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
+            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
             FROM owner_properties
             WHERE id = ?
             LIMIT 1
@@ -6635,8 +7373,9 @@ def _find_owner_property(property_id):
         ).fetchone()
 
     if row:
-        return _owner_property_from_row(row)
-    return _demo_property_by_id(target_property_id)
+        return _owner_property_merge_assets(_owner_property_from_row(row))
+    demo_property = _demo_property_by_id(target_property_id)
+    return _owner_property_merge_assets(demo_property) if demo_property else None
 
 
 def _owner_properties_for_account(owner_id):
@@ -8855,6 +9594,7 @@ def _owner_property_status_key(status):
 
 
 def _owner_property_card_context(property_record, has_owner_requests, dashboard_copy):
+    property_record = _owner_property_merge_assets(property_record)
     status, status_label, status_key, status_tone, status_note = _owner_property_status(property_record, has_owner_requests, dashboard_copy)
     bedrooms = str(property_record.get("bedrooms", "")).strip() or "0"
     bathrooms = str(property_record.get("bathrooms", "")).strip() or "0"
@@ -8862,6 +9602,8 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
     operating_mode = str(property_record.get("operating_mode", "")).strip().lower() or "year-round"
     operating_mode_label = dashboard_copy["mode_seasonal"] if operating_mode == "seasonal" else dashboard_copy["mode_year_round"]
     operating_mode_key = "ownerPropertyModeSeasonal" if operating_mode == "seasonal" else "ownerPropertyModeYearRound"
+    profile = property_record.get("property_profile", {}) if isinstance(property_record.get("property_profile", {}), dict) else {}
+    city = str(profile.get("city", "")).strip() or str(property_record.get("location", "")).strip() or dashboard_copy["location_pending"]
     if status == "paused":
         status_note_key = "ownerPropertyStatusNotePaused"
     elif status == "seasonal":
@@ -8873,12 +9615,16 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
 
     checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
     availability = _property_availability_engine(property_record, _load_reservations(property_ids=[property_record.get("id", "")]))
+    readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
+    photos = property_record.get("photos", []) if isinstance(property_record.get("photos", []), list) else []
+    cover_photo = property_record.get("cover_photo", {}) if isinstance(property_record.get("cover_photo", {}), dict) else {}
 
     return {
         "id": property_record.get("id", ""),
         "name": str(property_record.get("name", "")).strip() or dashboard_copy["property_type_residence"],
         "property_type": str(property_record.get("property_type", "")).strip() or dashboard_copy["property_type_residence"],
-        "location": str(property_record.get("location", "")).strip() or dashboard_copy["location_pending"],
+        "location": str(property_record.get("location", "")).strip() or city,
+        "city": city,
         "bedrooms": bedrooms,
         "bathrooms": bathrooms,
         "guest_capacity": guest_capacity,
@@ -8896,6 +9642,20 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
         "checklist_completed": checklist_completed,
         "checklist_total": checklist_total,
         "availability": availability,
+        "photos": photos,
+        "cover_photo": cover_photo,
+        "cover_photo_url": str(property_record.get("cover_photo_url", "")).strip(),
+        "readiness_completed": readiness_completed,
+        "readiness_total": readiness_total,
+        "readiness_percent": readiness_percent,
+        "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
+        "last_updated_display": _format_owner_portal_timestamp(str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip()) or str(property_record.get("created_at", "")).strip(),
+        "quick_actions": [
+            {"label": dashboard_copy["request_cleaning"], "href": f"/owners/request-service?category=cleaning&property_id={property_record.get('id', '')}"},
+            {"label": dashboard_copy["request_inspection"], "href": f"/owners/request-service?category=inspection&property_id={property_record.get('id', '')}"},
+            {"label": dashboard_copy["request_maintenance"], "href": f"/owners/request-service?category=maintenance&property_id={property_record.get('id', '')}"},
+            {"label": dashboard_copy["contact_concierge"], "href": "mailto:concierge@blackseaconnect.com"},
+        ],
     }
 
 
@@ -9616,23 +10376,44 @@ def _owner_property_management_context(owner_account):
     owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
     property_cards = []
     for property_record in owner_properties:
+        property_record = _owner_property_merge_assets(property_record)
         status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
         checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
+        readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
+        profile = property_record.get("property_profile", {}) if isinstance(property_record.get("property_profile", {}), dict) else {}
+        city = str(profile.get("city", "")).strip() or str(property_record.get("location", "")).strip()
+        cover_photo = property_record.get("cover_photo", {}) if isinstance(property_record.get("cover_photo", {}), dict) else {}
         property_cards.append({
             **property_record,
             "status": status,
             "status_label": _owner_property_status_label(status),
             "status_tone": _owner_property_status_tone(status),
+            "city": city,
             "checklist_completed": checklist_completed,
             "checklist_total": checklist_total,
             "checklist_percent": int(round((checklist_completed / checklist_total) * 100)) if checklist_total else 0,
+            "readiness_completed": readiness_completed,
+            "readiness_total": readiness_total,
+            "readiness_percent": readiness_percent,
+            "cover_photo": cover_photo,
+            "cover_photo_url": str(property_record.get("cover_photo_url", "")).strip(),
+            "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
+            "last_updated_display": _format_owner_portal_timestamp(str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip()) or str(property_record.get("created_at", "")).strip(),
+            "quick_actions": [
+                {"label": "Open", "href": f"/owners/properties/{property_record.get('id', '')}"},
+                {"label": "Request service", "href": f"/owners/request-service?property_id={property_record.get('id', '')}"},
+            ],
         })
     property_cards.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
     return property_cards
 
 
 def _owner_property_detail_context(owner_account, property_record):
+    property_record = _owner_property_merge_assets(property_record)
     status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
+    assets = property_record.get("assets", {}) if isinstance(property_record.get("assets", {}), dict) else {}
+    knowledge_health = _owner_property_knowledge_health(assets, property_record)
+    readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
     checklist_items = [
         {
             "key": "guest_guide_ready",
@@ -9669,9 +10450,27 @@ def _owner_property_detail_context(owner_account, property_record):
             "checklist_completed": checklist_completed,
             "checklist_total": checklist_total,
             "checklist_percent": int(round((checklist_completed / checklist_total) * 100)) if checklist_total else 0,
+            "readiness_completed": readiness_completed,
+            "readiness_total": readiness_total,
+            "readiness_percent": readiness_percent,
             "availability": availability,
         },
         "checklist_items": checklist_items,
+        "amenities": assets.get("amenities", {}) if isinstance(assets.get("amenities", {}), dict) else {},
+        "house_rules": assets.get("house_rules", {}) if isinstance(assets.get("house_rules", {}), dict) else {},
+        "access_information": assets.get("access", {}) if isinstance(assets.get("access", {}), dict) else {},
+        "general": assets.get("general", {}) if isinstance(assets.get("general", {}), dict) else {},
+        "wifi": assets.get("wifi", {}) if isinstance(assets.get("wifi", {}), dict) else {},
+        "house_manual": assets.get("house_manual", {}) if isinstance(assets.get("house_manual", {}), dict) else {},
+        "emergency": assets.get("emergency", {}) if isinstance(assets.get("emergency", {}), dict) else {},
+        "appliances": assets.get("appliances", {}) if isinstance(assets.get("appliances", {}), dict) else {},
+        "service_providers": assets.get("service_providers", {}) if isinstance(assets.get("service_providers", {}), dict) else {},
+        "seasonal_tasks": assets.get("seasonal_tasks", {}) if isinstance(assets.get("seasonal_tasks", {}), dict) else {},
+        "documents": property_record.get("documents", []) if isinstance(property_record.get("documents", []), list) else [],
+        "photos": property_record.get("photos", []) if isinstance(property_record.get("photos", []), list) else [],
+        "welcome_instructions": str(property_record.get("welcome_instructions", "")).strip(),
+        "property_health": knowledge_health,
+        "knowledge": assets,
         "service_requests": service_requests,
         "calendar": calendar,
         "availability": availability,
@@ -9939,98 +10738,373 @@ def owner_magic_login(token):
 def owners_property_new():
     current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
+    requested_property_id = str(request.values.get("property_id", "")).strip()
+    property_record = _find_owner_property(requested_property_id) if requested_property_id else None
+    if property_record and str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        property_record = None
+    property_assets = property_record.get("assets", _owner_property_default_assets()) if property_record else _owner_property_default_assets()
+    property_profile = property_assets.get("profile", {}) if isinstance(property_assets.get("profile", {}), dict) else {}
     form_values = {
-        "name": "",
-        "property_type": "",
-        "location": "",
+        "name": str(property_record.get("name", "")).strip() if property_record else "",
+        "property_type": str(property_record.get("property_type", "")).strip() if property_record else "",
+        "address": str(property_profile.get("address", "")).strip(),
+        "city": str(property_profile.get("city", "")).strip() or (str(property_record.get("location", "")).strip() if property_record else ""),
+        "country": str(property_profile.get("country", "")).strip(),
+        "location": str(property_record.get("location", "")).strip() if property_record else "",
         "bedrooms": "",
         "bathrooms": "",
         "guest_capacity": "",
-        "operating_mode": "year-round",
+        "floor": str(property_profile.get("floor", "")).strip(),
+        "elevator": str(property_profile.get("elevator", "")).strip(),
+        "parking": str(property_profile.get("parking", "")).strip(),
+        "operating_mode": str(property_record.get("operating_mode", "year-round")).strip().lower() if property_record else "year-round",
         "notes": "",
+        "wizard_step": "basic",
+        "property_id": requested_property_id,
     }
+    if property_record:
+        form_values.update({
+            "bedrooms": str(property_record.get("bedrooms", "")).strip(),
+            "bathrooms": str(property_record.get("bathrooms", "")).strip(),
+            "guest_capacity": str(property_record.get("guest_capacity", "")).strip(),
+            "notes": str(property_record.get("notes", "")).strip(),
+        })
     errors = {}
+    wizard_step = str(request.values.get("wizard_step", "")).strip().lower()
+    step = "photos" if requested_property_id and str(request.args.get("step", "")).strip().lower() == "photos" else "basic"
 
     if request.method == "POST":
-        form_values.update({
-            "name": str(request.form.get("name", "")).strip(),
-            "property_type": str(request.form.get("property_type", "")).strip(),
-            "location": str(request.form.get("location", "")).strip(),
-            "bedrooms": str(request.form.get("bedrooms", "")).strip(),
-            "bathrooms": str(request.form.get("bathrooms", "")).strip(),
-            "guest_capacity": str(request.form.get("guest_capacity", "")).strip(),
-            "operating_mode": str(request.form.get("operating_mode", "year-round")).strip().lower(),
-            "notes": str(request.form.get("notes", "")).strip(),
-        })
-
-        required_fields = {
-            "name": "ownerPropertyNameRequiredError",
-            "property_type": "ownerPropertyTypeRequiredError",
-            "location": "ownerPropertyLocationRequiredError",
-            "bedrooms": "ownerPropertyBedroomsRequiredError",
-            "bathrooms": "ownerPropertyBathroomsRequiredError",
-            "guest_capacity": "ownerPropertyGuestCapacityRequiredError",
-            "operating_mode": "ownerPropertyModeRequiredError",
-        }
-        for field, error_key in required_fields.items():
-            if not form_values[field]:
-                errors[field] = error_key
-
-        numeric_fields = {
-            "bedrooms": "ownerPropertyBedroomsInvalidError",
-            "bathrooms": "ownerPropertyBathroomsInvalidError",
-            "guest_capacity": "ownerPropertyGuestCapacityInvalidError",
-        }
-        for field, error_key in numeric_fields.items():
-            value = form_values[field]
-            if value and not value.isdigit():
-                errors[field] = error_key
-
-        if form_values["operating_mode"] not in {"seasonal", "year-round"}:
-            errors["operating_mode"] = "ownerPropertyModeInvalidError"
-
-        if not errors:
-            saved_property = _append_owner_property({
-                "id": "",
-                "owner_id": owner_account.get("id", ""),
-                "created_at": _utc_now_iso(),
-                "name": form_values["name"],
-                "property_type": form_values["property_type"],
-                "location": form_values["location"],
-                "bedrooms": int(form_values["bedrooms"]),
-                "bathrooms": int(form_values["bathrooms"]),
-                "guest_capacity": int(form_values["guest_capacity"]),
-                "operating_mode": form_values["operating_mode"],
-                "notes": form_values["notes"],
-                "status": OWNER_PROPERTY_STATUS_DEFAULT,
-                "guest_guide_ready": 0,
-                "access_instructions_ready": 0,
-                "emergency_contact_ready": 0,
-                "cleaning_partner_ready": 0,
+        if not wizard_step:
+            form_values.update({
+                "name": str(request.form.get("name", "")).strip(),
+                "property_type": str(request.form.get("property_type", "")).strip(),
+                "location": str(request.form.get("location", "")).strip(),
+                "bedrooms": str(request.form.get("bedrooms", "")).strip(),
+                "bathrooms": str(request.form.get("bathrooms", "")).strip(),
+                "guest_capacity": str(request.form.get("guest_capacity", "")).strip(),
+                "operating_mode": str(request.form.get("operating_mode", "year-round")).strip().lower(),
+                "notes": str(request.form.get("notes", "")).strip(),
             })
-            if saved_property:
-                app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
-                _append_owner_activity_event(
-                    owner_account["id"],
-                    "property_added",
-                    "Property added",
-                    f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
-                )
-                _append_property_activity_event(
-                    saved_property["id"],
-                    owner_account["id"],
-                    "property_created",
-                    "Property created",
-                    f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
-                )
-                _append_property_activity_event(
-                    saved_property["id"],
-                    owner_account["id"],
-                    "owner_assigned",
-                    "Owner assigned",
-                    owner_account.get("full_name", ""),
-                )
-            return redirect(url_for("owners_dashboard", property_added="1", lang=current_lang))
+
+            required_fields = {
+                "name": "ownerPropertyNameRequiredError",
+                "property_type": "ownerPropertyTypeRequiredError",
+                "location": "ownerPropertyLocationRequiredError",
+                "bedrooms": "ownerPropertyBedroomsRequiredError",
+                "bathrooms": "ownerPropertyBathroomsRequiredError",
+                "guest_capacity": "ownerPropertyGuestCapacityRequiredError",
+                "operating_mode": "ownerPropertyModeRequiredError",
+            }
+            for field, error_key in required_fields.items():
+                if not form_values[field]:
+                    errors[field] = error_key
+
+            numeric_fields = {
+                "bedrooms": "ownerPropertyBedroomsInvalidError",
+                "bathrooms": "ownerPropertyBathroomsInvalidError",
+                "guest_capacity": "ownerPropertyGuestCapacityInvalidError",
+            }
+            for field, error_key in numeric_fields.items():
+                value = form_values[field]
+                if value and not value.isdigit():
+                    errors[field] = error_key
+
+            if form_values["operating_mode"] not in {"seasonal", "year-round"}:
+                errors["operating_mode"] = "ownerPropertyModeInvalidError"
+
+            if not errors:
+                saved_property = _append_owner_property({
+                    **(property_record or {}),
+                    "id": requested_property_id if property_record else "",
+                    "owner_id": owner_account.get("id", ""),
+                    "created_at": property_record.get("created_at", _utc_now_iso()) if property_record else _utc_now_iso(),
+                    "name": form_values["name"],
+                    "property_type": form_values["property_type"],
+                    "location": form_values["location"],
+                    "bedrooms": int(form_values["bedrooms"]),
+                    "bathrooms": int(form_values["bathrooms"]),
+                    "guest_capacity": int(form_values["guest_capacity"]),
+                    "operating_mode": form_values["operating_mode"],
+                    "notes": form_values["notes"],
+                    "status": property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT) if property_record else OWNER_PROPERTY_STATUS_DEFAULT,
+                    "guest_guide_ready": int(property_record.get("guest_guide_ready", 0) if property_record else 0),
+                    "access_instructions_ready": int(property_record.get("access_instructions_ready", 0) if property_record else 0),
+                    "emergency_contact_ready": int(property_record.get("emergency_contact_ready", 0) if property_record else 0),
+                    "cleaning_partner_ready": int(property_record.get("cleaning_partner_ready", 0) if property_record else 0),
+                })
+                if saved_property:
+                    profile = {
+                        "address": form_values["address"],
+                        "city": form_values["city"],
+                        "country": form_values["country"],
+                        "capacity": form_values["guest_capacity"],
+                        "bedrooms": form_values["bedrooms"],
+                        "bathrooms": form_values["bathrooms"],
+                        "floor": form_values["floor"],
+                        "elevator": form_values["elevator"],
+                        "parking": form_values["parking"],
+                    }
+                    _owner_property_save_assets(saved_property["id"], {
+                        **(property_assets if isinstance(property_assets, dict) else _owner_property_default_assets()),
+                        "profile": profile,
+                    })
+                    if not property_record:
+                        app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
+                        _append_owner_activity_event(
+                            owner_account["id"],
+                            "property_added",
+                            "Property added",
+                            f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
+                        )
+                        _append_property_activity_event(
+                            saved_property["id"],
+                            owner_account["id"],
+                            "property_created",
+                            "Property created",
+                            f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
+                        )
+                        _append_property_activity_event(
+                            saved_property["id"],
+                            owner_account["id"],
+                            "owner_assigned",
+                            "Owner assigned",
+                            owner_account.get("full_name", ""),
+                        )
+                    if wizard_step:
+                        return redirect(url_for("owners_property_new", step="photos", property_id=saved_property["id"], lang=current_lang))
+                    return redirect(url_for("owners_dashboard", property_added="1", lang=current_lang))
+
+        elif wizard_step in {"basic", "step1"}:
+            form_values.update({
+                "name": str(request.form.get("name", "")).strip(),
+                "property_type": str(request.form.get("property_type", "")).strip(),
+                "address": str(request.form.get("address", "")).strip(),
+                "city": str(request.form.get("city", "")).strip(),
+                "country": str(request.form.get("country", "")).strip(),
+                "location": str(request.form.get("address", "")).strip() or str(request.form.get("city", "")).strip() or str(request.form.get("country", "")).strip(),
+                "bedrooms": str(request.form.get("bedrooms", "")).strip(),
+                "bathrooms": str(request.form.get("bathrooms", "")).strip(),
+                "guest_capacity": str(request.form.get("capacity", request.form.get("guest_capacity", ""))).strip(),
+                "floor": str(request.form.get("floor", "")).strip(),
+                "elevator": str(request.form.get("elevator", "")).strip(),
+                "parking": str(request.form.get("parking", "")).strip(),
+                "operating_mode": str(request.form.get("operating_mode", "year-round")).strip().lower(),
+                "notes": str(request.form.get("notes", "")).strip(),
+            })
+
+            required_fields = {
+                "name": "ownerPropertyNameRequiredError",
+                "property_type": "ownerPropertyTypeRequiredError",
+                "address": "ownerPropertyLocationRequiredError",
+                "city": "ownerPropertyLocationRequiredError",
+                "country": "ownerPropertyLocationRequiredError",
+                "bedrooms": "ownerPropertyBedroomsRequiredError",
+                "bathrooms": "ownerPropertyBathroomsRequiredError",
+                "guest_capacity": "ownerPropertyGuestCapacityRequiredError",
+            }
+            for field, error_key in required_fields.items():
+                if not form_values[field]:
+                    errors[field] = error_key
+
+            numeric_fields = {
+                "bedrooms": "ownerPropertyBedroomsInvalidError",
+                "bathrooms": "ownerPropertyBathroomsInvalidError",
+                "guest_capacity": "ownerPropertyGuestCapacityInvalidError",
+            }
+            for field, error_key in numeric_fields.items():
+                value = form_values[field]
+                if value and not value.isdigit():
+                    errors[field] = error_key
+
+            if form_values["operating_mode"] and form_values["operating_mode"] not in {"seasonal", "year-round"}:
+                errors["operating_mode"] = "ownerPropertyModeInvalidError"
+
+            if not errors:
+                address_parts = [part for part in (form_values["address"], form_values["city"], form_values["country"]) if part]
+                location_value = ", ".join(address_parts)
+                saved_property = _append_owner_property({
+                    **(property_record or {}),
+                    "id": requested_property_id if property_record else "",
+                    "owner_id": owner_account.get("id", ""),
+                    "created_at": property_record.get("created_at", _utc_now_iso()) if property_record else _utc_now_iso(),
+                    "name": form_values["name"],
+                    "property_type": form_values["property_type"],
+                    "location": location_value,
+                    "bedrooms": int(form_values["bedrooms"]),
+                    "bathrooms": int(form_values["bathrooms"]),
+                    "guest_capacity": int(form_values["guest_capacity"]),
+                    "operating_mode": form_values["operating_mode"] or "year-round",
+                    "notes": form_values["notes"],
+                    "status": property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT) if property_record else OWNER_PROPERTY_STATUS_DEFAULT,
+                    "guest_guide_ready": int(property_record.get("guest_guide_ready", 0) if property_record else 0),
+                    "access_instructions_ready": int(property_record.get("access_instructions_ready", 0) if property_record else 0),
+                    "emergency_contact_ready": int(property_record.get("emergency_contact_ready", 0) if property_record else 0),
+                    "cleaning_partner_ready": int(property_record.get("cleaning_partner_ready", 0) if property_record else 0),
+                })
+                if saved_property:
+                    profile = {
+                        "address": form_values["address"],
+                        "city": form_values["city"],
+                        "country": form_values["country"],
+                        "capacity": form_values["guest_capacity"],
+                        "bedrooms": form_values["bedrooms"],
+                        "bathrooms": form_values["bathrooms"],
+                        "floor": form_values["floor"],
+                        "elevator": form_values["elevator"],
+                        "parking": form_values["parking"],
+                    }
+                    _owner_property_save_assets(saved_property["id"], {
+                        **(property_assets if isinstance(property_assets, dict) else _owner_property_default_assets()),
+                        "profile": profile,
+                    })
+                    if not property_record:
+                        app.logger.info("Owner property created for %s: %s", owner_account.get("email", ""), saved_property["name"])
+                        _append_owner_activity_event(
+                            owner_account["id"],
+                            "property_added",
+                            "Property added",
+                            f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
+                        )
+                        _append_property_activity_event(
+                            saved_property["id"],
+                            owner_account["id"],
+                            "property_created",
+                            "Property created",
+                            f"{saved_property.get('name', '')} · {saved_property.get('location', '')}",
+                        )
+                        _append_property_activity_event(
+                            saved_property["id"],
+                            owner_account["id"],
+                            "owner_assigned",
+                            "Owner assigned",
+                            owner_account.get("full_name", ""),
+                        )
+                    return redirect(url_for("owners_property_new", step="photos", property_id=saved_property["id"], lang=current_lang))
+
+        elif wizard_step in {"photos", "step2", "media"}:
+            property_id = requested_property_id
+            property_record = _find_owner_property(property_id) if property_id else None
+            if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+                return Response("Property not found.", status=404, mimetype="text/plain")
+
+            existing_assets = _owner_property_merge_assets(property_record).get("assets", _owner_property_default_assets())
+            profile = existing_assets.get("profile", {}) if isinstance(existing_assets.get("profile", {}), dict) else {}
+
+            photos = list(existing_assets.get("photos", [])) if isinstance(existing_assets.get("photos", []), list) else []
+            documents = list(existing_assets.get("documents", [])) if isinstance(existing_assets.get("documents", []), list) else []
+
+            delete_photo_ids = {item_id for item_id in str(request.form.get("delete_photo_ids", "")).split(",") if item_id.strip()}
+            delete_document_ids = {item_id for item_id in str(request.form.get("delete_document_ids", "")).split(",") if item_id.strip()}
+            photos = [item for item in photos if str(item.get("id", "")).strip() not in delete_photo_ids]
+            documents = [item for item in documents if str(item.get("id", "")).strip() not in delete_document_ids]
+
+            upload_dir = _owner_property_upload_dir(property_id)
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            for file_storage in request.files.getlist("photos"):
+                if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
+                    continue
+                if len(photos) >= OWNER_PROPERTY_MEDIA_LIMIT:
+                    break
+                media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="photo", is_cover=False)
+                media_path = _owner_property_media_path(property_id, media_record["stored_filename"])
+                file_storage.save(media_path)
+                photos.append(media_record)
+
+            for file_storage in request.files.getlist("documents"):
+                if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
+                    continue
+                content_type = str(getattr(file_storage, "content_type", "") or "").strip().lower()
+                if content_type and content_type not in OWNER_PROPERTY_DOCUMENT_TYPES and not str(file_storage.filename).lower().endswith((".pdf", ".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif")):
+                    continue
+                media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="document", is_cover=False)
+                media_path = _owner_property_media_path(property_id, media_record["stored_filename"])
+                file_storage.save(media_path)
+                documents.append(media_record)
+
+            photos = _owner_property_reorder_media(photos, request.form.get("gallery_order", ""))
+            cover_photo_id = str(request.form.get("cover_photo_id", "")).strip()
+            if cover_photo_id:
+                for photo in photos:
+                    photo["is_cover"] = str(photo.get("id", "")).strip() == cover_photo_id
+            elif photos:
+                photos[0]["is_cover"] = True
+            if not any(bool(photo.get("is_cover")) for photo in photos) and photos:
+                photos[0]["is_cover"] = True
+
+            amenities = {
+                "wifi": _owner_property_form_flag(request.form.get("amenity_wifi")),
+                "air_conditioning": _owner_property_form_flag(request.form.get("amenity_air_conditioning")),
+                "heating": _owner_property_form_flag(request.form.get("amenity_heating")),
+                "pool": _owner_property_form_flag(request.form.get("amenity_pool")),
+                "beach_access": _owner_property_form_flag(request.form.get("amenity_beach_access")),
+                "kitchen": _owner_property_form_flag(request.form.get("amenity_kitchen")),
+                "coffee_machine": _owner_property_form_flag(request.form.get("amenity_coffee_machine")),
+                "tv": _owner_property_form_flag(request.form.get("amenity_tv")),
+                "washing_machine": _owner_property_form_flag(request.form.get("amenity_washing_machine")),
+                "dryer": _owner_property_form_flag(request.form.get("amenity_dryer")),
+                "balcony": _owner_property_form_flag(request.form.get("amenity_balcony")),
+                "garden": _owner_property_form_flag(request.form.get("amenity_garden")),
+                "bbq": _owner_property_form_flag(request.form.get("amenity_bbq")),
+                "workspace": _owner_property_form_flag(request.form.get("amenity_workspace")),
+                "pet_friendly": _owner_property_form_flag(request.form.get("amenity_pet_friendly")),
+            }
+            house_rules = {
+                "check_in": str(request.form.get("house_rule_check_in", "")).strip(),
+                "check_out": str(request.form.get("house_rule_check_out", "")).strip(),
+                "smoking": str(request.form.get("house_rule_smoking", "")).strip(),
+                "pets": str(request.form.get("house_rule_pets", "")).strip(),
+                "parties": str(request.form.get("house_rule_parties", "")).strip(),
+            }
+            access_information = {
+                "wifi_name": str(request.form.get("access_wifi_name", "")).strip(),
+                "wifi_password": str(request.form.get("access_wifi_password", "")).strip(),
+                "building_code": str(request.form.get("access_building_code", "")).strip(),
+                "apartment_code": str(request.form.get("access_apartment_code", "")).strip(),
+                "key_safe_code": str(request.form.get("access_key_safe_code", "")).strip(),
+                "parking_instructions": str(request.form.get("access_parking_instructions", "")).strip(),
+                "emergency_contact": str(request.form.get("access_emergency_contact", "")).strip(),
+            }
+            access = {
+                "building_entrance_code": access_information["building_code"],
+                "apartment_code": access_information["apartment_code"],
+                "key_safe_code": access_information["key_safe_code"],
+                "smart_lock": "",
+                "garage_access": "",
+                "parking_space": "",
+                "gate_instructions": access_information["parking_instructions"],
+                "intercom": "",
+            }
+            wifi = {
+                "network_name": access_information["wifi_name"],
+                "password": access_information["wifi_password"],
+                "router_location": "",
+                "backup_router": "",
+                "troubleshooting_notes": "",
+            }
+            general = {
+                "description": "",
+                "building": "",
+                "apartment": "",
+                "neighbourhood": "",
+                "languages_spoken": "",
+                "emergency_contacts": access_information["emergency_contact"],
+            }
+            welcome_instructions = str(request.form.get("welcome_instructions", "")).strip()
+
+            _owner_property_save_assets(property_id, {
+                "profile": profile,
+                "photos": photos,
+                "documents": documents,
+                "amenities": amenities,
+                "house_rules": house_rules,
+                "general": general,
+                "access": access,
+                "access_information": access_information,
+                "wifi": wifi,
+                "welcome_instructions": welcome_instructions,
+                "last_updated_at": _utc_now_iso(),
+            })
+            return redirect(url_for("owners_property_detail", property_id=property_id, lang=current_lang))
 
     return render_template(
         "owners_property_new.html",
@@ -10039,6 +11113,10 @@ def owners_property_new():
         errors=errors,
         current_lang=current_lang,
         property_page_copy=_owner_property_new_copy(current_lang),
+        wizard_step=wizard_step or step,
+        wizard_property_id=requested_property_id,
+        wizard_property=property_record or {},
+        wizard_assets=property_assets,
     ), (400 if errors else 200)
 
 
@@ -10242,6 +11320,25 @@ def owners_property_detail(property_id):
     if request.method == "POST":
         previous_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
         previous_notes = str(property_record.get("notes", "")).strip()
+        current_knowledge = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
+        updated_knowledge = _owner_property_knowledge_from_form(request.form, current_knowledge)
+        document_records = []
+        for existing_document in updated_knowledge.get("documents", []) if isinstance(updated_knowledge.get("documents", []), list) else []:
+            if isinstance(existing_document, dict):
+                document_records.append(existing_document)
+        upload_dir = _owner_property_upload_dir(property_record["id"])
+        if upload_dir:
+            upload_dir.mkdir(parents=True, exist_ok=True)
+        for file_storage in request.files.getlist("knowledge_documents"):
+            if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
+                continue
+            media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="document", is_cover=False)
+            media_path = _owner_property_media_path(property_record["id"], media_record["stored_filename"])
+            if not media_path:
+                continue
+            file_storage.save(str(media_path))
+            document_records.append(media_record)
+        updated_knowledge["documents"] = document_records
         updated_property = {
             **property_record,
             "status": _normalize_owner_property_status(request.form.get("status", property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))),
@@ -10250,6 +11347,7 @@ def owners_property_detail(property_id):
             "access_instructions_ready": _normalize_owner_property_checklist_value(request.form.get("access_instructions_ready")),
             "emergency_contact_ready": _normalize_owner_property_checklist_value(request.form.get("emergency_contact_ready")),
             "cleaning_partner_ready": _normalize_owner_property_checklist_value(request.form.get("cleaning_partner_ready")),
+            "knowledge_json": json.dumps(updated_knowledge, ensure_ascii=False),
         }
         saved_property = _append_owner_property(updated_property)
         if saved_property:
@@ -10289,6 +11387,8 @@ def owners_property_detail(property_id):
                     "Note added",
                     saved_property.get("notes", ""),
                 )
+            _owner_property_save_assets(saved_property["id"], updated_knowledge)
+            _owner_property_save_knowledge_calendar_events(saved_property, updated_knowledge)
         return redirect(url_for("owners_property_detail", property_id=property_id, lang=current_lang))
 
     context = _owner_property_detail_context(owner_account, property_record)
@@ -10298,6 +11398,30 @@ def owners_property_detail(property_id):
         current_lang=current_lang,
         property_context=context,
     )
+
+
+@app.get("/owners/properties/<property_id>/media/<asset_id>")
+@owner_required
+def owner_property_media(property_id, asset_id):
+    owner_account = _current_owner_account()
+    property_record = _find_owner_property(property_id)
+    if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        return Response("Property not found.", status=404, mimetype="text/plain")
+
+    property_record = _owner_property_merge_assets(property_record)
+    assets = property_record.get("assets", {}) if isinstance(property_record.get("assets", {}), dict) else {}
+    photo_records = assets.get("photos", []) if isinstance(assets.get("photos", []), list) else []
+    document_records = assets.get("documents", []) if isinstance(assets.get("documents", []), list) else []
+    target_asset_id = str(asset_id or "").strip()
+    asset_record = next((item for item in photo_records + document_records if str(item.get("id", "")).strip() == target_asset_id), None)
+    if not asset_record:
+        return Response("Media not found.", status=404, mimetype="text/plain")
+
+    media_path = _owner_property_media_path(property_id, asset_record.get("stored_filename", ""))
+    if not media_path or not media_path.exists():
+        return Response("Media not found.", status=404, mimetype="text/plain")
+
+    return send_file(media_path, mimetype=asset_record.get("content_type") or None, as_attachment=False, download_name=asset_record.get("filename") or media_path.name)
 
 
 @app.route("/owners/request-service", methods=["GET", "POST"])

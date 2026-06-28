@@ -1,4 +1,5 @@
 ﻿import base64
+import io
 import html as html_lib
 import json
 import os
@@ -494,6 +495,41 @@ class OwnerPortalTests(unittest.TestCase):
             "notes": "",
         }])
 
+    def _seed_owner_property_assets(self, property_id="property-1", **overrides):
+        record = {
+            "profile": {
+                "address": "12 Marina Street",
+                "city": "Varna",
+                "country": "Bulgaria",
+                "capacity": "6",
+                "bedrooms": "3",
+                "bathrooms": "2",
+                "floor": "3",
+                "elevator": "yes",
+                "parking": "Garage",
+            },
+            "photos": [
+                {
+                    "id": "photo-1",
+                    "kind": "photo",
+                    "filename": "cover.jpg",
+                    "stored_filename": "photo-1.jpg",
+                    "content_type": "image/jpeg",
+                    "size": 12,
+                    "uploaded_at": "2026-06-15T10:45:00Z",
+                    "is_cover": True,
+                }
+            ],
+            "documents": [],
+            "amenities": {"wifi": True},
+            "house_rules": {},
+            "access_information": {},
+            "welcome_instructions": "Welcome to the property.",
+            "last_updated_at": "2026-06-15T10:45:00Z",
+        }
+        record.update(overrides)
+        app_module._owner_property_save_assets(property_id, record)
+
     def _login_owner_via_magic(self, email="owner@blackseaconnect.com", seed_property=True):
         self._seed_owner_account(email=email)
         if seed_property:
@@ -805,6 +841,132 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/owners/dashboard?property_added=1", response.headers["Location"])
         self.assertIn("lang=fr", response.headers["Location"])
+
+    def test_owner_property_wizard_creates_assets_and_gallery(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        step_one_response = self.client.post(
+            "/owners/property/new",
+            data={
+                "wizard_step": "basic",
+                "name": "Sea View Villa",
+                "property_type": "Villa",
+                "address": "12 Marina Street",
+                "city": "Varna",
+                "country": "Bulgaria",
+                "capacity": "6",
+                "bedrooms": "3",
+                "bathrooms": "2",
+                "floor": "3",
+                "elevator": "yes",
+                "parking": "Garage access",
+                "notes": "Premium onboarding",
+            },
+        )
+
+        self.assertEqual(step_one_response.status_code, 302)
+        self.assertIn("step=photos", step_one_response.headers["Location"])
+        self.assertIn("property_id=", step_one_response.headers["Location"])
+
+        property_rows = self._read_owner_db_rows("owner_properties")
+        self.assertEqual(len(property_rows), 1)
+        property_id = property_rows[0]["id"]
+
+        step_two_response = self.client.post(
+            "/owners/property/new",
+            data={
+                "wizard_step": "photos",
+                "property_id": property_id,
+                "photos": (io.BytesIO(b"fake-photo-bytes"), "cover.jpg"),
+                "documents": (io.BytesIO(b"%PDF-1.4 fake"), "manual.pdf"),
+                "amenity_wifi": "1",
+                "welcome_instructions": "Please enjoy your stay.",
+                "access_wifi_name": "BlackSea-Guest",
+                "access_wifi_password": "calmwater",
+            },
+            content_type="multipart/form-data",
+        )
+
+        self.assertEqual(step_two_response.status_code, 302)
+        self.assertIn(f"/owners/properties/{property_id}", step_two_response.headers["Location"])
+
+        property_row = self._read_owner_db_rows("owner_properties")[0]
+        assets = json.loads(property_row["knowledge_json"])
+
+        self.assertEqual(assets["profile"]["city"], "Varna")
+        self.assertEqual(assets["photos"][0]["filename"], "cover.jpg")
+        self.assertTrue(assets["amenities"]["wifi"])
+        self.assertEqual(assets["welcome_instructions"], "Please enjoy your stay.")
+
+        detail_response = self.client.get(f"/owners/properties/{property_id}")
+        self.assertEqual(detail_response.status_code, 200)
+        detail_html = detail_response.get_data(as_text=True)
+        self.assertIn("Gallery", detail_html)
+        self.assertIn("Access information", detail_html)
+        self.assertIn("Amenities", detail_html)
+        self.assertIn("Knowledge hub", detail_html)
+        self.assertIn("Property Health", detail_html)
+
+    def test_owner_property_knowledge_hub_persists_and_syncs_calendar(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._login_owner_via_magic(email="owner@example.com")
+
+        response = self.client.post(
+            "/owners/properties/property-1",
+            data={
+                "status": "ACTIVE",
+                "notes": "Ready for guests.",
+                "guest_guide_ready": "1",
+                "access_instructions_ready": "1",
+                "emergency_contact_ready": "1",
+                "cleaning_partner_ready": "1",
+                "knowledge_description": "Premium coastal villa.",
+                "knowledge_building": "Marina Residence",
+                "knowledge_apartment": "A3",
+                "knowledge_neighbourhood": "Sea Garden",
+                "knowledge_languages_spoken": "BG, EN",
+                "knowledge_emergency_contacts": "Local concierge desk",
+                "access_building_entrance_code": "1234",
+                "access_apartment_code": "A3",
+                "access_key_safe_code": "5566",
+                "wifi_network_name": "BlackSea",
+                "wifi_password": "calmwater",
+                "provider_electrician_name": "Blue Spark",
+                "provider_electrician_phone": "+359888000111",
+                "provider_electrician_preferred": "1",
+                "seasonal_open_pool_active": "1",
+                "seasonal_open_pool_target_date": "2026-07-01",
+                "seasonal_open_pool_cadence": "Seasonal",
+                "seasonal_open_pool_notes": "Coordinate with maintenance.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        property_row = self._read_owner_db_rows("owner_properties")[0]
+        knowledge = json.loads(property_row["knowledge_json"])
+        self.assertEqual(knowledge["general"]["description"], "Premium coastal villa.")
+        self.assertEqual(knowledge["access"]["building_entrance_code"], "1234")
+        self.assertEqual(knowledge["wifi"]["network_name"], "BlackSea")
+        self.assertEqual(knowledge["service_providers"]["electrician"]["name"], "Blue Spark")
+        self.assertTrue(knowledge["seasonal_tasks"]["open_pool"]["active"])
+
+        calendar_rows = self._read_owner_db_rows("calendar_events")
+        self.assertTrue(any(row["created_by"] == "owner-knowledge-hub" and row["property_id"] == "property-1" for row in calendar_rows))
+
+    def test_owner_properties_dashboard_shows_cover_photo_and_readiness(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._seed_owner_property_assets()
+        self._login_owner_via_magic(email="owner@example.com")
+
+        response = self.client.get("/owners/properties")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("/owners/properties/property-1/media/photo-1", html)
+        self.assertIn("Ready", html)
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()
