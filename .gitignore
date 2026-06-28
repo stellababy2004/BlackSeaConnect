@@ -8,3 +8,8 @@ __pycache__/
 __pycache__/
 *.pyc
 data/
+
+.env
+tmp/
+tmp-*.png
+tmp-edge-profile-demo/
