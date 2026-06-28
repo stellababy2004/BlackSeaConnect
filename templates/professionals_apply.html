@@ -107,7 +107,7 @@
             <select class="pilot-form__input" name="professional_category" required>
               <option value="" data-i18n="professionalCategoryEmpty">{{ public_i18n('professionalsApply', 'professionalCategoryEmpty', 'Select a category') }}</option>
               {% for category in service_categories %}
-                <option value="{{ category.label|e }}" {% if form_values.professional_category == category.label %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label|e }}</option>
+                <option value="{{ category.value|e }}" {% if form_values.professional_category == category.value %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label|e }}</option>
               {% endfor %}
             </select>
             {% if errors.professional_category %}<p class="form-error" data-i18n="serviceTypeRequiredError">Това поле е задължително.</p>{% endif %}

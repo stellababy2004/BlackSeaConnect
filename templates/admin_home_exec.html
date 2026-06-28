@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>Executive Operations Cockpit · BlackSea Connect</title>
+  <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit · BlackSea Connect') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     body.admin-cockpit-page {
@@ -1434,44 +1434,43 @@
     </div>
     <section class="admin-cockpit-hero">
       <div>
-        <div class="admin-kicker">BlackSea Connect</div>
-        <h1>Executive operations cockpit</h1>
+        <div class="admin-kicker">{{ public_i18n('adminHome', 'heroKicker', 'BlackSea Connect') }}</div>
+        <h1>{{ public_i18n('adminHome', 'heroTitle', 'Executive operations cockpit') }}</h1>
         <p class="admin-hero-copy">
-          A single command view for reservations, operations, calendar flow, property status, and professional capacity.
-          Everything on this page is computed from the existing persistence layer.
+          {{ public_i18n('adminHome', 'heroCopy', 'A single command view for reservations, operations, calendar flow, property status, and professional capacity. Everything on this page is computed from the existing persistence layer.') }}
         </p>
         <div class="admin-hero-status" aria-label="Live status summary">
-          <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> Live</span>
-          <span class="admin-clock-chip"><strong>Local time</strong> <time data-admin-clock aria-live="polite">Updating…</time></span>
+          <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> {{ public_i18n('adminHome', 'liveStatus', 'Live') }}</span>
+          <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">Updating...</time></span>
           {% set system_health_tone = 'success' if operations_summary.late_operations == 0 and sla_monitoring.late_percent < 10 else 'warning' if operations_summary.late_operations < 4 and sla_monitoring.late_percent < 25 else 'danger' %}
-          <span class="admin-health-chip" data-tone="{{ system_health_tone }}">System {{ 'Healthy' if system_health_tone == 'success' else 'Watch' if system_health_tone == 'warning' else 'Critical' }}</span>
+          <span class="admin-health-chip" data-tone="{{ system_health_tone }}">System {{ public_i18n('adminHome', 'systemHealthy', 'Healthy') if system_health_tone == 'success' else public_i18n('adminHome', 'systemWatch', 'Watch') if system_health_tone == 'warning' else public_i18n('adminHome', 'systemCritical', 'Critical') }}</span>
         </div>
       </div>
       <div class="admin-hero-side">
         <div class="admin-hero-summary">
-          <span class="admin-pill admin-pill--primary">Live operating snapshot</span>
-          <strong>{{ operations_summary.completed_today }} operations completed today</strong>
-          <span class="admin-submeta">{{ professional_summary.available }} professionals available and {{ operations_summary.late_operations }} late operations in view</span>
+          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'snapshotPill', 'Live operating snapshot') }}</span>
+          <strong>{{ public_i18n('adminHome', 'snapshotCompletedToday', '{} operations completed today')|replace('{}', operations_summary.completed_today|string) }}</strong>
+          <span class="admin-submeta">{{ public_i18n('adminHome', 'snapshotAvailability', '{} professionals available and {} late operations in view')|replace('{}', professional_summary.available|string, 1)|replace('{}', operations_summary.late_operations|string, 1) }}</span>
         </div>
         <div class="admin-hero-stat-row" aria-label="Executive health snapshot">
           <div class="admin-hero-stat">
-            <span>Current queue</span>
+            <span>{{ public_i18n('adminHome', 'currentQueue', 'Current queue') }}</span>
             <strong>{{ operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</strong>
           </div>
           <div class="admin-hero-stat">
-            <span>Risk signals</span>
+            <span>{{ public_i18n('adminHome', 'riskSignals', 'Risk signals') }}</span>
             <strong>{{ executive_alerts|length }}</strong>
           </div>
           <div class="admin-hero-stat">
-            <span>SLA health</span>
+            <span>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</span>
             <strong>{{ sla_monitoring.late_percent }}% late</strong>
           </div>
         </div>
         <div class="admin-cockpit-actions">
-          <a class="button button--primary" href="/admin/operations">Open operations</a>
-          <a class="button button--secondary" href="/admin/calendar">Open calendar</a>
-          <a class="button button--secondary" href="/admin/reservations">Open reservations</a>
-          <a class="button button--secondary" href="/admin/properties">Open properties</a>
+          <a class="button button--primary" href="/admin/operations">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
+          <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
+          <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
+          <a class="button button--secondary" href="/admin/properties">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
         </div>
       </div>
     </section>
@@ -1479,8 +1478,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--neutral">Section 1</span>
-          <h2>Executive KPI cards</h2>
+          <span class="admin-pill admin-pill--neutral">{{ public_i18n('adminHome', 'section1Pill', 'Section 1') }}</span>
+          <h2>{{ public_i18n('adminHome', 'section1Title', 'Executive KPI cards') }}</h2>
         </div>
       </div>
       <div class="admin-kpi-grid">
@@ -1517,8 +1516,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--danger">Executive Alerts</span>
-          <h2>Executive alerts</h2>
+          <span class="admin-pill admin-pill--danger">{{ public_i18n('adminHome', 'alertPill', 'Executive alerts') }}</span>
+          <h2>{{ public_i18n('adminHome', 'alertTitle', 'Executive alerts') }}</h2>
         </div>
       </div>
       {% if executive_alerts %}
@@ -1546,13 +1545,13 @@
                 <span class="admin-badge admin-badge--{{ alert.tone }}">{{ alert.severity|title }}</span>
               </div>
               <div class="admin-summary-list">
-                {% if alert.property %}<span><strong>Property</strong><span>{{ alert.property }}</span></span>{% endif %}
-                {% if alert.reservation %}<span><strong>Reservation</strong><span>{{ alert.reservation }}</span></span>{% endif %}
-                {% if alert.operation %}<span><strong>Operation</strong><span>{{ alert.operation }}</span></span>{% endif %}
+                {% if alert.property %}<span><strong>{{ public_i18n('adminHome', 'propertyLabel', 'Property') }}</strong><span>{{ alert.property }}</span></span>{% endif %}
+                {% if alert.reservation %}<span><strong>{{ public_i18n('adminHome', 'reservationLabel', 'Reservation') }}</strong><span>{{ alert.reservation }}</span></span>{% endif %}
+                {% if alert.operation %}<span><strong>{{ public_i18n('adminHome', 'operationLabel', 'Operation') }}</strong><span>{{ alert.operation }}</span></span>{% endif %}
               </div>
               {% if alert.detail %}<div class="admin-meta-line">{{ alert.detail }}</div>{% endif %}
-              {% if alert.recommended_action %}<p><strong>Recommended action:</strong> {{ alert.recommended_action }}</p>{% endif %}
-              {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">Open context</a>{% endif %}
+              {% if alert.recommended_action %}<p><strong>{{ public_i18n('adminHome', 'recommendedActionLabel', 'Recommended action:') }}</strong> {{ alert.recommended_action }}</p>{% endif %}
+              {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</a>{% endif %}
             </article>
           {% endfor %}
         </div>
@@ -1561,8 +1560,8 @@
           <div class="admin-empty-illustration" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
-          <h3>No operational alerts right now.</h3>
-          <p>The unified alerts engine will surface overdue work, readiness gaps, conflicts, and workload spikes as soon as they appear.</p>
+          <h3>{{ public_i18n('adminHome', 'noAlertsTitle', 'No operational alerts right now.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noAlertsCopy', 'The unified alerts engine will surface overdue work, readiness gaps, conflicts, and workload spikes as soon as they appear.') }}</p>
         </div>
       {% endif %}
     </section>
@@ -1570,8 +1569,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--warning">Operational Risk</span>
-          <h2>Operational risk</h2>
+          <span class="admin-pill admin-pill--warning">{{ public_i18n('adminHome', 'riskPill', 'Operational risk') }}</span>
+          <h2>{{ public_i18n('adminHome', 'riskTitle', 'Operational risk') }}</h2>
         </div>
       </div>
       <div class="admin-risk-grid">
@@ -1588,7 +1587,7 @@
               <div class="admin-health-gauge" style="--gauge: {{ property.score }};" aria-label="Risk score {{ property.score }} out of 100">
                 <div>
                   <div class="admin-health-gauge__value">{{ property.score }}</div>
-                  <span class="admin-health-gauge__label">Risk score</span>
+                  <span class="admin-health-gauge__label">{{ public_i18n('adminHome', 'riskScoreLabel', 'Risk score') }}</span>
                 </div>
               </div>
               <div class="admin-risk-meter">
@@ -1612,8 +1611,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--info">Executive Timeline</span>
-          <h2>Unified timeline</h2>
+          <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'timelinePill', 'Executive timeline') }}</span>
+          <h2>{{ public_i18n('adminHome', 'timelineTitle', 'Unified timeline') }}</h2>
         </div>
       </div>
       {% if executive_timeline %}
@@ -1631,8 +1630,8 @@
               <div class="admin-timeline-event__body">
                 <strong>{{ event.summary }}</strong>
                 {% if event.property %}<div class="admin-meta-line">{{ event.property }}</div>{% endif %}
-                {% if event.actor %}<div class="admin-meta-line">Actor: {{ event.actor }}</div>{% endif %}
-                {% if event.link %}<a class="button button--secondary" href="{{ event.link }}">Open source</a>{% endif %}
+                {% if event.actor %}<div class="admin-meta-line">{{ public_i18n('adminHome', 'actorLabel', 'Actor:') }} {{ event.actor }}</div>{% endif %}
+                {% if event.link %}<a class="button button--secondary" href="{{ event.link }}">{{ public_i18n('adminHome', 'openSource', 'Open source') }}</a>{% endif %}
               </div>
             </article>
           {% endfor %}
@@ -1642,8 +1641,8 @@
           <div class="admin-empty-illustration" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
-          <h3>No executive events yet.</h3>
-          <p>Reservations, operations, calendar, professionals, owner requests, and system events will populate this feed automatically.</p>
+          <h3>{{ public_i18n('adminHome', 'noTimelineTitle', 'No executive events yet.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noTimelineCopy', 'Reservations, operations, calendar, professionals, owner requests, and system events will populate this feed automatically.') }}</p>
         </div>
       {% endif %}
     </section>
@@ -1651,8 +1650,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--primary">Live Workload</span>
-          <h2>Live workload distribution</h2>
+          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'workloadPill', 'Live workload') }}</span>
+          <h2>{{ public_i18n('adminHome', 'workloadTitle', 'Live workload distribution') }}</h2>
         </div>
       </div>
       {% set top_professional_max = workload_distribution.top_professionals[0].count if workload_distribution.top_professionals else 1 %}
@@ -1663,7 +1662,7 @@
         <article class="admin-workload-card">
           <div class="admin-section-head">
             <div>
-              <h3>Top busiest professionals</h3>
+              <h3>{{ public_i18n('adminHome', 'topBusiestProfessionals', 'Top busiest professionals') }}</h3>
             </div>
           </div>
           <div class="admin-list-stack">
@@ -1671,7 +1670,7 @@
               <div class="admin-workload-card__row">
                 <div class="admin-workload-card__meta">
                   <strong>{{ item.name }}</strong>
-                  <span>{{ item.count }} tasks</span>
+                  <span>{{ item.count }} {{ public_i18n('adminHome', 'tasksLabel', 'tasks') }}</span>
                 </div>
                 <div class="admin-workload-bar" aria-hidden="true">
                   <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_professional_max * 100)|round(0) if top_professional_max else 0 }}%;"></span>
@@ -1683,7 +1682,7 @@
         <article class="admin-workload-card">
           <div class="admin-section-head">
             <div>
-              <h3>Top busiest properties</h3>
+              <h3>{{ public_i18n('adminHome', 'topBusiestProperties', 'Top busiest properties') }}</h3>
             </div>
           </div>
           <div class="admin-list-stack">
@@ -1691,7 +1690,7 @@
               <div class="admin-workload-card__row">
                 <div class="admin-workload-card__meta">
                   <strong>{{ item.name }}</strong>
-                  <span>{{ item.count }} tasks</span>
+                  <span>{{ item.count }} {{ public_i18n('adminHome', 'tasksLabel', 'tasks') }}</span>
                 </div>
                 <div class="admin-workload-bar" aria-hidden="true">
                   <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_property_max * 100)|round(0) if top_property_max else 0 }}%;"></span>
@@ -1703,7 +1702,7 @@
         <article class="admin-workload-card">
           <div class="admin-section-head">
             <div>
-              <h3>Operations by city</h3>
+              <h3>{{ public_i18n('adminHome', 'operationsByCity', 'Operations by city') }}</h3>
             </div>
           </div>
           <div class="admin-list-stack">
@@ -1711,7 +1710,7 @@
               <div class="admin-workload-card__row">
                 <div class="admin-workload-card__meta">
                   <strong>{{ item.name }}</strong>
-                  <span>{{ item.count }} tasks</span>
+                  <span>{{ item.count }} {{ public_i18n('adminHome', 'tasksLabel', 'tasks') }}</span>
                 </div>
                 <div class="admin-workload-bar" aria-hidden="true">
                   <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_city_max * 100)|round(0) if top_city_max else 0 }}%;"></span>
@@ -1723,7 +1722,7 @@
         <article class="admin-workload-card">
           <div class="admin-section-head">
             <div>
-              <h3>Operations by category</h3>
+              <h3>{{ public_i18n('adminHome', 'operationsByCategory', 'Operations by category') }}</h3>
             </div>
           </div>
           <div class="admin-list-stack">
@@ -1731,7 +1730,7 @@
               <div class="admin-workload-card__row">
                 <div class="admin-workload-card__meta">
                   <strong>{{ item.name }}</strong>
-                  <span>{{ item.count }} tasks</span>
+                  <span>{{ item.count }} {{ public_i18n('adminHome', 'tasksLabel', 'tasks') }}</span>
                 </div>
                 <div class="admin-workload-bar" aria-hidden="true">
                   <span class="admin-workload-bar__fill" style="width: {{ (item.count / top_category_max * 100)|round(0) if top_category_max else 0 }}%;"></span>
@@ -1743,7 +1742,7 @@
         <article class="admin-workload-card">
           <div class="admin-section-head">
             <div>
-              <h3>Upcoming workload</h3>
+              <h3>{{ public_i18n('adminHome', 'upcomingWorkload', 'Upcoming workload') }}</h3>
             </div>
           </div>
           <div class="admin-workload-day-chart">
@@ -1758,8 +1757,8 @@
             {% endfor %}
           </div>
           <div class="admin-summary-list">
-            <span><strong>Upcoming total</strong><span>{{ workload_distribution.upcoming_workload }}</span></span>
-            <span><strong>Late workload</strong><span>{{ workload_distribution.late_workload }}</span></span>
+            <span><strong>{{ public_i18n('adminHome', 'upcomingTotal', 'Upcoming total') }}</strong><span>{{ workload_distribution.upcoming_workload }}</span></span>
+            <span><strong>{{ public_i18n('adminHome', 'lateWorkload', 'Late workload') }}</strong><span>{{ workload_distribution.late_workload }}</span></span>
           </div>
         </article>
       </div>
@@ -1768,8 +1767,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--info">SLA Monitoring</span>
-          <h2>SLA monitoring</h2>
+          <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'slaPill', 'SLA monitoring') }}</span>
+          <h2>{{ public_i18n('adminHome', 'slaTitle', 'SLA monitoring') }}</h2>
         </div>
       </div>
       <div class="admin-kpi-grid">
@@ -1778,9 +1777,9 @@
             <span class="admin-kpi-icon">CT</span>
             <span class="admin-badge admin-badge--neutral">SLA</span>
           </div>
-          <h3>Average completion time</h3>
+          <h3>{{ public_i18n('adminHome', 'averageCompletionTime', 'Average completion time') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_completion_time }}</div>
-          <div class="admin-kpi-trend">Completion speed across finished operations</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'completionSpeed', 'Completion speed across finished operations') }}</div>
           <div class="admin-sla-pill-row">
             <span class="admin-badge admin-badge--neutral">Enterprise metric</span>
           </div>
@@ -1790,9 +1789,9 @@
             <span class="admin-kpi-icon">AT</span>
             <span class="admin-badge admin-badge--info">SLA</span>
           </div>
-          <h3>Average assignment time</h3>
+          <h3>{{ public_i18n('adminHome', 'averageAssignmentTime', 'Average assignment time') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_assignment_time }}</div>
-          <div class="admin-kpi-trend">Time from creation to assignment</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'assignmentTime', 'Time from creation to assignment') }}</div>
           <div class="admin-sla-pill-row">
             <span class="admin-badge admin-badge--info">Enterprise metric</span>
           </div>
@@ -1802,9 +1801,9 @@
             <span class="admin-kpi-icon">RT</span>
             <span class="admin-badge admin-badge--warning">SLA</span>
           </div>
-          <h3>Average response time</h3>
+          <h3>{{ public_i18n('adminHome', 'averageResponseTime', 'Average response time') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.average_response_time }}</div>
-          <div class="admin-kpi-trend">Time to first recorded action</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'responseTime', 'Time to first recorded action') }}</div>
           <div class="admin-sla-pill-row">
             <span class="admin-badge admin-badge--warning">Enterprise metric</span>
           </div>
@@ -1814,9 +1813,9 @@
             <span class="admin-kpi-icon">L%</span>
             <span class="admin-badge admin-badge--warning">SLA</span>
           </div>
-          <h3>Late</h3>
+          <h3>{{ public_i18n('adminHome', 'late', 'Late') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.late_percent }}%</div>
-          <div class="admin-kpi-trend">Open operations already past due</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'lateTrend', 'Open operations already past due') }}</div>
           <div class="admin-sla-progress" aria-hidden="true">
             <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.late_percent }}%;"></span>
           </div>
@@ -1826,9 +1825,9 @@
             <span class="admin-kpi-icon">C%</span>
             <span class="admin-badge admin-badge--success">SLA</span>
           </div>
-          <h3>Completed</h3>
+          <h3>{{ public_i18n('adminHome', 'completed', 'Completed') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.completed_percent }}%</div>
-          <div class="admin-kpi-trend">Finished operations overall</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'completedTrend', 'Finished operations overall') }}</div>
           <div class="admin-sla-progress" aria-hidden="true">
             <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.completed_percent }}%;"></span>
           </div>
@@ -1838,9 +1837,9 @@
             <span class="admin-kpi-icon">W%</span>
             <span class="admin-badge admin-badge--info">SLA</span>
           </div>
-          <h3>Waiting</h3>
+          <h3>{{ public_i18n('adminHome', 'waiting', 'Waiting') }}</h3>
           <div class="admin-kpi-value">{{ sla_monitoring.waiting_percent }}%</div>
-          <div class="admin-kpi-trend">Operations waiting on owner or provider</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'waitingTrend', 'Operations waiting on owner or provider') }}</div>
           <div class="admin-sla-progress" aria-hidden="true">
             <span class="admin-sla-progress__fill" style="width: {{ sla_monitoring.waiting_percent }}%;"></span>
           </div>
@@ -1851,8 +1850,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--primary">Smart Recommendations</span>
-          <h2>Smart recommendations</h2>
+          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'smartRecommendationsPill', 'Smart recommendations') }}</span>
+          <h2>{{ public_i18n('adminHome', 'smartRecommendationsTitle', 'Smart recommendations') }}</h2>
         </div>
       </div>
       {% if smart_recommendations %}
@@ -1864,19 +1863,19 @@
                   <strong>{{ item.title }}</strong>
                   {% if item.link %}<div class="admin-alert-card__meta">{{ item.link }}</div>{% endif %}
                 </div>
-                <span class="admin-badge admin-badge--primary">Computed</span>
+                <span class="admin-badge admin-badge--primary">{{ public_i18n('adminHome', 'computed', 'Computed') }}</span>
               </div>
               <div class="admin-recommendation-card__body">
                 <p>{{ item.detail }}</p>
-                {% if item.link %}<a class="button button--secondary" href="{{ item.link }}">Open context</a>{% endif %}
+                {% if item.link %}<a class="button button--secondary" href="{{ item.link }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</a>{% endif %}
               </div>
             </article>
           {% endfor %}
         </div>
       {% else %}
         <div class="admin-empty-state">
-          <h3>No recommendations right now.</h3>
-          <p>As alerts, risk, and workload shift, the dashboard will suggest the next best operational action.</p>
+          <h3>{{ public_i18n('adminHome', 'noRecommendationsTitle', 'No recommendations right now.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noRecommendationsCopy', 'As alerts, risk, and workload shift, the dashboard will suggest the next best operational action.') }}</p>
         </div>
       {% endif %}
     </section>
@@ -1885,8 +1884,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-section-head">
           <div>
-            <span class="admin-pill admin-pill--info">Section 2</span>
-            <h2>Today's operations</h2>
+            <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'todayOperationsPill', 'Section 2') }}</span>
+            <h2>{{ public_i18n('adminHome', 'todayOperationsTitle', "Today's operations") }}</h2>
           </div>
         </div>
         <div class="admin-list-stack">
@@ -1912,8 +1911,8 @@
                     <div class="admin-property-meta">
                       <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
                       <div class="admin-sla-pill-row">
-                        <a class="button button--secondary" href="/admin/operations">Open board</a>
-                        <a class="button button--secondary" href="/admin/calendar">Calendar</a>
+                        <a class="button button--secondary" href="/admin/operations">{{ public_i18n('adminHome', 'openBoard', 'Open board') }}</a>
+                        <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'calendar', 'Calendar') }}</a>
                       </div>
                     </div>
                   </div>
@@ -1925,8 +1924,8 @@
               <div class="admin-empty-illustration" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <h3>No operations scheduled for today.</h3>
-              <p>As reservations, calendar events, and operations tasks arrive, they will appear here grouped by time.</p>
+              <h3>{{ public_i18n('adminHome', 'noOperationsTitle', 'No operations scheduled for today.') }}</h3>
+              <p>{{ public_i18n('adminHome', 'noOperationsCopy', 'As reservations, calendar events, and operations tasks arrive, they will appear here grouped by time.') }}</p>
             </div>
           {% endif %}
         </div>
@@ -1935,8 +1934,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-section-head">
           <div>
-            <span class="admin-pill admin-pill--warning">Section 3</span>
-            <h2>Operations heat map</h2>
+            <span class="admin-pill admin-pill--warning">{{ public_i18n('adminHome', 'operationsHeatMapPill', 'Section 3') }}</span>
+            <h2>{{ public_i18n('adminHome', 'operationsHeatMapTitle', 'Operations heat map') }}</h2>
           </div>
         </div>
         <div class="admin-heatmap">
@@ -1959,8 +1958,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--info">Section 4</span>
-          <h2>Reservations overview</h2>
+            <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'reservationsOverviewPill', 'Section 4') }}</span>
+          <h2>{{ public_i18n('adminHome', 'reservationsOverviewTitle', 'Reservations overview') }}</h2>
         </div>
       </div>
       <div class="admin-three-up">
@@ -1968,7 +1967,7 @@
           <article class="admin-timeline-card">
             <div class="admin-timeline-head">
               <strong>{{ group.label }}</strong>
-              <span class="admin-pill admin-pill--neutral">{{ group['items']|length }} items</span>
+              <span class="admin-pill admin-pill--neutral">{{ group['items']|length }} {{ public_i18n('adminHome', 'items', 'items') }}</span>
             </div>
             {% if group['items'] %}
               <div class="admin-reservation-timeline">
@@ -1989,15 +1988,15 @@
                     </div>
                     <div class="admin-reservation-card__meta">
                       <div class="admin-reservation-card__pills">
-                        <span class="admin-badge admin-badge--arrival">Arrival {{ reservation.arrival_display }}</span>
-                        <span class="admin-badge admin-badge--departure">Departure {{ reservation.departure_display }}</span>
+                        <span class="admin-badge admin-badge--arrival">{{ public_i18n('adminHome', 'arrival', 'Arrival') }} {{ reservation.arrival_display }}</span>
+                        <span class="admin-badge admin-badge--departure">{{ public_i18n('adminHome', 'departure', 'Departure') }} {{ reservation.departure_display }}</span>
                       </div>
                       <div class="admin-property-progress" aria-hidden="true">
                         <span class="admin-property-progress__fill" style="width: 100%;"></span>
                       </div>
                       <div class="admin-property-metrics">
-                        <span><strong>Occupancy</strong><span>{{ reservation.status }}</span></span>
-                        <span><strong>Channel</strong><span>{{ reservation.channel }}</span></span>
+                        <span><strong>{{ public_i18n('adminHome', 'occupancy', 'Occupancy') }}</strong><span>{{ reservation.status }}</span></span>
+                        <span><strong>{{ public_i18n('adminHome', 'channel', 'Channel') }}</strong><span>{{ reservation.channel }}</span></span>
                       </div>
                     </div>
                   </div>
@@ -2008,8 +2007,8 @@
                 <div class="admin-empty-illustration" aria-hidden="true">
                   <span></span><span></span><span></span>
                 </div>
-                <h3>No reservations in this window.</h3>
-                <p>Today, tomorrow, and the next 7 days will populate automatically from the reservation source of truth.</p>
+                <h3>{{ public_i18n('adminHome', 'noReservationsTitle', 'No reservations in this window.') }}</h3>
+                <p>{{ public_i18n('adminHome', 'noReservationsCopy', 'Today, tomorrow, and the next 7 days will populate automatically from the reservation source of truth.') }}</p>
               </div>
             {% endif %}
           </article>
@@ -2020,8 +2019,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--success">Section 5</span>
-          <h2>Property health</h2>
+            <span class="admin-pill admin-pill--success">{{ public_i18n('adminHome', 'propertyHealthPill', 'Section 5') }}</span>
+          <h2>{{ public_i18n('adminHome', 'propertyHealthTitle', 'Property health') }}</h2>
         </div>
       </div>
       <div class="admin-property-grid">
@@ -2038,17 +2037,17 @@
               <div class="admin-health-gauge" style="--gauge: {{ property.health }};" aria-label="Readiness {{ property.health }} percent">
                 <div>
                   <div class="admin-health-gauge__value">{{ property.health }}%</div>
-                  <span class="admin-health-gauge__label">Readiness</span>
+                  <span class="admin-health-gauge__label">{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</span>
                 </div>
               </div>
               <div class="admin-property-meta">
                 <div class="admin-property-statuses">
-                  <span class="admin-badge {% if property.cleaning_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">Cleaning {% if property.cleaning_required %}needed{% else %}ready{% endif %}</span>
-                  <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">Maintenance {% if property.maintenance_required %}flagged{% else %}clear{% endif %}</span>
-                  <span class="admin-badge admin-badge--info">Availability {{ property.availability }}%</span>
+                  <span class="admin-badge {% if property.cleaning_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">{{ public_i18n('adminHome', 'cleaning', 'Cleaning') }} {% if property.cleaning_required %}{{ public_i18n('adminHome', 'needed', 'needed') }}{% else %}{{ public_i18n('adminHome', 'ready', 'ready') }}{% endif %}</span>
+                  <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">{{ public_i18n('adminHome', 'maintenance', 'Maintenance') }} {% if property.maintenance_required %}{{ public_i18n('adminHome', 'flagged', 'flagged') }}{% else %}{{ public_i18n('adminHome', 'clear', 'clear') }}{% endif %}</span>
+                  <span class="admin-badge admin-badge--info">{{ public_i18n('adminHome', 'availability', 'Availability') }} {{ property.availability }}%</span>
                   {% if property.risk_score is defined %}
                     <span class="admin-badge admin-badge--{{ property.risk_tone }}">Risk {{ property.risk_score }}/100</span>
-                    <span class="admin-submeta">Risk score {{ property.risk_score }}/100</span>
+                    <span class="admin-submeta">{{ public_i18n('adminHome', 'riskScore', 'Risk score') }} {{ property.risk_score }}/100</span>
                   {% endif %}
                 </div>
                 <div class="admin-property-progress" aria-hidden="true">
@@ -2057,11 +2056,11 @@
               </div>
             </div>
             <div class="admin-property-metrics">
-              <span><strong>Occupancy</strong><span>{{ property.occupancy }}%</span></span>
-              <span><strong>Availability</strong><span>{{ property.availability }}%</span></span>
-              <span><strong>Checklist</strong><span>{{ property.checklist_done }}/{{ property.checklist_total }}</span></span>
-              <span><strong>Next arrival</strong><span>{{ property.next_arrival.arrival_datetime if property.next_arrival else 'None' }}</span></span>
-              <span><strong>Next departure</strong><span>{{ property.next_departure.departure_datetime if property.next_departure else 'None' }}</span></span>
+              <span><strong>{{ public_i18n('adminHome', 'occupancy', 'Occupancy') }}</strong><span>{{ property.occupancy }}%</span></span>
+              <span><strong>{{ public_i18n('adminHome', 'availability', 'Availability') }}</strong><span>{{ property.availability }}%</span></span>
+              <span><strong>{{ public_i18n('adminHome', 'checklist', 'Checklist') }}</strong><span>{{ property.checklist_done }}/{{ property.checklist_total }}</span></span>
+              <span><strong>{{ public_i18n('adminHome', 'nextArrival', 'Next arrival') }}</strong><span>{{ property.next_arrival.arrival_datetime if property.next_arrival else 'None' }}</span></span>
+              <span><strong>{{ public_i18n('adminHome', 'nextDeparture', 'Next departure') }}</strong><span>{{ property.next_departure.departure_datetime if property.next_departure else 'None' }}</span></span>
             </div>
           </article>
         {% endfor %}
@@ -2072,34 +2071,34 @@
       <article class="admin-cockpit-panel">
         <div class="admin-section-head">
           <div>
-            <span class="admin-pill admin-pill--warning">Section 6</span>
-            <h2>Operations summary</h2>
+            <span class="admin-pill admin-pill--warning">{{ public_i18n('adminHome', 'operationsSummaryPill', 'Section 6') }}</span>
+            <h2>{{ public_i18n('adminHome', 'operationsSummaryTitle', 'Operations summary') }}</h2>
           </div>
         </div>
         <div class="admin-summary-list">
-          <span><strong>Late operations</strong><span>{{ operations_summary.late_operations }}</span></span>
-          <span><strong>Waiting owner</strong><span>{{ operations_summary.waiting_owner }}</span></span>
-          <span><strong>Waiting professional</strong><span>{{ operations_summary.waiting_professional }}</span></span>
-          <span><strong>Waiting operations</strong><span>{{ operations_summary.waiting_operations }}</span></span>
-          <span><strong>Completed today</strong><span>{{ operations_summary.completed_today }}</span></span>
-          <span><strong>Average completion time</strong><span>{{ operations_summary.average_completion_time }}</span></span>
-          <span><strong>Open incidents</strong><span>{{ operations_summary.open_incidents }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'lateOperations', 'Late operations') }}</strong><span>{{ operations_summary.late_operations }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'waitingOwner', 'Waiting owner') }}</strong><span>{{ operations_summary.waiting_owner }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'waitingProfessional', 'Waiting professional') }}</strong><span>{{ operations_summary.waiting_professional }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'waitingOperations', 'Waiting operations') }}</strong><span>{{ operations_summary.waiting_operations }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'completedToday', 'Completed today') }}</strong><span>{{ operations_summary.completed_today }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'averageCompletionTimeLabel', 'Average completion time') }}</strong><span>{{ operations_summary.average_completion_time }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'openIncidents', 'Open incidents') }}</strong><span>{{ operations_summary.open_incidents }}</span></span>
         </div>
       </article>
 
       <article class="admin-cockpit-panel">
         <div class="admin-section-head">
           <div>
-            <span class="admin-pill admin-pill--info">Section 7</span>
-            <h2>Professional capacity</h2>
+            <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'professionalCapacityPill', 'Section 7') }}</span>
+            <h2>{{ public_i18n('adminHome', 'professionalCapacityTitle', 'Professional capacity') }}</h2>
           </div>
         </div>
         <div class="admin-summary-list">
-          <span><strong>Assigned today</strong><span>{{ professional_summary.assigned_today }}</span></span>
-          <span><strong>Completed today</strong><span>{{ professional_summary.completed_today }}</span></span>
-          <span><strong>Available</strong><span>{{ professional_summary.available }}</span></span>
-          <span><strong>Busy</strong><span>{{ professional_summary.busy }}</span></span>
-          <span><strong>Average workload</strong><span>{{ professional_summary.average_workload }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'assignedToday', 'Assigned today') }}</strong><span>{{ professional_summary.assigned_today }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'completedToday', 'Completed today') }}</strong><span>{{ professional_summary.completed_today }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'available', 'Available') }}</strong><span>{{ professional_summary.available }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'busy', 'Busy') }}</strong><span>{{ professional_summary.busy }}</span></span>
+          <span><strong>{{ public_i18n('adminHome', 'averageWorkload', 'Average workload') }}</strong><span>{{ professional_summary.average_workload }}</span></span>
         </div>
       </article>
     </section>
@@ -2107,8 +2106,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--primary">Section 8</span>
-          <h2>Quick actions</h2>
+            <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'quickActionsPill', 'Section 8') }}</span>
+          <h2>{{ public_i18n('adminHome', 'quickActionsTitle', 'Quick actions') }}</h2>
         </div>
       </div>
       <div class="admin-action-grid">
@@ -2116,7 +2115,7 @@
           <a class="button {% if action.tone == 'primary' %}button--primary{% else %}button--secondary{% endif %}" href="{{ action.href }}">
             <span class="admin-avatar admin-avatar--compact" aria-hidden="true">{{ action.label[:1]|upper }}</span>
             <strong>{{ action.label }}</strong>
-            <span>Open the relevant workspace</span>
+            <span>{{ public_i18n('adminHome', 'openWorkspace', 'Open the relevant workspace') }}</span>
           </a>
         {% endfor %}
       </div>
@@ -2125,8 +2124,8 @@
     <section class="admin-dashboard-section">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--neutral">Section 9</span>
-          <h2>Recent activity</h2>
+            <span class="admin-pill admin-pill--neutral">{{ public_i18n('adminHome', 'recentActivityPill', 'Section 9') }}</span>
+          <h2>{{ public_i18n('adminHome', 'recentActivityTitle', 'Recent activity') }}</h2>
         </div>
       </div>
       {% if recent_activity %}
@@ -2155,8 +2154,8 @@
           <div class="admin-empty-illustration" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
-          <h3>No activity yet.</h3>
-          <p>Reservation, operation, calendar, assignment, professional, and owner events will appear here as they are created.</p>
+          <h3>{{ public_i18n('adminHome', 'noActivityTitle', 'No activity yet.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noActivityCopy', 'Reservation, operation, calendar, assignment, professional, and owner events will appear here as they are created.') }}</p>
         </div>
       {% endif %}
     </section>

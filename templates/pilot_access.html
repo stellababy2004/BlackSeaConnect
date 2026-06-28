@@ -74,8 +74,8 @@
     <section class="cta-panel cta-panel--pilot" id="pilot-request" aria-labelledby="pilot-title">
       <div class="cta-panel__content">
         <p class="section-heading__eyebrow" data-i18n="pilotSectionEyebrow">Онбординг</p>
-        <h2 id="pilot-title">Разкажете ни за имота и за това как работи екипът.</h2>
-        <p class="cta-panel__copy">Държим заявката кратка: достатъчно контекст, за да разберем имота, региона и оперативния fit, без тежък онбординг.</p>
+        <h2 id="pilot-title" data-i18n="pilotSectionTitle">{{ public_i18n('pilot', 'pilotSectionTitle', 'Tell us about the property and the way the team works.') }}</h2>
+        <p class="cta-panel__copy" data-i18n="pilotSectionCopy">{{ public_i18n('pilot', 'pilotSectionCopy', 'We keep the request short: enough context to understand the property, the region, and the operational fit, without turning it into a heavy onboarding flow.') }}</p>
         <p class="cta-panel__trust" data-i18n="pilotTrust">Частен пилот | Без публичен списък | Отговор до 1 работен ден</p>
       </div>
 
@@ -86,16 +86,16 @@
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
             <span data-i18n="formName">Име</span>
-            <input name="name" type="text" required placeholder="Вашето име">
+            <input name="name" type="text" required placeholder="Вашето име" data-i18n-attr="placeholder:formNamePlaceholder">
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formEmail">Имейл</span>
-            <input name="email" type="email" required placeholder="name@company.com">
+            <input name="email" type="email" required placeholder="name@company.com" data-i18n-attr="placeholder:formEmailPlaceholder">
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formPropertyType">Тип имот</span>
             <select class="pilot-form__input" name="property_type" required>
-              <option value="">Изберете тип имот</option>
+              <option value="" data-i18n="pilotPropertyTypeEmpty">{{ public_i18n('pilot', 'pilotPropertyTypeEmpty', 'Choose a property type') }}</option>
               <option value="luxury_apartment" data-i18n="pilotPropertyOption1">Луксозен апартамент</option>
               <option value="boutique_hotel" data-i18n="pilotPropertyOption2">Бутиков хотел</option>
               <option value="villa_residence" data-i18n="pilotPropertyOption3">Вила / резиденция</option>
@@ -104,7 +104,7 @@
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formRegion">Регион</span>
-            <input name="location" type="text" required placeholder="Марина Варна">
+            <input name="location" type="text" required placeholder="Марина Варна" data-i18n-attr="placeholder:formRegionPlaceholder">
           </label>
           <label class="pilot-form__field">
             <span data-i18n="formPropertyCount">Брой имоти</span>

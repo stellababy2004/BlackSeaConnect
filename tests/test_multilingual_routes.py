@@ -537,7 +537,7 @@ class MultilingualRouteTests(unittest.TestCase):
 
         self.assertEqual(bg_guest["pageTitle"], "BlackSea Connect | Портал за гости за A-302")
         self.assertEqual(bg_guest["guestTitle"], "Апартамент A-302")
-        self.assertEqual(bg_guest["guestIntro"], "Спокоен companion portal за вашето пристигане, достъп и консиерж поддръжка.")
+        self.assertEqual(bg_guest["guestIntro"], "Спокоен портал-спътник за вашето пристигане, достъп и консиерж поддръжка.")
         self.assertEqual(bg_guest["actionWhatsApp"], "WhatsApp консиерж")
         self.assertEqual(bg_guest["actionDashboard"], "Панел за престоя")
         self.assertEqual(bg_guest["actionRequest"], "Поискай съдействие")
@@ -547,7 +547,7 @@ class MultilingualRouteTests(unittest.TestCase):
         guest_en = self.client.get("/guest/a-302?lang=en").get_data(as_text=True)
         guest_en_hero = guest_en.split('<div class="hero__copy guest-hero__copy">', 1)[1].split('<div class="hero__cta">', 1)[0]
         self.assertIn("A calm companion portal for your arrival, access and concierge support.", guest_en_hero)
-        self.assertNotIn("Спокоен companion portal за вашето пристигане, достъп и concierge поддръжка.", guest_en_hero)
+        self.assertNotIn("Спокоен портал-спътник за вашето пристигане, достъп и консиерж поддръжка.", guest_en_hero)
 
         guest_ru = self.client.get("/guest/a-302?lang=ru").get_data(as_text=True)
         guest_ru_hero = guest_ru.split('<div class="hero__copy guest-hero__copy">', 1)[1].split('<div class="hero__cta">', 1)[0]

@@ -112,6 +112,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!form) return;
 
+  const validationMessages = {
+    bg: {
+      required: "Моля, попълнете това поле.",
+      email: "Моля, въведете валиден имейл адрес.",
+      invalid: "Моля, въведете валидна стойност.",
+    },
+    en: {
+      required: "Please fill in this field.",
+      email: "Please enter a valid email address.",
+      invalid: "Please enter a valid value.",
+    },
+    fr: {
+      required: "Veuillez renseigner ce champ.",
+      email: "Veuillez saisir une adresse e-mail valide.",
+      invalid: "Veuillez saisir une valeur valide.",
+    },
+    ru: {
+      required: "Пожалуйста, заполните это поле.",
+      email: "Пожалуйста, введите корректный адрес электронной почты.",
+      invalid: "Пожалуйста, введите корректное значение.",
+    },
+  };
+
+  const getValidationMessages = () => {
+    const lang = (
+      document.documentElement.lang ||
+      new URLSearchParams(window.location.search).get("lang") ||
+      "bg"
+    ).toLowerCase();
+    return validationMessages[lang] || validationMessages.bg;
+  };
+
+  form.addEventListener("invalid", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) {
+      return;
+    }
+
+    const messages = getValidationMessages();
+    field.setCustomValidity("");
+
+    if (field.validity.valueMissing) {
+      field.setCustomValidity(messages.required);
+    } else if (field.validity.typeMismatch && field.type === "email") {
+      field.setCustomValidity(messages.email);
+    } else if (!field.validity.valid) {
+      field.setCustomValidity(messages.invalid);
+    }
+  }, true);
+
+  form.addEventListener("input", (event) => {
+    const field = event.target;
+    if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+      field.setCustomValidity("");
+    }
+  });
+
+  form.addEventListener("change", (event) => {
+    const field = event.target;
+    if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+      field.setCustomValidity("");
+    }
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 

@@ -27958,6 +27958,185 @@ body.operations-demo-page .operations-hero__preview .operations-preview-card__la
   color: rgba(134, 103, 48, 0.9) !important;
 }
 
+body.pilot-access-page .cta-panel--pilot .pilot-form .pilot-form__hint {
+  color: rgba(181, 231, 226, 0.94) !important;
+  -webkit-text-fill-color: rgba(181, 231, 226, 0.94) !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.guest-homepage-page .guest-homepage-main > .credibility-layer > .section-heading h2,
+body.guest-homepage-page .guest-homepage-main > .trust-layer > .section-heading h2,
+body.partners-page main > .trust-layer > .section-heading h2 {
+  color: #f2dfad !important;
+  -webkit-text-fill-color: #f2dfad !important;
+  text-shadow: 0 3px 20px rgba(2, 10, 22, 0.72) !important;
+}
+
+body.guest-homepage-page .guest-homepage-main > .credibility-layer > .section-heading .section-heading__eyebrow,
+body.guest-homepage-page .guest-homepage-main > .trust-layer > .section-heading .section-heading__eyebrow,
+body.partners-page main > .trust-layer > .section-heading .section-heading__eyebrow {
+  color: #f0d89f !important;
+  -webkit-text-fill-color: #f0d89f !important;
+  text-shadow: 0 2px 14px rgba(2, 10, 22, 0.68) !important;
+}
+
+body:is(
+  .home-page,
+  .services-page,
+  .partners-page,
+  .professionals-page,
+  .guest-homepage-page
+) main > :is(.credibility-layer, .trust-layer) > .section-heading > :is(h1, h2) {
+  color: #f4e3b6 !important;
+  -webkit-text-fill-color: #f4e3b6 !important;
+  opacity: 1 !important;
+  text-shadow:
+    0 2px 2px rgba(2, 10, 22, 0.42),
+    0 5px 24px rgba(2, 10, 22, 0.82) !important;
+}
+
+body:is(
+  .home-page,
+  .services-page,
+  .partners-page,
+  .professionals-page,
+  .guest-homepage-page
+) main > :is(.credibility-layer, .trust-layer) > .section-heading > :is(.eyebrow, .section-heading__eyebrow) {
+  color: #f7e9c7 !important;
+  -webkit-text-fill-color: #f7e9c7 !important;
+  opacity: 1 !important;
+  text-shadow: 0 3px 16px rgba(2, 10, 22, 0.86) !important;
+}
+
+body.professionals-page main > .trust-layer[aria-labelledby="approved-professionals-title"] > .section-heading #approved-professionals-title {
+  color: #f4e3b6 !important;
+  -webkit-text-fill-color: #f4e3b6 !important;
+  opacity: 1 !important;
+  text-shadow:
+    0 2px 2px rgba(2, 10, 22, 0.42),
+    0 5px 24px rgba(2, 10, 22, 0.82) !important;
+}
+
+body.professionals-page main > .trust-layer[aria-labelledby="approved-professionals-title"] > .section-heading .section-heading__eyebrow {
+  color: #f7e9c7 !important;
+  -webkit-text-fill-color: #f7e9c7 !important;
+  opacity: 1 !important;
+  text-shadow: 0 3px 16px rgba(2, 10, 22, 0.86) !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__field > span {
+  color: #f7e9c7 !important;
+  -webkit-text-fill-color: #f7e9c7 !important;
+  opacity: 1 !important;
+  text-shadow: 0 2px 12px rgba(2, 10, 22, 0.72) !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint,
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint a {
+  color: #f4e3b6 !important;
+  -webkit-text-fill-color: #f4e3b6 !important;
+  opacity: 1 !important;
+  text-shadow: 0 2px 12px rgba(2, 10, 22, 0.72) !important;
+}
+
+body.pilot-access-page .cta-panel--pilot .pilot-form__field > span {
+  color: rgba(247, 242, 228, 0.94) !important;
+  -webkit-text-fill-color: rgba(247, 242, 228, 0.94) !important;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
+}
+
+body.operations-demo-page .operations-modal__dialog .operations-form label > span {
+  color: rgba(247, 242, 228, 0.94) !important;
+  -webkit-text-fill-color: rgba(247, 242, 228, 0.94) !important;
+}
+
+body.operations-demo-page .operations-modal__dialog .operations-form__trust {
+  color: rgba(244, 218, 159, 0.92) !important;
+  -webkit-text-fill-color: rgba(244, 218, 159, 0.92) !important;
+}
+
+body.operations-demo-page .operations-modal__dialog .operations-form__response {
+  color: rgba(181, 231, 226, 0.9) !important;
+  -webkit-text-fill-color: rgba(181, 231, 226, 0.9) !important;
+}
+
+body.operations-demo-page .operations-modal__dialog {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 251, 0.92)),
+    rgba(247, 250, 252, 0.94) !important;
+  color: #10223d !important;
+}
+
+body.operations-demo-page .operations-form label > span,
+body.operations-demo-page .operations-form__trust,
+body.operations-demo-page .operations-form__response {
+  color: #243b5a !important;
+  -webkit-text-fill-color: #243b5a !important;
+}
+
+body.operations-demo-page .operations-form input,
+body.operations-demo-page .operations-form select,
+body.operations-demo-page .operations-form textarea,
+body.operations-demo-page .pilot-select__trigger {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(15, 35, 69, 0.18) !important;
+  color: #10223d !important;
+  -webkit-text-fill-color: #10223d !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  caret-color: #10223d;
+}
+
+body.operations-demo-page .operations-form input::placeholder,
+body.operations-demo-page .operations-form textarea::placeholder,
+body.operations-demo-page .pilot-select__placeholder {
+  color: rgba(36, 59, 90, 0.58) !important;
+  -webkit-text-fill-color: rgba(36, 59, 90, 0.58) !important;
+  opacity: 1 !important;
+}
+
+body.operations-demo-page .operations-form input:focus,
+body.operations-demo-page .operations-form select:focus,
+body.operations-demo-page .operations-form textarea:focus,
+body.operations-demo-page .pilot-select__trigger:focus-visible {
+  border-color: rgba(134, 103, 48, 0.52) !important;
+  outline: 3px solid rgba(171, 225, 226, 0.38) !important;
+  outline-offset: 1px;
+}
+
+body.operations-demo-page .pilot-select__trigger::after {
+  content: "" !important;
+  width: 9px !important;
+  height: 9px !important;
+  right: 24px !important;
+  border: 0 !important;
+  border-right: 2px solid #243b5a !important;
+  border-bottom: 2px solid #243b5a !important;
+  transform: translateY(-3px) rotate(45deg) !important;
+}
+
+body.operations-demo-page .pilot-select.is-open .pilot-select__trigger::after {
+  transform: translateY(2px) rotate(225deg) !important;
+}
+
+body.operations-demo-page .pilot-select__panel {
+  background: rgba(250, 252, 253, 0.98) !important;
+  border-color: rgba(15, 35, 69, 0.16) !important;
+  box-shadow: 0 24px 48px rgba(15, 35, 69, 0.18) !important;
+}
+
+body.operations-demo-page .pilot-select__option {
+  color: #10223d !important;
+  -webkit-text-fill-color: #10223d !important;
+}
+
+body.operations-demo-page .pilot-select__option:hover,
+body.operations-demo-page .pilot-select__option:focus-visible,
+body.operations-demo-page .pilot-select__option.is-selected {
+  background: rgba(171, 225, 226, 0.3) !important;
+  border-color: rgba(15, 35, 69, 0.12) !important;
+}
+
 body.operations-demo-page {
   background:
     radial-gradient(circle at top, rgba(24, 39, 58, 0.42), transparent 34%),
@@ -28063,4 +28242,124 @@ body.home-page .home-product .home-product__preview-row span,
 body.home-page .home-product .home-product__preview-row strong {
   color: #f4ecd7 !important;
   -webkit-text-fill-color: #f4ecd7 !important;
+}
+
+body.operations-demo-page {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 250, 242, 0.02) 38%, rgba(255, 255, 255, 0.06)),
+    url("/static/img/blacksea-marina-hero.png") center center / cover fixed no-repeat !important;
+  background-blend-mode: normal !important;
+  background-color: #dfeaf3 !important;
+  color: #10223d !important;
+}
+
+body.operations-demo-page .operations-demo-page__ambient {
+  opacity: 0.08 !important;
+  mix-blend-mode: normal !important;
+}
+
+body.operations-demo-page .operations-topbar,
+body.operations-demo-page .operations-hero__copy,
+body.operations-demo-page .operations-hero__preview,
+body.operations-demo-page .operations-panel,
+body.operations-demo-page .operations-panel--wide,
+body.operations-demo-page .operations-modal__dialog,
+body.operations-demo-page .operations-arrival-step,
+body.operations-demo-page .operations-feed__item,
+body.operations-demo-page .operations-property-card,
+body.operations-demo-page .operations-team-card,
+body.operations-demo-page .operations-empty-state,
+body.operations-demo-page .operations-network-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(244, 248, 252, 0.72)),
+    rgba(246, 249, 252, 0.78) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  box-shadow: 0 18px 42px rgba(2, 10, 18, 0.16) !important;
+  color: #10223d !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav__link,
+body.operations-demo-page .operations-topbar .language-switcher__button,
+body.operations-demo-page .operations-topbar .operations-chip,
+body.operations-demo-page .operations-topbar .operations-button,
+body.operations-demo-page .operations-topbar .operations-status-pill,
+body.operations-demo-page .operations-chip,
+body.operations-demo-page .operations-status-pill,
+body.operations-demo-page .operations-button {
+  color: #10223d !important;
+  -webkit-text-fill-color: #10223d !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav__link,
+body.operations-demo-page .operations-topbar .language-switcher__button,
+body.operations-demo-page .operations-topbar .operations-button--ghost,
+body.operations-demo-page .operations-chip,
+body.operations-demo-page .operations-status-pill {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(15, 35, 69, 0.14) !important;
+}
+
+body.operations-demo-page .operations-topbar .language-switcher {
+  padding: 5px 7px !important;
+  gap: 2px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  box-shadow: 0 8px 22px rgba(15, 35, 69, 0.08) !important;
+}
+
+body.operations-demo-page .operations-topbar .language-switcher__button {
+  min-width: 38px !important;
+  padding: 7px 9px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.operations-demo-page .operations-topbar .language-switcher__button.is-active {
+  background: linear-gradient(135deg, rgba(242, 218, 164, 0.94), rgba(171, 225, 226, 0.92)) !important;
+  border-color: rgba(155, 123, 47, 0.26) !important;
+  color: #10223d !important;
+  -webkit-text-fill-color: #10223d !important;
+  box-shadow: 0 5px 14px rgba(15, 35, 69, 0.14) !important;
+}
+
+body.operations-demo-page .operations-topbar .language-switcher__divider {
+  color: rgba(134, 103, 48, 0.58) !important;
+}
+
+body.operations-demo-page .operations-hero__copy :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-hero__preview :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-panel :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-panel--wide :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-modal__dialog :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-arrival-step :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-feed__item :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-property-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-team-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-empty-state :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-network-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a) {
+  color: #10223d !important;
+  -webkit-text-fill-color: #10223d !important;
+  text-shadow: none !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card,
+body.operations-demo-page .operations-hero__preview .operations-preview-stat,
+body.operations-demo-page .operations-hero__preview .operations-preview-card__notes > div {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(15, 35, 69, 0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__headline {
+  border-bottom-color: rgba(15, 35, 69, 0.12) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__time,
+body.operations-demo-page .operations-hero__preview .operations-preview-card__notes span {
+  color: rgba(37, 58, 70, 0.74) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__label {
+  color: rgba(134, 103, 48, 0.9) !important;
 }
