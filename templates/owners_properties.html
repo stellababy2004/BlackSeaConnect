@@ -204,33 +204,50 @@
         <div class="owner-properties-grid">
           {% for property in property_cards %}
             <a class="owner-property-card" href="{{ localized_url('/owners/properties/' ~ property.id) }}">
+              <div class="owner-property-card__cover">
+                {% if property.cover_photo_url %}
+                  <img src="{{ property.cover_photo_url }}" alt="{{ property.name|e }}" loading="lazy">
+                {% else %}
+                  <div class="owner-property-card__cover-fallback">
+                    <span>{{ property.name[:1]|upper|e }}</span>
+                  </div>
+                {% endif %}
+              </div>
               <div class="owner-property-card__topline">
                 <div>
                   <p class="owner-property-card__name">{{ property.name|e }}</p>
                   <div class="owner-property-card__meta">
                     <span>{{ property.property_type|e }}</span>
-                    <span>{{ property.location|e }}</span>
+                    <span>{{ property.city|e or property.location|e }}</span>
                   </div>
                 </div>
                 <span class="owner-property-card__status">{{ property.status_label|e }}</span>
               </div>
+              <div class="owner-property-card__hero-copy">
+                <span class="owner-property-card__progress">{{ property.readiness_percent }}% Ready</span>
+                <span class="owner-property-card__updated">Updated {{ property.last_updated_display|e }}</span>
+              </div>
               <div class="owner-property-card__facts">
                 <div class="owner-property-card__fact">
-                  <span>Unit count</span>
+                  <span>Guests</span>
                   <strong>{{ property.guest_capacity }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>Checklist</span>
-                  <strong>{{ property.checklist_completed }}/{{ property.checklist_total }}</strong>
+                  <span>Readiness</span>
+                  <strong>{{ property.readiness_completed }}/{{ property.readiness_total }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>Status</span>
-                  <strong>{{ property.status_label|e }}</strong>
+                  <span>City</span>
+                  <strong>{{ property.city|e or property.location|e }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>Created</span>
-                  <strong>{{ property.created_at|e }}</strong>
+                  <span>Cover</span>
+                  <strong>{% if property.cover_photo_url %}Ready{% else %}Missing{% endif %}</strong>
                 </div>
+              </div>
+              <div class="owner-property-card__actions">
+                <span class="button button--ghost button--small">Open</span>
+                <span class="button button--secondary button--small">Quick actions</span>
               </div>
             </a>
           {% endfor %}

@@ -83,71 +83,264 @@
       </div>
 
       <div class="owner-property-grid">
-        <form class="owner-property-form" method="post" action="{{ localized_url('/owners/property/new') }}">
-          <input type="hidden" name="lang" value="{{ current_lang }}">
+        {% if wizard_step != 'photos' %}
+          <form class="owner-property-form owner-property-form--wizard" method="post" action="{{ localized_url('/owners/property/new') }}">
+            <input type="hidden" name="lang" value="{{ current_lang }}">
+            <input type="hidden" name="wizard_step" value="basic">
+            <input type="hidden" name="property_id" value="{{ wizard_property_id|e }}">
 
-          <div class="owner-property-form__fields">
-            <label class="owner-property-field owner-property-field--full">
-              <span data-i18n="ownerPropertyNameLabel">{{ property_page_copy.name_label }}</span>
-              <input type="text" name="name" value="{{ form_values.name|e }}" required>
-              {% if errors.name %}<p class="form-error" data-i18n="{{ errors.name }}">Please enter a property name.</p>{% endif %}
-            </label>
+            <div class="owner-property-wizard__stepper">
+              <span class="owner-property-wizard__pill is-active">1. {{ public_i18n('common', 'dashboardPropertyInformation', 'Basic information') }}</span>
+              <span class="owner-property-wizard__pill">2. {{ public_i18n('common', 'dashboardPropertyPhotos', 'Photos') }}</span>
+            </div>
 
-            <label class="owner-property-field owner-property-field--full">
-              <span data-i18n="ownerPropertyTypeLabel">{{ property_page_copy.type_label }}</span>
-              <input type="text" name="property_type" value="{{ form_values.property_type|e }}" required>
-              {% if errors.property_type %}<p class="form-error" data-i18n="{{ errors.property_type }}">Please enter a property type.</p>{% endif %}
-            </label>
+            <div class="owner-property-form__fields">
+              <label class="owner-property-field owner-property-field--full">
+                <span data-i18n="ownerPropertyNameLabel">{{ property_page_copy.name_label }}</span>
+                <input type="text" name="name" value="{{ form_values.name|e }}" required>
+                {% if errors.name %}<p class="form-error" data-i18n="{{ errors.name }}">Please enter a property name.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field owner-property-field--full">
-              <span data-i18n="ownerPropertyLocationLabel">{{ property_page_copy.location_label }}</span>
-              <input type="text" name="location" value="{{ form_values.location|e }}" required>
-              {% if errors.location %}<p class="form-error" data-i18n="{{ errors.location }}">Please enter a location.</p>{% endif %}
-            </label>
+              <label class="owner-property-field owner-property-field--full">
+                <span>{{ public_i18n('common', 'dashboardPropertyType', 'Property type') }}</span>
+                <input type="text" name="property_type" value="{{ form_values.property_type|e }}" required>
+                {% if errors.property_type %}<p class="form-error" data-i18n="{{ errors.property_type }}">Please enter a property type.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field">
-              <span data-i18n="ownerPropertyBedroomsLabel">{{ property_page_copy.bedrooms_label }}</span>
-              <input type="number" min="0" name="bedrooms" value="{{ form_values.bedrooms|e }}" required>
-              {% if errors.bedrooms %}<p class="form-error" data-i18n="{{ errors.bedrooms }}">Please enter a valid bedroom count.</p>{% endif %}
-            </label>
+              <label class="owner-property-field owner-property-field--full">
+                <span>{{ public_i18n('common', 'dashboardPropertyAddress', 'Address') }}</span>
+                <input type="text" name="address" value="{{ form_values.address|e }}" required>
+                {% if errors.address %}<p class="form-error" data-i18n="{{ errors.address }}">Please enter an address.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field">
-              <span data-i18n="ownerPropertyBathroomsLabel">{{ property_page_copy.bathrooms_label }}</span>
-              <input type="number" min="0" name="bathrooms" value="{{ form_values.bathrooms|e }}" required>
-              {% if errors.bathrooms %}<p class="form-error" data-i18n="{{ errors.bathrooms }}">Please enter a valid bathroom count.</p>{% endif %}
-            </label>
+              <label class="owner-property-field">
+                <span data-i18n="ownerDashboardLocationLabel">{{ public_i18n('common', 'dashboardCity', 'City') }}</span>
+                <input type="text" name="city" value="{{ form_values.city|e }}" required>
+                {% if errors.city %}<p class="form-error" data-i18n="{{ errors.city }}">Please enter a city.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field">
-              <span data-i18n="ownerPropertyGuestCapacityLabel">{{ property_page_copy.guest_capacity_label }}</span>
-              <input type="number" min="0" name="guest_capacity" value="{{ form_values.guest_capacity|e }}" required>
-              {% if errors.guest_capacity %}<p class="form-error" data-i18n="{{ errors.guest_capacity }}">Please enter a valid guest capacity.</p>{% endif %}
-            </label>
+              <label class="owner-property-field">
+                <span>{{ public_i18n('common', 'dashboardCountry', 'Country') }}</span>
+                <input type="text" name="country" value="{{ form_values.country|e }}" required>
+                {% if errors.country %}<p class="form-error" data-i18n="{{ errors.country }}">Please enter a country.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field owner-property-field--full">
-              <span data-i18n="ownerPropertyOperatingModeLabel">{{ property_page_copy.operating_mode_label }}</span>
-              <select name="operating_mode" required>
-                <option value="year-round" {% if form_values.operating_mode == 'year-round' %}selected{% endif %}>{{ property_page_copy.year_round_label }}</option>
-                <option value="seasonal" {% if form_values.operating_mode == 'seasonal' %}selected{% endif %}>{{ property_page_copy.seasonal_label }}</option>
-              </select>
-              {% if errors.operating_mode %}<p class="form-error" data-i18n="{{ errors.operating_mode }}">Please select an operating mode.</p>{% endif %}
-            </label>
+              <label class="owner-property-field">
+                <span data-i18n="ownerPropertyGuestCapacityLabel">{{ property_page_copy.guest_capacity_label }}</span>
+                <input type="number" min="0" name="capacity" value="{{ form_values.guest_capacity|e }}" required>
+                {% if errors.guest_capacity %}<p class="form-error" data-i18n="{{ errors.guest_capacity }}">Please enter a valid guest capacity.</p>{% endif %}
+              </label>
 
-            <label class="owner-property-field owner-property-field--full">
-              <span data-i18n="ownerPropertyNotesLabel">{{ property_page_copy.notes_label }}</span>
-              <textarea name="notes" rows="5" placeholder="{{ property_page_copy.notes_placeholder }}">{{ form_values.notes|e }}</textarea>
-            </label>
-          </div>
+              <label class="owner-property-field">
+                <span data-i18n="ownerPropertyBedroomsLabel">{{ property_page_copy.bedrooms_label }}</span>
+                <input type="number" min="0" name="bedrooms" value="{{ form_values.bedrooms|e }}" required>
+                {% if errors.bedrooms %}<p class="form-error" data-i18n="{{ errors.bedrooms }}">Please enter a valid bedroom count.</p>{% endif %}
+              </label>
 
-          <div class="owner-property-actions">
-            <button class="button button--primary" type="submit" data-i18n="ownerPropertyNewSubmit">{{ property_page_copy.submit_label }}</button>
-            <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerPropertyNewCancel">{{ property_page_copy.back_label }}</a>
-          </div>
-        </form>
+              <label class="owner-property-field">
+                <span data-i18n="ownerPropertyBathroomsLabel">{{ property_page_copy.bathrooms_label }}</span>
+                <input type="number" min="0" name="bathrooms" value="{{ form_values.bathrooms|e }}" required>
+                {% if errors.bathrooms %}<p class="form-error" data-i18n="{{ errors.bathrooms }}">Please enter a valid bathroom count.</p>{% endif %}
+              </label>
+
+              <label class="owner-property-field">
+                <span>{{ public_i18n('common', 'dashboardFloor', 'Floor') }}</span>
+                <input type="text" name="floor" value="{{ form_values.floor|e }}" placeholder="{{ public_i18n('common', 'dashboardFloorPlaceholder', 'e.g. 3') }}">
+              </label>
+
+              <label class="owner-property-field">
+                <span>{{ public_i18n('common', 'dashboardElevator', 'Elevator') }}</span>
+                <select name="elevator">
+                  <option value="">{{ public_i18n('common', 'dashboardChoose', 'Choose') }}</option>
+                  <option value="yes" {% if form_values.elevator == 'yes' %}selected{% endif %}>{{ public_i18n('common', 'dashboardYes', 'Yes') }}</option>
+                  <option value="no" {% if form_values.elevator == 'no' %}selected{% endif %}>{{ public_i18n('common', 'dashboardNo', 'No') }}</option>
+                </select>
+              </label>
+
+              <label class="owner-property-field owner-property-field--full">
+                <span>{{ public_i18n('common', 'dashboardParking', 'Parking') }}</span>
+                <textarea name="parking" rows="3" placeholder="{{ public_i18n('common', 'dashboardParkingPlaceholder', 'Parking details and access notes') }}">{{ form_values.parking|e }}</textarea>
+              </label>
+
+              <label class="owner-property-field owner-property-field--full">
+                <span data-i18n="ownerPropertyNotesLabel">{{ property_page_copy.notes_label }}</span>
+                <textarea name="notes" rows="4" placeholder="{{ property_page_copy.notes_placeholder }}">{{ form_values.notes|e }}</textarea>
+              </label>
+            </div>
+
+            <div class="owner-property-actions">
+              <button class="button button--primary" type="submit" data-i18n="ownerPropertyNewSubmit">{{ public_i18n('common', 'dashboardContinue', property_page_copy.submit_label) }}</button>
+              <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerPropertyNewCancel">{{ property_page_copy.back_label }}</a>
+            </div>
+          </form>
+        {% else %}
+          <form class="owner-property-form owner-property-form--wizard" method="post" action="{{ localized_url('/owners/property/new') }}" enctype="multipart/form-data">
+            <input type="hidden" name="lang" value="{{ current_lang }}">
+            <input type="hidden" name="wizard_step" value="photos">
+            <input type="hidden" name="property_id" value="{{ wizard_property_id|e }}">
+            <input type="hidden" name="gallery_order" value="" data-gallery-order>
+            <input type="hidden" name="delete_photo_ids" value="" data-delete-photo-ids>
+            <input type="hidden" name="delete_document_ids" value="" data-delete-document-ids>
+
+            <div class="owner-property-wizard__stepper">
+              <span class="owner-property-wizard__pill">{{ public_i18n('common', 'dashboardPropertyInformation', 'Basic information') }}</span>
+              <span class="owner-property-wizard__pill is-active">2. {{ public_i18n('common', 'dashboardPropertyPhotos', 'Photos') }}</span>
+            </div>
+
+            <div class="owner-property-upload-zone" data-owner-upload-zone>
+              <div class="owner-property-upload-zone__copy">
+                <p class="owner-portal-card__eyebrow">{{ public_i18n('common', 'dashboardPhotoUpload', 'Photo upload') }}</p>
+                <h3>{{ public_i18n('common', 'dashboardDragDropPhotos', 'Drag, drop, and curate the gallery') }}</h3>
+                <p class="owner-portal-card__subcopy">{{ public_i18n('common', 'dashboardPhotoUploadCopy', 'Add up to 20 images now. Choose a cover image, reorder later, and keep the architecture ready for cloud storage.') }}</p>
+              </div>
+              <label class="owner-property-upload-zone__button button button--secondary">
+                <input type="file" name="photos" accept="image/*" multiple data-owner-photo-input>
+                {{ public_i18n('common', 'dashboardAddPhotos', 'Add photos') }}
+              </label>
+            </div>
+
+            {% set gallery_photos = wizard_assets.photos if wizard_assets and wizard_assets.photos else [] %}
+            <div class="owner-property-gallery" data-owner-gallery>
+              {% for photo in gallery_photos %}
+                <article class="owner-property-gallery__item" data-owner-gallery-item data-photo-id="{{ photo.id|e }}">
+                  <img src="{{ localized_url('/owners/properties/' ~ wizard_property_id ~ '/media/' ~ photo.id) }}" alt="{{ wizard_property.name|e }} photo {{ loop.index }}" loading="lazy">
+                  <div class="owner-property-gallery__item-meta">
+                    <label>
+                      <input type="radio" name="cover_photo_id" value="{{ photo.id|e }}" {% if photo.is_cover %}checked{% endif %}>
+                      <span>{{ public_i18n('common', 'dashboardCoverPhoto', 'Cover photo') }}</span>
+                    </label>
+                    <div class="owner-property-gallery__actions">
+                      <button class="button button--ghost" type="button" data-gallery-move="up">{{ public_i18n('common', 'dashboardMoveUp', 'Up') }}</button>
+                      <button class="button button--ghost" type="button" data-gallery-move="down">{{ public_i18n('common', 'dashboardMoveDown', 'Down') }}</button>
+                      <button class="button button--ghost" type="button" data-gallery-delete>{{ public_i18n('common', 'dashboardDelete', 'Delete') }}</button>
+                    </div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+
+            <div class="owner-property-upload-grid">
+              <label class="owner-property-upload-card">
+                <span>{{ public_i18n('common', 'dashboardDocuments', 'Documents') }}</span>
+                <input type="file" name="documents" accept="application/pdf,image/*" multiple>
+                <small>{{ public_i18n('common', 'dashboardDocumentsCopy', 'PDF manuals, instructions, inventories, and emergency procedures.') }}</small>
+              </label>
+              <label class="owner-property-upload-card">
+                <span>{{ public_i18n('common', 'dashboardWelcomeInstructions', 'Welcome instructions') }}</span>
+                <textarea name="welcome_instructions" rows="4" placeholder="{{ public_i18n('common', 'dashboardWelcomeInstructionsPlaceholder', 'Add the welcome note guests should see first.') }}">{{ wizard_assets.welcome_instructions|e }}</textarea>
+              </label>
+            </div>
+
+            <section class="owner-property-section">
+              <h3>{{ public_i18n('common', 'dashboardAmenities', 'Amenities') }}</h3>
+              <div class="owner-property-toggle-grid">
+                {% set amenities = [
+                  ('wifi', 'WiFi'),
+                  ('air_conditioning', 'Air conditioning'),
+                  ('heating', 'Heating'),
+                  ('pool', 'Pool'),
+                  ('beach_access', 'Beach access'),
+                  ('kitchen', 'Kitchen'),
+                  ('coffee_machine', 'Coffee machine'),
+                  ('tv', 'TV'),
+                  ('washing_machine', 'Washing machine'),
+                  ('dryer', 'Dryer'),
+                  ('balcony', 'Balcony'),
+                  ('garden', 'Garden'),
+                  ('bbq', 'BBQ'),
+                  ('workspace', 'Workspace'),
+                  ('pet_friendly', 'Pet friendly'),
+                ] %}
+                {% for key, label in amenities %}
+                  <label class="owner-property-toggle">
+                    <input type="checkbox" name="amenity_{{ key }}" value="1" {% if wizard_assets.amenities and wizard_assets.amenities[key] %}checked{% endif %}>
+                    <span>{{ label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="owner-property-section">
+              <h3>{{ public_i18n('common', 'dashboardHouseRules', 'House rules') }}</h3>
+              <div class="owner-property-form__fields">
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardCheckIn', 'Check-in') }}</span>
+                  <input type="text" name="house_rule_check_in" value="{{ wizard_assets.house_rules.check_in|e }}" placeholder="15:00">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardCheckOut', 'Check-out') }}</span>
+                  <input type="text" name="house_rule_check_out" value="{{ wizard_assets.house_rules.check_out|e }}" placeholder="11:00">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardSmoking', 'Smoking') }}</span>
+                  <input type="text" name="house_rule_smoking" value="{{ wizard_assets.house_rules.smoking|e }}" placeholder="No smoking">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardPets', 'Pets') }}</span>
+                  <input type="text" name="house_rule_pets" value="{{ wizard_assets.house_rules.pets|e }}" placeholder="Pets allowed by request">
+                </label>
+                <label class="owner-property-field owner-property-field--full">
+                  <span>{{ public_i18n('common', 'dashboardParties', 'Parties') }}</span>
+                  <input type="text" name="house_rule_parties" value="{{ wizard_assets.house_rules.parties|e }}" placeholder="No parties or events">
+                </label>
+              </div>
+            </section>
+
+            <section class="owner-property-section">
+              <h3>{{ public_i18n('common', 'dashboardAccessInformation', 'Access information') }}</h3>
+              <div class="owner-property-form__fields">
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardWifiName', 'Wifi name') }}</span>
+                  <input type="text" name="access_wifi_name" value="{{ wizard_assets.access_information.wifi_name|e }}">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardWifiPassword', 'Wifi password') }}</span>
+                  <input type="text" name="access_wifi_password" value="{{ wizard_assets.access_information.wifi_password|e }}">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardBuildingCode', 'Building code') }}</span>
+                  <input type="text" name="access_building_code" value="{{ wizard_assets.access_information.building_code|e }}">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardApartmentCode', 'Apartment code') }}</span>
+                  <input type="text" name="access_apartment_code" value="{{ wizard_assets.access_information.apartment_code|e }}">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardKeySafeCode', 'Key safe code') }}</span>
+                  <input type="text" name="access_key_safe_code" value="{{ wizard_assets.access_information.key_safe_code|e }}">
+                </label>
+                <label class="owner-property-field">
+                  <span>{{ public_i18n('common', 'dashboardEmergencyContact', 'Emergency contact') }}</span>
+                  <input type="text" name="access_emergency_contact" value="{{ wizard_assets.access_information.emergency_contact|e }}">
+                </label>
+                <label class="owner-property-field owner-property-field--full">
+                  <span>{{ public_i18n('common', 'dashboardParkingInstructions', 'Parking instructions') }}</span>
+                  <textarea name="access_parking_instructions" rows="3">{{ wizard_assets.access_information.parking_instructions|e }}</textarea>
+                </label>
+              </div>
+            </section>
+
+            <div class="owner-property-actions">
+              <a class="button button--secondary" href="{{ localized_url('/owners/property/new?step=basic&property_id=' ~ wizard_property_id) }}">{{ public_i18n('common', 'dashboardBack', 'Back') }}</a>
+              <button class="button button--primary" type="submit">{{ public_i18n('common', 'dashboardFinishSetup', 'Save and continue') }}</button>
+            </div>
+          </form>
+        {% endif %}
 
         <aside class="owner-property-aside" aria-label="{{ property_page_copy.aria_guidance }}">
           <p class="owner-portal-card__eyebrow" data-i18n="ownerPropertyNewAsideEyebrow">{{ property_page_copy.next_eyebrow }}</p>
           <h3>{{ property_page_copy.next_title }}</h3>
           <p class="owner-portal-card__subcopy">{{ property_page_copy.next_copy }}</p>
+          {% if wizard_property and wizard_property.id %}
+            <div class="owner-property-summary">
+              {% if wizard_property.cover_photo_url %}
+                <img class="owner-property-summary__image" src="{{ wizard_property.cover_photo_url }}" alt="{{ wizard_property.name|e }}" loading="lazy">
+              {% endif %}
+              <p><strong>{{ wizard_property.name|e }}</strong></p>
+              <p>{{ wizard_property.city|e or wizard_property.location|e }}</p>
+              <p>{{ wizard_property.readiness_percent }}% {{ public_i18n('common', 'dashboardReady', 'Ready') }}</p>
+            </div>
+          {% endif %}
           <div class="owner-property-checklist owner-property-checklist--compact">
             <div class="owner-property-checklist__item">
               <span>1</span>
@@ -203,5 +396,6 @@
 
   <script src="/static/js/translations.js?v=20260621"></script>
   <script src="/static/js/i18n.js?v=20260621"></script>
+  <script src="/static/js/owner-property-wizard.js?v=20260628"></script>
 </body>
 </html>
