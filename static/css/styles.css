@@ -24347,6 +24347,93 @@ body.operations-demo-page .operations-hero__copy .operations-eyebrow {
   color: #526782 !important;
 }
 
+body.professional-login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 20px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(246, 241, 232, 0.84) 38%, rgba(236, 229, 217, 0.72) 100%);
+  color: var(--bsc-text) !important;
+}
+
+body.professional-login-page .professional-login-shell {
+  width: min(560px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 240, 232, 0.86)),
+    rgba(255, 255, 255, 0.82) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  box-shadow:
+    0 18px 42px rgba(15, 35, 69, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(18px) saturate(122%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(122%) !important;
+  color: var(--bsc-text) !important;
+}
+
+body.professional-login-page .professional-login-shell :where(h1, p, span, label, strong, small, a) {
+  color: var(--bsc-text) !important;
+  -webkit-text-fill-color: var(--bsc-text) !important;
+  text-shadow: none !important;
+}
+
+body.professional-login-page .professional-login-shell .professional-login-note {
+  background: rgba(15, 35, 69, 0.06) !important;
+  border: 1px solid rgba(15, 35, 69, 0.10) !important;
+  color: var(--bsc-text) !important;
+}
+
+body.professional-login-page .professional-login-shell input {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(15, 35, 69, 0.14) !important;
+  color: var(--bsc-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+
+body.professional-login-page .professional-login-shell input::placeholder {
+  color: rgba(39, 62, 96, 0.58) !important;
+}
+
+body.professional-login-page .professional-login-shell :where(.button--secondary, .button--ghost) {
+  background: rgba(15, 35, 69, 0.04) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  color: var(--bsc-text) !important;
+}
+
+body.professional-login-page .professional-login-shell .button--primary {
+  color: #082236 !important;
+}
+
+body.home-page .home-product .home-product__preview {
+  background:
+    linear-gradient(180deg, rgba(7, 17, 28, 0.98), rgba(10, 27, 44, 0.88)),
+    linear-gradient(160deg, rgba(10, 34, 52, 0.92), rgba(7, 24, 39, 0.78)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow:
+    0 26px 62px rgba(4, 14, 24, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+body.home-page .home-product .preview-card__label,
+body.home-page .home-product .preview-card__topline .preview-card__signal,
+body.home-page .home-product .preview-card__header h2,
+body.home-page .home-product .home-product__preview-row span,
+body.home-page .home-product .home-product__preview-row strong {
+  color: #f8f6f2 !important;
+  -webkit-text-fill-color: #f8f6f2 !important;
+}
+
+body.home-page .home-product .home-product__preview-row {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.025) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
 /* Final mobile operations preview fit EOF anchor. */
 @media (max-width: 768px) {
   body.operations-demo-page .operations-preview-card,
@@ -27869,4 +27956,111 @@ body.operations-demo-page .operations-hero__preview .operations-preview-card__he
 
 body.operations-demo-page .operations-hero__preview .operations-preview-card__label {
   color: rgba(134, 103, 48, 0.9) !important;
+}
+
+body.operations-demo-page {
+  background:
+    radial-gradient(circle at top, rgba(24, 39, 58, 0.42), transparent 34%),
+    linear-gradient(180deg, #07111d 0%, #0b1724 48%, #111c29 100%) !important;
+  color: #f4ecd7 !important;
+}
+
+body.operations-demo-page .operations-demo-page__ambient {
+  opacity: 0.24 !important;
+  mix-blend-mode: screen !important;
+}
+
+body.operations-demo-page .operations-topbar,
+body.operations-demo-page .operations-hero__copy,
+body.operations-demo-page .operations-hero__preview,
+body.operations-demo-page .operations-panel,
+body.operations-demo-page .operations-panel--wide,
+body.operations-demo-page .operations-modal__dialog,
+body.operations-demo-page .operations-arrival-step,
+body.operations-demo-page .operations-feed__item,
+body.operations-demo-page .operations-property-card,
+body.operations-demo-page .operations-team-card,
+body.operations-demo-page .operations-empty-state,
+body.operations-demo-page .operations-network-card {
+  background:
+    linear-gradient(180deg, rgba(12, 24, 37, 0.92), rgba(8, 18, 29, 0.86)),
+    rgba(10, 20, 32, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 22px 56px rgba(2, 8, 16, 0.34) !important;
+  color: #f4ecd7 !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav__link,
+body.operations-demo-page .operations-topbar .language-switcher__button,
+body.operations-demo-page .operations-topbar .operations-chip,
+body.operations-demo-page .operations-topbar .operations-button,
+body.operations-demo-page .operations-topbar .operations-status-pill,
+body.operations-demo-page .operations-chip,
+body.operations-demo-page .operations-status-pill,
+body.operations-demo-page .operations-button {
+  color: #f4ecd7 !important;
+  -webkit-text-fill-color: #f4ecd7 !important;
+}
+
+body.operations-demo-page .operations-topbar .site-nav__link,
+body.operations-demo-page .operations-topbar .language-switcher__button,
+body.operations-demo-page .operations-topbar .operations-button--ghost,
+body.operations-demo-page .operations-chip,
+body.operations-demo-page .operations-status-pill {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.operations-demo-page .operations-hero__copy :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-hero__preview :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-panel :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-panel--wide :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-modal__dialog :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-arrival-step :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-feed__item :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-property-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-team-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-empty-state :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a),
+body.operations-demo-page .operations-network-card :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a) {
+  color: #f4ecd7 !important;
+  -webkit-text-fill-color: #f4ecd7 !important;
+  text-shadow: none !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card,
+body.operations-demo-page .operations-hero__preview .operations-preview-stat,
+body.operations-demo-page .operations-hero__preview .operations-preview-card__notes > div {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__headline {
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__time,
+body.operations-demo-page .operations-hero__preview .operations-preview-card__notes span {
+  color: rgba(244, 236, 215, 0.78) !important;
+}
+
+body.operations-demo-page .operations-hero__preview .operations-preview-card__label {
+  color: rgba(236, 204, 129, 0.94) !important;
+}
+
+body.home-page .home-product .home-product__preview {
+  background:
+    linear-gradient(180deg, rgba(9, 20, 32, 0.96), rgba(12, 24, 37, 0.88)),
+    rgba(10, 20, 32, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 22px 56px rgba(2, 8, 16, 0.28) !important;
+}
+
+body.home-page .home-product .preview-card__label,
+body.home-page .home-product .preview-card__topline .preview-card__signal,
+body.home-page .home-product .preview-card__header h2,
+body.home-page .home-product .home-product__preview-row span,
+body.home-page .home-product .home-product__preview-row strong {
+  color: #f4ecd7 !important;
+  -webkit-text-fill-color: #f4ecd7 !important;
 }

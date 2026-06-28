@@ -1,9 +1,81 @@
 <!doctype html>
-<html lang="en">
+{% set lang = current_lang if current_lang is defined else (request.args.get('lang', 'en')|lower) %}
+{% set copy = {
+  "bg": {
+    "page_title": "BlackSea Connect | Вход за професионалисти",
+    "eyebrow": "Портал за професионалисти",
+    "title": "Влезте с имейла си",
+    "intro": "Ще изпратим защитен магически линк, ако вашият професионален акаунт е регистриран в BlackSea Connect.",
+    "sent": "Ако имейлът ви е регистриран, изпратихме линк за вход.",
+    "failed": "Не можахме да изпратим линка за вход в момента. Моля, опитайте отново след малко.",
+    "invalid": "Този линк за вход вече не е валиден.",
+    "expired": "Този линк за вход е изтекъл.",
+    "denied": "Вашият акаунт все още не е одобрен за достъп до портала.",
+    "email_label": "Имейл адрес",
+    "email_placeholder": "name@company.com",
+    "email_error": "Моля, въведете регистриран имейл адрес.",
+    "submit": "Изпрати магически линк",
+    "back": "Обратно към професионалистите",
+    "apply": "Кандидатствай като професионалист"
+  },
+  "en": {
+    "page_title": "BlackSea Connect | Professional Login",
+    "eyebrow": "Professional portal",
+    "title": "Sign in with your email",
+    "intro": "We will send a secure magic link if your professional account is registered in BlackSea Connect.",
+    "sent": "If your email is registered, a sign-in link has been sent.",
+    "failed": "We could not send a sign-in link right now. Please try again shortly.",
+    "invalid": "That sign-in link is no longer valid.",
+    "expired": "That sign-in link has expired.",
+    "denied": "Your account is not yet approved for portal access.",
+    "email_label": "Email address",
+    "email_placeholder": "name@company.com",
+    "email_error": "Please enter a registered email address.",
+    "submit": "Send magic link",
+    "back": "Back to professionals",
+    "apply": "Apply as professional"
+  },
+  "fr": {
+    "page_title": "BlackSea Connect | Connexion professionnel",
+    "eyebrow": "Portail professionnel",
+    "title": "Connectez-vous avec votre e-mail",
+    "intro": "Nous enverrons un lien magique sécurisé si votre compte professionnel est enregistré dans BlackSea Connect.",
+    "sent": "Si votre e-mail est enregistré, un lien de connexion a été envoyé.",
+    "failed": "Nous n’avons pas pu envoyer le lien de connexion pour le moment. Veuillez réessayer dans un instant.",
+    "invalid": "Ce lien de connexion n’est plus valide.",
+    "expired": "Ce lien de connexion a expiré.",
+    "denied": "Votre compte n’est pas encore approuvé pour l’accès au portail.",
+    "email_label": "Adresse e-mail",
+    "email_placeholder": "name@company.com",
+    "email_error": "Veuillez saisir une adresse e-mail enregistrée.",
+    "submit": "Envoyer le lien magique",
+    "back": "Retour aux professionnels",
+    "apply": "Candidater comme professionnel"
+  },
+  "ru": {
+    "page_title": "BlackSea Connect | Вход для профессионалов",
+    "eyebrow": "Портал профессионалов",
+    "title": "Войдите по электронной почте",
+    "intro": "Мы отправим безопасную магическую ссылку, если ваш профессиональный аккаунт зарегистрирован в BlackSea Connect.",
+    "sent": "Если ваш e-mail зарегистрирован, ссылка для входа отправлена.",
+    "failed": "Сейчас не удалось отправить ссылку для входа. Пожалуйста, попробуйте ещё раз через несколько минут.",
+    "invalid": "Эта ссылка для входа больше не действительна.",
+    "expired": "Эта ссылка для входа истекла.",
+    "denied": "Ваш аккаунт ещё не одобрен для доступа к порталу.",
+    "email_label": "Адрес электронной почты",
+    "email_placeholder": "name@company.com",
+    "email_error": "Пожалуйста, введите зарегистрированный адрес электронной почты.",
+    "submit": "Отправить магическую ссылку",
+    "back": "Назад к профессионалам",
+    "apply": "Подать заявку как профессионал"
+  }
+} %}
+{% set t = copy[lang if lang in copy else 'en'] %}
+<html lang="{{ lang if lang in copy else 'en' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Login</title>
+  <title>{{ t.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .professional-login-page {
@@ -54,41 +126,42 @@
 <body class="professional-login-page">
   <main class="professional-login-shell">
     <div>
-      <p class="eyebrow">Professional portal</p>
-      <h1>Sign in with your email</h1>
-      <p>We will send a secure magic link if your professional account is registered in BlackSea Connect.</p>
+      <p class="eyebrow">{{ t.eyebrow }}</p>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.intro }}</p>
     </div>
 
     {% if request.args.get("magic_sent") == "1" %}
-      <div class="professional-login-note">If your email is registered, a sign-in link has been sent.</div>
+      <div class="professional-login-note">{{ t.sent }}</div>
     {% endif %}
     {% if request.args.get("magic_sent") == "0" %}
-      <div class="professional-login-note">We could not send a sign-in link right now. Please try again shortly.</div>
+      <div class="professional-login-note">{{ t.failed }}</div>
     {% endif %}
     {% if request.args.get("invalid_token") == "1" %}
-      <div class="professional-login-note">That sign-in link is no longer valid.</div>
+      <div class="professional-login-note">{{ t.invalid }}</div>
     {% endif %}
     {% if request.args.get("expired_token") == "1" %}
-      <div class="professional-login-note">That sign-in link has expired.</div>
+      <div class="professional-login-note">{{ t.expired }}</div>
     {% endif %}
     {% if request.args.get("access") == "denied" %}
-      <div class="professional-login-note">Your account is not yet approved for portal access.</div>
+      <div class="professional-login-note">{{ t.denied }}</div>
     {% endif %}
 
-    <form class="professional-login-form" method="post" action="/professionals/login">
+    <form class="professional-login-form" method="post" action="{{ localized_url('/professionals/login') }}">
+      <input type="hidden" name="lang" value="{{ lang if lang in copy else 'en' }}">
       <label>
-        <span>Email address</span>
-        <input type="email" name="email" value="{{ form_values.email|e }}" placeholder="name@company.com" required>
+        <span>{{ t.email_label }}</span>
+        <input type="email" name="email" value="{{ form_values.email|e }}" placeholder="{{ t.email_placeholder }}" required>
       </label>
       {% if errors.email %}
-        <p class="professional-login-note">Email is required.</p>
+        <p class="professional-login-note">{{ t.email_error }}</p>
       {% endif %}
-      <button class="button button--primary" type="submit">Send magic link</button>
+      <button class="button button--primary" type="submit">{{ t.submit }}</button>
     </form>
 
     <div class="hero__cta">
-      <a class="button button--secondary" href="/professionals">Back to professionals</a>
-      <a class="button button--ghost" href="/professionals/apply">Apply as professional</a>
+      <a class="button button--secondary" href="{{ localized_url('/professionals') }}">{{ t.back }}</a>
+      <a class="button button--ghost" href="{{ localized_url('/professionals/apply') }}">{{ t.apply }}</a>
     </div>
   </main>
 </body>

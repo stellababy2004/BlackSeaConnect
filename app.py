@@ -20,7 +20,7 @@ import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
-from flask import Flask, Response, g, jsonify, redirect, render_template, render_template_string, request, session, url_for
+from flask import Flask, Response, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for
 
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
@@ -511,9 +511,16 @@ OPERATIONS_TASK_STATUS_TONES = {
 
 
 def _professional_service_category_items():
+    current_lang = _resolve_current_language()
     return [
         {
-            "label": category,
+            "label": _load_public_i18n_value(
+                "professionalsApply",
+                current_lang,
+                PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
+                category,
+            ),
+            "value": category,
             "key": PROFESSIONAL_SERVICE_CATEGORY_TRANSLATION_KEYS[category],
         }
         for category in PROFESSIONAL_SERVICE_CATEGORIES
@@ -7895,6 +7902,20 @@ def _load_public_i18n_bundle(namespace):
     return bundle
 
 
+def _load_public_i18n_value(namespace, lang, key, fallback=""):
+    bundle = _load_public_i18n_bundle(namespace)
+    normalized_lang = _normalize_site_language(lang) or "en"
+
+    for candidate_lang in (normalized_lang, "en"):
+        namespace_copy = bundle.get(candidate_lang, {}).get(namespace, {})
+        if isinstance(namespace_copy, dict):
+            value = namespace_copy.get(key)
+            if value is not None and value != "":
+                return value
+
+    return fallback
+
+
 @app.context_processor
 def inject_public_site_settings():
     current_lang = _resolve_current_language()
@@ -11047,6 +11068,12 @@ def professionals_apply():
 
 @app.route("/professionals/login", methods=["GET", "POST"])
 def professionals_login():
+    current_lang = (
+        _normalize_site_language(request.values.get("lang"))
+        or _normalize_site_language(request.args.get("lang"))
+        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
+        or "bg"
+    )
     form_values = {"email": ""}
     errors = {}
     if request.method == "POST":
@@ -11057,38 +11084,44 @@ def professionals_login():
         else:
             professional_account = _find_professional_account_by_email(raw_email)
             if not professional_account:
-                return redirect(url_for("professionals_login", magic_sent="1"))
+                return redirect(url_for("professionals_login", magic_sent="1", lang=current_lang))
 
             magic_token = _create_professional_magic_token(professional_account["email"])
             if not magic_token:
-                return redirect(url_for("professionals_login", magic_sent="0"))
+                return redirect(url_for("professionals_login", magic_sent="0", lang=current_lang))
 
-            login_url = f"{SITE_URL}{url_for('professional_magic_login', token=magic_token['token'])}"
+            login_url = f"{SITE_URL}{url_for('professional_magic_login', token=magic_token['token'], lang=current_lang)}"
             send_result = _send_professional_magic_link(professional_account["email"], login_url)
             if not send_result.get("ok"):
                 _consume_professional_magic_token(magic_token["token"])
-                return redirect(url_for("professionals_login", magic_sent="0"))
+                return redirect(url_for("professionals_login", magic_sent="0", lang=current_lang))
 
-            return redirect(url_for("professionals_login", magic_sent="1"))
+            return redirect(url_for("professionals_login", magic_sent="1", lang=current_lang))
 
-    return render_template("professionals_login.html", form_values=form_values, errors=errors), (400 if errors else 200)
+    return render_template("professionals_login.html", form_values=form_values, errors=errors, current_lang=current_lang), (400 if errors else 200)
 
 
 @app.get("/auth/professional-magic/<token>")
 def professional_magic_login(token):
+    current_lang = (
+        _normalize_site_language(request.values.get("lang"))
+        or _normalize_site_language(request.args.get("lang"))
+        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
+        or "bg"
+    )
     token_record = _find_professional_magic_token(token)
     if not token_record:
-        return redirect(url_for("professionals_login", invalid_token="1"))
+        return redirect(url_for("professionals_login", invalid_token="1", lang=current_lang))
 
     professional_account = _find_professional_account_by_email(token_record.get("email", ""))
     if not professional_account:
         _consume_professional_magic_token(token)
-        return redirect(url_for("professionals_login", invalid_token="1"))
+        return redirect(url_for("professionals_login", invalid_token="1", lang=current_lang))
 
     created_at = _parse_iso_datetime(token_record.get("created_at", ""))
     if not created_at or datetime.now(timezone.utc) >= created_at + timedelta(minutes=PROFESSIONAL_MAGIC_LINK_TTL_MINUTES):
         _consume_professional_magic_token(token)
-        return redirect(url_for("professionals_login", expired_token="1"))
+        return redirect(url_for("professionals_login", expired_token="1", lang=current_lang))
 
     session[PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
     session[PROFESSIONAL_SESSION_ID_KEY] = professional_account.get("id", "")
@@ -11099,7 +11132,7 @@ def professional_magic_login(token):
         "last_login_at": _utc_now_iso(),
     })
     _consume_professional_magic_token(token)
-    return redirect(url_for("professionals_dashboard"))
+    return redirect(url_for("professionals_dashboard", lang=current_lang))
 
 
 @app.get("/professionals/logout")
@@ -11108,7 +11141,13 @@ def professionals_logout():
     session.pop(PROFESSIONAL_SESSION_ID_KEY, None)
     session.pop(PROFESSIONAL_SESSION_EMAIL_KEY, None)
     session.pop(PROFESSIONAL_SESSION_NAME_KEY, None)
-    return redirect(url_for("professionals_login"))
+    current_lang = (
+        _normalize_site_language(request.values.get("lang"))
+        or _normalize_site_language(request.args.get("lang"))
+        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
+        or "bg"
+    )
+    return redirect(url_for("professionals_login", lang=current_lang))
 
 
 @app.get("/professionals/dashboard")
@@ -11777,15 +11816,17 @@ def _admin_executive_alert_tone(severity):
 
 def _admin_executive_risk_band(score):
     normalized = max(0, min(100, int(score or 0)))
+    current_lang = _resolve_current_language() if has_request_context() else "bg"
+    t = lambda key, fallback="": _load_public_i18n_value("adminHome", current_lang, key, fallback)
     if normalized <= 20:
-        return {"label": "Excellent", "tone": "success"}
+        return {"label": t("riskBandExcellent", "Excellent"), "tone": "success"}
     if normalized <= 40:
-        return {"label": "Normal", "tone": "neutral"}
+        return {"label": t("riskBandNormal", "Normal"), "tone": "neutral"}
     if normalized <= 60:
-        return {"label": "Attention", "tone": "warning"}
+        return {"label": t("riskBandAttention", "Attention"), "tone": "warning"}
     if normalized <= 80:
-        return {"label": "High Risk", "tone": "danger"}
-    return {"label": "Critical", "tone": "danger"}
+        return {"label": t("riskBandHighRisk", "High Risk"), "tone": "danger"}
+    return {"label": t("riskBandCritical", "Critical"), "tone": "danger"}
 
 
 def _admin_executive_timestamp_display(value):
@@ -14624,6 +14665,9 @@ def _admin_activity_feed(pilot_requests, concierge_requests, partner_application
 
 
 def _build_admin_dashboard():
+    current_lang = _resolve_current_language() if has_request_context() else "bg"
+    t = lambda key, fallback="": _load_public_i18n_value("adminHome", current_lang, key, fallback)
+
     pilot_requests = _load_pilot_requests()
     concierge_requests = _load_concierge_requests()
     partner_applications = _load_partner_applications()
@@ -14704,9 +14748,9 @@ def _build_admin_dashboard():
 
     reservation_groups = {"today": [], "tomorrow": [], "next_7_days": []}
     reservation_timeline_groups = [
-        {"label": "Today", "items": []},
-        {"label": "Tomorrow", "items": []},
-        {"label": "Next 7 days", "items": []},
+        {"label": t("reservationTimelineToday", "Today"), "items": []},
+        {"label": t("reservationTimelineTomorrow", "Tomorrow"), "items": []},
+        {"label": t("reservationTimelineNext7Days", "Next 7 days"), "items": []},
     ]
     reservation_timeline_items = []
     for reservation in reservations:
@@ -14927,21 +14971,21 @@ def _build_admin_dashboard():
     }
 
     executive_kpis = [
-        {"icon": "properties", "title": "Properties", "value": len(owner_properties), "trend": f"{property_status_counts.get('ACTIVE', 0)} active in scope", "tone": "neutral"},
-        {"icon": "occupied", "title": "Occupied Today", "value": sum(1 for reservation in reservations if _reservation_is_occupying(reservation, today)), "trend": "Properties currently hosting guests", "tone": "success"},
-        {"icon": "available", "title": "Available Today", "value": sum(1 for property_record in owner_properties if _property_availability_engine(property_record, reservations=reservations, operations_tasks=operations_tasks)["state"] in {"Available", "Ready"}), "trend": "Ready for assignment", "tone": "success"},
-        {"icon": "arrivals", "title": "Upcoming Arrivals", "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and today <= arrival_dt.date() <= week_end), "trend": "Next 7 days", "tone": "info"},
-        {"icon": "departures", "title": "Upcoming Departures", "value": sum(1 for reservation in reservations if (departure_dt := _reservation_date_bounds(reservation)[1]) and today <= departure_dt.date() <= week_end), "trend": "Next 7 days", "tone": "info"},
-        {"icon": "bookings", "title": "Reservations This Month", "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and arrival_dt.strftime("%Y-%m") == current_month), "trend": "Arrival date basis", "tone": "neutral"},
-        {"icon": "operations", "title": "Operations Open", "value": len(open_operations), "trend": f"{len(overdue_operations)} overdue", "tone": "warning"},
-        {"icon": "waiting", "title": "Operations Waiting", "value": len(waiting_owner) + len(waiting_professional) + len(waiting_operations), "trend": "Owner + professional + operations", "tone": "warning"},
-        {"icon": "overdue", "title": "Operations Overdue", "value": len(overdue_operations), "trend": "Past due date", "tone": "danger"},
-        {"icon": "professionals", "title": "Professionals Assigned", "value": len(assigned_professionals), "trend": "Busy on open tasks", "tone": "info"},
-        {"icon": "professionals", "title": "Professionals Available", "value": len(available_professionals), "trend": "Active and free", "tone": "success"},
-        {"icon": "occupancy", "title": "Average Occupancy %", "value": occupancy_engine["occupancy_percent"], "trend": f"{occupancy_engine['available_days']} available days", "tone": "success" if occupancy_engine["occupancy_percent"] >= 75 else "warning"},
-        {"icon": "health", "title": "Property Health Average", "value": int(round(sum(property_health_scores) / max(len(property_health_scores), 1))) if property_health_scores else 0, "trend": "Readiness and status blend", "tone": "info"},
-        {"icon": "revenue", "title": "Revenue", "value": "Pending", "trend": "Channel sync placeholder", "tone": "neutral"},
-        {"icon": "sla", "title": "SLA Health", "value": f"{sla_health}%", "trend": "On-time completion rate", "tone": "success" if sla_health >= 85 else "warning" if sla_health >= 60 else "danger"},
+        {"icon": "properties", "title": t("kpiProperties", "Properties"), "value": len(owner_properties), "trend": t("kpiPropertiesTrend", f"{property_status_counts.get('ACTIVE', 0)} active in scope"), "tone": "neutral"},
+        {"icon": "occupied", "title": t("kpiOccupiedToday", "Occupied Today"), "value": sum(1 for reservation in reservations if _reservation_is_occupying(reservation, today)), "trend": t("kpiOccupiedTodayTrend", "Properties currently hosting guests"), "tone": "success"},
+        {"icon": "available", "title": t("kpiAvailableToday", "Available Today"), "value": sum(1 for property_record in owner_properties if _property_availability_engine(property_record, reservations=reservations, operations_tasks=operations_tasks)["state"] in {"Available", "Ready"}), "trend": t("kpiAvailableTodayTrend", "Ready for assignment"), "tone": "success"},
+        {"icon": "arrivals", "title": t("kpiUpcomingArrivals", "Upcoming Arrivals"), "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and today <= arrival_dt.date() <= week_end), "trend": t("kpiUpcomingArrivalsTrend", "Next 7 days"), "tone": "info"},
+        {"icon": "departures", "title": t("kpiUpcomingDepartures", "Upcoming Departures"), "value": sum(1 for reservation in reservations if (departure_dt := _reservation_date_bounds(reservation)[1]) and today <= departure_dt.date() <= week_end), "trend": t("kpiUpcomingDeparturesTrend", "Next 7 days"), "tone": "info"},
+        {"icon": "bookings", "title": t("kpiReservationsThisMonth", "Reservations This Month"), "value": sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and arrival_dt.strftime("%Y-%m") == current_month), "trend": t("kpiReservationsThisMonthTrend", "Arrival date basis"), "tone": "neutral"},
+        {"icon": "operations", "title": t("kpiOperationsOpen", "Operations Open"), "value": len(open_operations), "trend": t("kpiOperationsOpenTrend", f"{len(overdue_operations)} overdue"), "tone": "warning"},
+        {"icon": "waiting", "title": t("kpiOperationsWaiting", "Operations Waiting"), "value": len(waiting_owner) + len(waiting_professional) + len(waiting_operations), "trend": t("kpiOperationsWaitingTrend", "Owner + professional + operations"), "tone": "warning"},
+        {"icon": "overdue", "title": t("kpiOperationsOverdue", "Operations Overdue"), "value": len(overdue_operations), "trend": t("kpiOperationsOverdueTrend", "Past due date"), "tone": "danger"},
+        {"icon": "professionals", "title": t("kpiProfessionalsAssigned", "Professionals Assigned"), "value": len(assigned_professionals), "trend": t("kpiProfessionalsAssignedTrend", "Busy on open tasks"), "tone": "info"},
+        {"icon": "professionals", "title": t("kpiProfessionalsAvailable", "Professionals Available"), "value": len(available_professionals), "trend": t("kpiProfessionalsAvailableTrend", "Active and free"), "tone": "success"},
+        {"icon": "occupancy", "title": t("kpiAverageOccupancy", "Average Occupancy %"), "value": occupancy_engine["occupancy_percent"], "trend": t("kpiAverageOccupancyTrend", f"{occupancy_engine['available_days']} available days"), "tone": "success" if occupancy_engine["occupancy_percent"] >= 75 else "warning"},
+        {"icon": "health", "title": t("kpiPropertyHealthAverage", "Property Health Average"), "value": int(round(sum(property_health_scores) / max(len(property_health_scores), 1))) if property_health_scores else 0, "trend": t("kpiPropertyHealthAverageTrend", "Readiness and status blend"), "tone": "info"},
+        {"icon": "revenue", "title": t("kpiRevenue", "Revenue"), "value": "Pending", "trend": t("kpiRevenueTrend", "Channel sync placeholder"), "tone": "neutral"},
+        {"icon": "sla", "title": t("kpiSlaHealth", "SLA Health"), "value": f"{sla_health}%", "trend": t("kpiSlaHealthTrend", "On-time completion rate"), "tone": "success" if sla_health >= 85 else "warning" if sla_health >= 60 else "danger"},
     ]
 
     unified_activity = []
@@ -15277,7 +15321,7 @@ def _build_admin_dashboard():
             "risk_label": band["label"],
             "risk_tone": band["tone"],
             "risk_badge": f"{risk_score} / 100",
-            "risk_summary": f"{band['label']} risk",
+            "risk_summary": f"{band['label']} {t('riskSummarySuffix', 'risk')}",
         }
         property_risk_cards.append({
             "id": property_id,
@@ -15287,14 +15331,14 @@ def _build_admin_dashboard():
             "tier": band["label"],
             "tone": band["tone"],
             "badge": f"{risk_score} / 100",
-            "summary": f"{len(overdue_property_tasks)} overdue, {len(unassigned_property_tasks)} unassigned, {len(arrival_within_24h)} arrivals in 24h",
+            "summary": t("riskSummary", f"{len(overdue_property_tasks)} overdue, {len(unassigned_property_tasks)} unassigned, {len(arrival_within_24h)} arrivals in 24h"),
             "factors": [
-                {"label": "Overdue operations", "count": len(overdue_property_tasks)},
-                {"label": "Unassigned operations", "count": len(unassigned_property_tasks)},
-                {"label": "Calendar conflicts", "count": len(calendar_conflicts)},
-                {"label": "Overlapping reservations", "count": len(overlapping_reservations)},
-                {"label": "Owner requests waiting", "count": len(pending_owner_requests)},
-                {"label": "Missing cleaning", "count": len(missing_cleaning)},
+                {"label": t("riskFactorOverdueOperations", "Overdue operations"), "count": len(overdue_property_tasks)},
+                {"label": t("riskFactorUnassignedOperations", "Unassigned operations"), "count": len(unassigned_property_tasks)},
+                {"label": t("riskFactorCalendarConflicts", "Calendar conflicts"), "count": len(calendar_conflicts)},
+                {"label": t("riskFactorOverlappingReservations", "Overlapping reservations"), "count": len(overlapping_reservations)},
+                {"label": t("riskFactorOwnerRequestsWaiting", "Owner requests waiting"), "count": len(pending_owner_requests)},
+                {"label": t("riskFactorMissingCleaning", "Missing cleaning"), "count": len(missing_cleaning)},
             ],
         })
 
@@ -15709,35 +15753,35 @@ def _build_admin_dashboard():
         "operations_summary": operations_summary,
         "professional_summary": professional_summary,
         "quick_actions": [
-            {"label": "Create Reservation", "href": "/admin/reservations", "tone": "primary"},
-            {"label": "Create Operation", "href": "/admin/operations", "tone": "secondary"},
-            {"label": "Open Calendar", "href": "/admin/calendar", "tone": "secondary"},
-            {"label": "Open Reservations", "href": "/admin/reservations", "tone": "secondary"},
-            {"label": "Open Operations", "href": "/admin/operations", "tone": "secondary"},
-            {"label": "Import Reservations", "href": "/admin/reservations/import", "tone": "secondary"},
-            {"label": "Add Property", "href": "/admin/properties", "tone": "secondary"},
-            {"label": "Add Professional", "href": "/admin/professionals", "tone": "secondary"},
+            {"label": t("quickActionCreateReservation", "Create Reservation"), "href": "/admin/reservations", "tone": "primary"},
+            {"label": t("quickActionCreateOperation", "Create Operation"), "href": "/admin/operations", "tone": "secondary"},
+            {"label": t("quickActionOpenCalendar", "Open Calendar"), "href": "/admin/calendar", "tone": "secondary"},
+            {"label": t("quickActionOpenReservations", "Open Reservations"), "href": "/admin/reservations", "tone": "secondary"},
+            {"label": t("quickActionOpenOperations", "Open Operations"), "href": "/admin/operations", "tone": "secondary"},
+            {"label": t("quickActionImportReservations", "Import Reservations"), "href": "/admin/reservations/import", "tone": "secondary"},
+            {"label": t("quickActionAddProperty", "Add Property"), "href": "/admin/properties", "tone": "secondary"},
+            {"label": t("quickActionAddProfessional", "Add Professional"), "href": "/admin/professionals", "tone": "secondary"},
         ],
         "pipeline": [
-            {"key": "new", "label": "New", "count": pilot_counts["new"]},
-            {"key": "contacted", "label": "Contacted", "count": pilot_counts["contacted"]},
-            {"key": "qualified", "label": "Qualified", "count": pilot_counts["qualified"]},
-            {"key": "converted", "label": "Converted", "count": pilot_counts["converted"]},
-            {"key": "lost", "label": "Lost", "count": pilot_counts["lost"]},
+            {"key": "new", "label": t("pipelineNew", "New"), "count": pilot_counts["new"]},
+            {"key": "contacted", "label": t("pipelineContacted", "Contacted"), "count": pilot_counts["contacted"]},
+            {"key": "qualified", "label": t("pipelineQualified", "Qualified"), "count": pilot_counts["qualified"]},
+            {"key": "converted", "label": t("pipelineConverted", "Converted"), "count": pilot_counts["converted"]},
+            {"key": "lost", "label": t("pipelineLost", "Lost"), "count": pilot_counts["lost"]},
         ],
         "partner_pipeline": [
-            {"key": "new", "label": "New", "count": partner_counts["new"]},
-            {"key": "contacted", "label": "Contacted", "count": partner_counts["contacted"]},
-            {"key": "qualified", "label": "Qualified", "count": partner_counts["qualified"]},
-            {"key": "converted", "label": "Converted", "count": partner_counts["converted"]},
-            {"key": "lost", "label": "Lost", "count": partner_counts["lost"]},
+            {"key": "new", "label": t("pipelineNew", "New"), "count": partner_counts["new"]},
+            {"key": "contacted", "label": t("pipelineContacted", "Contacted"), "count": partner_counts["contacted"]},
+            {"key": "qualified", "label": t("pipelineQualified", "Qualified"), "count": partner_counts["qualified"]},
+            {"key": "converted", "label": t("pipelineConverted", "Converted"), "count": partner_counts["converted"]},
+            {"key": "lost", "label": t("pipelineLost", "Lost"), "count": partner_counts["lost"]},
         ],
         "professional_pipeline": [
-            {"key": "new", "label": "New", "count": professional_counts["new"]},
-            {"key": "contacted", "label": "Contacted", "count": professional_counts["contacted"]},
-            {"key": "qualified", "label": "Qualified", "count": professional_counts["qualified"]},
-            {"key": "converted", "label": "Converted", "count": professional_counts["converted"]},
-            {"key": "lost", "label": "Lost", "count": professional_counts["lost"]},
+            {"key": "new", "label": t("pipelineNew", "New"), "count": professional_counts["new"]},
+            {"key": "contacted", "label": t("pipelineContacted", "Contacted"), "count": professional_counts["contacted"]},
+            {"key": "qualified", "label": t("pipelineQualified", "Qualified"), "count": professional_counts["qualified"]},
+            {"key": "converted", "label": t("pipelineConverted", "Converted"), "count": professional_counts["converted"]},
+            {"key": "lost", "label": t("pipelineLost", "Lost"), "count": professional_counts["lost"]},
         ],
         "calendar_widget": calendar_widget,
         "reservation_widget": reservation_widget,
