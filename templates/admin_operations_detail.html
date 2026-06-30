@@ -810,17 +810,19 @@
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Owner contact</p>
           <h2 class="admin-operations-section-title">Owner and property</h2>
+          {% set owner_email = owner_account.email if owner_account else task.owner_email %}
+          {% set owner_phone = owner_account.phone if owner_account else task.owner_phone %}
           <dl class="admin-operations-dl">
             <div><dt>Owner name</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
-            <div><dt>Email</dt><dd>{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e or 'Not set' }}{% endif %}</dd></div>
-            <div><dt>Phone</dt><dd>{% if owner_account %}{{ owner_account.phone|e or 'Not set' }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
+            <div><dt>Email</dt><dd>{{ owner_email|e or 'Not set' }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ owner_phone|e or 'Not set' }}</dd></div>
             <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</dd></div>
           </dl>
           <div class="admin-operations-contact-actions u-mt-14">
-            <a class="button button--ghost" href="mailto:{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Mailto</a>
-            <a class="button button--ghost" href="tel:{% if owner_account %}{{ owner_account.phone|e }}{% else %}{{ task.owner_name|e }}{% endif %}">Tel</a>
-            <button class="button button--ghost" type="button" data-copy="{% if owner_account %}{{ owner_account.email|e }}{% else %}{{ task.owner_email|e }}{% endif %}">Copy email</button>
-            <button class="button button--ghost" type="button" data-copy="{% if owner_account %}{{ owner_account.phone|e }}{% else %}{{ task.owner_name|e }}{% endif %}">Copy phone</button>
+            {% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">Mailto</a>{% endif %}
+            {% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">Tel</a>{% endif %}
+            {% if owner_email %}<button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">Copy email</button>{% endif %}
+            {% if owner_phone %}<button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">Copy phone</button>{% endif %}
           </div>
         </article>
 

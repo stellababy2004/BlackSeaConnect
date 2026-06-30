@@ -48,6 +48,8 @@
   <main class="professional-task-shell">
     <section class="professional-panel professional-hero">
       <div>
+        {% set owner_email = task.owner_email|default('', true) %}
+        {% set owner_phone = task.owner_phone|default('', true) %}
         <div class="professional-meta">
           <span class="professional-badge">{{ task.status_label|e }}</span>
           <span class="professional-badge">{{ task.priority_label|e }}</span>
@@ -83,8 +85,8 @@
           <h2>Context</h2>
           <dl class="professional-dl">
             <div><dt>Property info</dt><dd>{{ task.property_location|e or 'Location not set' }}</dd></div>
-            <div><dt>Owner info</dt><dd>{{ task.owner_name|e or 'Owner not set' }}{% if task.owner_email %}<br>{{ task.owner_email|e }}{% endif %}</dd></div>
-            <div><dt>Contact buttons</dt><dd class="professional-task-actions"><a class="button button--ghost" href="mailto:{{ task.owner_email|e }}">Email owner</a>{% if task.owner_email %}<a class="button button--ghost" href="tel:{{ task.owner_email|e }}">Call owner</a>{% endif %}</dd></div>
+            <div><dt>Owner info</dt><dd>{{ task.owner_name|e or 'Owner not set' }}{% if owner_email %}<br>{{ owner_email|e }}{% endif %}</dd></div>
+            <div><dt>Contact buttons</dt><dd class="professional-task-actions"><a class="button button--ghost" href="mailto:{{ owner_email|e }}">Email owner</a>{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">Call owner</a>{% endif %}</dd></div>
             <div><dt>Navigation</dt><dd class="professional-task-actions"><a class="button button--secondary" href="/admin/operations/{{ task.request_id|e }}">Open Operations detail</a></dd></div>
           </dl>
         </article>
