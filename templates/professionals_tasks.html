@@ -1,9 +1,55 @@
 <!doctype html>
-<html lang="en">
+{% set labels = {
+  "page_title": public_i18n("professionals", "tasksPageTitle", "BlackSea Connect | Professional Tasks"),
+  "portal_eyebrow": public_i18n("professionals", "tasksPortalEyebrow", "Professional portal"),
+  "title": public_i18n("professionals", "tasksTitle", "Tasks"),
+  "dashboard": public_i18n("professionals", "tasksDashboard", "Dashboard"),
+  "logout": public_i18n("professionals", "tasksLogout", "Logout"),
+  "search_placeholder": public_i18n("professionals", "tasksSearchPlaceholder", "Search by property, category, or title"),
+  "search": public_i18n("professionals", "tasksSearch", "Search"),
+  "no_due_date": public_i18n("professionals", "tasksNoDueDate", "No due date"),
+  "no_tasks": public_i18n("professionals", "tasksNoTasks", "No tasks are assigned to your account."),
+  "task_status_new": public_i18n("professionals", "taskStatusNew", "New"),
+  "task_status_assigned": public_i18n("professionals", "taskStatusAssigned", "Assigned"),
+  "task_status_accepted": public_i18n("professionals", "taskStatusAccepted", "Accepted"),
+  "task_status_on_the_way": public_i18n("professionals", "taskStatusOnTheWay", "On the way"),
+  "task_status_arrived": public_i18n("professionals", "taskStatusArrived", "Arrived"),
+  "task_status_in_progress": public_i18n("professionals", "taskStatusInProgress", "In progress"),
+  "task_status_paused": public_i18n("professionals", "taskStatusPaused", "Paused"),
+  "task_status_waiting_owner": public_i18n("professionals", "taskStatusWaitingOwner", "Waiting owner"),
+  "task_status_waiting_operations": public_i18n("professionals", "taskStatusWaitingOperations", "Waiting Operations"),
+  "task_status_completed": public_i18n("professionals", "taskStatusCompleted", "Completed"),
+  "task_status_archived": public_i18n("professionals", "taskStatusArchived", "Archived"),
+  "task_status_unknown": public_i18n("professionals", "taskStatusUnknown", "Unknown status"),
+  "task_priority_low": public_i18n("professionals", "taskPriorityLow", "Low"),
+  "task_priority_normal": public_i18n("professionals", "taskPriorityNormal", "Normal"),
+  "task_priority_high": public_i18n("professionals", "taskPriorityHigh", "High"),
+  "task_priority_urgent": public_i18n("professionals", "taskPriorityUrgent", "Urgent")
+} %}
+{% set status_labels = {
+  "NEW": labels.task_status_new,
+  "ASSIGNED": labels.task_status_assigned,
+  "ACCEPTED": labels.task_status_accepted,
+  "ON_THE_WAY": labels.task_status_on_the_way,
+  "ARRIVED": labels.task_status_arrived,
+  "IN_PROGRESS": labels.task_status_in_progress,
+  "PAUSED": labels.task_status_paused,
+  "WAITING_OWNER": labels.task_status_waiting_owner,
+  "WAITING_OPERATIONS": labels.task_status_waiting_operations,
+  "COMPLETED": labels.task_status_completed,
+  "ARCHIVED": labels.task_status_archived
+} %}
+{% set priority_labels = {
+  "LOW": labels.task_priority_low,
+  "NORMAL": labels.task_priority_normal,
+  "HIGH": labels.task_priority_high,
+  "URGENT": labels.task_priority_urgent
+} %}
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Tasks</title>
+  <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .professional-tasks-page {
@@ -37,33 +83,33 @@
     <section class="professional-panel">
       <div class="hero__cta u-flex-between">
         <div>
-          <p class="eyebrow">Professional portal</p>
-          <h1>Tasks</h1>
+          <p class="eyebrow">{{ labels.portal_eyebrow }}</p>
+          <h1>{{ labels.title }}</h1>
         </div>
         <div class="hero__cta">
-          <a class="button button--secondary" href="/professionals/dashboard">Dashboard</a>
-          <a class="button button--ghost" href="/professionals/logout">Logout</a>
+          <a class="button button--secondary" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
+          <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
         </div>
       </div>
 
-      <form class="professional-search" method="get" action="/professionals/tasks">
-        <input type="search" name="q" value="{{ search_query|e }}" placeholder="Search by property, category, or title">
-        <button class="button button--primary" type="submit">Search</button>
+      <form class="professional-search" method="get" action="{{ localized_url('/professionals/tasks') }}">
+        <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ labels.search_placeholder }}">
+        <button class="button button--primary" type="submit">{{ labels.search }}</button>
       </form>
 
       <div class="professional-task-list">
         {% for task in tasks %}
-          <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
+          <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
             <div class="professional-task-card__meta">
-              <span class="professional-badge">{{ task.status_label|e }}</span>
-              <span class="professional-badge">{{ task.priority_label|e }}</span>
-              <time>{{ task.due_date|e or 'No due date' }}</time>
+              <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+              <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
+              <time>{{ task.due_date|e or labels.no_due_date }}</time>
             </div>
             <strong>{{ task.title|e }}</strong>
             <p>{{ task.property_name|e or task.property_location|e }}</p>
           </a>
         {% else %}
-          <p>No tasks are assigned to your account.</p>
+          <p>{{ labels.no_tasks }}</p>
         {% endfor %}
       </div>
     </section>

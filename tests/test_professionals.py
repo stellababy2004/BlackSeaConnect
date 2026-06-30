@@ -697,7 +697,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
 
         self._login_professional_via_magic("approved-pro@example.com")
 
-        dashboard = self.client.get("/professionals/dashboard")
+        dashboard = self.client.get("/professionals/dashboard?lang=en")
         self.assertEqual(dashboard.status_code, 200)
         html = dashboard.get_data(as_text=True)
         self.assertIn("Approved Professional", html)
@@ -707,6 +707,148 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertRegex(html, r"Today</span>\s*<strong>1</strong>")
         self.assertRegex(html, r"Upcoming</span>\s*<strong>1</strong>")
         self.assertRegex(html, r"Completed</span>\s*<strong>1</strong>")
+
+    def test_professional_portal_pages_respect_selected_language_and_preserve_links(self):
+        self._seed_professional_account(
+            full_name="Localized Professional",
+            email="localized-pro@example.com",
+            status="ACTIVE",
+            professional_category="Maintenance",
+            company="Localized Coastal Ops",
+            account_id="professional-localized-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("localized-pro@example.com")
+        self.assertIsNotNone(account)
+
+        today = datetime.now(timezone.utc).date().isoformat()
+        self._seed_operations_task(
+            "task-localized",
+            title="Смяна на филтър",
+            category="MAINTENANCE",
+            due_date=today,
+            status="ASSIGNED",
+            priority="HIGH",
+            assigned_professional_id=account["id"],
+            assigned_to="Localized Professional",
+            property_name="Вила Море",
+            property_location="Варна",
+            owner_name="Собственик",
+            owner_email="owner@example.com",
+            created_at=f"{today}T09:00:00Z",
+            updated_at=f"{today}T09:00:00Z",
+        )
+
+        self._login_professional_via_magic("localized-pro@example.com")
+
+        expectations = {
+            "bg": {
+                "portal": "Портал за професионалисти",
+                "tasks": "Задачи",
+                "search": "Търси",
+                "back": "Обратно към задачите",
+                "accept": "Приеми задачата",
+                "complete": "Приключи работата",
+                "status": "Назначена",
+                "priority": "Висок",
+                "category": "Поддръжка",
+                "no_notifications": "Няма скорошни известия.",
+                "no_attachments": "Все още няма места за прикачване.",
+            },
+            "en": {
+                "portal": "Professional portal",
+                "tasks": "Tasks",
+                "search": "Search",
+                "back": "Back to tasks",
+                "accept": "Accept task",
+                "complete": "Complete work",
+                "status": "Assigned",
+                "priority": "High",
+                "category": "Maintenance",
+                "no_notifications": "No recent notifications.",
+                "no_attachments": "No attachment placeholders yet.",
+            },
+            "fr": {
+                "portal": "Portail professionnel",
+                "tasks": "Tâches",
+                "search": "Rechercher",
+                "back": "Retour aux tâches",
+                "accept": "Accepter la tâche",
+                "complete": "Terminer le travail",
+                "status": "Attribuée",
+                "priority": "Élevée",
+                "category": "Maintenance",
+                "no_notifications": "Aucune notification récente.",
+                "no_attachments": "Aucun espace réservé de pièce jointe pour le moment.",
+            },
+            "ru": {
+                "portal": "Портал профессионалов",
+                "tasks": "Задачи",
+                "search": "Поиск",
+                "back": "Назад к задачам",
+                "accept": "Принять задачу",
+                "complete": "Завершить работу",
+                "status": "Назначена",
+                "priority": "Высокий",
+                "category": "Обслуживание",
+                "no_notifications": "Недавних уведомлений нет.",
+                "no_attachments": "Пока нет заглушек для вложений.",
+            },
+        }
+
+        for lang, expected in expectations.items():
+            with self.subTest(lang=lang):
+                dashboard = self.client.get(f"/professionals/dashboard?lang={lang}")
+                self.assertEqual(dashboard.status_code, 200)
+                dashboard_html = dashboard.get_data(as_text=True)
+                self.assertIn(f'<html lang="{lang}">', dashboard_html)
+                self.assertIn(expected["portal"], dashboard_html)
+                self.assertIn(expected["no_notifications"], dashboard_html)
+                self.assertIn(expected["status"], dashboard_html)
+                self.assertIn(expected["priority"], dashboard_html)
+                self.assertIn(expected["category"], dashboard_html)
+                self.assertIn(f'href="/professionals/tasks?lang={lang}"', dashboard_html)
+                self.assertIn(f'href="/professionals/logout?lang={lang}"', dashboard_html)
+
+                tasks = self.client.get(f"/professionals/tasks?lang={lang}")
+                self.assertEqual(tasks.status_code, 200)
+                tasks_html = tasks.get_data(as_text=True)
+                self.assertIn(f'<html lang="{lang}">', tasks_html)
+                self.assertIn(expected["tasks"], tasks_html)
+                self.assertIn(expected["search"], tasks_html)
+                self.assertIn(expected["status"], tasks_html)
+                self.assertIn(expected["priority"], tasks_html)
+                self.assertIn(f'href="/professionals/dashboard?lang={lang}"', tasks_html)
+                self.assertIn(f'href="/professionals/logout?lang={lang}"', tasks_html)
+                self.assertIn(f'href="/professionals/tasks/task-localized?lang={lang}"', tasks_html)
+
+                detail = self.client.get(f"/professionals/tasks/task-localized?lang={lang}")
+                self.assertEqual(detail.status_code, 200)
+                detail_html = detail.get_data(as_text=True)
+                self.assertIn(f'<html lang="{lang}">', detail_html)
+                self.assertIn(expected["back"], detail_html)
+                self.assertIn(expected["accept"], detail_html)
+                self.assertIn(expected["complete"], detail_html)
+                self.assertIn(expected["status"], detail_html)
+                self.assertIn(expected["priority"], detail_html)
+                self.assertIn(expected["category"], detail_html)
+                self.assertIn(expected["no_attachments"], detail_html)
+                self.assertIn(f'href="/professionals/tasks?lang={lang}"', detail_html)
+                self.assertIn(f'href="/professionals/dashboard?lang={lang}"', detail_html)
+                self.assertIn(f'href="/admin/operations/task-localized?lang={lang}"', detail_html)
+
+                if lang != "en":
+                    for forbidden in [
+                        "Professional portal",
+                        "View tasks",
+                        "No recent notifications.",
+                        "Search by property, category, or title",
+                        "Back to tasks",
+                        "Accept task",
+                        "Complete work",
+                    ]:
+                        self.assertNotIn(forbidden, dashboard_html)
+                        self.assertNotIn(forbidden, tasks_html)
+                        self.assertNotIn(forbidden, detail_html)
 
     def test_pending_professional_is_blocked_from_task_views(self):
         self._seed_professional_account(
@@ -792,7 +934,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         tasks_html = tasks_response.get_data(as_text=True)
         self.assertIn("Assignable task", tasks_html)
         self.assertNotIn("Other task", tasks_html)
-        detail_response = self.client.get("/professionals/tasks/task-assignable")
+        detail_response = self.client.get("/professionals/tasks/task-assignable?lang=en")
         self.assertEqual(detail_response.status_code, 200)
         self.assertIn("Accept task", detail_response.get_data(as_text=True))
 

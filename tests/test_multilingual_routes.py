@@ -571,6 +571,27 @@ class MultilingualRouteTests(unittest.TestCase):
                 self.assertIn(f"lang={lang}", html)
                 self.assertIn(f'href="/guest/a-302?next=%2Fowners%2Fdashboard&amp;lang={lang}"', html)
 
+    def test_professional_login_page_respects_selected_language_and_links(self):
+        expected = {
+            "bg": ("Портал за професионалисти", "Обратно към професионалистите", "Кандидатствай като професионалист"),
+            "en": ("Professional portal", "Back to professionals", "Apply as professional"),
+            "fr": ("Portail professionnel", "Retour aux professionnels", "Candidater comme professionnel"),
+            "ru": ("Портал профессионалов", "Назад к профессионалам", "Подать заявку как профессионал"),
+        }
+
+        for lang, (eyebrow, back_link, apply_link) in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/professionals/login?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+                self.assertIn(f'<html lang="{lang}">', html)
+                self.assertIn(eyebrow, html)
+                self.assertIn(back_link, html)
+                self.assertIn(apply_link, html)
+                self.assertIn(f'action="/professionals/login?lang={lang}"', html)
+                self.assertIn(f'href="/professionals?lang={lang}"', html)
+                self.assertIn(f'href="/professionals/apply?lang={lang}"', html)
+
     def test_missing_translation_falls_back_to_english(self):
         repo_root = Path(__file__).resolve().parents[1]
         script = textwrap.dedent(

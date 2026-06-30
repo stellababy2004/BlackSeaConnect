@@ -1,9 +1,124 @@
 <!doctype html>
-<html lang="en">
+{% set labels = {
+  "page_title": public_i18n("professionals", "dashboardPageTitle", "BlackSea Connect | Professional Dashboard"),
+  "portal_eyebrow": public_i18n("professionals", "dashboardPortalEyebrow", "Professional portal"),
+  "view_tasks": public_i18n("professionals", "dashboardViewTasks", "View tasks"),
+  "logout": public_i18n("professionals", "dashboardLogout", "Logout"),
+  "operational_services": public_i18n("professionals", "dashboardOperationalServices", "Operational services"),
+  "assigned_today": public_i18n("professionals", "dashboardAssignedToday", "Assigned Today"),
+  "assigned_today_detail": public_i18n("professionals", "dashboardAssignedTodayDetail", "Tasks assigned or accepted today"),
+  "in_progress": public_i18n("professionals", "dashboardInProgress", "In Progress"),
+  "waiting_owner": public_i18n("professionals", "dashboardWaitingOwner", "Waiting Owner"),
+  "completed_today": public_i18n("professionals", "dashboardCompletedToday", "Completed Today"),
+  "upcoming_visits": public_i18n("professionals", "dashboardUpcomingVisits", "Upcoming Visits"),
+  "average_completion_time": public_i18n("professionals", "dashboardAverageCompletionTime", "Average Completion Time"),
+  "average_completion_time_na": public_i18n("professionals", "dashboardAverageCompletionTimeNA", "n/a"),
+  "today": public_i18n("professionals", "dashboardToday", "Today"),
+  "upcoming": public_i18n("professionals", "dashboardUpcoming", "Upcoming"),
+  "completed": public_i18n("professionals", "dashboardCompleted", "Completed"),
+  "legacy_workload": public_i18n("professionals", "dashboardLegacyWorkload", "Legacy workload view"),
+  "assigned_tasks": public_i18n("professionals", "dashboardAssignedTasks", "Assigned tasks"),
+  "active_workload": public_i18n("professionals", "dashboardActiveWorkload", "Active workload"),
+  "no_due_date": public_i18n("professionals", "dashboardNoDueDate", "No due date"),
+  "no_assigned_tasks": public_i18n("professionals", "dashboardNoAssignedTasks", "No assigned tasks yet."),
+  "notifications": public_i18n("professionals", "dashboardNotifications", "Notifications"),
+  "recent_notifications": public_i18n("professionals", "dashboardRecentNotifications", "Recent notifications"),
+  "no_recent_notifications": public_i18n("professionals", "dashboardNoRecentNotifications", "No recent notifications."),
+  "task_status_new": public_i18n("professionals", "taskStatusNew", "New"),
+  "task_status_assigned": public_i18n("professionals", "taskStatusAssigned", "Assigned"),
+  "task_status_accepted": public_i18n("professionals", "taskStatusAccepted", "Accepted"),
+  "task_status_on_the_way": public_i18n("professionals", "taskStatusOnTheWay", "On the way"),
+  "task_status_arrived": public_i18n("professionals", "taskStatusArrived", "Arrived"),
+  "task_status_in_progress": public_i18n("professionals", "taskStatusInProgress", "In progress"),
+  "task_status_paused": public_i18n("professionals", "taskStatusPaused", "Paused"),
+  "task_status_waiting_owner": public_i18n("professionals", "taskStatusWaitingOwner", "Waiting owner"),
+  "task_status_waiting_operations": public_i18n("professionals", "taskStatusWaitingOperations", "Waiting Operations"),
+  "task_status_completed": public_i18n("professionals", "taskStatusCompleted", "Completed"),
+  "task_status_archived": public_i18n("professionals", "taskStatusArchived", "Archived"),
+  "task_status_unknown": public_i18n("professionals", "taskStatusUnknown", "Unknown status"),
+  "task_priority_low": public_i18n("professionals", "taskPriorityLow", "Low"),
+  "task_priority_normal": public_i18n("professionals", "taskPriorityNormal", "Normal"),
+  "task_priority_high": public_i18n("professionals", "taskPriorityHigh", "High"),
+  "task_priority_urgent": public_i18n("professionals", "taskPriorityUrgent", "Urgent"),
+  "task_event_professional_assigned": public_i18n("professionals", "taskEventProfessionalAssigned", "Professional assigned"),
+  "task_event_professional_accepted": public_i18n("professionals", "taskEventProfessionalAccepted", "Professional accepted task"),
+  "task_event_professional_on_the_way": public_i18n("professionals", "taskEventProfessionalOnTheWay", "Professional on the way"),
+  "task_event_professional_arrived": public_i18n("professionals", "taskEventProfessionalArrived", "Professional arrived"),
+  "task_event_professional_started": public_i18n("professionals", "taskEventProfessionalStarted", "Professional started task"),
+  "task_event_professional_paused": public_i18n("professionals", "taskEventProfessionalPaused", "Professional paused task"),
+  "task_event_professional_resumed": public_i18n("professionals", "taskEventProfessionalResumed", "Professional resumed task"),
+  "task_event_professional_completed": public_i18n("professionals", "taskEventProfessionalCompleted", "Professional completed task"),
+  "task_event_professional_comment_added": public_i18n("professionals", "taskEventProfessionalCommentAdded", "Professional comment added"),
+  "task_event_completion_report_updated": public_i18n("professionals", "taskEventCompletionReportUpdated", "Completion report updated"),
+  "task_event_attachment_added": public_i18n("professionals", "taskEventAttachmentAdded", "Attachment added"),
+  "task_event_comment_added_internal": public_i18n("professionals", "taskEventInternalCommentAdded", "Internal comment added"),
+  "task_event_task_created": public_i18n("professionals", "taskEventTaskCreated", "Task created"),
+  "task_event_assigned": public_i18n("professionals", "taskEventAssigned", "Assigned"),
+  "task_event_status_changed": public_i18n("professionals", "taskEventStatusChanged", "Status changed"),
+  "task_event_completed": public_i18n("professionals", "taskEventCompleted", "Completed"),
+  "task_event_note_added": public_i18n("professionals", "taskEventNoteAdded", "Note added"),
+  "task_event_checklist_updated": public_i18n("professionals", "taskEventChecklistUpdated", "Checklist updated"),
+  "task_event_workflow_transitioned": public_i18n("professionals", "taskEventWorkflowTransitioned", "Workflow updated"),
+  "task_event_audit_logged": public_i18n("professionals", "taskEventAuditLogged", "Audit logged"),
+  "task_event_unknown": public_i18n("professionals", "taskEventUnknown", "Update")
+} %}
+{% set status_labels = {
+  "NEW": labels.task_status_new,
+  "ASSIGNED": labels.task_status_assigned,
+  "ACCEPTED": labels.task_status_accepted,
+  "ON_THE_WAY": labels.task_status_on_the_way,
+  "ARRIVED": labels.task_status_arrived,
+  "IN_PROGRESS": labels.task_status_in_progress,
+  "PAUSED": labels.task_status_paused,
+  "WAITING_OWNER": labels.task_status_waiting_owner,
+  "WAITING_OPERATIONS": labels.task_status_waiting_operations,
+  "COMPLETED": labels.task_status_completed,
+  "ARCHIVED": labels.task_status_archived
+} %}
+{% set priority_labels = {
+  "LOW": labels.task_priority_low,
+  "NORMAL": labels.task_priority_normal,
+  "HIGH": labels.task_priority_high,
+  "URGENT": labels.task_priority_urgent
+} %}
+{% set service_category_labels = {
+  "Cleaning": public_i18n("owners", "ownerCategoryCleaning", "Cleaning"),
+  "Inspection": public_i18n("owners", "ownerCategoryInspection", "Inspection"),
+  "Maintenance": public_i18n("owners", "ownerCategoryMaintenance", "Maintenance"),
+  "Airport Transfer": public_i18n("owners", "ownerCategoryAirportTransfer", "Airport Transfer"),
+  "Concierge Support": public_i18n("owners", "ownerCategoryConciergeSupport", "Concierge Support"),
+  "Guest Issue": public_i18n("owners", "ownerCategoryGuestIssue", "Guest Issue"),
+  "Seasonal Preparation": public_i18n("owners", "ownerCategorySeasonalPreparation", "Seasonal Preparation"),
+  "Other": public_i18n("owners", "ownerCategoryOther", "Other")
+} %}
+{% set notification_labels = {
+  "task_created": labels.task_event_task_created,
+  "assigned": labels.task_event_assigned,
+  "status_changed": labels.task_event_status_changed,
+  "completed": labels.task_event_completed,
+  "note_added": labels.task_event_note_added,
+  "checklist_updated": labels.task_event_checklist_updated,
+  "comment_added": public_i18n("owners", "ownerTimelineNote", "Note added"),
+  "comment_added_internal": labels.task_event_comment_added_internal,
+  "attachment_added": labels.task_event_attachment_added,
+  "completion_report_updated": labels.task_event_completion_report_updated,
+  "professional_assigned": labels.task_event_professional_assigned,
+  "professional_accepted": labels.task_event_professional_accepted,
+  "professional_on_the_way": labels.task_event_professional_on_the_way,
+  "professional_arrived": labels.task_event_professional_arrived,
+  "professional_started": labels.task_event_professional_started,
+  "professional_paused": labels.task_event_professional_paused,
+  "professional_resumed": labels.task_event_professional_resumed,
+  "professional_completed": labels.task_event_professional_completed,
+  "professional_comment_added": labels.task_event_professional_comment_added,
+  "workflow_transitioned": labels.task_event_workflow_transitioned,
+  "audit_logged": labels.task_event_audit_logged
+} %}
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Dashboard</title>
+  <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .professional-dashboard-page {
@@ -110,68 +225,77 @@
   <main class="professional-dashboard-shell">
     <section class="professional-hero">
       <div>
-        <p class="eyebrow">Professional portal</p>
+        <p class="eyebrow">{{ labels.portal_eyebrow }}</p>
         <h1>{{ display_name|e }}</h1>
         <p>{{ professional_account.company|e if professional_account.company else professional_account.email|e }}</p>
-        <p>{{ professional_account.service_categories|e if professional_account.service_categories else 'Operational services' }}</p>
+        <p>
+          {% if professional_account.service_categories %}
+            {% for raw_category in professional_account.service_categories.split(',') %}
+              {% set normalized_category = raw_category|trim|replace('_', ' ')|title %}
+              {% if not loop.first %}, {% endif %}{{ service_category_labels.get(normalized_category, normalized_category) }}
+            {% endfor %}
+          {% else %}
+            {{ labels.operational_services }}
+          {% endif %}
+        </p>
       </div>
       <div class="hero__cta">
-        <a class="button button--secondary" href="/professionals/tasks">View tasks</a>
-        <a class="button button--ghost" href="/professionals/logout">Logout</a>
+        <a class="button button--secondary" href="{{ localized_url('/professionals/tasks') }}">{{ labels.view_tasks }}</a>
+        <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
       </div>
     </section>
 
     <section class="professional-dashboard-grid">
-      <article class="professional-kpi"><span>Assigned Today</span><strong>{{ assigned_today_count }}</strong><small>Tasks assigned or accepted today</small></article>
-      <article class="professional-kpi"><span>In Progress</span><strong>{{ in_progress_count }}</strong></article>
-      <article class="professional-kpi"><span>Waiting Owner</span><strong>{{ waiting_owner_count }}</strong></article>
-      <article class="professional-kpi"><span>Completed Today</span><strong>{{ completed_today_count }}</strong></article>
-      <article class="professional-kpi"><span>Upcoming Visits</span><strong>{{ upcoming_count }}</strong></article>
-      <article class="professional-kpi"><span>Average Completion Time</span><strong>{% if average_completion_minutes is not none %}{{ average_completion_minutes }} min{% else %}n/a{% endif %}</strong></article>
-      <article class="professional-kpi"><span>Today</span><strong>{{ today_count }}</strong><small>Legacy workload view</small></article>
-      <article class="professional-kpi"><span>Upcoming</span><strong>{{ upcoming_count }}</strong><small>Legacy workload view</small></article>
-      <article class="professional-kpi"><span>Completed</span><strong>{{ completed_count }}</strong><small>Legacy workload view</small></article>
+      <article class="professional-kpi"><span>{{ labels.assigned_today }}</span><strong>{{ assigned_today_count }}</strong><small>{{ labels.assigned_today_detail }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.in_progress }}</span><strong>{{ in_progress_count }}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.waiting_owner }}</span><strong>{{ waiting_owner_count }}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.completed_today }}</span><strong>{{ completed_today_count }}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.upcoming_visits }}</span><strong>{{ upcoming_count }}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.average_completion_time }}</span><strong>{% if average_completion_minutes is not none %}{{ average_completion_minutes }} min{% else %}{{ labels.average_completion_time_na }}{% endif %}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.today }}</span><strong>{{ today_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.upcoming }}</span><strong>{{ upcoming_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.completed }}</span><strong>{{ completed_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
     </section>
 
     <section class="professional-grid-two-up">
       <article class="professional-panel">
         <div class="section-heading">
-          <p class="section-heading__eyebrow">Assigned tasks</p>
-          <h2>Active workload</h2>
+          <p class="section-heading__eyebrow">{{ labels.assigned_tasks }}</p>
+          <h2>{{ labels.active_workload }}</h2>
         </div>
         <div class="professional-task-list">
           {% for task in assigned_tasks[:5] %}
-            <a class="professional-task-card" href="/professionals/tasks/{{ task.request_id|e }}">
+            <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
               <div class="professional-task-card__meta">
-                <span class="professional-badge">{{ task.status_label|e }}</span>
-                <span class="professional-badge">{{ task.priority_label|e }}</span>
-                <time>{{ task.due_date|e or 'No due date' }}</time>
+                <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+                <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
+                <time>{{ task.due_date|e or labels.no_due_date }}</time>
               </div>
               <strong>{{ task.title|e }}</strong>
               <p>{{ task.property_name|e or task.property_location|e }}</p>
             </a>
           {% else %}
-            <p>No assigned tasks yet.</p>
+            <p>{{ labels.no_assigned_tasks }}</p>
           {% endfor %}
         </div>
       </article>
 
       <article class="professional-panel">
         <div class="section-heading">
-          <p class="section-heading__eyebrow">Notifications</p>
-          <h2>Recent notifications</h2>
+          <p class="section-heading__eyebrow">{{ labels.notifications }}</p>
+          <h2>{{ labels.recent_notifications }}</h2>
         </div>
         <div class="professional-notification-list">
           {% for notification in recent_notifications %}
             <div class="professional-notification">
               <div class="professional-notification__topline">
-                <strong>{{ notification.title|e }}</strong>
+                <strong>{{ notification_labels.get(notification.event_type|default('', true), notification.title|e) }}</strong>
                 <time>{{ notification.created_at|e }}</time>
               </div>
               {% if notification.detail %}<p>{{ notification.detail|e }}</p>{% endif %}
             </div>
           {% else %}
-            <p>No recent notifications.</p>
+            <p>{{ labels.no_recent_notifications }}</p>
           {% endfor %}
         </div>
       </article>
