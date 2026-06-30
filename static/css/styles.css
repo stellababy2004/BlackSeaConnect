@@ -28354,24 +28354,54 @@ body.professionals-page main > .trust-layer[aria-labelledby="approved-profession
 }
 
 body.owner-portal-page #owner-register-form .pilot-form .pilot-form__field > span {
-  color: #f7e9c7 !important;
-  -webkit-text-fill-color: #f7e9c7 !important;
+  color: #234061 !important;
+  -webkit-text-fill-color: #234061 !important;
   opacity: 1 !important;
-  text-shadow: 0 2px 12px rgba(2, 10, 22, 0.72) !important;
+  text-shadow: none !important;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
 }
 
 body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint,
 body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint a {
-  color: #f4e3b6 !important;
-  -webkit-text-fill-color: #f4e3b6 !important;
+  color: #4b5f7b !important;
+  -webkit-text-fill-color: #4b5f7b !important;
   opacity: 1 !important;
-  text-shadow: 0 2px 12px rgba(2, 10, 22, 0.72) !important;
+  text-shadow: none !important;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 body.pilot-access-page .cta-panel--pilot .pilot-form__field > span {
-  color: rgba(247, 242, 228, 0.94) !important;
-  -webkit-text-fill-color: rgba(247, 242, 228, 0.94) !important;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
+  color: #234061 !important;
+  -webkit-text-fill-color: #234061 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+body.pilot-access-page .cta-panel--pilot .pilot-form .pilot-form__hint {
+  color: #4b5f7b !important;
+  -webkit-text-fill-color: #4b5f7b !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 body.operations-demo-page .operations-modal__dialog .operations-form label > span {
@@ -28387,6 +28417,141 @@ body.operations-demo-page .operations-modal__dialog .operations-form__trust {
 body.operations-demo-page .operations-modal__dialog .operations-form__response {
   color: rgba(181, 231, 226, 0.9) !important;
   -webkit-text-fill-color: rgba(181, 231, 226, 0.9) !important;
+}
+
+/* Unified premium form language for all public onboarding flows. */
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) {
+  border-radius: var(--surface-family-radius) !important;
+  border: var(--surface-light-border) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 252, 0.84)),
+    rgba(250, 252, 255, 0.92) !important;
+  box-shadow:
+    0 20px 50px rgba(15, 35, 69, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+  color: #0f2345 !important;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(.pilot-form__field, .owner-login-form__field, .owner-request-form__field, .owner-property-field, label) {
+  display: grid;
+  gap: 8px;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(.pilot-form__field > span, .owner-login-form__field > span, .owner-request-form__field > span, .owner-property-field > span, label > span) {
+  color: #234061 !important;
+  -webkit-text-fill-color: #234061 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(input, select, textarea) {
+  border: 1px solid rgba(15, 35, 69, 0.14) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f2345 !important;
+  box-shadow:
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(input::placeholder, textarea::placeholder) {
+  color: rgba(47, 68, 86, 0.58) !important;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(input:focus, select:focus, textarea:focus) {
+  border-color: rgba(197, 151, 61, 0.40) !important;
+  box-shadow:
+    0 0 0 4px rgba(197, 151, 61, 0.08),
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  outline: none !important;
+}
+
+body:not([class*="admin"]):not(.operations-demo-page):not(.reservations-page) :where(
+  .cta-panel--pilot,
+  .pilot-form,
+  .owner-login-form,
+  .owner-request-form,
+  .owner-property-form,
+  .professional-apply-form,
+  .pilot-access-form,
+  .request-form,
+  .search-form
+) :where(.cta-panel__copy, .cta-panel__trust, .pilot-form__hint, .owner-request-form__helper, .form-error) {
+  color: #4b5f7b !important;
+  -webkit-text-fill-color: #4b5f7b !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 body.operations-demo-page .operations-modal__dialog {
@@ -28553,6 +28718,131 @@ body.operations-demo-page .operations-hero__preview .operations-preview-card__no
 
 body.operations-demo-page .operations-hero__preview .operations-preview-card__label {
   color: rgba(236, 204, 129, 0.94) !important;
+}
+
+/* Owner login: keep the form area in the same readable light system as the rest of onboarding. */
+body.owner-portal-page.owner-login-page .owner-login-panel,
+body.owner-portal-page.owner-login-page .owner-login-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 249, 252, 0.86)),
+    rgba(250, 252, 255, 0.92) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  box-shadow:
+    0 20px 50px rgba(15, 35, 69, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+  color: #0f2345 !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-panel :where(h1, h2, h3, p, span, strong, small, a, label, dt, dd),
+body.owner-portal-page.owner-login-page .owner-login-panel :where(.owner-login-form__field > span, .pilot-form__hint, .form-error),
+body.owner-portal-page.owner-login-page .owner-login-card :where(h1, h2, h3, p, span, strong, small, a, label, dt, dd) {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-form {
+  padding: 24px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 252, 0.84)),
+    rgba(250, 252, 255, 0.92) !important;
+  box-shadow:
+    0 20px 50px rgba(15, 35, 69, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-form .owner-login-form__field > span,
+body.owner-portal-page.owner-login-page .owner-login-form .pilot-form__hint,
+body.owner-portal-page.owner-login-page .owner-login-form .pilot-form__hint a {
+  color: #234061 !important;
+  -webkit-text-fill-color: #234061 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-form input {
+  border: 1px solid rgba(15, 35, 69, 0.14) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f2345 !important;
+  box-shadow:
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-form input::placeholder {
+  color: rgba(47, 68, 86, 0.58) !important;
+}
+
+body.owner-portal-page.owner-login-page .owner-login-form input:focus {
+  border-color: rgba(197, 151, 61, 0.40) !important;
+  box-shadow:
+    0 0 0 4px rgba(197, 151, 61, 0.08),
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  outline: none !important;
+}
+
+body.owner-portal-page #owner-register-form {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 249, 252, 0.86)),
+    rgba(250, 252, 255, 0.92) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  box-shadow:
+    0 20px 50px rgba(15, 35, 69, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+  color: #0f2345 !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form {
+  padding: 24px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 252, 0.84)),
+    rgba(250, 252, 255, 0.92) !important;
+  box-shadow:
+    0 20px 50px rgba(15, 35, 69, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__field > span,
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint,
+body.owner-portal-page #owner-register-form .pilot-form .pilot-form__hint a,
+body.owner-portal-page #owner-register-form .pilot-form .form-error {
+  color: #234061 !important;
+  -webkit-text-fill-color: #234061 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form input,
+body.owner-portal-page #owner-register-form .pilot-form select,
+body.owner-portal-page #owner-register-form .pilot-form textarea {
+  border: 1px solid rgba(15, 35, 69, 0.14) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f2345 !important;
+  box-shadow:
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form input::placeholder,
+body.owner-portal-page #owner-register-form .pilot-form textarea::placeholder {
+  color: rgba(47, 68, 86, 0.58) !important;
+}
+
+body.owner-portal-page #owner-register-form .pilot-form input:focus,
+body.owner-portal-page #owner-register-form .pilot-form select:focus,
+body.owner-portal-page #owner-register-form .pilot-form textarea:focus {
+  border-color: rgba(197, 151, 61, 0.40) !important;
+  box-shadow:
+    0 0 0 4px rgba(197, 151, 61, 0.08),
+    0 12px 28px rgba(15, 35, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  outline: none !important;
 }
 
 body.home-page .home-product .home-product__preview {
