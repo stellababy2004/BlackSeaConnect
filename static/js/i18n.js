@@ -14,6 +14,7 @@
     "/network": "network",
     "/request-service": "requestService",
     "/owners/register": "ownersRegister",
+    "/owners": "ownersLanding",
     "/owners/login": "ownersLogin",
     "/owners/dashboard": "ownersDashboard",
     "/owners/request-service": "ownersRequestService",

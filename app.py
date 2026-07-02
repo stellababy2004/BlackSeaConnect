@@ -7077,6 +7077,20 @@ def _owner_login_event_detail(login_source, language):
     return f"Source: {source}; language: {lang}"
 
 
+@app.route("/owners")
+def owners_gateway():
+    current_lang = _resolve_current_language()
+    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        owner_account = _current_owner_account()
+        if owner_account:
+            return redirect(url_for("owners_dashboard", lang=current_lang))
+
+    return render_template(
+        "owners_gateway.html",
+        current_lang=current_lang,
+    )
+
+
 def _import_owner_accounts_jsonl(conn):
     path = OWNER_ACCOUNTS_JSONL_PATH
     if not path.exists():

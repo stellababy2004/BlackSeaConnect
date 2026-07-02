@@ -56,6 +56,7 @@
     'pilot.js',
     'guest.js',
     'owners.js',
+    'owners-landing.js',
     'owners-dashboard.js',
     'owners-login.js',
     'owners-register.js',

@@ -3,6 +3,7 @@ import io
 import html as html_lib
 import json
 import os
+import re
 import sqlite3
 import shutil
 import smtplib
@@ -999,7 +1000,11 @@ class OwnerPortalTests(unittest.TestCase):
             },
         ])
         self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
-        self._login_owner_via_magic(seed_property=False)
+        with self.client.session_transaction() as session:
+            session["owner_logged_in"] = True
+            session["owner_id"] = "owner-1"
+            session["owner_email"] = "owner@blackseaconnect.com"
+            session["owner_name"] = "Elena Petrova"
 
         response = self.client.get("/owners/dashboard")
 
@@ -1203,6 +1208,83 @@ class OwnerPortalTests(unittest.TestCase):
                 elif path == "/owners/request-service":
                     self.assertIn('data-i18n="ownerRequestServiceCategoryLabel"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-request-service-page"', html, msg=path)
+
+    def test_owner_gateway_page_is_public_and_language_aware(self):
+        response = self.client.get("/owners?lang=en")
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('<html lang="en">', html)
+        self.assertIn('href="/owners/login?lang=en"', html)
+        self.assertIn('href="/owners/register?lang=en"', html)
+        self.assertIn('href="/owners/request-service?lang=en"', html)
+        self.assertIn('data-i18n="ownerLandingSignInCta"', html)
+        self.assertIn('data-i18n="ownerLandingCreateAccountCta"', html)
+        self.assertIn('data-i18n="ownerLandingRequestServiceCta"', html)
+        self.assertIn("Sign in", html)
+        self.assertIn("Create account", html)
+        self.assertIn("Request service", html)
+        self.assertNotIn("404", html)
+
+    def test_owner_gateway_preserves_selected_language(self):
+        response = self.client.get("/owners?lang=fr")
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('<html lang="fr">', html)
+        self.assertIn('href="/owners/login?lang=fr"', html)
+        self.assertIn('href="/owners/register?lang=fr"', html)
+        self.assertIn('href="/owners/request-service?lang=fr"', html)
+        self.assertNotIn("404", html)
+
+    def test_owner_gateway_renders_supported_languages_without_mixed_copy(self):
+        expectations = {
+            "bg": {
+                "eyebrow": "Портал за собственици",
+                "title": "Едно място за имота ви.",
+            },
+            "en": {
+                "eyebrow": "Owner portal",
+                "title": "One place for your property.",
+            },
+            "fr": {
+                "eyebrow": "Portail propriétaire",
+                "title": "Un seul endroit pour votre bien.",
+            },
+            "ru": {
+                "eyebrow": "Портал владельца",
+                "title": "Одно место для вашего объекта.",
+            },
+        }
+
+        for lang, expected in expectations.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/owners?lang={lang}")
+                html = response.get_data(as_text=True)
+                text_content = re.sub(r"<[^>]+>", " ", html)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(f'<html lang="{lang}">', html)
+                self.assertIn(f'href="/owners/login?lang={lang}"', html)
+                self.assertIn(f'href="/owners/register?lang={lang}"', html)
+                self.assertIn(f'href="/owners/request-service?lang={lang}"', html)
+                self.assertIn(expected["eyebrow"], html)
+                self.assertIn(expected["title"], html)
+
+                for other_lang, other_expected in expectations.items():
+                    if other_lang == lang:
+                        continue
+                    self.assertNotIn(other_expected["eyebrow"], text_content)
+                    self.assertNotIn(other_expected["title"], text_content)
+
+    def test_logged_in_owner_is_redirected_from_gateway_to_dashboard(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners?lang=ru")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/owners/dashboard", response.headers["Location"])
+        self.assertIn("lang=ru", response.headers["Location"])
 
     def test_owner_dashboard_translation_keys_remain_available(self):
         repo_root = Path(__file__).resolve().parents[1]
