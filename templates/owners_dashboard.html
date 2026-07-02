@@ -173,10 +173,10 @@
                 <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}" data-i18n="{{ property.status_key }}">{{ property.status_label }}</span>
               </div>
               <p class="owner-property-card__location">{{ property.city|e or property.location|e }}</p>
-              <div class="owner-property-card__hero-copy">
-                <span class="owner-property-card__progress">{{ property.readiness_percent }}% Ready</span>
-                <span class="owner-property-card__updated">{{ property.last_updated_display|e }}</span>
-              </div>
+                <div class="owner-property-card__hero-copy">
+                  <span class="owner-property-card__progress">{{ property.readiness_percent }}%</span>
+                  <span class="owner-property-card__updated">{{ property.last_updated_display|e }}</span>
+                </div>
               <div class="owner-property-card__chips">
                 <span>{{ property.property_type|e }}</span>
                 <span>{{ property.operating_mode_label|e }}</span>
@@ -203,7 +203,7 @@
                   <dd data-i18n="{{ property.operating_mode_key }}">{{ property.operating_mode_label }}</dd>
                 </div>
                 <div>
-                  <dt>Readiness</dt>
+                  <dt>{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</dt>
                   <dd>{{ property.readiness_completed }}/{{ property.readiness_total }}</dd>
                 </div>
               </dl>
@@ -222,22 +222,22 @@
             <p class="owner-portal-card__eyebrow">{{ owner_portal.calendar_widget.supporting_title }}</p>
             <div class="owner-kpi-grid">
               <article class="owner-kpi-card">
-                <p class="owner-kpi-card__label">Today</p>
+                <p class="owner-kpi-card__label">{{ public_i18n('ownersDashboard', 'ownerDashboardTimelineToday', 'Today') }}</p>
                 <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.today }}</strong>
                 <span class="owner-kpi-card__support">{{ public_i18n('common', 'dashboardEventsScheduledForToday', 'Events scheduled for today') }}</span>
               </article>
               <article class="owner-kpi-card">
-                <p class="owner-kpi-card__label">Tomorrow</p>
+                <p class="owner-kpi-card__label">{{ public_i18n('common', 'dashboardEventsScheduledForTomorrow', 'Tomorrow') }}</p>
                 <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.tomorrow }}</strong>
                 <span class="owner-kpi-card__support">{{ public_i18n('common', 'dashboardEventsScheduledForTomorrow', 'Events scheduled for tomorrow') }}</span>
               </article>
               <article class="owner-kpi-card">
-                <p class="owner-kpi-card__label">This week</p>
+                <p class="owner-kpi-card__label">{{ public_i18n('ownersDashboard', 'ownerDashboardTimelineThisWeek', 'This week') }}</p>
                 <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.this_week }}</strong>
                 <span class="owner-kpi-card__support">{{ public_i18n('common', 'dashboardNearTermCalendarLoad', 'Near-term calendar load') }}</span>
               </article>
               <article class="owner-kpi-card">
-                <p class="owner-kpi-card__label">Completed</p>
+                <p class="owner-kpi-card__label">{{ public_i18n('ownersDashboard', 'ownerDashboardTimelineCompleted', 'Completed') }}</p>
                 <strong class="owner-kpi-card__value">{{ owner_portal.calendar_widget.summary.completed }}</strong>
                 <span class="owner-kpi-card__support">{{ public_i18n('common', 'dashboardClosedEvents', 'Closed events') }}</span>
               </article>
@@ -250,7 +250,7 @@
           <article class="owner-portal-card owner-portal-card--activity">
             <div class="owner-portal-card__header u-flex-between">
               <p class="owner-portal-card__eyebrow u-mb-0">{{ public_i18n('common', 'dashboardUpcomingEvents', 'Upcoming events') }}</p>
-              <a class="button button--ghost" href="{{ localized_url('/owners/calendar') }}">View calendar</a>
+              <a class="button button--ghost" href="{{ localized_url('/owners/calendar') }}">{{ public_i18n('common', 'dashboardViewCalendar', 'View calendar') }}</a>
             </div>
             {% if owner_portal.calendar_widget.upcoming_events %}
               <div class="owner-activity-list">
@@ -275,7 +275,7 @@
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-reservations-title">
         <div class="section-heading">
           <p class="section-heading__eyebrow">{{ public_i18n('common', 'dashboardBookingEngine', 'Booking engine') }}</p>
-          <h2 id="owner-reservations-title">Reservations and availability</h2>
+          <h2 id="owner-reservations-title">{{ public_i18n('common', 'dashboardReservationsAvailability', 'Reservations and availability') }}</h2>
         </div>
         <div class="owner-portal-grid owner-portal-grid--overview">
           <article class="owner-portal-card owner-portal-card--snapshot">
@@ -309,7 +309,7 @@
           </article>
           <article class="owner-portal-card owner-portal-card--activity">
             <div class="owner-portal-card__header" style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-              <p class="owner-portal-card__eyebrow" style="margin:0;">Upcoming arrivals</p>
+              <p class="owner-portal-card__eyebrow" style="margin:0;">{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrivals') }}</p>
               <a class="button button--ghost" href="{{ localized_url('/owners/reservations') }}">{{ public_i18n('common', 'dashboardViewReservations', 'View reservations') }}</a>
             </div>
             {% if owner_portal.reservation_widget.upcoming_arrivals %}

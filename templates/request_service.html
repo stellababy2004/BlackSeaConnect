@@ -43,26 +43,26 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/network') }}" data-i18n="topNetworkCta">Виж доставчици</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/network') }}" data-i18n="topNetworkCta">{{ public_i18n('requestService', 'topNetworkCta', '') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="heroEyebrow">Service request intake</p>
-        <h1 data-i18n="heroTitle">Request the right coastal service for your property.</h1>
+        <p class="eyebrow" data-i18n="heroEyebrow">{{ public_i18n('requestService', 'heroEyebrow', '') }}</p>
+        <h1 data-i18n="heroTitle">{{ public_i18n('requestService', 'heroTitle', '') }}</h1>
         <p class="hero__text" data-i18n="heroIntro">
           Tell us what you need and we will save your request, send the team a notification, and surface matching approved providers when available.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">Отвори формата</a>
-          <a class="button button--secondary" href="{{ localized_url('/network') }}" data-i18n="heroSecondaryCta">Разгледай доставчиците</a>
+          <a class="button button--primary" href="#service-request-form" data-i18n="heroPrimaryCta">{{ public_i18n('requestService', 'heroPrimaryCta', '') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/network') }}" data-i18n="heroSecondaryCta">{{ public_i18n('requestService', 'heroSecondaryCta', '') }}</a>
         </div>
         <div class="trust-strip" aria-label="Request highlights">
-          <span class="trust-strip__chip" data-i18n="highlightSaved">Saved in JSONL</span>
-          <span class="trust-strip__chip" data-i18n="highlightMatched">Matched to approved providers</span>
-          <span class="trust-strip__chip" data-i18n="highlightPrivate">Private admin review</span>
-          <span class="trust-strip__chip" data-i18n="highlightCoast">Bulgarian Black Sea coast</span>
+          <span class="trust-strip__chip" data-i18n="highlightSaved">{{ public_i18n('requestService', 'highlightSaved', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="highlightMatched">{{ public_i18n('requestService', 'highlightMatched', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="highlightPrivate">{{ public_i18n('requestService', 'highlightPrivate', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="highlightCoast">{{ public_i18n('requestService', 'highlightCoast', '') }}</span>
         </div>
       </div>
     </div>
@@ -72,12 +72,12 @@
     {% if submitted %}
       <section class="cta-panel" aria-labelledby="service-request-success-title">
         <div class="cta-panel__content">
-          <p class="section-heading__eyebrow" data-i18n="successEyebrow">Request received</p>
-          <h2 id="service-request-success-title" data-i18n="successTitle">Thank you. Your service request has been saved.</h2>
-          <p class="cta-panel__copy" data-i18n="successCopy">We will review the request and surface matching providers for the selected category.</p>
+          <p class="section-heading__eyebrow" data-i18n="successEyebrow">{{ public_i18n('requestService', 'successEyebrow', '') }}</p>
+          <h2 id="service-request-success-title" data-i18n="successTitle">{{ public_i18n('requestService', 'successTitle', '') }}</h2>
+          <p class="cta-panel__copy" data-i18n="successCopy">{{ public_i18n('requestService', 'successCopy', '') }}</p>
         </div>
         <div class="trust-strip" aria-label="Request status">
-          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">Статус: нова</span>
+          <span class="trust-strip__chip" data-i18n="{{ 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted' }}">{{ public_i18n('requestService', 'serviceRequestStatusNew' if request_record.status == 'new' else 'serviceRequestStatusAssigned' if request_record.status == 'assigned' else 'serviceRequestStatusCompleted', '') }}</span>
           <span class="trust-strip__chip">{{ request_record.property_city|e }}</span>
           <span class="trust-strip__chip">{{ request_record.service_category|e }}</span>
         </div>
@@ -86,11 +86,11 @@
 
     <section class="cta-panel cta-panel--pilot" id="service-request-form" aria-labelledby="service-request-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="formEyebrow">Service request form</p>
-        <h2 id="service-request-title" data-i18n="formTitle">Share the property details and the service you need.</h2>
-        <p class="cta-panel__copy" data-i18n="formCopy">We keep the request short so it is easy to send and easy to review.</p>
+        <p class="section-heading__eyebrow" data-i18n="formEyebrow">{{ public_i18n('requestService', 'formEyebrow', '') }}</p>
+        <h2 id="service-request-title" data-i18n="formTitle">{{ public_i18n('requestService', 'formTitle', '') }}</h2>
+        <p class="cta-panel__copy" data-i18n="formCopy">{{ public_i18n('requestService', 'formCopy', '') }}</p>
         {% if errors.general %}
-          <p class="cta-panel__trust" data-i18n="saveError">We could not save the request right now.</p>
+          <p class="cta-panel__trust" data-i18n="saveError">{{ public_i18n('requestService', 'saveError', '') }}</p>
         {% endif %}
       </div>
 
@@ -100,62 +100,62 @@
         </div>
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
-            <span data-i18n="nameLabel">Name</span>
+            <span data-i18n="nameLabel">{{ public_i18n('requestService', 'nameLabel', '') }}</span>
             <input name="name" type="text" value="{{ form_values.name|e }}" placeholder="Your full name" data-i18n-attr="placeholder:namePlaceholder">
-            {% if errors.name %}<small class="form-error" data-i18n="{{ errors.name }}">This field is required.</small>{% endif %}
+            {% if errors.name %}<small class="form-error" data-i18n="{{ errors.name }}">{{ public_i18n('requestService', 'nameRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="emailLabel">Email</span>
+            <span data-i18n="emailLabel">{{ public_i18n('requestService', 'emailLabel', '') }}</span>
             <input name="email" type="email" value="{{ form_values.email|e }}" placeholder="name@example.com" data-i18n-attr="placeholder:emailPlaceholder">
-            {% if errors.email %}<small class="form-error" data-i18n="{{ errors.email }}">This field is required.</small>{% endif %}
+            {% if errors.email %}<small class="form-error" data-i18n="{{ errors.email }}">{{ public_i18n('requestService', 'emailRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="phoneLabel">Phone</span>
+            <span data-i18n="phoneLabel">{{ public_i18n('requestService', 'phoneLabel', '') }}</span>
             <input name="phone" type="text" value="{{ form_values.phone|e }}" placeholder="+359 ..." data-i18n-attr="placeholder:phonePlaceholder">
-            {% if errors.phone %}<small class="form-error" data-i18n="{{ errors.phone }}">This field is required.</small>{% endif %}
+            {% if errors.phone %}<small class="form-error" data-i18n="{{ errors.phone }}">{{ public_i18n('requestService', 'phoneRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="propertyCityLabel">Property city</span>
+            <span data-i18n="propertyCityLabel">{{ public_i18n('requestService', 'propertyCityLabel', '') }}</span>
             <input name="property_city" type="text" value="{{ form_values.property_city|e }}" placeholder="Varna, Burgas, Nessebar..." data-i18n-attr="placeholder:propertyCityPlaceholder">
-            {% if errors.property_city %}<small class="form-error" data-i18n="{{ errors.property_city }}">This field is required.</small>{% endif %}
+            {% if errors.property_city %}<small class="form-error" data-i18n="{{ errors.property_city }}">{{ public_i18n('requestService', 'propertyCityRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="propertyTypeLabel">Property type</span>
+            <span data-i18n="propertyTypeLabel">{{ public_i18n('requestService', 'propertyTypeLabel', '') }}</span>
             <input name="property_type" type="text" value="{{ form_values.property_type|e }}" placeholder="Villa, apartment, hotel..." data-i18n-attr="placeholder:propertyTypePlaceholder">
-            {% if errors.property_type %}<small class="form-error" data-i18n="{{ errors.property_type }}">This field is required.</small>{% endif %}
+            {% if errors.property_type %}<small class="form-error" data-i18n="{{ errors.property_type }}">{{ public_i18n('requestService', 'propertyTypeRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="serviceCategoryLabel">Service category</span>
+            <span data-i18n="serviceCategoryLabel">{{ public_i18n('requestService', 'serviceCategoryLabel', '') }}</span>
             <select class="pilot-form__input" name="service_category" required>
-              <option value="" {% if not form_values.service_category %}selected{% endif %} data-i18n="serviceCategoryEmpty">Choose a category</option>
+              <option value="" {% if not form_values.service_category %}selected{% endif %} data-i18n="serviceCategoryEmpty">{{ public_i18n('requestService', 'serviceCategoryEmpty', '') }}</option>
               {% for category in service_categories %}
                 <option value="{{ category.label|e }}" {% if form_values.service_category == category.label %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label }}</option>
               {% endfor %}
             </select>
-            {% if errors.service_category %}<small class="form-error" data-i18n="{{ errors.service_category }}">Choose a valid service category.</small>{% endif %}
+            {% if errors.service_category %}<small class="form-error" data-i18n="{{ errors.service_category }}">{{ public_i18n('requestService', 'serviceCategoryInvalidError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="preferredDateLabel">Preferred date</span>
+            <span data-i18n="preferredDateLabel">{{ public_i18n('requestService', 'preferredDateLabel', '') }}</span>
             <input name="preferred_date" type="date" value="{{ form_values.preferred_date|e }}">
-            {% if errors.preferred_date %}<small class="form-error" data-i18n="{{ errors.preferred_date }}">This field is required.</small>{% endif %}
+            {% if errors.preferred_date %}<small class="form-error" data-i18n="{{ errors.preferred_date }}">{{ public_i18n('requestService', 'preferredDateRequiredError', '') }}</small>{% endif %}
           </label>
           <label class="pilot-form__field pilot-form__field--full">
-            <span data-i18n="descriptionLabel">Description</span>
-            <textarea name="description" rows="5" placeholder="Tell us what you need, timing and any details." data-i18n-attr="placeholder:descriptionPlaceholder">{{ form_values.description|e }}</textarea>
-            {% if errors.description %}<small class="form-error" data-i18n="{{ errors.description }}">This field is required.</small>{% endif %}
+            <span data-i18n="descriptionLabel">{{ public_i18n('requestService', 'descriptionLabel', '') }}</span>
+            <textarea name="description" rows="5" placeholder="{{ public_i18n('requestService', 'descriptionPlaceholder', '') }}" data-i18n-attr="placeholder:descriptionPlaceholder">{{ form_values.description|e }}</textarea>
+            {% if errors.description %}<small class="form-error" data-i18n="{{ errors.description }}">{{ public_i18n('requestService', 'descriptionRequiredError', '') }}</small>{% endif %}
           </label>
         </div>
         <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="submitCta">Send request</button>
-          <p class="pilot-form__hint" data-i18n="submitHint">The request is stored privately for admin review and provider matching.</p>
+          <button class="button button--primary" type="submit" data-i18n="submitCta">{{ public_i18n('requestService', 'submitCta', '') }}</button>
+          <p class="pilot-form__hint" data-i18n="submitHint">{{ public_i18n('requestService', 'submitHint', '') }}</p>
         </div>
       </form>
     </section>
 
     <section class="trust-layer" aria-labelledby="matching-providers-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="matchingEyebrow">Matching providers</p>
-        <h2 id="matching-providers-title" data-i18n="matchingTitle">Approved providers for the selected category.</h2>
+        <p class="section-heading__eyebrow" data-i18n="matchingEyebrow">{{ public_i18n('requestService', 'matchingEyebrow', '') }}</p>
+        <h2 id="matching-providers-title" data-i18n="matchingTitle">{{ public_i18n('requestService', 'matchingTitle', '') }}</h2>
       </div>
 
       {% if matching_providers %}
@@ -173,29 +173,29 @@
               {% endif %}
               <div class="trust-strip" aria-label="Provider badges">
                 {% if provider.featured %}
-                <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
+                <span class="trust-strip__chip" data-i18n="featuredBadge">{{ public_i18n('requestService', 'featuredBadge', '') }}</span>
               {% endif %}
-                <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
+                <span class="trust-strip__chip" data-i18n="availableBadge">{{ public_i18n('requestService', 'availableBadge', '') }}</span>
                 {% for badge in provider.badges %}
                   <span class="trust-strip__chip">{{ badge|e }}</span>
                 {% endfor %}
               </div>
-              <span data-i18n="providerCompanyLabel">Фирма</span>
+              <span data-i18n="providerCompanyLabel">{{ public_i18n('requestService', 'providerCompanyLabel', '') }}</span>
               <strong>{{ provider.company_name|e }}</strong>
-              <p><strong data-i18n="providerCityLabel">Град:</strong> {{ provider.city|e }}</p>
-              <p><strong data-i18n="providerServiceLabel">Услуга:</strong> {{ provider.service_type|e }}</p>
-              <p><strong data-i18n="providerLanguagesLabel">Езици:</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">няма</span>{% endif %}</p>
+              <p><strong data-i18n="providerCityLabel">{{ public_i18n('requestService', 'providerCityLabel', '') }}</strong> {{ provider.city|e }}</p>
+              <p><strong data-i18n="providerServiceLabel">{{ public_i18n('requestService', 'providerServiceLabel', '') }}</strong> {{ provider.service_type|e }}</p>
+              <p><strong data-i18n="providerLanguagesLabel">{{ public_i18n('requestService', 'providerLanguagesLabel', '') }}</strong> {% if provider.languages %}{{ provider.languages|e }}{% else %}<span data-i18n="notAvailable">{{ public_i18n('requestService', 'notAvailable', '') }}</span>{% endif %}</p>
               <p>{{ provider.short_description|e or provider.description|e or "" }}</p>
-              <span class="button button--ghost" data-i18n="providerViewDetails">Виж детайли</span>
+              <span class="button button--ghost" data-i18n="providerViewDetails">{{ public_i18n('requestService', 'providerViewDetails', '') }}</span>
             </a>
           {% endfor %}
         </div>
       {% else %}
         <section class="cta-panel">
           <div class="cta-panel__content">
-            <p class="section-heading__eyebrow" data-i18n="matchingEmptyEyebrow">No matching providers yet</p>
-            <h2 data-i18n="matchingEmptyTitle">Choose a category to see matching approved providers.</h2>
-            <p class="cta-panel__copy" data-i18n="matchingEmptyCopy">Once you select a service category, we show the providers that can take that work.</p>
+            <p class="section-heading__eyebrow" data-i18n="matchingEmptyEyebrow">{{ public_i18n('requestService', 'matchingEmptyEyebrow', '') }}</p>
+            <h2 data-i18n="matchingEmptyTitle">{{ public_i18n('requestService', 'matchingEmptyTitle', '') }}</h2>
+            <p class="cta-panel__copy" data-i18n="matchingEmptyCopy">{{ public_i18n('requestService', 'matchingEmptyCopy', '') }}</p>
           </div>
         </section>
       {% endif %}
@@ -205,20 +205,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Calm hospitality operations for coastal properties.</p>
+      <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', '') }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Services</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Partners</a>
-      <a href="{{ localized_url('/request-service') }}" data-i18n="navRequestService">Request service</a>
-      <a href="{{ localized_url('/network') }}" data-i18n="navNetwork">Network</a>
-      <a href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Professionals</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+      <a href="{{ localized_url('/request-service') }}" data-i18n="navRequestService">{{ public_i18n('common', 'navRequestService', '') }}</a>
+      <a href="{{ localized_url('/network') }}" data-i18n="navNetwork">{{ public_i18n('network', 'navNetwork', '') }}</a>
+      <a href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">{{ public_i18n('common', 'navProfessionals', '') }}</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Service requests are reviewed privately and matched with approved providers when possible.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">{{ public_i18n('common', 'footerEmail', '') }}</a>
+      <p data-i18n="footerMeta">{{ public_i18n('common', 'footerMeta', '') }}</p>
     </div>
   </footer>
 
@@ -226,5 +226,3 @@
   <script src="/static/js/i18n.js?v=20260621"></script>
 </body>
 </html>
-
-

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Оперативни услуги за крайбрежни имоти</title>
+  <title data-i18n="pageTitle">{{ public_i18n('services', 'pageTitle', '') }}</title>
   <meta name="description" content="Открийте координация на пристигания, почистване, трансфери, консиерж поддръжка и работа с доверени местни партньори за екипите по Черноморието.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
   <meta property="og:title" content="BlackSea Connect | Оперативни услуги за крайбрежни имоти">
@@ -43,13 +43,13 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', '') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">{{ public_i18n('common', 'navProfessionals', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', '') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -60,28 +60,28 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/pilot-access') }}" data-i18n="requestPilotCta">Заяви пилотен достъп</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/pilot-access') }}" data-i18n="requestPilotCta">{{ public_i18n('services', 'servicesPrimaryCta', '') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="servicesEyebrow">Премиум услуги за гостоприемство</p>
-        <h1 data-i18n="servicesTitle">Оперативни услуги за престои, екипи и доверени местни партньори.</h1>
+        <p class="eyebrow" data-i18n="servicesEyebrow">{{ public_i18n('services', 'servicesEyebrow', '') }}</p>
+        <h1 data-i18n="servicesTitle">{{ public_i18n('services', 'servicesTitle', '') }}</h1>
         <p class="hero__text" data-i18n="servicesIntro">
           BlackSea Connect събира пристигания, почистване, трансфери, консиерж поддръжка, местни партньори и гост портала в един спокоен работен поток.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="servicesPrimaryCta">Заяви пилотен достъп</a>
-          <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="servicesSecondaryCta">Виж оперативното демо</a>
-          <a class="button button--tertiary" href="{{ localized_url('/partners') }}" data-i18n="servicesTertiaryCta">Доверени партньори</a>
-          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="servicesOwnerCta">Заяви услуга за имота си</a>
+          <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="servicesPrimaryCta">{{ public_i18n('services', 'servicesPrimaryCta', '') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="servicesSecondaryCta">{{ public_i18n('services', 'servicesSecondaryCta', '') }}</a>
+          <a class="button button--tertiary" href="{{ localized_url('/partners') }}" data-i18n="servicesTertiaryCta">{{ public_i18n('services', 'servicesTertiaryCta', '') }}</a>
+          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="servicesOwnerCta">{{ public_i18n('services', 'servicesOwnerCta', '') }}</a>
         </div>
         <div class="trust-strip" aria-label="Service highlights">
-          <span class="trust-strip__chip" data-i18n="serviceChip1">координация на гости</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip2">проследяване на почистването</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip3">време на трансфери</span>
-          <span class="trust-strip__chip" data-i18n="serviceChip4">консиерж поддръжка</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip1">{{ public_i18n('services', 'serviceChip1', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip2">{{ public_i18n('services', 'serviceChip2', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip3">{{ public_i18n('services', 'serviceChip3', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="serviceChip4">{{ public_i18n('services', 'serviceChip4', '') }}</span>
         </div>
       </div>
     </div>
@@ -90,107 +90,107 @@
   <main>
     <section class="credibility-layer" aria-labelledby="services-title">
       <div class="section-heading">
-        <p class="section-heading__eyebrow" data-i18n="servicesSectionEyebrow">Услуги</p>
-        <h2 id="services-title" data-i18n="servicesSectionTitle">Фокусирани оперативни услуги за екипи в гостоприемството.</h2>
+        <p class="section-heading__eyebrow" data-i18n="servicesSectionEyebrow">{{ public_i18n('services', 'servicesSectionEyebrow', '') }}</p>
+        <h2 id="services-title" data-i18n="servicesSectionTitle">{{ public_i18n('services', 'servicesSectionTitle', '') }}</h2>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card">
           <span class="feature-card__icon">01</span>
-          <h3 data-i18n="service1Title">Координация на гости</h3>
-          <p data-i18n="service1Body">Дръжте времето на пристигане, бележките за настаняване и последващия контакт в един спокоен поток.</p>
+          <h3 data-i18n="service1Title">{{ public_i18n('services', 'service1Title', '') }}</h3>
+          <p data-i18n="service1Body">{{ public_i18n('services', 'service1Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">02</span>
-          <h3 data-i18n="service2Title">Координация на почистването</h3>
-          <p data-i18n="service2Body">Следете готовността, статуса на смяната и финалните проверки без шумни прехвърляния.</p>
+          <h3 data-i18n="service2Title">{{ public_i18n('services', 'service2Title', '') }}</h3>
+          <p data-i18n="service2Body">{{ public_i18n('services', 'service2Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">03</span>
-          <h3 data-i18n="service3Title">Управление на трансфери</h3>
-          <p data-i18n="service3Body">Координирайте летищни, марина и частни автомобилни трансфери с ясни обновления.</p>
+          <h3 data-i18n="service3Title">{{ public_i18n('services', 'service3Title', '') }}</h3>
+          <p data-i18n="service3Body">{{ public_i18n('services', 'service3Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">04</span>
-          <h3 data-i18n="service4Title">Консиерж поддръжка</h3>
-          <p data-i18n="service4Body">Насочвайте заявките на гостите, помощта за ресторанти и късните промени към точния човек бързо.</p>
+          <h3 data-i18n="service4Title">{{ public_i18n('services', 'service4Title', '') }}</h3>
+          <p data-i18n="service4Body">{{ public_i18n('services', 'service4Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">05</span>
-          <h3 data-i18n="service5Title">Координация на местни оператори</h3>
-          <p data-i18n="service5Body">Работете с проверени партньори за поддръжка, транспорт и услуги на едно място.</p>
+          <h3 data-i18n="service5Title">{{ public_i18n('services', 'service5Title', '') }}</h3>
+          <p data-i18n="service5Body">{{ public_i18n('services', 'service5Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">06</span>
-          <h3 data-i18n="service6Title">QR гост портал</h3>
-          <p data-i18n="service6Body">Дайте на гостите тих мобилен портал за Wi‑Fi, достъп, инструкции и поддръжка.</p>
+          <h3 data-i18n="service6Title">{{ public_i18n('services', 'service6Title', '') }}</h3>
+          <p data-i18n="service6Body">{{ public_i18n('services', 'service6Body', '') }}</p>
         </article>
         <article class="feature-card">
           <span class="feature-card__icon">07</span>
-          <h3 data-i18n="service7Title">Операции по имота</h3>
-          <p data-i18n="service7Body">Виждайте дневното състояние на портфолиото без интерфейсът да се превръща в стена от табла.</p>
+          <h3 data-i18n="service7Title">{{ public_i18n('services', 'service7Title', '') }}</h3>
+          <p data-i18n="service7Body">{{ public_i18n('services', 'service7Body', '') }}</p>
         </article>
       </div>
     </section>
 
     <section class="trust-layer" aria-labelledby="services-trust-title">
       <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="servicesFeelEyebrow">Как се усеща</p>
-        <h2 id="services-trust-title" data-i18n="servicesFeelTitle">Спокойно, оперативно и лесно за екипа да му се довери.</h2>
+        <p class="section-heading__eyebrow" data-i18n="servicesFeelEyebrow">{{ public_i18n('services', 'servicesFeelEyebrow', '') }}</p>
+        <h2 id="services-trust-title" data-i18n="servicesFeelTitle">{{ public_i18n('services', 'servicesFeelTitle', '') }}</h2>
       </div>
 
       <div class="trust-grid">
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard1Title">Координация с фокус върху госта</h3>
-          <p data-i18n="servicesFeelCard1Body">Потокът остава центриран върху пристиганията, комфорта на госта и ясното време.</p>
+          <h3 data-i18n="servicesFeelCard1Title">{{ public_i18n('services', 'servicesFeelCard1Title', '') }}</h3>
+          <p data-i18n="servicesFeelCard1Body">{{ public_i18n('services', 'servicesFeelCard1Body', '') }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard2Title">Операции без шум</h3>
-          <p data-i18n="servicesFeelCard2Body">Полезните обновления се показват когато трябва, без фалшиви елементи на живо или шумни джаджи.</p>
+          <h3 data-i18n="servicesFeelCard2Title">{{ public_i18n('services', 'servicesFeelCard2Title', '') }}</h3>
+          <p data-i18n="servicesFeelCard2Body">{{ public_i18n('services', 'servicesFeelCard2Body', '') }}</p>
         </article>
         <article class="trust-card">
-          <h3 data-i18n="servicesFeelCard3Title">Последователни предавания към партньори</h3>
-          <p data-i18n="servicesFeelCard3Body">Местните оператори, екипите за почистване и консиерж поддръжката работят от един и същ поглед.</p>
+          <h3 data-i18n="servicesFeelCard3Title">{{ public_i18n('services', 'servicesFeelCard3Title', '') }}</h3>
+          <p data-i18n="servicesFeelCard3Body">{{ public_i18n('services', 'servicesFeelCard3Body', '') }}</p>
         </article>
       </div>
 
       <div class="trust-strip" aria-label="Service indicators">
-        <span class="trust-strip__chip" data-i18n="servicesIndicator1">мобилен гост портал</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator2">чисти предавания</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator3">доверени местни партньори</span>
-        <span class="trust-strip__chip" data-i18n="servicesIndicator4">тиха поддръжка</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator1">{{ public_i18n('services', 'servicesIndicator1', '') }}</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator2">{{ public_i18n('services', 'servicesIndicator2', '') }}</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator3">{{ public_i18n('services', 'servicesIndicator3', '') }}</span>
+        <span class="trust-strip__chip" data-i18n="servicesIndicator4">{{ public_i18n('services', 'servicesIndicator4', '') }}</span>
       </div>
     </section>
 
     <section class="cta-panel" aria-labelledby="services-cta-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="servicesNextEyebrow">Следваща стъпка</p>
-        <h2 id="services-cta-title" data-i18n="servicesNextTitle">Вижте работния поток или поискайте пилот за вашия имот.</h2>
-        <p class="cta-panel__copy" data-i18n="servicesNextCopy">Страницата с услуги е само началото. За реалистичен разговор за внедряване използвайте страницата за пилотен достъп и ще върнем практична следваща стъпка.</p>
+        <p class="section-heading__eyebrow" data-i18n="servicesNextEyebrow">{{ public_i18n('services', 'servicesNextEyebrow', '') }}</p>
+        <h2 id="services-cta-title" data-i18n="servicesNextTitle">{{ public_i18n('services', 'servicesNextTitle', '') }}</h2>
+        <p class="cta-panel__copy" data-i18n="servicesNextCopy">{{ public_i18n('services', 'servicesNextCopy', '') }}</p>
       </div>
-      <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="servicesNextPrimary">Заяви пилотен достъп</a>
-      <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="servicesNextSecondary">Виж демото</a>
-      <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="servicesOwnerCta">Заяви услуга за имота си</a>
+      <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="servicesNextPrimary">{{ public_i18n('services', 'servicesNextPrimary', '') }}</a>
+      <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="servicesNextSecondary">{{ public_i18n('services', 'servicesNextSecondary', '') }}</a>
+      <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="servicesOwnerCta">{{ public_i18n('services', 'servicesOwnerCta', '') }}</a>
     </section>
   </main>
 
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Спокойни оперативни решения за имоти по крайбрежието.</p>
+      <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', '') }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', '') }}</a>
+      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', '') }}</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', '') }}</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи и доверени местни партньори.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">{{ public_i18n('common', 'footerEmail', '') }}</a>
+      <p data-i18n="footerMeta">{{ public_i18n('common', 'footerMeta', '') }}</p>
     </div>
   </footer>
 
@@ -210,7 +210,7 @@
       <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </span>
-  <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">Пилотен достъп</span>
+  <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">{{ public_i18n('pilot', 'pilotAccessFloatLabel', '') }}</span>
 </a>
 
 </body>

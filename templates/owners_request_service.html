@@ -8,28 +8,28 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="ownerRequestServicePageTitle">BlackSea Connect | Заявка за услуга на собственик</title>
+  <title data-i18n="ownerRequestServicePageTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServicePageTitle', '') }}</title>
   <meta name="description" data-i18n-attr="content:ownerRequestServiceMeta" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Заявка за услуга на собственик">
-  <meta property="og:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
+  <meta property="og:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServicePageTitleOg', '') }}">
+  <meta property="og:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServiceMetaOg', '') }}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="BlackSea Connect | Заявка за услуга на собственик">
-  <meta name="twitter:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
+  <meta name="twitter:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServicePageTitleOg', '') }}">
+  <meta name="twitter:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServiceMetaOg', '') }}">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="owner-portal-page owner-request-service-page">
   {% set category_translation_keys = {
-    "Cleaning": "owners.ownerCategoryCleaning",
-    "Inspection": "owners.ownerCategoryInspection",
-    "Maintenance": "owners.ownerCategoryMaintenance",
-    "Airport Transfer": "owners.ownerCategoryAirportTransfer",
-    "Concierge Support": "owners.ownerCategoryConciergeSupport",
-    "Guest Issue": "owners.ownerCategoryGuestIssue",
-    "Seasonal Preparation": "owners.ownerCategorySeasonalPreparation",
-    "Other": "owners.ownerCategoryOther"
+    "Cleaning": "ownerCategoryCleaning",
+    "Inspection": "ownerCategoryInspection",
+    "Maintenance": "ownerCategoryMaintenance",
+    "Airport Transfer": "ownerCategoryAirportTransfer",
+    "Concierge Support": "ownerCategoryConciergeSupport",
+    "Guest Issue": "ownerCategoryGuestIssue",
+    "Seasonal Preparation": "ownerCategorySeasonalPreparation",
+    "Other": "ownerCategoryOther"
   } %}
   {% set contact_preference_translation_keys = {
     "Email": "ownerRequestContactEmail",
@@ -41,10 +41,10 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Изход</a>
-          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Обратно към сайта</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal', '') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ public_i18n('common', 'navRequestService', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">{{ public_i18n('owners', 'navOwnerLogout', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', '') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -55,44 +55,44 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceDashboardCta">Табло</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceDashboardCta">{{ public_i18n('ownersRequestService', 'ownerRequestServiceDashboardCta', '') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home owner-request-hero">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="ownerRequestServiceEyebrow">Портал за собственици</p>
-        <h1 data-i18n="ownerRequestServiceTitle">Заявете помощ за вашия имот.</h1>
+        <p class="eyebrow" data-i18n="ownerRequestServiceEyebrow">{{ public_i18n('ownersRequestService', 'ownerRequestServiceEyebrow', '') }}</p>
+        <h1 data-i18n="ownerRequestServiceTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServiceTitle', '') }}</h1>
         <p class="hero__text" data-i18n="ownerRequestServiceIntro">
-          Изберете услуга, добавете кратка бележка и запазете всичко синхронизирано с таблото си.
+          {{ public_i18n('ownersRequestService', 'ownerRequestServiceIntro', '') }}
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#owner-request-service-form" data-i18n="ownerRequestServicePrimaryCta">Отвори формата</a>
-          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceSecondaryCta">Виж таблото</a>
+          <a class="button button--primary" href="#owner-request-service-form" data-i18n="ownerRequestServicePrimaryCta">{{ public_i18n('ownersRequestService', 'ownerRequestServicePrimaryCta', '') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceSecondaryCta">{{ public_i18n('ownersRequestService', 'ownerRequestServiceSecondaryCta', '') }}</a>
         </div>
         <div class="trust-strip" aria-label="Owner request highlights">
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip1">Поверителен поток</span>
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip2">Проследява се във времева линия</span>
-          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip3">Съответства на местния екип</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip1">{{ public_i18n('ownersRequestService', 'ownerRequestServiceChip1', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip2">{{ public_i18n('ownersRequestService', 'ownerRequestServiceChip2', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="ownerRequestServiceChip3">{{ public_i18n('ownersRequestService', 'ownerRequestServiceChip3', '') }}</span>
         </div>
       </div>
 
       <aside class="owner-portal-card owner-request-summary" aria-label="Request summary">
-        <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceSuggested">Предложено от таблото</p>
-        <h2 data-i18n="{{ category_translation_keys.get(form_values.category, 'owners.ownerCategoryCleaning') }}">{{ form_values.category or "Почистване" }}</h2>
-        <p class="owner-portal-card__subcopy" data-i18n="ownerRequestServiceSuggestedCopy">Изберете правилната услуга и запазете заявката спокойна и ясна.</p>
+        <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceSuggested">{{ public_i18n('ownersRequestService', 'ownerRequestServiceSuggested', '') }}</p>
+        <h2 data-i18n="{{ category_translation_keys.get(form_values.category, 'ownerCategoryCleaning') if form_values.category else 'ownerRequestServiceSuggested' }}">{{ public_i18n('owners', category_translation_keys.get(form_values.category, 'ownerCategoryCleaning'), '') if form_values.category else public_i18n('ownersRequestService', 'ownerRequestServiceSuggested', '') }}</h2>
+        <p class="owner-portal-card__subcopy" data-i18n="ownerRequestServiceSuggestedCopy">{{ public_i18n('ownersRequestService', 'ownerRequestServiceSuggestedCopy', '') }}</p>
         <dl class="owner-portal-dl">
           <div>
-            <dt data-i18n="ownerRequestServicePropertyLabel">Имот</dt>
+            <dt data-i18n="ownerRequestPropertyLabel">{{ public_i18n('ownersRequestService', 'ownerRequestPropertyLabel', '') }}</dt>
             <dd>{{ form_values.property|e }}</dd>
           </div>
           <div>
-            <dt data-i18n="ownerRequestServicePreferredDateLabel">Желана дата</dt>
-            <dd>{% if form_values.preferred_date %}{{ form_values.preferred_date|e }}{% else %}<span data-i18n="ownerRequestServiceScheduled">Scheduled</span>{% endif %}</dd>
+            <dt data-i18n="ownerRequestPreferredDateLabel">{{ public_i18n('ownersRequestService', 'ownerRequestPreferredDateLabel', '') }}</dt>
+            <dd>{% if form_values.preferred_date %}{{ form_values.preferred_date|e }}{% else %}<span data-i18n="ownerRequestServiceScheduled">{{ public_i18n('ownersRequestService', 'ownerRequestServiceScheduled', '') }}</span>{% endif %}</dd>
           </div>
           <div>
-            <dt data-i18n="ownerRequestServiceContactPreferenceLabel">Предпочитан контакт</dt>
-            <dd data-i18n="{{ contact_preference_translation_keys.get(form_values.contact_preference, 'ownerRequestContactEmail') }}">{{ form_values.contact_preference }}</dd>
+            <dt data-i18n="ownerRequestServiceContactPreferenceLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServiceContactPreferenceLabel', '') }}</dt>
+            <dd data-i18n="{{ contact_preference_translation_keys.get(form_values.contact_preference, 'ownerRequestContactEmail') }}">{{ public_i18n('ownersRequestService', contact_preference_translation_keys.get(form_values.contact_preference, 'ownerRequestContactEmail'), '') }}</dd>
           </div>
         </dl>
       </aside>
@@ -102,12 +102,12 @@
   <main class="owner-request-service-page__main">
     <section class="owner-portal-card owner-request-panel" id="owner-request-service-form" aria-labelledby="owner-request-service-title">
       <div class="owner-request-panel__copy">
-        <p class="section-heading__eyebrow" data-i18n="ownerRequestServiceCardEyebrow">Заявка за услуга</p>
-        <h2 id="owner-request-service-title" data-i18n="ownerRequestServiceCardTitle">Изпратете ясна заявка за по-малко от минута.</h2>
+        <p class="section-heading__eyebrow" data-i18n="ownerRequestServiceCardEyebrow">{{ public_i18n('ownersRequestService', 'ownerRequestServiceCardEyebrow', '') }}</p>
+        <h2 id="owner-request-service-title" data-i18n="ownerRequestServiceCardTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServiceCardTitle', '') }}</h2>
         <p class="cta-panel__copy" data-i18n="ownerRequestServiceCardCopy">
-          Формата е кратък, за да може местният екип да я прегледа бързо.
+          {{ public_i18n('ownersRequestService', 'ownerRequestServiceCardCopy', '') }}
         </p>
-        <p class="cta-panel__trust" data-i18n="ownerRequestServiceHint">Таблото ще пази времевата линия и обновленията на едно място.</p>
+        <p class="cta-panel__trust" data-i18n="ownerRequestServiceHint">{{ public_i18n('ownersRequestService', 'ownerRequestServiceHint', '') }}</p>
       </div>
 
       <form class="owner-request-form" method="post" action="/owners/request-service">
@@ -115,82 +115,83 @@
         <input type="hidden" name="property_id" value="{{ form_values.property_id|e }}">
         <div class="owner-request-form__grid">
           <label class="owner-request-form__field">
-            <span data-i18n="ownerRequestServicePropertyLabel">Имот</span>
-            <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="Sea View Villa" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
-            {% if errors.property %}<p class="form-error" data-i18n="{{ errors.property }}">Това поле е задължително.</p>{% endif %}
+            <span data-i18n="ownerRequestServicePropertyLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyLabel', '') }}</span>
+            <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyPlaceholder', '') }}" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
+            {% if errors.property %}<p class="form-error" data-i18n="{{ errors.property }}">{{ public_i18n('ownersRequestService', errors.property, public_i18n('ownersRequestService', 'ownerRequestServicePropertyRequiredError', '')) }}</p>{% endif %}
           </label>
 
           <label class="owner-request-form__field">
-            <span data-i18n="ownerRequestServiceCategoryLabel">Категория услуга</span>
+            <span data-i18n="ownerRequestServiceCategoryLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServiceCategoryLabel', '') }}</span>
             <select name="category" required>
-              <option value="" data-i18n="ownerRequestServiceCategoryEmpty">Изберете категория</option>
+              <option value="" data-i18n="ownerRequestServiceCategoryEmpty">{{ public_i18n('ownersRequestService', 'ownerRequestServiceCategoryEmpty', '') }}</option>
               {% for category in service_categories %}
-                <option value="{{ category.label|e }}" data-i18n="{{ category.key }}" {% if form_values.category == category.label %}selected{% endif %}>{{ category.label|e }}</option>
+                {% set category_key = category.key.rsplit('.', 1)[-1] %}
+                <option value="{{ category.label|e }}" data-i18n="{{ category_key }}" {% if form_values.category == category.label %}selected{% endif %}>{{ public_i18n('owners', category_key, '') }}</option>
               {% endfor %}
             </select>
             {% if form_values.category %}
-              <p class="owner-request-form__helper" data-i18n="ownerRequestServicePreselected">Предварително избрано: {{ form_values.category|e }}</p>
+              <p class="owner-request-form__helper" data-i18n="ownerRequestServicePreselected">{{ public_i18n('ownersRequestService', 'ownerRequestServicePreselected', '') }}: {{ public_i18n('owners', category_translation_keys.get(form_values.category, 'ownerCategoryCleaning'), '') }}</p>
             {% endif %}
-            {% if errors.category %}<p class="form-error" data-i18n="{{ errors.category }}">Моля, изберете валидна категория.</p>{% endif %}
+            {% if errors.category %}<p class="form-error" data-i18n="{{ errors.category }}">{{ public_i18n('ownersRequestService', errors.category, public_i18n('ownersRequestService', 'ownerRequestServiceCategoryRequiredError', '')) }}</p>{% endif %}
           </label>
 
           <label class="owner-request-form__field">
-            <span data-i18n="ownerRequestServicePreferredDateLabel">Желана дата</span>
-            <input type="date" name="preferred_date" value="{{ form_values.preferred_date|e }}" required placeholder="2026-07-15" data-i18n-attr="placeholder:ownerRequestServicePreferredDatePlaceholder">
-            {% if errors.preferred_date %}<p class="form-error" data-i18n="{{ errors.preferred_date }}">Това поле е задължително.</p>{% endif %}
+            <span data-i18n="ownerRequestServicePreferredDateLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServicePreferredDateLabel', '') }}</span>
+            <input type="date" name="preferred_date" value="{{ form_values.preferred_date|e }}" required placeholder="{{ public_i18n('ownersRequestService', 'ownerRequestServicePreferredDatePlaceholder', '') }}" data-i18n-attr="placeholder:ownerRequestServicePreferredDatePlaceholder">
+            {% if errors.preferred_date %}<p class="form-error" data-i18n="{{ errors.preferred_date }}">{{ public_i18n('ownersRequestService', errors.preferred_date, public_i18n('ownersRequestService', 'ownerRequestServicePreferredDateRequiredError', '')) }}</p>{% endif %}
           </label>
 
           <label class="owner-request-form__field">
-            <span data-i18n="ownerRequestServiceUrgencyLabel">Спешност</span>
+            <span data-i18n="ownerRequestServiceUrgencyLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServiceUrgencyLabel', '') }}</span>
             <select name="urgency" required>
-              <option value="Low" data-i18n="ownerRequestUrgencyLow" {% if form_values.urgency == "Low" %}selected{% endif %}>Ниска</option>
-              <option value="Standard" data-i18n="ownerRequestUrgencyStandard" {% if form_values.urgency == "Standard" %}selected{% endif %}>Стандартна</option>
-              <option value="High" data-i18n="ownerRequestUrgencyHigh" {% if form_values.urgency == "High" %}selected{% endif %}>Висока</option>
-              <option value="Same day" data-i18n="ownerRequestUrgencySameDay" {% if form_values.urgency == "Same day" %}selected{% endif %}>Същия ден</option>
+              <option value="Low" data-i18n="ownerRequestUrgencyLow" {% if form_values.urgency == "Low" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestUrgencyLow', '') }}</option>
+              <option value="Standard" data-i18n="ownerRequestUrgencyStandard" {% if form_values.urgency == "Standard" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestUrgencyStandard', '') }}</option>
+              <option value="High" data-i18n="ownerRequestUrgencyHigh" {% if form_values.urgency == "High" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestUrgencyHigh', '') }}</option>
+              <option value="Same day" data-i18n="ownerRequestUrgencySameDay" {% if form_values.urgency == "Same day" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestUrgencySameDay', '') }}</option>
             </select>
           </label>
 
           <label class="owner-request-form__field">
-            <span data-i18n="ownerRequestServiceContactPreferenceLabel">Предпочитан контакт</span>
+            <span data-i18n="ownerRequestServiceContactPreferenceLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServiceContactPreferenceLabel', '') }}</span>
             <select name="contact_preference" required>
-              <option value="Email" data-i18n="ownerRequestContactEmail" {% if form_values.contact_preference == "Email" %}selected{% endif %}>Имейл</option>
-              <option value="WhatsApp" data-i18n="ownerRequestContactWhatsApp" {% if form_values.contact_preference == "WhatsApp" %}selected{% endif %}>WhatsApp</option>
-              <option value="Phone call" data-i18n="ownerRequestContactPhoneCall" {% if form_values.contact_preference == "Phone call" %}selected{% endif %}>Телефонно обаждане</option>
+              <option value="Email" data-i18n="ownerRequestContactEmail" {% if form_values.contact_preference == "Email" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestContactEmail', '') }}</option>
+              <option value="WhatsApp" data-i18n="ownerRequestContactWhatsApp" {% if form_values.contact_preference == "WhatsApp" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestContactWhatsApp', '') }}</option>
+              <option value="Phone call" data-i18n="ownerRequestContactPhoneCall" {% if form_values.contact_preference == "Phone call" %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestContactPhoneCall', '') }}</option>
             </select>
-            {% if errors.contact_preference %}<p class="form-error" data-i18n="{{ errors.contact_preference }}">Това поле е задължително.</p>{% endif %}
+            {% if errors.contact_preference %}<p class="form-error" data-i18n="{{ errors.contact_preference }}">{{ public_i18n('ownersRequestService', errors.contact_preference, public_i18n('ownersRequestService', 'ownerRequestServiceContactPhoneRequiredError', '')) }}</p>{% endif %}
           </label>
 
           <label class="owner-request-form__field owner-request-form__field--full">
-            <span data-i18n="ownerRequestServiceNotesLabel">Бележки</span>
-            <textarea name="notes" rows="6" required placeholder="Опишете какво трябва да бъде направено и дали има бележки за времето." data-i18n-attr="placeholder:ownerRequestServiceDescriptionPlaceholder">{{ form_values.description|e }}</textarea>
-            {% if errors.description %}<p class="form-error" data-i18n="{{ errors.description }}">Това поле е задължително.</p>{% endif %}
+            <span data-i18n="ownerRequestServiceNotesLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServiceNotesLabel', '') }}</span>
+            <textarea name="notes" rows="6" required placeholder="{{ public_i18n('ownersRequestService', 'ownerRequestServiceDescriptionPlaceholder', '') }}" data-i18n-attr="placeholder:ownerRequestServiceDescriptionPlaceholder">{{ form_values.description|e }}</textarea>
+            {% if errors.description %}<p class="form-error" data-i18n="{{ errors.description }}">{{ public_i18n('ownersRequestService', errors.description, public_i18n('ownersRequestService', 'ownerRequestServiceDescriptionRequiredError', '')) }}</p>{% endif %}
           </label>
         </div>
 
         <div class="owner-request-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="ownerRequestServiceSubmit">Изпрати заявката</button>
+          <button class="button button--primary" type="submit" data-i18n="ownerRequestServiceSubmit">{{ public_i18n('ownersRequestService', 'ownerRequestServiceSubmit', '') }}</button>
           <p class="pilot-form__hint">
-            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceLoginLink">Обратно към таблото</a>
+            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerRequestServiceLoginLink">{{ public_i18n('ownersRequestService', 'ownerRequestServiceLoginLink', '') }}</a>
           </p>
         </div>
       </form>
     </section>
 
     <section class="owner-portal-card owner-request-next" aria-labelledby="owner-request-next-title">
-      <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceWhatHappensNext">Какво следва</p>
-      <h2 id="owner-request-next-title" data-i18n="ownerRequestServiceWhatHappensNextTitle">Ще бъдете информирани без излишен шум.</h2>
+      <p class="owner-portal-card__eyebrow" data-i18n="ownerRequestServiceWhatHappensNext">{{ public_i18n('ownersRequestService', 'ownerRequestServiceWhatHappensNext', '') }}</p>
+      <h2 id="owner-request-next-title" data-i18n="ownerRequestServiceWhatHappensNextTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServiceWhatHappensNextTitle', '') }}</h2>
       <div class="owner-request-next__grid">
         <div>
-          <strong data-i18n="ownerRequestServiceReview">Преглед</strong>
-          <p data-i18n="ownerRequestServiceReviewCopy">Местният екип получава заявката и проверява детайлите.</p>
+          <strong data-i18n="ownerRequestServiceReview">{{ public_i18n('ownersRequestService', 'ownerRequestServiceReview', '') }}</strong>
+          <p data-i18n="ownerRequestServiceReviewCopy">{{ public_i18n('ownersRequestService', 'ownerRequestServiceReviewCopy', '') }}</p>
         </div>
         <div>
-          <strong data-i18n="ownerRequestServiceConfirmation">Потвърждение</strong>
-          <p data-i18n="ownerRequestServiceConfirmationCopy">Таблото ще покаже заявката и последващите обновления.</p>
+          <strong data-i18n="ownerRequestServiceConfirmation">{{ public_i18n('ownersRequestService', 'ownerRequestServiceConfirmation', '') }}</strong>
+          <p data-i18n="ownerRequestServiceConfirmationCopy">{{ public_i18n('ownersRequestService', 'ownerRequestServiceConfirmationCopy', '') }}</p>
         </div>
         <div>
-          <strong data-i18n="ownerRequestServiceResolution">Решение</strong>
-          <p data-i18n="ownerRequestServiceResolutionCopy">Следите напредъка без да се обаждате на оператора.</p>
+          <strong data-i18n="ownerRequestServiceResolution">{{ public_i18n('ownersRequestService', 'ownerRequestServiceResolution', '') }}</strong>
+          <p data-i18n="ownerRequestServiceResolutionCopy">{{ public_i18n('ownersRequestService', 'ownerRequestServiceResolutionCopy', '') }}</p>
         </div>
       </div>
     </section>
@@ -199,20 +200,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Quiet operational software for coastal properties.</p>
+      <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', '') }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
-      <a href="{{ localized_url('/owners/login') }}" data-i18n="navOwnerLogin">Вход за собственици</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', '') }}</a>
+      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal', '') }}</a>
+      <a href="{{ localized_url('/owners/login') }}" data-i18n="navOwnerLogin">{{ public_i18n('common', 'navOwnerLogin', '') }}</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Порталът за собственици събира видимостта на имота, заявките за услуги и обновленията в един спокоен поток.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">{{ public_i18n('common', 'footerEmail', 'concierge@blackseaconnect.com') }}</a>
+      <p data-i18n="footerMeta">{{ public_i18n('common', 'footerMeta', '') }}</p>
     </div>
   </footer>
 

@@ -8,16 +8,16 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="ownerLoginPageTitle">BlackSea Connect | Вход на собственик</title>
-  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="Влезте в портала си със своя имейл и продължете към таблото.">
+  <title data-i18n="ownerLoginPageTitle">{{ public_i18n('ownersLogin', 'ownerLoginPageTitle', 'BlackSea Connect | Owner Login') }}</title>
+  <meta name="description" data-i18n-attr="content:ownerLoginMeta" content="{{ public_i18n('ownersLogin', 'ownerLoginMeta', 'Log in to your owner portal with email and continue to your dashboard.') }}">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход на собственик">
-  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="Влезте в портала си със своя имейл и продължете към таблото.">
+  <meta property="og:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="{{ public_i18n('ownersLogin', 'ownerLoginPageTitleOg', 'BlackSea Connect | Owner Login') }}">
+  <meta property="og:description" data-i18n-attr="content:ownerLoginMetaOg" content="{{ public_i18n('ownersLogin', 'ownerLoginMetaOg', 'Log in to your owner portal with email and continue to your dashboard.') }}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="BlackSea Connect | Вход на собственик">
-  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="Влезте в портала си със своя имейл и продължете към таблото.">
+  <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="{{ public_i18n('ownersLogin', 'ownerLoginPageTitleOg', 'BlackSea Connect | Owner Login') }}">
+  <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="{{ public_i18n('ownersLogin', 'ownerLoginMetaOg', 'Log in to your owner portal with email and continue to your dashboard.') }}">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="owner-portal-page owner-login-page">
@@ -26,9 +26,9 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', 'Home') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal', 'Owners') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -39,47 +39,47 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/') }}" data-i18n="ownerLoginBackToSite">Обратно към сайта</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/') }}" data-i18n="ownerLoginBackToSite">{{ public_i18n('ownersLogin', 'ownerLoginBackToSite', 'Back to site') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home owner-portal-auth-layout">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="ownerLoginEyebrow">Портал за собственици</p>
-        <h1 data-i18n="ownerLoginTitle">Влезте и вижте имота си спокойно.</h1>
+        <p class="eyebrow" data-i18n="ownerLoginEyebrow">{{ public_i18n('ownersLogin', 'ownerLoginEyebrow', 'Owner portal') }}</p>
+        <h1 data-i18n="ownerLoginTitle">{{ public_i18n('ownersLogin', 'ownerLoginTitle', 'Sign in with email and open your dashboard.') }}</h1>
         <p class="hero__text" data-i18n="ownerLoginIntro">
-          Поверителен поглед към операциите на вашия имот.
+          {{ public_i18n('ownersLogin', 'ownerLoginIntro', 'Use the same email you registered with to review requests, statuses, and recent updates.') }}
         </p>
         <p class="hero__text owner-portal-auth-layout__support" data-i18n="ownerLoginSupport">
-          Вижте последните активности, разберете какво се случва и поръчайте услуга без да търсите локалния екип.
+          {{ public_i18n('ownersLogin', 'ownerLoginSupport', 'See recent activity, understand what is happening, and request service without chasing the local team.') }}
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">Отвори входа</a>
-          <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLoginSecondaryCta">Заяви услуга</a>
+          <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">{{ public_i18n('ownersLogin', 'ownerLoginPrimaryCta', 'Login') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLoginSecondaryCta">{{ public_i18n('ownersLogin', 'ownerLoginSecondaryCta', 'Create account') }}</a>
         </div>
         <div class="trust-strip" aria-label="Owner login benefits">
-          <span class="trust-strip__chip" data-i18n="ownerLoginChip1">Поверителен портал</span>
-          <span class="trust-strip__chip" data-i18n="ownerLoginChip2">Спокойна видимост на имота</span>
-          <span class="trust-strip__chip" data-i18n="ownerLoginChip3">Заявки за услуги на едно място</span>
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip1">{{ public_i18n('ownersLogin', 'ownerLoginChip1', 'Confidential portal') }}</span>
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip2">{{ public_i18n('ownersLogin', 'ownerLoginChip2', 'Calm property visibility') }}</span>
+          <span class="trust-strip__chip" data-i18n="ownerLoginChip3">{{ public_i18n('ownersLogin', 'ownerLoginChip3', 'Service requests in one place') }}</span>
         </div>
       </div>
 
       <aside class="owner-portal-card owner-login-card" aria-label="Owner portal summary">
-        <p class="owner-portal-card__eyebrow" data-i18n="ownerLoginWhatThisIs">Какво е това</p>
-        <h2 data-i18n="ownerLoginWhatThisTitle">Всичко необходимо без административния шум.</h2>
-        <p class="owner-portal-card__subcopy" data-i18n="ownerLoginWhatThisCopy">Премиум изглед за собственици с активност, обновления и заявки за услуги.</p>
+        <p class="owner-portal-card__eyebrow" data-i18n="ownerLoginWhatThisIs">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisIs', 'What this is') }}</p>
+        <h2 data-i18n="ownerLoginWhatThisTitle">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisTitle', 'Everything you need without the admin noise.') }}</h2>
+        <p class="owner-portal-card__subcopy" data-i18n="ownerLoginWhatThisCopy">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisCopy', 'A premium owner view for activity, updates, and service requests.') }}</p>
         <dl class="owner-portal-dl">
           <div>
-            <dt data-i18n="ownerLoginWhatThisVisibility">Видимост</dt>
-            <dd data-i18n="ownerLoginWhatThisVisibilityCopy">Обновления на имота с един поглед</dd>
+            <dt data-i18n="ownerLoginWhatThisVisibility">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisVisibility', 'Visibility') }}</dt>
+            <dd data-i18n="ownerLoginWhatThisVisibilityCopy">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisVisibilityCopy', 'Property updates at a glance') }}</dd>
           </div>
           <div>
-            <dt data-i18n="ownerLoginWhatThisControl">Контрол</dt>
-            <dd data-i18n="ownerLoginWhatThisControlCopy">Заявете услуга с няколко докосвания</dd>
+            <dt data-i18n="ownerLoginWhatThisControl">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisControl', 'Control') }}</dt>
+            <dd data-i18n="ownerLoginWhatThisControlCopy">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisControlCopy', 'Request a service in a few taps') }}</dd>
           </div>
           <div>
-            <dt data-i18n="ownerLoginWhatThisConfidence">Увереност</dt>
-            <dd data-i18n="ownerLoginWhatThisConfidenceCopy">Едно спокойно място за проследяване</dd>
+            <dt data-i18n="ownerLoginWhatThisConfidence">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisConfidence', 'Confidence') }}</dt>
+            <dd data-i18n="ownerLoginWhatThisConfidenceCopy">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisConfidenceCopy', 'One calm place to check progress') }}</dd>
           </div>
         </dl>
       </aside>
@@ -89,8 +89,8 @@
   <main class="owner-login-page__main">
     <section class="owner-portal-card owner-login-panel" id="owner-login-form" aria-labelledby="owner-login-title">
       <div class="owner-login-panel__copy">
-        <p class="section-heading__eyebrow" data-i18n="ownerLoginCardEyebrow">Вход</p>
-        <h2 id="owner-login-title" data-i18n="ownerLoginCardTitle">Въведете имейла, свързан с вашия имот.</h2>
+        <p class="section-heading__eyebrow" data-i18n="ownerLoginCardEyebrow">{{ public_i18n('ownersLogin', 'ownerLoginCardEyebrow', 'Login') }}</p>
+        <h2 id="owner-login-title" data-i18n="ownerLoginCardTitle">{{ public_i18n('ownersLogin', 'ownerLoginCardTitle', 'Enter your email to continue.') }}</h2>
         <p class="cta-panel__copy" data-i18n="ownerLoginCardCopy">
           {{ public_i18n('ownersLogin', 'ownerLoginCardCopy', 'We will send a secure sign-in link to the registered email address.') }}
         </p>
@@ -98,62 +98,62 @@
 
       {% if request.args.get('registered') == '1' and request.args.get('delivery') == 'failed' %}
         <div class="owner-login-banner owner-login-banner--warning" role="alert">
-          <strong data-i18n="ownerLoginRegisteredFailedBannerTitle">Registration received.</strong>
-          <p data-i18n="ownerLoginRegisteredFailedBannerCopy">Профилът е създаден, но имейлът не беше изпратен. Моля, опитайте вход отново или се свържете с нас.</p>
+          <strong data-i18n="ownerLoginRegisteredFailedBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginRegisteredFailedBannerTitle', 'Registration received.') }}</strong>
+          <p data-i18n="ownerLoginRegisteredFailedBannerCopy">{{ public_i18n('ownersLogin', 'ownerLoginRegisteredFailedBannerCopy', 'The profile was created, but the email was not sent. Please try logging in again or contact us.') }}</p>
         </div>
       {% elif request.args.get('registered') == '1' %}
         <div class="owner-login-banner owner-login-banner--success" role="status">
-          <strong data-i18n="ownerLoginRegisteredBannerTitle">Registration received.</strong>
+          <strong data-i18n="ownerLoginRegisteredBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginRegisteredBannerTitle', 'Registration received.') }}</strong>
           {% if request.args.get('delivery') == 'sent' and request.args.get('magic_recipient') %}
-            <p data-i18n="ownerLoginRegisteredRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
+            <p data-i18n="ownerLoginRegisteredRecipientCopy">{{ public_i18n('ownersLogin', 'ownerLoginRegisteredRecipientCopy', 'We sent a secure link to {{ recipient }}. Check your inbox and spam folder.')|replace('{{ recipient }}', request.args.get('magic_recipient')|e) }}</p>
           {% else %}
-            <p data-i18n="ownerLoginRegisteredBannerCopy">Your owner account is ready and a secure sign-in link has been sent.</p>
+            <p data-i18n="ownerLoginRegisteredBannerCopy">{{ public_i18n('ownersLogin', 'ownerLoginRegisteredBannerCopy', 'Your owner account is ready and a secure sign-in link has been sent.') }}</p>
           {% endif %}
         </div>
       {% elif request.args.get('delivery') == 'failed' %}
         <div class="owner-login-banner owner-login-banner--warning" role="alert">
-          <strong data-i18n="ownerLoginMagicFailedBannerTitle">We couldn’t send the link.</strong>
-          <p data-i18n="ownerLoginMagicFailedBannerCopy">Не успяхме да изпратим линка. Моля, опитайте отново след малко.</p>
+          <strong data-i18n="ownerLoginMagicFailedBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginMagicFailedBannerTitle', "We couldn’t send the link.") }}</strong>
+          <p data-i18n="ownerLoginMagicFailedBannerCopy">{{ public_i18n('ownersLogin', 'ownerLoginMagicFailedBannerCopy', 'We could not send the link. Please try again in a moment.') }}</p>
         </div>
       {% elif request.args.get('magic_sent') == '1' %}
         <div class="owner-login-banner owner-login-banner--info" role="status">
-          <strong data-i18n="ownerLoginMagicSentBannerTitle">Check your email.</strong>
+          <strong data-i18n="ownerLoginMagicSentBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginMagicSentBannerTitle', 'Check your email.') }}</strong>
           {% if request.args.get('delivery') == 'sent' and request.args.get('magic_recipient') %}
-            <p data-i18n="ownerLoginMagicSentRecipientCopy">Изпратихме защитен линк до {{ request.args.get('magic_recipient')|e }}. Проверете входящата поща и Spam.</p>
+            <p data-i18n="ownerLoginMagicSentRecipientCopy">{{ public_i18n('ownersLogin', 'ownerLoginMagicSentRecipientCopy', 'We sent a secure link to {{ recipient }}. Check your inbox and spam folder.')|replace('{{ recipient }}', request.args.get('magic_recipient')|e) }}</p>
           {% elif request.args.get('delivery') == 'generic' %}
-            <p data-i18n="ownerLoginMagicSentGenericCopy">Ако имейлът е регистриран, ще получите защитен линк.</p>
+            <p data-i18n="ownerLoginMagicSentGenericCopy">{{ public_i18n('ownersLogin', 'ownerLoginMagicSentGenericCopy', 'If the email is registered, you will receive a secure link.') }}</p>
           {% else %}
-            <p data-i18n="ownerLoginMagicSentGenericCopy">Ако имейлът е регистриран, ще получите защитен линк.</p>
+            <p data-i18n="ownerLoginMagicSentGenericCopy">{{ public_i18n('ownersLogin', 'ownerLoginMagicSentGenericCopy', 'If the email is registered, you will receive a secure link.') }}</p>
           {% endif %}
         </div>
       {% endif %}
 
       {% if request.args.get('invalid_token') == '1' %}
         <div class="owner-login-banner owner-login-banner--warning" role="alert">
-          <strong data-i18n="ownerLoginInvalidTokenBannerTitle">That sign-in link is not valid.</strong>
-          <p data-i18n="ownerLoginInvalidTokenBannerCopy">Please request a new secure link from the login form.</p>
+          <strong data-i18n="ownerLoginInvalidTokenBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginInvalidTokenBannerTitle', 'That sign-in link is not valid.') }}</strong>
+          <p data-i18n="ownerLoginInvalidTokenBannerCopy">{{ public_i18n('ownersLogin', 'ownerLoginInvalidTokenBannerCopy', 'Please request a new secure link from the login form.') }}</p>
         </div>
       {% endif %}
 
       {% if request.args.get('expired_token') == '1' %}
         <div class="owner-login-banner owner-login-banner--warning" role="alert">
-          <strong data-i18n="ownerLoginExpiredTokenBannerTitle">That sign-in link expired.</strong>
-          <p data-i18n="ownerLoginExpiredTokenBannerCopy">Request a new link to continue to the Owner Portal.</p>
+          <strong data-i18n="ownerLoginExpiredTokenBannerTitle">{{ public_i18n('ownersLogin', 'ownerLoginExpiredTokenBannerTitle', 'That sign-in link expired.') }}</strong>
+          <p data-i18n="ownerLoginExpiredTokenBannerCopy">{{ public_i18n('ownersLogin', 'ownerLoginExpiredTokenBannerCopy', 'Request a new link to continue to the Owner Portal.') }}</p>
         </div>
       {% endif %}
 
       <form class="owner-login-form" method="post" action="{{ localized_url('/owners/login') }}">
         <input type="hidden" name="lang" value="{{ current_lang }}">
         <label class="owner-login-form__field">
-          <span data-i18n="ownerLoginEmail">Имейл</span>
-          <input id="owner-login-email" type="email" name="email" value="{{ form_values.email|e }}" required placeholder="name@example.com" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
-          {% if errors.email %}<p class="form-error" data-i18n="ownerAccountNotFoundError">Please enter a registered email address.</p>{% endif %}
+          <span data-i18n="ownerLoginEmail">{{ public_i18n('ownersLogin', 'ownerLoginEmail', 'Email') }}</span>
+          <input id="owner-login-email" type="email" name="email" value="{{ form_values.email|e }}" required placeholder="{{ public_i18n('ownersLogin', 'ownerLoginEmailPlaceholder', 'name@example.com') }}" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-attr="placeholder:ownerLoginEmailPlaceholder">
+          {% if errors.email %}<p class="form-error" data-i18n="ownerAccountNotFoundError">{{ public_i18n('ownersLogin', 'ownerLoginError', 'Please enter a registered email address.') }}</p>{% endif %}
         </label>
 
         <div class="owner-login-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="ownerLoginSendMagicLink">Send secure link</button>
+          <button class="button button--primary" type="submit" data-i18n="ownerLoginSendMagicLink">{{ public_i18n('ownersLogin', 'ownerLoginSendMagicLink', 'Send secure link') }}</button>
           <p class="pilot-form__hint">
-          <a href="{{ localized_url('/owners/register') }}" data-i18n="ownerLoginRegisterLink">Нужен ли ви е акаунт? Регистрирайте имота си.</a>
+          <a href="{{ localized_url('/owners/register') }}" data-i18n="ownerLoginRegisterLink">{{ public_i18n('ownersLogin', 'ownerLoginRegisterLink', 'Need an account? Register your property.') }}</a>
           </p>
         </div>
       </form>
@@ -163,20 +163,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Спокойни оперативни решения за крайбрежни имоти.</p>
+      <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', 'Calm operational solutions for coastal properties.') }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
-      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Табло</a>
-      <a href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Заявка за услуга</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', 'Services') }}</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', 'Partners') }}</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', 'Pilot access') }}</a>
+      <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal', 'Owners') }}</a>
+      <a href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Порталът за собственици събира регистрацията, заявките и проследяването в един спокоен поток.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">{{ public_i18n('common', 'footerEmail', 'concierge@blackseaconnect.com') }}</a>
+      <p data-i18n="footerMeta">{{ public_i18n('common', 'footerMeta', 'Clear coordination for guests, property teams and trusted local partners.') }}</p>
     </div>
   </footer>
 

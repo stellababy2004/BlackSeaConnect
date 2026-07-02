@@ -203,6 +203,112 @@ PROFESSIONAL_SESSION_ID_KEY = "professional_id"
 PROFESSIONAL_SESSION_EMAIL_KEY = "professional_email"
 PROFESSIONAL_SESSION_NAME_KEY = "professional_name"
 PROFESSIONAL_SESSION_LOGGED_IN_KEY = "professional_logged_in"
+ENTERPRISE_SESSION_USER_ID_KEY = "enterprise_user_id"
+ENTERPRISE_SESSION_USER_EMAIL_KEY = "enterprise_user_email"
+ENTERPRISE_SESSION_USER_NAME_KEY = "enterprise_user_name"
+ENTERPRISE_SESSION_ROLE_KEY = "enterprise_role"
+ENTERPRISE_SESSION_ORGANIZATION_ID_KEY = "enterprise_organization_id"
+GLOBAL_ORGANIZATION_ID = "org-global"
+GLOBAL_ORGANIZATION_NAME = "BlackSea Connect Global"
+ORGANIZATION_STATUS_ACTIVE = "ACTIVE"
+ORGANIZATION_STATUS_SUSPENDED = "SUSPENDED"
+ROLE_PLATFORM_ADMIN = "platform_admin"
+ROLE_COMPANY_ADMIN = "company_admin"
+ROLE_OPERATIONS_MANAGER = "operations_manager"
+ROLE_OPERATIONS_COORDINATOR = "operations_coordinator"
+ROLE_PROFESSIONAL = "professional"
+ROLE_OWNER = "owner"
+ROLE_GUEST = "guest"
+ROLE_HIERARCHY = (
+    ROLE_PLATFORM_ADMIN,
+    ROLE_COMPANY_ADMIN,
+    ROLE_OPERATIONS_MANAGER,
+    ROLE_OPERATIONS_COORDINATOR,
+    ROLE_PROFESSIONAL,
+    ROLE_OWNER,
+    ROLE_GUEST,
+)
+ROLE_RANK = {role: index for index, role in enumerate(ROLE_HIERARCHY)}
+ROLE_PERMISSION_MAP = {
+    ROLE_PLATFORM_ADMIN: {
+        "companies.create",
+        "companies.suspend",
+        "companies.delete",
+        "users.impersonate",
+        "billing.manage",
+        "subscriptions.manage",
+        "analytics.view",
+        "platform.settings.manage",
+        "professionals.global.view",
+        "audit_logs.global.view",
+    },
+    ROLE_COMPANY_ADMIN: {
+        "users.invite",
+        "users.remove",
+        "professionals.approve",
+        "owners.approve",
+        "properties.create",
+        "properties.assign",
+        "professionals.assign",
+        "reports.view",
+    },
+    ROLE_OPERATIONS_MANAGER: {
+        "operations.manage",
+        "tasks.create",
+        "tasks.assign",
+        "sla.edit",
+        "reservations.manage",
+        "calendar.manage",
+        "knowledge_hub.owner.view",
+    },
+    ROLE_OPERATIONS_COORDINATOR: {
+        "tasks.create",
+        "tasks.edit",
+        "work.schedule",
+        "messages.owners.send",
+        "messages.professionals.send",
+    },
+    ROLE_PROFESSIONAL: {
+        "dashboard.professional.view",
+        "tasks.assigned.view",
+        "photos.upload",
+        "reports.completion.submit",
+        "timeline.view",
+        "messages.view",
+    },
+    ROLE_OWNER: {
+        "portal.owner.view",
+    },
+    ROLE_GUEST: {
+        "portal.guest.view",
+    },
+}
+ENTERPRISE_TABLES = (
+    "organizations",
+    "users",
+    "user_roles",
+    "memberships",
+    "permissions",
+    "audit_logs",
+    "organization_invitations",
+)
+ENTERPRISE_SCOPED_TABLES = (
+    "owner_accounts",
+    "owner_properties",
+    "reservations",
+    "operations_tasks",
+    "operations_task_events",
+    "operations_notifications",
+    "calendar_events",
+    "owner_activity_events",
+    "owner_property_activity_events",
+    "owner_magic_tokens",
+    "owner_magic_email_events",
+    "professional_accounts",
+    "professional_magic_tokens",
+)
+INVITATION_TTL_HOURS = 72
+ENTERPRISE_SCHEMA_META_KEY = "enterprise_schema_version"
 OWNER_DEMO_LOGIN_EMAIL = "owner@blackseaconnect.com"
 OWNER_DEMO_LOGIN_PASSWORD = "demo1234"
 OWNER_DEMO_PROFILE = {
@@ -1057,6 +1163,7 @@ def _normalize_owner_account(record):
         "notes",
         "internal_notes",
         "last_login_at",
+        "organization_id",
     ):
         normalized[field] = str(normalized.get(field, "")).strip()
 
@@ -1064,6 +1171,7 @@ def _normalize_owner_account(record):
     normalized["number_of_units"] = int(number_of_units) if number_of_units.isdigit() else 0
     normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
     normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
+    normalized["organization_id"] = normalized.get("organization_id", GLOBAL_ORGANIZATION_ID) or GLOBAL_ORGANIZATION_ID
     return normalized
 
 
@@ -1117,21 +1225,720 @@ def _owner_table_columns(conn, table_name):
     return {str(row["name"]) for row in rows}
 
 
+def _ensure_table_column(conn, table_name, column_name, column_sql):
+    existing_columns = _owner_table_columns(conn, table_name)
+    if column_name not in existing_columns:
+        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_sql}")
+
+
+def _normalize_role_key(role_key):
+    normalized = str(role_key or "").strip().lower()
+    return normalized if normalized in ROLE_RANK else ""
+
+
+def _role_rank(role_key):
+    normalized = _normalize_role_key(role_key)
+    return ROLE_RANK.get(normalized, len(ROLE_HIERARCHY))
+
+
+def _role_at_least(role_key, minimum_role):
+    normalized_role = _normalize_role_key(role_key)
+    normalized_minimum = _normalize_role_key(minimum_role)
+    if not normalized_role or not normalized_minimum:
+        return False
+    return _role_rank(normalized_role) <= _role_rank(normalized_minimum)
+
+
+def _normalize_organization_status(status):
+    normalized = str(status or "").strip().upper()
+    return normalized if normalized in {ORGANIZATION_STATUS_ACTIVE, ORGANIZATION_STATUS_SUSPENDED} else ORGANIZATION_STATUS_ACTIVE
+
+
+def _organization_slug(name):
+    slug = re.sub(r"[^a-z0-9]+", "-", str(name or "").strip().lower()).strip("-")
+    return slug or GLOBAL_ORGANIZATION_ID
+
+
+def _organization_from_row(row):
+    metadata_json = str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}"
+    try:
+        metadata = json.loads(metadata_json) if metadata_json else {}
+    except json.JSONDecodeError:
+        metadata = {}
+    return {
+        "id": str(row["id"]),
+        "created_at": str(row["created_at"]),
+        "name": str(row["name"]),
+        "slug": str(row["slug"]),
+        "status": _normalize_organization_status(row["status"] if "status" in row.keys() else ORGANIZATION_STATUS_ACTIVE),
+        "suspended_at": str(row["suspended_at"]) if "suspended_at" in row.keys() else "",
+        "deleted_at": str(row["deleted_at"]) if "deleted_at" in row.keys() else "",
+        "owner_user_id": str(row["owner_user_id"]) if "owner_user_id" in row.keys() else "",
+        "metadata_json": metadata_json or "{}",
+        "metadata": metadata,
+    }
+
+
+def _user_from_row(row):
+    metadata_json = str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}"
+    try:
+        metadata = json.loads(metadata_json) if metadata_json else {}
+    except json.JSONDecodeError:
+        metadata = {}
+    return {
+        "id": str(row["id"]),
+        "email": str(row["email"]),
+        "created_at": str(row["created_at"]),
+        "full_name": str(row["full_name"]),
+        "status": str(row["status"]) if "status" in row.keys() else "ACTIVE",
+        "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
+        "metadata_json": metadata_json or "{}",
+        "metadata": metadata,
+    }
+
+
+def _membership_from_row(row):
+    return {
+        "id": str(row["id"]),
+        "user_id": str(row["user_id"]),
+        "organization_id": str(row["organization_id"]),
+        "role_key": _normalize_role_key(row["role_key"] if "role_key" in row.keys() else ROLE_GUEST),
+        "status": str(row["status"]) if "status" in row.keys() else "ACTIVE",
+        "created_at": str(row["created_at"]),
+        "joined_at": str(row["joined_at"]) if "joined_at" in row.keys() else "",
+        "invited_by_user_id": str(row["invited_by_user_id"]) if "invited_by_user_id" in row.keys() else "",
+    }
+
+
+def _audit_log_from_row(row):
+    return {
+        "id": str(row["id"]),
+        "timestamp": str(row["timestamp"]),
+        "organization_id": str(row["organization_id"]),
+        "user_id": str(row["user_id"]),
+        "role_key": _normalize_role_key(row["role_key"] if "role_key" in row.keys() else ""),
+        "ip_address": str(row["ip_address"]) if "ip_address" in row.keys() else "",
+        "entity_type": str(row["entity_type"]) if "entity_type" in row.keys() else "",
+        "entity_id": str(row["entity_id"]) if "entity_id" in row.keys() else "",
+        "action": str(row["action"]) if "action" in row.keys() else "",
+        "before_json": str(row["before_json"]) if "before_json" in row.keys() else "{}",
+        "after_json": str(row["after_json"]) if "after_json" in row.keys() else "{}",
+        "metadata_json": str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}",
+    }
+
+
+def _organization_invitation_from_row(row):
+    return {
+        "token": str(row["token"]),
+        "created_at": str(row["created_at"]),
+        "expires_at": str(row["expires_at"]),
+        "organization_id": str(row["organization_id"]),
+        "email": str(row["email"]),
+        "role_key": _normalize_role_key(row["role_key"] if "role_key" in row.keys() else ROLE_GUEST),
+        "status": str(row["status"]) if "status" in row.keys() else "PENDING",
+        "accepted_at": str(row["accepted_at"]) if "accepted_at" in row.keys() else "",
+        "accepted_user_id": str(row["accepted_user_id"]) if "accepted_user_id" in row.keys() else "",
+        "invited_by_user_id": str(row["invited_by_user_id"]) if "invited_by_user_id" in row.keys() else "",
+        "magic_link_sent_at": str(row["magic_link_sent_at"]) if "magic_link_sent_at" in row.keys() else "",
+    }
+
+
+def _current_request_ip():
+    forwarded_for = str(request.headers.get("X-Forwarded-For", "")).strip()
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return str(request.headers.get("X-Real-IP", "")).strip() or str(request.remote_addr or "").strip()
+
+
+def _organization_payload_for_audit(organization):
+    if not organization:
+        return {}
+    return {
+        "id": organization.get("id", ""),
+        "name": organization.get("name", ""),
+        "slug": organization.get("slug", ""),
+        "status": organization.get("status", ""),
+    }
+
+
+def _user_payload_for_audit(user):
+    if not user:
+        return {}
+    return {
+        "id": user.get("id", ""),
+        "email": user.get("email", ""),
+        "full_name": user.get("full_name", ""),
+        "organization_id": user.get("organization_id", ""),
+    }
+
+
+def _load_organizations(include_suspended=True):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        rows = conn.execute(
+            """
+            SELECT id, created_at, name, slug, status, suspended_at, deleted_at, owner_user_id, metadata_json
+            FROM organizations
+            ORDER BY created_at DESC, name ASC
+            """
+        ).fetchall()
+    organizations = [_organization_from_row(row) for row in rows]
+    if not include_suspended:
+        organizations = [organization for organization in organizations if _normalize_organization_status(organization.get("status", "")) == ORGANIZATION_STATUS_ACTIVE]
+    return organizations
+
+
+def _find_organization(organization_id=None, *, slug=None):
+    target_id = str(organization_id or "").strip()
+    target_slug = str(slug or "").strip().lower()
+    if not target_id and not target_slug:
+        return None
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        if target_id:
+            row = conn.execute(
+                """
+                SELECT id, created_at, name, slug, status, suspended_at, deleted_at, owner_user_id, metadata_json
+                FROM organizations
+                WHERE id = ?
+                LIMIT 1
+                """,
+                (target_id,),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                """
+                SELECT id, created_at, name, slug, status, suspended_at, deleted_at, owner_user_id, metadata_json
+                FROM organizations
+                WHERE slug = ?
+                LIMIT 1
+                """,
+                (target_slug,),
+            ).fetchone()
+    return _organization_from_row(row) if row else None
+
+
+def _upsert_organization(record):
+    normalized_name = str((record or {}).get("name", "")).strip()
+    organization_id = str((record or {}).get("id", "")).strip() or f"org-{uuid4().hex[:12]}"
+    payload = {
+        "id": organization_id,
+        "created_at": str((record or {}).get("created_at", "")).strip() or _utc_now_iso(),
+        "name": normalized_name or GLOBAL_ORGANIZATION_NAME,
+        "slug": str((record or {}).get("slug", "")).strip() or _organization_slug(normalized_name or GLOBAL_ORGANIZATION_NAME),
+        "status": _normalize_organization_status((record or {}).get("status", ORGANIZATION_STATUS_ACTIVE)),
+        "suspended_at": str((record or {}).get("suspended_at", "")).strip(),
+        "deleted_at": str((record or {}).get("deleted_at", "")).strip(),
+        "owner_user_id": str((record or {}).get("owner_user_id", "")).strip(),
+        "metadata_json": json.dumps((record or {}).get("metadata", {}), ensure_ascii=False, separators=(",", ":")) if isinstance((record or {}).get("metadata", {}), dict) else str((record or {}).get("metadata_json", "{}")).strip() or "{}",
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO organizations (
+                id, created_at, name, slug, status, suspended_at, deleted_at, owner_user_id, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                name = excluded.name,
+                slug = excluded.slug,
+                status = excluded.status,
+                suspended_at = excluded.suspended_at,
+                deleted_at = excluded.deleted_at,
+                owner_user_id = excluded.owner_user_id,
+                metadata_json = excluded.metadata_json
+            """,
+            (
+                payload["id"],
+                payload["created_at"],
+                payload["name"],
+                payload["slug"],
+                payload["status"],
+                payload["suspended_at"],
+                payload["deleted_at"],
+                payload["owner_user_id"],
+                payload["metadata_json"],
+            ),
+        )
+    return _find_organization(payload["id"])
+
+
+def _load_users(organization_id=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        query = """
+            SELECT id, email, created_at, full_name, status, last_login_at, organization_id, metadata_json
+            FROM users
+        """
+        params = []
+        target_organization_id = str(organization_id or "").strip()
+        if target_organization_id:
+            query += " WHERE organization_id = ?"
+            params.append(target_organization_id)
+        query += " ORDER BY created_at DESC, email ASC"
+        rows = conn.execute(query, params).fetchall()
+    return [_user_from_row(row) for row in rows]
+
+
+def _find_user_by_email(email):
+    target_email = str(email or "").strip().lower()
+    if not target_email:
+        return None
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            """
+            SELECT id, email, created_at, full_name, status, last_login_at, organization_id, metadata_json
+            FROM users
+            WHERE email = ?
+            LIMIT 1
+            """,
+            (target_email,),
+        ).fetchone()
+    return _user_from_row(row) if row else None
+
+
+def _find_user_by_id(user_id):
+    target_user_id = str(user_id or "").strip()
+    if not target_user_id:
+        return None
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            """
+            SELECT id, email, created_at, full_name, status, last_login_at, organization_id, metadata_json
+            FROM users
+            WHERE id = ?
+            LIMIT 1
+            """,
+            (target_user_id,),
+        ).fetchone()
+    return _user_from_row(row) if row else None
+
+
+def _upsert_user(record):
+    email = str((record or {}).get("email", "")).strip().lower()
+    if not email:
+        return None
+    payload = {
+        "id": str((record or {}).get("id", "")).strip() or f"user-{uuid4().hex[:12]}",
+        "email": email,
+        "created_at": str((record or {}).get("created_at", "")).strip() or _utc_now_iso(),
+        "full_name": str((record or {}).get("full_name", "")).strip(),
+        "status": str((record or {}).get("status", "ACTIVE")).strip().upper() or "ACTIVE",
+        "last_login_at": str((record or {}).get("last_login_at", "")).strip(),
+        "organization_id": str((record or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
+        "metadata_json": json.dumps((record or {}).get("metadata", {}), ensure_ascii=False, separators=(",", ":")) if isinstance((record or {}).get("metadata", {}), dict) else str((record or {}).get("metadata_json", "{}")).strip() or "{}",
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO users (id, email, created_at, full_name, status, last_login_at, organization_id, metadata_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                id = excluded.id,
+                created_at = excluded.created_at,
+                full_name = excluded.full_name,
+                status = excluded.status,
+                last_login_at = excluded.last_login_at,
+                organization_id = excluded.organization_id,
+                metadata_json = excluded.metadata_json
+            """,
+            (
+                payload["id"],
+                payload["email"],
+                payload["created_at"],
+                payload["full_name"],
+                payload["status"],
+                payload["last_login_at"],
+                payload["organization_id"],
+                payload["metadata_json"],
+            ),
+        )
+    return _find_user_by_email(email)
+
+
+def _load_memberships(organization_id=None, user_id=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        query = """
+            SELECT id, user_id, organization_id, role_key, status, created_at, joined_at, invited_by_user_id
+            FROM memberships
+        """
+        clauses = []
+        params = []
+        if organization_id:
+            clauses.append("organization_id = ?")
+            params.append(str(organization_id).strip())
+        if user_id:
+            clauses.append("user_id = ?")
+            params.append(str(user_id).strip())
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY created_at DESC"
+        rows = conn.execute(query, params).fetchall()
+    return [_membership_from_row(row) for row in rows]
+
+
+def _find_membership(user_id, organization_id):
+    target_user_id = str(user_id or "").strip()
+    target_organization_id = str(organization_id or "").strip()
+    if not target_user_id or not target_organization_id:
+        return None
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            """
+            SELECT id, user_id, organization_id, role_key, status, created_at, joined_at, invited_by_user_id
+            FROM memberships
+            WHERE user_id = ? AND organization_id = ?
+            LIMIT 1
+            """,
+            (target_user_id, target_organization_id),
+        ).fetchone()
+    return _membership_from_row(row) if row else None
+
+
+def _upsert_membership(record):
+    user_id = str((record or {}).get("user_id", "")).strip()
+    organization_id = str((record or {}).get("organization_id", "")).strip()
+    if not user_id or not organization_id:
+        return None
+    payload = {
+        "id": str((record or {}).get("id", "")).strip() or f"membership-{uuid4().hex[:12]}",
+        "user_id": user_id,
+        "organization_id": organization_id,
+        "role_key": _normalize_role_key((record or {}).get("role_key", ROLE_GUEST)) or ROLE_GUEST,
+        "status": str((record or {}).get("status", "ACTIVE")).strip().upper() or "ACTIVE",
+        "created_at": str((record or {}).get("created_at", "")).strip() or _utc_now_iso(),
+        "joined_at": str((record or {}).get("joined_at", "")).strip(),
+        "invited_by_user_id": str((record or {}).get("invited_by_user_id", "")).strip(),
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO memberships (id, user_id, organization_id, role_key, status, created_at, joined_at, invited_by_user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, organization_id) DO UPDATE SET
+                id = excluded.id,
+                role_key = excluded.role_key,
+                status = excluded.status,
+                created_at = excluded.created_at,
+                joined_at = excluded.joined_at,
+                invited_by_user_id = excluded.invited_by_user_id
+            """,
+            (
+                payload["id"],
+                payload["user_id"],
+                payload["organization_id"],
+                payload["role_key"],
+                payload["status"],
+                payload["created_at"],
+                payload["joined_at"],
+                payload["invited_by_user_id"],
+            ),
+    )
+    return _find_membership(user_id, organization_id)
+
+
+def _upsert_user_role(record):
+    user_id = str((record or {}).get("user_id", "")).strip()
+    organization_id = str((record or {}).get("organization_id", "")).strip()
+    role_key = _normalize_role_key((record or {}).get("role_key", ROLE_GUEST))
+    if not user_id or not organization_id or not role_key:
+        return None
+    payload = {
+        "id": str((record or {}).get("id", "")).strip() or f"user-role-{uuid4().hex[:12]}",
+        "user_id": user_id,
+        "organization_id": organization_id,
+        "role_key": role_key,
+        "created_at": str((record or {}).get("created_at", "")).strip() or _utc_now_iso(),
+        "status": str((record or {}).get("status", "ACTIVE")).strip().upper() or "ACTIVE",
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO user_roles (id, user_id, role_key, created_at, organization_id, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, role_key, organization_id) DO UPDATE SET
+                id = excluded.id,
+                created_at = excluded.created_at,
+                status = excluded.status
+            """,
+            (
+                payload["id"],
+                payload["user_id"],
+                payload["role_key"],
+                payload["created_at"],
+                payload["organization_id"],
+                payload["status"],
+            ),
+        )
+    return payload
+
+
+def _load_invitations(organization_id=None, email=None):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        query = """
+            SELECT token, created_at, expires_at, organization_id, email, role_key, status, accepted_at, accepted_user_id, invited_by_user_id, magic_link_sent_at, metadata_json
+            FROM organization_invitations
+        """
+        clauses = []
+        params = []
+        if organization_id:
+            clauses.append("organization_id = ?")
+            params.append(str(organization_id).strip())
+        if email:
+            clauses.append("email = ?")
+            params.append(str(email).strip().lower())
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY created_at DESC"
+        rows = conn.execute(query, params).fetchall()
+    return [_organization_invitation_from_row(row) for row in rows]
+
+
+def _find_invitation(token):
+    target_token = str(token or "").strip()
+    if not target_token:
+        return None
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            """
+            SELECT token, created_at, expires_at, organization_id, email, role_key, status, accepted_at, accepted_user_id, invited_by_user_id, magic_link_sent_at, metadata_json
+            FROM organization_invitations
+            WHERE token = ?
+            LIMIT 1
+            """,
+            (target_token,),
+        ).fetchone()
+    return _organization_invitation_from_row(row) if row else None
+
+
+def _upsert_invitation(record):
+    email = str((record or {}).get("email", "")).strip().lower()
+    organization_id = str((record or {}).get("organization_id", "")).strip()
+    if not email or not organization_id:
+        return None
+    payload = {
+        "token": str((record or {}).get("token", "")).strip() or f"invite-{uuid4().hex}",
+        "created_at": str((record or {}).get("created_at", "")).strip() or _utc_now_iso(),
+        "expires_at": str((record or {}).get("expires_at", "")).strip() or (datetime.now(timezone.utc) + timedelta(hours=INVITATION_TTL_HOURS)).isoformat(),
+        "organization_id": organization_id,
+        "email": email,
+        "role_key": _normalize_role_key((record or {}).get("role_key", ROLE_GUEST)) or ROLE_GUEST,
+        "status": str((record or {}).get("status", "PENDING")).strip().upper() or "PENDING",
+        "accepted_at": str((record or {}).get("accepted_at", "")).strip(),
+        "accepted_user_id": str((record or {}).get("accepted_user_id", "")).strip(),
+        "invited_by_user_id": str((record or {}).get("invited_by_user_id", "")).strip(),
+        "magic_link_sent_at": str((record or {}).get("magic_link_sent_at", "")).strip(),
+        "metadata_json": json.dumps((record or {}).get("metadata", {}), ensure_ascii=False, separators=(",", ":")) if isinstance((record or {}).get("metadata", {}), dict) else str((record or {}).get("metadata_json", "{}")).strip() or "{}",
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO organization_invitations (
+                token, created_at, expires_at, organization_id, email, role_key, status, accepted_at, accepted_user_id, invited_by_user_id, magic_link_sent_at, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(token) DO UPDATE SET
+                created_at = excluded.created_at,
+                expires_at = excluded.expires_at,
+                organization_id = excluded.organization_id,
+                email = excluded.email,
+                role_key = excluded.role_key,
+                status = excluded.status,
+                accepted_at = excluded.accepted_at,
+                accepted_user_id = excluded.accepted_user_id,
+                invited_by_user_id = excluded.invited_by_user_id,
+                magic_link_sent_at = excluded.magic_link_sent_at,
+                metadata_json = excluded.metadata_json
+            """,
+            (
+                payload["token"],
+                payload["created_at"],
+                payload["expires_at"],
+                payload["organization_id"],
+                payload["email"],
+                payload["role_key"],
+                payload["status"],
+                payload["accepted_at"],
+                payload["accepted_user_id"],
+                payload["invited_by_user_id"],
+                payload["magic_link_sent_at"],
+                payload["metadata_json"],
+            ),
+        )
+    return _find_invitation(payload["token"])
+
+
+def _append_audit_log(entity_type, entity_id, action, *, before=None, after=None, organization_id=None, user_id=None, role_key="", metadata=None):
+    payload = {
+        "id": uuid4().hex,
+        "timestamp": _utc_now_iso(),
+        "organization_id": str(organization_id or "").strip() or GLOBAL_ORGANIZATION_ID,
+        "user_id": str(user_id or "").strip(),
+        "role_key": _normalize_role_key(role_key),
+        "ip_address": _current_request_ip(),
+        "entity_type": str(entity_type or "").strip(),
+        "entity_id": str(entity_id or "").strip(),
+        "action": str(action or "").strip(),
+        "before_json": json.dumps(before if isinstance(before, (dict, list)) else before or {}, ensure_ascii=False, separators=(",", ":")),
+        "after_json": json.dumps(after if isinstance(after, (dict, list)) else after or {}, ensure_ascii=False, separators=(",", ":")),
+        "metadata_json": json.dumps(metadata if isinstance(metadata, (dict, list)) else metadata or {}, ensure_ascii=False, separators=(",", ":")),
+    }
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            INSERT INTO audit_logs (
+                id, timestamp, organization_id, user_id, role_key, ip_address, entity_type, entity_id, action, before_json, after_json, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                payload["id"],
+                payload["timestamp"],
+                payload["organization_id"],
+                payload["user_id"],
+                payload["role_key"],
+                payload["ip_address"],
+                payload["entity_type"],
+                payload["entity_id"],
+                payload["action"],
+                payload["before_json"],
+                payload["after_json"],
+                payload["metadata_json"],
+            ),
+        )
+    return payload
+
+
+def _enterprise_user_identity():
+    user_id = str(session.get(ENTERPRISE_SESSION_USER_ID_KEY, "")).strip()
+    role_key = _normalize_role_key(session.get(ENTERPRISE_SESSION_ROLE_KEY, ""))
+    organization_id = str(session.get(ENTERPRISE_SESSION_ORGANIZATION_ID_KEY, "")).strip()
+    user = None
+    if user_id:
+        user = _find_user_by_id(user_id)
+    if not user:
+        email = str(session.get(ENTERPRISE_SESSION_USER_EMAIL_KEY, "")).strip()
+        if email:
+            user = _find_user_by_email(email)
+    if user and not organization_id:
+        organization_id = str(user.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    organization = _find_organization(organization_id) if organization_id else None
+    membership = _find_membership(user.get("id", "") if user else "", organization_id) if user and organization_id else None
+    if membership and not role_key:
+        role_key = membership.get("role_key", "")
+    if user:
+        g.enterprise_user = user
+    if organization:
+        g.enterprise_organization = organization
+    if membership:
+        g.enterprise_membership = membership
+    g.enterprise_role = role_key
+    return user, organization, membership, role_key
+
+
+def _set_enterprise_session(user, organization, role_key):
+    user = user or {}
+    organization = organization or {}
+    session[ENTERPRISE_SESSION_USER_ID_KEY] = user.get("id", "")
+    session[ENTERPRISE_SESSION_USER_EMAIL_KEY] = user.get("email", "")
+    session[ENTERPRISE_SESSION_USER_NAME_KEY] = user.get("full_name", "")
+    session[ENTERPRISE_SESSION_ORGANIZATION_ID_KEY] = organization.get("id", "")
+    session[ENTERPRISE_SESSION_ROLE_KEY] = _normalize_role_key(role_key)
+
+
+def _clear_enterprise_session():
+    session.pop(ENTERPRISE_SESSION_USER_ID_KEY, None)
+    session.pop(ENTERPRISE_SESSION_USER_EMAIL_KEY, None)
+    session.pop(ENTERPRISE_SESSION_USER_NAME_KEY, None)
+    session.pop(ENTERPRISE_SESSION_ORGANIZATION_ID_KEY, None)
+    session.pop(ENTERPRISE_SESSION_ROLE_KEY, None)
+
+
+def _enterprise_permission_allowed(permission_key):
+    permission = str(permission_key or "").strip()
+    if not permission:
+        return False
+    _, _, _, role_key = _enterprise_user_identity()
+    if role_key == ROLE_PLATFORM_ADMIN:
+        return True
+    return permission in ROLE_PERMISSION_MAP.get(role_key, set())
+
+
+def enterprise_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        user, organization, membership, role_key = _enterprise_user_identity()
+        if not user or not organization or _normalize_organization_status(organization.get("status", "")) != ORGANIZATION_STATUS_ACTIVE:
+            return Response("Enterprise access required.", status=403, mimetype="text/plain")
+        if membership and _normalize_organization_status(membership.get("status", ORGANIZATION_STATUS_ACTIVE)) != ORGANIZATION_STATUS_ACTIVE:
+            return Response("Enterprise membership inactive.", status=403, mimetype="text/plain")
+        if not role_key:
+            return Response("Enterprise role required.", status=403, mimetype="text/plain")
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def organization_role_required(*required_roles, allow_higher=True):
+    normalized_roles = tuple(_normalize_role_key(role_key) for role_key in required_roles if _normalize_role_key(role_key))
+
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            user, organization, membership, role_key = _enterprise_user_identity()
+            if not user or not organization:
+                return Response("Enterprise access required.", status=403, mimetype="text/plain")
+            if not normalized_roles:
+                return view(*args, **kwargs)
+            if allow_higher:
+                if any(_role_at_least(role_key, required_role) for required_role in normalized_roles):
+                    return view(*args, **kwargs)
+            elif role_key in normalized_roles:
+                return view(*args, **kwargs)
+            return Response("Insufficient role.", status=403, mimetype="text/plain")
+
+        return wrapped
+
+    return decorator
+
+
+def organization_permission_required(permission_key):
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not _enterprise_permission_allowed(permission_key):
+                return Response("Insufficient permission.", status=403, mimetype="text/plain")
+            return view(*args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
 def _ensure_owner_account_schema(conn):
-    existing_columns = _owner_table_columns(conn, "owner_accounts")
     required_columns = {
         "status": f"TEXT NOT NULL DEFAULT '{OWNER_STATUS_DEFAULT}'",
         "language": f"TEXT NOT NULL DEFAULT '{OWNER_LANGUAGE_DEFAULT}'",
         "last_login_at": "TEXT NOT NULL DEFAULT ''",
         "internal_notes": "TEXT NOT NULL DEFAULT ''",
+        "organization_id": f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'",
     }
     for column_name, column_sql in required_columns.items():
-        if column_name not in existing_columns:
-            conn.execute(f"ALTER TABLE owner_accounts ADD COLUMN {column_name} {column_sql}")
+        _ensure_table_column(conn, "owner_accounts", column_name, column_sql)
 
 
 def _ensure_owner_property_schema(conn):
-    existing_columns = _owner_table_columns(conn, "owner_properties")
     required_columns = {
         "status": f"TEXT NOT NULL DEFAULT '{OWNER_PROPERTY_STATUS_DEFAULT}'",
         "guest_guide_ready": "INTEGER NOT NULL DEFAULT 0",
@@ -1140,10 +1947,10 @@ def _ensure_owner_property_schema(conn):
         "cleaning_partner_ready": "INTEGER NOT NULL DEFAULT 0",
         "admin_notes": "TEXT NOT NULL DEFAULT ''",
         "knowledge_json": "TEXT NOT NULL DEFAULT ''",
+        "organization_id": f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'",
     }
     for column_name, column_sql in required_columns.items():
-        if column_name not in existing_columns:
-            conn.execute(f"ALTER TABLE owner_properties ADD COLUMN {column_name} {column_sql}")
+        _ensure_table_column(conn, "owner_properties", column_name, column_sql)
 
 
 def _ensure_owner_property_activity_schema(conn):
@@ -1164,7 +1971,6 @@ def _ensure_owner_property_activity_schema(conn):
 
 
 def _ensure_operations_task_schema(conn):
-    existing_columns = _owner_table_columns(conn, "operations_tasks")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS operations_tasks (
@@ -1198,7 +2004,6 @@ def _ensure_operations_task_schema(conn):
         )
         """
     )
-    existing_columns = _owner_table_columns(conn, "operations_tasks")
     required_columns = {
         "id": "TEXT NOT NULL DEFAULT ''",
         "request_id": "TEXT NOT NULL DEFAULT ''",
@@ -1227,10 +2032,10 @@ def _ensure_operations_task_schema(conn):
         "checklist_json": "TEXT NOT NULL DEFAULT ''",
         "attachments_json": "TEXT NOT NULL DEFAULT ''",
         "comments_json": "TEXT NOT NULL DEFAULT ''",
+        "organization_id": f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'",
     }
     for column_name, column_sql in required_columns.items():
-        if column_name not in existing_columns:
-            conn.execute(f"ALTER TABLE operations_tasks ADD COLUMN {column_name} {column_sql}")
+        _ensure_table_column(conn, "operations_tasks", column_name, column_sql)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS operations_task_events (
@@ -1281,6 +2086,8 @@ def _ensure_operations_notification_schema(conn):
         )
         """
     )
+    _ensure_table_column(conn, "operations_notifications", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "operations_notification_preferences", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
 
 
 def _ensure_calendar_event_schema(conn):
@@ -1307,6 +2114,7 @@ def _ensure_calendar_event_schema(conn):
         )
         """
     )
+    _ensure_table_column(conn, "calendar_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
 
 
 def _normalize_calendar_event_type(event_type):
@@ -1466,6 +2274,7 @@ def _calendar_event_payload_from_task(task_record):
         "property_location": str(task.get("property_location", "")).strip(),
         "owner_name": str(task.get("owner_name", "")).strip(),
         "owner_email": str(task.get("owner_email", "")).strip(),
+        "organization_id": str(task.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
     return {
         "id": task_id,
@@ -1485,6 +2294,7 @@ def _calendar_event_payload_from_task(task_record):
         "created_by": "system:operations",
         "color": _calendar_event_color(event_type, status),
         "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+        "organization_id": str(task.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -1529,6 +2339,7 @@ def _calendar_event_payload_from_owner_form(owner_account, property_record, form
         "created_by": f"owner:{str(owner_account.get('id', '')).strip()}",
         "color": _calendar_event_color(event_type, status),
         "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+        "organization_id": str(owner_account.get("organization_id", "")).strip() or str(property_record.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -1561,6 +2372,7 @@ def _calendar_event_from_row(row):
         "color": str(row["color"]) if "color" in row.keys() and str(row["color"]).strip() else _calendar_event_color(row["event_type"], row["status"]),
         "metadata_json": metadata_json or "{}",
         "metadata": metadata,
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -1572,8 +2384,8 @@ def _persist_calendar_event(conn, payload):
         """
         INSERT INTO calendar_events (
             id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
-            start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json, organization_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             created_at = excluded.created_at,
             updated_at = excluded.updated_at,
@@ -1590,7 +2402,8 @@ def _persist_calendar_event(conn, payload):
             assigned_professional = excluded.assigned_professional,
             created_by = excluded.created_by,
             color = excluded.color,
-            metadata_json = excluded.metadata_json
+            metadata_json = excluded.metadata_json,
+            organization_id = excluded.organization_id
         """,
         (
             payload["id"],
@@ -1610,6 +2423,7 @@ def _persist_calendar_event(conn, payload):
             payload["created_by"],
             payload["color"],
             payload["metadata_json"],
+            str(payload.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
         ),
     )
     return payload
@@ -1653,7 +2467,7 @@ def _load_calendar_events(*, owner_id=None, property_ids=None):
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, created_at, updated_at, property_id, owner_id, operation_task_id, event_type, title, description,
+            SELECT id, created_at, updated_at, property_id, owner_id, operation_task_id, organization_id, event_type, title, description,
                    start_datetime, end_datetime, all_day, status, assigned_professional, created_by, color, metadata_json
             FROM calendar_events
             ORDER BY start_datetime ASC, end_datetime ASC, updated_at DESC, id ASC
@@ -1840,6 +2654,7 @@ def _reservation_from_row(row):
         "metadata_json": str(row["metadata_json"]) if "metadata_json" in row.keys() else "{}",
         "metadata": metadata,
         "source_metadata": _safe_json_loads(str(row["source_metadata_json"])) if "source_metadata_json" in row.keys() else external_payload,
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -1849,7 +2664,7 @@ def _load_reservations(*, owner_id=None, property_ids=None, filters=None):
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+            SELECT id, created_at, updated_at, property_id, organization_id, reservation_source, reservation_reference, channel_name,
                    channel_status, last_sync, external_payload, external_reference, guest_first_name, external_last_sync,
                    import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email, guest_phone, adults,
                    children, infants, pets, arrival_datetime, departure_datetime, status, notes, language, created_by,
@@ -1952,7 +2767,7 @@ def _find_reservation(reservation_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT id, created_at, updated_at, property_id, reservation_source, reservation_reference, channel_name,
+            SELECT id, created_at, updated_at, property_id, organization_id, reservation_source, reservation_reference, channel_name,
                    channel_status, last_sync, external_payload, external_reference, guest_first_name, external_last_sync,
                    import_batch_id, sync_status, source_metadata_json, guest_last_name, guest_email, guest_phone, adults,
                    children, infants, pets, arrival_datetime, departure_datetime, status, notes, language, created_by,
@@ -2234,6 +3049,7 @@ def _reservation_calendar_event(reservation):
         "created_by": f"system:reservation:{str(reservation.get('created_by', '')).strip() or 'manual'}",
         "color": _calendar_event_color(event_type, calendar_status),
         "metadata_json": json.dumps(payload_metadata, ensure_ascii=False, separators=(",", ":")),
+        "organization_id": str(reservation.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -3681,7 +4497,7 @@ def _seed_operations_task_backfill(conn):
 
     owner_account_rows = conn.execute(
         """
-        SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+        SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
         FROM owner_accounts
         ORDER BY created_at DESC, email DESC
         """
@@ -3944,6 +4760,7 @@ def _ensure_owner_db_schema(conn):
             CREATE TABLE IF NOT EXISTS owner_properties (
                 id TEXT PRIMARY KEY,
                 owner_id TEXT NOT NULL,
+                organization_id TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL,
                 name TEXT NOT NULL,
                 property_type TEXT NOT NULL,
@@ -4088,8 +4905,192 @@ def _ensure_owner_db_schema(conn):
         _seed_owner_property_activity_backfill(conn)
         _seed_operations_task_backfill(conn)
         _seed_calendar_event_backfill(conn)
+        _ensure_enterprise_schema(conn)
     finally:
         _OWNER_DB_SCHEMA_INITIALIZING = False
+
+
+def _ensure_enterprise_schema(conn):
+    if _owner_db_meta_get(conn, ENTERPRISE_SCHEMA_META_KEY) == "1":
+        return
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS organizations (
+            id TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL COLLATE NOCASE UNIQUE,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            suspended_at TEXT NOT NULL DEFAULT '',
+            deleted_at TEXT NOT NULL DEFAULT '',
+            owner_user_id TEXT NOT NULL DEFAULT '',
+            metadata_json TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+            created_at TEXT NOT NULL,
+            full_name TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            last_login_at TEXT NOT NULL DEFAULT '',
+            organization_id TEXT NOT NULL DEFAULT '',
+            metadata_json TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_roles (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            role_key TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            organization_id TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            UNIQUE(user_id, role_key, organization_id)
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS memberships (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            organization_id TEXT NOT NULL,
+            role_key TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            created_at TEXT NOT NULL,
+            joined_at TEXT NOT NULL DEFAULT '',
+            invited_by_user_id TEXT NOT NULL DEFAULT '',
+            UNIQUE(user_id, organization_id)
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS permissions (
+            permission_key TEXT PRIMARY KEY,
+            description TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id TEXT PRIMARY KEY,
+            timestamp TEXT NOT NULL,
+            organization_id TEXT NOT NULL DEFAULT '',
+            user_id TEXT NOT NULL DEFAULT '',
+            role_key TEXT NOT NULL DEFAULT '',
+            ip_address TEXT NOT NULL DEFAULT '',
+            entity_type TEXT NOT NULL DEFAULT '',
+            entity_id TEXT NOT NULL DEFAULT '',
+            action TEXT NOT NULL DEFAULT '',
+            before_json TEXT NOT NULL DEFAULT '{}',
+            after_json TEXT NOT NULL DEFAULT '{}',
+            metadata_json TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS organization_invitations (
+            token TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            organization_id TEXT NOT NULL,
+            email TEXT NOT NULL COLLATE NOCASE,
+            role_key TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            accepted_at TEXT NOT NULL DEFAULT '',
+            accepted_user_id TEXT NOT NULL DEFAULT '',
+            invited_by_user_id TEXT NOT NULL DEFAULT '',
+            magic_link_sent_at TEXT NOT NULL DEFAULT '',
+            metadata_json TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+
+    required_permissions = {
+        "companies.create": "Create companies",
+        "companies.suspend": "Suspend companies",
+        "companies.delete": "Delete companies",
+        "users.invite": "Invite company users",
+        "users.remove": "Remove company users",
+        "users.impersonate": "Impersonate users",
+        "billing.manage": "Manage billing",
+        "subscriptions.manage": "Manage subscriptions",
+        "analytics.view": "View analytics",
+        "platform.settings.manage": "Manage platform settings",
+        "audit_logs.global.view": "View global audit logs",
+    }
+    for permission_key, description in required_permissions.items():
+        conn.execute(
+            """
+            INSERT INTO permissions (permission_key, description, created_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(permission_key) DO UPDATE SET
+                description = excluded.description
+            """,
+            (permission_key, description, _utc_now_iso()),
+        )
+
+    _ensure_table_column(conn, "owner_accounts", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_properties", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "reservations", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "operations_tasks", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "operations_task_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "operations_notifications", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "calendar_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_activity_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_property_activity_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_magic_tokens", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_magic_email_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "professional_accounts", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "professional_magic_tokens", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "operations_task_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+
+    conn.execute(
+        """
+        INSERT INTO organizations (id, created_at, name, slug, status, suspended_at, deleted_at, owner_user_id, metadata_json)
+        VALUES (?, ?, ?, ?, ?, '', '', '', '{}')
+        ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            slug = excluded.slug,
+            status = excluded.status
+        """,
+        (
+            GLOBAL_ORGANIZATION_ID,
+            _utc_now_iso(),
+            GLOBAL_ORGANIZATION_NAME,
+            _organization_slug(GLOBAL_ORGANIZATION_NAME),
+            ORGANIZATION_STATUS_ACTIVE,
+        ),
+    )
+
+    conn.execute("UPDATE users SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE memberships SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE user_roles SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_accounts SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_properties SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE reservations SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE operations_tasks SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE operations_task_events SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE operations_notifications SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE calendar_events SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_activity_events SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_property_activity_events SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_magic_tokens SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE owner_magic_email_events SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE professional_accounts SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    conn.execute("UPDATE professional_magic_tokens SET organization_id = ? WHERE organization_id = ''", (GLOBAL_ORGANIZATION_ID,))
+    _owner_db_meta_set(conn, ENTERPRISE_SCHEMA_META_KEY, "1")
 
 
 def _owner_jsonl_signature(path):
@@ -4132,6 +5133,7 @@ def _owner_account_from_row(row):
         "language": _normalize_owner_language(row["language"] if "language" in row.keys() else OWNER_LANGUAGE_DEFAULT) or OWNER_LANGUAGE_DEFAULT,
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
         "internal_notes": str(row["internal_notes"]) if "internal_notes" in row.keys() else "",
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -4139,6 +5141,7 @@ def _owner_property_from_row(row):
     return {
         "id": str(row["id"]),
         "owner_id": str(row["owner_id"]),
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
         "created_at": str(row["created_at"]),
         "name": str(row["name"]),
         "property_type": str(row["property_type"]),
@@ -4655,6 +5658,7 @@ def _operations_task_from_row(row):
         "attachments": _operations_task_attachments(attachments_json),
         "comments_json": comments_json,
         "comments": _operations_task_comments(comments_json),
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -4664,7 +5668,7 @@ def _load_operations_tasks():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+            SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
                    due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
@@ -4688,7 +5692,7 @@ def _find_operations_task(task_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT id, request_id, source_type, source_id, owner_id, property_id, created_at, updated_at, title,
+            SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
                    due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
             FROM operations_tasks
@@ -4708,7 +5712,7 @@ def _load_operations_task_events(task_id=None):
         _ensure_owner_db_schema(conn)
         _migrate_owner_jsonl_backups(conn)
         query = """
-            SELECT id, task_id, created_at, event_type, title, detail, status
+            SELECT id, task_id, organization_id, created_at, event_type, title, detail, status
             FROM operations_task_events
         """
         params = []
@@ -4723,11 +5727,13 @@ def _load_operations_task_events(task_id=None):
         {
             "id": str(row["id"]),
             "task_id": str(row["task_id"]),
+            "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
             "created_at": str(row["created_at"]),
             "event_type": str(row["event_type"]),
             "title": str(row["title"]),
             "detail": str(row["detail"]),
             "status": _normalize_operations_task_status(row["status"]),
+            "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
         }
         for row in rows
     ]
@@ -4756,6 +5762,7 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
         "title": normalized_title,
         "detail": str(detail or "").strip(),
         "status": _normalize_operations_task_status(status or "NEW"),
+        "organization_id": str((_find_operations_task(target_task_id) or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
 
     try:
@@ -4764,8 +5771,8 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
             _migrate_owner_jsonl_backups(conn)
             conn.execute(
                 """
-                INSERT INTO operations_task_events (id, task_id, created_at, event_type, title, detail, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO operations_task_events (id, task_id, created_at, event_type, title, detail, status, organization_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     event["id"],
@@ -4775,6 +5782,7 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
                     event["title"],
                     event["detail"],
                     event["status"],
+                    event["organization_id"],
                 ),
             )
     except Exception as exc:
@@ -5519,6 +6527,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         "checklist_json": str((task_payload or {}).get("checklist_json", "")).strip() or str((existing_task or {}).get("checklist_json", "")).strip() or _operations_task_json_dumps(_operations_task_checklist_items()),
         "attachments_json": str((task_payload or {}).get("attachments_json", "")).strip() or str((existing_task or {}).get("attachments_json", "")).strip() or _operations_task_json_dumps([]),
         "comments_json": str((task_payload or {}).get("comments_json", "")).strip() or str((existing_task or {}).get("comments_json", "")).strip() or _operations_task_json_dumps([]),
+        "organization_id": str((task_payload or {}).get("organization_id", "")).strip() or str((existing_task or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
 
     try:
@@ -5531,8 +6540,8 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     id, request_id, source_type, source_id, created_at, updated_at, title, category,
                     owner_name, owner_email, property_id, property_name, assigned_to, assigned_professional_id, priority, status,
                     due_date, notes, completed_at, completion_report_json, owner_id, property_location, admin_notes, request_status,
-                    checklist_json, attachments_json, comments_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    checklist_json, attachments_json, comments_json, organization_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     request_id = excluded.request_id,
                     source_type = excluded.source_type,
@@ -5559,7 +6568,8 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     request_status = excluded.request_status,
                     checklist_json = excluded.checklist_json,
                     attachments_json = excluded.attachments_json,
-                    comments_json = excluded.comments_json
+                    comments_json = excluded.comments_json,
+                    organization_id = excluded.organization_id
                 """,
                 (
                     merged_task["id"],
@@ -5589,6 +6599,7 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                     merged_task["checklist_json"],
                     merged_task["attachments_json"],
                     merged_task["comments_json"],
+                    merged_task["organization_id"],
                 ),
             )
     except Exception as exc:
@@ -6140,10 +7151,11 @@ def _import_owner_properties_jsonl(conn):
             conn.execute(
                 """
                 INSERT INTO owner_properties (
-                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, owner_id, organization_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     owner_id = excluded.owner_id,
+                    organization_id = excluded.organization_id,
                     created_at = excluded.created_at,
                     name = excluded.name,
                     property_type = excluded.property_type,
@@ -6163,6 +7175,7 @@ def _import_owner_properties_jsonl(conn):
                 (
                     normalized["id"],
                     normalized["owner_id"],
+                    normalized["organization_id"],
                     normalized["created_at"],
                     normalized["name"],
                     normalized["property_type"],
@@ -6304,7 +7317,7 @@ def _load_owner_accounts():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
             FROM owner_accounts
             ORDER BY created_at DESC, email DESC
             """
@@ -6329,8 +7342,8 @@ def _save_owner_accounts(accounts):
                 conn.execute(
                     """
                     INSERT INTO owner_accounts (
-                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["email"],
@@ -6347,6 +7360,7 @@ def _save_owner_accounts(accounts):
                         normalized["language"],
                         normalized["last_login_at"],
                         normalized["internal_notes"],
+                        normalized["organization_id"],
                     ),
                 )
     except Exception as exc:
@@ -6371,7 +7385,7 @@ def _find_owner_account_by_email(email):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
             FROM owner_accounts
             WHERE email = ?
             LIMIT 1
@@ -6394,7 +7408,7 @@ def _find_owner_account(account_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
             FROM owner_accounts
             WHERE id = ?
             ORDER BY created_at DESC
@@ -6441,8 +7455,8 @@ def _upsert_owner_account(record):
                 conn.execute(
                     """
                     INSERT INTO owner_accounts (
-                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(email) DO UPDATE SET
                         id = excluded.id,
                         created_at = excluded.created_at,
@@ -6456,7 +7470,8 @@ def _upsert_owner_account(record):
                         status = excluded.status,
                         language = excluded.language,
                         last_login_at = excluded.last_login_at,
-                        internal_notes = excluded.internal_notes
+                        internal_notes = excluded.internal_notes,
+                        organization_id = excluded.organization_id
                     """,
                     (
                         normalized["email"],
@@ -6473,6 +7488,7 @@ def _upsert_owner_account(record):
                         normalized["language"],
                         normalized["last_login_at"],
                         normalized["internal_notes"],
+                        normalized["organization_id"],
                     ),
                 )
         except Exception as exc:
@@ -7204,6 +8220,7 @@ def _normalize_owner_property(record):
     normalized = dict(record)
     normalized["id"] = str(normalized.get("id", "")).strip() or _owner_property_fallback_id(normalized)
     normalized["owner_id"] = str(normalized.get("owner_id", "")).strip()
+    normalized["organization_id"] = str(normalized.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
     normalized["created_at"] = str(normalized.get("created_at", "")).strip()
     normalized["name"] = str(normalized.get("name", "")).strip()
     normalized["property_type"] = str(normalized.get("property_type", "")).strip()
@@ -7234,7 +8251,7 @@ def _load_owner_properties():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
+            SELECT id, owner_id, organization_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
             FROM owner_properties
             ORDER BY created_at DESC, id DESC
             """
@@ -7260,12 +8277,13 @@ def _save_owner_properties(properties):
                 conn.execute(
                     """
                     INSERT INTO owner_properties (
-                        id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        id, owner_id, organization_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["id"],
                         normalized["owner_id"],
+                        normalized["organization_id"],
                         normalized["created_at"],
                         normalized["name"],
                         normalized["property_type"],
@@ -7306,10 +8324,11 @@ def _append_owner_property(record):
             conn.execute(
                 """
                 INSERT INTO owner_properties (
-                    id, owner_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, owner_id, organization_id, created_at, name, property_type, location, bedrooms, bathrooms, guest_capacity, operating_mode, notes, status, guest_guide_ready, access_instructions_ready, emergency_contact_ready, cleaning_partner_ready, admin_notes, knowledge_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     owner_id = excluded.owner_id,
+                    organization_id = excluded.organization_id,
                     created_at = excluded.created_at,
                     name = excluded.name,
                     property_type = excluded.property_type,
@@ -7330,6 +8349,7 @@ def _append_owner_property(record):
                 (
                     normalized["id"],
                     normalized["owner_id"],
+                    normalized["organization_id"],
                     normalized["created_at"],
                     normalized["name"],
                     normalized["property_type"],
@@ -10515,6 +11535,53 @@ def professional_required(view):
     return wrapped
 
 
+@app.before_request
+def _load_enterprise_request_context():
+    if request.endpoint == "static":
+        return None
+
+    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        owner_account = _current_owner_account()
+        if owner_account:
+            organization_id = str(owner_account.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+            organization = _find_organization(organization_id) or _find_organization(GLOBAL_ORGANIZATION_ID)
+            if organization:
+                g.enterprise_user = {
+                    "id": owner_account.get("id", ""),
+                    "email": owner_account.get("email", ""),
+                    "full_name": owner_account.get("full_name", ""),
+                    "organization_id": organization.get("id", ""),
+                    "role_key": ROLE_OWNER,
+                }
+                g.enterprise_organization = organization
+                g.enterprise_role = ROLE_OWNER
+            return None
+
+    if session.get(PROFESSIONAL_SESSION_LOGGED_IN_KEY):
+        professional_account = _current_professional_account()
+        if professional_account:
+            organization_id = str(professional_account.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+            organization = _find_organization(organization_id) or _find_organization(GLOBAL_ORGANIZATION_ID)
+            if organization:
+                g.enterprise_user = {
+                    "id": professional_account.get("id", ""),
+                    "email": professional_account.get("email", ""),
+                    "full_name": professional_account.get("full_name", ""),
+                    "organization_id": organization.get("id", ""),
+                    "role_key": ROLE_PROFESSIONAL,
+                }
+                g.enterprise_organization = organization
+                g.enterprise_role = ROLE_PROFESSIONAL
+
+    enterprise_user, enterprise_organization, enterprise_membership, enterprise_role = _enterprise_user_identity()
+    if enterprise_user and enterprise_organization:
+        if enterprise_role:
+            g.enterprise_role = enterprise_role
+        return None
+
+    return None
+
+
 @app.route("/owners/register", methods=["GET", "POST"])
 def owners_register():
     current_lang = _resolve_current_language()
@@ -10718,6 +11785,8 @@ def owner_magic_login(token):
     session[OWNER_SESSION_ID_KEY] = owner_account.get("id", "")
     session[OWNER_SESSION_EMAIL_KEY] = owner_account.get("email", "")
     session[OWNER_SESSION_NAME_KEY] = owner_account.get("full_name", "")
+    session[ENTERPRISE_SESSION_ORGANIZATION_ID_KEY] = owner_account.get("organization_id", GLOBAL_ORGANIZATION_ID)
+    session[ENTERPRISE_SESSION_ROLE_KEY] = ROLE_OWNER
     _upsert_owner_account({
         **owner_account,
         "language": current_lang,
@@ -11591,6 +12660,7 @@ def owners_logout():
     session.pop(OWNER_SESSION_ID_KEY, None)
     session.pop(OWNER_SESSION_EMAIL_KEY, None)
     session.pop(OWNER_SESSION_NAME_KEY, None)
+    _clear_enterprise_session()
     return redirect(url_for("owners_login", lang=current_lang))
 
 
@@ -12251,6 +13321,8 @@ def professional_magic_login(token):
     session[PROFESSIONAL_SESSION_ID_KEY] = professional_account.get("id", "")
     session[PROFESSIONAL_SESSION_EMAIL_KEY] = professional_account.get("email", "")
     session[PROFESSIONAL_SESSION_NAME_KEY] = professional_account.get("full_name", "")
+    session[ENTERPRISE_SESSION_ORGANIZATION_ID_KEY] = professional_account.get("organization_id", GLOBAL_ORGANIZATION_ID)
+    session[ENTERPRISE_SESSION_ROLE_KEY] = ROLE_PROFESSIONAL
     _upsert_professional_account({
         **professional_account,
         "last_login_at": _utc_now_iso(),
@@ -12265,6 +13337,7 @@ def professionals_logout():
     session.pop(PROFESSIONAL_SESSION_ID_KEY, None)
     session.pop(PROFESSIONAL_SESSION_EMAIL_KEY, None)
     session.pop(PROFESSIONAL_SESSION_NAME_KEY, None)
+    _clear_enterprise_session()
     current_lang = (
         _normalize_site_language(request.values.get("lang"))
         or _normalize_site_language(request.args.get("lang"))
@@ -13148,6 +14221,305 @@ def admin_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
+
+def _organization_invitation_link(token):
+    return f"{SITE_URL}{url_for('organization_invitation_accept', token=token)}"
+
+
+def _organization_invitation_email_message(organization, invited_email, role_key, invitation_url):
+    org_name = str((organization or {}).get("name", "")).strip() or GLOBAL_ORGANIZATION_NAME
+    role_label = _normalize_role_key(role_key).replace("_", " ").title()
+    message = EmailMessage()
+    message["Subject"] = f"[BlackSea Connect] Invitation to {org_name}"
+    message["From"] = os.getenv("SMTP_FROM", "").strip() or "BlackSea Connect <no-reply@blackseaconnect.com>"
+    message["To"] = invited_email
+    text_body = "\n".join([
+        f"You have been invited to join {org_name}.",
+        f"Role: {role_label}",
+        f"Invitation link: {invitation_url}",
+        "",
+        "Use the link to accept the invitation and continue with magic link authentication.",
+    ])
+    message.set_content(text_body)
+    return message
+
+
+def _send_organization_invitation_email(organization, invited_email, role_key, invitation_url):
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_port_raw = os.getenv("SMTP_PORT", "").strip()
+    if not smtp_host or not smtp_port_raw:
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        return False, "smtp_invalid_port"
+
+    message = _organization_invitation_email_message(organization, invited_email, role_key, invitation_url)
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp_port != 465:
+                try:
+                    smtp.starttls()
+                    smtp.ehlo()
+                except smtplib.SMTPException:
+                    pass
+            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+            smtp.send_message(message)
+    except Exception as exc:
+        app.logger.warning("Organization invitation email send failed: %s", type(exc).__name__)
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
+@app.get("/admin/organizations")
+@admin_required
+def admin_organizations():
+    organizations = _load_organizations(include_suspended=True)
+    return jsonify({"organizations": organizations})
+
+
+@app.post("/admin/organizations")
+@admin_required
+def admin_create_organization():
+    name = str(request.form.get("name", request.json.get("name") if request.is_json and request.json else "")).strip()
+    slug = str(request.form.get("slug", request.json.get("slug") if request.is_json and request.json else "")).strip()
+    if not name:
+        return Response("Organization name is required.", status=400, mimetype="text/plain")
+
+    organization = _upsert_organization({
+        "name": name,
+        "slug": slug or _organization_slug(name),
+        "metadata": {"created_via": "admin"},
+    })
+    if not organization:
+        return Response("Failed to create organization.", status=500, mimetype="text/plain")
+
+    _append_audit_log(
+        "organization",
+        organization.get("id", ""),
+        "created",
+        before={},
+        after=_organization_payload_for_audit(organization),
+        organization_id=organization.get("id", GLOBAL_ORGANIZATION_ID),
+        role_key=ROLE_PLATFORM_ADMIN,
+        metadata={"created_via": "admin"},
+    )
+    return jsonify({"organization": organization}), 201
+
+
+@app.post("/admin/organizations/<organization_id>/suspend")
+@admin_required
+def admin_suspend_organization(organization_id):
+    organization = _find_organization(organization_id)
+    if not organization:
+        return Response("Organization not found.", status=404, mimetype="text/plain")
+    before = dict(organization)
+    updated = _upsert_organization({
+        **organization,
+        "status": ORGANIZATION_STATUS_SUSPENDED,
+        "suspended_at": _utc_now_iso(),
+    })
+    _append_audit_log(
+        "organization",
+        organization_id,
+        "suspended",
+        before=_organization_payload_for_audit(before),
+        after=_organization_payload_for_audit(updated),
+        organization_id=organization_id,
+        role_key=ROLE_PLATFORM_ADMIN,
+    )
+    return jsonify({"organization": updated})
+
+
+@app.delete("/admin/organizations/<organization_id>")
+@admin_required
+def admin_delete_organization(organization_id):
+    organization = _find_organization(organization_id)
+    if not organization:
+        return Response("Organization not found.", status=404, mimetype="text/plain")
+    deleted = _upsert_organization({
+        **organization,
+        "status": ORGANIZATION_STATUS_SUSPENDED,
+        "deleted_at": _utc_now_iso(),
+    })
+    _append_audit_log(
+        "organization",
+        organization_id,
+        "deleted",
+        before=_organization_payload_for_audit(organization),
+        after=_organization_payload_for_audit(deleted),
+        organization_id=organization_id,
+        role_key=ROLE_PLATFORM_ADMIN,
+    )
+    return jsonify({"deleted": True, "organization": deleted})
+
+
+@app.post("/organizations/<organization_id>/invites")
+@enterprise_required
+@organization_role_required(ROLE_COMPANY_ADMIN)
+def create_organization_invitation(organization_id):
+    user, organization, membership, role_key = _enterprise_user_identity()
+    target_organization = _find_organization(organization_id)
+    if not target_organization or str(target_organization.get("id", "")).strip() != str(organization.get("id", "")).strip():
+        return Response("Organization not found.", status=404, mimetype="text/plain")
+
+    invited_email = str(request.form.get("email", request.json.get("email") if request.is_json and request.json else "")).strip().lower()
+    invited_role = _normalize_role_key(request.form.get("role", request.json.get("role") if request.is_json and request.json else "")) or ROLE_GUEST
+    if not invited_email:
+        return Response("Email is required.", status=400, mimetype="text/plain")
+    if invited_role not in {ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR, ROLE_PROFESSIONAL, ROLE_OWNER, ROLE_GUEST}:
+        return Response("Invalid role.", status=400, mimetype="text/plain")
+
+    existing_invitation = None
+    for invitation in _load_invitations(organization_id=organization.get("id", ""), email=invited_email):
+        if str(invitation.get("status", "")).upper() == "PENDING":
+            existing_invitation = invitation
+            break
+
+    invitation = _upsert_invitation({
+        "token": existing_invitation.get("token") if existing_invitation else f"invite-{uuid4().hex}",
+        "organization_id": organization.get("id", GLOBAL_ORGANIZATION_ID),
+        "email": invited_email,
+        "role_key": invited_role,
+        "invited_by_user_id": user.get("id", ""),
+        "status": "PENDING",
+        "metadata": {"invited_by_role": role_key},
+    })
+    if not invitation:
+        return Response("Failed to create invitation.", status=500, mimetype="text/plain")
+
+    invitation_url = _organization_invitation_link(invitation["token"])
+    send_ok, send_reason = _send_organization_invitation_email(organization, invited_email, invited_role, invitation_url)
+    if not send_ok:
+        _append_audit_log(
+            "organization_invitation",
+            invitation["token"],
+            "email_failed",
+            before={},
+            after=invitation,
+            organization_id=organization.get("id", GLOBAL_ORGANIZATION_ID),
+            user_id=user.get("id", ""),
+            role_key=role_key,
+            metadata={"reason": send_reason},
+        )
+        return jsonify({"invitation": invitation, "email_sent": False, "reason": send_reason}), 202
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE organization_invitations
+            SET magic_link_sent_at = ?
+            WHERE token = ?
+            """,
+            (_utc_now_iso(), invitation["token"]),
+        )
+    invitation = _find_invitation(invitation["token"])
+    _append_audit_log(
+        "organization_invitation",
+        invitation["token"],
+        "sent",
+        before={},
+        after=invitation,
+        organization_id=organization.get("id", GLOBAL_ORGANIZATION_ID),
+        user_id=user.get("id", ""),
+        role_key=role_key,
+        metadata={"email_sent": True},
+    )
+    return jsonify({"invitation": invitation, "email_sent": True, "invite_url": invitation_url}), 201
+
+
+@app.get("/auth/organization-invitation/<token>")
+def organization_invitation_accept(token):
+    invitation = _find_invitation(token)
+    if not invitation:
+        return Response("Invitation not found.", status=404, mimetype="text/plain")
+    if str(invitation.get("status", "")).upper() != "PENDING":
+        return Response("Invitation already used.", status=409, mimetype="text/plain")
+
+    expires_at = _parse_iso_datetime(invitation.get("expires_at", ""))
+    if expires_at and datetime.now(timezone.utc) >= expires_at:
+        return Response("Invitation expired.", status=410, mimetype="text/plain")
+
+    organization = _find_organization(invitation.get("organization_id", ""))
+    if not organization or _normalize_organization_status(organization.get("status", "")) != ORGANIZATION_STATUS_ACTIVE:
+        return Response("Organization unavailable.", status=409, mimetype="text/plain")
+
+    user = _upsert_user({
+        "email": invitation.get("email", ""),
+        "full_name": invitation.get("email", "").split("@")[0].replace(".", " ").title(),
+        "organization_id": organization.get("id", GLOBAL_ORGANIZATION_ID),
+        "status": "ACTIVE",
+        "metadata": {"invited_via": "organization_invitation"},
+    })
+    if not user:
+        return Response("Failed to create user.", status=500, mimetype="text/plain")
+
+    membership = _upsert_membership({
+        "user_id": user["id"],
+        "organization_id": organization.get("id", GLOBAL_ORGANIZATION_ID),
+        "role_key": invitation.get("role_key", ROLE_GUEST),
+        "status": "ACTIVE",
+        "invited_by_user_id": invitation.get("invited_by_user_id", ""),
+        "joined_at": _utc_now_iso(),
+    })
+    if not membership:
+        return Response("Failed to create membership.", status=500, mimetype="text/plain")
+
+    _upsert_user_role({
+        "user_id": user["id"],
+        "organization_id": organization.get("id", GLOBAL_ORGANIZATION_ID),
+        "role_key": membership.get("role_key", ROLE_GUEST),
+        "status": "ACTIVE",
+    })
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE organization_invitations
+            SET status = 'ACCEPTED',
+                accepted_at = ?,
+                accepted_user_id = ?
+            WHERE token = ?
+            """,
+            (_utc_now_iso(), user["id"], token),
+        )
+
+    invitation = _find_invitation(token)
+    _append_audit_log(
+        "organization_invitation",
+        token,
+        "accepted",
+        before={},
+        after=invitation,
+        organization_id=organization.get("id", GLOBAL_ORGANIZATION_ID),
+        user_id=user.get("id", ""),
+        role_key=membership.get("role_key", ROLE_GUEST),
+    )
+    _set_enterprise_session(user, organization, membership.get("role_key", ROLE_GUEST))
+    return redirect(url_for("enterprise_dashboard"))
+
+
+@app.get("/enterprise/dashboard")
+@enterprise_required
+def enterprise_dashboard():
+    user, organization, membership, role_key = _enterprise_user_identity()
+    return jsonify({
+        "user": _user_payload_for_audit(user),
+        "organization": _organization_payload_for_audit(organization),
+        "role": role_key,
+        "permissions": sorted(ROLE_PERMISSION_MAP.get(role_key, set())),
+        "membership": membership or {},
+    })
 
 
 @app.get("/admin/owner-magic-events")
@@ -14966,6 +16338,7 @@ def _normalize_professional_account(record):
     normalized["service_categories"] = str(service_categories or "").strip()
     normalized["status"] = _normalize_professional_account_status(normalized.get("status", "PENDING"))
     normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
+    normalized["organization_id"] = str(normalized.get("organization_id", GLOBAL_ORGANIZATION_ID)).strip() or GLOBAL_ORGANIZATION_ID
     return normalized
 
 
@@ -14980,6 +16353,7 @@ def _professional_account_from_row(row):
         "service_categories": str(row["service_categories"]) if "service_categories" in row.keys() else "",
         "status": _normalize_professional_account_status(row["status"] if "status" in row.keys() else "PENDING"),
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
+        "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
 
@@ -15005,8 +16379,8 @@ def _sync_professional_accounts_from_applications(conn=None):
         conn.execute(
             """
             INSERT INTO professional_accounts (
-                email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 id = excluded.id,
                 created_at = excluded.created_at,
@@ -15015,7 +16389,8 @@ def _sync_professional_accounts_from_applications(conn=None):
                 company = excluded.company,
                 service_categories = excluded.service_categories,
                 status = excluded.status,
-                last_login_at = excluded.last_login_at
+                last_login_at = excluded.last_login_at,
+                organization_id = excluded.organization_id
             """,
             (
                 normalized["email"],
@@ -15027,6 +16402,7 @@ def _sync_professional_accounts_from_applications(conn=None):
                 normalized["service_categories"],
                 normalized["status"],
                 normalized["last_login_at"],
+                normalized["organization_id"],
             ),
         )
 
@@ -15038,7 +16414,7 @@ def _load_professional_accounts():
         _sync_professional_accounts_from_applications(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
             FROM professional_accounts
             ORDER BY created_at DESC, full_name ASC, email ASC
             """
@@ -15061,7 +16437,7 @@ def _find_professional_account_by_email(email):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
             FROM professional_accounts
             WHERE email = ?
             LIMIT 1
@@ -15085,7 +16461,7 @@ def _find_professional_account(professional_id):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
             FROM professional_accounts
             WHERE id = ?
             LIMIT 1
@@ -15110,8 +16486,8 @@ def _upsert_professional_account(account_record):
             conn.execute(
                 """
                 INSERT INTO professional_accounts (
-                    email, id, created_at, full_name, phone, company, service_categories, status, last_login_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(email) DO UPDATE SET
                     id = excluded.id,
                     created_at = excluded.created_at,
@@ -15120,7 +16496,8 @@ def _upsert_professional_account(account_record):
                     company = excluded.company,
                     service_categories = excluded.service_categories,
                     status = excluded.status,
-                    last_login_at = excluded.last_login_at
+                    last_login_at = excluded.last_login_at,
+                    organization_id = excluded.organization_id
                 """,
                 (
                     normalized["email"],
@@ -15132,6 +16509,7 @@ def _upsert_professional_account(account_record):
                     normalized["service_categories"],
                     normalized["status"],
                     normalized["last_login_at"],
+                    normalized["organization_id"],
                 ),
             )
     except Exception as exc:
@@ -17974,6 +19352,1241 @@ def admin_demo_data_clear():
 def admin_home():
     dashboard = _build_admin_dashboard()
     return render_template("admin_home_exec.html", **dashboard)
+
+
+def _load_audit_logs(organization_id=None, limit=None):
+    query = """
+        SELECT id, timestamp, organization_id, user_id, role_key, ip_address, entity_type, entity_id, action, before_json, after_json, metadata_json
+        FROM audit_logs
+    """
+    params = []
+    target_organization_id = str(organization_id or "").strip()
+    if target_organization_id:
+        query += " WHERE organization_id = ?"
+        params.append(target_organization_id)
+    query += " ORDER BY timestamp DESC, id DESC"
+    if limit is not None:
+        try:
+            limit_value = int(limit)
+        except (TypeError, ValueError):
+            limit_value = 0
+        if limit_value > 0:
+            query += " LIMIT ?"
+            params.append(limit_value)
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        rows = conn.execute(query, params).fetchall()
+    return [_audit_log_from_row(row) for row in rows]
+
+
+def _workspace_copy(lang):
+    normalized_lang = _normalize_site_language(lang) or "en"
+    bundles = {
+        "bg": {
+            "page_title": "BlackSea Connect | Работно пространство",
+            "root_title": "Изберете компания",
+            "root_copy": "Платформените администратори работят в контекст на организация.",
+            "dashboard_title": "Компания табло",
+            "dashboard_copy": "Оперативен преглед на организацията.",
+            "dashboard_section": "Табло",
+            "properties_section": "Имотите",
+            "owners_section": "Собственици",
+            "professionals_section": "Професионалисти",
+            "operations_section": "Операции",
+            "reservations_section": "Резервации",
+            "calendar_section": "Календар",
+            "users_section": "Потребители",
+            "invitations_section": "Покани",
+            "audit_section": "Аудит",
+            "settings_section": "Настройки",
+            "active_users": "Активни потребители",
+            "owners": "Собственици",
+            "properties": "Имоти",
+            "reservations": "Резервации",
+            "open_operations": "Отворени операции",
+            "overdue_operations": "Просрочени операции",
+            "professionals": "Професионалисти",
+            "calendar_events_week": "Събития тази седмица",
+            "recent_audit": "Последен одит",
+            "quick_actions": "Бързи действия",
+            "invite_user": "Покани потребител",
+            "add_owner": "Добави собственик",
+            "add_property": "Добави имот",
+            "create_operation": "Създай операция",
+            "open_calendar": "Отвори календара",
+            "import_reservations": "Импортирай резервации",
+            "users_title": "Потребители",
+            "users_copy": "Управлявайте членства и покани.",
+            "invite_email": "Имейл",
+            "invite_role": "Роля",
+            "invite_submit": "Изпрати покана",
+            "save": "Запази",
+            "deactivate": "Деактивирай",
+            "resend": "Изпрати отново",
+            "revoke": "Отмени",
+            "role_active": "Активна",
+            "role_inactive": "Неактивна",
+            "audit_title": "Аудит записи",
+            "settings_title": "Настройки на компанията",
+            "settings_copy": "Основна информация за организацията.",
+            "properties_copy": "Преглед на имотите в организацията.",
+            "owners_copy": "Преглед на собствениците в организацията.",
+            "professionals_copy": "Преглед на професионалистите в организацията.",
+            "operations_copy": "Преглед на оперативните задачи.",
+            "reservations_copy": "Преглед на резервациите.",
+            "calendar_copy": "Преглед на календарните събития.",
+            "invitations_title": "Покани",
+            "invitations_copy": "Изпратени покани за присъединяване.",
+            "organization_name": "Име на организацията",
+            "legal_name": "Юридическо име",
+            "region": "Регион",
+            "default_language": "Език по подразбиране",
+            "timezone": "Часова зона",
+            "billing": "Таксуване",
+            "branding": "Брандинг",
+            "organization_selector": "Организации",
+            "select_organization": "Изберете организация",
+            "read_only": "Само за четене",
+            "manage": "Управление",
+            "company_admin_only": "Само за Company Admin",
+            "platform_admin_only": "Само за Platform Admin",
+        },
+        "en": {
+            "page_title": "BlackSea Connect | Workspace",
+            "root_title": "Choose an organization",
+            "root_copy": "Platform admins work in an organization context.",
+            "dashboard_title": "Company Workspace",
+            "dashboard_copy": "Operational overview for the organization.",
+            "dashboard_section": "Dashboard",
+            "properties_section": "Properties",
+            "owners_section": "Owners",
+            "professionals_section": "Professionals",
+            "operations_section": "Operations",
+            "reservations_section": "Reservations",
+            "calendar_section": "Calendar",
+            "users_section": "Users",
+            "invitations_section": "Invitations",
+            "audit_section": "Audit",
+            "settings_section": "Settings",
+            "active_users": "Active users",
+            "owners": "Owners",
+            "properties": "Properties",
+            "reservations": "Reservations",
+            "open_operations": "Open operations",
+            "overdue_operations": "Overdue operations",
+            "professionals": "Professionals",
+            "calendar_events_week": "Events this week",
+            "recent_audit": "Recent audit",
+            "quick_actions": "Quick actions",
+            "invite_user": "Invite user",
+            "add_owner": "Add owner",
+            "add_property": "Add property",
+            "create_operation": "Create operation",
+            "open_calendar": "Open calendar",
+            "import_reservations": "Import reservations",
+            "users_title": "Users",
+            "users_copy": "Manage memberships and invitations.",
+            "invite_email": "Email",
+            "invite_role": "Role",
+            "invite_submit": "Send invitation",
+            "save": "Save",
+            "deactivate": "Deactivate",
+            "resend": "Resend",
+            "revoke": "Revoke",
+            "role_active": "Active",
+            "role_inactive": "Inactive",
+            "audit_title": "Audit logs",
+            "settings_title": "Company settings",
+            "settings_copy": "Core organization details.",
+            "properties_copy": "Properties scoped to this organization.",
+            "owners_copy": "Owners scoped to this organization.",
+            "professionals_copy": "Professionals scoped to this organization.",
+            "operations_copy": "Operational tasks scoped to this organization.",
+            "reservations_copy": "Reservations scoped to this organization.",
+            "calendar_copy": "Calendar events scoped to this organization.",
+            "invitations_title": "Invitations",
+            "invitations_copy": "Pending and accepted invitations.",
+            "organization_name": "Organization name",
+            "legal_name": "Legal name",
+            "region": "Region",
+            "default_language": "Default language",
+            "timezone": "Timezone",
+            "billing": "Billing",
+            "branding": "Branding",
+            "organization_selector": "Organizations",
+            "select_organization": "Select organization",
+            "read_only": "Read only",
+            "manage": "Manage",
+            "company_admin_only": "Company Admin only",
+            "platform_admin_only": "Platform Admin only",
+        },
+        "fr": {
+            "page_title": "BlackSea Connect | Espace de travail",
+            "root_title": "Choisir une organisation",
+            "root_copy": "Les administrateurs de plateforme travaillent dans un contexte d'organisation.",
+            "dashboard_title": "Espace entreprise",
+            "dashboard_copy": "Vue opérationnelle de l'organisation.",
+            "dashboard_section": "Tableau de bord",
+            "properties_section": "Biens",
+            "owners_section": "Propriétaires",
+            "professionals_section": "Professionnels",
+            "operations_section": "Opérations",
+            "reservations_section": "Réservations",
+            "calendar_section": "Calendrier",
+            "users_section": "Utilisateurs",
+            "invitations_section": "Invitations",
+            "audit_section": "Audit",
+            "settings_section": "Paramètres",
+            "active_users": "Utilisateurs actifs",
+            "owners": "Propriétaires",
+            "properties": "Biens",
+            "reservations": "Réservations",
+            "open_operations": "Opérations ouvertes",
+            "overdue_operations": "Opérations en retard",
+            "professionals": "Professionnels",
+            "calendar_events_week": "Événements cette semaine",
+            "recent_audit": "Audit récent",
+            "quick_actions": "Actions rapides",
+            "invite_user": "Inviter un utilisateur",
+            "add_owner": "Ajouter un propriétaire",
+            "add_property": "Ajouter un bien",
+            "create_operation": "Créer une opération",
+            "open_calendar": "Ouvrir le calendrier",
+            "import_reservations": "Importer des réservations",
+            "users_title": "Utilisateurs",
+            "users_copy": "Gérez les adhésions et les invitations.",
+            "invite_email": "E-mail",
+            "invite_role": "Rôle",
+            "invite_submit": "Envoyer l'invitation",
+            "save": "Enregistrer",
+            "deactivate": "Désactiver",
+            "resend": "Renvoyer",
+            "revoke": "Révoquer",
+            "role_active": "Actif",
+            "role_inactive": "Inactif",
+            "audit_title": "Journaux d'audit",
+            "settings_title": "Paramètres de l'entreprise",
+            "settings_copy": "Détails principaux de l'organisation.",
+            "properties_copy": "Biens rattachés à cette organisation.",
+            "owners_copy": "Propriétaires rattachés à cette organisation.",
+            "professionals_copy": "Professionnels rattachés à cette organisation.",
+            "operations_copy": "Tâches opérationnelles rattachées à cette organisation.",
+            "reservations_copy": "Réservations rattachées à cette organisation.",
+            "calendar_copy": "Événements de calendrier rattachés à cette organisation.",
+            "invitations_title": "Invitations",
+            "invitations_copy": "Invitations en attente et acceptées.",
+            "organization_name": "Nom de l'organisation",
+            "legal_name": "Nom légal",
+            "region": "Région",
+            "default_language": "Langue par défaut",
+            "timezone": "Fuseau horaire",
+            "billing": "Facturation",
+            "branding": "Marque",
+            "organization_selector": "Organisations",
+            "select_organization": "Choisir l'organisation",
+            "read_only": "Lecture seule",
+            "manage": "Gérer",
+            "company_admin_only": "Réservé à l'administrateur d'entreprise",
+            "platform_admin_only": "Réservé à l'administrateur de plateforme",
+        },
+        "ru": {
+            "page_title": "BlackSea Connect | Рабочее пространство",
+            "root_title": "Выберите организацию",
+            "root_copy": "Платформенные администраторы работают в контексте организации.",
+            "dashboard_title": "Рабочее пространство компании",
+            "dashboard_copy": "Оперативный обзор организации.",
+            "dashboard_section": "Панель",
+            "properties_section": "Объекты",
+            "owners_section": "Владельцы",
+            "professionals_section": "Профессионалы",
+            "operations_section": "Операции",
+            "reservations_section": "Бронирования",
+            "calendar_section": "Календарь",
+            "users_section": "Пользователи",
+            "invitations_section": "Приглашения",
+            "audit_section": "Аудит",
+            "settings_section": "Настройки",
+            "active_users": "Активные пользователи",
+            "owners": "Владельцы",
+            "properties": "Объекты",
+            "reservations": "Бронирования",
+            "open_operations": "Открытые операции",
+            "overdue_operations": "Просроченные операции",
+            "professionals": "Профессионалы",
+            "calendar_events_week": "События за неделю",
+            "recent_audit": "Последний аудит",
+            "quick_actions": "Быстрые действия",
+            "invite_user": "Пригласить пользователя",
+            "add_owner": "Добавить владельца",
+            "add_property": "Добавить объект",
+            "create_operation": "Создать операцию",
+            "open_calendar": "Открыть календарь",
+            "import_reservations": "Импортировать бронирования",
+            "users_title": "Пользователи",
+            "users_copy": "Управляйте членствами и приглашениями.",
+            "invite_email": "Эл. почта",
+            "invite_role": "Роль",
+            "invite_submit": "Отправить приглашение",
+            "save": "Сохранить",
+            "deactivate": "Деактивировать",
+            "resend": "Отправить снова",
+            "revoke": "Отозвать",
+            "role_active": "Активна",
+            "role_inactive": "Неактивна",
+            "audit_title": "Журналы аудита",
+            "settings_title": "Настройки компании",
+            "settings_copy": "Основные данные организации.",
+            "properties_copy": "Объекты, привязанные к этой организации.",
+            "owners_copy": "Владельцы, привязанные к этой организации.",
+            "professionals_copy": "Профессионалы, привязанные к этой организации.",
+            "operations_copy": "Операционные задачи, привязанные к этой организации.",
+            "reservations_copy": "Бронирования, привязанные к этой организации.",
+            "calendar_copy": "События календаря, привязанные к этой организации.",
+            "invitations_title": "Приглашения",
+            "invitations_copy": "Ожидающие и принятые приглашения.",
+            "organization_name": "Название организации",
+            "legal_name": "Юридическое название",
+            "region": "Регион",
+            "default_language": "Язык по умолчанию",
+            "timezone": "Часовой пояс",
+            "billing": "Биллинг",
+            "branding": "Брендинг",
+            "organization_selector": "Организации",
+            "select_organization": "Выбрать организацию",
+            "read_only": "Только чтение",
+            "manage": "Управление",
+            "company_admin_only": "Только для Company Admin",
+            "platform_admin_only": "Только для Platform Admin",
+        },
+    }
+    return bundles.get(normalized_lang, bundles["en"])
+
+
+def _workspace_section_roles():
+    return {
+        "dashboard": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR},
+        "properties": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR},
+        "owners": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER},
+        "professionals": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER},
+        "operations": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR},
+        "reservations": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR},
+        "calendar": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER, ROLE_OPERATIONS_COORDINATOR},
+        "users": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN},
+        "invitations": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN},
+        "audit": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN, ROLE_OPERATIONS_MANAGER},
+        "settings": {ROLE_PLATFORM_ADMIN, ROLE_COMPANY_ADMIN},
+    }
+
+
+def _workspace_section_allowed(role_key, section):
+    role = _normalize_role_key(role_key)
+    if role == ROLE_PLATFORM_ADMIN:
+        return True
+    return role in _workspace_section_roles().get(section, set())
+
+
+def _workspace_selected_organization_id():
+    for key in ("organization_id", "org"):
+        candidate = str(request.values.get(key, "")).strip()
+        if candidate:
+            return candidate
+    return ""
+
+
+def _workspace_organization_context():
+    user, session_organization, membership, role_key = _enterprise_user_identity()
+    if not user:
+        return None, Response("Enterprise access required.", status=403, mimetype="text/plain")
+
+    role_key = _normalize_role_key(role_key)
+    if role_key in {ROLE_OWNER, ROLE_PROFESSIONAL}:
+        target = "owners_dashboard" if role_key == ROLE_OWNER else "professionals_dashboard"
+        return None, redirect(url_for(target, lang=_resolve_current_language()))
+
+    if role_key == ROLE_PLATFORM_ADMIN:
+        selected_organization_id = _workspace_selected_organization_id()
+        organization = _find_organization(selected_organization_id) if selected_organization_id else None
+        if not selected_organization_id:
+            return {
+                "user": user,
+                "organization": None,
+                "membership": None,
+                "role_key": role_key,
+                "selected_organization_id": "",
+                "current_lang": _resolve_current_language(),
+            }, None
+        if not organization or _normalize_organization_status(organization.get("status", "")) != ORGANIZATION_STATUS_ACTIVE:
+            return None, Response("Organization not found.", status=404, mimetype="text/plain")
+        return {
+            "user": user,
+            "organization": organization,
+            "membership": None,
+            "role_key": role_key,
+            "selected_organization_id": organization.get("id", ""),
+            "current_lang": _resolve_current_language(),
+        }, None
+
+    organization = session_organization
+    if not organization or _normalize_organization_status(organization.get("status", "")) != ORGANIZATION_STATUS_ACTIVE:
+        return None, Response("Enterprise access required.", status=403, mimetype="text/plain")
+    if not membership or _normalize_organization_status(membership.get("status", "")) != ORGANIZATION_STATUS_ACTIVE:
+        return None, Response("Enterprise membership inactive.", status=403, mimetype="text/plain")
+    return {
+        "user": user,
+        "organization": organization,
+        "membership": membership,
+        "role_key": role_key,
+        "selected_organization_id": organization.get("id", ""),
+        "current_lang": _resolve_current_language(),
+    }, None
+
+
+def _workspace_url(path, organization_id="", **params):
+    base_path = str(path or "").strip() or "/workspace"
+    query = [(key, value) for key, value in request.args.items(multi=True) if key not in {"lang", "organization_id", "org"}]
+    if organization_id:
+        query = [(key, value) for key, value in query if key != "organization_id"]
+        query.append(("organization_id", organization_id))
+    lang = params.pop("lang", _resolve_current_language())
+    query.append(("lang", lang))
+    for key, value in params.items():
+        if value is None or value == "":
+            continue
+        query.append((key, value))
+    query_string = urllib.parse.urlencode(query, doseq=True)
+    return f"{base_path}?{query_string}" if query_string else base_path
+
+
+def _workspace_filter_by_org(records, organization_id):
+    target_organization_id = str(organization_id or "").strip()
+    if not target_organization_id:
+        return []
+    filtered = []
+    for record in records or []:
+        if str((record or {}).get("organization_id", "")).strip() == target_organization_id:
+            filtered.append(record)
+    return filtered
+
+
+def _workspace_owner_accounts(organization_id):
+    return _workspace_filter_by_org(_load_owner_accounts(), organization_id)
+
+
+def _workspace_owner_properties(organization_id):
+    return _workspace_filter_by_org(_load_owner_properties(), organization_id)
+
+
+def _workspace_professional_accounts(organization_id):
+    return _workspace_filter_by_org(_load_professional_accounts(), organization_id)
+
+
+def _workspace_members(organization_id):
+    users = {str(user.get("id", "")).strip(): user for user in _load_users(organization_id=organization_id)}
+    memberships = _load_memberships(organization_id=organization_id)
+    members = []
+    for membership in memberships:
+        user = users.get(str(membership.get("user_id", "")).strip(), {})
+        members.append({
+            "user_id": membership.get("user_id", ""),
+            "membership_id": membership.get("id", ""),
+            "full_name": str(user.get("full_name", "")).strip(),
+            "email": str(user.get("email", "")).strip(),
+            "role_key": membership.get("role_key", ROLE_GUEST),
+            "status": membership.get("status", "ACTIVE"),
+            "joined_at": membership.get("joined_at", ""),
+            "created_at": user.get("created_at", ""),
+            "last_login_at": user.get("last_login_at", ""),
+            "organization_id": organization_id,
+        })
+    members.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("email", ""))), reverse=True)
+    return members
+
+
+def _workspace_invitations(organization_id):
+    invitations = _load_invitations(organization_id=organization_id)
+    invitations.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("email", ""))), reverse=True)
+    return invitations
+
+
+def _workspace_reservations(organization_id):
+    rows = []
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM reservations
+            WHERE organization_id = ?
+            ORDER BY arrival_datetime ASC, updated_at DESC, id ASC
+            """,
+            (str(organization_id or "").strip(),),
+        ).fetchall()
+    reservations = []
+    for row in rows:
+        reservation = _reservation_from_row(row)
+        if reservation is None:
+            continue
+        reservation["organization_id"] = str(row["organization_id"]) if "organization_id" in row.keys() else organization_id
+        reservations.append(reservation)
+    reservations.extend([record for record in _demo_records("reservations") if str(record.get("organization_id", GLOBAL_ORGANIZATION_ID)).strip() == str(organization_id or "").strip()])
+    return reservations
+
+
+def _workspace_operations_tasks(organization_id):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM operations_tasks
+            WHERE organization_id = ?
+            ORDER BY updated_at DESC, created_at DESC, id DESC
+            """,
+            (str(organization_id or "").strip(),),
+        ).fetchall()
+    tasks = []
+    for row in rows:
+        task = _operations_task_from_row(row)
+        if task is None:
+            continue
+        task["organization_id"] = str(row["organization_id"]) if "organization_id" in row.keys() else organization_id
+        tasks.append(task)
+    tasks.extend([record for record in _demo_records("operations_tasks") if str(record.get("organization_id", GLOBAL_ORGANIZATION_ID)).strip() == str(organization_id or "").strip()])
+    tasks.sort(key=lambda item: (str(item.get("updated_at", "")), str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    return tasks
+
+
+def _workspace_calendar_events(organization_id):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM calendar_events
+            WHERE organization_id = ?
+            ORDER BY start_datetime ASC, end_datetime ASC, updated_at DESC, id ASC
+            """,
+            (str(organization_id or "").strip(),),
+        ).fetchall()
+    events = []
+    for row in rows:
+        event = _calendar_event_from_row(row)
+        if event is None:
+            continue
+        event["organization_id"] = str(row["organization_id"]) if "organization_id" in row.keys() else organization_id
+        events.append(event)
+    events.extend([record for record in _demo_records("calendar_events") if str(record.get("organization_id", GLOBAL_ORGANIZATION_ID)).strip() == str(organization_id or "").strip()])
+    events.sort(key=_calendar_event_sort_key)
+    return events
+
+
+def _workspace_audit_logs(organization_id):
+    return _load_audit_logs(organization_id=organization_id, limit=80)
+
+
+def _workspace_metric_cards(organization_id):
+    properties = _workspace_owner_properties(organization_id)
+    reservations = _workspace_reservations(organization_id)
+    tasks = _workspace_operations_tasks(organization_id)
+    calendar_events = _workspace_calendar_events(organization_id)
+    audit_logs = _workspace_audit_logs(organization_id)
+    professional_accounts = _workspace_professional_accounts(organization_id)
+    return {
+        "active_users": len(_load_users(organization_id=organization_id)),
+        "owners": len(_workspace_owner_accounts(organization_id)),
+        "properties": len(properties),
+        "reservations": len(reservations),
+        "open_operations": sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}),
+        "overdue_operations": sum(1 for task in tasks if _admin_operations_task_is_overdue(task)),
+        "professionals": len(professional_accounts),
+        "calendar_events_week": sum(
+            1
+            for event in calendar_events
+            if _parse_iso_datetime(str(event.get("start_datetime", "")).strip())
+            and 0 <= (_parse_iso_datetime(str(event.get("start_datetime", "")).strip()).date() - datetime.now(timezone.utc).date()).days <= 7
+        ),
+        "recent_audit": audit_logs[:5],
+    }
+
+
+def _workspace_menu_items(role_key, organization_id):
+    text = _workspace_copy(_resolve_current_language())
+    section_labels = {
+        "dashboard": text["dashboard_section"],
+        "properties": text["properties_section"],
+        "owners": text["owners_section"],
+        "professionals": text["professionals_section"],
+        "operations": text["operations_section"],
+        "reservations": text["reservations_section"],
+        "calendar": text["calendar_section"],
+        "users": text["users_section"],
+        "invitations": text["invitations_section"],
+        "audit": text["audit_section"],
+        "settings": text["settings_section"],
+    }
+    allowed_sections = [section for section in section_labels if _workspace_section_allowed(role_key, section)]
+    return [
+        {
+            "section": section,
+            "label": section_labels[section],
+            "href": _workspace_url(f"/workspace/{section}" if section != "dashboard" else "/workspace/dashboard", organization_id=organization_id),
+        }
+        for section in allowed_sections
+    ]
+
+
+def _workspace_page_context(section, *, organization_id, role_key, selected_organization_id):
+    text = _workspace_copy(_resolve_current_language())
+    organization = _find_organization(organization_id) if organization_id else None
+    properties = _workspace_owner_properties(organization_id)
+    owners = _workspace_owner_accounts(organization_id)
+    professionals = _workspace_professional_accounts(organization_id)
+    reservations = _workspace_reservations(organization_id)
+    tasks = _workspace_operations_tasks(organization_id)
+    calendar_events = _workspace_calendar_events(organization_id)
+    audit_logs = _workspace_audit_logs(organization_id)
+    users = _load_users(organization_id=organization_id)
+    members = _workspace_members(organization_id)
+    invitations = _workspace_invitations(organization_id)
+    metrics = _workspace_metric_cards(organization_id)
+    current_week_end = datetime.now(timezone.utc) + timedelta(days=7)
+    week_events = [
+        event
+        for event in calendar_events
+        if (event_start := _parse_iso_datetime(str(event.get("start_datetime", "")).strip()))
+        and datetime.now(timezone.utc) <= event_start <= current_week_end
+    ][:6]
+    active_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}][:8]
+    overdue_tasks = [task for task in tasks if _admin_operations_task_is_overdue(task)][:8]
+    recent_audit = audit_logs[:8]
+    return {
+        "text": text,
+        "section": section,
+        "current_lang": _resolve_current_language(),
+        "organization": organization or {"name": "", "id": organization_id, "metadata": {}},
+        "selected_organization_id": selected_organization_id,
+        "role_key": role_key,
+        "role_label": _workspace_role_label(role_key),
+        "metrics": metrics,
+        "properties": properties[:8],
+        "owners": owners[:8],
+        "professionals": professionals[:8],
+        "reservations": reservations[:10],
+        "tasks": tasks[:10],
+        "active_tasks": active_tasks,
+        "overdue_tasks": overdue_tasks,
+        "calendar_events": calendar_events[:10],
+        "week_events": week_events,
+        "recent_audit": recent_audit,
+        "users": users,
+        "members": members,
+        "invitations": invitations,
+        "nav_items": _workspace_menu_items(role_key, selected_organization_id or organization_id),
+        "organization_choices": _load_organizations(include_suspended=False) if role_key == ROLE_PLATFORM_ADMIN else [],
+        "workspace_url": lambda path, **params: _workspace_url(path, organization_id=str(params.pop("organization_id", "")) or selected_organization_id or organization_id, **params),
+    }
+
+
+def _workspace_role_label(role_key):
+    labels = {
+        ROLE_PLATFORM_ADMIN: "Platform Admin",
+        ROLE_COMPANY_ADMIN: "Company Admin",
+        ROLE_OPERATIONS_MANAGER: "Operations Manager",
+        ROLE_OPERATIONS_COORDINATOR: "Operations Coordinator",
+        ROLE_PROFESSIONAL: "Professional",
+        ROLE_OWNER: "Owner",
+        ROLE_GUEST: "Guest",
+    }
+    return labels.get(_normalize_role_key(role_key), "User")
+
+
+def _render_workspace_page(section, *, organization_id, role_key, selected_organization_id):
+    context = _workspace_page_context(
+        section,
+        organization_id=organization_id,
+        role_key=role_key,
+        selected_organization_id=selected_organization_id,
+    )
+    template = """
+    <!doctype html>
+    <html lang="{{ current_lang }}">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>{{ text.page_title }}</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+      <style>
+        body.workspace-page { margin: 0; background: linear-gradient(180deg, #08111f 0%, #10192b 46%, #08111f 100%); color: #f7f4ee; font-family: "Aptos", "Segoe UI", Arial, sans-serif; }
+        .workspace-shell { width: min(1380px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 56px; display: grid; gap: 20px; grid-template-columns: 280px minmax(0, 1fr); }
+        .workspace-panel, .workspace-card { background: rgba(8, 16, 30, 0.84); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.22); }
+        .workspace-panel { padding: 20px; position: sticky; top: 18px; align-self: start; }
+        .workspace-main { display: grid; gap: 18px; }
+        .workspace-hero { padding: 24px; }
+        .workspace-hero h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
+        .workspace-muted { color: rgba(247,244,238,0.72); }
+        .workspace-nav { display: grid; gap: 8px; margin-top: 18px; }
+        .workspace-nav a { padding: 12px 14px; border-radius: 14px; color: inherit; text-decoration: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+        .workspace-nav a.is-active { background: rgba(216, 176, 106, 0.16); border-color: rgba(216, 176, 106, 0.35); }
+        .workspace-chip { display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(247,244,238,0.88); }
+        .workspace-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .workspace-stat { padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        .workspace-section { padding: 22px; }
+        .workspace-section h2, .workspace-section h3 { margin-top: 0; }
+        .workspace-list { display: grid; gap: 12px; margin-top: 12px; }
+        .workspace-row { display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+        .workspace-row strong { display: block; }
+        .workspace-table { width: 100%; border-collapse: collapse; }
+        .workspace-table th, .workspace-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; }
+        .workspace-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+        .workspace-actions form { margin: 0; }
+        .workspace-form { display: grid; gap: 12px; margin-top: 14px; }
+        .workspace-form-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .workspace-form label { display: grid; gap: 6px; font-size: 0.95rem; }
+        .workspace-form input, .workspace-form select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(6, 12, 22, 0.84); color: inherit; }
+        .workspace-empty { padding: 18px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.18); }
+        .workspace-pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; background: rgba(255,255,255,0.1); }
+        .workspace-selector { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 16px; }
+        .workspace-selector a { display: block; padding: 16px; border-radius: 18px; text-decoration: none; color: inherit; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        @media (max-width: 960px) { .workspace-shell { grid-template-columns: 1fr; } .workspace-panel { position: static; } }
+      </style>
+    </head>
+    <body class="workspace-page">
+          <main class="workspace-shell">
+        <aside class="workspace-panel">
+          <div class="workspace-chip">{{ organization.name or text.organization_selector }}</div>
+          <h2 style="margin: 14px 0 0;">{{ text.dashboard_section }}</h2>
+          <p class="workspace-muted">{{ role_label }}</p>
+          <nav class="workspace-nav" aria-label="{{ text.dashboard_section }}">
+            {% for item in nav_items %}
+              <a href="{{ item.href }}" class="{% if item.section == section %}is-active{% endif %}">{{ item.label }}</a>
+            {% endfor %}
+          </nav>
+        </aside>
+
+        <section class="workspace-main">
+          {% if section == 'root' %}
+            <article class="workspace-card workspace-hero">
+              <span class="workspace-pill">{{ text.organization_selector }}</span>
+              <h1>{{ text.root_title }}</h1>
+              <p class="workspace-muted">{{ text.root_copy }}</p>
+              {% if organization_choices %}
+                <div class="workspace-selector">
+                  {% for org_choice in organization_choices %}
+                    <a href="{{ workspace_url('/workspace/dashboard', organization_id=org_choice.id) }}">
+                      <strong>{{ org_choice.name }}</strong>
+                      <div class="workspace-muted">{{ org_choice.slug }}</div>
+                    </a>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="workspace-empty">{{ text.root_copy }}</div>
+              {% endif %}
+            </article>
+          {% else %}
+            <article class="workspace-card workspace-hero">
+              <span class="workspace-pill">{{ text.dashboard_title }}</span>
+              <h1>{{ organization.name or text.dashboard_title }}</h1>
+              <p class="workspace-muted">{{ text.dashboard_copy }}</p>
+              <div class="workspace-actions">
+                <a class="button button--primary" href="{{ workspace_url('/workspace/users') }}">{{ text.invite_user }}</a>
+                <a class="button button--secondary" href="{{ workspace_url('/workspace/properties') }}">{{ text.add_property }}</a>
+                <a class="button button--ghost" href="{{ workspace_url('/workspace/calendar') }}">{{ text.open_calendar }}</a>
+              </div>
+            </article>
+
+            {% if section == 'dashboard' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.dashboard_section }}</h2>
+                <div class="workspace-grid">
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.active_users }}</span><strong>{{ metrics.active_users }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.owners }}</span><strong>{{ metrics.owners }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.properties }}</span><strong>{{ metrics.properties }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.reservations }}</span><strong>{{ metrics.reservations }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.open_operations }}</span><strong>{{ metrics.open_operations }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.overdue_operations }}</span><strong>{{ metrics.overdue_operations }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.professionals }}</span><strong>{{ metrics.professionals }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.calendar_events_week }}</span><strong>{{ metrics.calendar_events_week }}</strong></div>
+                </div>
+              </article>
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.quick_actions }}</h2>
+                <div class="workspace-actions">
+                  <a class="button button--primary" href="{{ workspace_url('/workspace/users') }}">{{ text.invite_user }}</a>
+                  <a class="button button--secondary" href="{{ workspace_url('/workspace/owners') }}">{{ text.add_owner }}</a>
+                  <a class="button button--secondary" href="{{ workspace_url('/workspace/properties') }}">{{ text.add_property }}</a>
+                  <a class="button button--secondary" href="{{ workspace_url('/workspace/operations') }}">{{ text.create_operation }}</a>
+                  <a class="button button--ghost" href="{{ workspace_url('/workspace/calendar') }}">{{ text.open_calendar }}</a>
+                  <a class="button button--ghost" href="{{ workspace_url('/workspace/reservations') }}">{{ text.import_reservations }}</a>
+                </div>
+              </article>
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.calendar_events_week }}</h2>
+                {% if week_events %}
+                  <div class="workspace-list">
+                    {% for event in week_events %}
+                      <div class="workspace-row">
+                        <strong>{{ event.title }}</strong>
+                        <div class="workspace-muted">{{ event.event_type }} · {{ event.start_datetime }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.calendar_events_week }}</div>
+                {% endif %}
+              </article>
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.recent_audit }}</h2>
+                {% if recent_audit %}
+                  <table class="workspace-table">
+                    <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Entity</th></tr></thead>
+                    <tbody>
+                      {% for log in recent_audit %}
+                        <tr>
+                          <td>{{ log.timestamp }}</td>
+                          <td>{{ log.user_id or log.role_key }}</td>
+                          <td>{{ log.action }}</td>
+                          <td>{{ log.entity_type }} {{ log.entity_id }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <div class="workspace-empty">{{ text.recent_audit }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'properties' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.properties_section }}</h2>
+                <p class="workspace-muted">{{ text.properties_copy }}</p>
+                {% if properties %}
+                  <div class="workspace-list">
+                    {% for property_record in properties %}
+                      <div class="workspace-row">
+                        <strong>{{ property_record.name }}</strong>
+                        <div class="workspace-muted">{{ property_record.location }} · {{ property_record.status }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.properties_copy }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'owners' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.owners_section }}</h2>
+                <p class="workspace-muted">{{ text.owners_copy }}</p>
+                {% if owners %}
+                  <div class="workspace-list">
+                    {% for owner in owners %}
+                      <div class="workspace-row">
+                        <strong>{{ owner.full_name or owner.email }}</strong>
+                        <div class="workspace-muted">{{ owner.email }} · {{ owner.city }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.owners_copy }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'professionals' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.professionals_section }}</h2>
+                <p class="workspace-muted">{{ text.professionals_copy }}</p>
+                {% if professionals %}
+                  <div class="workspace-list">
+                    {% for professional in professionals %}
+                      <div class="workspace-row">
+                        <strong>{{ professional.full_name or professional.email }}</strong>
+                        <div class="workspace-muted">{{ professional.company }} · {{ professional.status }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.professionals_copy }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'operations' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.operations_section }}</h2>
+                <p class="workspace-muted">{{ text.operations_copy }}</p>
+                {% if active_tasks %}
+                  <div class="workspace-list">
+                    {% for task in active_tasks %}
+                      <div class="workspace-row">
+                        <strong>{{ task.title }}</strong>
+                        <div class="workspace-muted">{{ task.status }} · {{ task.priority }} · {{ task.property_name or task.property_location }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.operations_copy }}</div>
+                {% endif %}
+                {% if overdue_tasks %}
+                  <h3 style="margin-top: 22px;">{{ text.overdue_operations }}</h3>
+                  <div class="workspace-list">
+                    {% for task in overdue_tasks %}
+                      <div class="workspace-row">
+                        <strong>{{ task.title }}</strong>
+                        <div class="workspace-muted">{{ task.due_date or task.updated_at }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </article>
+            {% elif section == 'reservations' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.reservations_section }}</h2>
+                <p class="workspace-muted">{{ text.reservations_copy }}</p>
+                {% if reservations %}
+                  <div class="workspace-list">
+                    {% for reservation in reservations %}
+                      <div class="workspace-row">
+                        <strong>{{ reservation.guest_name or reservation.guest_email or reservation.id }}</strong>
+                        <div class="workspace-muted">{{ reservation.property_name }} · {{ reservation.status }} · {{ reservation.arrival_datetime }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.reservations_copy }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'calendar' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.calendar_section }}</h2>
+                <p class="workspace-muted">{{ text.calendar_copy }}</p>
+                {% if calendar_events %}
+                  <div class="workspace-list">
+                    {% for event in calendar_events %}
+                      <div class="workspace-row">
+                        <strong>{{ event.title }}</strong>
+                        <div class="workspace-muted">{{ event.event_type }} · {{ event.start_datetime }} · {{ event.status }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="workspace-empty">{{ text.calendar_copy }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'users' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.users_title }}</h2>
+                <p class="workspace-muted">{{ text.users_copy }}</p>
+                <form class="workspace-form" method="post" action="{{ workspace_url('/workspace/users') }}">
+                  <input type="hidden" name="workspace_action" value="invite">
+                  <div class="workspace-form-grid">
+                    <label>{{ text.invite_email }}<input type="email" name="email" required></label>
+                    <label>{{ text.invite_role }}<select name="role">{% for role_option in ['company_admin', 'operations_manager', 'operations_coordinator', 'professional', 'owner', 'guest'] %}<option value="{{ role_option }}">{{ role_option }}</option>{% endfor %}</select></label>
+                  </div>
+                  <div class="workspace-actions"><button class="button button--primary" type="submit">{{ text.invite_submit }}</button></div>
+                </form>
+                {% if members %}
+                  <table class="workspace-table" style="margin-top: 18px;">
+                    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                      {% for member in members %}
+                        <tr>
+                          <td>{{ member.full_name or 'n/a' }}</td>
+                          <td>{{ member.email }}</td>
+                          <td>{{ member.role_key }}</td>
+                          <td>{{ member.status }}</td>
+                          <td>
+                            <form method="post" action="{{ workspace_url('/workspace/users') }}" style="display:inline-flex; gap:8px; flex-wrap:wrap; margin:0;">
+                              <input type="hidden" name="user_id" value="{{ member.user_id }}">
+                              <input type="hidden" name="workspace_action" value="role">
+                              <select name="role">
+                                {% for role_option in ['company_admin', 'operations_manager', 'operations_coordinator', 'professional', 'owner', 'guest'] %}
+                                  <option value="{{ role_option }}" {% if role_option == member.role_key %}selected{% endif %}>{{ role_option }}</option>
+                                {% endfor %}
+                              </select>
+                              <button class="button button--ghost" type="submit">{{ text.save }}</button>
+                            </form>
+                            <form method="post" action="{{ workspace_url('/workspace/users') }}" style="display:inline; margin-left:8px;">
+                              <input type="hidden" name="user_id" value="{{ member.user_id }}">
+                              <input type="hidden" name="workspace_action" value="deactivate">
+                              <button class="button button--ghost" type="submit">{{ text.deactivate }}</button>
+                            </form>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% endif %}
+              </article>
+            {% elif section == 'invitations' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.invitations_title }}</h2>
+                <p class="workspace-muted">{{ text.invitations_copy }}</p>
+                <form class="workspace-form" method="post" action="{{ workspace_url('/workspace/invitations') }}">
+                  <input type="hidden" name="workspace_action" value="create">
+                  <div class="workspace-form-grid">
+                    <label>{{ text.invite_email }}<input type="email" name="email" required></label>
+                    <label>{{ text.invite_role }}<select name="role">{% for role_option in ['company_admin', 'operations_manager', 'operations_coordinator', 'professional', 'owner', 'guest'] %}<option value="{{ role_option }}">{{ role_option }}</option>{% endfor %}</select></label>
+                  </div>
+                  <div class="workspace-actions"><button class="button button--primary" type="submit">{{ text.invite_submit }}</button></div>
+                </form>
+                {% if invitations %}
+                  <table class="workspace-table" style="margin-top: 18px;">
+                    <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Accepted</th><th>Expires</th><th>Actions</th></tr></thead>
+                    <tbody>
+                      {% for invitation in invitations %}
+                        <tr>
+                          <td>{{ invitation.email }}</td>
+                          <td>{{ invitation.role_key }}</td>
+                          <td>{{ invitation.status }}</td>
+                          <td>{{ invitation.created_at }}</td>
+                          <td>{{ invitation.accepted_at }}</td>
+                          <td>{{ invitation.expires_at }}</td>
+                          <td>
+                            <form method="post" action="{{ workspace_url('/workspace/invitations') }}" style="display:inline;">
+                              <input type="hidden" name="workspace_action" value="resend">
+                              <input type="hidden" name="token" value="{{ invitation.token }}">
+                              <button class="button button--ghost" type="submit">{{ text.resend }}</button>
+                            </form>
+                            <form method="post" action="{{ workspace_url('/workspace/invitations') }}" style="display:inline; margin-left:8px;">
+                              <input type="hidden" name="workspace_action" value="revoke">
+                              <input type="hidden" name="token" value="{{ invitation.token }}">
+                              <button class="button button--ghost" type="submit">{{ text.revoke }}</button>
+                            </form>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% endif %}
+              </article>
+            {% elif section == 'audit' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.audit_title }}</h2>
+                {% if recent_audit %}
+                  <table class="workspace-table">
+                    <thead><tr><th>Timestamp</th><th>Actor</th><th>Role</th><th>Action</th><th>Entity</th><th>IP</th></tr></thead>
+                    <tbody>
+                      {% for log in recent_audit %}
+                        <tr>
+                          <td>{{ log.timestamp }}</td>
+                          <td>{{ log.user_id }}</td>
+                          <td>{{ log.role_key }}</td>
+                          <td>{{ log.action }}</td>
+                          <td>{{ log.entity_type }} {{ log.entity_id }}</td>
+                          <td>{{ log.ip_address }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <div class="workspace-empty">{{ text.audit_title }}</div>
+                {% endif %}
+              </article>
+            {% elif section == 'settings' %}
+              <article class="workspace-card workspace-section">
+                <h2>{{ text.settings_title }}</h2>
+                <p class="workspace-muted">{{ text.settings_copy }}</p>
+                <div class="workspace-grid">
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.organization_name }}</span><strong>{{ organization.name or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.legal_name }}</span><strong>{{ organization.metadata.legal_name or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.region }}</span><strong>{{ organization.metadata.region or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.default_language }}</span><strong>{{ organization.metadata.default_language or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.timezone }}</span><strong>{{ organization.metadata.timezone or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.billing }}</span><strong>{{ organization.metadata.billing or 'n/a' }}</strong></div>
+                  <div class="workspace-stat"><span class="workspace-muted">{{ text.branding }}</span><strong>{{ organization.metadata.branding or 'n/a' }}</strong></div>
+                </div>
+              </article>
+            {% endif %}
+          {% endif %}
+        </section>
+      </main>
+    </body>
+    </html>
+    """
+    return render_template_string(template, **context)
+
+
+def _workspace_guard(section):
+    context, response = _workspace_organization_context()
+    if response is not None:
+        return response
+    if context is None:
+        return Response("Enterprise access required.", status=403, mimetype="text/plain")
+    role_key = context["role_key"]
+    selected_organization_id = context["selected_organization_id"]
+    organization = context["organization"]
+    if role_key == ROLE_PLATFORM_ADMIN and not selected_organization_id and section != "root":
+        return redirect(url_for("workspace_root", lang=_resolve_current_language()))
+    if section != "root" and not organization:
+        return redirect(url_for("workspace_root", lang=_resolve_current_language()))
+    if section != "root" and not _workspace_section_allowed(role_key, section):
+        return Response("Insufficient role.", status=403, mimetype="text/plain")
+    return context
+
+
+@app.get("/workspace")
+def workspace_root():
+    guard = _workspace_guard("root")
+    if not isinstance(guard, dict):
+        return guard
+    if guard["role_key"] == ROLE_PLATFORM_ADMIN and not guard["selected_organization_id"]:
+        return _render_workspace_page("root", organization_id="", role_key=guard["role_key"], selected_organization_id="")
+    return _render_workspace_page("dashboard", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.get("/workspace/dashboard")
+def workspace_dashboard():
+    guard = _workspace_guard("dashboard")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("dashboard", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/properties", methods=["GET"])
+def workspace_properties():
+    guard = _workspace_guard("properties")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("properties", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/owners", methods=["GET"])
+def workspace_owners():
+    guard = _workspace_guard("owners")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("owners", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/professionals", methods=["GET"])
+def workspace_professionals():
+    guard = _workspace_guard("professionals")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("professionals", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/operations", methods=["GET"])
+def workspace_operations():
+    guard = _workspace_guard("operations")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("operations", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/reservations", methods=["GET"])
+def workspace_reservations():
+    guard = _workspace_guard("reservations")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("reservations", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/calendar", methods=["GET"])
+def workspace_calendar():
+    guard = _workspace_guard("calendar")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("calendar", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.route("/workspace/users", methods=["GET", "POST"])
+def workspace_users():
+    guard = _workspace_guard("users")
+    if not isinstance(guard, dict):
+        return guard
+    organization_id = guard["selected_organization_id"]
+    if request.method == "POST":
+        action = str(request.form.get("workspace_action", "invite")).strip().lower()
+        if action == "invite":
+            email = str(request.form.get("email", "")).strip().lower()
+            role_key = _normalize_role_key(request.form.get("role", "")) or ROLE_GUEST
+            if email:
+                invitation = _upsert_invitation({
+                    "organization_id": organization_id,
+                    "email": email,
+                    "role_key": role_key,
+                    "status": "PENDING",
+                    "metadata": {"source": "workspace_users"},
+                })
+                if invitation:
+                    _append_audit_log(
+                        "organization_invitation",
+                        invitation.get("token", ""),
+                        "created",
+                        before={},
+                        after=invitation,
+                        organization_id=organization_id,
+                        user_id=guard["user"].get("id", ""),
+                        role_key=guard["role_key"],
+                    )
+        elif action in {"role", "deactivate"}:
+            user_id = str(request.form.get("user_id", "")).strip()
+            membership = _find_membership(user_id, organization_id) if user_id else None
+            if membership:
+                updated_role = _normalize_role_key(request.form.get("role", membership.get("role_key", ROLE_GUEST))) or membership.get("role_key", ROLE_GUEST)
+                updated_status = "INACTIVE" if action == "deactivate" else "ACTIVE"
+                _upsert_membership({
+                    **membership,
+                    "role_key": updated_role,
+                    "status": updated_status,
+                })
+        return redirect(_workspace_url("/workspace/users", organization_id=organization_id))
+    return _render_workspace_page("users", organization_id=organization_id, role_key=guard["role_key"], selected_organization_id=organization_id)
+
+
+@app.route("/workspace/invitations", methods=["GET", "POST"])
+def workspace_invitations():
+    guard = _workspace_guard("invitations")
+    if not isinstance(guard, dict):
+        return guard
+    organization_id = guard["selected_organization_id"]
+    if request.method == "POST":
+        action = str(request.form.get("workspace_action", "create")).strip().lower()
+        email = str(request.form.get("email", "")).strip().lower()
+        role_key = _normalize_role_key(request.form.get("role", "")) or ROLE_GUEST
+        if action == "create" and email:
+            _upsert_invitation({
+                "organization_id": organization_id,
+                "email": email,
+                "role_key": role_key,
+                "status": "PENDING",
+                "metadata": {"source": "workspace_invitations"},
+            })
+        elif action == "revoke":
+            token = str(request.form.get("token", "")).strip()
+            if token:
+                invitation = _find_invitation(token)
+                if invitation and str(invitation.get("organization_id", "")).strip() == organization_id:
+                    _upsert_invitation({
+                        **invitation,
+                        "status": "REVOKED",
+                    })
+        elif action == "resend":
+            token = str(request.form.get("token", "")).strip()
+            invitation = _find_invitation(token) if token else None
+            if invitation and str(invitation.get("organization_id", "")).strip() == organization_id:
+                _upsert_invitation({
+                    **invitation,
+                    "magic_link_sent_at": _utc_now_iso(),
+                })
+        return redirect(_workspace_url("/workspace/invitations", organization_id=organization_id))
+    return _render_workspace_page("invitations", organization_id=organization_id, role_key=guard["role_key"], selected_organization_id=organization_id)
+
+
+@app.get("/workspace/audit")
+def workspace_audit():
+    guard = _workspace_guard("audit")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("audit", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
+
+
+@app.get("/workspace/settings")
+def workspace_settings():
+    guard = _workspace_guard("settings")
+    if not isinstance(guard, dict):
+        return guard
+    return _render_workspace_page("settings", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
 

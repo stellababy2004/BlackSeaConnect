@@ -219,8 +219,8 @@ class ReservationEngineTests(unittest.TestCase):
 
         self.assertIn("Reservation engine", admin_dashboard_html)
         self.assertIn("Booking and availability", admin_dashboard_html)
-        self.assertIn("Reservations and availability", owner_dashboard_html)
-        self.assertIn("Upcoming arrivals", owner_dashboard_html)
+        self.assertIn("Резервации и заетост", owner_dashboard_html)
+        self.assertIn("Предстоящи пристигания", owner_dashboard_html)
         self.assertIn("Today's check-ins", admin_dashboard_html)
         self.assertIn("Anna Ivanova", admin_reservations_html)
         self.assertIn("Boris Petrov", admin_reservations_html)

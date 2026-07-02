@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import textwrap
 import unittest
+import html as html_lib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -149,6 +150,125 @@ class MultilingualRouteTests(unittest.TestCase):
                     self.assertIn(f"data-i18n-attr=\"aria-label:{switcher_key}\"", html)
                     self.assertIn("/static/js/translations.js", html)
                     self.assertIn("/static/js/i18n.js", html)
+
+    def test_owner_login_feature_badges_and_cta_follow_selected_language(self):
+        expected = {
+            "bg": {
+                "chips": [
+                    "Поверителен портал",
+                    "Спокойна видимост на имота",
+                    "Заявки за услуги на едно място",
+                ],
+                "cta": "Изпрати защитен линк",
+                "nav": ["Начало", "Собственици", "Заяви услуга"],
+            },
+            "en": {
+                "chips": [
+                    "Confidential portal",
+                    "Calm property visibility",
+                    "Service requests in one place",
+                ],
+                "cta": "Send secure link",
+                "nav": ["Home", "Owners", "Request service"],
+            },
+            "fr": {
+                "chips": [
+                    "Portail confidentiel",
+                    "Visibilité sereine du bien",
+                    "Demandes de service au même endroit",
+                ],
+                "cta": "Envoyer le lien sécurisé",
+                "nav": ["Accueil", "Propriétaires", "Demander un service"],
+            },
+            "ru": {
+                "chips": [
+                    "Конфиденциальный портал",
+                    "Спокойный обзор объекта",
+                    "Запросы услуг в одном месте",
+                ],
+                "cta": "Отправить защищённую ссылку",
+                "nav": ["Главная", "Владельцы", "Запросить услугу"],
+            },
+        }
+
+        for lang, values in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/owners/login?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+
+                self.assertIn(f'<html lang="{lang}">', html)
+                for chip in values["chips"]:
+                    self.assertIn(chip, html)
+                self.assertIn(values["cta"], html)
+                for nav_label in values["nav"]:
+                    self.assertIn(nav_label, html)
+
+                other_languages = {code: data for code, data in expected.items() if code != lang}
+                for data in other_languages.values():
+                    for chip in data["chips"]:
+                        self.assertNotIn(chip, html)
+
+    def test_professionals_landing_page_follows_selected_language(self):
+        expected = {
+            "bg": {
+                "title": "Присъединете се към професионалната мрежа на BlackSeaConnect",
+                "cta": "Отвори формата за регистрация",
+                "chips": [
+                    "Ранният достъп е безплатен",
+                    "Записване в пилотната фаза",
+                    "Доверени местни професионалисти",
+                    "Българското Черноморие",
+                ],
+            },
+            "en": {
+                "title": "Join the BlackSeaConnect Professional Network",
+                "cta": "Open registration form",
+                "chips": [
+                    "Early access is free",
+                    "Pilot phase enrollment",
+                    "Trusted local professionals",
+                    "Bulgarian Black Sea coast",
+                ],
+            },
+            "fr": {
+                "title": "Rejoignez le réseau professionnel BlackSeaConnect",
+                "cta": "Ouvrir le formulaire d'inscription",
+                "chips": [
+                    "L'accès anticipé est gratuit",
+                    "Inscription pendant la phase pilote",
+                    "Professionnels locaux de confiance",
+                    "Côte bulgare de la mer Noire",
+                ],
+            },
+            "ru": {
+                "title": "Присоединяйтесь к профессиональной сети BlackSeaConnect",
+                "cta": "Открыть форму регистрации",
+                "chips": [
+                    "Ранний доступ бесплатный",
+                    "Регистрация во время пилотной фазы",
+                    "Надёжные местные профессионалы",
+                    "Болгарское Черноморье",
+                ],
+            },
+        }
+
+        for lang, values in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/professionals?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                html = html_lib.unescape(response.get_data(as_text=True))
+
+                self.assertIn(f'<html lang="{lang}">', html)
+                self.assertIn(values["title"], html)
+                self.assertIn(values["cta"], html)
+                for chip in values["chips"]:
+                    self.assertIn(chip, html)
+
+                for other_lang, other_values in expected.items():
+                    if other_lang == lang:
+                        continue
+                    self.assertNotIn(other_values["title"], html)
 
     def test_top_navigation_uses_shared_horizontal_wrapper_markup(self):
         services_html = self.client.get("/services?lang=en").get_data(as_text=True)
@@ -484,6 +604,50 @@ class MultilingualRouteTests(unittest.TestCase):
             ]:
             with self.subTest(href=href):
                 self.assertIn(href, html)
+
+    def test_owner_request_service_page_follows_selected_language(self):
+        self._login_owner()
+
+        expected = {
+            "bg": [
+                "Заявете услуга за вашия имот.",
+                "Отвори формата",
+                "Съответства на одобрени професионалисти",
+            ],
+            "en": [
+                "Request a service for your property.",
+                "Open request form",
+                "Matched to approved professionals",
+            ],
+            "fr": [
+                "Demandez un service pour votre bien.",
+                "Ouvrir le formulaire",
+                "Correspond à des professionnels approuvés",
+            ],
+            "ru": [
+                "Запросите услугу для вашей недвижимости.",
+                "Открыть форму",
+                "Сопоставляется с одобренными профессионалами",
+            ],
+        }
+
+        forbidden = {
+            "bg": ["Request a service for your property.", "Demandez un service pour votre bien.", "Запросите услугу для вашей недвижимости."],
+            "en": ["Заявете услуга за вашия имот.", "Demandez un service pour votre bien.", "Запросите услугу для вашей недвижимости."],
+            "fr": ["Заявете услуга за вашия имот.", "Request a service for your property.", "Запросите услугу для вашей недвижимости."],
+            "ru": ["Заявете услуга за вашия имот.", "Request a service for your property.", "Demandez un service pour votre bien."],
+        }
+
+        for lang, snippets in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/owners/request-service?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                html = html_lib.unescape(response.get_data(as_text=True))
+                self.assertIn(f'<html lang="{lang}">', html)
+                for snippet in snippets:
+                    self.assertIn(snippet, html)
+                for leak in forbidden[lang]:
+                    self.assertNotIn(leak, html)
 
     def test_external_and_mailto_links_remain_untouched(self):
         html = self.client.get("/guest/a-302?lang=en").get_data(as_text=True)

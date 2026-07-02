@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Пилотен достъп</title>
+  <title data-i18n="pageTitle">{{ public_i18n('pilot', 'pageTitle', '') }}</title>
   <meta name="description" content="Заявете пилотен достъп до платформата за оперативно управление на BlackSea Connect и разгледайте практичен план за крайбрежни имотни екипи.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
   <meta property="og:title" content="BlackSea Connect | Пилотен достъп">
@@ -26,13 +26,13 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+          <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">{{ public_i18n('common', 'navProfessionals', '') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', '') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Превключвател на език" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -43,28 +43,28 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if request.args.get('lang', 'bg')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/demo/operations') }}" data-i18n="pilotDemoCta">Виж демото</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/demo/operations') }}" data-i18n="pilotDemoCta">{{ public_i18n('pilot', 'pilotDemoCta', '') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home">
       <div class="hero__copy">
-        <p class="eyebrow" data-i18n="pilotEyebrow">Пилотен достъп</p>
-        <h1 data-i18n="pilotTitle">Заявете спокоен пилот и ще отговорим с практична стъпка за стартиране.</h1>
+        <p class="eyebrow" data-i18n="pilotEyebrow">{{ public_i18n('pilot', 'pilotEyebrow', '') }}</p>
+        <h1 data-i18n="pilotTitle">{{ public_i18n('pilot', 'pilotTitle', '') }}</h1>
         <p class="hero__text" data-i18n="pilotIntro">
           Споделете типа имот, региона и оперативните нужди. Използваме този контекст, за да преценим подходящия fit и да върнем реалистична следваща стъпка, без продажен шум.
         </p>
         <div class="hero__cta">
-          <a class="button button--primary" href="#pilot-request" data-i18n="pilotPrimaryCta">Отвори формата</a>
-          <a class="button button--secondary" href="{{ localized_url('/services') }}" data-i18n="pilotSecondaryCta">Разгледай услугите</a>
-          <a class="button button--tertiary" href="{{ localized_url('/partners') }}" data-i18n="pilotTertiaryCta">Запознайте се с партньорите</a>
-          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="pilotOwnerCta">Вече имате имот? Заявете услуга</a>
+          <a class="button button--primary" href="#pilot-request" data-i18n="pilotPrimaryCta">{{ public_i18n('pilot', 'pilotPrimaryCta', '') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/services') }}" data-i18n="pilotSecondaryCta">{{ public_i18n('pilot', 'pilotSecondaryCta', '') }}</a>
+          <a class="button button--tertiary" href="{{ localized_url('/partners') }}" data-i18n="pilotTertiaryCta">{{ public_i18n('pilot', 'pilotTertiaryCta', '') }}</a>
+          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="pilotOwnerCta">{{ public_i18n('pilot', 'pilotOwnerCta', '') }}</a>
         </div>
         <div class="trust-strip" aria-label="Pilot expectations">
-          <span class="trust-strip__chip" data-i18n="pilotChip1">частен пилот</span>
-          <span class="trust-strip__chip" data-i18n="pilotChip2">отговор до 1 работен ден</span>
-          <span class="trust-strip__chip" data-i18n="pilotChip3">без публичен списък</span>
-          <span class="trust-strip__chip" data-i18n="pilotChip4">проверка на оперативен fit</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip1">{{ public_i18n('pilot', 'pilotChip1', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip2">{{ public_i18n('pilot', 'pilotChip2', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip3">{{ public_i18n('pilot', 'pilotChip3', '') }}</span>
+          <span class="trust-strip__chip" data-i18n="pilotChip4">{{ public_i18n('pilot', 'pilotChip4', '') }}</span>
         </div>
       </div>
     </div>
@@ -73,10 +73,10 @@
   <main>
     <section class="cta-panel cta-panel--pilot" id="pilot-request" aria-labelledby="pilot-title">
       <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="pilotSectionEyebrow">Онбординг</p>
-        <h2 id="pilot-title" data-i18n="pilotSectionTitle">{{ public_i18n('pilot', 'pilotSectionTitle', 'Tell us about the property and the way the team works.') }}</h2>
-        <p class="cta-panel__copy" data-i18n="pilotSectionCopy">{{ public_i18n('pilot', 'pilotSectionCopy', 'We keep the request short: enough context to understand the property, the region, and the operational fit, without turning it into a heavy onboarding flow.') }}</p>
-        <p class="cta-panel__trust" data-i18n="pilotTrust">Частен пилот | Без публичен списък | Отговор до 1 работен ден</p>
+        <p class="section-heading__eyebrow" data-i18n="pilotSectionEyebrow">{{ public_i18n('pilot', 'pilotSectionEyebrow', '') }}</p>
+        <h2 id="pilot-title" data-i18n="pilotSectionTitle">{{ public_i18n('pilot', 'pilotSectionTitle', '') }}</h2>
+        <p class="cta-panel__copy" data-i18n="pilotSectionCopy">{{ public_i18n('pilot', 'pilotSectionCopy', '') }}</p>
+        <p class="cta-panel__trust" data-i18n="pilotTrust">{{ public_i18n('pilot', 'pilotTrust', '') }}</p>
       </div>
 
       <form id="pilot-form" class="pilot-form" data-pilot-form data-pilot-subject="BlackSea Connect pilot access request">
@@ -85,39 +85,39 @@
         </div>
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
-            <span data-i18n="formName">Име</span>
-            <input name="name" type="text" required placeholder="Вашето име" data-i18n-attr="placeholder:formNamePlaceholder">
+            <span data-i18n="formName">{{ public_i18n('pilot', 'formName', '') }}</span>
+            <input name="name" type="text" required placeholder="{{ public_i18n('pilot', 'formNamePlaceholder', '') }}" data-i18n-attr="placeholder:formNamePlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="formEmail">Имейл</span>
-            <input name="email" type="email" required placeholder="name@company.com" data-i18n-attr="placeholder:formEmailPlaceholder">
+            <span data-i18n="formEmail">{{ public_i18n('pilot', 'formEmail', '') }}</span>
+            <input name="email" type="email" required placeholder="{{ public_i18n('pilot', 'formEmailPlaceholder', '') }}" data-i18n-attr="placeholder:formEmailPlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="formPropertyType">Тип имот</span>
+            <span data-i18n="formPropertyType">{{ public_i18n('pilot', 'formPropertyType', '') }}</span>
             <select class="pilot-form__input" name="property_type" required>
-              <option value="" data-i18n="pilotPropertyTypeEmpty">{{ public_i18n('pilot', 'pilotPropertyTypeEmpty', 'Choose a property type') }}</option>
-              <option value="luxury_apartment" data-i18n="pilotPropertyOption1">Луксозен апартамент</option>
-              <option value="boutique_hotel" data-i18n="pilotPropertyOption2">Бутиков хотел</option>
-              <option value="villa_residence" data-i18n="pilotPropertyOption3">Вила / резиденция</option>
-              <option value="mixed_portfolio" data-i18n="pilotPropertyOption4">Смесено портфолио</option>
+              <option value="" data-i18n="pilotPropertyTypeEmpty">{{ public_i18n('pilot', 'pilotPropertyTypeEmpty', '') }}</option>
+              <option value="luxury_apartment" data-i18n="pilotPropertyOption1">{{ public_i18n('pilot', 'pilotPropertyOption1', '') }}</option>
+              <option value="boutique_hotel" data-i18n="pilotPropertyOption2">{{ public_i18n('pilot', 'pilotPropertyOption2', '') }}</option>
+              <option value="villa_residence" data-i18n="pilotPropertyOption3">{{ public_i18n('pilot', 'pilotPropertyOption3', '') }}</option>
+              <option value="mixed_portfolio" data-i18n="pilotPropertyOption4">{{ public_i18n('pilot', 'pilotPropertyOption4', '') }}</option>
             </select>
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="formRegion">Регион</span>
-            <input name="location" type="text" required placeholder="Марина Варна" data-i18n-attr="placeholder:formRegionPlaceholder">
+            <span data-i18n="formRegion">{{ public_i18n('pilot', 'formRegion', '') }}</span>
+            <input name="location" type="text" required placeholder="{{ public_i18n('pilot', 'formRegionPlaceholder', '') }}" data-i18n-attr="placeholder:formRegionPlaceholder">
           </label>
           <label class="pilot-form__field">
-            <span data-i18n="formPropertyCount">Брой имоти</span>
-            <input name="apartment_count" type="number" min="1" required placeholder="18" data-i18n-attr="placeholder:formPropertyCountPlaceholder">
+            <span data-i18n="formPropertyCount">{{ public_i18n('pilot', 'formPropertyCount', '') }}</span>
+            <input name="apartment_count" type="number" min="1" required placeholder="{{ public_i18n('pilot', 'formPropertyCountPlaceholder', '') }}" data-i18n-attr="placeholder:formPropertyCountPlaceholder">
           </label>
           <label class="pilot-form__field pilot-form__field--full">
-            <span data-i18n="formNeeds">Оперативни нужди</span>
-            <textarea name="needs" rows="4" required placeholder="Пристигания, почистване, трансфери, услуги за гости" data-i18n-attr="placeholder:formNeedsPlaceholder"></textarea>
+            <span data-i18n="formNeeds">{{ public_i18n('pilot', 'formNeeds', '') }}</span>
+            <textarea name="needs" rows="4" required placeholder="{{ public_i18n('pilot', 'formNeedsPlaceholder', '') }}" data-i18n-attr="placeholder:formNeedsPlaceholder"></textarea>
           </label>
         </div>
         <div class="pilot-form__footer">
-          <button class="button button--primary" type="submit" data-i18n="formSubmit">Изпрати заявката за пилотен достъп</button>
-          <p class="pilot-form__hint" data-pilot-response data-i18n="formHint">Вашият имейл клиент ще се отвори с подготвена заявка.</p>
+          <button class="button button--primary" type="submit" data-i18n="formSubmit">{{ public_i18n('pilot', 'formSubmit', '') }}</button>
+          <p class="pilot-form__hint" data-pilot-response data-i18n="formHint">{{ public_i18n('pilot', 'formHint', '') }}</p>
         </div>
       
 </form>
@@ -125,8 +125,8 @@
 <div class="pilot-toast" data-pilot-toast hidden>
   <div class="pilot-toast__icon">?</div>
   <div class="pilot-toast__content">
-    <strong data-i18n="pilotRequestReceivedTitle">Заявката е получена</strong>
-    <span data-i18n="pilotRequestReceivedCopy">Ще отговорим до 1 работен ден.</span>
+    <strong data-i18n="pilotRequestReceivedTitle">{{ public_i18n('pilot', 'pilotRequestReceivedTitle', '') }}</strong>
+    <span data-i18n="pilotRequestReceivedCopy">{{ public_i18n('pilot', 'pilotRequestReceivedCopy', '') }}</span>
   </div>
 </div>
 
@@ -136,20 +136,20 @@
   <footer class="site-footer" aria-label="Site footer">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Спокойни оперативни решения за крайбрежни имоти.</p>
+      <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', '') }}</p>
     </div>
 
     <nav class="site-footer__links" aria-label="Footer links">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
+      <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', '') }}</a>
+      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', '') }}</a>
+      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', '') }}</a>
+      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', '') }}</a>
+      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', '') }}</a>
     </nav>
 
     <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Използваме пилотната заявка, за да преценим fit и да предложим най-полезната следваща стъпка.</p>
+      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">{{ public_i18n('common', 'footerEmail', '') }}</a>
+      <p data-i18n="footerMeta">{{ public_i18n('common', 'footerMeta', '') }}</p>
     </div>
   </footer>
 
@@ -170,7 +170,7 @@
       <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </span>
-  <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">Пилотен достъп</span>
+  <span class="whatsapp-float__label" data-i18n="pilotAccessFloatLabel">{{ public_i18n('pilot', 'pilotAccessFloatLabel', '') }}</span>
 </a>
 
 </body>
