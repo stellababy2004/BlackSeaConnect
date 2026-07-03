@@ -1,4 +1,5 @@
 import base64
+import html as html_module
 import json
 import os
 import re
@@ -297,6 +298,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["status"], "new")
         self.assertEqual(records[0]["full_name"], "Nikolay Ivanov")
+        self.assertEqual(records[0]["professional_category"], "Concierge")
         self.assertEqual(records[0]["timeline"][0]["type"], "PROFESSIONAL_APPLICATION_CREATED")
 
         self.assertEqual(len(FakeSMTP.sent_messages), 1)
@@ -390,6 +392,66 @@ class ApplicationWorkflowTests(unittest.TestCase):
         ru_html = ru_response.get_data(as_text=True)
         self.assertIn('data-i18n="pageTitle"', ru_html)
         self.assertIn('data-lang-switch="ru"', ru_html)
+
+    def test_professional_category_options_are_localized_without_changing_values(self):
+        expected_values = (
+            "Concierge",
+            "Property Manager",
+            "Guest Relations",
+            "Maintenance",
+            "Hospitality Consultant",
+            "Real Estate Professional",
+            "Other",
+        )
+        expected_labels = {
+            "bg": (
+                "Консиерж",
+                "Управител на имоти",
+                "Връзки с гости",
+                "Поддръжка",
+                "Консултант по гостоприемство",
+                "Специалист по недвижими имоти",
+                "Друго",
+            ),
+            "en": expected_values,
+            "fr": (
+                "Conciergerie",
+                "Gestionnaire immobilier",
+                "Relations clients",
+                "Maintenance",
+                "Consultant en hôtellerie",
+                "Professionnel de l'immobilier",
+                "Autre",
+            ),
+            "ru": (
+                "Консьерж",
+                "Управляющий недвижимостью",
+                "Работа с гостями",
+                "Техническое обслуживание",
+                "Консультант по гостеприимству",
+                "Специалист по недвижимости",
+                "Другое",
+            ),
+        }
+
+        for lang, labels in expected_labels.items():
+            response = self.client.get("/professionals/apply", query_string={"lang": lang})
+            self.assertEqual(response.status_code, 200)
+            page_html = response.get_data(as_text=True)
+            options = [
+                (html_module.unescape(value), html_module.unescape(label.strip()))
+                for value, label in re.findall(
+                    r'<option value="([^"]*)"[^>]*>([^<]*)</option>',
+                    page_html,
+                )
+                if value
+            ]
+
+            with self.subTest(lang=lang):
+                self.assertEqual(tuple(value for value, _ in options), expected_values)
+                self.assertEqual(tuple(label for _, label in options), labels)
+                if lang in {"bg", "ru"}:
+                    self.assertTrue(set(expected_values).isdisjoint(label for _, label in options))
 
     def test_status_updates_store_history_and_notes(self):
         partner_record = {

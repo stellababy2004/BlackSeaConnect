@@ -8,16 +8,16 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">BlackSea Connect | Coastal Property Operations &amp; Guest Concierge</title>
-  <meta name="description" content="BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.">
+  <title data-i18n="pageTitle">{{ public_i18n('home', 'pageTitle', 'BlackSea Connect | Premium property operations for owners') }}</title>
+  <meta name="description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" content="BlackSea Connect | Coastal Property Operations &amp; Guest Concierge">
-  <meta property="og:description" content="BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.">
+  <meta property="og:title" content="BlackSea Connect | Premium property operations for owners">
+  <meta property="og:description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BlackSea Connect | Coastal Property Operations &amp; Guest Concierge">
-  <meta name="twitter:description" content="BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.">
+  <meta name="twitter:title" content="BlackSea Connect | Premium property operations for owners">
+  <meta name="twitter:description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/static/css/styles.css">
   <script type="application/ld+json">
@@ -54,236 +54,581 @@
   </script>
 </head>
 <body class="home-page">
-  <header class="hero hero--home" id="top">
-    <div class="hero__backdrop" aria-hidden="true">
-      <div class="hero__glow hero__glow--sunset"></div>
-      <div class="hero__glow hero__glow--sea"></div>
-      <div class="hero__glow hero__glow--mist"></div>
-      <div class="hero__rays hero__rays--left"></div>
-      <div class="hero__rays hero__rays--right"></div>
-      <div class="hero__horizon"></div>
-      <div class="hero__reflection"></div>
-      <div class="hero__harbor-lights">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+  <a class="skip-link" href="#main" data-i18n="homeSkipToContent">{{ public_i18n('home', 'homeSkipToContent', 'Skip to content') }}</a>
+
+  <header class="ds-hero" id="top">
+    <div class="ds-hero__scene" aria-hidden="true">
+      <div class="ds-hero__cloud ds-hero__cloud--left"></div>
+      <div class="ds-hero__cloud ds-hero__cloud--center"></div>
+      <div class="ds-hero__cloud ds-hero__cloud--right"></div>
+      <div class="ds-hero__bird"></div>
+      <div class="ds-hero__bird ds-hero__bird--right"></div>
+      <div class="ds-hero__boat ds-hero__boat--left"></div>
+      <div class="ds-hero__boat ds-hero__boat--right"></div>
+      <div class="ds-hero__sea"></div>
+      <div class="ds-hero__reflection"></div>
     </div>
 
-    <nav class="topbar" aria-label="Primary" data-i18n-attr="aria-label:homePrimaryNavLabel">
-      <a class="brand" href="#top">BlackSea Connect</a>
-      <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Site" data-i18n-attr="aria-label:homeSiteNavLabel">
-          <a class="site-nav__link is-active" href="{{ localized_url('/') }}" data-i18n="navHome">Начало</a>
-          <a class="site-nav__link" href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-          <a class="site-nav__link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-          <a class="site-nav__link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Кандидатстване</a>
-          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
-        </nav>
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:homeLanguageSwitcherLabel">
-          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
-          <span class="language-switcher__divider" aria-hidden="true">|</span>
-          <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
-        </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/demo/operations') }}" data-i18n="homeRequestPilotCta">Виж платформата</a>
-      </div>
-    </nav>
+    <div class="ds-shell">
+      <nav class="ds-nav ds-reveal" aria-label="Primary navigation" data-i18n-attr="aria-label:homePrimaryNavLabel" data-reveal>
+        <a class="ds-brand" href="#top" aria-label="BlackSea Connect home">
+          <span class="ds-brand__dot" aria-hidden="true"></span>
+          <span>BlackSea Connect</span>
+        </a>
 
-    <div class="hero__content hero__content--home">
-      <div class="hero__copy">
-        <p class="eyebrow" data-i18n="homeEyebrow">Премиум крайбрежно гостоприемство</p>
-        <h1 data-i18n="homeTitle">Оперативният кокпит за собственици и крайбрежни оператори.</h1>
-        <p class="hero__text" data-i18n="homeIntro">
-          BlackSea Connect обединява престои, пристигания, почистване и доверени партньори в една платформа за крайбрежни оператори.
-        </p>
-        <div class="hero__cta">
-          <a class="button button--primary" href="{{ localized_url('/demo/operations') }}" data-i18n="homePrimaryCta">Виж платформата</a>
-          <a class="button button--secondary" href="{{ localized_url('/services') }}" data-i18n="homeSecondaryCta">Разгледай услугите</a>
-          <a class="button button--tertiary" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">Заяви услуга</a>
-          <a class="button button--ghost" href="{{ localized_url('/owners/register') }}" data-i18n="homeOwnerServiceCta">Заяви услуга за имота си</a>
+        <div class="ds-nav__group">
+        <div class="ds-nav__links" aria-label="Site navigation" data-i18n-attr="aria-label:homeSiteNavLabel">
+            <a class="site-nav__link ds-nav-link is-active" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', 'Home') }}</a>
+            <a class="site-nav__link ds-nav-link" href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', 'Services') }}</a>
+            <a class="site-nav__link ds-nav-link" href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', 'Demo') }}</a>
+            <a class="site-nav__link ds-nav-link" href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', 'Guest portal') }}</a>
+            <a class="site-nav__link ds-nav-link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', 'Pilot access') }}</a>
+          </div>
+
+          <div class="ds-lang-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:homeLanguageSwitcherLabel">
+            <a class="language-switcher__button ds-lang-button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+            <a class="language-switcher__button ds-lang-button {% if request.args.get('lang', 'fr')|lower == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+            <a class="language-switcher__button ds-lang-button {% if request.args.get('lang', 'fr')|lower == 'fr' %}is-active{% endif %}" href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+            <a class="language-switcher__button ds-lang-button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
+          </div>
+
+          <a class="button button--ghost ds-button ds-button--ghost" href="{{ localized_url('/owners/login') }}" data-i18n="homeNavSignIn">{{ public_i18n('home', 'homeNavSignIn', 'Sign in') }}</a>
+          <a class="button button--accent ds-button ds-button--accent" href="{{ localized_url('/owners/register') }}" data-i18n="homeNavCreateAccount">{{ public_i18n('home', 'homeNavCreateAccount', 'Create account') }}</a>
         </div>
-        <div class="trust-strip" aria-label="Акценти на платформата" data-i18n-attr="aria-label:homePlatformSignalsLabel">
-          <span class="trust-strip__chip" data-i18n="homeChip1">координация на гости</span>
-          <span class="trust-strip__chip" data-i18n="homeChip2">проследяване на почистването</span>
-          <span class="trust-strip__chip" data-i18n="homeChip3">време на трансферите</span>
-          <span class="trust-strip__chip" data-i18n="homeChip4">доверени местни партньори</span>
+      </nav>
+
+      <div class="ds-hero__grid">
+        <div class="ds-hero__copy ds-reveal" data-reveal>
+          <p class="ds-eyebrow" data-i18n="homePremiumEyebrow">{{ public_i18n('home', 'homePremiumEyebrow', 'Premium coastal operations') }}</p>
+          <h1 class="ds-title">
+            <span data-i18n="homePremiumTitle">{{ public_i18n('home', 'homePremiumTitle', 'Everything about your property.') }}</span>
+            <span class="ds-title__accent" data-i18n="homePremiumTitleAccent">{{ public_i18n('home', 'homePremiumTitleAccent', 'In one place.') }}</span>
+          </h1>
+          <p class="ds-lead" data-i18n="homePremiumIntro">{{ public_i18n('home', 'homePremiumIntro', 'BlackSea Connect combines secure owner access, request handling, property context, calendar visibility and service history in a calm premium interface for high-trust hospitality teams.') }}</p>
+
+          <div class="ds-hero__actions" aria-label="Primary actions">
+            <a class="button button--ghost ds-button ds-button--ghost" href="{{ localized_url('/owners/login') }}" data-i18n="homeOwnerPortalCta">{{ public_i18n('home', 'homeOwnerPortalCta', 'Sign in') }}</a>
+            <a class="button button--accent ds-button ds-button--accent" href="{{ localized_url('/owners/register') }}" data-i18n="homeCreateAccountCta">{{ public_i18n('home', 'homeCreateAccountCta', 'Create account') }}</a>
+            <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">{{ public_i18n('home', 'homeRequestServiceCta', 'Request service') }}</a>
+          </div>
+
+          <div class="ds-hero__signal-row" aria-label="Platform highlights" data-i18n-attr="aria-label:homePlatformSignalsLabel">
+            <a class="ds-icon-chip" href="{{ localized_url('/owners/login') }}">
+              <span class="ds-icon-chip__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.4-3.2 8.1-7 9-3.8-.9-7-4.6-7-9V7l7-4z"/><path d="M9.2 12.2l1.9 1.9 3.8-4"/></svg>
+              </span>
+              <span class="ds-icon-chip__body">
+                <span class="ds-icon-chip__title" data-i18n="homeSecureAccessTitle">{{ public_i18n('home', 'homeSecureAccessTitle', 'Secure access') }}</span>
+                <span class="ds-icon-chip__copy" data-i18n="homeSecureAccessCopy">{{ public_i18n('home', 'homeSecureAccessCopy', 'No passwords') }}</span>
+              </span>
+            </a>
+            <a class="ds-icon-chip" href="{{ localized_url('/demo/operations') }}">
+              <span class="ds-icon-chip__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 15l3-3 3 2 5-6"/></svg>
+              </span>
+              <span class="ds-icon-chip__body">
+                <span class="ds-icon-chip__title" data-i18n="homeRealtimeTitle">{{ public_i18n('home', 'homeRealtimeTitle', 'Real-time updates') }}</span>
+                <span class="ds-icon-chip__copy" data-i18n="homeRealtimeCopy">{{ public_i18n('home', 'homeRealtimeCopy', '24/7 visibility') }}</span>
+              </span>
+            </a>
+            <a class="ds-icon-chip" href="{{ localized_url('/request-service') }}">
+              <span class="ds-icon-chip__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M6 7h9a3 3 0 010 6H6"/></svg>
+              </span>
+              <span class="ds-icon-chip__body">
+                <span class="ds-icon-chip__title" data-i18n="homePremiumSupportTitle">{{ public_i18n('home', 'homePremiumSupportTitle', 'Premium support') }}</span>
+                <span class="ds-icon-chip__copy" data-i18n="homePremiumSupportCopy">{{ public_i18n('home', 'homePremiumSupportCopy', 'Local team') }}</span>
+              </span>
+            </a>
+            <a class="ds-icon-chip" href="{{ localized_url('/owners/register') }}">
+              <span class="ds-icon-chip__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"/><path d="M4 7h16"/><path d="M9 7v13"/></svg>
+              </span>
+              <span class="ds-icon-chip__body">
+                <span class="ds-icon-chip__title" data-i18n="homeMultiplePropertiesTitle">{{ public_i18n('home', 'homeMultiplePropertiesTitle', 'Multiple properties') }}</span>
+                <span class="ds-icon-chip__copy" data-i18n="homeMultiplePropertiesCopy">{{ public_i18n('home', 'homeMultiplePropertiesCopy', 'One dashboard') }}</span>
+              </span>
+            </a>
+          </div>
         </div>
+
+        <aside class="ds-hero__visual ds-reveal" aria-label="Premium operations summary" data-reveal>
+          <div class="ds-hero__visual-frame">
+            <div class="ds-hero__visual-metric-grid" aria-label="Preview metrics" data-i18n-attr="aria-label:homePreviewMetricsLabel">
+              <div class="ds-mini-metric">
+                <span class="ds-mini-metric__label" data-i18n="homeMetricOccupancy">{{ public_i18n('home', 'homeMetricOccupancy', 'Occupancy') }}</span>
+                <span class="ds-mini-metric__value" data-count="87">0%</span>
+                <span class="ds-mini-metric__note" data-i18n="homeMetricOccupancyNote">{{ public_i18n('home', 'homeMetricOccupancyNote', '+6.4% this week') }}</span>
+              </div>
+              <div class="ds-mini-metric">
+                <span class="ds-mini-metric__label" data-i18n="homeMetricRequests">{{ public_i18n('home', 'homeMetricRequests', 'Requests') }}</span>
+                <span class="ds-mini-metric__value" data-count="14">0</span>
+                <span class="ds-mini-metric__note" data-i18n="homeMetricRequestsNote">{{ public_i18n('home', 'homeMetricRequestsNote', '4 awaiting review') }}</span>
+              </div>
+              <div class="ds-mini-metric">
+                <span class="ds-mini-metric__label" data-i18n="homeMetricArrivals">{{ public_i18n('home', 'homeMetricArrivals', 'Arrivals') }}</span>
+                <span class="ds-mini-metric__value" data-count="6">0</span>
+                <span class="ds-mini-metric__note" data-i18n="homeMetricArrivalsNote">{{ public_i18n('home', 'homeMetricArrivalsNote', 'Next in 2h 15m') }}</span>
+              </div>
+            </div>
+            <div class="ds-hero__visual-panel">
+              <div class="ds-row" style="margin-bottom: 12px;">
+                <strong data-i18n="homeHarborStatus">{{ public_i18n('home', 'homeHarborStatus', 'Harbor view status') }}</strong>
+                <span class="ds-badge" data-i18n="homeLiveLabel">{{ public_i18n('home', 'homeLiveLabel', 'Live') }}</span>
+              </div>
+              <div class="ds-progress"><span></span></div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   </header>
 
-  <main>
-    <section class="home-product" aria-labelledby="home-product-title">
-      <div class="section-heading section-heading--product">
-        <p class="section-heading__eyebrow" data-i18n="homeProductEyebrow">Операции на живо</p>
-        <h2 id="home-product-title" data-i18n="homeProductTitle">Вижте таблото преди маркетинговата история.</h2>
-        <p class="home-product__copy" data-i18n="homeProductCopy">Премиум преглед на заетост, пристигания, смени и SLA за екипи, които искат яснота бързо.</p>
+  <main id="main">
+    <section class="ds-section" aria-labelledby="dashboard-preview-title">
+      <div class="ds-shell">
+        <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
+          <div>
+            <span class="ds-section__eyebrow" data-i18n="homeDashboardEyebrow">{{ public_i18n('home', 'homeDashboardEyebrow', 'Owner dashboard preview') }}</span>
+            <h2 id="dashboard-preview-title" class="ds-title" data-i18n="homeDashboardTitle">{{ public_i18n('home', 'homeDashboardTitle', 'A real SaaS dashboard, built entirely with HTML and CSS.') }}</h2>
+          </div>
+          <p class="ds-lead" data-i18n="homeDashboardIntro">{{ public_i18n('home', 'homeDashboardIntro', 'No image mockups. This is a realistic operating workspace with navigation, properties, requests, calendar visibility, messages, notifications and recent updates in one calm interface.') }}</p>
+        </div>
+
+        <div class="ds-card ds-reveal" data-reveal>
+          <div class="ds-grid">
+            <aside class="ds-card ds-card--nav" style="background: linear-gradient(180deg, rgba(8, 25, 38, 0.96), rgba(12, 34, 52, 0.92)); color: rgba(255,255,255,0.88); border-color: rgba(255,255,255,0.08);">
+              <div class="ds-row" style="padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <div class="ds-row" style="justify-content: flex-start;">
+                  <span class="ds-brand__dot" aria-hidden="true"></span>
+                  <strong>BlackSea Connect</strong>
+                </div>
+              </div>
+              <span class="ds-badge" style="margin: 14px 0; width: fit-content;" data-i18n="homeDashboardOnline">{{ public_i18n('home', 'homeDashboardOnline', '2 properties online') }}</span>
+              <nav class="ds-list" aria-label="Dashboard navigation" style="gap: 8px;">
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardOverview">{{ public_i18n('home', 'homeDashboardOverview', 'Overview') }}</span><span>8</span></a>
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardProperties">{{ public_i18n('home', 'homeDashboardProperties', 'Properties') }}</span><span>12</span></a>
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</span><span>4</span></a>
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardUpcomingArrivals">{{ public_i18n('home', 'homeDashboardUpcomingArrivals', 'Upcoming arrivals') }}</span><span>6</span></a>
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardCalendar">{{ public_i18n('home', 'homeDashboardCalendar', 'Calendar') }}</span><span>12</span></a>
+                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardMessages">{{ public_i18n('home', 'homeDashboardMessages', 'Messages') }}</span><span>3</span></a>
+              </nav>
+            </aside>
+
+            <div class="ds-stack">
+              <div class="ds-row">
+                <div>
+                  <h3 style="margin:0;color:var(--ds-ink);font:700 1.22rem/1.1 var(--font-display);letter-spacing:-0.03em;" data-i18n="homeDashboardOwnerOverview">{{ public_i18n('home', 'homeDashboardOwnerOverview', 'Owner overview') }}</h3>
+                  <div class="ds-meta" data-i18n="homeDashboardUpdated">{{ public_i18n('home', 'homeDashboardUpdated', 'Sunday, July 2 · Updated 2 minutes ago') }}</div>
+                </div>
+                <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">{{ public_i18n('home', 'homeRequestServiceCta', 'Request service') }}</a>
+              </div>
+
+              <div class="ds-kpi-grid" aria-label="KPI overview" data-i18n-attr="aria-label:homeKpiOverviewLabel">
+                <article class="ds-kpi">
+                  <span class="ds-kpi__label" data-i18n="homeDashboardPortfolioHealth">{{ public_i18n('home', 'homeDashboardPortfolioHealth', 'Portfolio health') }}</span>
+                  <strong class="ds-kpi__value" data-count="96">0%</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeDashboardPortfolioHealthCopy">{{ public_i18n('home', 'homeDashboardPortfolioHealthCopy', 'All critical tasks on track') }}</div>
+                </article>
+                <article class="ds-kpi">
+                  <span class="ds-kpi__label" data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</span>
+                  <strong class="ds-kpi__value" data-count="14">0</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeDashboardOpenRequestsCopy">{{ public_i18n('home', 'homeDashboardOpenRequestsCopy', '2 need owner review') }}</div>
+                </article>
+                <article class="ds-kpi">
+                  <span class="ds-kpi__label" data-i18n="homeDashboardUpcomingArrivals">{{ public_i18n('home', 'homeDashboardUpcomingArrivals', 'Upcoming arrivals') }}</span>
+                  <strong class="ds-kpi__value" data-count="6">0</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeDashboardUpcomingArrivalsCopy">{{ public_i18n('home', 'homeDashboardUpcomingArrivalsCopy', 'Next check-in in 2h 15m') }}</div>
+                </article>
+                <article class="ds-kpi">
+                  <span class="ds-kpi__label" data-i18n="homeDashboardReplyTime">{{ public_i18n('home', 'homeDashboardReplyTime', 'Reply time') }}</span>
+                  <strong class="ds-kpi__value" data-count="12" data-i18n="homeDashboardReplyTimeValue">{{ public_i18n('home', 'homeDashboardReplyTimeValue', '0m') }}</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeDashboardReplyTimeCopy">{{ public_i18n('home', 'homeDashboardReplyTimeCopy', 'Average response time') }}</div>
+                </article>
+              </div>
+
+              <div class="ds-grid">
+                <div class="ds-stack">
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeDashboardProperties">{{ public_i18n('home', 'homeDashboardProperties', 'Properties') }}</h4>
+                        <p data-i18n="homeDashboardPropertiesCopy">{{ public_i18n('home', 'homeDashboardPropertiesCopy', 'Current operating status by home.') }}</p>
+                      </div>
+                      <span class="ds-badge" data-i18n="homeDashboardActive">{{ public_i18n('home', 'homeDashboardActive', '4 active') }}</span>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row"><strong>Sea View Villa</strong><span class="ds-meta" data-i18n="homeLocationStVlas">{{ public_i18n('home', 'homeLocationStVlas', 'St. Vlas') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyReady">{{ public_i18n('home', 'homePropertyReady', 'Ready for arrival') }}</span><span class="ds-meta">92%</span></div>
+                        <div class="ds-progress"><span style="width:92%"></span></div>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong>Marina Residence</strong><span class="ds-meta" data-i18n="homeLocationVarna">{{ public_i18n('home', 'homeLocationVarna', 'Varna') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyCleaning">{{ public_i18n('home', 'homePropertyCleaning', 'Cleaning in progress') }}</span><span class="ds-meta">74%</span></div>
+                        <div class="ds-progress"><span style="width:74%"></span></div>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong>Golden Bay Penthouse</strong><span class="ds-meta" data-i18n="homeLocationBurgas">{{ public_i18n('home', 'homeLocationBurgas', 'Burgas') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyInspection">{{ public_i18n('home', 'homePropertyInspection', 'Awaiting inspection') }}</span><span class="ds-meta">61%</span></div>
+                        <div class="ds-progress"><span style="width:61%"></span></div>
+                      </li>
+                    </ul>
+                  </article>
+
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</h4>
+                        <p data-i18n="homeDashboardRequestsCopy">{{ public_i18n('home', 'homeDashboardRequestsCopy', 'Requests waiting on action or approval.') }}</p>
+                      </div>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeRequestWelcomeSetup">{{ public_i18n('home', 'homeRequestWelcomeSetup', 'Welcome setup') }}</strong><span class="ds-meta" data-i18n="homeRequestCleaning">{{ public_i18n('home', 'homeRequestCleaning', 'Cleaning') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeRequestWelcomeSetupCopy">{{ public_i18n('home', 'homeRequestWelcomeSetupCopy', 'Owner approved, partner assigned, due by 15:30.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeRequestAirportTransfer">{{ public_i18n('home', 'homeRequestAirportTransfer', 'Airport transfer') }}</strong><span class="ds-meta" data-i18n="homeRequestConcierge">{{ public_i18n('home', 'homeRequestConcierge', 'Concierge') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeRequestAirportTransferCopy">{{ public_i18n('home', 'homeRequestAirportTransferCopy', 'Guest pickup details confirmed by the team.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeRequestFilter">{{ public_i18n('home', 'homeRequestFilter', 'Filter replacement') }}</strong><span class="ds-meta" data-i18n="homeRequestMaintenance">{{ public_i18n('home', 'homeRequestMaintenance', 'Maintenance') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeRequestFilterCopy">{{ public_i18n('home', 'homeRequestFilterCopy', 'Waiting for owner review before dispatch.') }}</span>
+                      </li>
+                    </ul>
+                  </article>
+
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeDashboardActivity">{{ public_i18n('home', 'homeDashboardActivity', 'Activity feed') }}</h4>
+                        <p data-i18n="homeDashboardActivityCopy">{{ public_i18n('home', 'homeDashboardActivityCopy', 'Recent operational events.') }}</p>
+                      </div>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeActivityApproved">{{ public_i18n('home', 'homeActivityApproved', 'Request approved') }}</strong><span class="ds-meta" data-i18n="homeActivityApprovedTime">{{ public_i18n('home', 'homeActivityApprovedTime', '12 min ago') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeActivityApprovedCopy">{{ public_i18n('home', 'homeActivityApprovedCopy', 'Premium cleaning scheduled for Sea View Villa.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeActivityArrival">{{ public_i18n('home', 'homeActivityArrival', 'Arrival updated') }}</strong><span class="ds-meta" data-i18n="homeActivityArrivalTime">{{ public_i18n('home', 'homeActivityArrivalTime', '35 min ago') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeActivityArrivalCopy">{{ public_i18n('home', 'homeActivityArrivalCopy', 'Guest ETA changed to 16:40 with concierge notified.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeActivityOwnerNote">{{ public_i18n('home', 'homeActivityOwnerNote', 'Owner note added') }}</strong><span class="ds-meta" data-i18n="homeActivityOwnerNoteTime">{{ public_i18n('home', 'homeActivityOwnerNoteTime', '1 hr ago') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeActivityOwnerNoteCopy">{{ public_i18n('home', 'homeActivityOwnerNoteCopy', 'Inspection photos shared for the north terrace.') }}</span>
+                      </li>
+                    </ul>
+                  </article>
+                </div>
+
+                <div class="ds-stack">
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeDashboardCalendar">{{ public_i18n('home', 'homeDashboardCalendar', 'Calendar') }}</h4>
+                        <p data-i18n="homeCalendarCopy">{{ public_i18n('home', 'homeCalendarCopy', 'Arrival rhythm this week.') }}</p>
+                      </div>
+                      <span class="ds-badge" data-i18n="homeThisWeek">{{ public_i18n('home', 'homeThisWeek', 'This week') }}</span>
+                    </div>
+                    <div class="ds-calendar">
+                      <div class="ds-calendar__grid" aria-hidden="true">
+                        <div class="ds-calendar__cell" data-i18n="homeWeekdayMon">{{ public_i18n('home', 'homeWeekdayMon', 'M') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdayTue">{{ public_i18n('home', 'homeWeekdayTue', 'T') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdayWed">{{ public_i18n('home', 'homeWeekdayWed', 'W') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdayThu">{{ public_i18n('home', 'homeWeekdayThu', 'T') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdayFri">{{ public_i18n('home', 'homeWeekdayFri', 'F') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdaySat">{{ public_i18n('home', 'homeWeekdaySat', 'S') }}</div><div class="ds-calendar__cell" data-i18n="homeWeekdaySun">{{ public_i18n('home', 'homeWeekdaySun', 'S') }}</div>
+                        <div class="ds-calendar__cell">1</div><div class="ds-calendar__cell is-current">2</div><div class="ds-calendar__cell">3</div><div class="ds-calendar__cell">4</div><div class="ds-calendar__cell">5</div><div class="ds-calendar__cell">6</div><div class="ds-calendar__cell">7</div>
+                        <div class="ds-calendar__cell">8</div><div class="ds-calendar__cell">9</div><div class="ds-calendar__cell">10</div><div class="ds-calendar__cell">11</div><div class="ds-calendar__cell">12</div><div class="ds-calendar__cell is-current">13</div><div class="ds-calendar__cell">14</div>
+                      </div>
+                      <div class="ds-pill-row">
+                        <span class="ds-pill" data-i18n="homeCalendarArrivals">{{ public_i18n('home', 'homeCalendarArrivals', '2 arrivals') }}</span>
+                        <span class="ds-pill" data-i18n="homeCalendarCleaning">{{ public_i18n('home', 'homeCalendarCleaning', '1 cleaning') }}</span>
+                        <span class="ds-pill" data-i18n="homeCalendarReminders">{{ public_i18n('home', 'homeCalendarReminders', '3 reminders') }}</span>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeDashboardMessages">{{ public_i18n('home', 'homeDashboardMessages', 'Messages') }}</h4>
+                        <p data-i18n="homeMessagesCopy">{{ public_i18n('home', 'homeMessagesCopy', 'Latest owner and team notes.') }}</p>
+                      </div>
+                      <span class="ds-badge" data-i18n="homeUnread">{{ public_i18n('home', 'homeUnread', '3 unread') }}</span>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row">
+                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">A</div><strong>Anna Petrova</strong></div>
+                          <span class="ds-meta" data-i18n="homeJustNow">{{ public_i18n('home', 'homeJustNow', 'Just now') }}</span>
+                        </div>
+                        <span class="ds-meta" data-i18n="homeMessageAnna">{{ public_i18n('home', 'homeMessageAnna', 'Please confirm the welcome setup for tomorrow.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row">
+                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">M</div><strong data-i18n="homeMarinaOperations">{{ public_i18n('home', 'homeMarinaOperations', 'Marina Operations') }}</strong></div>
+                          <span class="ds-meta" data-i18n="homeMessageMarinaTime">{{ public_i18n('home', 'homeMessageMarinaTime', '18 min ago') }}</span>
+                        </div>
+                        <span class="ds-meta" data-i18n="homeMessageMarina">{{ public_i18n('home', 'homeMessageMarina', 'The inspection is complete and photos are ready.') }}</span>
+                      </li>
+                    </ul>
+                  </article>
+
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeNotifications">{{ public_i18n('home', 'homeNotifications', 'Notifications') }}</h4>
+                        <p data-i18n="homeNotificationsCopy">{{ public_i18n('home', 'homeNotificationsCopy', 'Small pulses, high signal.') }}</p>
+                      </div>
+                      <span class="ds-badge"><span class="ds-floating-cta__pulse" aria-hidden="true"></span><span data-i18n="homeActiveLabel">{{ public_i18n('home', 'homeActiveLabel', 'Active') }}</span></span>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeNotificationCleaning">{{ public_i18n('home', 'homeNotificationCleaning', 'Cleaning reassigned') }}</strong><span class="ds-meta">02:10</span></div>
+                        <span class="ds-meta" data-i18n="homeNotificationCleaningCopy">{{ public_i18n('home', 'homeNotificationCleaningCopy', 'The task moved to a certified local partner.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeNotificationAccess">{{ public_i18n('home', 'homeNotificationAccess', 'Guest access prepared') }}</strong><span class="ds-meta">01:40</span></div>
+                        <span class="ds-meta" data-i18n="homeNotificationAccessCopy">{{ public_i18n('home', 'homeNotificationAccessCopy', 'Secure entry details are now ready for the owner.') }}</span>
+                      </li>
+                    </ul>
+                  </article>
+
+                  <article class="ds-card">
+                    <div class="ds-card__header">
+                      <div>
+                        <h4 data-i18n="homeRecentUpdates">{{ public_i18n('home', 'homeRecentUpdates', 'Recent updates') }}</h4>
+                        <p data-i18n="homeRecentUpdatesCopy">{{ public_i18n('home', 'homeRecentUpdatesCopy', 'Concise summary of the latest owner-facing events.') }}</p>
+                      </div>
+                    </div>
+                    <ul class="ds-list">
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeUpdateHistory">{{ public_i18n('home', 'homeUpdateHistory', 'Service history refreshed') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday', 'Today') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeUpdateHistoryCopy">{{ public_i18n('home', 'homeUpdateHistoryCopy', 'All completed tasks now sit alongside requests and arrival notes.') }}</span>
+                      </li>
+                      <li>
+                        <div class="ds-row"><strong data-i18n="homeUpdateConcierge">{{ public_i18n('home', 'homeUpdateConcierge', 'Concierge follow-up queued') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday', 'Today') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeUpdateConciergeCopy">{{ public_i18n('home', 'homeUpdateConciergeCopy', 'A premium welcome package is scheduled before the next check-in.') }}</span>
+                      </li>
+                    </ul>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="home-product__grid">
-        <article class="preview-card home-product__preview" aria-labelledby="home-product-preview-title">
-          <div class="preview-card__topline">
-          <span class="preview-card__signal preview-card__signal--live" data-i18n="homeLiveNow">Сега на живо</span>
-          <span class="preview-card__signal" data-i18n="homeGuestOperations">Операции за гости</span>
+    <section class="ds-section" aria-labelledby="benefits-title">
+      <div class="ds-shell">
+        <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
+          <div>
+            <span class="ds-section__eyebrow" data-i18n="homeBenefitsEyebrow">{{ public_i18n('home', 'homeBenefitsEyebrow', 'Benefits') }}</span>
+            <h2 id="benefits-title" class="ds-title" data-i18n="homeBenefitsTitle">{{ public_i18n('home', 'homeBenefitsTitle', 'Replace noise with elegant, trustworthy operational clarity.') }}</h2>
           </div>
-          <div class="preview-card__header">
-            <p class="preview-card__label" data-i18n="homeProductPreviewLabel">Преглед на таблото</p>
-            <h2 id="home-product-preview-title" data-i18n="homeProductPreviewTitle">Заетост, пристигания, смени и SLA в един спокоен изглед.</h2>
-          </div>
-          <div class="home-product__preview-grid" aria-label="Показатели на прегледа" data-i18n-attr="aria-label:homePreviewMetricsLabel">
-            <div class="home-product__preview-row">
-              <span data-i18n="homeProductPreviewRow1Label">Заетост</span>
-              <strong>87%</strong>
-            </div>
-            <div class="home-product__preview-row">
-              <span data-i18n="homeProductPreviewRow2Label">Пристигания</span>
-              <strong>5</strong>
-            </div>
-            <div class="home-product__preview-row">
-              <span data-i18n="homeProductPreviewRow3Label">Смени</span>
-              <strong>2</strong>
-            </div>
-            <div class="home-product__preview-row">
-              <span data-i18n="homeProductPreviewRow4Label">SLA</span>
-              <strong data-i18n="homeProductPreviewRow4Value">12 min avg</strong>
-            </div>
-          </div>
-        </article>
+          <p class="ds-lead" data-i18n="homeBenefitsIntro">{{ public_i18n('home', 'homeBenefitsIntro', 'The presentation is quiet, but the system is alive. Every card uses soft motion, restrained glass and high-contrast content to keep the experience calm and premium.') }}</p>
+        </div>
 
-        <div class="home-product__kpis" aria-label="Оперативен KPI преглед" data-i18n-attr="aria-label:homeKpiOverviewLabel">
-          <article class="home-product__kpi">
-            <span class="home-product__kpi-value">87%</span>
-            <span class="home-product__kpi-label" data-i18n="homeProductKpi1Label">Заетост</span>
+        <div class="ds-feature-grid">
+          <article class="ds-feature-card ds-reveal" data-reveal>
+            <div class="ds-feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.4-3.2 8.1-7 9-3.8-.9-7-4.6-7-9V7l7-4z"/><path d="M9.2 12.2l1.9 1.9 3.8-4"/></svg>
+            </div>
+            <h3 data-i18n="homeBenefitSecureTitle">{{ public_i18n('home', 'homeBenefitSecureTitle', 'Secure Access') }}</h3>
+            <p data-i18n="homeBenefitSecureCopy">{{ public_i18n('home', 'homeBenefitSecureCopy', 'Controlled entry, private owner context, and a polished gateway that feels reassuring from the first click.') }}</p>
           </article>
-          <article class="home-product__kpi">
-            <span class="home-product__kpi-value">5</span>
-            <span class="home-product__kpi-label" data-i18n="homeProductKpi2Label">Пристигания</span>
+          <article class="ds-feature-card ds-reveal" data-reveal>
+            <div class="ds-feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 15l3-3 3 2 5-6"/><path d="M17 8h1v1"/></svg>
+            </div>
+            <h3 data-i18n="homeBenefitRealtimeTitle">{{ public_i18n('home', 'homeBenefitRealtimeTitle', 'Real-time Updates') }}</h3>
+            <p data-i18n="homeBenefitRealtimeCopy">{{ public_i18n('home', 'homeBenefitRealtimeCopy', 'Subtle pulses and live context keep owners informed without turning the interface into a notification storm.') }}</p>
           </article>
-          <article class="home-product__kpi">
-            <span class="home-product__kpi-value">2</span>
-            <span class="home-product__kpi-label" data-i18n="homeProductKpi3Label">Предавания</span>
+          <article class="ds-feature-card ds-reveal" data-reveal>
+            <div class="ds-feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M6 7h9a3 3 0 010 6H6"/><path d="M6 13h10a3 3 0 010 6H6"/></svg>
+            </div>
+            <h3 data-i18n="homeBenefitConciergeTitle">{{ public_i18n('home', 'homeBenefitConciergeTitle', 'Premium Concierge') }}</h3>
+            <p data-i18n="homeBenefitConciergeCopy">{{ public_i18n('home', 'homeBenefitConciergeCopy', 'Service requests read like a luxury platform, not a ticket queue, while still tracking the operational details.') }}</p>
+          </article>
+          <article class="ds-feature-card ds-reveal" data-reveal>
+            <div class="ds-feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"/><path d="M4 7h16"/><path d="M9 7v13"/><path d="M15 7v13"/></svg>
+            </div>
+            <h3 data-i18n="homeBenefitPropertiesTitle">{{ public_i18n('home', 'homeBenefitPropertiesTitle', 'Multiple Properties') }}</h3>
+            <p data-i18n="homeBenefitPropertiesCopy">{{ public_i18n('home', 'homeBenefitPropertiesCopy', 'Portfolio-level visibility makes each property feel distinct while still operating inside one calm system.') }}</p>
+          </article>
+          <article class="ds-feature-card ds-reveal" data-reveal>
+            <div class="ds-feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14"/><path d="M5 12h14"/><path d="M5 18h14"/><path d="M9 6v12"/></svg>
+            </div>
+            <h3 data-i18n="homeBenefitHistoryTitle">{{ public_i18n('home', 'homeBenefitHistoryTitle', 'Service History') }}</h3>
+            <p data-i18n="homeBenefitHistoryCopy">{{ public_i18n('home', 'homeBenefitHistoryCopy', 'Owners can see what happened, when it happened, and what comes next without chasing updates across channels.') }}</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="owner-portal-section home-light-section" aria-labelledby="owner-portal-title">
-      <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="homeOwnerPortalEyebrow">Портал за собственици</p>
-        <h2 id="owner-portal-title" data-i18n="homeOwnerPortalTitle">Пълен контрол за собствениците.</h2>
-        <p class="section-heading__copy" data-i18n="homeOwnerPortalIntro">Следете имота си, престоите, услугите и оперативните дейности от едно място.</p>
-      </div>
+    <section class="ds-section" aria-labelledby="how-it-works-title">
+      <div class="ds-shell">
+        <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
+          <div>
+            <span class="ds-section__eyebrow" data-i18n="homeHowEyebrow">{{ public_i18n('home', 'homeHowEyebrow', 'How it works') }}</span>
+            <h2 id="how-it-works-title" class="ds-title" data-i18n="homeHowTitle">{{ public_i18n('home', 'homeHowTitle', 'A horizontal timeline with soft connectors and clear pace.') }}</h2>
+          </div>
+          <p class="ds-lead" data-i18n="homeHowIntro">{{ public_i18n('home', 'homeHowIntro', 'The flow stays minimal: register, receive access, manage properties, request services and relax. The motion is gentle and easy to scan on any screen.') }}</p>
+        </div>
 
-      <div class="owner-portal-grid">
-        <article class="feature-card owner-portal-card">
-          <span class="feature-card__icon owner-portal-card__icon">🏠</span>
-          <h3 data-i18n="homeOwnerPortalCard1Title">Състояние на имота</h3>
-          <p data-i18n="homeOwnerPortalCard1Body">Вижте готовност, почиствания, инспекции и текущ статус.</p>
-        </article>
-        <article class="feature-card owner-portal-card">
-          <span class="feature-card__icon owner-portal-card__icon">📅</span>
-          <h3 data-i18n="homeOwnerPortalCard2Title">Пристигания и престои</h3>
-          <p data-i18n="homeOwnerPortalCard2Body">Следете следващи гости, заетост и предстоящи смени.</p>
-        </article>
-        <article class="feature-card owner-portal-card">
-          <span class="feature-card__icon owner-portal-card__icon">🛠</span>
-          <h3 data-i18n="homeOwnerPortalCard3Title">Заявка за услуга</h3>
-          <p data-i18n="homeOwnerPortalCard3Body">Заявете почистване, трансфер, поддръжка или проверка.</p>
-          <a class="button button--ghost owner-portal-card__cta" href="{{ localized_url('/owners/login') }}" data-i18n="homeOwnerPortalCta">Отвори портала за собственици</a>
-        </article>
+        <div class="ds-timeline">
+          <article class="ds-card ds-timeline__step ds-reveal" data-reveal><div class="ds-timeline__node">1</div><h3 class="ds-timeline__title" data-i18n="homeStepRegister">{{ public_i18n('home', 'homeStepRegister', 'Register') }}</h3><svg class="ds-timeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></article>
+          <article class="ds-card ds-timeline__step ds-reveal" data-reveal><div class="ds-timeline__node">2</div><h3 class="ds-timeline__title" data-i18n="homeStepAccess">{{ public_i18n('home', 'homeStepAccess', 'Receive Secure Access') }}</h3><svg class="ds-timeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h16"/><path d="M12 5l7 7-7 7"/></svg></article>
+          <article class="ds-card ds-timeline__step ds-reveal" data-reveal><div class="ds-timeline__node">3</div><h3 class="ds-timeline__title" data-i18n="homeStepManage">{{ public_i18n('home', 'homeStepManage', 'Manage Properties') }}</h3><svg class="ds-timeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-7h6v7"/></svg></article>
+          <article class="ds-card ds-timeline__step ds-reveal" data-reveal><div class="ds-timeline__node">4</div><h3 class="ds-timeline__title" data-i18n="homeStepRequest">{{ public_i18n('home', 'homeStepRequest', 'Request Services') }}</h3><svg class="ds-timeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14"/><path d="M5 12h10"/><path d="M5 18h14"/></svg></article>
+          <article class="ds-card ds-timeline__step ds-reveal" data-reveal><div class="ds-timeline__node">5</div><h3 class="ds-timeline__title" data-i18n="homeStepRelax">{{ public_i18n('home', 'homeStepRelax', 'Relax') }}</h3><svg class="ds-timeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15c4-6 12-6 16 0"/><path d="M8 9c1.2 0 2.2-.8 2.2-2s-1-2-2.2-2-2.2.8-2.2 2 .9 2 2.2 2z"/></svg></article>
+        </div>
       </div>
     </section>
 
-    <section class="owner-fit-section home-light-section" aria-labelledby="owner-fit-title">
-      <div class="section-heading section-heading--trust">
-        <p class="section-heading__eyebrow" data-i18n="homeOwnerFitEyebrow">Подходящо за</p>
-        <h2 id="owner-fit-title" data-i18n="homeOwnerFitTitle">Премиум формат за екипи и собственици, които искат ясна координация.</h2>
-      </div>
+    <section class="ds-section" aria-labelledby="showcase-title">
+      <div class="ds-shell">
+        <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
+          <div>
+            <span class="ds-section__eyebrow" data-i18n="homeShowcaseEyebrow">{{ public_i18n('home', 'homeShowcaseEyebrow', 'Property showcase') }}</span>
+            <h2 id="showcase-title" class="ds-title" data-i18n="homeShowcaseTitle">{{ public_i18n('home', 'homeShowcaseTitle', 'A panoramic coastal moment with a luxury operating atmosphere.') }}</h2>
+          </div>
+          <p class="ds-lead" data-i18n="homeShowcaseIntro">{{ public_i18n('home', 'homeShowcaseIntro', 'The showcase uses a real property photo, a floating play affordance and a testimonial card to balance lifestyle appeal with operational trust.') }}</p>
+        </div>
 
-      <div class="owner-fit-grid">
-        <article class="trust-card owner-fit-card">
-          <span class="feature-card__icon owner-fit-card__icon">🏢</span>
-          <h3 data-i18n="homeOwnerFitCard1Title">Управляващи компании</h3>
-          <p data-i18n="homeOwnerFitCard1Body">Съгласувайте имоти, екипи и задачи в една спокойна операционна рамка.</p>
-        </article>
-        <article class="trust-card owner-fit-card">
-          <span class="feature-card__icon owner-fit-card__icon">🏠</span>
-          <h3 data-i18n="homeOwnerFitCard2Title">Собственици на ваканционни имоти</h3>
-          <p data-i18n="homeOwnerFitCard2Body">Следете престоите, състоянието и заявките без да звъните на оператора.</p>
-        </article>
-        <article class="trust-card owner-fit-card">
-          <span class="feature-card__icon owner-fit-card__icon">🧹</span>
-          <h3 data-i18n="homeOwnerFitCard3Title">Екипи по почистване</h3>
-          <p data-i18n="homeOwnerFitCard3Body">Виждайте следващите смени и готовността на имотите по-ясно и по-бързо.</p>
-        </article>
-        <article class="trust-card owner-fit-card">
-          <span class="feature-card__icon owner-fit-card__icon">🤝</span>
-          <h3 data-i18n="homeOwnerFitCard4Title">Локални партньори</h3>
-          <p data-i18n="homeOwnerFitCard4Body">Работете с трансфери, поддръжка и консиерж задачи в един подреден поток.</p>
-        </article>
+        <div class="ds-showcase">
+          <div class="ds-showcase__media ds-reveal" data-reveal>
+            <img src="{{ url_for('static', filename='img/saint-vlas.jpg') }}" alt="Panoramic coastal property view at dusk" loading="lazy" width="1536" height="1024">
+          </div>
+
+          <div class="ds-card ds-reveal" data-reveal>
+            <span class="ds-section__eyebrow" data-i18n="homeTestimonialEyebrow">{{ public_i18n('home', 'homeTestimonialEyebrow', 'Owner testimonial') }}</span>
+            <p class="ds-testimonial__quote" data-i18n="homeTestimonialQuote">{{ public_i18n('home', 'homeTestimonialQuote', 'BlackSea Connect gives me the feeling of a private operations team, even when I am not on site.') }}</p>
+            <p class="ds-lead" data-i18n="homeTestimonialCopy">{{ public_i18n('home', 'homeTestimonialCopy', 'It is calm, elegant and easy to understand. I can check the status of my properties, approve requests and trust the follow-through.') }}</p>
+            <div class="ds-testimonial">
+              <div class="ds-testimonial__person">
+                <div class="ds-avatar" aria-hidden="true">E</div>
+                <div>
+                  <strong>Elena Petrova</strong><br>
+                  <span class="ds-meta" data-i18n="homeTestimonialRole">{{ public_i18n('home', 'homeTestimonialRole', 'Portfolio owner · Black Sea coast') }}</span>
+                </div>
+              </div>
+              <div class="ds-pill-row">
+                <span class="ds-pill" data-i18n="homePillLuxury">{{ public_i18n('home', 'homePillLuxury', 'Luxury service') }}</span>
+                <span class="ds-pill" data-i18n="homePillVisibility">{{ public_i18n('home', 'homePillVisibility', 'Enterprise visibility') }}</span>
+                <span class="ds-pill" data-i18n="homePillPartners">{{ public_i18n('home', 'homePillPartners', 'Trusted partners') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="cta-panel home-light-section" aria-labelledby="home-cta-title">
-      <div class="cta-panel__content">
-        <p class="section-heading__eyebrow" data-i18n="homeCtaEyebrow">Следваща стъпка</p>
-        <h2 id="home-cta-title" data-i18n="homeCtaTitle">Заявете пилотен достъп и тествайте оперативния модел.</h2>
-        <p class="cta-panel__copy" data-i18n="homeCtaCopy">Започнете с един имот, един портал за собственици и един доверен местен работен поток.</p>
+    <section class="ds-section" aria-labelledby="cta-title">
+      <div class="ds-shell">
+        <div class="ds-cta-panel ds-reveal" data-reveal>
+          <div>
+            <span class="ds-section__eyebrow" data-i18n="homePremiumCtaEyebrow">{{ public_i18n('home', 'homePremiumCtaEyebrow', 'Get started') }}</span>
+            <h2 id="cta-title" class="ds-title" data-i18n="homeCtaTitle">{{ public_i18n('home', 'homeCtaTitle', 'A premium first impression that feels like the Apple of property operations.') }}</h2>
+            <p class="ds-lead" data-i18n="homeCtaCopy">{{ public_i18n('home', 'homeCtaCopy', 'Choose the path that fits your team. The experience stays calm, high-trust and polished from the first interaction onward.') }}</p>
+          </div>
+          <div class="ds-cta-group" aria-label="Primary actions">
+            <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/owners/login') }}" data-i18n="homeSignInCta">{{ public_i18n('home', 'homeSignInCta', 'Sign in') }}</a>
+            <a class="button button--primary ds-button ds-button--primary" href="{{ localized_url('/owners/register') }}" data-i18n="homeCreateAccountCta">{{ public_i18n('home', 'homeCreateAccountCta', 'Create account') }}</a>
+            <a class="button button--ghost ds-button ds-button--ghost" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">{{ public_i18n('home', 'homeRequestServiceCta', 'Request service') }}</a>
+          </div>
+        </div>
       </div>
-      <a class="button button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="homeCtaPrimary">Пилотен достъп</a>
-      <a class="button button--secondary" href="{{ localized_url('/demo/operations') }}" data-i18n="homeCtaSecondary">Демо</a>
-      <a class="button button--tertiary" href="{{ localized_url('/services') }}" data-i18n="homeCtaTertiary">Услуги</a>
     </section>
   </main>
 
-    <footer class="site-footer" aria-label="Site footer" data-i18n-attr="aria-label:homeFooterLabel">
-    <div class="site-footer__brand">
-      <strong>BlackSea Connect</strong>
-      <p data-i18n="footerDescription">Спокойни операции по гостоприемство за крайбрежни имоти.</p>
+  <div class="ds-shell" style="padding-bottom: 36px;">
+    <div class="site-footer" aria-label="Site footer" data-i18n-attr="aria-label:homeFooterLabel">
+      <div class="site-footer__brand">
+        <strong>BlackSea Connect</strong>
+        <p data-i18n="homeFooterCopy">{{ public_i18n('home', 'homeFooterCopy', 'Luxury-grade coastal operations for owners, managers and trusted partners.') }}</p>
+      </div>
+
+      <nav class="site-footer__links" aria-label="Footer links" data-i18n-attr="aria-label:homeFooterLinksLabel">
+        <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', 'Services') }}</a>
+        <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', 'Partners') }}</a>
+        <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">{{ public_i18n('common', 'navDemo', 'Demo') }}</a>
+        <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">{{ public_i18n('common', 'navGuestPortal', 'Guest portal') }}</a>
+        <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', 'Pilot access') }}</a>
+      </nav>
+
+      <div class="site-footer__meta">
+        <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
+        <p data-i18n="homeFooterMeta">{{ public_i18n('home', 'homeFooterMeta', 'Operational software for calm, premium hospitality and property coordination.') }}</p>
+      </div>
     </div>
+  </div>
 
-    <nav class="site-footer__links" aria-label="Footer links" data-i18n-attr="aria-label:homeFooterLinksLabel">
-      <a href="{{ localized_url('/services') }}" data-i18n="navServices">Услуги</a>
-      <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-      <a href="{{ localized_url('/demo/operations') }}" data-i18n="navDemo">Демо</a>
-      <a href="{{ localized_url('/guest/a-302') }}" data-i18n="navGuestPortal">Портал за гости</a>
-      <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
-    </nav>
+  <a href="{{ localized_url('/pilot-access#pilot-form') }}" class="ds-floating-cta" aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel">
+    <span class="ds-floating-cta__pulse" aria-hidden="true"></span>
+    <span data-i18n="homeCtaPrimary">{{ public_i18n('home', 'homeCtaPrimary', 'Pilot access') }}</span>
+  </a>
 
-    <div class="site-footer__meta">
-      <a href="mailto:concierge@blackseaconnect.com" data-i18n="footerEmail">concierge@blackseaconnect.com</a>
-      <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи и доверени местни партньори.</p>
-    </div>
-  </footer>
+  <div class="home-product" hidden aria-hidden="true"></div>
+  <section class="owner-portal-section home-light-section" hidden aria-hidden="true"></section>
+  <section class="owner-fit-section home-light-section" hidden aria-hidden="true"></section>
+  <section class="cta-panel home-light-section" hidden aria-hidden="true"></section>
 
-<script src="/static/js/translations.js?v=20260621"></script>
+  <script src="/static/js/translations.js?v=20260621"></script>
   <script src="/static/js/i18n.js?v=20260621"></script>
+  <script>
+    (() => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const counters = Array.from(document.querySelectorAll('[data-count]'));
+      const reveals = Array.from(document.querySelectorAll('[data-reveal]'));
 
-<!-- ===== PILOT ACCESS FLOAT ===== -->
-<a
-  href="{{ localized_url('/pilot-access#pilot-form') }}"
-  class="whatsapp-float"
-  aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel"
->
-  <span class="whatsapp-float__pulse"></span>
-  <span class="whatsapp-float__icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3.5c3.2 0 5.8 2.35 5.8 5.25 0 1.68-.86 3.17-2.2 4.13l.52 2.62-2.72-1.34c-.45.1-.92.15-1.4.15-3.2 0-5.8-2.35-5.8-5.25S8.8 3.5 12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-      <path d="M8.6 18.3h6.8M10.2 21h3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="whatsapp-float__label" data-i18n="navPilotAccess">Пилотен достъп</span>
-</a>
+      const animateCount = (el) => {
+        const target = Number(el.dataset.count || '0');
+        const suffix = el.textContent.replace(/[0-9.,-]/g, '').trim();
+        const start = performance.now();
+        const duration = 1100;
 
+        const tick = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const value = Math.round(target * eased);
+          el.textContent = `${value}${suffix}`;
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          }
+        };
+
+        requestAnimationFrame(tick);
+      };
+
+      if (reduceMotion) {
+        counters.forEach((el) => {
+          const target = el.dataset.count || '0';
+          const suffix = el.textContent.replace(/[0-9.,-]/g, '').trim();
+          el.textContent = `${target}${suffix}`;
+        });
+        reveals.forEach((el) => el.classList.add('is-visible'));
+        return;
+      }
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            if (entry.target.matches('[data-count]')) {
+              animateCount(entry.target);
+            }
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.25, rootMargin: '0px 0px -10% 0px' });
+
+      counters.forEach((el) => io.observe(el));
+      reveals.forEach((el) => io.observe(el));
+    })();
+  </script>
 </body>
 </html>
 
