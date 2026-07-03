@@ -495,23 +495,91 @@
             <span class="ds-section__eyebrow" data-i18n="homeShowcaseEyebrow">{{ public_i18n('home', 'homeShowcaseEyebrow', 'Property showcase') }}</span>
             <h2 id="showcase-title" class="ds-title" data-i18n="homeShowcaseTitle">{{ public_i18n('home', 'homeShowcaseTitle', 'A panoramic coastal moment with a luxury operating atmosphere.') }}</h2>
           </div>
-          <p class="ds-lead" data-i18n="homeShowcaseIntro">{{ public_i18n('home', 'homeShowcaseIntro', 'The showcase uses a real property photo, a floating play affordance and a testimonial card to balance lifestyle appeal with operational trust.') }}</p>
+          <p class="ds-lead" data-i18n="homeShowcaseIntro">{{ public_i18n('home', 'homeShowcaseIntro', 'Six curated coastal properties connect a luxury atmosphere with live operational status.') }}</p>
         </div>
 
-        <div class="ds-showcase">
-          <div class="ds-showcase__media ds-reveal" data-reveal>
-            <img src="{{ url_for('static', filename='img/saint-vlas.jpg') }}" alt="Panoramic coastal property view at dusk" loading="lazy" width="1536" height="1024">
+        <div
+          class="ds-showcase"
+          data-property-showcase
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="{{ public_i18n('home', 'homeCarouselLabel', 'Curated coastal properties') }}"
+          data-i18n-attr="aria-label:homeCarouselLabel"
+        >
+          <div class="ds-property-carousel ds-reveal" data-reveal>
+            <div class="ds-showcase__media" id="property-carousel-viewport" data-carousel-viewport>
+              <img
+                class="ds-property-carousel__image is-active"
+                data-carousel-image
+                src="{{ url_for('static', filename='img/saint-vlas.jpg') }}"
+                alt="Sea View Villa — {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas') }}"
+                loading="lazy"
+                width="1536"
+                height="1024"
+              >
+              <img
+                class="ds-property-carousel__image"
+                data-carousel-image
+                src="{{ url_for('static', filename='img/saint-vlas.jpg') }}"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                width="1536"
+                height="1024"
+              >
+
+              <div class="ds-property-carousel__scrim" aria-hidden="true"></div>
+
+              <div class="ds-property-carousel__caption" data-carousel-caption>
+                <span class="ds-property-status ds-property-status--available" data-carousel-status>
+                  <span class="ds-property-status__dot" aria-hidden="true"></span>
+                  <span data-carousel-status-label data-i18n="homeStatusAvailable">{{ public_i18n('home', 'homeStatusAvailable', 'Available') }}</span>
+                </span>
+                <p class="ds-property-carousel__city" data-carousel-city>{{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas') }}</p>
+                <h3 class="ds-property-carousel__name" data-carousel-property>Sea View Villa</h3>
+              </div>
+
+              <button
+                class="ds-carousel-control ds-carousel-control--previous"
+                type="button"
+                aria-label="{{ public_i18n('home', 'homeCarouselPrevious', 'Previous property') }}"
+                data-i18n-attr="aria-label:homeCarouselPrevious"
+                aria-controls="property-carousel-viewport"
+                data-carousel-previous
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+              </button>
+              <button
+                class="ds-carousel-control ds-carousel-control--next"
+                type="button"
+                aria-label="{{ public_i18n('home', 'homeCarouselNext', 'Next property') }}"
+                data-i18n-attr="aria-label:homeCarouselNext"
+                aria-controls="property-carousel-viewport"
+                data-carousel-next
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <div
+              class="ds-carousel-pagination"
+              role="group"
+              aria-label="{{ public_i18n('home', 'homeCarouselPagination', 'Choose a property') }}"
+              data-i18n-attr="aria-label:homeCarouselPagination"
+              data-carousel-pagination
+            ></div>
           </div>
 
-          <div class="ds-card ds-reveal" data-reveal>
+          <div class="ds-card ds-showcase__testimonial ds-reveal" data-reveal>
             <span class="ds-section__eyebrow" data-i18n="homeTestimonialEyebrow">{{ public_i18n('home', 'homeTestimonialEyebrow', 'Owner testimonial') }}</span>
             <p class="ds-testimonial__quote" data-i18n="homeTestimonialQuote">{{ public_i18n('home', 'homeTestimonialQuote', 'BlackSea Connect gives me the feeling of a private operations team, even when I am not on site.') }}</p>
             <p class="ds-lead" data-i18n="homeTestimonialCopy">{{ public_i18n('home', 'homeTestimonialCopy', 'It is calm, elegant and easy to understand. I can check the status of my properties, approve requests and trust the follow-through.') }}</p>
             <div class="ds-testimonial">
-              <div class="ds-testimonial__person">
-                <div class="ds-avatar" aria-hidden="true">E</div>
+              <div class="ds-testimonial__person" data-carousel-owner-details aria-live="polite" aria-atomic="true">
+                <div class="ds-avatar" aria-hidden="true" data-carousel-owner-initial>E</div>
                 <div>
-                  <strong>Elena Petrova</strong><br>
+                  <strong data-carousel-owner>Elena Petrova</strong><br>
+                  <span class="ds-showcase__owner-property" data-carousel-owner-property>Sea View Villa · {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas') }}</span><br>
                   <span class="ds-meta" data-i18n="homeTestimonialRole">{{ public_i18n('home', 'homeTestimonialRole', 'Portfolio owner · Black Sea coast') }}</span>
                 </div>
               </div>
@@ -627,6 +695,238 @@
 
       counters.forEach((el) => io.observe(el));
       reveals.forEach((el) => io.observe(el));
+    })();
+
+    (() => {
+      const showcase = document.querySelector('[data-property-showcase]');
+      if (!showcase) {
+        return;
+      }
+
+      const slides = [
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '52% 54%',
+          property: 'Sea View Villa',
+          city: {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas')|tojson }},
+          owner: 'Elena Petrova',
+          ownerInitial: 'E',
+          status: {{ public_i18n('home', 'homeStatusAvailable', 'Available')|tojson }},
+          statusTone: 'available',
+          testimonialQuote: 'This property gives me the peace of mind I need to manage remotely.',
+          testimonialCopy: 'I can stay in touch with my team, approve guest arrivals and keep the property ready at all times.',
+          testimonialRole: 'Portfolio owner · Sveti Vlas'
+        },
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '72% 48%',
+          property: 'Marina Residence',
+          city: {{ public_i18n('home', 'homeCityVarna', 'Varna')|tojson }},
+          owner: 'Ivan Dimitrov',
+          ownerInitial: 'I',
+          status: {{ public_i18n('home', 'homeStatusReserved', 'Reserved')|tojson }},
+          statusTone: 'reserved',
+          testimonialQuote: 'Reservation week was seamless, and the team handled everything without prompting.',
+          testimonialCopy: 'I only check in when I want to, knowing my home is ready for guests and my calendar is under control.',
+          testimonialRole: 'Portfolio owner · Varna'
+        },
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '30% 58%',
+          property: 'Golden Bay Penthouse',
+          city: {{ public_i18n('home', 'homeCityBurgas', 'Burgas')|tojson }},
+          owner: 'Maria Ivanova',
+          ownerInitial: 'M',
+          status: {{ public_i18n('home', 'homeStatusReady', 'Ready for guests')|tojson }},
+          statusTone: 'ready',
+          testimonialQuote: 'The property was guest-ready faster than expected, and everything looked pristine.',
+          testimonialCopy: 'I enjoy transparent status updates and a calm interface that helps me stay confident in every booking.',
+          testimonialRole: 'Portfolio owner · Burgas'
+        },
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '64% 68%',
+          property: 'Dolce Vita Apartment',
+          city: {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas')|tojson }},
+          owner: 'Georgi Nikolov',
+          ownerInitial: 'G',
+          status: {{ public_i18n('home', 'homeStatusMaintenance', 'Maintenance today')|tojson }},
+          statusTone: 'maintenance',
+          testimonialQuote: 'Maintenance tasks are coordinated precisely, so I know the property is always in top shape.',
+          testimonialCopy: 'The operations platform removes uncertainty and keeps my team aligned on what needs to happen next.',
+          testimonialRole: 'Portfolio owner · Sveti Vlas'
+        },
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '43% 42%',
+          property: 'Panorama Residence',
+          city: {{ public_i18n('home', 'homeCityNessebar', 'Nessebar')|tojson }},
+          owner: 'Elena Petrova',
+          ownerInitial: 'E',
+          status: {{ public_i18n('home', 'homeStatusAvailable', 'Available')|tojson }},
+          statusTone: 'available',
+          testimonialQuote: 'When my property is available, I love that the team keeps it staged and ready for guests.',
+          testimonialCopy: 'It is easy to glance at the property status and know exactly what is happening at any time.',
+          testimonialRole: 'Portfolio owner · Nessebar'
+        },
+        {
+          image: {{ url_for('static', filename='img/saint-vlas.jpg')|tojson }},
+          position: '82% 58%',
+          property: 'Black Pearl Villa',
+          city: {{ public_i18n('home', 'homeCitySozopol', 'Sozopol')|tojson }},
+          owner: 'Ivan Dimitrov',
+          ownerInitial: 'I',
+          status: {{ public_i18n('home', 'homeStatusReady', 'Ready for guests')|tojson }},
+          statusTone: 'ready',
+          testimonialQuote: 'This villa feels like a well-managed asset, even while I’m traveling elsewhere.',
+          testimonialCopy: 'I trust the automated updates and I can focus on the bigger picture rather than daily details.',
+          testimonialRole: 'Portfolio owner · Sozopol'
+        }
+      ];
+
+      const imageLayers = Array.from(showcase.querySelectorAll('[data-carousel-image]'));
+      const caption = showcase.querySelector('[data-carousel-caption]');
+      const propertyName = showcase.querySelector('[data-carousel-property]');
+      const city = showcase.querySelector('[data-carousel-city]');
+      const status = showcase.querySelector('[data-carousel-status]');
+      const statusLabel = showcase.querySelector('[data-carousel-status-label]');
+      const ownerDetails = showcase.querySelector('[data-carousel-owner-details]');
+      const ownerName = showcase.querySelector('[data-carousel-owner]');
+      const ownerInitial = showcase.querySelector('[data-carousel-owner-initial]');
+      const ownerProperty = showcase.querySelector('[data-carousel-owner-property]');
+      const testimonialQuote = showcase.querySelector('[data-i18n="homeTestimonialQuote"]');
+      const testimonialCopy = showcase.querySelector('[data-i18n="homeTestimonialCopy"]');
+      const testimonialRole = showcase.querySelector('[data-i18n="homeTestimonialRole"]');
+      const pagination = showcase.querySelector('[data-carousel-pagination]');
+      const previous = showcase.querySelector('[data-carousel-previous]');
+      const next = showcase.querySelector('[data-carousel-next]');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const goToLabel = {{ public_i18n('home', 'homeCarouselGoTo', 'Show property')|tojson }};
+      const statusTones = ['available', 'reserved', 'ready', 'maintenance'];
+      let activeImage = 0;
+      let activeSlide = 0;
+      let rotationTimer = 0;
+      let contentTimer = 0;
+      let isPaused = false;
+
+      const dots = slides.map((slide, slideIndex) => {
+        const dot = document.createElement('button');
+        dot.className = 'ds-carousel-dot';
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `${goToLabel} ${slideIndex + 1}: ${slide.property}`);
+        dot.addEventListener('click', () => showSlide(slideIndex));
+        pagination.appendChild(dot);
+        return dot;
+      });
+
+      const stopRotation = () => {
+        window.clearTimeout(rotationTimer);
+        rotationTimer = 0;
+      };
+
+      const scheduleRotation = () => {
+        stopRotation();
+        if (!reduceMotion && !isPaused && !document.hidden) {
+          rotationTimer = window.setTimeout(() => {
+            showSlide(activeSlide + 1);
+          }, 6000);
+        }
+      };
+
+      const updateContent = (slide) => {
+        propertyName.textContent = slide.property;
+        city.textContent = slide.city;
+        statusLabel.textContent = slide.status;
+        statusTones.forEach((tone) => status.classList.remove(`ds-property-status--${tone}`));
+        status.classList.add(`ds-property-status--${slide.statusTone}`);
+        ownerName.textContent = slide.owner;
+        ownerInitial.textContent = slide.ownerInitial;
+        ownerProperty.textContent = `${slide.property} · ${slide.city}`;
+        if (testimonialQuote) {
+          testimonialQuote.textContent = slide.testimonialQuote;
+        }
+        if (testimonialCopy) {
+          testimonialCopy.textContent = slide.testimonialCopy;
+        }
+        if (testimonialRole) {
+          testimonialRole.textContent = slide.testimonialRole;
+        }
+        caption.classList.remove('is-updating');
+        ownerDetails.classList.remove('is-updating');
+      };
+
+      function showSlide(requestedIndex, animate = true) {
+        const nextIndex = (requestedIndex + slides.length) % slides.length;
+        const slide = slides[nextIndex];
+        activeSlide = nextIndex;
+
+        if (animate && !reduceMotion) {
+          const outgoingImage = imageLayers[activeImage];
+          activeImage = activeImage === 0 ? 1 : 0;
+          const incomingImage = imageLayers[activeImage];
+          incomingImage.src = slide.image;
+          incomingImage.style.objectPosition = slide.position;
+          incomingImage.alt = `${slide.property} — ${slide.city}`;
+          incomingImage.removeAttribute('aria-hidden');
+          incomingImage.classList.add('is-active');
+          outgoingImage.classList.remove('is-active');
+          outgoingImage.alt = '';
+          outgoingImage.setAttribute('aria-hidden', 'true');
+
+          caption.classList.add('is-updating');
+          ownerDetails.classList.add('is-updating');
+          window.clearTimeout(contentTimer);
+          contentTimer = window.setTimeout(() => updateContent(slide), 240);
+        } else {
+          const currentImage = imageLayers[activeImage];
+          currentImage.src = slide.image;
+          currentImage.style.objectPosition = slide.position;
+          currentImage.alt = `${slide.property} — ${slide.city}`;
+          updateContent(slide);
+        }
+
+        dots.forEach((dot, dotIndex) => {
+          const isCurrent = dotIndex === nextIndex;
+          dot.classList.toggle('is-active', isCurrent);
+          dot.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+        });
+        scheduleRotation();
+      }
+
+      previous.addEventListener('click', () => showSlide(activeSlide - 1));
+      next.addEventListener('click', () => showSlide(activeSlide + 1));
+      showcase.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          showSlide(activeSlide - 1);
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          showSlide(activeSlide + 1);
+        }
+      });
+      showcase.addEventListener('mouseenter', () => {
+        isPaused = true;
+        stopRotation();
+      });
+      showcase.addEventListener('mouseleave', () => {
+        isPaused = false;
+        scheduleRotation();
+      });
+      showcase.addEventListener('focusin', () => {
+        isPaused = true;
+        stopRotation();
+      });
+      showcase.addEventListener('focusout', () => {
+        window.setTimeout(() => {
+          if (!showcase.contains(document.activeElement)) {
+            isPaused = false;
+            scheduleRotation();
+          }
+        }, 0);
+      });
+      document.addEventListener('visibilitychange', scheduleRotation);
+
+      showSlide(0, false);
     })();
   </script>
 </body>
