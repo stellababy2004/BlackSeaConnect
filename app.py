@@ -20,6 +20,7 @@ import urllib.parse
 from threading import Thread
 from uuid import uuid4
 
+import click
 from flask import Flask, Response, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
 from werkzeug.utils import secure_filename
 
@@ -3656,6 +3657,12 @@ def _reservation_dashboard_widgets(reservations, *, scope="owner"):
             "occupancy": occupancy_engine,
             "revenue_placeholder": "Pending channel revenue sync",
             "stats": {
+                "arrivals_today": sum(
+                    1
+                    for reservation in upcoming_arrivals
+                    if _reservation_date(reservation.get("arrival_datetime", ""))
+                    and _reservation_date(reservation.get("arrival_datetime", "")).date() == today
+                ),
                 "upcoming_arrivals": len(upcoming_arrivals),
                 "upcoming_departures": len(upcoming_departures),
                 "current_guests": len(current_guests),
@@ -10066,6 +10073,17 @@ def _owner_dashboard_copy(lang):
             "request_inspection": "Заяви инспекция",
             "request_maintenance": "Заяви поддръжка",
             "contact_concierge": "Свържете се с консиерж",
+            "properties_count_label": "Имоти",
+            "welcome_greeting": "Добре дошли,",
+            "arrivals_today_label": "Пристигания днес",
+            "view_property": "Виж имота",
+            "request_support_copy": "Заявете доверена оперативна подкрепа",
+            "message_team_copy": "Пишете на местния си екип",
+            "upload_photo": "Качи снимка",
+            "upload_photo_copy": "Добавете снимки и документи за имота",
+            "emergency_issue": "Спешен проблем",
+            "emergency_issue_copy": "Сигнализирайте екипа за спешна подкрепа",
+            "notification_update": "Актуализация",
             "fast_turnover_support": "Бърза подкрепа за смяната",
             "check_readiness": "Проверете готовността",
             "keep_property_protected": "Поддържайте имота защитен",
@@ -10222,6 +10240,17 @@ def _owner_dashboard_copy(lang):
             "request_inspection": "Request inspection",
             "request_maintenance": "Request maintenance",
             "contact_concierge": "Contact concierge",
+            "properties_count_label": "Properties",
+            "welcome_greeting": "Welcome back,",
+            "arrivals_today_label": "Arrivals today",
+            "view_property": "View property",
+            "request_support_copy": "Book trusted operational support",
+            "message_team_copy": "Message your local team",
+            "upload_photo": "Upload photo",
+            "upload_photo_copy": "Add property media and documents",
+            "emergency_issue": "Emergency issue",
+            "emergency_issue_copy": "Flag urgent support for the team",
+            "notification_update": "Update",
             "fast_turnover_support": "Fast turnover support",
             "check_readiness": "Check readiness",
             "keep_property_protected": "Keep the property protected",
@@ -10378,6 +10407,17 @@ def _owner_dashboard_copy(lang):
             "request_inspection": "Demander une inspection",
             "request_maintenance": "Demander une maintenance",
             "contact_concierge": "Contacter le concierge",
+            "properties_count_label": "Biens",
+            "welcome_greeting": "Bon retour,",
+            "arrivals_today_label": "Arrivées aujourd’hui",
+            "view_property": "Voir le bien",
+            "request_support_copy": "Demandez une assistance opérationnelle de confiance",
+            "message_team_copy": "Écrivez à votre équipe locale",
+            "upload_photo": "Ajouter une photo",
+            "upload_photo_copy": "Ajoutez des photos et documents du bien",
+            "emergency_issue": "Problème urgent",
+            "emergency_issue_copy": "Signalez une demande urgente à l’équipe",
+            "notification_update": "Mise à jour",
             "fast_turnover_support": "Soutien rapide à la rotation",
             "check_readiness": "Vérifier la préparation",
             "keep_property_protected": "Protéger le bien",
@@ -10534,6 +10574,17 @@ def _owner_dashboard_copy(lang):
             "request_inspection": "Запросить инспекцию",
             "request_maintenance": "Запросить обслуживание",
             "contact_concierge": "Связаться с консьержем",
+            "properties_count_label": "Объекты",
+            "welcome_greeting": "С возвращением,",
+            "arrivals_today_label": "Заезды сегодня",
+            "view_property": "Открыть объект",
+            "request_support_copy": "Закажите надежную операционную поддержку",
+            "message_team_copy": "Напишите местной команде",
+            "upload_photo": "Загрузить фото",
+            "upload_photo_copy": "Добавьте фотографии и документы объекта",
+            "emergency_issue": "Срочная проблема",
+            "emergency_issue_copy": "Сообщите команде о срочной поддержке",
+            "notification_update": "Обновление",
             "fast_turnover_support": "Быстрая поддержка смены",
             "check_readiness": "Проверить готовность",
             "keep_property_protected": "Сохранить объект защищённым",
@@ -11344,6 +11395,7 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             }
             for record in owner_requests[:3]
         ],
+        "open_request_count": len(open_requests),
         "calendar_widget": calendar_widget,
         "reservation_widget": reservation_widget,
         "summary_line": dashboard_copy["hero_summary_line"],
@@ -15539,6 +15591,323 @@ def _clear_demo_data_manifest():
     existed = DEMO_DATA_MANIFEST_PATH.exists()
     _clear_demo_manifest()
     return existed
+
+
+def _demo_owner_seed_allowed():
+    environment = str(os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development").strip().lower()
+    if environment not in {"production", "prod"}:
+        return True
+    return str(os.getenv("ALLOW_DEMO_OWNER_SEED", "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _seed_demo_owner_account():
+    owner_id = "demo-owner-local"
+    owner_email = "demo.owner@blackseaconnect.com"
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    now_iso = now.isoformat().replace("+00:00", "Z")
+    owner_account = _upsert_owner_account({
+        "id": owner_id,
+        "created_at": now_iso,
+        "full_name": "Demo Owner",
+        "email": owner_email,
+        "phone": "+359 888 000 212",
+        "property_type": "Luxury seaside portfolio",
+        "city": "Sveti Vlas",
+        "property_name": "Demo Coastal Collection",
+        "number_of_units": 2,
+        "notes": "Local development demo owner.",
+        "status": "ACTIVE",
+        "language": "en",
+        "last_login_at": "",
+        "internal_notes": "role=owner; local_demo=true",
+    })
+    if not owner_account:
+        raise RuntimeError("Could not create the demo owner account.")
+
+    property_specs = (
+        {
+            "id": "demo-owner-local-marina-villa",
+            "name": "Marina Horizon Villa",
+            "property_type": "Villa",
+            "location": "Sveti Vlas Marina",
+            "bedrooms": 4,
+            "bathrooms": 3,
+            "guest_capacity": 8,
+            "operating_mode": "year-round",
+            "notes": "Private sea-view villa with pool and marina access.",
+            "status": "ACTIVE",
+        },
+        {
+            "id": "demo-owner-local-nessebar-suite",
+            "name": "Old Town Sea Suite",
+            "property_type": "Penthouse",
+            "location": "Nessebar Old Town",
+            "bedrooms": 2,
+            "bathrooms": 2,
+            "guest_capacity": 4,
+            "operating_mode": "seasonal",
+            "notes": "Restored coastal penthouse overlooking the old harbour.",
+            "status": "ACTIVE",
+        },
+    )
+    properties = []
+    for spec in property_specs:
+        property_record = _append_owner_property({
+            **spec,
+            "owner_id": owner_id,
+            "created_at": now_iso,
+            "guest_guide_ready": 1,
+            "access_instructions_ready": 1,
+            "emergency_contact_ready": 1,
+            "cleaning_partner_ready": 1,
+            "admin_notes": "Local demo property.",
+        })
+        if not property_record:
+            raise RuntimeError(f"Could not create demo property {spec['id']}.")
+        properties.append(property_record)
+
+    def _iso(delta, *, hour=None):
+        value = now + delta
+        if hour is not None:
+            value = value.replace(hour=hour, minute=0, second=0)
+        return value.isoformat().replace("+00:00", "Z")
+
+    request_specs = (
+        {
+            "id": "demo-owner-local-request-cleaning",
+            "property": properties[0],
+            "category": "Cleaning",
+            "status": "completed",
+            "description": "Full turnover clean, linen refresh, and terrace preparation.",
+            "created_at": _iso(timedelta(days=-3)),
+            "timeline": (
+                ("SERVICE_REQUEST_CREATED", "Cleaning requested", "Turnover clean requested before the next arrival.", "new", -3),
+                ("SERVICE_REQUEST_ASSIGNED", "Housekeeping team assigned", "Marina Housekeeping confirmed the visit.", "assigned", -2),
+                ("SERVICE_REQUEST_COMPLETED", "Cleaning completed", "Photo-verified turnover completed and villa is guest-ready.", "completed", -1),
+            ),
+        },
+        {
+            "id": "demo-owner-local-request-maintenance",
+            "property": properties[1],
+            "category": "Maintenance",
+            "status": "in_progress",
+            "description": "Inspect and service the terrace air-conditioning unit.",
+            "created_at": _iso(timedelta(days=-2)),
+            "timeline": (
+                ("SERVICE_REQUEST_CREATED", "Maintenance reported", "Terrace air-conditioning unit requires inspection.", "new", -2),
+                ("SERVICE_REQUEST_ASSIGNED", "Technician assigned", "Coastal Technical Services accepted the visit.", "assigned", -1),
+                ("SERVICE_REQUEST_IN_PROGRESS", "Inspection in progress", "Technician is sourcing a replacement filter.", "in_progress", 0),
+            ),
+        },
+        {
+            "id": "demo-owner-local-request-transfer",
+            "property": properties[0],
+            "category": "Airport Transfer",
+            "status": "assigned",
+            "description": "Private airport transfer for four guests with welcome signage.",
+            "created_at": _iso(timedelta(days=-1)),
+            "timeline": (
+                ("SERVICE_REQUEST_CREATED", "Airport transfer requested", "Four guests arriving from Sofia.", "new", -1),
+                ("SERVICE_REQUEST_ASSIGNED", "Driver confirmed", "Premium transfer and welcome signage are confirmed.", "assigned", 0),
+            ),
+        },
+    )
+    service_requests = _load_service_requests()
+    demo_request_ids = {spec["id"] for spec in request_specs}
+    service_requests = [record for record in service_requests if str(record.get("id", "")) not in demo_request_ids]
+    for spec in request_specs:
+        property_record = spec["property"]
+        timeline = [
+            {
+                "type": event_type,
+                "created_at": _iso(timedelta(days=day_offset)),
+                "title": title,
+                "detail": detail,
+                "status": status,
+            }
+            for event_type, title, detail, status, day_offset in spec["timeline"]
+        ]
+        service_requests.append({
+            "id": spec["id"],
+            "created_at": spec["created_at"],
+            "last_update_at": timeline[-1]["created_at"],
+            "status": spec["status"],
+            "request_source": "owner",
+            "owner_id": owner_id,
+            "owner_email": owner_email,
+            "owner_name": "Demo Owner",
+            "owner_phone": owner_account.get("phone", ""),
+            "name": "Demo Owner",
+            "email": owner_email,
+            "phone": owner_account.get("phone", ""),
+            "property_id": property_record["id"],
+            "property": property_record["name"],
+            "property_city": property_record["location"],
+            "property_type": property_record["property_type"],
+            "number_of_units": "1",
+            "service_category": spec["category"],
+            "preferred_date": _iso(timedelta(days=1), hour=10)[:10],
+            "description": spec["description"],
+            "notes": spec["description"],
+            "urgency": "Standard",
+            "contact_preference": "Email",
+            "assigned_provider_id": "demo-provider-local",
+            "assigned_provider_name": "BlackSea Connect Local Team",
+            "assigned_provider_company": "BlackSea Connect",
+            "assigned_professional_id": "demo-professional-local",
+            "assigned_professional_name": "Local Operations Team",
+            "assigned_professional_company": "BlackSea Connect",
+            "internal_notes": "Local demo request.",
+            "timeline": timeline,
+        })
+    _save_service_requests(service_requests)
+
+    reservation_specs = (
+        {
+            "id": "demo-owner-local-reservation-marina",
+            "property_id": properties[0]["id"],
+            "guest_first_name": "Sofia",
+            "guest_last_name": "Laurent",
+            "guest_email": "sofia.laurent@example.test",
+            "adults": 4,
+            "children": 1,
+            "arrival_datetime": _iso(timedelta(), hour=15),
+            "departure_datetime": _iso(timedelta(days=5), hour=11),
+            "status": "CONFIRMED",
+            "notes": "Anniversary stay; welcome flowers arranged.",
+        },
+        {
+            "id": "demo-owner-local-reservation-nessebar",
+            "property_id": properties[1]["id"],
+            "guest_first_name": "Daniel",
+            "guest_last_name": "Petrov",
+            "guest_email": "daniel.petrov@example.test",
+            "adults": 2,
+            "children": 0,
+            "arrival_datetime": _iso(timedelta(days=3), hour=16),
+            "departure_datetime": _iso(timedelta(days=8), hour=11),
+            "status": "CONFIRMED",
+            "notes": "Late arrival; key handover coordinated.",
+        },
+    )
+    reservations = []
+    for spec in reservation_specs:
+        reservation = _create_reservation({
+            **spec,
+            "created_at": _iso(timedelta(days=-5)),
+            "updated_at": now_iso,
+            "reservation_source": "Manual Reservation",
+            "reservation_reference": spec["id"].upper(),
+            "channel_name": "Direct",
+            "channel_status": "SYNCED",
+            "last_sync": now_iso,
+            "guest_phone": "+359 888 100 200",
+            "infants": 0,
+            "pets": 0,
+            "language": "en",
+            "created_by": "local_demo_seed",
+            "metadata": {
+                "kind": "reservation",
+                "title": "Demo coastal stay",
+                "timeline": [
+                    {
+                        "created_at": now_iso,
+                        "event_type": "reservation_confirmed",
+                        "title": "Reservation confirmed",
+                        "detail": "Guest details and arrival time verified.",
+                        "status": "CONFIRMED",
+                        "visibility": "public",
+                    }
+                ],
+            },
+        }, created_by="local_demo_seed")
+        if not reservation:
+            raise RuntimeError(f"Could not create demo reservation {spec['id']}.")
+        reservations.append(reservation)
+
+    existing_owner_activity = {
+        (str(event.get("event_type", "")), str(event.get("title", "")))
+        for event in _load_owner_activity_events(owner_id)
+    }
+    activity_specs = (
+        ("property_ready", "Marina Horizon Villa is guest-ready", "Housekeeping checklist and photo verification completed."),
+        ("maintenance_update", "Maintenance visit is in progress", "Technician assigned to the Old Town Sea Suite."),
+        ("arrival_confirmed", "Today’s arrival is confirmed", "Welcome coordination and airport transfer are ready."),
+    )
+    for event_type, title, detail in activity_specs:
+        if (event_type, title) not in existing_owner_activity:
+            _append_owner_activity_event(owner_id, event_type, title, detail)
+
+    existing_property_activity = {
+        (
+            str(event.get("property_id", "")),
+            str(event.get("event_type", "")),
+            str(event.get("title", "")),
+        )
+        for event in _load_property_activity_events()
+    }
+    for property_record in properties:
+        key = (property_record["id"], "readiness_verified", "Property readiness verified")
+        if key not in existing_property_activity:
+            _append_property_activity_event(
+                property_record["id"],
+                owner_id,
+                "readiness_verified",
+                "Property readiness verified",
+                f"{property_record['name']}: access, emergency, cleaning, and guest guide checks are complete.",
+            )
+
+    return {
+        "owner": owner_account,
+        "properties": properties,
+        "service_requests": [record for record in service_requests if str(record.get("id", "")) in demo_request_ids],
+        "reservations": reservations,
+    }
+
+
+@app.cli.command("seed-demo-owner")
+@click.option("--magic-link", is_flag=True, help="Create and print a one-time owner magic login link.")
+@click.option("--base-url", default=None, help="Local base URL used for the printed magic link.")
+def seed_demo_owner_command(magic_link=False, base_url=None):
+    """Seed the local Owner Portal demo account and optional one-time login link."""
+    if not _demo_owner_seed_allowed():
+        raise click.ClickException(
+            "Demo owner seeding is disabled in production. "
+            "Set ALLOW_DEMO_OWNER_SEED=1 only when this is explicitly intended."
+        )
+
+    try:
+        result = _seed_demo_owner_account()
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    owner_account = result["owner"]
+    click.echo(f"Demo owner ready: {owner_account['email']}")
+    click.echo(
+        f"Seeded {len(result['properties'])} properties, "
+        f"{len(result['service_requests'])} service requests, "
+        f"and {len(result['reservations'])} reservations."
+    )
+
+    if magic_link:
+        token_record = _create_owner_magic_token(owner_account["email"])
+        if not token_record:
+            raise click.ClickException("Could not create the owner magic token.")
+        _append_owner_magic_email_event(
+            "token_created",
+            owner_account["email"],
+            "local_demo_cli",
+            "local_demo_cli",
+            owner_account.get("language", "en"),
+        )
+        local_base_url = str(
+            base_url
+            or os.getenv("DEMO_OWNER_BASE_URL")
+            or "http://127.0.0.1:5000"
+        ).strip().rstrip("/")
+        login_path = f"/auth/owner-magic/{token_record['token']}?lang={owner_account.get('language', 'en')}"
+        click.echo(f"One-time magic link (expires in {OWNER_MAGIC_LINK_TTL_MINUTES} minutes):")
+        click.echo(f"{local_base_url}{login_path}")
 
 
 def _clean_payload_value(payload, *keys):
