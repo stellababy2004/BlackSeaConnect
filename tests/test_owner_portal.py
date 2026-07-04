@@ -1078,7 +1078,7 @@ class OwnerPortalTests(unittest.TestCase):
             'data-i18n="ownerDashboardNotificationCenter"',
             'data-i18n="ownerDashboardRecentPropertyUpdates"',
             'data-i18n="ownerDashboardPrimaryCta"',
-            'data-i18n="ownerDashboardLogout"',
+            'data-i18n="navOwnerLogout"',
         ]:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, html)
@@ -1087,9 +1087,14 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("owner-dashboard-masthead", html)
         self.assertIn("owner-dashboard-main", html)
         self.assertIn("owner-dashboard-section", html)
+        self.assertIn("owner-operational-command", html)
+        self.assertIn("owner-operational-kpis", html)
+        self.assertIn("owner-dashboard-disclosure", html)
         self.assertIn("owner-kpi-card--summary", html)
         self.assertIn("owner-portal-card--performance", html)
         self.assertIn("owner-timeline-item", html)
+        self.assertIn("/static/img/saint-vlas.jpg", html)
+        self.assertNotIn('<footer class="site-footer"', html)
         self.assertIn("owner-request-1", html)
         self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 
