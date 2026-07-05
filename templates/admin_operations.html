@@ -283,24 +283,177 @@
         min-width: 260px;
       }
     }
+    /* Operations Center 4.0 — mission-control presentation layer. */
+    .admin-operations-page {
+      background: linear-gradient(180deg, #eaf3f0 0, #f7f9f8 260px, #f4f6f5 100%);
+      color: #17352d;
+    }
+    .admin-operations-shell { max-width: 1680px; padding: 16px 18px 40px; gap: 12px; }
+    .admin-operations-hero,
+    .admin-operations-panel {
+      border-color: rgba(26, 86, 69, .12);
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(25, 55, 47, .07);
+    }
+    .admin-operations-hero {
+      display: grid;
+      grid-template-columns: minmax(270px, .65fr) minmax(680px, 1.6fr);
+      padding: 18px 20px;
+      background: linear-gradient(125deg, rgba(255,255,255,.96), rgba(239,248,244,.9));
+      align-items: center;
+    }
+    .admin-operations-hero h1 { margin: 3px 0 5px; font-size: clamp(1.65rem, 2.5vw, 2.5rem); }
+    .admin-operations-copy { max-width: 560px; font-size: .84rem; line-height: 1.45; }
+    .admin-operations-actions { margin-top: 12px; }
+    .admin-operations-actions .button { min-height: 36px; padding: 7px 11px; font-size: .75rem; }
+    .admin-mission-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .admin-mission-metric {
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid rgba(28, 82, 67, .1);
+      border-radius: 11px;
+      background: rgba(255,255,255,.76);
+    }
+    .admin-mission-metric span { display: block; min-height: 24px; color: #64766f; font-size: .62rem; line-height: 1.15; text-transform: uppercase; letter-spacing: .05em; }
+    .admin-mission-metric strong { display: block; margin-top: 2px; font-size: 1.18rem; color: #183b31; }
+    .admin-mission-metric--good { border-left: 3px solid #54a67f; }
+    .admin-mission-metric--warn { border-left: 3px solid #d4a23e; }
+    .admin-mission-metric--danger { border-left: 3px solid #c75a52; }
+    .admin-operations-panel { padding: 12px 14px; }
+    .admin-operations-filter label,
+    .admin-operations-filter span { color: #4f7065; font-size: .62rem; }
+    .admin-operations-filter input,
+    .admin-operations-filter select { min-height: 38px; padding: 8px 10px; border-radius: 10px; font-size: .78rem; }
+    .admin-operations-filters { grid-template-columns: minmax(180px, 1.4fr) repeat(6, minmax(105px, 1fr)); gap: 8px; }
+    .admin-operations-filters-panel { position: sticky; top: 8px; z-index: 20; background: rgba(250,252,251,.94); backdrop-filter: blur(18px); }
+    .admin-filter-actions { grid-column: auto !important; justify-content: flex-end !important; }
+    .admin-filter-actions .button { min-height: 36px; padding: 7px 10px; font-size: .72rem; }
+    .admin-operations-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .admin-operations-kpi { padding: 11px 13px; border-radius: 12px; background: #fff; border-left: 3px solid #55a17e; }
+    .admin-operations-kpi:nth-child(2) { border-left-color: #d3a041; }
+    .admin-operations-kpi:nth-child(3),
+    .admin-operations-kpi:nth-child(5) { border-left-color: #c85b52; }
+    .admin-operations-kpi span { min-height: 20px; margin: 0; color: #60736c; font-size: .62rem; }
+    .admin-operations-kpi strong { font-size: 1.15rem; color: #17352d; }
+    .admin-operations-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+    .admin-operations-board {
+      grid-template-columns: repeat(5, minmax(220px, 1fr));
+      gap: 9px;
+      overflow: visible;
+    }
+    .admin-operations-column { min-width: 0; min-height: 410px; border-radius: 15px; background: rgba(238,243,241,.88); }
+    .admin-operations-column__header { padding: 11px 12px; }
+    .admin-operations-column__header h2 { font-size: .72rem; color: #395b50; }
+    .admin-operations-column__count { min-width: 27px; height: 23px; padding: 0 7px; background: #dbe9e3; color: #315f50; font-size: .7rem; }
+    .admin-operations-column__body { padding: 8px; gap: 8px; }
+    .admin-operations-card { gap: 7px; padding: 11px; border-radius: 12px; box-shadow: 0 7px 18px rgba(25,55,47,.055); }
+    .admin-operations-card__title { font-size: .86rem; }
+    .admin-operations-card__grid { grid-template-columns: 1fr; gap: 3px; }
+    .admin-operations-card__meta p { font-size: .7rem; line-height: 1.35; }
+    .admin-operations-card__signals { display: flex; flex-wrap: wrap; gap: 5px; color: #687972; font-size: .65rem; }
+    .admin-operations-card__quick { display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #e5ebe8; color: #276c57; font-size: .68rem; font-weight: 700; }
+    .admin-operations-badge { padding: 3px 7px; font-size: .62rem; }
+    .admin-live-rail { position: sticky; top: 104px; display: grid; gap: 12px; }
+    .admin-live-card { padding: 15px; border: 1px solid rgba(26,86,69,.12); border-radius: 16px; background: #fff; box-shadow: 0 10px 28px rgba(25,55,47,.055); }
+    .admin-live-card h2 { margin: 2px 0 12px; font-size: .95rem; }
+    .admin-live-timeline { position: relative; display: grid; gap: 0; }
+    .admin-live-timeline::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 7px; width: 1px; background: #dce7e2; }
+    .admin-live-event { position: relative; padding: 0 0 13px 25px; }
+    .admin-live-event::before { content: ""; position: absolute; top: 4px; left: 3px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; background: #438f70; box-shadow: 0 0 0 1px #438f70; }
+    .admin-live-event time { display: block; color: #75847e; font-size: .62rem; }
+    .admin-live-event strong { display: block; margin-top: 2px; font-size: .75rem; }
+    .admin-live-event p { margin: 2px 0 0; color: #6a7973; font-size: .67rem; }
+    .admin-property-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 9px; }
+    .admin-property-ops { padding: 13px; border: 1px solid rgba(26,86,69,.11); border-radius: 14px; background: #fff; }
+    .admin-property-ops h3 { margin: 0 0 8px; font-size: .85rem; }
+    .admin-property-ops__metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .admin-property-ops__metrics div { padding: 7px; border-radius: 8px; background: #f3f7f5; }
+    .admin-property-ops__metrics span { display: block; color: #75837e; font-size: .57rem; text-transform: uppercase; }
+    .admin-property-ops__metrics strong { font-size: .78rem; }
+    .admin-heatmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .admin-heatmap span { height: 34px; border-radius: 7px; background: #d8ebe2; }
+    .admin-heatmap span.is-warm { background: #f0d89e; }
+    .admin-heatmap span.is-hot { background: #e6aaa4; }
+    .admin-task-drawer { width: min(720px, 94vw); max-width: none; height: 100dvh; max-height: none; margin: 0 0 0 auto; padding: 0; border: 0; background: #f7f9f8; box-shadow: -20px 0 60px rgba(20,45,38,.18); }
+    .admin-task-drawer::backdrop { background: rgba(13,31,26,.38); backdrop-filter: blur(3px); }
+    .admin-task-drawer__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 58px; padding: 0 16px; border-bottom: 1px solid #dfe7e3; background: #fff; }
+    .admin-task-drawer__head strong { font-size: .9rem; }
+    .admin-task-drawer__close { border: 0; border-radius: 50%; width: 34px; height: 34px; background: #edf3f0; cursor: pointer; }
+    .admin-task-drawer__tabs { display: flex; gap: 5px; padding: 9px 12px; overflow-x: auto; border-bottom: 1px solid #e1e8e4; background: #fff; }
+    .admin-task-drawer__tabs span { padding: 5px 8px; border-radius: 99px; background: #eff4f2; color: #526c63; font-size: .62rem; white-space: nowrap; }
+    .admin-task-drawer iframe { width: 100%; height: calc(100dvh - 101px); border: 0; background: #fff; }
+    @media (max-width: 1280px) {
+      .admin-operations-hero { grid-template-columns: 1fr; }
+      .admin-operations-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .admin-filter-actions { grid-column: 1 / -1 !important; justify-content: flex-start !important; }
+      .admin-operations-workspace { grid-template-columns: 1fr; }
+      .admin-live-rail { position: static; grid-template-columns: 1.4fr .6fr; }
+      .admin-operations-board { overflow-x: auto; grid-template-columns: repeat(5, minmax(240px, 1fr)); }
+      .admin-operations-column { min-width: 240px; }
+    }
+    @media (max-width: 760px) {
+      .admin-operations-shell { padding: 10px; }
+      .admin-operations-hero { padding: 14px; }
+      .admin-mission-metrics,
+      .admin-operations-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .admin-operations-filters {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        align-items: end;
+        scrollbar-width: none;
+      }
+      .admin-operations-filter { min-width: 150px; }
+      .admin-operations-filter:first-child { min-width: 210px; }
+      .admin-filter-actions { min-width: 170px; }
+      .admin-operations-board { display: grid; grid-template-columns: 1fr; overflow: visible; }
+      .admin-operations-column { min-width: 0; min-height: 0; }
+      .admin-live-rail { grid-template-columns: 1fr; }
+      .admin-live-card:last-child { display: none; }
+      .admin-property-strip { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body class="admin-operations-page">
   <main class="admin-operations-shell">
     <section class="admin-operations-hero">
       <div>
-        <p class="eyebrow">OPERATIONS BOARD</p>
-        <h1>Operations cockpit</h1>
-        <p class="admin-operations-copy">Track every operational task from intake through completion, with drag-and-drop status updates, rich task detail, and an audit trail in SQLite.</p>
+        <p class="eyebrow">OPERATIONS BOARD · LIVE</p>
+        <h1>Today’s Operations</h1>
+        <p class="admin-operations-copy">Live command view across guests, properties, professionals and service delivery.</p>
+        <div class="admin-operations-actions">
+          <a class="button button--secondary" href="/admin">Back to cockpit</a>
+          <a class="button button--ghost" href="/admin/service-requests">Service Requests</a>
+          <a class="button button--ghost" href="/admin/properties">Properties</a>
+        </div>
       </div>
-      <div class="admin-operations-actions">
-        <a class="button button--secondary" href="/admin">Back to cockpit</a>
-        <a class="button button--ghost" href="/admin/service-requests">View Service Requests</a>
-        <a class="button button--ghost" href="/admin/properties">View Properties</a>
+      {% set mission = namespace(arrivals=0, departures=0, cleaning=0, maintenance=0, urgent=0, risk=0) %}
+      {% for task in tasks %}
+        {% set task_text = (task.title ~ ' ' ~ task.category)|lower %}
+        {% if 'arrival' in task_text or 'check-in' in task_text %}{% set mission.arrivals = mission.arrivals + 1 %}{% endif %}
+        {% if 'departure' in task_text or 'check-out' in task_text %}{% set mission.departures = mission.departures + 1 %}{% endif %}
+        {% if 'clean' in task_text %}{% set mission.cleaning = mission.cleaning + 1 %}{% endif %}
+        {% if 'maint' in task_text or 'repair' in task_text %}{% set mission.maintenance = mission.maintenance + 1 %}{% endif %}
+        {% if task.priority|upper == 'URGENT' %}{% set mission.urgent = mission.urgent + 1 %}{% endif %}
+        {% if task.priority|upper == 'HIGH' and not task.overdue %}{% set mission.risk = mission.risk + 1 %}{% endif %}
+      {% endfor %}
+      <div class="admin-mission-metrics" aria-label="Today's operations summary">
+        <article class="admin-mission-metric"><span>Properties active</span><strong>{{ property_options|length }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--good"><span>Guests arriving</span><strong>{{ mission.arrivals }}</strong></article>
+        <article class="admin-mission-metric"><span>Guests departing</span><strong>{{ mission.departures }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--good"><span>Cleaning</span><strong>{{ mission.cleaning }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--warn"><span>Maintenance</span><strong>{{ mission.maintenance }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--danger"><span>Urgent</span><strong>{{ mission.urgent }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--warn"><span>SLA at risk</span><strong>{{ mission.risk }}</strong></article>
+        <article class="admin-mission-metric"><span>Average response</span><strong>—</strong></article>
       </div>
     </section>
 
-    <section class="admin-operations-panel">
+    <section class="admin-operations-panel admin-operations-filters-panel">
       <form class="admin-operations-filters" method="get" action="/admin/operations">
         <label class="admin-operations-filter">
           <span>Search</span>
@@ -364,37 +517,30 @@
           <span>Date</span>
           <input type="date" name="date" value="{{ filters.date_filter|e }}">
         </label>
-        <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
+        <div class="admin-filter-actions" style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
           <button class="button button--primary" type="submit">Apply filters</button>
           <a class="button button--ghost" href="/admin/operations">Reset</a>
+          <button class="button button--ghost" type="button" title="Saved views are coming soon">Saved Views</button>
         </div>
       </form>
     </section>
 
-    <section class="admin-operations-kpi-grid" aria-label="Operations metrics">
+    <section class="admin-operations-kpi-grid" aria-label="SLA metrics">
       <article class="admin-operations-kpi">
         <span>Open Tasks</span>
         <strong>{{ counts.open_tasks }}</strong>
       </article>
       <article class="admin-operations-kpi">
-        <span>Assigned Tasks</span>
-        <strong>{{ counts.assigned_tasks }}</strong>
+        <span>On Time</span>
+        <strong>{{ counts.open_tasks - counts.overdue_tasks }}</strong>
       </article>
       <article class="admin-operations-kpi">
-        <span>In Progress</span>
-        <strong>{{ counts.in_progress_tasks }}</strong>
+        <span>At Risk</span>
+        <strong>{{ mission.risk }}</strong>
       </article>
       <article class="admin-operations-kpi">
-        <span>Waiting Owner</span>
-        <strong>{{ counts.waiting_owner_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi">
-        <span>Waiting Provider</span>
-        <strong>{{ counts.waiting_provider_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi">
-        <span>Completed Today</span>
-        <strong>{{ counts.completed_today }}</strong>
+        <span>Average completion</span>
+        <strong>—</strong>
       </article>
       <article class="admin-operations-kpi">
         <span>Overdue</span>
@@ -404,50 +550,129 @@
         <span>Completed Tasks</span>
         <strong>{{ counts.completed_tasks }}</strong>
       </article>
+      <article class="admin-operations-kpi" style="display:none;">
+        <span>Assigned Tasks</span>
+        <strong>{{ counts.assigned_tasks }}</strong>
+      </article>
     </section>
 
-    <section class="admin-operations-board" data-operations-board>
-      {% for status in status_options %}
-        <article class="admin-operations-column" data-status-column="{{ status.value|e }}">
-          <header class="admin-operations-column__header">
-            <h2>{{ status.label|e }}</h2>
-            <span class="admin-operations-column__count">{{ columns[status.value]|length }}</span>
-          </header>
-          <div class="admin-operations-column__body">
-            {% if columns[status.value] %}
-              {% for task in columns[status.value] %}
-                <a class="admin-operations-card" href="/admin/operations/{{ task.request_id|e }}" data-task-card draggable="true" data-task-id="{{ task.request_id|e }}">
-                  <div class="admin-operations-card__topline">
-                    <span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span>
-                    <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>Overdue</span>
-                  </div>
-                  <h3 class="admin-operations-card__title">{{ task.title|e }}</h3>
-                  <div class="admin-operations-card__meta admin-operations-card__grid">
-                    <p><strong>Category:</strong> <span class="admin-operations-badge">{{ task.category|e }}</span></p>
-                    <p><strong>Property:</strong> {{ task.property_label|e }}</p>
-                    <p><strong>Owner:</strong> {{ task.owner_name|e }}</p>
-                    <p><strong>City:</strong> {{ task.property_location|e }}</p>
-                    <p><strong>Priority:</strong> <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></p>
-                    <p><strong>Assigned:</strong> {{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</p>
-                    <p><strong>Task ID:</strong> {{ task.request_id|e }}</p>
-                    <p><strong>Created:</strong> {{ task.created_at|e }}</p>
-                    <p><strong>Due:</strong> {{ task.due_date|e or 'Not set' }}</p>
-                  </div>
-                </a>
-              {% endfor %}
-            {% else %}
-              <p class="admin-operations-card__empty">No tasks in this column yet. Drag a card here or let the next request flow in.</p>
-            {% endif %}
+    <section class="admin-property-strip" aria-label="Property operations">
+      {% for property_group in tasks|groupby('property_label') %}
+        {% set property_tasks = property_group.list %}
+        {% set first_task = property_tasks[0] %}
+        <article class="admin-property-ops">
+          <h3>{{ property_group.grouper|default('Unassigned property', true)|e }}</h3>
+          <div class="admin-property-ops__metrics">
+            <div><span>Open tasks</span><strong>{{ property_tasks|length }}</strong></div>
+            <div><span>Urgent</span><strong>{{ property_tasks|selectattr('priority', 'equalto', 'URGENT')|list|length }}</strong></div>
+            <div><span>Assigned</span><strong>{{ first_task.assigned_professional_label|default(first_task.assigned_to, true)|default('—', true)|e }}</strong></div>
           </div>
+          <a class="admin-operations-card__quick" href="/admin/operations?property={{ property_group.grouper|urlencode }}">Open Operations <span>→</span></a>
         </article>
+      {% else %}
+        <article class="admin-property-ops"><h3>All properties are clear</h3><p class="admin-operations-copy">No property operations need attention.</p></article>
       {% endfor %}
     </section>
+
+    {% set board_groups = [
+      {'label': 'New', 'target': 'NEW', 'statuses': ['NEW']},
+      {'label': 'Assigned', 'target': 'ASSIGNED', 'statuses': ['ASSIGNED', 'ACCEPTED']},
+      {'label': 'In Progress', 'target': 'IN_PROGRESS', 'statuses': ['ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'PAUSED']},
+      {'label': 'Waiting', 'target': 'WAITING_OPERATIONS', 'statuses': ['WAITING_OWNER', 'WAITING_OPERATIONS']},
+      {'label': 'Completed', 'target': 'COMPLETED', 'statuses': ['DONE', 'COMPLETED', 'ARCHIVED']}
+    ] %}
+    <div class="admin-operations-workspace">
+      <section class="admin-operations-board" data-operations-board aria-label="Live operations board">
+        {% for group in board_groups %}
+          {% set lane = namespace(count=0) %}
+          {% for task in tasks %}{% if task.status|upper in group.statuses %}{% set lane.count = lane.count + 1 %}{% endif %}{% endfor %}
+          <article class="admin-operations-column" data-status-column="{{ group.target|e }}">
+            <header class="admin-operations-column__header">
+              <h2>{{ group.label }}</h2>
+              <span class="admin-operations-column__count">{{ lane.count }}</span>
+            </header>
+            <div class="admin-operations-column__body">
+              {% for task in tasks %}
+                {% if task.status|upper in group.statuses %}
+                  <a class="admin-operations-card" href="/admin/operations/{{ task.request_id|e }}" data-task-card data-task-drawer-link draggable="true" data-task-id="{{ task.request_id|e }}">
+                    <div class="admin-operations-card__topline">
+                      <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span>
+                      <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>SLA overdue</span>
+                    </div>
+                    <h3 class="admin-operations-card__title">{{ task.title|e }}</h3>
+                    <div class="admin-operations-card__meta admin-operations-card__grid">
+                      <p><strong>Property:</strong> {{ task.property_label|default('Unassigned', true)|e }}</p>
+                      <p><strong>Owner:</strong> {{ task.owner_name|default('—', true)|e }}</p>
+                      <p><strong>Professional:</strong> {{ task.assigned_professional_label|default(task.assigned_to, true)|default('Unassigned', true)|e }}</p>
+                      <p><strong>SLA:</strong> {{ task.due_date|default('Not set', true)|e }}</p>
+                    </div>
+                    <div class="admin-operations-card__signals" aria-label="Task activity">
+                      <span>▧ {{ task.attachments|default([])|length }} photos</span>
+                      <span>● {{ task.comments|default([])|length }} comments</span>
+                      <span>{{ task.category|e }}</span>
+                    </div>
+                    <span class="admin-operations-card__quick">Open task <span>→</span></span>
+                  </a>
+                {% endif %}
+              {% endfor %}
+              {% if lane.count == 0 %}
+                <p class="admin-operations-card__empty">No tasks here. Everything is ready.</p>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+
+      <aside class="admin-live-rail" aria-label="Live operational context">
+        <section class="admin-live-card">
+          <p class="eyebrow">LIVE TIMELINE</p>
+          <h2>Operational timeline</h2>
+          <div class="admin-live-timeline">
+            {% for task in tasks[:7] %}
+              <article class="admin-live-event">
+                <time>{{ task.updated_at|default(task.created_at, true)|e }}</time>
+                <strong>{{ task.title|e }}</strong>
+                <p>{{ task.status_label|e }} · {{ task.property_label|e }}</p>
+              </article>
+            {% else %}
+              <article class="admin-live-event"><strong>No events today</strong><p>Everything is ready.</p></article>
+            {% endfor %}
+          </div>
+        </section>
+        <section class="admin-live-card">
+          <p class="eyebrow">ATTENTION MAP</p>
+          <h2>Operational heatmap</h2>
+          <div class="admin-heatmap" aria-label="Properties needing attention">
+            {% for property_group in tasks|groupby('property_label') %}
+              <span class="{% if property_group.list|selectattr('overdue')|list|length %}is-hot{% elif property_group.list|length > 2 %}is-warm{% endif %}" title="{{ property_group.grouper|e }} · {{ property_group.list|length }} tasks"></span>
+            {% else %}
+              <span title="No properties need attention"></span>
+            {% endfor %}
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <dialog class="admin-task-drawer" data-task-drawer>
+      <div class="admin-task-drawer__head">
+        <strong>Task command center</strong>
+        <button class="admin-task-drawer__close" type="button" data-task-drawer-close aria-label="Close task">×</button>
+      </div>
+      <div class="admin-task-drawer__tabs" aria-label="Task detail sections">
+        <span>Timeline</span><span>Attachments</span><span>Checklist</span><span>Notes</span><span>Owner</span><span>Professional</span><span>Messages</span><span>History</span>
+      </div>
+      <iframe title="Task detail" data-task-drawer-frame></iframe>
+    </dialog>
   </main>
 
   <script>
     (() => {
       const columns = Array.from(document.querySelectorAll('[data-status-column]'));
       const cards = Array.from(document.querySelectorAll('[data-task-card]'));
+      const drawer = document.querySelector('[data-task-drawer]');
+      const drawerFrame = document.querySelector('[data-task-drawer-frame]');
+      const drawerClose = document.querySelector('[data-task-drawer-close]');
+      let cardWasDragged = false;
 
       const updateTaskStatus = async (taskId, status) => {
         const response = await fetch(`/admin/operations/${encodeURIComponent(taskId)}/status`, {
@@ -467,6 +692,7 @@
 
       cards.forEach((card) => {
         card.addEventListener('dragstart', (event) => {
+          cardWasDragged = true;
           card.classList.add('is-dragging');
           event.dataTransfer.effectAllowed = 'move';
           event.dataTransfer.setData('text/plain', card.dataset.taskId || '');
@@ -474,8 +700,30 @@
 
         card.addEventListener('dragend', () => {
           card.classList.remove('is-dragging');
+          window.setTimeout(() => { cardWasDragged = false; }, 0);
+        });
+
+        card.addEventListener('click', (event) => {
+          if (cardWasDragged || !drawer || !drawerFrame || typeof drawer.showModal !== 'function') {
+            return;
+          }
+          event.preventDefault();
+          drawerFrame.src = card.href;
+          drawer.showModal();
         });
       });
+
+      if (drawer && drawerClose && drawerFrame) {
+        drawerClose.addEventListener('click', () => drawer.close());
+        drawer.addEventListener('close', () => {
+          drawerFrame.src = 'about:blank';
+        });
+        drawer.addEventListener('click', (event) => {
+          if (event.target === drawer) {
+            drawer.close();
+          }
+        });
+      }
 
       columns.forEach((column) => {
         column.addEventListener('dragover', (event) => {
