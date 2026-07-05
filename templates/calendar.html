@@ -283,10 +283,22 @@
 <body class="calendar-page calendar-page--{{ calendar_scope|e }}">
   <main class="calendar-shell">
     <section class="calendar-hero">
-      <div>
+      <div class="calendar-hero__content">
         <p class="eyebrow">BLACKSEA CONNECT</p>
         <h1>{{ calendar_scope_label }}</h1>
         <p class="calendar-copy">{{ calendar_scope_description }}. One event engine powers every view across owners and operations.</p>
+        <div class="calendar-hero__stats">
+          {% if calendar_scope == 'owner' %}
+            <div><span>Today</span><strong>{{ owner_calendar_snapshot.today }}</strong></div>
+            <div><span>Upcoming arrival</span><strong>{{ owner_calendar_snapshot.next_arrival }}</strong></div>
+            <div><span>Next cleaning</span><strong>{{ owner_calendar_snapshot.next_cleaning }}</strong></div>
+            <div><span>Occupancy</span><strong>{{ owner_calendar_snapshot.occupancy }}</strong></div>
+          {% else %}
+            <div><span>Today</span><strong>{{ calendar_summary.today }}</strong></div>
+            <div><span>Upcoming</span><strong>{{ calendar_summary.this_week }}</strong></div>
+            <div><span>Attention</span><strong>{{ calendar_summary.overdue }}</strong></div>
+          {% endif %}
+        </div>
       </div>
       <div class="calendar-actions">
         {% if calendar_scope == 'owner' %}
@@ -422,7 +434,7 @@
                 {% if group.events %}
                   <div class="calendar-event-list">
                     {% for event in group.events %}
-                      <article class="calendar-event">
+                      <article class="calendar-event" data-calendar-event data-event-date="{{ event.start_datetime[:10]|e }}">
                         <div class="calendar-event__topline">
                           <div class="calendar-event__flag">
                             <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
@@ -471,6 +483,10 @@
             <p class="calendar-note">Owners can create blocked dates and personal stays without touching the operational workflow.</p>
             {% if calendar_owner_properties %}
               <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}">
+                <div class="calendar-event-type-picker" aria-label="Event type">
+                  <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>Blocked dates</button>
+                  <button type="button" data-event-type="Personal Stay"><span>⌂</span>Personal stay</button>
+                </div>
                 <label>
                   <span>Property</span>
                   <select name="property_id" required>
@@ -481,7 +497,7 @@
                 </label>
                 <label>
                   <span>Event type</span>
-                  <select name="event_type" required>
+                  <select name="event_type" required data-event-type-select>
                     <option value="Blocked Dates">Blocked Dates</option>
                     <option value="Personal Stay">Personal Stay</option>
                   </select>
@@ -504,6 +520,11 @@
                     <input type="datetime-local" name="end_datetime" required>
                   </label>
                 </div>
+                <div class="calendar-date-shortcuts">
+                  <button type="button" data-calendar-range="today">Today</button>
+                  <button type="button" data-calendar-range="weekend">This weekend</button>
+                  <button type="button" data-calendar-range="week">Next 7 days</button>
+                </div>
                 <label class="calendar-owner-form__check">
                   <input type="checkbox" name="all_day" value="1">
                   <span>All day</span>
@@ -524,17 +545,19 @@
             <p class="section-heading__eyebrow">Future architecture</p>
             <h2>Integration points</h2>
           </div>
-          <div class="calendar-future-list">
+          <div class="calendar-integration-grid">
             {% for provider in calendar_external_integration_points %}
-              <div class="calendar-future-pill">
-                <span>{{ provider }}</span>
-                <strong>Ready</strong>
-              </div>
+              <article class="calendar-integration-card">
+                <span class="calendar-integration-card__logo">{{ provider[:1] }}</span>
+                <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
+                <button class="button button--ghost" type="button" disabled>Connect</button>
+              </article>
             {% endfor %}
           </div>
         </section>
       </aside>
     </section>
   </main>
+  <script src="/static/js/owner-experience.js?v=20260704"></script>
 </body>
 </html>

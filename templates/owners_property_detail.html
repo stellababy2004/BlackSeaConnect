@@ -316,32 +316,118 @@
     </nav>
     <div class="hero__content hero__content--home owner-property-detail-shell">
       <section class="owner-property-detail-hero">
-        <div>
+        <div class="owner-property-detail-hero__visual">
+          {% if property_context.property.cover_photo_url %}
+            <img src="{{ property_context.property.cover_photo_url }}" alt="{{ property_context.property.name|e }}">
+          {% else %}
+            <img src="{{ url_for('static', filename='img/saint-vlas.jpg') }}" alt="{{ property_context.property.name|e }}">
+          {% endif %}
+        </div>
+        <div class="owner-property-detail-hero__content">
           <div class="owner-property-detail-meta">
             <span class="owner-property-detail-chip">Owner portal</span>
             <span class="owner-property-detail-chip">Property profile</span>
             <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
           </div>
           <h1>{{ property_context.property.name|e }}</h1>
+          <p class="owner-property-detail-location">{{ property_context.property.location|e }} · {{ owner_account.full_name|e }}</p>
           <p class="owner-property-detail-copy">
-            Review the property profile, update readiness, and track all service activity attached to this property in one place.
+            Your complete operational profile, guest knowledge, maintenance context, and live availability.
           </p>
-        </div>
-        <div class="owner-property-detail-actions">
-          <a class="button button--secondary" href="{{ localized_url('/owners/properties') }}">Back to properties</a>
-          <a class="button button--primary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">Request service</a>
+          <div class="owner-property-detail-actions">
+            <button class="button button--primary" type="button" data-property-edit-toggle>Edit profile</button>
+            <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">Calendar</a>
+            <a class="button button--secondary" href="{{ localized_url('/owners/reservations?property=' ~ property_context.property.id) }}">Reservations</a>
+            <a class="button button--secondary" href="{{ localized_url('/owners/request-service?category=maintenance&property_id=' ~ property_context.property.id) }}">Maintenance</a>
+            <span class="button button--ghost is-disabled" aria-disabled="true">Guest portal</span>
+          </div>
         </div>
       </section>
     </div>
   </header>
 
+  <nav class="owner-property-workspace-tabs" aria-label="Property workspace" role="tablist">
+    {% for tab_id, tab_label in [
+      ('overview', 'Overview'),
+      ('property', 'Property'),
+      ('calendar', 'Calendar'),
+      ('operations', 'Operations'),
+      ('knowledge', 'Knowledge'),
+      ('equipment', 'Equipment'),
+      ('integrations', 'Integrations')
+    ] %}
+      <button type="button"
+              class="owner-property-workspace-tab {% if loop.first %}is-active{% endif %}"
+              role="tab"
+              id="property-tab-{{ tab_id }}"
+              aria-controls="property-panel-{{ tab_id }}"
+              aria-selected="{{ 'true' if loop.first else 'false' }}"
+              data-property-workspace-tab="{{ tab_id }}">
+        {{ tab_label }}
+      </button>
+    {% endfor %}
+  </nav>
+
   <main class="owner-property-detail-shell">
     {% set knowledge = property_context.knowledge if property_context.knowledge else {} %}
-    <section class="owner-property-detail-grid">
+    {% set open_request_count = namespace(value=0) %}
+    {% for service_request in property_context.service_requests %}
+      {% if service_request.status|lower not in ['completed', 'cancelled'] %}
+        {% set open_request_count.value = open_request_count.value + 1 %}
+      {% endif %}
+    {% endfor %}
+    <article class="owner-property-detail-panel owner-property-overview" data-property-tab-section="overview">
+      <div class="owner-property-overview__header">
+        <div>
+          <p class="eyebrow">At a glance</p>
+          <h2 class="owner-property-detail-section-title">Operational overview</h2>
+        </div>
+        <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
+      </div>
+      <div class="owner-property-overview__grid">
+        <div><span>Property</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
+        <div><span>Readiness</span><strong>{{ property_context.property.readiness_percent }}%</strong><small>{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} complete</small></div>
+        <div><span>Next arrival</span><strong>{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No arrival', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Schedule clear', true)|e }}</small></div>
+        <div><span>Next cleaning</span><strong>{{ property_context.availability.upcoming_departure.departure_datetime|default('No turnover', true)|e }}</strong><small>{% if property_context.availability.cleaning_required %}Cleaning required{% else %}No action required{% endif %}</small></div>
+        <div><span>Open requests</span><strong>{{ open_request_count.value }}</strong><small>Property operations</small></div>
+        <div class="{% if property_context.property.checklist_completed < property_context.property.checklist_total %}is-alert{% else %}is-healthy{% endif %}">
+          <span>Key alerts</span>
+          <strong>{{ property_context.property.checklist_total - property_context.property.checklist_completed }}</strong>
+          <small>Readiness items missing</small>
+        </div>
+      </div>
+    </article>
+
+    <article class="owner-property-detail-panel owner-property-equipment-overview" data-property-tab-section="equipment">
+      <p class="eyebrow">Equipment register</p>
+      <h2 class="owner-property-detail-section-title">Appliances and equipment</h2>
+      <p class="owner-property-detail-copy">Open an item to review its model, warranty, manuals and maintenance context.</p>
+      <div class="owner-property-equipment-list">
+        {% for key, label in [
+          ('washing_machine', 'Washing machine'), ('dryer', 'Dryer'), ('dishwasher', 'Dishwasher'),
+          ('oven', 'Oven'), ('stove', 'Stove'), ('refrigerator', 'Refrigerator'),
+          ('water_heater', 'Water heater'), ('air_conditioning', 'Air conditioning')
+        ] %}
+          {% set equipment = property_context.appliances[key] if property_context.appliances and property_context.appliances[key] else {} %}
+          <details class="owner-property-equipment-item">
+            <summary><span>{{ label }}</span><small>{{ equipment.brand|default('Details pending', true)|e }}{% if equipment.model %} · {{ equipment.model|e }}{% endif %}</small></summary>
+            <dl>
+              <div><dt>Brand</dt><dd>{{ equipment.brand|default('—', true)|e }}</dd></div>
+              <div><dt>Model</dt><dd>{{ equipment.model|default('—', true)|e }}</dd></div>
+              <div><dt>Warranty</dt><dd>{{ equipment.warranty_expiry|default('—', true)|e }}</dd></div>
+              <div><dt>Manual</dt><dd>{{ equipment.manual|default('—', true)|e }}</dd></div>
+              <div><dt>Maintenance</dt><dd>{{ equipment.maintenance_notes|default('—', true)|e }}</dd></div>
+            </dl>
+          </details>
+        {% endfor %}
+      </div>
+    </article>
+
+    <section class="owner-property-detail-grid" data-property-tab-source>
       <div class="owner-property-detail-stack">
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel owner-property-snapshot" data-property-tab-section="property">
           <p class="eyebrow">Property Profile</p>
-          <h2 class="owner-property-detail-section-title">Property details</h2>
+          <h2 class="owner-property-detail-section-title">Property snapshot</h2>
           {% set profile = property_context.property.property_profile if property_context.property.property_profile else {} %}
           <dl class="owner-property-detail-dl">
             <div><dt>Property name</dt><dd>{{ property_context.property.name|e }}</dd></div>
@@ -361,13 +447,17 @@
           </dl>
         </article>
 
-        <article class="owner-property-detail-panel owner-property-knowledge-panel">
+        <article class="owner-property-detail-panel owner-property-knowledge-panel" data-property-tab-section="knowledge">
           <p class="eyebrow">Property Knowledge</p>
           <h2 class="owner-property-detail-section-title">Knowledge hub</h2>
           <p class="owner-property-detail-copy">
             This is the single source of truth for the property. Owners, operations, professionals, reservations, and future AI experiences can read from the same knowledge model.
           </p>
 
+          <div class="owner-property-progress-ring" style="--progress: {{ property_context.property_health.metrics['Knowledge Completeness'] }};">
+            <strong>{{ property_context.property_health.metrics["Knowledge Completeness"] }}%</strong>
+            <span>Knowledge health</span>
+          </div>
           <div class="owner-property-detail-summary owner-property-detail-summary--health">
             <div class="owner-property-detail-stat">
               <span>Property Health</span>
@@ -596,7 +686,7 @@
           </form>
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">Property Gallery</p>
           <h2 class="owner-property-detail-section-title">Gallery</h2>
           {% if property_context.photos %}
@@ -618,7 +708,7 @@
           {% endif %}
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">Amenities</p>
           <h2 class="owner-property-detail-section-title">Amenities</h2>
           <div class="owner-property-detail-badges">
@@ -644,7 +734,21 @@
           </div>
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel owner-property-integrations" data-property-tab-section="integrations">
+          <p class="eyebrow">Ecosystem</p>
+          <h2 class="owner-property-detail-section-title">Future integrations</h2>
+          <div class="owner-property-integration-grid">
+            {% for provider, mark in [('Airbnb', 'A'), ('Booking.com', 'B'), ('Google Calendar', 'G'), ('Apple Calendar', ''), ('VRBO', 'V')] %}
+              <article class="owner-property-integration-card">
+                <span class="owner-property-integration-card__logo">{{ mark }}</span>
+                <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
+                <button type="button" class="button button--ghost" disabled>Connect</button>
+              </article>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">Access information</p>
           <h2 class="owner-property-detail-section-title">Access information</h2>
           <dl class="owner-property-detail-dl">
@@ -658,7 +762,7 @@
           </dl>
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="knowledge">
           <p class="eyebrow">Documents</p>
           <h2 class="owner-property-detail-section-title">Documents</h2>
           {% if property_context.documents %}
@@ -678,7 +782,7 @@
           {% endif %}
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="knowledge">
           <p class="eyebrow">Welcome instructions</p>
           <h2 class="owner-property-detail-section-title">Welcome instructions</h2>
           {% if property_context.welcome_instructions %}
@@ -688,7 +792,7 @@
           {% endif %}
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">Property Notes</p>
           <h2 class="owner-property-detail-section-title">Internal notes</h2>
           <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}">
@@ -727,7 +831,7 @@
       </div>
 
       <div class="owner-property-detail-stack">
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="operations">
           <p class="eyebrow">Operational Status</p>
           <h2 class="owner-property-detail-section-title">Readiness summary</h2>
           <div class="owner-property-detail-summary">
@@ -746,15 +850,15 @@
           </div>
           <div class="owner-property-detail-checklist">
             {% for item in property_context.checklist_items %}
-              <div class="owner-property-detail-checklist__item">
+              <div class="owner-property-detail-checklist__item {% if item.ready %}is-ready{% else %}is-missing{% endif %}">
                 <span>{{ item.label }}</span>
-                <strong>{% if item.ready %}Ready{% else %}Pending{% endif %}</strong>
+                <strong>{% if item.ready %}✓ Ready{% else %}! Missing{% endif %}</strong>
               </div>
             {% endfor %}
           </div>
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="calendar">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
             <div>
               <p class="eyebrow">Calendar</p>
@@ -789,7 +893,7 @@
           </div>
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="operations">
           <p class="eyebrow">Service Request History</p>
           <h2 class="owner-property-detail-section-title">Recent requests</h2>
           {% if property_context.service_requests %}
@@ -812,7 +916,7 @@
           {% endif %}
         </article>
 
-        <article class="owner-property-detail-panel">
+        <article class="owner-property-detail-panel" data-property-tab-section="calendar">
           <p class="eyebrow">Blocked dates</p>
           <h2 class="owner-property-detail-section-title">Owner calendar blocks</h2>
           {% if property_context.calendar.blocked_dates %}
@@ -836,5 +940,6 @@
   </main>
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/owner-experience.js?v=20260704"></script>
 </body>
 </html>

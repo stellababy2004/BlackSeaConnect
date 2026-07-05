@@ -11133,10 +11133,24 @@ def _build_calendar_page_context(scope, owner_account=None):
     }
 
     owner_properties = []
+    owner_calendar_snapshot = {}
     if scope == "owner":
         owner_properties = _owner_properties_for_account(owner_account.get("id", ""))
         property_ids = [property_record.get("id", "") for property_record in owner_properties]
         events = _load_calendar_events(owner_id=owner_account.get("id", ""), property_ids=property_ids)
+        owner_reservations = _load_reservations(
+            owner_id=owner_account.get("id", ""),
+            property_ids=property_ids,
+        )
+        reservation_widget = _reservation_dashboard_widgets(owner_reservations, scope="owner")
+        next_arrival = reservation_widget.get("upcoming_arrivals", [])
+        next_cleaning = reservation_widget.get("next_cleaning")
+        owner_calendar_snapshot = {
+            "today": datetime.now(timezone.utc).strftime("%d %b %Y"),
+            "next_arrival": str(next_arrival[0].get("arrival_datetime", "")).strip() if next_arrival else "No arrival scheduled",
+            "next_cleaning": str((next_cleaning or {}).get("departure_datetime", "")).strip() if next_cleaning else "No turnover scheduled",
+            "occupancy": f"{reservation_widget.get('stats', {}).get('occupancy', 0)}%",
+        }
     else:
         events = _load_calendar_events()
         owner_properties = _load_owner_properties()
@@ -11178,6 +11192,7 @@ def _build_calendar_page_context(scope, owner_account=None):
         "calendar_scope_label": "Owner Calendar" if scope == "owner" else "Admin Calendar",
         "calendar_scope_description": "Only your properties" if scope == "owner" else "All properties",
         "calendar_external_integration_points": CALENDAR_EXTERNAL_INTEGRATION_POINTS,
+        "owner_calendar_snapshot": owner_calendar_snapshot,
     }
 
 
