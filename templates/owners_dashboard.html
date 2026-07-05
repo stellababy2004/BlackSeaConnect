@@ -69,7 +69,7 @@
     }
     .owner-command-summary__metrics {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0;
       margin: 14px 0 0;
     }
@@ -95,6 +95,115 @@
       color: #9aa6a0;
       font-size: .9rem;
     }
+    .owner-executive-label {
+      display: block;
+      margin-top: 4px;
+      color: #718079;
+      font-size: .68rem;
+      font-weight: 650;
+    }
+    .owner-ai-center {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+      gap: 1px;
+      margin: 12px 0;
+      overflow: hidden;
+      border: 1px solid #dfe6e2;
+      border-radius: 20px;
+      background: #dfe6e2;
+      box-shadow: 0 16px 42px rgba(31, 55, 47, .08);
+    }
+    .owner-ai-center__main,
+    .owner-ai-center__aside {
+      padding: 24px;
+      background: #fff;
+    }
+    .owner-ai-center__header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .owner-ai-center__header h2 {
+      margin: 4px 0 6px;
+      font-size: clamp(1.35rem, 2vw, 1.75rem);
+    }
+    .owner-ai-center__header p { margin: 0; color: #718079; }
+    .owner-ai-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #edf7f2;
+      color: #27654f;
+      font-size: .72rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .owner-ai-live::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #42a77b;
+      box-shadow: 0 0 0 4px rgba(66,167,123,.13);
+    }
+    .owner-ai-timeline { position: relative; display: grid; gap: 0; }
+    .owner-ai-timeline::before {
+      content: "";
+      position: absolute;
+      top: 13px;
+      bottom: 13px;
+      left: 12px;
+      width: 1px;
+      background: #dce5e0;
+    }
+    .owner-ai-event {
+      position: relative;
+      display: grid;
+      grid-template-columns: 26px 1fr auto;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 0;
+    }
+    .owner-ai-event__mark {
+      z-index: 1;
+      display: grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: #dff2e9;
+      color: #27654f;
+      font-size: .68rem;
+      font-weight: 900;
+    }
+    .owner-ai-event--attention .owner-ai-event__mark { background: #fff1d6; color: #8a5a00; }
+    .owner-ai-event strong { display: block; color: #17382e; font-size: .88rem; }
+    .owner-ai-event p { margin: 3px 0 0; color: #718079; font-size: .76rem; }
+    .owner-ai-event time { color: #84918b; font-size: .7rem; white-space: nowrap; }
+    .owner-ai-center__aside { background: #f8faf9; }
+    .owner-ai-center__aside h3 { margin: 4px 0 16px; font-size: 1rem; }
+    .owner-health-signals { display: grid; gap: 8px; }
+    .owner-health-signal {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 3px 14px;
+      padding: 12px;
+      border: 1px solid #e1e8e4;
+      border-radius: 12px;
+      background: #fff;
+      color: inherit;
+      text-decoration: none;
+      transition: transform .18s ease, border-color .18s ease;
+    }
+    .owner-health-signal:hover { transform: translateY(-1px); border-color: #b8c9c1; }
+    .owner-health-signal span { color: #65746d; font-size: .75rem; }
+    .owner-health-signal strong { color: #17382e; font-size: 1rem; }
+    .owner-health-signal small { grid-column: 1 / -1; color: #8a9690; font-size: .66rem; }
     .owner-dashboard-main {
       max-width: 1440px;
       padding-top: 22px;
@@ -341,6 +450,7 @@
       .owner-command-summary__metrics > div:nth-child(4) { border-left: 0; padding-left: 0; }
       .owner-operational-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .owner-property-card__stay { grid-template-columns: repeat(3, 1fr); }
+      .owner-ai-center { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
       .owner-dashboard-masthead__content { padding-top: 18px; }
@@ -363,6 +473,10 @@
         max-height: none;
       }
       .owner-onboarding-progress__steps { grid-template-columns: 1fr; }
+      .owner-ai-center__main,
+      .owner-ai-center__aside { padding: 18px; }
+      .owner-ai-event { grid-template-columns: 26px 1fr; }
+      .owner-ai-event time { grid-column: 2; }
     }
   </style>
 </head>
@@ -415,6 +529,12 @@
         </div>
       </div>
 
+      {% set executive = namespace(readiness_total=0, maintenance=0, cleaning=0) %}
+      {% for property in owner_portal.properties %}
+        {% set executive.readiness_total = executive.readiness_total + property.readiness_percent %}
+        {% if property.availability.maintenance_required %}{% set executive.maintenance = executive.maintenance + 1 %}{% endif %}
+        {% if property.availability.cleaning_required %}{% set executive.cleaning = executive.cleaning + 1 %}{% endif %}
+      {% endfor %}
       <aside class="owner-portal-card owner-portal-hero__panel owner-command-summary" aria-label="{{ ui.property_status_label }}">
         <div class="owner-command-summary__header">
           <div>
@@ -428,26 +548,22 @@
           <div>
             <dt>{{ ui.properties_count_label }}</dt>
             <dd>{{ owner_portal.properties|length }}</dd>
+            <span class="owner-executive-label">Portfolio</span>
           </div>
           <div>
-            <dt data-i18n="ownerDashboardNotificationCenter">{{ ui.notification_center_eyebrow }}</dt>
-            <dd>{{ owner_portal.notifications|length }}</dd>
+            <dt>Overall health</dt>
+            <dd>{% if owner_portal.properties %}{{ (executive.readiness_total / owner_portal.properties|length)|round|int }}%{% else %}—{% endif %}</dd>
+            <span class="owner-executive-label">Operational readiness</span>
           </div>
           <div>
-            <dt data-i18n="ownerDashboardOpenGuestRequestsLabel">{{ ui.open_guest_requests_label }}</dt>
-            <dd>{{ owner_portal.open_request_count }}</dd>
+            <dt>Next event</dt>
+            <dd>{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_portal.calendar_widget.upcoming_events[0].display_label|e }}{% else %}Clear{% endif %}</dd>
+            <span class="owner-executive-label">{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_portal.calendar_widget.upcoming_events[0].event_type|e }}{% else %}No event scheduled{% endif %}</span>
           </div>
           <div>
-            <dt>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrivals') }}</dt>
-            <dd>{{ owner_portal.reservation_widget.stats.upcoming_arrivals }}</dd>
-          </div>
-          <div>
-            <dt data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</dt>
-            <dd>{{ owner_portal.property_health[0].value }}</dd>
-          </div>
-          <div>
-            <dt data-i18n="ownerDashboardPendingActionsLabel">{{ ui.pending_actions_label }}</dt>
-            <dd>{{ owner_portal.reservation_widget.stats.todays_operations }}</dd>
+            <dt>Attention required</dt>
+            <dd>{{ executive.maintenance + owner_portal.open_request_count }}</dd>
+            <span class="owner-executive-label">{{ executive.maintenance }} maintenance · {{ owner_portal.open_request_count }} guest</span>
           </div>
         </dl>
         <a class="button button--primary owner-command-summary__cta" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
@@ -516,6 +632,63 @@
         </div>
       </section>
       </details>
+
+      <section class="owner-ai-center" aria-labelledby="owner-ai-operations-title">
+        <div class="owner-ai-center__main">
+          <div class="owner-ai-center__header">
+            <div>
+              <p class="owner-portal-card__eyebrow">Operational intelligence</p>
+              <h2 id="owner-ai-operations-title">AI Operations</h2>
+              <p>Your portfolio is being coordinated in real time.</p>
+            </div>
+            <span class="owner-ai-live">Monitoring live</span>
+          </div>
+          <div class="owner-ai-timeline">
+            {% for item in owner_portal.activity_timeline[:4] %}
+              <article class="owner-ai-event {% if item.tone in ['warning', 'urgent'] %}owner-ai-event--attention{% endif %}">
+                <span class="owner-ai-event__mark" aria-hidden="true">{% if item.tone in ['warning', 'urgent'] %}!{% else %}✓{% endif %}</span>
+                <div>
+                  <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
+                  <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
+                </div>
+                <time>{{ item.time|e }}</time>
+              </article>
+            {% else %}
+              <article class="owner-ai-event">
+                <span class="owner-ai-event__mark" aria-hidden="true">✓</span>
+                <div>
+                  <strong>Portfolio monitoring active</strong>
+                  <p>New operational updates will appear here automatically.</p>
+                </div>
+                <time>Now</time>
+              </article>
+            {% endfor %}
+            {% for event in owner_portal.calendar_widget.upcoming_events[:2] %}
+              <article class="owner-ai-event">
+                <span class="owner-ai-event__mark" aria-hidden="true">→</span>
+                <div>
+                  <strong>{{ event.title|e }}</strong>
+                  <p>{{ event.property_label|e }}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
+                </div>
+                <time>{{ event.display_label|e }}</time>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+        <aside class="owner-ai-center__aside" aria-labelledby="owner-health-signals-title">
+          <p class="owner-portal-card__eyebrow">Portfolio intelligence</p>
+          <h3 id="owner-health-signals-title">Property health</h3>
+          <div class="owner-health-signals">
+            {% for item in owner_portal.property_health %}
+              <a class="owner-health-signal" href="{{ localized_url('/owners/properties') }}">
+                <span data-i18n="{{ item.label_key }}">{{ item.label }}</span>
+                <strong data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+                <small data-i18n="{{ item.support_key }}">{{ item.support }}</small>
+              </a>
+            {% endfor %}
+          </div>
+        </aside>
+      </section>
 
       {% if owner_portal.onboarding.percentage > 0 %}
         <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-onboarding-progress-title">
