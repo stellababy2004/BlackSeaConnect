@@ -33495,3 +33495,459 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Compact responsive contract: public, owner, operations and professional UI. */
+:is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+  .owner-property-detail-page, .calendar-page, .admin-operations-page,
+  .admin-operations-detail-page, .admin-cockpit-page, .admin-properties-page,
+  .admin-property-detail-page, .professionals-page, .professionals-apply-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page, .professional-login-page) {
+  --ui-ink: #102a43; --ui-text: #243b53; --ui-muted: #52697a;
+  --ui-surface: rgba(255, 255, 255, .95); --ui-border: rgba(16, 42, 67, .14);
+  --ui-accent: #176f70; --ui-success: #216e4e; --ui-warning: #8a5a12; --ui-danger: #a93636;
+  --ui-gap: clamp(10px, 2vw, 18px); --ui-pad: clamp(14px, 3vw, 24px);
+  --ui-radius: clamp(16px, 3vw, 24px); --ui-tap: 44px;
+}
+/* Light owner surfaces always use readable navy ink. */
+:is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page, .calendar-page--owner)
+  :is(.owner-portal-card, .owner-command-summary, .owner-dashboard-disclosure, .owner-operational-command,
+  .owner-properties-panel, .owner-property-card, .owner-property-detail-panel, .owner-property-detail-hero,
+  .owner-property-knowledge-section, .owner-property-knowledge-card, .calendar-panel, .calendar-event) {
+  border-color: var(--ui-border) !important;
+  color: var(--ui-text) !important;
+}
+:is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page, .calendar-page--owner)
+  :is(.owner-portal-card, .owner-command-summary, .owner-dashboard-disclosure, .owner-operational-command,
+  .owner-properties-panel, .owner-property-card, .owner-property-detail-panel, .owner-property-detail-hero,
+  .owner-property-knowledge-section, .owner-property-knowledge-card, .calendar-panel, .calendar-event)
+  :is(h1, h2, h3, h4, strong, dd, a:not(.button)) {
+  color: var(--ui-ink) !important;
+  -webkit-text-fill-color: var(--ui-ink) !important;
+  text-shadow: none !important;
+}
+:is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page, .calendar-page--owner)
+  :is(.owner-portal-card, .owner-command-summary, .owner-dashboard-disclosure, .owner-properties-panel,
+  .owner-property-card, .owner-property-detail-panel, .owner-property-knowledge-section, .calendar-panel, .calendar-event)
+  :is(p, dt, time, small, label, .eyebrow) {
+  color: var(--ui-muted) !important;
+  -webkit-text-fill-color: var(--ui-muted) !important;
+}
+.owner-portal-dashboard-page :is(.owner-status-badge, .owner-notification-item__chip),
+.owner-properties-page :is(.owner-property-card__status, .owner-properties-chip),
+.owner-property-detail-page :is(.owner-property-detail-chip, .owner-property-workspace-tab.is-active) {
+  background: #e3f0ed !important;
+  color: #145c5c !important;
+  -webkit-text-fill-color: #145c5c !important;
+}
+.owner-property-detail-page :is(input, select, textarea),
+.calendar-page--owner :is(input, select, textarea) {
+  border-color: rgba(16, 42, 67, .2) !important;
+  background: #fff !important;
+  color: var(--ui-ink) !important;
+  -webkit-text-fill-color: var(--ui-ink) !important;
+}
+.calendar-page--owner .calendar-hero {
+  background:
+    linear-gradient(90deg, rgba(5, 24, 38, .94), rgba(5, 29, 43, .62)),
+    url("/static/img/blacksea-marina-hero.png") center 58% / cover !important;
+}
+.calendar-page--owner .calendar-hero :is(h1, h2, h3, p, span, strong, .eyebrow) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: 0 2px 18px rgba(0, 16, 28, .4) !important;
+}
+@media (max-width: 1024px) {
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+    .owner-property-detail-page, .calendar-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-cockpit-page, .admin-properties-page, .admin-property-detail-page,
+    .professional-dashboard-page, .professional-tasks-page, .professional-task-page) {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+    .owner-property-detail-page, .calendar-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-cockpit-page, .admin-properties-page, .admin-property-detail-page,
+    .professional-dashboard-page, .professional-tasks-page, .professional-task-page)
+    :is(main, header, section, article, nav, form, fieldset, div, dl) {
+    min-width: 0;
+  }
+  .owner-portal-dashboard-page .owner-operational-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .owner-property-detail-page :is(.owner-property-detail-hero, .owner-property-detail-grid),
+  .calendar-page .calendar-grid,
+  .admin-operations-page .admin-operations-workspace {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-operations-page .admin-live-rail { position: static !important; }
+  .admin-operations-page .admin-operations-board {
+    grid-template-columns: repeat(5, minmax(240px, 1fr)) !important;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain;
+  }
+}
+@media (max-width: 768px) {
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+      .owner-property-detail-page, .calendar-page) :is(.hero, .hero--home) {
+    min-height: 0 !important;
+  }
+
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+      .owner-property-detail-page, .calendar-page) :is(h1, .hero h1) {
+    max-width: 100%;
+    font-size: clamp(2rem, 9vw, 3rem) !important;
+    line-height: 1.04 !important;
+    overflow-wrap: anywhere;
+  }
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+      .owner-property-detail-page, .calendar-page) .topbar {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+    .owner-property-detail-page, .calendar-page) :is(.site-nav, .topbar__actions) {
+    max-width: 100%;
+  }
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+    .owner-property-detail-page, .calendar-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-cockpit-page, .admin-properties-page, .admin-property-detail-page,
+    .professionals-apply-page, .professional-login-page)
+    :is(input:not([type="checkbox"], [type="radio"]), select, textarea) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 46px;
+    font-size: 16px !important;
+  }
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+    .owner-property-detail-page, .calendar-page, .admin-operations-page,
+    .admin-operations-detail-page, .admin-cockpit-page) :is(button, .button, [role="button"]) {
+    min-height: var(--ui-tap);
+    max-width: 100%;
+    touch-action: manipulation;
+  }
+  .owner-portal-dashboard-page .owner-dashboard-masthead__content,
+  .admin-operations-page .admin-operations-hero { grid-template-columns: 1fr !important; }
+
+  .owner-portal-dashboard-page :is(.owner-command-summary__metrics, .owner-operational-kpis),
+  .admin-operations-page :is(.admin-mission-metrics, .admin-operations-kpi-grid),
+  .calendar-page .calendar-hero__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .owner-portal-dashboard-page :is(
+    .owner-portal-grid, .owner-portal-grid--properties,
+    .owner-portal-grid--overview, .owner-portal-section--split
+  ),
+  .owner-properties-page .owner-properties-grid,
+  .owner-property-detail-page :is(
+    .owner-property-detail-dl, .owner-property-detail-summary,
+    .owner-property-detail-calendar-grid, .owner-property-knowledge-grid,
+    .owner-property-integration-grid
+  ),
+  .calendar-page :is(.calendar-filters, .calendar-controls, .calendar-form-grid),
+  :is(.professional-dashboard-page, .professional-tasks-page, .professional-task-page)
+    :is(.professional-dashboard-grid, .professional-tasks-grid, .professional-task-grid) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .owner-properties-page, .owner-property-detail-page,
+  .calendar-page .calendar-shell, .admin-operations-page .admin-operations-shell { padding: 12px !important; }
+  :is(.owner-properties-page .owner-properties-panel,
+      .owner-property-detail-page .owner-property-detail-panel,
+      .calendar-page .calendar-panel) {
+    padding: var(--ui-pad) !important;
+    border-radius: var(--ui-radius) !important;
+  }
+
+  .owner-property-detail-page .owner-property-workspace-tabs {
+    top: 0 !important;
+    width: calc(100% - 24px) !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+  }
+
+  .owner-property-detail-page .owner-property-workspace-tab {
+    flex: 0 0 auto;
+    min-width: max-content !important;
+  }
+
+  .calendar-page .calendar-hero { min-height: 0 !important; padding: 24px 18px !important; }
+
+  :is(.calendar-page .calendar-event-type-picker,
+      .calendar-page .calendar-date-shortcuts,
+      .admin-operations-page .admin-operations-filters) {
+    display: flex !important;
+    max-width: 100%;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    overscroll-behavior-inline: contain;
+  }
+
+  :is(.calendar-page .calendar-event-type-picker button,
+      .calendar-page .calendar-date-shortcuts button,
+      .admin-operations-page .admin-operations-filter) {
+    flex: 0 0 auto;
+  }
+
+  .admin-operations-page .admin-live-rail { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 600px) {
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+      .owner-property-detail-page, .calendar-page) .site-nav {
+    display: flex !important;
+    width: 100%;
+    gap: 6px !important;
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  :is(.home-page, .services-page, .owner-portal-page, .owner-properties-page,
+      .owner-property-detail-page, .calendar-page) .site-nav__link {
+    flex: 0 0 auto;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  .owner-portal-page :is(.owner-portal-auth-layout, .owner-request-service-layout),
+  .owner-portal-dashboard-page .owner-operational-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .owner-property-detail-page :is(.owner-property-detail-actions, .owner-property-actions) {
+    display: grid !important; grid-template-columns: 1fr !important;
+  }
+
+  .admin-operations-page .admin-operations-board {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  .admin-operations-page .admin-operations-column { min-width: 0 !important; min-height: 0 !important; }
+}
+
+@media (max-width: 430px) {
+  .owner-portal-dashboard-page :is(.owner-command-summary__metrics, .owner-operational-kpis),
+  .calendar-page .calendar-hero__stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .owner-portal-dashboard-page .owner-property-card__footer,
+  .owner-properties-page .owner-property-card__facts {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-operations-page .admin-task-drawer { width: 100vw !important; }
+}
+
+/* Authenticated workspace density: daily-use software, not marketing pages. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .admin-cockpit-page,
+  .admin-operations-page, .admin-operations-detail-page, .admin-properties-page,
+  .admin-property-detail-page, .admin-owner-accounts-page, .admin-owner-detail-page,
+  .admin-notifications-page, .admin-events-page, .professional-dashboard-page,
+  .professional-tasks-page, .professional-task-page
+) {
+  --app-shell: 1480px;
+  --app-gap: 14px;
+  --app-pad: 18px;
+  --app-radius: 18px;
+  --app-shadow: 0 10px 30px rgba(18, 44, 62, .07);
+  --app-title: clamp(1.55rem, 2.7vw, 2.5rem);
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page, .reservations-page, .reservation-detail-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+) :is(
+  .owner-dashboard-main, .owner-properties-shell, .owner-property-detail-shell,
+  .calendar-shell, .reservations-shell, .reservation-detail-shell,
+  .admin-cockpit-shell, .admin-operations-shell, .admin-operations-detail-shell,
+  .admin-properties-shell, .admin-property-detail-shell, .admin-owner-accounts-shell,
+  .admin-owner-detail-shell, .admin-notifications-shell, .admin-events-shell,
+  .professional-dashboard-shell, .professional-tasks-shell, .professional-task-shell
+) {
+  width: min(var(--app-shell), calc(100% - 32px));
+  gap: var(--app-gap) !important;
+  padding-block: 16px 34px !important;
+}
+
+:is(
+  .owner-properties-page, .owner-property-detail-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .professional-dashboard-page,
+  .professional-tasks-page, .professional-task-page
+) > :is(.hero, header.hero) {
+  min-height: 0 !important;
+}
+
+:is(
+  .owner-properties-page, .owner-property-detail-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .professional-dashboard-page,
+  .professional-tasks-page, .professional-task-page
+) :is(.hero__content, .owner-property-detail-hero__content) {
+  padding-block: 18px !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page, .reservations-page, .reservation-detail-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+) :is(
+  .owner-portal-card, .owner-properties-panel, .owner-property-detail-panel,
+  .calendar-panel, .reservations-panel, .reservation-detail-panel,
+  .admin-cockpit-panel, .admin-operations-panel, .admin-operations-detail-panel,
+  .admin-properties-panel, .admin-property-detail-panel, .admin-owner-accounts-panel,
+  .admin-owner-detail-panel, .admin-notifications-panel, .admin-events-panel,
+  .professional-panel
+) {
+  padding: var(--app-pad) !important;
+  border-radius: var(--app-radius) !important;
+  box-shadow: var(--app-shadow) !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .calendar-page, .reservations-page,
+  .admin-cockpit-page, .admin-operations-page, .professional-dashboard-page
+) :is(
+  .owner-kpi-grid, .owner-operational-kpis, .calendar-hero__stats,
+  .reservations-kpis, .admin-kpi-grid, .admin-operations-kpi-grid,
+  .professional-kpis
+) {
+  gap: 8px !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .calendar-page, .reservations-page,
+  .admin-cockpit-page, .admin-operations-page, .professional-dashboard-page
+) :is(
+  .owner-kpi-card, .owner-operational-kpi, .calendar-hero__stats > div,
+  .reservations-kpi, .admin-kpi-card, .admin-operations-kpi, .professional-kpi
+) {
+  min-height: 0 !important;
+  padding: 11px 13px !important;
+  border-radius: 12px !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page, .reservations-page, .admin-cockpit-page,
+  .admin-operations-page, .professional-dashboard-page
+) :is(h1, .hero h1) {
+  font-size: var(--app-title) !important;
+  line-height: 1.05 !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page, .reservations-page, .admin-cockpit-page,
+  .admin-operations-page, .professional-dashboard-page
+) :is(.button, button) {
+  min-height: 38px;
+  padding-block: 7px;
+}
+
+.owner-portal-dashboard-page .owner-dashboard-masthead {
+  min-height: 0 !important;
+  padding-bottom: 16px !important;
+}
+
+.owner-portal-dashboard-page .owner-dashboard-masthead__content {
+  padding-top: 18px !important;
+  padding-bottom: 0 !important;
+}
+
+.owner-portal-dashboard-page :is(.owner-dashboard-section, .owner-dashboard-disclosure) {
+  margin-block: 8px !important;
+}
+
+.owner-properties-page :is(.owner-properties-hero, .owner-properties-panel:first-child),
+.professional-dashboard-page .professional-hero,
+.reservations-page .reservations-hero {
+  padding: 18px 20px !important;
+}
+
+.owner-property-detail-page .owner-property-detail-hero {
+  min-height: 0 !important;
+  grid-template-columns: minmax(260px, .7fr) minmax(0, 1.3fr) !important;
+}
+
+.owner-property-detail-page .owner-property-detail-hero__visual {
+  min-height: 260px !important;
+}
+
+.owner-property-detail-page .owner-property-workspace-tabs {
+  margin-top: 8px !important;
+}
+
+.calendar-page .calendar-hero {
+  min-height: 190px !important;
+  padding: 22px 26px !important;
+}
+
+.calendar-page .calendar-hero__stats {
+  margin-top: 14px !important;
+}
+
+.calendar-page .calendar-panel {
+  scroll-margin-top: 76px;
+}
+
+.reservations-page .reservations-shell,
+.admin-operations-page .admin-operations-shell {
+  padding-top: 12px !important;
+}
+
+.reservations-page :is(.reservations-grid, .reservations-layout) {
+  gap: 12px !important;
+}
+
+.admin-operations-page :is(.admin-operations-hero, .admin-operations-panel) {
+  padding: 14px 16px !important;
+}
+
+.admin-operations-page .admin-operations-column {
+  min-height: 360px !important;
+}
+
+@media (max-width: 900px) {
+  .owner-property-detail-page .owner-property-detail-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .calendar-page .calendar-hero {
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .calendar-page, .reservations-page, .reservation-detail-page,
+    .admin-cockpit-page, .admin-operations-page, .professional-dashboard-page,
+    .professional-tasks-page, .professional-task-page
+  ) {
+    --app-gap: 10px;
+    --app-pad: 14px;
+    --app-radius: 15px;
+  }
+
+  .calendar-page .calendar-hero,
+  .reservations-page .reservations-hero,
+  .professional-dashboard-page .professional-hero {
+    padding: 16px !important;
+  }
+}
