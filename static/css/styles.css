@@ -33933,6 +33933,126 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   }
 }
 
+/* Shared interaction and state quality for authenticated owner workflows. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid rgba(23, 111, 112, .28);
+  outline-offset: 3px;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(.button, button, .owner-operational-action, .calendar-tab, .owner-property-workspace-tab) {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease,
+    background-color 160ms ease, color 160ms ease;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page--owner, .reservations-page
+) :is(
+  .owner-portal-card, .owner-property-card, .owner-dashboard-disclosure,
+  .owner-property-detail-panel, .calendar-event, .reservations-card
+) {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .calendar-page--owner, .reservations-page
+  ) :is(.owner-property-card, .calendar-event, .reservations-card):hover {
+    transform: translateY(-2px);
+    border-color: rgba(23, 111, 112, .24) !important;
+    box-shadow: 0 16px 38px rgba(18, 44, 62, .11) !important;
+  }
+
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .calendar-page--owner, .reservations-page
+  ) :is(.button, button, .owner-operational-action):hover {
+    transform: translateY(-1px);
+  }
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(label, dt, .owner-kpi-card__label, .calendar-summary-card span) {
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(input, select, textarea)::placeholder {
+  color: #6d7f8c;
+  opacity: 1;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .calendar-page--owner, .reservations-page, .reservation-detail-page
+) :is(
+  .owner-activity-empty, .owner-properties-empty, .owner-property-detail-empty,
+  .calendar-empty, .calendar-note, .reservations-empty, .reservation-detail-empty
+) {
+  padding: 16px;
+  border: 1px dashed var(--ui-border);
+  border-radius: 14px;
+  background: rgba(244, 248, 247, .8);
+  color: var(--ui-muted);
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is([aria-busy="true"], .is-loading) {
+  cursor: progress;
+  opacity: .68;
+  pointer-events: none;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(.flash--success, .form-success, .alert--success) {
+  border-color: rgba(33, 110, 78, .24);
+  background: #e7f4ed;
+  color: var(--ui-success);
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+  .reservations-page, .reservation-detail-page
+) :is(.flash--error, .form-error, .alert--error, [aria-invalid="true"]) {
+  border-color: rgba(169, 54, 54, .34) !important;
+  color: var(--ui-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page--owner,
+    .reservations-page, .reservation-detail-page
+  ) * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+
 @media (max-width: 600px) {
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,

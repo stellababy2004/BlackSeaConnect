@@ -445,9 +445,9 @@
             <dt data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</dt>
             <dd>{{ owner_portal.property_health[0].value }}</dd>
           </div>
-          <div class="is-placeholder">
-            <dt>Weather</dt>
-            <dd>Coming soon</dd>
+          <div>
+            <dt data-i18n="ownerDashboardPendingActionsLabel">{{ ui.pending_actions_label }}</dt>
+            <dd>{{ owner_portal.reservation_widget.stats.todays_operations }}</dd>
           </div>
         </dl>
         <a class="button button--primary owner-command-summary__cta" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
@@ -484,21 +484,21 @@
           {% if property.availability.maintenance_required %}{% set ops.maintenance = ops.maintenance + 1 %}{% endif %}
           {% if property.availability.cleaning_required %}{% set ops.cleaning = ops.cleaning + 1 %}{% endif %}
         {% endfor %}
-        <div class="owner-operational-kpis" aria-label="Today's operational KPIs">
+        <div class="owner-operational-kpis" aria-label="{{ ui.quick_actions_eyebrow }}">
           <article class="owner-operational-kpi owner-operational-kpi--info">
             <span>{{ ui.arrivals_today_label }}</span>
             <strong>{{ owner_portal.reservation_widget.stats.arrivals_today }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--success">
-            <span>Today's departures</span>
-            <strong>—</strong>
+            <span data-i18n="ownerDashboardUpcomingDeparturesLabel">{{ ui.upcoming_departures_label }}</span>
+            <strong>{{ owner_portal.reservation_widget.stats.upcoming_departures }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--warning">
-            <span>Active maintenance</span>
+            <span data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</span>
             <strong>{{ ops.maintenance }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--info">
-            <span>Cleaning today</span>
+            <span data-i18n="ownerDashboardCleaningPendingLabel">{{ ui.cleaning_pending_label }}</span>
             <strong>{{ ops.cleaning }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--urgent">
@@ -506,16 +506,12 @@
             <strong>{{ owner_portal.open_request_count }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--warning">
-            <span>Pending approvals</span>
+            <span data-i18n="ownerDashboardPendingActionsLabel">{{ ui.pending_actions_label }}</span>
             <strong>{{ owner_portal.reservation_widget.stats.todays_operations }}</strong>
           </article>
           <article class="owner-operational-kpi owner-operational-kpi--info">
-            <span>Guest messages</span>
+            <span data-i18n="ownerDashboardNotificationCenter">{{ ui.notification_center_eyebrow }}</span>
             <strong>{{ owner_portal.notifications|length }}</strong>
-          </article>
-          <article class="owner-operational-kpi">
-            <span>Revenue today</span>
-            <strong>—</strong>
           </article>
         </div>
       </section>
