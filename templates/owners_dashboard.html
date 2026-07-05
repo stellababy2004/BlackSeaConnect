@@ -19,6 +19,352 @@
   <meta name="twitter:title" data-i18n-attr="content:ownerDashboardPageTitleOg" content="{{ owner_portal.ui.page_title }}">
   <meta name="twitter:description" data-i18n-attr="content:ownerDashboardMetaOg" content="{{ owner_portal.ui.page_meta }}">
   <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    /* Dashboard-only presentation layer: compact, disclosure-led operational workspace. */
+    .owner-dashboard-page {
+      background: #f5f7f6;
+    }
+    .owner-dashboard-masthead {
+      min-height: 0;
+      padding-bottom: 22px;
+    }
+    .owner-dashboard-masthead__content {
+      grid-template-columns: minmax(230px, .72fr) minmax(560px, 1.55fr);
+      gap: 24px;
+      padding-top: 28px;
+      padding-bottom: 0;
+      align-items: end;
+    }
+    .owner-dashboard-masthead .hero__copy h1 {
+      max-width: 650px;
+      margin-bottom: 8px;
+      font-size: clamp(2rem, 4vw, 3.45rem);
+      line-height: .98;
+    }
+    .owner-dashboard-masthead .hero__text {
+      max-width: 540px;
+      margin-bottom: 0;
+    }
+    .owner-dashboard-masthead .hero__cta {
+      display: flex;
+      margin-top: 12px;
+    }
+    .owner-dashboard-masthead .hero__cta .button { min-height: 38px; padding: 8px 14px; }
+    .owner-command-summary {
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 18px 50px rgba(12, 32, 27, .16);
+    }
+    .owner-command-summary__header h2 {
+      margin: 2px 0 0;
+      font-size: 1.05rem;
+    }
+    .owner-command-summary__status { display: none; }
+    .owner-command-summary__cta {
+      min-height: 36px;
+      margin-top: 12px;
+      padding: 7px 13px;
+      font-size: .76rem;
+    }
+    .owner-command-summary__metrics {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0;
+      margin: 14px 0 0;
+    }
+    .owner-command-summary__metrics > div {
+      min-width: 0;
+      padding: 4px 11px;
+      border-left: 1px solid #e1e7e3;
+    }
+    .owner-command-summary__metrics > div:first-child { border-left: 0; padding-left: 0; }
+    .owner-command-summary__metrics dt {
+      min-height: 28px;
+      color: #65746d;
+      font-size: .68rem;
+      line-height: 1.15;
+    }
+    .owner-command-summary__metrics dd {
+      margin: 5px 0 0;
+      color: #17382e;
+      font-size: 1.28rem;
+      font-weight: 750;
+    }
+    .owner-command-summary__metrics .is-placeholder dd {
+      color: #9aa6a0;
+      font-size: .9rem;
+    }
+    .owner-dashboard-main {
+      max-width: 1440px;
+      padding-top: 22px;
+      padding-bottom: 40px;
+    }
+    .owner-dashboard-section {
+      margin-top: 0;
+      padding-block: 14px;
+    }
+    .owner-dashboard-disclosure {
+      margin: 12px 0;
+      overflow: hidden;
+      border: 1px solid #dfe6e2;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(31, 55, 47, .055);
+    }
+    .owner-dashboard-disclosure > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 66px;
+      padding: 14px 18px;
+      cursor: pointer;
+      list-style: none;
+      color: #17382e;
+    }
+    .owner-dashboard-disclosure > summary::-webkit-details-marker { display: none; }
+    .owner-dashboard-disclosure > summary::after {
+      content: "+";
+      display: grid;
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      place-items: center;
+      border-radius: 50%;
+      background: #edf3f0;
+      font-size: 1.25rem;
+    }
+    .owner-dashboard-disclosure[open] > summary::after { content: "−"; }
+    .owner-dashboard-disclosure[open] > summary {
+      border-bottom: 1px solid #e5ebe8;
+    }
+    .owner-dashboard-disclosure > summary span { font-weight: 750; }
+    .owner-dashboard-disclosure > summary strong {
+      margin-left: auto;
+      color: #718079;
+      font-size: .78rem;
+      font-weight: 650;
+    }
+    .owner-dashboard-disclosure .owner-dashboard-section {
+      padding: 18px;
+    }
+    .owner-operational-command {
+      padding: 16px 18px;
+      border: 0;
+      box-shadow: none;
+    }
+    .owner-operational-kpis {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+    }
+    .owner-operational-kpi {
+      min-width: 0;
+      min-height: 76px;
+      padding: 11px;
+      border: 1px solid #e1e8e4;
+      border-radius: 12px;
+      background: #f8faf9;
+      box-shadow: none;
+    }
+    .owner-operational-kpi span {
+      display: block;
+      min-height: 26px;
+      color: #697971;
+      font-size: .66rem;
+      line-height: 1.15;
+    }
+    .owner-operational-kpi strong {
+      display: block;
+      margin-top: 4px;
+      color: #17382e;
+      font-size: 1.2rem;
+    }
+    .owner-operational-actions { gap: 8px; }
+    .owner-operational-action { min-height: 40px; padding: 9px 14px; }
+    .owner-portal-grid--properties {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+      gap: 16px;
+    }
+    .owner-property-card--feature {
+      display: grid;
+      grid-template-rows: 190px auto auto auto;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .owner-property-card__cover { height: 190px; margin: 0; }
+    .owner-property-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+    .owner-property-card__hero { padding: 15px 16px 0; }
+    .owner-property-card__location { margin: 3px 16px 12px; }
+    .owner-property-readiness,
+    .owner-property-card__chips,
+    .owner-property-card__facts,
+    .owner-property-card__updated { display: none; }
+    .owner-property-card__stay {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      margin: 0 16px 14px;
+      overflow: hidden;
+      border: 1px solid #e1e8e4;
+      border-radius: 11px;
+      background: #e1e8e4;
+    }
+    .owner-property-card__stay > div {
+      min-width: 0;
+      padding: 10px;
+      background: #f8faf9;
+    }
+    .owner-property-card__stay span { font-size: .68rem; }
+    .owner-property-card__stay strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      font-size: .78rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .owner-property-card__footer {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: auto;
+      padding: 0;
+      border-top: 1px solid #e3e9e6;
+      background: #e3e9e6;
+    }
+    .owner-property-card__footer .button {
+      min-width: 0;
+      padding: 12px 6px;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      font-size: .74rem;
+      text-align: center;
+    }
+    .owner-property-card__footer .button:first-of-type { background: #17382e; color: #fff; }
+    .owner-kpi-grid { gap: 10px; }
+    .owner-kpi-card { min-height: 0; padding: 13px; }
+    .owner-activity-list { gap: 0; }
+    .owner-activity-item {
+      padding: 12px 0;
+      border: 0;
+      border-bottom: 1px solid #e5ebe8;
+      border-radius: 0;
+    }
+    .owner-activity-item:last-child { border-bottom: 0; }
+    .owner-dashboard-section--secondary { display: none; }
+    .owner-onboarding-progress {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      grid-template-areas:
+        "copy steps"
+        "meter steps";
+      gap: 8px 22px;
+      max-height: 250px;
+      padding: 18px;
+      overflow: hidden;
+    }
+    .owner-onboarding-progress > .owner-portal-card__eyebrow,
+    .owner-onboarding-progress > h2 { grid-area: copy; }
+    .owner-onboarding-progress > h2 {
+      align-self: end;
+      margin: 20px 0 0;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+    .owner-onboarding-progress__meter {
+      grid-area: meter;
+      align-self: start;
+      height: 8px;
+      margin: 5px 0 0;
+      border-radius: 99px;
+      background: #e3ebe7;
+    }
+    .owner-onboarding-progress__meter::before {
+      content: "";
+      display: block;
+      width: var(--onboarding-progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2c7b63, #69a98e);
+    }
+    .owner-onboarding-progress__meter strong {
+      display: block;
+      margin-top: 10px;
+      font-size: .8rem;
+    }
+    .owner-onboarding-progress__steps {
+      grid-area: steps;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .owner-onboarding-step { min-height: 0; padding: 8px 10px; }
+    .owner-onboarding-step__index { width: 24px; height: 24px; }
+    .owner-onboarding-step p { display: none; }
+    .owner-dashboard-disclosure .owner-portal-grid--overview {
+      align-items: start;
+      gap: 12px;
+    }
+    .owner-dashboard-disclosure .owner-portal-card--snapshot,
+    .owner-dashboard-disclosure .owner-portal-card--activity {
+      min-height: 0;
+      padding: 15px;
+    }
+    .owner-notification-item:nth-child(n+6) { display: none; }
+    .owner-notification-item { padding: 12px; }
+    .owner-timeline-list { position: relative; gap: 0; }
+    .owner-timeline-list::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 13px;
+      width: 1px;
+      background: #dce5e0;
+    }
+    .owner-timeline-item {
+      position: relative;
+      padding: 8px 0 8px 38px;
+      border: 0;
+      background: transparent;
+    }
+    .owner-timeline-item__icon { position: absolute; top: 13px; left: 7px; z-index: 1; }
+    @media (max-width: 980px) {
+      .owner-dashboard-masthead__content { grid-template-columns: 1fr; }
+      .owner-command-summary__metrics { grid-template-columns: repeat(3, 1fr); }
+      .owner-command-summary__metrics > div:nth-child(4) { border-left: 0; padding-left: 0; }
+      .owner-operational-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .owner-property-card__stay { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .owner-dashboard-masthead__content { padding-top: 18px; }
+      .owner-dashboard-masthead .hero__copy h1 { font-size: 2rem; }
+      .owner-command-summary__metrics { grid-template-columns: repeat(2, 1fr); }
+      .owner-command-summary__metrics > div:nth-child(odd) { border-left: 0; padding-left: 0; }
+      .owner-command-summary__metrics > div:nth-child(4) { border-left: 1px solid #e1e7e3; padding-left: 11px; }
+      .owner-dashboard-disclosure > summary { min-height: 58px; padding: 12px 14px; }
+      .owner-dashboard-disclosure .owner-dashboard-section { padding: 14px; }
+      .owner-operational-actions__label { width: 100%; }
+      .owner-operational-action { flex: 1 1 calc(50% - 8px); text-align: center; }
+      .owner-portal-grid--overview,
+      .owner-portal-section--split { grid-template-columns: 1fr; }
+      .owner-property-card__stay { grid-template-columns: 1fr; }
+      .owner-property-card__footer .button { font-size: .66rem; }
+      .owner-operational-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .owner-onboarding-progress {
+        grid-template-columns: 1fr;
+        grid-template-areas: "copy" "meter" "steps";
+        max-height: none;
+      }
+      .owner-onboarding-progress__steps { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page">
   {% set ui = owner_portal.ui %}
@@ -84,12 +430,24 @@
             <dd>{{ owner_portal.properties|length }}</dd>
           </div>
           <div>
-            <dt>{{ ui.arrivals_today_label }}</dt>
-            <dd>{{ owner_portal.reservation_widget.stats.arrivals_today }}</dd>
+            <dt data-i18n="ownerDashboardNotificationCenter">{{ ui.notification_center_eyebrow }}</dt>
+            <dd>{{ owner_portal.notifications|length }}</dd>
           </div>
           <div>
             <dt data-i18n="ownerDashboardOpenGuestRequestsLabel">{{ ui.open_guest_requests_label }}</dt>
             <dd>{{ owner_portal.open_request_count }}</dd>
+          </div>
+          <div>
+            <dt>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrivals') }}</dt>
+            <dd>{{ owner_portal.reservation_widget.stats.upcoming_arrivals }}</dd>
+          </div>
+          <div>
+            <dt data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</dt>
+            <dd>{{ owner_portal.property_health[0].value }}</dd>
+          </div>
+          <div class="is-placeholder">
+            <dt>Weather</dt>
+            <dd>Coming soon</dd>
           </div>
         </dl>
         <a class="button button--primary owner-command-summary__cta" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
@@ -108,6 +466,11 @@
         </article>
       </section>
     {% else %}
+      <details class="owner-dashboard-disclosure" open>
+        <summary>
+          <span data-i18n="ownerDashboardQuickActions">{{ ui.quick_actions_eyebrow }}</span>
+          <strong>{{ public_i18n('common', 'dashboardOperationalShortcuts', 'Operational shortcuts') }}</strong>
+        </summary>
       <section class="owner-operational-command" aria-label="{{ ui.quick_actions_eyebrow }}">
         <div class="owner-operational-actions">
           <span class="owner-operational-actions__label" data-i18n="ownerDashboardQuickActions">{{ ui.quick_actions_eyebrow }}</span>
@@ -116,33 +479,51 @@
           <a class="owner-operational-action" href="{{ localized_url('/owners/properties') }}">{{ ui.upload_photo }}</a>
           <a class="owner-operational-action owner-operational-action--urgent" href="{{ localized_url('/owners/request-service?category=maintenance') }}">{{ ui.emergency_issue }}</a>
         </div>
-        <div class="owner-operational-kpis">
+        {% set ops = namespace(maintenance=0, cleaning=0) %}
+        {% for property in owner_portal.properties %}
+          {% if property.availability.maintenance_required %}{% set ops.maintenance = ops.maintenance + 1 %}{% endif %}
+          {% if property.availability.cleaning_required %}{% set ops.cleaning = ops.cleaning + 1 %}{% endif %}
+        {% endfor %}
+        <div class="owner-operational-kpis" aria-label="Today's operational KPIs">
           <article class="owner-operational-kpi owner-operational-kpi--info">
-            <span>{{ ui.properties_count_label }}</span>
-            <strong>{{ owner_portal.properties|length }}</strong>
-          </article>
-          <article class="owner-operational-kpi owner-operational-kpi--success">
             <span>{{ ui.arrivals_today_label }}</span>
             <strong>{{ owner_portal.reservation_widget.stats.arrivals_today }}</strong>
           </article>
+          <article class="owner-operational-kpi owner-operational-kpi--success">
+            <span>Today's departures</span>
+            <strong>—</strong>
+          </article>
           <article class="owner-operational-kpi owner-operational-kpi--warning">
+            <span>Active maintenance</span>
+            <strong>{{ ops.maintenance }}</strong>
+          </article>
+          <article class="owner-operational-kpi owner-operational-kpi--info">
+            <span>Cleaning today</span>
+            <strong>{{ ops.cleaning }}</strong>
+          </article>
+          <article class="owner-operational-kpi owner-operational-kpi--urgent">
             <span data-i18n="ownerDashboardOpenGuestRequestsLabel">{{ ui.open_guest_requests_label }}</span>
             <strong>{{ owner_portal.open_request_count }}</strong>
           </article>
-          <article class="owner-operational-kpi owner-operational-kpi--info">
-            <span data-i18n="ownerDashboardUpcomingDeparturesLabel">{{ ui.upcoming_departures_label }}</span>
-            <strong>{{ owner_portal.reservation_widget.stats.upcoming_departures }}</strong>
-          </article>
-          <article class="owner-operational-kpi {% if owner_portal.reservation_widget.stats.todays_operations > 0 %}owner-operational-kpi--urgent{% else %}owner-operational-kpi--success{% endif %}">
-            <span data-i18n="ownerDashboardPendingActionsLabel">{{ ui.pending_actions_label }}</span>
+          <article class="owner-operational-kpi owner-operational-kpi--warning">
+            <span>Pending approvals</span>
             <strong>{{ owner_portal.reservation_widget.stats.todays_operations }}</strong>
+          </article>
+          <article class="owner-operational-kpi owner-operational-kpi--info">
+            <span>Guest messages</span>
+            <strong>{{ owner_portal.notifications|length }}</strong>
+          </article>
+          <article class="owner-operational-kpi">
+            <span>Revenue today</span>
+            <strong>—</strong>
           </article>
         </div>
       </section>
+      </details>
 
       {% if owner_portal.onboarding.percentage > 0 %}
         <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-onboarding-progress-title">
-          <article class="owner-portal-card owner-portal-card--summary owner-onboarding-progress">
+          <article class="owner-portal-card owner-portal-card--summary owner-onboarding-progress" style="--onboarding-progress: {{ owner_portal.onboarding.percentage }}%;">
             <p class="owner-portal-card__eyebrow" data-i18n="ownerOnboardingProgressEyebrow">{{ ui.onboarding_eyebrow }}</p>
             <h2 id="owner-onboarding-progress-title" data-i18n="ownerOnboardingProgressTitle">{{ ui.onboarding_title }}</h2>
             <div class="owner-onboarding-progress__meter" aria-label="{{ ui.onboarding_title }}">
@@ -163,6 +544,11 @@
         </section>
       {% endif %}
 
+      <details class="owner-dashboard-disclosure" open>
+        <summary>
+          <span data-i18n="ownerDashboardPropertyOverview">{{ ui.summary_eyebrow }}</span>
+          <strong>{{ owner_portal.properties|length }} {{ ui.properties_count_label }}</strong>
+        </summary>
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-properties-title">
         <div class="section-heading">
           <p class="section-heading__eyebrow" data-i18n="ownerDashboardPropertiesEyebrow">{{ ui.properties_eyebrow }}</p>
@@ -201,8 +587,20 @@
                   <strong>{{ property.availability.upcoming_arrival.arrival_datetime|default('—', true)|e }}</strong>
                 </div>
                 <div>
-                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingDeparturesLabel', 'Upcoming departure') }}</span>
-                  <strong>{{ property.availability.upcoming_departure.departure_datetime|default('—', true)|e }}</strong>
+                  <span data-i18n="ownerDashboardOpenGuestRequestsLabel">{{ ui.open_guest_requests_label }}</span>
+                  <strong>{{ owner_portal.open_request_count }}</strong>
+                </div>
+                <div>
+                  <span data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</span>
+                  <strong>{% if property.availability.maintenance_required %}1{% else %}0{% endif %}</strong>
+                </div>
+                <div>
+                  <span>Cleaning</span>
+                  <strong>{% if property.availability.cleaning_required %}1{% else %}0{% endif %}</strong>
+                </div>
+                <div>
+                  <span>Occupancy</span>
+                  <strong>{{ property.availability.occupancy_percent }}%</strong>
                 </div>
               </div>
               <div class="owner-property-card__chips">
@@ -238,11 +636,14 @@
               <div class="owner-property-card__footer">
                 <span class="owner-property-card__updated">{{ property.last_updated_display|e }}</span>
                 <a class="button button--secondary" href="{{ localized_url('/owners/properties/' ~ property.id) }}">{{ ui.view_property }}</a>
+                <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property.name) }}">{{ public_i18n('common', 'dashboardCalendarNav', 'Calendar') }}</a>
+                <a class="button button--secondary" href="{{ localized_url('/owners/request-service?property_id=' ~ property.id) }}">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
               </div>
             </article>
           {% endfor %}
         </div>
       </section>
+      </details>
 
       <details class="owner-dashboard-disclosure">
         <summary>
@@ -310,6 +711,11 @@
       </section>
       </details>
 
+      <details class="owner-dashboard-disclosure">
+        <summary>
+          <span>{{ public_i18n('common', 'dashboardReservationsNav', 'Reservations') }}</span>
+          <strong>{{ owner_portal.reservation_widget.stats.upcoming_arrivals }} {{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'upcoming arrivals') }}</strong>
+        </summary>
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-reservations-title">
         <div class="section-heading">
           <p class="section-heading__eyebrow">{{ public_i18n('common', 'dashboardBookingEngine', 'Booking engine') }}</p>
@@ -355,11 +761,11 @@
                 {% for reservation in owner_portal.reservation_widget.upcoming_arrivals %}
                   <div class="owner-activity-item">
                     <div class="owner-activity-item__meta">
-                      <span class="owner-status-badge owner-status-badge--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
-                      <time>{{ reservation.arrival_datetime|e }}</time>
+                      <span class="owner-status-badge owner-status-badge--{{ reservation.status|lower|replace(' ', '-') }}">{{ reservation.status|default(reservation.property_status, true)|e }}</span>
+                      <time>Arrival · {{ reservation.arrival_datetime|e }}</time>
                     </div>
                     <strong>{{ reservation.guest_label|e }}</strong>
-                    <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
+                    <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}{% if reservation.departure_datetime %} · Departure {{ reservation.departure_datetime|e }}{% endif %}</p>
                   </div>
                 {% endfor %}
               </div>
@@ -369,8 +775,9 @@
           </article>
         </div>
       </section>
+      </details>
 
-      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-property-overview-title">
+      <section class="owner-portal-section owner-dashboard-section owner-dashboard-section--secondary" aria-labelledby="owner-property-overview-title">
       <div class="section-heading">
         <p class="section-heading__eyebrow" data-i18n="ownerDashboardSummaryEyebrow">{{ ui.summary_eyebrow }}</p>
         <h2 id="owner-property-overview-title" data-i18n="ownerDashboardSummaryTitle">{{ ui.summary_title }}</h2>
@@ -417,7 +824,7 @@
       </div>
     </section>
 
-    <section class="owner-portal-section owner-portal-section--split owner-dashboard-section" aria-labelledby="owner-property-health-title">
+    <section class="owner-portal-section owner-portal-section--split owner-dashboard-section owner-dashboard-section--secondary" aria-labelledby="owner-property-health-title">
       <article class="owner-portal-card owner-portal-card--health">
         <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyHealth">{{ ui.property_health_eyebrow }}</p>
         <h2 id="owner-property-health-title" data-i18n="ownerDashboardPropertyHealthTitle">{{ ui.property_health_title }}</h2>
@@ -488,6 +895,11 @@
     </section>
     </details>
 
+    <details class="owner-dashboard-disclosure">
+      <summary>
+        <span data-i18n="ownerDashboardActivityTimeline">{{ ui.activity_timeline_eyebrow }}</span>
+        <strong>{{ owner_portal.activity_timeline|length }} updates</strong>
+      </summary>
     <section class="owner-portal-section owner-portal-section--split owner-dashboard-section owner-dashboard-section--timeline" aria-labelledby="owner-activity-timeline-title">
       <article class="owner-portal-card owner-portal-card--timeline">
         <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardActivityTimeline">{{ ui.activity_timeline_eyebrow }}</p>
@@ -511,6 +923,7 @@
       </article>
 
     </section>
+    </details>
 
     <details class="owner-dashboard-disclosure">
       <summary>
@@ -522,19 +935,21 @@
         <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardNotificationCenter">{{ ui.notification_center_eyebrow }}</p>
         <h2 id="owner-notification-center-title" data-i18n="ownerDashboardNotificationCenterTitle">{{ ui.notification_center_title }}</h2>
         <div class="owner-notification-list">
-          {% for notification in owner_portal.notifications %}
+          {% for notification in owner_portal.notifications[:5] %}
             <div class="owner-notification-item owner-notification-item--{{ notification.tone|e }}">
               <span class="owner-notification-item__icon" aria-hidden="true"></span>
               <div>
                 <div class="owner-notification-item__header">
                   <strong data-i18n="{{ notification.label_key }}">{{ notification.label }}</strong>
-                  <span class="owner-notification-item__chip">{{ ui.notification_update }}</span>
+                  <span class="owner-notification-item__chip">{{ notification.tone|title }} · {{ ui.notification_update }}</span>
                 </div>
                 <p data-i18n="{{ notification.detail_key }}">{{ notification.detail }}</p>
+                <time class="owner-notification-item__time">{{ public_i18n('ownersDashboard', 'ownerDashboardTimelineRecently', 'Recently') }}</time>
               </div>
             </div>
           {% endfor %}
         </div>
+        <a class="button button--secondary" href="#owner-activity-timeline-title">{{ public_i18n('common', 'dashboardViewAll', 'View all') }}</a>
       </article>
 
       <article class="owner-portal-card owner-portal-card--activity">
