@@ -16926,6 +16926,319 @@ def _professional_account_display_label(account_record):
     return label or str(account.get("email", "")).strip() or "Professional"
 
 
+def _demo_professional_seed_allowed():
+    environment = str(os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development").strip().lower()
+    if environment not in {"production", "prod"}:
+        return True
+    return str(os.getenv("ALLOW_DEMO_PROFESSIONAL_SEED", "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _seed_demo_professional_account():
+    professional_id = "demo-professional-field-ops"
+    professional_email = "demo.professional@example.test"
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    now_iso = now.isoformat().replace("+00:00", "Z")
+    professional = _upsert_professional_account({
+        "id": professional_id,
+        "created_at": now_iso,
+        "full_name": "Alex Morgan",
+        "email": professional_email,
+        "phone": "+359 888 000 314",
+        "company": "BlackSea Field Operations",
+        "service_categories": "Cleaning, Inspection, Maintenance, Concierge Support",
+        "status": "ACTIVE",
+        "last_login_at": "",
+        "organization_id": GLOBAL_ORGANIZATION_ID,
+    })
+    if not professional:
+        raise RuntimeError("Could not create the demo professional account.")
+
+    def _iso(delta, *, hour=None, minute=0):
+        value = now + delta
+        if hour is not None:
+            value = value.replace(hour=hour, minute=minute, second=0)
+        return value.isoformat().replace("+00:00", "Z")
+
+    def _checklist(*items, completed=0):
+        return _operations_task_json_dumps([
+            {
+                "id": f"item-{index:02d}",
+                "label": label,
+                "checked": index <= completed,
+                "updated_at": now_iso if index <= completed else "",
+            }
+            for index, label in enumerate(items, start=1)
+        ])
+
+    def _seed_task(task_payload):
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            table_info = conn.execute("PRAGMA table_info(operations_tasks)").fetchall()
+            primary_key_columns = {
+                str(row["name"])
+                for row in table_info
+                if int(row["pk"] or 0) > 0
+            }
+
+        if "id" in primary_key_columns:
+            return _upsert_operations_task_from_source(task_payload)
+
+        task_id = str(task_payload["id"])
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            conn.execute(
+                """
+                INSERT INTO operations_tasks (
+                    request_id, owner_id, property_id, created_at, updated_at, title,
+                    property_name, property_location, owner_name, owner_email, category,
+                    priority, status, admin_notes, request_status, id, source_type,
+                    source_id, assigned_to, due_date, notes, completed_at, checklist_json,
+                    attachments_json, comments_json, assigned_professional_id,
+                    completion_report_json, organization_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(request_id) DO UPDATE SET
+                    owner_id = excluded.owner_id,
+                    property_id = excluded.property_id,
+                    updated_at = excluded.updated_at,
+                    title = excluded.title,
+                    property_name = excluded.property_name,
+                    property_location = excluded.property_location,
+                    owner_name = excluded.owner_name,
+                    owner_email = excluded.owner_email,
+                    category = excluded.category,
+                    priority = excluded.priority,
+                    status = excluded.status,
+                    admin_notes = excluded.admin_notes,
+                    request_status = excluded.request_status,
+                    id = excluded.id,
+                    source_type = excluded.source_type,
+                    source_id = excluded.source_id,
+                    assigned_to = excluded.assigned_to,
+                    due_date = excluded.due_date,
+                    notes = excluded.notes,
+                    completed_at = excluded.completed_at,
+                    checklist_json = excluded.checklist_json,
+                    attachments_json = excluded.attachments_json,
+                    comments_json = excluded.comments_json,
+                    assigned_professional_id = excluded.assigned_professional_id,
+                    completion_report_json = excluded.completion_report_json,
+                    organization_id = excluded.organization_id
+                """,
+                (
+                    task_id,
+                    task_payload["owner_id"],
+                    task_payload["property_id"],
+                    task_payload["created_at"],
+                    task_payload["updated_at"],
+                    task_payload["title"],
+                    task_payload["property_name"],
+                    task_payload["property_location"],
+                    task_payload["owner_name"],
+                    task_payload["owner_email"],
+                    task_payload["category"],
+                    task_payload["priority"],
+                    task_payload["status"],
+                    task_payload["admin_notes"],
+                    task_payload["request_status"],
+                    task_id,
+                    task_payload["source_type"],
+                    task_id,
+                    task_payload["assigned_to"],
+                    task_payload["due_date"],
+                    task_payload["notes"],
+                    task_payload.get("completed_at", ""),
+                    task_payload["checklist_json"],
+                    task_payload["attachments_json"],
+                    task_payload["comments_json"],
+                    task_payload["assigned_professional_id"],
+                    task_payload.get("completion_report_json", _operations_task_json_dumps({})),
+                    task_payload["organization_id"],
+                ),
+            )
+        return _find_operations_task(task_id)
+
+    task_specs = (
+        {
+            "id": "demo-pro-task-turnover",
+            "title": "Guest turnover and arrival preparation",
+            "category": "Cleaning",
+            "property_id": "demo-field-marina-villa",
+            "property_name": "Marina Horizon Villa",
+            "property_location": "Sveti Vlas Marina",
+            "owner_name": "Elena Petrova",
+            "owner_email": "elena.demo@example.test",
+            "priority": "HIGH",
+            "status": "IN_PROGRESS",
+            "due_date": _iso(timedelta(), hour=12)[:16],
+            "notes": "Complete the turnover before the 15:00 guest arrival. Use the fragrance-free guest supplies stored in the utility room.",
+            "checklist_json": _checklist(
+                "Photograph rooms before work",
+                "Clean bathrooms and replenish toiletries",
+                "Clean kitchen and check coffee station",
+                "Refresh linen and towels",
+                "Prepare balcony and windows",
+                "Upload completion photos",
+                completed=3,
+            ),
+        },
+        {
+            "id": "demo-pro-task-arrival-inspection",
+            "title": "Pre-arrival property inspection",
+            "category": "Inspection",
+            "property_id": "demo-field-old-town-suite",
+            "property_name": "Old Town Sea Suite",
+            "property_location": "Nessebar Old Town",
+            "owner_name": "Ivan Dimitrov",
+            "owner_email": "ivan.demo@example.test",
+            "priority": "NORMAL",
+            "status": "ASSIGNED",
+            "due_date": _iso(timedelta(), hour=14, minute=30)[:16],
+            "notes": "Verify access, cooling, WiFi, welcome pack, and terrace safety before the guest arrives.",
+            "checklist_json": _checklist(
+                "Test door code",
+                "Test air conditioning",
+                "Verify WiFi connection",
+                "Check welcome pack",
+                "Inspect terrace and railings",
+                "Send readiness update",
+            ),
+        },
+        {
+            "id": "demo-pro-task-ac-repair",
+            "title": "Diagnose terrace air-conditioning fault",
+            "category": "Maintenance",
+            "property_id": "demo-field-old-town-suite",
+            "property_name": "Old Town Sea Suite",
+            "property_location": "Nessebar Old Town",
+            "owner_name": "Ivan Dimitrov",
+            "owner_email": "ivan.demo@example.test",
+            "priority": "URGENT",
+            "status": "WAITING_OWNER",
+            "due_date": _iso(timedelta(days=-1), hour=16)[:16],
+            "notes": "Cooling is intermittent. Diagnosis is complete; owner approval is required before fitting the replacement control board.",
+            "checklist_json": _checklist(
+                "Photograph unit and model plate",
+                "Check filters and airflow",
+                "Test power and controller",
+                "Record diagnosis",
+                "Request owner approval",
+                completed=5,
+            ),
+        },
+        {
+            "id": "demo-pro-task-welcome",
+            "title": "Guest welcome and key handover",
+            "category": "Concierge Support",
+            "property_id": "demo-field-sunset-penthouse",
+            "property_name": "Sunset Bay Penthouse",
+            "property_location": "Sunny Beach",
+            "owner_name": "Michael Brown",
+            "owner_email": "michael.demo@example.test",
+            "priority": "HIGH",
+            "status": "ON_THE_WAY",
+            "due_date": _iso(timedelta(), hour=17, minute=15)[:16],
+            "notes": "Meet four guests at reception, explain parking and access, then confirm the handover with Operations.",
+            "checklist_json": _checklist(
+                "Confirm guest arrival time",
+                "Collect welcome pack",
+                "Meet guests at reception",
+                "Explain parking and WiFi",
+                "Confirm handover",
+                completed=2,
+            ),
+        },
+        {
+            "id": "demo-pro-task-pool-complete",
+            "title": "Pool safety and equipment check",
+            "category": "Maintenance",
+            "property_id": "demo-field-marina-villa",
+            "property_name": "Marina Horizon Villa",
+            "property_location": "Sveti Vlas Marina",
+            "owner_name": "Elena Petrova",
+            "owner_email": "elena.demo@example.test",
+            "priority": "NORMAL",
+            "status": "COMPLETED",
+            "due_date": _iso(timedelta(days=-1), hour=10)[:16],
+            "completed_at": _iso(timedelta(days=-1), hour=10, minute=45),
+            "notes": "Routine pool safety, water-level, and equipment inspection.",
+            "checklist_json": _checklist(
+                "Inspect pool perimeter",
+                "Check water level and clarity",
+                "Test pump and filtration",
+                "Verify safety equipment",
+                "Upload completion photos",
+                completed=5,
+            ),
+            "completion_report_json": _operations_task_json_dumps({
+                "completed_work": "Pool perimeter, filtration, water level, and safety equipment checked.",
+                "materials_used": "Test strips and one replacement skimmer basket.",
+                "time_spent_minutes": 45,
+                "recommendations": "Recheck the skimmer basket at the next weekly visit.",
+                "follow_up_needed": "",
+            }),
+        },
+    )
+
+    tasks = []
+    for index, spec in enumerate(task_specs):
+        created_at = _iso(timedelta(days=-3, minutes=index))
+        task = _seed_task({
+            **spec,
+            "request_id": spec["id"],
+            "source_id": spec["id"],
+            "source_type": "DEMO_PROFESSIONAL_SEED",
+            "created_at": created_at,
+            "updated_at": now_iso,
+            "owner_id": f"demo-owner-field-{index + 1:02d}",
+            "assigned_to": professional["full_name"],
+            "assigned_professional_id": professional_id,
+            "admin_notes": "Local professional demo task. Safe to reseed.",
+            "request_status": "completed" if spec["status"] == "COMPLETED" else "in_progress",
+            "attachments_json": _operations_task_json_dumps([]),
+            "comments_json": _operations_task_json_dumps([]),
+            "organization_id": professional.get("organization_id", GLOBAL_ORGANIZATION_ID),
+        })
+        if not task:
+            raise RuntimeError(f"Could not create demo professional task {spec['id']}.")
+        tasks.append(task)
+
+    return {"professional": professional, "tasks": tasks}
+
+
+@app.cli.command("seed-demo-professional")
+@click.option("--magic-link", is_flag=True, help="Create and print a one-time professional magic login link.")
+@click.option("--base-url", default=None, help="Local base URL used for the printed magic link.")
+def seed_demo_professional_command(magic_link=False, base_url=None):
+    """Seed a local Professional Portal demo account and realistic field tasks."""
+    if not _demo_professional_seed_allowed():
+        raise click.ClickException(
+            "Demo professional seeding is disabled in production. "
+            "Set ALLOW_DEMO_PROFESSIONAL_SEED=1 only when this is explicitly intended."
+        )
+
+    try:
+        result = _seed_demo_professional_account()
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    professional = result["professional"]
+    click.echo(f"Demo professional ready: {professional['email']}")
+    click.echo(f"Seeded {len(result['tasks'])} realistic professional tasks.")
+
+    if magic_link:
+        token_record = _create_professional_magic_token(professional["email"])
+        if not token_record:
+            raise click.ClickException("Could not create the professional magic token.")
+        local_base_url = str(
+            base_url
+            or os.getenv("DEMO_PROFESSIONAL_BASE_URL")
+            or "http://127.0.0.1:5000"
+        ).strip().rstrip("/")
+        login_path = f"/auth/professional-magic/{token_record['token']}?lang=en"
+        click.echo(f"One-time magic link (expires in {PROFESSIONAL_MAGIC_LINK_TTL_MINUTES} minutes):")
+        click.echo(f"{local_base_url}{login_path}")
+
+
 def _professional_task_matches_account(task_record, professional_account):
     task = task_record or {}
     account = professional_account or {}
