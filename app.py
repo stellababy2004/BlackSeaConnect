@@ -146,6 +146,13 @@ OWNER_PROPERTY_CHECKLIST_FIELDS = (
 )
 OWNER_PROPERTY_ASSETS_DIR = Path("data") / "owner_property_assets"
 OWNER_PROPERTY_UPLOADS_DIR = Path("data") / "owner_property_uploads"
+PROFESSIONAL_TASK_EVIDENCE_DIR = Path("data") / "professional_task_evidence"
+PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES = 10 * 1024 * 1024
+PROFESSIONAL_TASK_EVIDENCE_TYPES = {
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/png": {".png"},
+    "image/webp": {".webp"},
+}
 OWNER_PROPERTY_MEDIA_LIMIT = 20
 OWNER_PROPERTY_DOCUMENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
 OWNER_PROPERTY_APPLIANCE_FIELDS = (
@@ -444,6 +451,8 @@ OPERATIONS_TASK_EVENT_VALUES = {
     "professional_resumed",
     "professional_completed",
     "professional_comment_added",
+    "professional_comment_edited",
+    "professional_issue_reported",
 }
 RESERVATION_STATUS_VALUES = (
     "PENDING",
@@ -805,6 +814,7 @@ def _operations_task_comments(comments_value):
             continue
         comments.append({
             "created_at": str(item.get("created_at", "")).strip(),
+            "edited_at": str(item.get("edited_at", "")).strip(),
             "operator": str(item.get("operator", "")).strip(),
             "comment": str(item.get("comment", "")).strip(),
             "type": str(item.get("type", "General")).strip() or "General",
@@ -5389,7 +5399,7 @@ def _operations_task_append_checklist_event(task_id, checklist_items):
     )
 
 
-def _append_operations_task_comment(task_id, operator, comment, comment_type="General"):
+def _append_operations_task_comment(task_id, operator, comment, comment_type="General", *, author_role="operations"):
     target_task_id = str(task_id or "").strip()
     normalized_comment = str(comment or "").strip()
     if not target_task_id or not normalized_comment:
@@ -5401,7 +5411,7 @@ def _append_operations_task_comment(task_id, operator, comment, comment_type="Ge
         "comment": normalized_comment,
         "type": str(comment_type or "").strip() or "General",
         "visibility": "internal",
-        "author_role": "operations",
+        "author_role": str(author_role or "").strip() or "operations",
     }
 
     task = _find_operations_task(target_task_id)
@@ -5422,6 +5432,44 @@ def _append_operations_task_comment(task_id, operator, comment, comment_type="Ge
         status=updated_task.get("status", "NEW"),
     )
     return comment_entry
+
+
+def _edit_latest_operations_task_comment(task_id, operator, comment, *, author_role="professional"):
+    target_task_id = str(task_id or "").strip()
+    normalized_operator = str(operator or "").strip()
+    normalized_comment = str(comment or "").strip()
+    if not target_task_id or not normalized_operator or not normalized_comment:
+        return None
+
+    task = _find_operations_task(target_task_id)
+    current_comments = list((task or {}).get("comments") or [])
+    edited_comment = None
+    for item in current_comments:
+        if (
+            str(item.get("operator", "")).strip() == normalized_operator
+            and str(item.get("author_role", "")).strip() == author_role
+        ):
+            item["comment"] = normalized_comment
+            item["edited_at"] = _utc_now_iso()
+            edited_comment = item
+            break
+    if not edited_comment:
+        return None
+
+    updated_task = _operations_task_update_json_fields(
+        target_task_id,
+        comments_json=_operations_task_json_dumps(current_comments),
+    )
+    if not updated_task:
+        return None
+    _append_operations_task_event(
+        target_task_id,
+        "professional_comment_edited",
+        "Professional comment edited",
+        normalized_comment,
+        status=updated_task.get("status", "NEW"),
+    )
+    return edited_comment
 
 
 def _append_operations_task_attachment(task_id, *, name, uploaded_by="", category="", slot="", mime_type="", url=""):
@@ -5506,7 +5554,7 @@ def _append_professional_workflow_notification(task, event_type, title, detail, 
     )
 
 
-def _professional_task_transition(task, professional_account, action, *, note_text="", report_data=None, attachment_data=None):
+def _professional_task_transition(task, professional_account, action, *, note_text="", report_data=None):
     task_id = str((task or {}).get("id", "")).strip()
     if not task_id:
         return None
@@ -5523,22 +5571,22 @@ def _professional_task_transition(task, professional_account, action, *, note_te
         event_type = "professional_accepted"
         event_title = "Professional accepted task"
         event_detail = _professional_account_display_label(professional_account)
-    elif action == "on_the_way" and current_status in {"ACCEPTED", "ASSIGNED"}:
+    elif action == "on_the_way" and current_status == "ACCEPTED":
         target_status = "ON_THE_WAY"
         event_type = "professional_on_the_way"
         event_title = "Professional on the way"
         event_detail = _professional_account_display_label(professional_account)
-    elif action == "arrived" and current_status in {"ON_THE_WAY", "ACCEPTED"}:
+    elif action == "arrived" and current_status == "ON_THE_WAY":
         target_status = "ARRIVED"
         event_type = "professional_arrived"
         event_title = "Professional arrived"
         event_detail = _professional_account_display_label(professional_account)
-    elif action == "start" and current_status in {"ACCEPTED", "ON_THE_WAY", "ARRIVED", "PAUSED"}:
+    elif action == "start" and current_status == "ARRIVED":
         target_status = "IN_PROGRESS"
         event_type = "professional_started"
         event_title = "Professional started task"
         event_detail = _professional_account_display_label(professional_account)
-    elif action == "pause" and current_status in {"IN_PROGRESS", "ARRIVED"}:
+    elif action == "pause" and current_status == "IN_PROGRESS":
         target_status = "PAUSED"
         event_type = "professional_paused"
         event_title = "Professional paused task"
@@ -5548,39 +5596,25 @@ def _professional_task_transition(task, professional_account, action, *, note_te
         event_type = "professional_resumed"
         event_title = "Professional resumed task"
         event_detail = _professional_account_display_label(professional_account)
-    elif action == "complete":
+    elif action == "complete" and current_status == "IN_PROGRESS":
         target_status = "COMPLETED"
         event_type = "professional_completed"
         event_title = "Professional completed task"
         event_detail = note_text or _professional_account_display_label(professional_account)
 
-    if attachment_data:
-        slot = str(attachment_data.get("slot", "")).strip()
-        category = str(attachment_data.get("category", "")).strip()
-        filename = str(attachment_data.get("filename", "")).strip()
-        mime_type = str(attachment_data.get("mime_type", "")).strip()
-        if slot or category or filename:
-            _append_operations_task_attachment(
-                task_id,
-                name=filename or f"{slot or category or 'attachment'} placeholder",
-                uploaded_by=_professional_account_display_label(professional_account),
-                category=category,
-                slot=slot,
-                mime_type=mime_type,
-            )
+    if target_status is None:
+        return None
 
     if note_text:
         _append_operations_task_comment(
             task_id,
             _professional_account_display_label(professional_account),
             note_text,
+            author_role="professional",
         )
 
     if report_data is not None:
         _update_operations_task_completion_report(task_id, report_data)
-
-    if target_status is None:
-        return _find_operations_task(task_id)
 
     updated_task = _update_operations_task_details(
         task_id,
@@ -13451,10 +13485,11 @@ def professionals_tasks():
     professional_account = _current_professional_account()
     context = _professional_dashboard_context(professional_account)
     search_query = str(request.args.get("q", "")).strip().lower()
+    current_lang = _resolve_current_language()
     task_filter = str(request.args.get("filter", "all")).strip().lower()
     if task_filter not in {"all", "today", "in_progress", "completed"}:
         task_filter = "all"
-    tasks = context["assigned_tasks"]
+    tasks = [*context["assigned_tasks"], *context["completed_tasks"]]
     today = datetime.now(timezone.utc).date().isoformat()
     if task_filter == "today":
         tasks = [task for task in tasks if str(task.get("due_date", "")).strip()[:10] == today]
@@ -13466,6 +13501,29 @@ def professionals_tasks():
     elif task_filter == "completed":
         tasks = context["completed_tasks"]
     if search_query:
+        status_translation_keys = {
+            "NEW": "taskStatusNew",
+            "ASSIGNED": "taskStatusAssigned",
+            "ACCEPTED": "taskStatusAccepted",
+            "ON_THE_WAY": "taskStatusOnTheWay",
+            "ARRIVED": "taskStatusArrived",
+            "IN_PROGRESS": "taskStatusInProgress",
+            "PAUSED": "taskStatusPaused",
+            "WAITING_OWNER": "taskStatusWaitingOwner",
+            "WAITING_OPERATIONS": "taskStatusWaitingOperations",
+            "COMPLETED": "taskStatusCompleted",
+            "ARCHIVED": "taskStatusArchived",
+        }
+        category_translation_keys = {
+            "Cleaning": "ownerCategoryCleaning",
+            "Inspection": "ownerCategoryInspection",
+            "Maintenance": "ownerCategoryMaintenance",
+            "Airport Transfer": "ownerCategoryAirportTransfer",
+            "Concierge Support": "ownerCategoryConciergeSupport",
+            "Guest Issue": "ownerCategoryGuestIssue",
+            "Seasonal Preparation": "ownerCategorySeasonalPreparation",
+            "Other": "ownerCategoryOther",
+        }
         tasks = [
             task
             for task in tasks
@@ -13473,7 +13531,23 @@ def professionals_tasks():
                 str(task.get("title", "")).lower(),
                 str(task.get("property_name", "")).lower(),
                 str(task.get("property_location", "")).lower(),
+                str(task.get("owner_name", "")).lower(),
+                str(task.get("owner_email", "")).lower(),
                 str(task.get("category", "")).lower(),
+                _load_public_i18n_value(
+                    "owners",
+                    current_lang,
+                    category_translation_keys.get(str(task.get("category", "")).replace("_", " ").title(), ""),
+                    "",
+                ).lower(),
+                str(task.get("status", "")).lower(),
+                _operations_task_status_label(task.get("status", "NEW")).lower(),
+                _load_public_i18n_value(
+                    "professionals",
+                    current_lang,
+                    status_translation_keys.get(_normalize_operations_task_status(task.get("status", "NEW")), ""),
+                    "",
+                ).lower(),
             ])
         ]
     return render_template(
@@ -13483,6 +13557,129 @@ def professionals_tasks():
         search_query=request.args.get("q", ""),
         task_filter=task_filter,
     )
+
+
+def _professional_task_redirect(task_id, *, notice="", error="", data=None):
+    params = {
+        "task_id": task_id,
+        "lang": _resolve_current_language(),
+    }
+    if notice:
+        params["notice"] = notice
+    if error:
+        params["error"] = error
+    target_url = url_for("professionals_task_detail", **params)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "ok": not bool(error),
+            "notice": notice,
+            "error": error,
+            "redirect": target_url,
+            **(data if isinstance(data, dict) else {}),
+        }), (400 if error else 200)
+    return redirect(target_url)
+
+
+def _professional_evidence_signature_valid(mime_type, content):
+    if mime_type == "image/jpeg":
+        return content.startswith(b"\xff\xd8\xff")
+    if mime_type == "image/png":
+        return content.startswith(b"\x89PNG\r\n\x1a\n")
+    if mime_type == "image/webp":
+        return len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+    return False
+
+
+def _validate_professional_task_evidence(uploaded_file):
+    original_name = secure_filename(str(getattr(uploaded_file, "filename", "") or "").strip())
+    mime_type = str(getattr(uploaded_file, "mimetype", "") or "").strip().lower()
+    suffix = Path(original_name).suffix.lower()
+    if not original_name:
+        return None, "evidence_required"
+    if mime_type not in PROFESSIONAL_TASK_EVIDENCE_TYPES or suffix not in PROFESSIONAL_TASK_EVIDENCE_TYPES[mime_type]:
+        return None, "evidence_invalid_type"
+
+    content = uploaded_file.stream.read(PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES + 1)
+    if not content:
+        return None, "evidence_empty"
+    if len(content) > PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES:
+        return None, "evidence_too_large"
+    if not _professional_evidence_signature_valid(mime_type, content):
+        return None, "evidence_invalid_type"
+    return {
+        "original_name": original_name,
+        "mime_type": mime_type,
+        "content": content,
+    }, ""
+
+
+def _save_professional_task_evidence(task, professional_account, uploaded_file, *, category="", display_name="", validated=None):
+    validated_file = validated
+    if validated_file is None:
+        validated_file, validation_error = _validate_professional_task_evidence(uploaded_file)
+        if validation_error:
+            return None, validation_error
+
+    task_id = str((task or {}).get("id", "")).strip()
+    safe_task_id = secure_filename(task_id)
+    if not safe_task_id:
+        return None, "evidence_save_failed"
+    upload_dir = PROFESSIONAL_TASK_EVIDENCE_DIR / safe_task_id
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    original_name = validated_file["original_name"]
+    mime_type = validated_file["mime_type"]
+    stored_name = f"{uuid4().hex}_{original_name}"
+    stored_path = upload_dir / stored_name
+    try:
+        stored_path.write_bytes(validated_file["content"])
+        attachment_entry = _append_operations_task_attachment(
+            task_id,
+            name=str(display_name or "").strip() or original_name,
+            uploaded_by=_professional_account_display_label(professional_account),
+            category=str(category or "").strip(),
+            mime_type=mime_type,
+            url=url_for("professional_task_evidence", task_id=task_id, filename=stored_name),
+        )
+        if not attachment_entry:
+            stored_path.unlink(missing_ok=True)
+            return None, "evidence_save_failed"
+    except OSError:
+        stored_path.unlink(missing_ok=True)
+        return None, "evidence_save_failed"
+    return attachment_entry, ""
+
+
+@app.get("/professionals/tasks/<task_id>/evidence/<filename>")
+@professional_required
+def professional_task_evidence(task_id, filename):
+    professional_account = _current_professional_account()
+    task_record = _find_operations_task(task_id)
+    if not task_record or not _professional_task_matches_account(task_record, professional_account):
+        return Response("Task not found.", status=404, mimetype="text/plain")
+
+    safe_filename = secure_filename(filename)
+    canonical_task_id = str(task_record.get("id", "")).strip()
+    request_task_id = str(task_id or "").strip()
+
+    expected_urls = {
+        url_for("professional_task_evidence", task_id=request_task_id, filename=safe_filename),
+    }
+
+    if canonical_task_id:
+        expected_urls.add(
+            url_for("professional_task_evidence", task_id=canonical_task_id, filename=safe_filename)
+        )
+
+    if safe_filename != filename or not any(
+        str(item.get("url", "")).strip() in expected_urls
+        for item in task_record.get("attachments", [])
+    ):
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+
+    evidence_path = PROFESSIONAL_TASK_EVIDENCE_DIR / secure_filename(str(task_record.get("id", "")).strip()) / safe_filename
+    if not evidence_path.is_file():
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    return send_file(evidence_path.resolve())
 
 
 @app.route("/professionals/tasks/<task_id>", methods=["GET", "POST"])
@@ -13496,6 +13693,7 @@ def professionals_task_detail(task_id):
     if request.method == "POST":
         action = str(request.form.get("task_action", "")).strip().lower()
         note_text = str(request.form.get("note", "")).strip()
+        current_status = _normalize_operations_task_status(task_record.get("status", "NEW"))
         report_data = {
             "completed_work": str(request.form.get("completed_work", "")).strip(),
             "materials_used": str(request.form.get("materials_used", "")).strip(),
@@ -13504,34 +13702,101 @@ def professionals_task_detail(task_id):
             "follow_up_needed": str(request.form.get("follow_up_needed", "")).strip(),
             "notes": str(request.form.get("completion_notes", "")).strip(),
         }
-        attachment_slot = str(request.form.get("attachment_slot", "")).strip()
         attachment_category = str(request.form.get("attachment_category", "")).strip()
         attachment_name = str(request.form.get("attachment_name", "")).strip()
-        attachment_file = request.files.get("attachment_file")
-        attachment_data = None
-        if action == "attachment" or attachment_slot or attachment_category or attachment_name or attachment_file:
-            attachment_data = {
-                "slot": attachment_slot,
-                "category": attachment_category,
-                "filename": attachment_name or (attachment_file.filename if attachment_file and attachment_file.filename else ""),
-                "mime_type": attachment_file.mimetype if attachment_file else "",
-            }
+        attachment_files = [
+            item
+            for item in [*request.files.getlist("attachment_files"), *request.files.getlist("attachment_file")]
+            if item and item.filename
+        ]
         if action == "accept":
-            _professional_task_transition(task_record, professional_account, "accept")
+            updated_task = _professional_task_transition(task_record, professional_account, "accept")
         elif action in {"on_the_way", "ontheway"}:
-            _professional_task_transition(task_record, professional_account, "on_the_way")
+            updated_task = _professional_task_transition(task_record, professional_account, "on_the_way")
         elif action == "arrived":
-            _professional_task_transition(task_record, professional_account, "arrived")
+            updated_task = _professional_task_transition(task_record, professional_account, "arrived")
         elif action == "start":
-            _professional_task_transition(task_record, professional_account, "start")
+            updated_task = _professional_task_transition(task_record, professional_account, "start")
         elif action == "pause":
-            _professional_task_transition(task_record, professional_account, "pause", note_text=note_text)
+            updated_task = _professional_task_transition(task_record, professional_account, "pause", note_text=note_text)
         elif action == "resume":
-            _professional_task_transition(task_record, professional_account, "resume")
+            updated_task = _professional_task_transition(task_record, professional_account, "resume")
+        elif action == "checklist":
+            if current_status in {"COMPLETED", "ARCHIVED"}:
+                return _professional_task_redirect(task_id, error="checklist_locked")
+            checklist_key = str(request.form.get("checklist_key", "")).strip()
+            allowed_keys = {key for key, _label in OPERATIONS_TASK_CHECKLIST_ITEMS}
+            if checklist_key not in allowed_keys:
+                return _professional_task_redirect(task_id, error="checklist_invalid")
+            checklist_state = {
+                item.get("key", ""): bool(item.get("checked"))
+                for item in task_record.get("checklist_items", [])
+            }
+            requested_checked = str(request.form.get("checked", "")).strip().lower() in {"1", "true", "on", "yes"}
+            if checklist_state.get(checklist_key) == requested_checked:
+                checked_count = sum(1 for checked in checklist_state.values() if checked)
+                total_count = len(checklist_state)
+                return _professional_task_redirect(
+                    task_id,
+                    notice="checklist_saved",
+                    data={
+                        "checklist_key": checklist_key,
+                        "checked": requested_checked,
+                        "checked_count": checked_count,
+                        "total_count": total_count,
+                        "progress": int(round((checked_count / total_count) * 100)) if total_count else 0,
+                    },
+                )
+            checklist_state[checklist_key] = requested_checked
+            if not _update_operations_task_checklist(task_id, checklist_state):
+                return _professional_task_redirect(task_id, error="checklist_save_failed")
+            updated_task = _find_operations_task(task_id)
+            updated_items = list((updated_task or {}).get("checklist_items") or [])
+            checked_count = sum(1 for item in updated_items if item.get("checked"))
+            total_count = len(updated_items)
+            return _professional_task_redirect(
+                task_id,
+                notice="checklist_saved",
+                data={
+                    "checklist_key": checklist_key,
+                    "checked": checklist_state[checklist_key],
+                    "checked_count": checked_count,
+                    "total_count": total_count,
+                    "progress": int(round((checked_count / total_count) * 100)) if total_count else 0,
+                },
+            )
         elif action == "complete":
-            _professional_task_transition(task_record, professional_account, "complete", note_text=note_text, report_data=report_data, attachment_data=attachment_data)
-        elif action == "comment" and note_text:
-            _append_operations_task_comment(task_id, _professional_account_display_label(professional_account), note_text)
+            if current_status != "IN_PROGRESS":
+                return _professional_task_redirect(task_id, error="completion_invalid_state")
+            if not task_record.get("checklist_items") or not all(item.get("checked") for item in task_record["checklist_items"]):
+                return _professional_task_redirect(task_id, error="completion_checklist_required")
+            if not any(str(item.get("url", "")).strip() for item in task_record.get("attachments", [])):
+                return _professional_task_redirect(task_id, error="completion_evidence_required")
+            if not report_data["completed_work"]:
+                return _professional_task_redirect(task_id, error="completion_summary_required")
+            if not report_data["notes"]:
+                return _professional_task_redirect(task_id, error="completion_note_required")
+            updated_task = _professional_task_transition(
+                task_record,
+                professional_account,
+                "complete",
+                note_text=note_text,
+                report_data=report_data,
+            )
+            if not updated_task:
+                return _professional_task_redirect(task_id, error="completion_save_failed")
+            return _professional_task_redirect(task_id, notice="task_completed")
+        elif action == "comment":
+            if not note_text:
+                return _professional_task_redirect(task_id, error="comment_required")
+            comment_entry = _append_operations_task_comment(
+                task_id,
+                _professional_account_display_label(professional_account),
+                note_text,
+                author_role="professional",
+            )
+            if not comment_entry:
+                return _professional_task_redirect(task_id, error="comment_save_failed")
             _append_operations_task_event(task_id, "professional_comment_added", "Professional comment added", note_text, status=_normalize_operations_task_status(task_record.get("status", "NEW")))
             _append_operations_notification(
                 "professional_comment_added",
@@ -13546,37 +13811,164 @@ def professionals_task_detail(task_id):
                 operator_key=_current_admin_operator_key(),
                 metadata="professional_comment",
             )
+            return _professional_task_redirect(task_id, notice="comment_saved")
+        elif action == "edit_comment":
+            if not note_text:
+                return _professional_task_redirect(task_id, error="comment_required")
+            edited_comment = _edit_latest_operations_task_comment(
+                task_id,
+                _professional_account_display_label(professional_account),
+                note_text,
+            )
+            if not edited_comment:
+                return _professional_task_redirect(task_id, error="comment_edit_failed")
+            return _professional_task_redirect(task_id, notice="comment_edited")
         elif action == "attachment":
-            if attachment_data:
-                attachment_entry = _append_operations_task_attachment(
-                    task_id,
-                    name=attachment_data.get("filename", "") or f"{attachment_data.get('slot', '') or attachment_data.get('category', '') or 'attachment'} placeholder",
-                    uploaded_by=_professional_account_display_label(professional_account),
-                    category=attachment_data.get("category", ""),
-                    slot=attachment_data.get("slot", ""),
-                    mime_type=attachment_data.get("mime_type", ""),
+            if not attachment_files:
+                return _professional_task_redirect(task_id, error="evidence_required")
+            validated_files = []
+            for uploaded_file in attachment_files:
+                validated_file, upload_error = _validate_professional_task_evidence(uploaded_file)
+                if upload_error:
+                    return _professional_task_redirect(task_id, error=upload_error)
+                validated_files.append((uploaded_file, validated_file))
+            attachment_entries = []
+            for uploaded_file, validated_file in validated_files:
+                attachment_entry, upload_error = _save_professional_task_evidence(
+                    task_record,
+                    professional_account,
+                    uploaded_file,
+                    category=attachment_category,
+                    display_name=attachment_name if len(validated_files) == 1 else "",
+                    validated=validated_file,
                 )
-                if attachment_entry:
-                    _append_operations_notification(
-                        "attachment_added",
-                        "Professional attachment placeholder added",
-                        f"{attachment_entry.get('slot', '') or attachment_entry.get('category', '') or 'Attachment'} · {attachment_entry.get('name', '')}",
-                        task_id=task_id,
-                        source_type=task_record.get("source_type", ""),
-                        source_id=task_record.get("source_id", ""),
-                        status=_normalize_operations_task_status(task_record.get("status", "NEW")),
-                        channel="SYSTEM",
-                        recipient=str(os.getenv("ADMIN_NOTIFICATION_EMAIL", "")).strip() or _current_admin_operator_key(),
-                        operator_key=_current_admin_operator_key(),
-                        metadata="professional_attachment",
-                    )
-        return redirect(url_for("professionals_task_detail", task_id=task_id))
+                if upload_error:
+                    return _professional_task_redirect(task_id, error=upload_error)
+                attachment_entries.append(attachment_entry)
+            _append_operations_notification(
+                "attachment_added",
+                "Professional evidence uploaded",
+                f"{len(attachment_entries)} evidence image(s) uploaded",
+                task_id=task_id,
+                source_type=task_record.get("source_type", ""),
+                source_id=task_record.get("source_id", ""),
+                status=current_status,
+                channel="SYSTEM",
+                recipient=str(os.getenv("ADMIN_NOTIFICATION_EMAIL", "")).strip() or _current_admin_operator_key(),
+                operator_key=_current_admin_operator_key(),
+                metadata="professional_attachment",
+            )
+            return _professional_task_redirect(task_id, notice="evidence_uploaded")
+        elif action == "issue":
+            issue_category = str(request.form.get("issue_category", "")).strip().lower()
+            issue_severity = str(request.form.get("issue_severity", "")).strip().lower()
+            issue_description = str(request.form.get("issue_description", "")).strip()
+            if issue_category not in {"access", "safety", "damage", "supplies", "other"}:
+                return _professional_task_redirect(task_id, error="issue_category_required")
+            if issue_severity not in {"low", "medium", "high", "urgent"}:
+                return _professional_task_redirect(task_id, error="issue_severity_required")
+            if not issue_description:
+                return _professional_task_redirect(task_id, error="issue_description_required")
+            if current_status in {"COMPLETED", "ARCHIVED"}:
+                return _professional_task_redirect(task_id, error="issue_locked")
+            issue_photos = [
+                item
+                for item in request.files.getlist("issue_photos")
+                if item and item.filename
+            ]
+            validated_issue_photos = []
+            for issue_photo in issue_photos:
+                validated_file, upload_error = _validate_professional_task_evidence(issue_photo)
+                if upload_error:
+                    return _professional_task_redirect(task_id, error=upload_error)
+                validated_issue_photos.append((issue_photo, validated_file))
+            issue_text = f"[{issue_category.upper()} · {issue_severity.upper()}]\n{issue_description}"
+            if not _append_operations_task_comment(
+                task_id,
+                _professional_account_display_label(professional_account),
+                issue_text,
+                comment_type="Issue",
+                author_role="professional",
+            ):
+                return _professional_task_redirect(task_id, error="issue_save_failed")
+            updated_task = _update_operations_task_details(
+                task_id,
+                status="WAITING_OPERATIONS",
+                assigned_to=task_record.get("assigned_to", ""),
+                assigned_professional_id=professional_account.get("id", ""),
+                source="professional_issue",
+            )
+            if not updated_task:
+                return _professional_task_redirect(task_id, error="issue_save_failed")
+            for issue_photo, validated_file in validated_issue_photos:
+                _attachment, upload_error = _save_professional_task_evidence(
+                    updated_task,
+                    professional_account,
+                    issue_photo,
+                    category="issue_photo",
+                    validated=validated_file,
+                )
+                if upload_error:
+                    return _professional_task_redirect(task_id, error=upload_error)
+            _append_professional_workflow_notification(
+                updated_task,
+                "professional_issue_reported",
+                "Professional reported an issue",
+                issue_text,
+                "WAITING_OPERATIONS",
+                recipient=str(os.getenv("ADMIN_NOTIFICATION_EMAIL", "")).strip() or _current_admin_operator_key(),
+                metadata="professional_issue",
+            )
+            return _professional_task_redirect(task_id, notice="issue_reported")
+        else:
+            return _professional_task_redirect(task_id, error="action_invalid")
+
+        if not updated_task:
+            return _professional_task_redirect(task_id, error="transition_invalid")
+        return _professional_task_redirect(task_id, notice="status_updated")
 
     refreshed_task = _find_operations_task(task_id) or task_record
+    property_record = _find_owner_property(refreshed_task.get("property_id", "")) or {}
+    owner_account = (
+        _find_owner_account(refreshed_task.get("owner_id", ""))
+        or _find_owner_account_by_email(refreshed_task.get("owner_email", ""))
+        or {}
+    )
+    property_profile = property_record.get("property_profile", {}) if isinstance(property_record.get("property_profile", {}), dict) else {}
+    access_information = property_record.get("access_information", {}) if isinstance(property_record.get("access_information", {}), dict) else {}
+    wifi_information = property_record.get("wifi", {}) if isinstance(property_record.get("wifi", {}), dict) else {}
+    property_general = property_record.get("general", {}) if isinstance(property_record.get("general", {}), dict) else {}
+    emergency_information = property_record.get("emergency", {}) if isinstance(property_record.get("emergency", {}), dict) else {}
+    emergency_contact = str(property_general.get("emergency_contacts", "")).strip()
+    if not emergency_contact:
+        for contact in emergency_information.values():
+            if not isinstance(contact, dict):
+                continue
+            contact_parts = [
+                str(contact.get("name", "")).strip(),
+                str(contact.get("phone", "")).strip(),
+                str(contact.get("email", "")).strip(),
+            ]
+            emergency_contact = " · ".join(part for part in contact_parts if part)
+            if emergency_contact:
+                break
+    property_address = (
+        str(property_profile.get("address", "")).strip()
+        or str(property_record.get("location", "")).strip()
+        or str(refreshed_task.get("property_location", "")).strip()
+    )
+    latest_editable_comment = next((
+        item
+        for item in refreshed_task.get("comments", [])
+        if (
+            str(item.get("author_role", "")).strip() == "professional"
+            and str(item.get("operator", "")).strip() == _professional_account_display_label(professional_account)
+        )
+    ), None)
     timeline_events = [
         event
         for event in _load_operations_task_events(refreshed_task.get("request_id", ""))
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "comment_added", "comment_added_internal", "attachment_added", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "checklist_updated", "comment_added", "comment_added_internal", "attachment_added", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "professional_comment_edited", "professional_issue_reported"}
     ]
     return render_template(
         "professionals_task_detail.html",
@@ -13589,7 +13981,29 @@ def professionals_task_detail(task_id):
             "assigned_professional_label": _professional_account_display_label(professional_account),
         },
         professional_account=professional_account,
-        timeline=list(reversed(timeline_events)),
+        timeline=timeline_events,
+        property_snapshot={
+            "owner_phone": str(owner_account.get("phone", "")).strip(),
+            "address": property_address,
+            "door_code": (
+                str(access_information.get("apartment_code", "")).strip()
+                or str(access_information.get("building_entrance_code", "")).strip()
+                or str(access_information.get("key_safe_code", "")).strip()
+            ),
+            "wifi_name": str(wifi_information.get("network_name", "")).strip(),
+            "wifi_password": str(wifi_information.get("password", "")).strip(),
+            "parking": (
+                str(property_profile.get("parking", "")).strip()
+                or str(access_information.get("parking_space", "")).strip()
+                or str(access_information.get("gate_instructions", "")).strip()
+            ),
+            "emergency_contact": emergency_contact,
+            "latitude": str(property_profile.get("latitude", "")).strip(),
+            "longitude": str(property_profile.get("longitude", "")).strip(),
+        },
+        latest_editable_comment=latest_editable_comment,
+        action_notice=str(request.args.get("notice", "")).strip(),
+        action_error=str(request.args.get("error", "")).strip(),
     )
 
 
@@ -21242,8 +21656,4 @@ def workspace_settings():
     return _render_workspace_page("settings", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
-
-
-
-
 
