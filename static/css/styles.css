@@ -34876,3 +34876,31 @@ body:is(
     padding: 16px !important;
   }
 }
+
+/* Owner Reservations — light authenticated surface override */
+body.reservations-page :where(
+  .reservations-hero,
+  .reservations-panel,
+  .reservations-summary-card,
+  .reservations-card,
+  .reservations-empty,
+  .reservations-mini-item,
+  .reservation-detail-panel,
+  .reservation-detail-hero
+) {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  color: #0f2345 !important;
+  box-shadow: 0 22px 60px rgba(15, 35, 69, 0.14) !important;
+}
+
+body.reservations-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, li, label, a) {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  text-shadow: none !important;
+}
+
+body.reservations-page :where(.reservations-kpi, .reservations-summary-card) {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(14px);
+}
