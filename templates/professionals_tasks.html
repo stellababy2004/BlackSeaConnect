@@ -7,6 +7,17 @@
   "logout": public_i18n("professionals", "tasksLogout", "Logout"),
   "search_placeholder": public_i18n("professionals", "tasksSearchPlaceholder", "Search by property, category, or title"),
   "search": public_i18n("professionals", "tasksSearch", "Search"),
+  "today": public_i18n("professionals", "dashboardToday", "Today"),
+  "all_tasks": public_i18n("professionals", "tasksAllTasks", "All tasks"),
+  "property": public_i18n("professionals", "detailProperty", "Property"),
+  "service": public_i18n("professionals", "tasksService", "Service"),
+  "priority": public_i18n("professionals", "detailPriority", "Priority"),
+  "time": public_i18n("professionals", "tasksTime", "Time"),
+  "duration": public_i18n("professionals", "detailTimeSpent", "Duration"),
+  "reservation": public_i18n("professionals", "tasksReservation", "Reservation"),
+  "owner": public_i18n("professionals", "detailOwner", "Owner"),
+  "progress": public_i18n("professionals", "tasksProgress", "Progress"),
+  "not_set": public_i18n("professionals", "detailNotRecorded", "Not set"),
   "no_due_date": public_i18n("professionals", "tasksNoDueDate", "No due date"),
   "no_tasks": public_i18n("professionals", "tasksNoTasks", "No tasks are assigned to your account."),
   "task_status_new": public_i18n("professionals", "taskStatusNew", "New"),
@@ -52,36 +63,55 @@
   <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
-    .professional-tasks-page {
-      min-height: 100vh;
-      background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%);
-      color: #1f2937;
-      padding: 28px 20px 52px;
-    }
+    * { box-sizing:border-box; }
+    .professional-tasks-page { min-height:100vh; background:linear-gradient(180deg,#f6f1e5 0%,#fbf8f2 55%,#efe8d6 100%); color:#1f2937; padding:24px 20px 64px; }
     .professional-tasks-shell { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
-    .professional-panel { background: rgba(255,255,255,0.86); border: 1px solid rgba(155,123,47,0.16); border-radius: 28px; box-shadow: 0 18px 48px rgba(31,41,55,0.08); backdrop-filter: blur(18px); padding: 26px; }
-    .professional-task-list { display:grid; gap:12px; }
+    .professional-panel { background:rgba(255,255,255,.9); border:1px solid rgba(155,123,47,.16); border-radius:24px; box-shadow:0 18px 48px rgba(31,41,55,.08); backdrop-filter:blur(18px); padding:26px; }
+    .professional-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:22px; }
+    .professional-header h1 { margin:4px 0 0; font-size:clamp(2rem,5vw,3.35rem); letter-spacing:-.045em; }
+    .professional-tabs { display:flex; gap:8px; overflow:auto; padding:0 0 4px; margin-bottom:18px; }
+    .professional-tab { white-space:nowrap; padding:9px 14px; border-radius:999px; background:#f7f2e8; color:#625328; font-size:13px; font-weight:750; }
+    .professional-tab--active { background:#1f2937; color:#fff; }
+    .professional-task-list { display:grid; gap:14px; }
     .professional-task-card {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(31,41,55,0.08);
-      text-decoration: none;
-      color: inherit;
-      display: grid;
-      gap: 8px;
+      padding:20px; border-radius:24px; background:#fff; border:1px solid rgba(31,41,55,.09); text-decoration:none; color:inherit;
+      display:grid; gap:16px; box-shadow:0 10px 26px rgba(31,41,55,.055); transition:transform .2s ease,box-shadow .2s ease;
     }
+    .professional-task-card:hover { transform:translateY(-2px); box-shadow:0 16px 32px rgba(31,41,55,.09); }
+    .professional-task-card__header { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
+    .professional-task-card__header h2 { margin:4px 0 5px; font-size:1.18rem; }
     .professional-task-card__meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
-    .professional-task-card p { margin:0; color:#4b5563; }
+    .professional-badge--status { background:#e8f3ef; color:#16624c; }
+    .professional-badge--urgent { background:#fff0ed; color:#a33d2a; }
+    .professional-task-facts { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; }
+    .professional-task-fact { min-width:0; }
+    .professional-task-fact span { display:block; margin-bottom:4px; color:#8b6d2b; font-size:10px; font-weight:800; letter-spacing:.075em; text-transform:uppercase; }
+    .professional-task-fact strong { display:block; overflow:hidden; color:#374151; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+    .professional-progress { height:7px; overflow:hidden; border-radius:999px; background:#eee9df; }
+    .professional-progress span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#96772e,#c2a45b); }
     .professional-search { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
-    .professional-search input { flex:1 1 260px; border-radius:16px; border:1px solid rgba(31,41,55,0.14); padding:12px 14px; font:inherit; }
+    .professional-search input { flex:1 1 260px; min-height:48px; border-radius:16px; border:1px solid rgba(31,41,55,.14); padding:12px 14px; font:inherit; background:#fff; }
+    @media (max-width:900px) { .professional-task-facts { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width:600px) {
+      .professional-tasks-page { padding:12px 10px 90px; }
+      .professional-panel { padding:18px 14px; border-radius:24px; }
+      .professional-header { align-items:flex-start; }
+      .professional-header .hero__cta { display:none; }
+      .professional-search { position:sticky; top:8px; z-index:2; padding:8px; margin-inline:-4px; border-radius:20px; background:rgba(251,248,242,.92); backdrop-filter:blur(12px); }
+      .professional-search .button { width:48px; padding-inline:0; font-size:0; }
+      .professional-search .button::after { content:"→"; font-size:18px; }
+      .professional-task-card { padding:17px 15px; }
+      .professional-task-card__header { gap:10px; }
+      .professional-task-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .professional-task-fact:nth-child(6) { display:none; }
+    }
   </style>
 </head>
 <body class="professional-tasks-page">
   <main class="professional-tasks-shell">
     <section class="professional-panel">
-      <div class="hero__cta u-flex-between">
+      <div class="professional-header">
         <div>
           <p class="eyebrow">{{ labels.portal_eyebrow }}</p>
           <h1>{{ labels.title }}</h1>
@@ -92,6 +122,13 @@
         </div>
       </div>
 
+      <nav class="professional-tabs" aria-label="{{ labels.title }}">
+        <span class="professional-tab professional-tab--active">{{ labels.all_tasks }} · {{ tasks|length }}</span>
+        <span class="professional-tab">{{ labels.today }}</span>
+        <span class="professional-tab">{{ labels.task_status_in_progress }}</span>
+        <span class="professional-tab">{{ labels.task_status_completed }}</span>
+      </nav>
+
       <form class="professional-search" method="get" action="{{ localized_url('/professionals/tasks') }}">
         <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ labels.search_placeholder }}">
         <button class="button button--primary" type="submit">{{ labels.search }}</button>
@@ -99,14 +136,30 @@
 
       <div class="professional-task-list">
         {% for task in tasks %}
+          {% set checklist = task.checklist_items or [] %}
+          {% set done_items = checklist|selectattr('checked')|list|length %}
+          {% set progress = ((done_items * 100 / checklist|length)|round|int) if checklist else (100 if task.status|upper in ['COMPLETED', 'ARCHIVED'] else 0) %}
           <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
-            <div class="professional-task-card__meta">
-              <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
-              <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
-              <time>{{ task.due_date|e or labels.no_due_date }}</time>
+            <div class="professional-task-card__header">
+              <div>
+                <div class="professional-task-card__meta">
+                  <span class="professional-badge professional-badge--status">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+                  <span class="professional-badge{% if task.priority|upper == 'URGENT' %} professional-badge--urgent{% endif %}">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
+                </div>
+                <h2>{{ task.title|e }}</h2>
+              </div>
+              <strong aria-hidden="true">→</strong>
             </div>
-            <strong>{{ task.title|e }}</strong>
-            <p>{{ task.property_name|e or task.property_location|e }}</p>
+            <div class="professional-task-facts">
+              <div class="professional-task-fact"><span>{{ labels.property }}</span><strong>{{ task.property_name|e or task.property_location|e or labels.not_set }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.service }}</span><strong>{{ task.category|default('', true)|replace('_', ' ')|title or labels.not_set }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.time }}</span><strong>{{ task.due_time|default('', true)|e or task.due_date|e or labels.no_due_date }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.duration }}</span><strong>{% if task.estimated_duration_minutes|default(0, true) %}{{ task.estimated_duration_minutes }} min{% else %}{{ labels.not_set }}{% endif %}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.reservation }}</span><strong>{{ task.reservation_reference|default('', true)|e or labels.not_set }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.owner }}</span><strong>{{ task.owner_name|default('', true)|e or task.owner_email|default('', true)|e or labels.not_set }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.progress }}</span><strong>{{ progress }}%</strong></div>
+            </div>
+            <div class="professional-progress" aria-label="{{ labels.progress }} {{ progress }}%"><span style="width:{{ progress }}%"></span></div>
           </a>
         {% else %}
           <p>{{ labels.no_tasks }}</p>

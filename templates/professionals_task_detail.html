@@ -167,16 +167,24 @@
   <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
-    .professional-task-page { min-height: 100vh; background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%); color:#1f2937; padding:28px 20px 52px; }
+    * { box-sizing:border-box; }
+    .professional-task-page { min-height:100vh; background:linear-gradient(180deg,#f6f1e5 0%,#fbf8f2 55%,#efe8d6 100%); color:#1f2937; padding:24px 20px 72px; }
     .professional-task-shell { max-width: 1280px; margin: 0 auto; display:grid; gap:18px; }
-    .professional-panel { background: rgba(255,255,255,0.86); border:1px solid rgba(155,123,47,0.16); border-radius:28px; box-shadow:0 18px 48px rgba(31,41,55,0.08); backdrop-filter:blur(18px); padding:26px; }
+    .professional-panel { background:rgba(255,255,255,.9); border:1px solid rgba(155,123,47,.16); border-radius:24px; box-shadow:0 18px 48px rgba(31,41,55,.08); backdrop-filter:blur(18px); padding:26px; }
     .professional-hero { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+    .professional-hero h1 { font-size:clamp(2rem,5vw,3.25rem); letter-spacing:-.045em; }
     .professional-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
     .professional-grid { display:grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap:18px; }
     .professional-grid-two-up { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px; }
     .professional-stack { display:grid; gap:18px; }
     .professional-task-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .professional-workbar { position:sticky; top:10px; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:22px; background:rgba(31,41,55,.96); color:#fff; box-shadow:0 14px 30px rgba(31,41,55,.2); }
+    .professional-live { display:flex; align-items:center; gap:9px; min-width:max-content; font-size:13px; font-weight:800; }
+    .professional-live::before { content:""; width:9px; height:9px; border-radius:50%; background:#6ed0aa; box-shadow:0 0 0 4px rgba(110,208,170,.15); }
+    .professional-workbar .professional-status-controls { flex-wrap:nowrap; overflow-x:auto; }
+    .professional-workbar form { flex:0 0 auto; }
+    .professional-workbar .button { min-height:44px; padding:10px 15px; border:0; }
     .professional-form { display:grid; gap:12px; }
     .professional-form textarea,
     .professional-form input,
@@ -194,14 +202,38 @@
     .professional-timeline { display:grid; gap:10px; }
     .professional-kicker { color:#8b6d2b; text-transform:uppercase; letter-spacing:0.08em; font-size:12px; font-weight:700; }
     .professional-photo-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
-    .professional-photo-slot { padding:14px; border-radius:18px; border:1px dashed rgba(31,41,55,0.14); background:rgba(251,247,238,0.56); }
+    .professional-photo-slot { min-height:140px; padding:18px; border-radius:22px; border:1px dashed rgba(155,123,47,.35); background:linear-gradient(145deg,#fbf7ee,#fff); display:flex; flex-direction:column; justify-content:flex-end; }
+    .professional-photo-slot::before { content:"＋"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
     .professional-photo-slot strong { display:block; margin-bottom:6px; }
     .professional-photo-slot p { margin:0; color:#6b7280; line-height:1.55; }
     .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; }
+    .professional-check-progress { display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+    .professional-check-progress__track { flex:1; height:8px; overflow:hidden; border-radius:999px; background:#eee9df; }
+    .professional-check-progress__track span { display:block; height:100%; background:linear-gradient(90deg,#96772e,#c2a45b); }
+    .professional-check-item { display:flex; align-items:center; gap:12px; min-height:54px; }
+    .professional-check-mark { display:grid; place-items:center; flex:0 0 26px; height:26px; border:2px solid #c6b788; border-radius:8px; color:#fff; background:#fff; }
+    .professional-check-mark--done { border-color:#318064; background:#318064; }
+    .professional-snapshot { background:linear-gradient(145deg,#fff,#faf5ea); }
+    .professional-snapshot .professional-dl > div { background:rgba(255,255,255,.8); }
     @media (max-width: 920px) {
       .professional-grid,
       .professional-grid-two-up,
       .professional-dl { grid-template-columns: 1fr; }
+    }
+    @media (max-width:640px) {
+      .professional-task-page { padding:10px 10px 98px; }
+      .professional-task-shell { gap:12px; }
+      .professional-panel { padding:18px 15px; border-radius:24px; }
+      .professional-hero .professional-task-actions { width:100%; }
+      .professional-hero .professional-task-actions .button { flex:1; }
+      .professional-workbar { top:6px; margin-inline:0; padding:9px 10px; border-radius:20px; }
+      .professional-workbar .professional-live { display:none; }
+      .professional-workbar .professional-status-controls { width:100%; }
+      .professional-workbar .button { min-height:46px; }
+      .professional-photo-grid { grid-template-columns:1fr 1fr; }
+      .professional-photo-slot { min-height:135px; padding:14px; }
+      .professional-form .button { width:100%; min-height:52px; }
+      .professional-list-item { padding:14px; }
     }
   </style>
 </head>
@@ -226,6 +258,18 @@
       </div>
     </section>
 
+    <nav class="professional-workbar" aria-label="{{ labels.status_controls }}">
+      <span class="professional-live">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+      <div class="professional-status-controls">
+        <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+        {% if task.property_location %}<a class="button button--secondary" href="https://www.google.com/maps/search/?api=1&amp;query={{ task.property_location|urlencode }}" target="_blank" rel="noopener">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</a>{% endif %}
+        {% if owner_phone %}<a class="button button--secondary" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
+        <a class="button button--secondary" href="#photos">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>
+        <a class="button button--secondary" href="#comments">{{ public_i18n('professionals', 'detailReportIssue', 'Report issue') }}</a>
+        <a class="button button--secondary" href="#completion">{{ labels.complete_work }}</a>
+      </div>
+    </nav>
+
     <section class="professional-grid">
       <div class="professional-stack">
         <article class="professional-panel">
@@ -247,18 +291,24 @@
           </dl>
         </article>
 
-        <article class="professional-panel">
+        <article class="professional-panel professional-snapshot">
           <p class="professional-kicker">{{ labels.property_and_owner }}</p>
-          <h2>{{ labels.context }}</h2>
+          <h2>{{ public_i18n('professionals', 'detailPropertySnapshot', 'Property snapshot') }}</h2>
           <dl class="professional-dl">
             <div><dt>{{ labels.property_info }}</dt><dd>{{ task.property_location|e or labels.location_not_set }}</dd></div>
             <div><dt>{{ labels.owner_info }}</dt><dd>{{ task.owner_name|e or labels.owner_not_set }}{% if owner_email %}<br>{{ owner_email|e }}{% endif %}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailGuest', 'Guest') }}</dt><dd>{{ task.guest_name|default('', true)|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailArrival', 'Arrival') }}</dt><dd>{{ task.arrival_date|default('', true)|e or task.check_in|default('', true)|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}</dt><dd>{{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ task.door_code|default('', true)|e or labels.not_recorded }}</dd></div>
+            <div><dt>WiFi</dt><dd>{{ task.wifi|default('', true)|e or task.wifi_password|default('', true)|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailParking', 'Parking') }}</dt><dd>{{ task.parking|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions"><a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a>{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}</dd></div>
             <div><dt>{{ labels.open_operations }}</dt><dd class="professional-task-actions"><a class="button button--secondary" href="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}">{{ labels.open_operations }}</a></dd></div>
           </dl>
         </article>
 
-        <article class="professional-panel">
+        <article class="professional-panel" id="completion">
           <p class="professional-kicker">{{ labels.status_controls }}</p>
           <h2>{{ labels.arrival_workflow }}</h2>
           <div class="professional-status-controls">
@@ -292,7 +342,7 @@
             </label>
             <label><span>{{ labels.evidence_file }}</span><input type="file" name="attachment_file"></label>
             <label><span>{{ labels.evidence_note }}</span><input type="text" name="attachment_name" placeholder="{{ public_i18n('professionals', 'detailEvidenceNotePlaceholder', 'Optional file name or placeholder note') }}"></label>
-            <div class="professional-photo-grid">
+            <div class="professional-photo-grid" id="photos">
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailBeforePhotos', 'Before photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailAfterPhotos', 'After photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailDamagePhotos', 'Damage photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
@@ -303,7 +353,7 @@
           </form>
         </article>
 
-        <article class="professional-panel">
+        <article class="professional-panel" id="comments">
           <p class="professional-kicker">{{ labels.internal_comments }}</p>
           <h2>{{ labels.operations_discussion }}</h2>
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
@@ -321,10 +371,18 @@
         <article class="professional-panel">
           <p class="professional-kicker">{{ labels.checklist }}</p>
           <h2>{{ labels.task_checklist }}</h2>
+          {% set checklist = task.checklist_items or [] %}
+          {% set checked_count = checklist|selectattr('checked')|list|length %}
+          {% set checklist_progress = ((checked_count * 100 / checklist|length)|round|int) if checklist else 0 %}
+          <div class="professional-check-progress">
+            <div class="professional-check-progress__track" aria-label="{{ checklist_progress }}%"><span style="width:{{ checklist_progress }}%"></span></div>
+            <strong>{{ checked_count }}/{{ checklist|length }}</strong>
+          </div>
           <div class="professional-list">
             {% for item in task.checklist_items or [] %}
-              <div class="professional-list-item">
-                <div class="professional-list-item__topline">
+              <div class="professional-list-item professional-check-item">
+                <span class="professional-check-mark{% if item.checked %} professional-check-mark--done{% endif %}" aria-hidden="true">{% if item.checked %}✓{% endif %}</span>
+                <div class="professional-list-item__topline" style="flex:1;">
                   <strong>{{ item.label|e }}</strong>
                   <span class="professional-badge">{{ labels.done if item.checked else labels.open }}</span>
                 </div>

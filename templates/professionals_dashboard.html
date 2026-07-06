@@ -16,6 +16,17 @@
   "today": public_i18n("professionals", "dashboardToday", "Today"),
   "upcoming": public_i18n("professionals", "dashboardUpcoming", "Upcoming"),
   "completed": public_i18n("professionals", "dashboardCompleted", "Completed"),
+  "todays_jobs": public_i18n("professionals", "dashboardTodaysJobs", "Today's jobs"),
+  "delayed": public_i18n("professionals", "dashboardDelayed", "Delayed"),
+  "next_arrival": public_i18n("professionals", "dashboardNextArrival", "Next arrival"),
+  "next_deadline": public_i18n("professionals", "dashboardNextDeadline", "Next deadline"),
+  "travel_schedule": public_i18n("professionals", "dashboardTravelSchedule", "Travel schedule"),
+  "urgent_alerts": public_i18n("professionals", "dashboardUrgentAlerts", "Urgent alerts"),
+  "available": public_i18n("professionals", "dashboardAvailable", "Available"),
+  "your_day": public_i18n("professionals", "dashboardYourDay", "Your field day"),
+  "next_action": public_i18n("professionals", "dashboardNextAction", "What do I need to do next?"),
+  "open_task": public_i18n("professionals", "dashboardOpenTask", "Open task"),
+  "no_schedule": public_i18n("professionals", "dashboardNoSchedule", "No scheduled travel"),
   "legacy_workload": public_i18n("professionals", "dashboardLegacyWorkload", "Legacy workload view"),
   "assigned_tasks": public_i18n("professionals", "dashboardAssignedTasks", "Assigned tasks"),
   "active_workload": public_i18n("professionals", "dashboardActiveWorkload", "Active workload"),
@@ -121,12 +132,8 @@
   <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
-    .professional-dashboard-page {
-      min-height: 100vh;
-      background: linear-gradient(180deg, #f6f1e5 0%, #fbf8f2 55%, #efe8d6 100%);
-      color: #1f2937;
-      padding: 28px 20px 52px;
-    }
+    * { box-sizing:border-box; }
+    .professional-dashboard-page { min-height:100vh; background:linear-gradient(180deg,#f6f1e5 0%,#fbf8f2 55%,#efe8d6 100%); color:#1f2937; padding:24px 20px 64px; }
     .professional-dashboard-shell {
       max-width: 1240px;
       margin: 0 auto;
@@ -134,9 +141,9 @@
       gap: 18px;
     }
     .professional-panel, .professional-hero {
-      background: rgba(255, 255, 255, 0.86);
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(155, 123, 47, 0.16);
-      border-radius: 28px;
+      border-radius: 24px;
       box-shadow: 0 18px 48px rgba(31, 41, 55, 0.08);
       backdrop-filter: blur(18px);
       padding: 26px;
@@ -148,16 +155,31 @@
       align-items: flex-start;
       flex-wrap: wrap;
     }
+    .professional-hero h1 { margin:4px 0 6px; font-size:clamp(2rem,5vw,3.45rem); letter-spacing:-.05em; }
+    .professional-hero p { margin:4px 0; }
+    .professional-live-status { display:inline-flex; align-items:center; gap:8px; margin-bottom:12px; padding:8px 12px; border-radius:999px; background:#e8f3ef; color:#16624c; font-size:12px; font-weight:800; }
+    .professional-live-status::before { content:""; width:8px; height:8px; border-radius:50%; background:#35a37a; box-shadow:0 0 0 4px rgba(53,163,122,.14); }
+    .professional-next { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(260px,.6fr); gap:14px; }
+    .professional-next-card { position:relative; overflow:hidden; padding:24px; border-radius:24px; background:linear-gradient(135deg,#1f2937,#354454); color:#fff; }
+    .professional-next-card::after { content:""; position:absolute; right:-55px; bottom:-75px; width:190px; height:190px; border-radius:50%; background:rgba(194,164,91,.18); }
+    .professional-next-card .professional-kicker { color:#ddca94; }
+    .professional-next-card h2 { margin:7px 0; font-size:clamp(1.4rem,4vw,2.15rem); }
+    .professional-next-card p { color:#d9dee4; }
+    .professional-next-card .button { position:relative; z-index:1; margin-top:10px; }
+    .professional-day-note { display:grid; align-content:center; padding:22px; border-radius:24px; background:#fff; border:1px solid rgba(31,41,55,.08); }
+    .professional-day-note strong { font-size:1.65rem; }
+    .professional-kicker { color:#8b6d2b; text-transform:uppercase; letter-spacing:.08em; font-size:11px; font-weight:800; }
     .professional-dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 12px;
     }
     .professional-kpi {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(251, 247, 238, 0.86);
+      min-height:118px; padding:18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.92);
       border: 1px solid rgba(31, 41, 55, 0.06);
+      box-shadow:0 8px 20px rgba(31,41,55,.04);
     }
     .professional-kpi span { display:block; color:#8b6d2b; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
     .professional-kpi strong { display:block; margin-top:6px; font-size:1.4rem; }
@@ -173,6 +195,7 @@
       display: grid;
       gap: 8px;
     }
+    .professional-task-card:hover { border-color:rgba(155,123,47,.4); transform:translateY(-1px); }
     .professional-task-card__meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge {
       display:inline-flex;
@@ -215,9 +238,17 @@
     @media (max-width: 920px) {
       .professional-dashboard-grid { grid-template-columns: 1fr 1fr; }
       .professional-grid-two-up { grid-template-columns: 1fr; }
+      .professional-next { grid-template-columns:1fr; }
     }
     @media (max-width: 640px) {
-      .professional-dashboard-grid { grid-template-columns: 1fr; }
+      .professional-dashboard-page { padding:12px 10px 88px; }
+      .professional-panel,.professional-hero { padding:18px 15px; border-radius:24px; }
+      .professional-hero .hero__cta { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+      .professional-dashboard-grid { grid-template-columns:1fr 1fr; gap:9px; }
+      .professional-kpi { min-height:102px; padding:14px; }
+      .professional-kpi strong { font-size:1.25rem; }
+      .professional-kpi small { font-size:11px; }
+      .professional-next-card { padding:20px 18px; }
     }
   </style>
 </head>
@@ -225,6 +256,7 @@
   <main class="professional-dashboard-shell">
     <section class="professional-hero">
       <div>
+        <span class="professional-live-status">{{ labels.available }}</span>
         <p class="eyebrow">{{ labels.portal_eyebrow }}</p>
         <h1>{{ display_name|e }}</h1>
         <p>{{ professional_account.company|e if professional_account.company else professional_account.email|e }}</p>
@@ -245,16 +277,35 @@
       </div>
     </section>
 
+    {% set next_task = assigned_tasks|first %}
+    {% set urgent_tasks = assigned_tasks|selectattr('priority', 'equalto', 'URGENT')|list %}
+    <section class="professional-next" aria-labelledby="next-action-title">
+      <article class="professional-next-card">
+        <span class="professional-kicker">{{ labels.next_action }}</span>
+        {% if next_task %}
+          <h2 id="next-action-title">{{ next_task.title|e }}</h2>
+          <p>{{ next_task.property_name|e or next_task.property_location|e }} · {{ next_task.due_date|e or labels.no_due_date }}</p>
+          <a class="button button--primary" href="{{ localized_url('/professionals/tasks/' ~ next_task.request_id|e) }}">{{ labels.open_task }} →</a>
+        {% else %}
+          <h2 id="next-action-title">{{ labels.no_assigned_tasks }}</h2>
+        {% endif %}
+      </article>
+      <article class="professional-day-note">
+        <span class="professional-kicker">{{ labels.urgent_alerts }}</span>
+        <strong>{{ urgent_tasks|length }}</strong>
+        <p>{{ labels.travel_schedule }}: {% if upcoming_tasks %}{{ upcoming_tasks|length }}{% else %}{{ labels.no_schedule }}{% endif %}</p>
+      </article>
+    </section>
+
     <section class="professional-dashboard-grid">
-      <article class="professional-kpi"><span>{{ labels.assigned_today }}</span><strong>{{ assigned_today_count }}</strong><small>{{ labels.assigned_today_detail }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.today }}</span><strong>{{ today_count }}</strong><small>{{ labels.todays_jobs }} · {{ labels.assigned_today_detail }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.completed }}</span><strong>{{ completed_count }}</strong><small>{{ labels.completed_today }}: {{ completed_today_count }}</small></article>
       <article class="professional-kpi"><span>{{ labels.in_progress }}</span><strong>{{ in_progress_count }}</strong></article>
-      <article class="professional-kpi"><span>{{ labels.waiting_owner }}</span><strong>{{ waiting_owner_count }}</strong></article>
-      <article class="professional-kpi"><span>{{ labels.completed_today }}</span><strong>{{ completed_today_count }}</strong></article>
-      <article class="professional-kpi"><span>{{ labels.upcoming_visits }}</span><strong>{{ upcoming_count }}</strong></article>
-      <article class="professional-kpi"><span>{{ labels.average_completion_time }}</span><strong>{% if average_completion_minutes is not none %}{{ average_completion_minutes }} min{% else %}{{ labels.average_completion_time_na }}{% endif %}</strong></article>
-      <article class="professional-kpi"><span>{{ labels.today }}</span><strong>{{ today_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
-      <article class="professional-kpi"><span>{{ labels.upcoming }}</span><strong>{{ upcoming_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
-      <article class="professional-kpi"><span>{{ labels.completed }}</span><strong>{{ completed_count }}</strong><small>{{ labels.legacy_workload }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.delayed }}</span><strong>{{ waiting_owner_count }}</strong><small>{{ labels.waiting_owner }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.next_arrival }}</span><strong>{% if next_task %}{{ next_task.due_time|default('', true)|e or next_task.due_date|e or '—' }}{% else %}—{% endif %}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.next_deadline }}</span><strong>{% if next_task %}{{ next_task.due_date|e or '—' }}{% else %}—{% endif %}</strong></article>
+      <article class="professional-kpi"><span>{{ labels.upcoming }}</span><strong>{{ upcoming_count }}</strong><small>{{ labels.travel_schedule }} · {{ labels.upcoming_visits }}</small></article>
+      <article class="professional-kpi"><span>{{ labels.urgent_alerts }}</span><strong>{{ urgent_tasks|length }}</strong></article>
     </section>
 
     <section class="professional-grid-two-up">
