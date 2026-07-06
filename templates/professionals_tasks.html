@@ -5,6 +5,7 @@
   "title": public_i18n("professionals", "tasksTitle", "Tasks"),
   "dashboard": public_i18n("professionals", "tasksDashboard", "Dashboard"),
   "logout": public_i18n("professionals", "tasksLogout", "Logout"),
+  "support": public_i18n("professionals", "portalSupport", "Support"),
   "search_placeholder": public_i18n("professionals", "tasksSearchPlaceholder", "Search by property, category, or title"),
   "search": public_i18n("professionals", "tasksSearch", "Search"),
   "today": public_i18n("professionals", "dashboardToday", "Today"),
@@ -64,18 +65,19 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     * { box-sizing:border-box; }
-    .professional-tasks-page { min-height:100vh; background:linear-gradient(180deg,#f6f1e5 0%,#fbf8f2 55%,#efe8d6 100%); color:#1f2937; padding:24px 20px 64px; }
+    html, body { max-width:100%; overflow-x:clip; }
+    .professional-tasks-page { min-height:100vh; background:#f5f7f6; color:#0f2345; padding:24px 20px 64px; }
     .professional-tasks-shell { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
-    .professional-panel { background:rgba(255,255,255,.9); border:1px solid rgba(155,123,47,.16); border-radius:24px; box-shadow:0 18px 48px rgba(31,41,55,.08); backdrop-filter:blur(18px); padding:26px; }
+    .professional-panel { background:rgba(255,255,255,.96); border:1px solid rgba(15,35,69,.1); border-radius:24px; box-shadow:0 18px 42px rgba(15,35,69,.1); backdrop-filter:blur(18px); padding:26px; }
     .professional-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:22px; }
     .professional-header h1 { margin:4px 0 0; font-size:clamp(2rem,5vw,3.35rem); letter-spacing:-.045em; }
-    .professional-tabs { display:flex; gap:8px; overflow:auto; padding:0 0 4px; margin-bottom:18px; }
-    .professional-tab { white-space:nowrap; padding:9px 14px; border-radius:999px; background:#f7f2e8; color:#625328; font-size:13px; font-weight:750; }
-    .professional-tab--active { background:#1f2937; color:#fff; }
+    .professional-tabs { display:flex; flex-wrap:wrap; gap:8px; padding:0 0 4px; margin-bottom:18px; }
+    .professional-tab { padding:9px 14px; border:1px solid rgba(15,35,69,.1); border-radius:999px; background:#f7f4ee; color:#40536e; font-size:13px; font-weight:750; }
+    .professional-tab--active { background:#e7f0ed; color:#17382e; border-color:rgba(39,101,79,.18); }
     .professional-task-list { display:grid; gap:14px; }
     .professional-task-card {
-      padding:20px; border-radius:24px; background:#fff; border:1px solid rgba(31,41,55,.09); text-decoration:none; color:inherit;
-      display:grid; gap:16px; box-shadow:0 10px 26px rgba(31,41,55,.055); transition:transform .2s ease,box-shadow .2s ease;
+      padding:20px; border-radius:22px; background:rgba(247,244,238,.92); border:1px solid rgba(15,35,69,.1); text-decoration:none; color:inherit;
+      display:grid; gap:16px; box-shadow:inset 0 1px 0 rgba(255,255,255,.55); transition:transform .2s ease,box-shadow .2s ease;
     }
     .professional-task-card:hover { transform:translateY(-2px); box-shadow:0 16px 32px rgba(31,41,55,.09); }
     .professional-task-card__header { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
@@ -86,18 +88,20 @@
     .professional-badge--urgent { background:#fff0ed; color:#a33d2a; }
     .professional-task-facts { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; }
     .professional-task-fact { min-width:0; }
-    .professional-task-fact span { display:block; margin-bottom:4px; color:#8b6d2b; font-size:10px; font-weight:800; letter-spacing:.075em; text-transform:uppercase; }
-    .professional-task-fact strong { display:block; overflow:hidden; color:#374151; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+    .professional-task-fact span { display:block; margin-bottom:4px; color:#5b6d84; font-size:10px; font-weight:800; letter-spacing:.075em; text-transform:uppercase; }
+    .professional-task-fact strong { display:block; overflow:hidden; color:#0f2345; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
     .professional-progress { height:7px; overflow:hidden; border-radius:999px; background:#eee9df; }
     .professional-progress span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#96772e,#c2a45b); }
     .professional-search { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
-    .professional-search input { flex:1 1 260px; min-height:48px; border-radius:16px; border:1px solid rgba(31,41,55,.14); padding:12px 14px; font:inherit; background:#fff; }
+    .professional-search input { flex:1 1 260px; min-width:0; min-height:48px; border-radius:16px; border:1px solid rgba(15,35,69,.18); padding:12px 14px; font:inherit; background:#fff; color:#0f2345; }
     @media (max-width:900px) { .professional-task-facts { grid-template-columns:repeat(3,minmax(0,1fr)); } }
     @media (max-width:600px) {
       .professional-tasks-page { padding:12px 10px 90px; }
       .professional-panel { padding:18px 14px; border-radius:24px; }
       .professional-header { align-items:flex-start; }
-      .professional-header .hero__cta { display:none; }
+      .professional-header { flex-direction:column; }
+      .professional-header .hero__cta { display:flex; width:100%; flex-wrap:wrap; }
+      .professional-header .hero__cta .button { flex:1 1 auto; }
       .professional-search { position:sticky; top:8px; z-index:2; padding:8px; margin-inline:-4px; border-radius:20px; background:rgba(251,248,242,.92); backdrop-filter:blur(12px); }
       .professional-search .button { width:48px; padding-inline:0; font-size:0; }
       .professional-search .button::after { content:"→"; font-size:18px; }
@@ -118,6 +122,7 @@
         </div>
         <div class="hero__cta">
           <a class="button button--secondary" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
+          <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
           <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
         </div>
       </div>
