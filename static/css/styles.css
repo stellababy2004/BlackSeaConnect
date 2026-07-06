@@ -33933,6 +33933,607 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   }
 }
 
+/* ==========================================================================
+   Authenticated application shell
+   One visual language across owner, operations, admin and professional tools.
+   Property photography remains available only in explicit property media.
+   ========================================================================== */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) {
+  --app-background: #f6f8fb;
+  --app-surface: #ffffff;
+  --app-surface-subtle: #f9fafb;
+  --app-border: #e7ebf0;
+  --app-text: #172033;
+  --app-muted: #647084;
+  --app-radius: 24px;
+  --app-gap: 32px;
+  --app-pad: 32px;
+  --app-shadow: 0 8px 28px rgba(20, 32, 55, .06);
+  color: var(--app-text);
+  background: var(--app-background) !important;
+  background-color: var(--app-background) !important;
+  background-image: none !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  body, main, section, .hero, header.hero, .page-hero, .calendar-hero,
+  .reservations-hero, .professional-hero, .admin-operations-hero,
+  .owner-properties-hero, .owner-dashboard-masthead
+) {
+  background-image: none !important;
+}
+
+/* Neutral app headers replace marketing/scenic heroes. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.hero, header.hero, .page-hero, .calendar-hero, .reservations-hero, .professional-hero) {
+  min-height: 0 !important;
+  color: var(--app-text) !important;
+  background: var(--app-background) !important;
+  box-shadow: none !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.hero::before, .hero::after, .page-hero::before, .page-hero::after) {
+  display: none !important;
+  content: none !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.hero h1, .hero h2, .hero p, .hero span, .hero strong, .hero a:not(.button)) {
+  color: inherit;
+  text-shadow: none !important;
+}
+
+/* Stable navigation chrome throughout the authenticated product. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+) .topbar {
+  border-bottom: 1px solid var(--app-border) !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 1px 0 rgba(20, 32, 55, .02) !important;
+  backdrop-filter: blur(18px);
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+) :is(.brand, .site-nav__link, .language-switcher__button, .owner-profile-dropdown__summary) {
+  color: var(--app-text) !important;
+  text-shadow: none !important;
+}
+
+/* One 32px layout rhythm for all application workspaces. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .owner-dashboard-main, .owner-properties-shell, .owner-property-detail-shell,
+  .owner-portal-dashboard, .owner-portal-auth-layout, .calendar-shell,
+  .reservations-shell, .reservation-detail-shell, .operations-demo-shell,
+  .admin-cockpit-shell, .admin-operations-shell, .admin-operations-detail-shell,
+  .admin-properties-shell, .admin-property-detail-shell, .admin-owner-accounts-shell,
+  .admin-owner-detail-shell, .admin-notifications-shell, .admin-events-shell,
+  .reservation-import-shell, .professional-dashboard-shell, .professional-tasks-shell,
+  .professional-task-shell
+) {
+  gap: var(--app-gap) !important;
+}
+
+/* Identical enterprise card treatment. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .owner-portal-card, .owner-properties-panel, .owner-property-detail-panel,
+  .owner-dashboard-disclosure, .owner-ai-center, .calendar-panel,
+  .reservations-panel, .reservation-detail-panel, .operations-demo-panel,
+  .form-card, .section-card, .request-card, .timeline-card,
+  .admin-cockpit-panel, .admin-operations-panel, .admin-operations-detail-panel,
+  .admin-properties-panel, .admin-property-detail-panel, .admin-owner-accounts-panel,
+  .admin-owner-detail-panel, .admin-notifications-panel, .admin-events-panel,
+  .reservation-import-panel, .professional-panel
+) {
+  border: 1px solid var(--app-border) !important;
+  border-radius: var(--app-radius) !important;
+  background: var(--app-surface) !important;
+  background-image: none !important;
+  box-shadow: var(--app-shadow) !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .owner-kpi-card, .owner-operational-kpi, .owner-health-item,
+  .owner-team-list__item, .owner-action-card, .owner-notification-item,
+  .owner-activity-item, .owner-health-signal, .calendar-hero__stats > div,
+  .calendar-event, .reservations-kpi, .reservation-card, .admin-kpi-card,
+  .admin-operations-kpi, .professional-kpi
+) {
+  border-color: var(--app-border) !important;
+  background: var(--app-surface-subtle) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove ornamental overlays without touching actual property media. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.ambient-orb, .hero__glow, .hero__visual-decoration, .page-decoration, .wave-divider) {
+  display: none !important;
+}
+
+/* Explicit media exemption: these are real property representations. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .admin-properties-page, .admin-property-detail-page
+) :is(
+  .owner-property-card__cover, .owner-property-card__cover img,
+  .owner-property-detail-hero__visual, .owner-property-detail-hero__visual img,
+  .property-gallery, .property-gallery img, .admin-property-media,
+  .admin-property-media img
+) {
+  background-color: #e9edf2;
+  background-size: cover;
+  background-position: center;
+}
+
+@media (max-width: 900px) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+    .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+    .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+    .professional-task-page
+  ) {
+    --app-gap: 20px;
+    --app-pad: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+    .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+    .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+    .professional-task-page
+  ) {
+    --app-gap: 16px;
+    --app-pad: 20px;
+    --app-radius: 20px;
+  }
+}
+
+/* Subtle shared coastal atmosphere behind the authenticated application.
+   The flat veil keeps the image in the margins without reintroducing photo cards. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) {
+  background-color: #f6f8fb !important;
+  background-image:
+    linear-gradient(rgba(246, 248, 251, .52), rgba(246, 248, 251, .52)),
+    url("/static/img/blacksea-marina-hero.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center top !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+@media (max-width: 700px), (prefers-reduced-motion: reduce) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+    .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+    .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+    .professional-task-page
+  ) {
+    background-attachment: scroll !important;
+  }
+}
+
+/* Let the single body backdrop remain continuous behind page-level regions.
+   Content surfaces stay opaque through the shared card rules above. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) > :is(.hero, header.hero, .page-hero, main) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Final authenticated canvas pass: page regions expose the shared marina
+   while bounded information surfaces remain readable white/glass cards. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .owner-portal-section, .owner-dashboard-section, .owner-properties-section,
+  .owner-property-detail-section, .calendar-section, .reservations-section,
+  .reservation-detail-section, .operations-section, .admin-section,
+  .professional-section
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+) > .hero > :is(.hero__content, .hero__content--home) {
+  min-height: 0 !important;
+  padding-top: 32px !important;
+  padding-bottom: 32px !important;
+}
+
+:is(
+  .calendar-page .calendar-hero,
+  .reservations-page .reservations-hero,
+  .reservation-detail-page .reservation-detail-hero,
+  .admin-operations-page .admin-operations-hero,
+  .admin-operations-detail-page .admin-operations-detail-hero,
+  .professional-dashboard-page .professional-hero,
+  .professional-tasks-page .professional-hero,
+  .professional-task-page .professional-hero
+) {
+  min-height: 0 !important;
+  border: 1px solid rgba(255, 255, 255, .72) !important;
+  background: rgba(255, 255, 255, .82) !important;
+  color: var(--app-text) !important;
+  box-shadow: var(--app-shadow) !important;
+  backdrop-filter: blur(20px) saturate(112%);
+  -webkit-backdrop-filter: blur(20px) saturate(112%);
+}
+
+:is(
+  .calendar-page .calendar-hero,
+  .reservations-page .reservations-hero,
+  .reservation-detail-page .reservation-detail-hero,
+  .admin-operations-page .admin-operations-hero,
+  .admin-operations-detail-page .admin-operations-detail-hero,
+  .professional-dashboard-page .professional-hero,
+  .professional-tasks-page .professional-hero,
+  .professional-task-page .professional-hero
+) :is(h1, h2, h3, p, span, strong, small, time, .eyebrow, .calendar-copy) {
+  color: var(--app-text) !important;
+  -webkit-text-fill-color: var(--app-text) !important;
+  text-shadow: none !important;
+}
+
+:is(
+  .calendar-page .calendar-hero__stats > div,
+  .reservations-page .reservations-kpi,
+  .professional-dashboard-page .professional-kpi,
+  .admin-operations-page .admin-operations-kpi
+) {
+  border-color: rgba(23, 32, 51, .09) !important;
+  background: rgba(255, 255, 255, .76) !important;
+}
+
+.owner-property-detail-page > .hero .owner-property-detail-shell {
+  padding-top: 32px !important;
+  padding-bottom: 32px !important;
+}
+
+.owner-property-detail-page .owner-property-detail-hero {
+  background: rgba(255, 255, 255, .92) !important;
+}
+
+@media (max-width: 700px) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .professional-dashboard-page, .professional-tasks-page, .professional-task-page
+  ) > .hero > :is(.hero__content, .hero__content--home) {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+  }
+}
+
+/* Specificity guard: supersede legacy page-level !important themes so every
+   authenticated surface resolves to the same sharp, high-contrast system. */
+body:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) {
+  color: #172033 !important;
+  background-color: #f6f8fb !important;
+  background-image: url("/static/img/blacksea-marina-hero.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center top !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+body:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(h1, h2, h3, h4, h5, h6, p, dt, dd, label, legend, time, li, a, span, strong, small) {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  text-shadow: none !important;
+}
+
+body:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(input, select, textarea) {
+  border: 1px solid #d7dee7 !important;
+  background: #fff !important;
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  box-shadow: none !important;
+}
+
+body:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(input, select, textarea)::placeholder {
+  color: #7b8798 !important;
+  -webkit-text-fill-color: #7b8798 !important;
+  opacity: 1 !important;
+}
+
+body:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.owner-portal-card__subcopy, .hero__text, .owner-property-detail-copy, .calendar-copy) {
+  color: #5f6d80 !important;
+  -webkit-text-fill-color: #5f6d80 !important;
+}
+
+.owner-portal-dashboard-page .owner-command-summary__metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 700px), (prefers-reduced-motion: reduce) {
+  body:is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+    .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+    .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+    .professional-task-page
+  ) {
+    background-attachment: scroll !important;
+  }
+}
+
+/* Crystal-clear authenticated UI: no frosted blur or white glow.
+   The marina stays sharp; every functional surface uses the same crisp system. */
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) {
+  --app-shadow: 0 8px 24px rgba(15, 35, 69, .10);
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .topbar, .hero__copy, .owner-portal-card, .owner-properties-panel,
+  .owner-property-detail-hero, .owner-property-detail-panel, .owner-request-summary,
+  .owner-request-panel, .owner-request-next, .owner-dashboard-disclosure,
+  .owner-ai-center, .calendar-hero, .calendar-panel, .reservations-hero,
+  .reservations-panel, .reservation-detail-hero, .reservation-detail-panel,
+  .admin-operations-hero, .admin-operations-panel, .admin-operations-detail-panel,
+  .admin-cockpit-panel, .admin-properties-panel, .admin-property-detail-panel,
+  .admin-owner-accounts-panel, .admin-owner-detail-panel, .admin-notifications-panel,
+  .admin-events-panel, .professional-hero, .professional-panel, .form-card,
+  .section-card, .request-card, .timeline-card
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: var(--app-shadow) !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(
+  .owner-portal-card, .owner-properties-panel, .owner-property-detail-hero,
+  .owner-property-detail-panel, .owner-request-summary, .owner-request-panel,
+  .owner-request-next, .owner-dashboard-disclosure, .owner-ai-center,
+  .calendar-hero, .calendar-panel, .reservations-hero, .reservations-panel,
+  .reservation-detail-hero, .reservation-detail-panel, .admin-operations-hero,
+  .admin-operations-panel, .admin-operations-detail-panel, .admin-cockpit-panel,
+  .admin-properties-panel, .admin-property-detail-panel, .admin-owner-accounts-panel,
+  .admin-owner-detail-panel, .admin-notifications-panel, .admin-events-panel,
+  .professional-hero, .professional-panel, .form-card, .section-card,
+  .request-card, .timeline-card
+) {
+  border-color: #e2e7ed !important;
+  background-color: #fff !important;
+  background-image: none !important;
+}
+
+:is(
+  .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+  .owner-request-service-page, .owner-property-new-page, .calendar-page,
+  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+  .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+  .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+  .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+  .professional-task-page
+) :is(.button, button, .site-nav__link, .owner-property-workspace-tab) {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+@media (max-width: 700px) {
+  :is(
+    .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .owner-property-new-page, .calendar-page,
+    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
+    .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
+    .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
+    .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
+    .professional-task-page
+  ) {
+    background-image:
+      linear-gradient(rgba(246, 248, 251, .60), rgba(246, 248, 251, .60)),
+      url("/static/img/blacksea-marina-hero.png") !important;
+  }
+}
+
 /* Shared interaction and state quality for authenticated owner workflows. */
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
