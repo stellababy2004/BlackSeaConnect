@@ -28300,6 +28300,210 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-status-badge--in-progr
   }
 }
 
+/* Owner portal mobile system. Desktop remains unchanged. */
+@media (max-width: 767px) {
+  :is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .calendar-page--owner, .reservations-page) {
+    --mobile-pad: 18px;
+    --mobile-gap: 24px;
+    --app-pad: var(--mobile-pad);
+    --app-gap: var(--mobile-gap);
+    --app-radius: 18px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .calendar-page--owner, .reservations-page)
+  :is(.button, button, input, select) {
+    min-height: 44px !important;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
+    .owner-request-service-page, .calendar-page--owner, .reservations-page)
+  :is(.button, button) {
+    justify-content: center;
+    padding: 10px 16px !important;
+    border-radius: 12px !important;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page) .topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px !important;
+    width: 100%;
+    padding: 12px var(--mobile-pad) !important;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page) .topbar__actions {
+    display: contents !important;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page) .site-nav {
+    grid-column: 1 / -1;
+    display: flex !important;
+    width: 100%;
+    gap: 6px !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  :is(.site-nav, .owner-property-workspace-tabs, .calendar-tabs)::-webkit-scrollbar {
+    display: none;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page)
+  :is(.site-nav__link, .owner-property-workspace-tab) {
+    min-height: 44px !important;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page) .topbar__portal {
+    display: none !important;
+  }
+
+  :is(.owner-portal-dashboard-page, .owner-properties-page,
+    .owner-property-detail-page, .owner-request-service-page)
+  :is(.owner-dashboard-main, .owner-properties-shell,
+    .owner-property-detail-shell, .owner-request-service-page__main) {
+    width: 100%;
+    max-width: 100%;
+    padding-inline: var(--mobile-pad) !important;
+  }
+
+  .owner-portal-dashboard-page .owner-dashboard-masthead__content,
+  .owner-request-service-page .owner-request-hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: var(--mobile-gap) !important;
+    padding-inline: var(--mobile-pad) !important;
+  }
+
+  .owner-portal-dashboard-page :is(.owner-ai-center, .owner-property-grid, .owner-properties-grid),
+  .owner-property-detail-page :is(.owner-property-detail-grid, .owner-property-detail-dl,
+    .owner-property-detail-summary, .owner-property-overview__grid, .owner-property-knowledge-grid),
+  .owner-request-service-page :is(.owner-request-form__grid, .owner-request-next__grid),
+  .reservations-page :is(.reservations-grid, .reservations-summary,
+    .reservations-filter-grid, .reservations-form-grid),
+  .calendar-page--owner :is(.calendar-grid, .calendar-summary-grid,
+    .calendar-filters, .calendar-owner-form__grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .owner-portal-dashboard-page :is(.owner-command-summary__metrics, .owner-kpi-grid,
+    .owner-operational-kpis, .owner-action-grid, .owner-quick-actions) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .owner-portal-dashboard-page .owner-ai-event {
+    grid-template-columns: 26px minmax(0, 1fr) !important;
+  }
+
+  .owner-portal-dashboard-page .owner-ai-event time {
+    grid-column: 2;
+    white-space: normal;
+  }
+
+  .owner-property-detail-page {
+    padding: 0 0 40px !important;
+  }
+
+  .owner-property-detail-page .owner-property-detail-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: var(--mobile-pad) !important;
+  }
+
+  .owner-property-detail-page .owner-property-detail-hero__visual {
+    width: 100%;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+
+  .owner-property-detail-page .owner-property-detail-hero__visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .owner-property-detail-page .owner-property-workspace-tabs,
+  .calendar-page--owner .calendar-tabs {
+    display: flex !important;
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+  }
+
+  .owner-property-detail-page .owner-property-detail-calendar-grid {
+    display: none !important;
+  }
+
+  .owner-request-service-page :is(.owner-request-summary, .owner-request-panel, .owner-request-next),
+  :is(.reservations-page, .calendar-page--owner)
+  :is(.reservations-hero, .reservations-panel, .calendar-hero, .calendar-panel) {
+    width: 100%;
+    min-width: 0;
+    padding: var(--mobile-pad) !important;
+  }
+
+  :is(.owner-request-service-page, .reservations-page, .calendar-page--owner)
+  :is(input, select, textarea) {
+    width: 100% !important;
+    max-width: 100%;
+    font-size: 16px !important;
+  }
+
+  :is(.owner-request-service-page, .owner-property-detail-page,
+    .reservations-page, .calendar-page--owner)
+  :is(.hero__cta, .owner-property-detail-actions, .owner-request-form__footer,
+    .reservations-actions, .calendar-actions) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 12px !important;
+  }
+
+  :is(.owner-request-service-page, .owner-property-detail-page,
+    .reservations-page, .calendar-page--owner)
+  :is(.hero__cta, .owner-property-detail-actions, .owner-request-form__footer,
+    .reservations-actions, .calendar-actions) .button {
+    width: 100%;
+  }
+
+  :is(.reservations-page, .calendar-page--owner) {
+    padding: 16px var(--mobile-pad) 40px !important;
+  }
+
+  .reservations-page :is(.reservations-card__topline, .reservations-card__meta,
+    .reservations-card__footer),
+  .calendar-page--owner :is(.calendar-event__topline, .calendar-event__meta,
+    .calendar-future-pill) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 430px) {
+  .owner-portal-dashboard-page :is(.owner-command-summary__metrics, .owner-kpi-grid,
+    .owner-operational-kpis, .owner-action-grid, .owner-quick-actions) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
 /* Owner Portal 2.0 — focused premium operations layer */
 body.owner-portal-page.owner-portal-dashboard-page {
   --owner-ink: #153246;
