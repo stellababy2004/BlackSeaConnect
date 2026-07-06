@@ -1,6 +1,56 @@
 (function () {
   "use strict";
 
+  const pageLanguage = (document.documentElement.lang || "en").toLowerCase().split("-")[0];
+  const supportedLanguage = ["en", "fr", "bg", "ru"].includes(pageLanguage) ? pageLanguage : "en";
+  const statusLabels = {
+    en: { NEW: "New", SCHEDULED: "Scheduled", IN_PROGRESS: "In progress", WAITING: "Waiting", COMPLETED: "Completed", CANCELLED: "Cancelled", URGENT: "Urgent", HIGH: "High", NORMAL: "Normal", LOW: "Low" },
+    fr: { NEW: "Nouveau", SCHEDULED: "Planifié", IN_PROGRESS: "En cours", WAITING: "En attente", COMPLETED: "Terminé", CANCELLED: "Annulé", URGENT: "Urgent", HIGH: "Élevée", NORMAL: "Normale", LOW: "Faible" },
+    bg: { NEW: "Нова", SCHEDULED: "Планирана", IN_PROGRESS: "В процес", WAITING: "В изчакване", COMPLETED: "Завършена", CANCELLED: "Отменена", URGENT: "Спешен", HIGH: "Висок", NORMAL: "Нормален", LOW: "Нисък" },
+    ru: { NEW: "Новая", SCHEDULED: "Запланирована", IN_PROGRESS: "В работе", WAITING: "В ожидании", COMPLETED: "Завершена", CANCELLED: "Отменена", URGENT: "Срочный", HIGH: "Высокий", NORMAL: "Обычный", LOW: "Низкий" }
+  };
+  const loadingLabels = {
+    en: "Saving…",
+    fr: "Enregistrement…",
+    bg: "Запазване…",
+    ru: "Сохранение…"
+  };
+
+  document.querySelectorAll("[data-owner-status]").forEach(function (badge) {
+    const normalized = (badge.dataset.ownerStatus || "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+    const label = statusLabels[supportedLanguage][normalized];
+    if (!label) return;
+    badge.textContent = label;
+    badge.classList.add("owner-premium-badge", "owner-premium-badge--" + normalized.toLowerCase().replace(/_/g, "-"));
+    badge.setAttribute("aria-label", label);
+  });
+
+  document.querySelectorAll("[data-owner-datetime]").forEach(function (element) {
+    const rawValue = element.dataset.ownerDatetime || element.textContent.trim();
+    if (!rawValue) return;
+    const normalizedValue = /^\d{4}-\d{2}-\d{2} /.test(rawValue) ? rawValue.replace(" ", "T") : rawValue;
+    const parsed = new Date(normalizedValue);
+    if (Number.isNaN(parsed.getTime())) return;
+    element.textContent = new Intl.DateTimeFormat(supportedLanguage, {
+      dateStyle: "medium",
+      timeStyle: rawValue.includes(":") ? "short" : undefined
+    }).format(parsed);
+    if (element.tagName === "TIME") element.dateTime = rawValue;
+  });
+
+  document.querySelectorAll("form[data-owner-submit-state]").forEach(function (form) {
+    form.addEventListener("submit", function () {
+      if (!form.checkValidity()) return;
+      const button = form.querySelector('button[type="submit"]');
+      if (!button || button.disabled) return;
+      button.dataset.idleLabel = button.textContent;
+      button.textContent = loadingLabels[supportedLanguage];
+      button.disabled = true;
+      button.classList.add("is-loading");
+      button.setAttribute("aria-busy", "true");
+    });
+  });
+
   const propertyPage = document.querySelector(".owner-property-detail-page");
   if (propertyPage) {
     const tabOrder = ["overview", "property", "calendar", "operations", "knowledge", "equipment", "integrations"];

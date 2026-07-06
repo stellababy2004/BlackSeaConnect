@@ -110,7 +110,7 @@
         <p class="cta-panel__trust" data-i18n="ownerRequestServiceHint">{{ public_i18n('ownersRequestService', 'ownerRequestServiceHint', '') }}</p>
       </div>
 
-      <form class="owner-request-form" method="post" action="/owners/request-service">
+      <form class="owner-request-form" method="post" action="/owners/request-service" data-owner-submit-state>
         <input type="hidden" name="lang" value="{{ current_lang }}">
         <input type="hidden" name="property_id" value="{{ form_values.property_id|e }}">
         <div class="owner-request-form__grid">
@@ -219,5 +219,6 @@
 
   <script src="/static/js/translations.js?v=20260621"></script>
   <script src="/static/js/i18n.js?v=20260621"></script>
+  <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>

@@ -395,7 +395,7 @@
           <select name="status">
             <option value="">All statuses</option>
             {% for option in calendar_status_options %}
-              <option value="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
+              <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
@@ -413,7 +413,7 @@
           <select name="priority">
             <option value="">All priorities</option>
             {% for option in calendar_priority_options %}
-              <option value="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
+              <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
@@ -453,20 +453,23 @@
                           <p class="calendar-event__copy">{% if event.owner_label %}{{ event.owner_label|e }}{% endif %}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
                         </div>
                         <div class="calendar-event__meta">
-                          <p class="calendar-event__copy">Status: {{ event.status|e }}</p>
-                          <p class="calendar-event__copy">{% if event.priority %}Priority: {{ event.priority|e }}{% endif %}</p>
+                          <p class="calendar-event__copy">Status: <span data-owner-status="{{ event.status|e }}">{{ event.status|e }}</span></p>
+                          <p class="calendar-event__copy">{% if event.priority %}Priority: <span data-owner-status="{{ event.priority|e }}">{{ event.priority|e }}</span>{% endif %}</p>
                         </div>
                       </article>
                     {% endfor %}
                   </div>
                 {% else %}
-                  <p class="calendar-note">No events in this range.</p>
+                  <div class="calendar-note {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
+                    <h3>No events in this range</h3>
+                    <p>Adjust the filters or add a personal stay or blocked period using the form.</p>
+                  </div>
                 {% endif %}
               </section>
             {% endfor %}
           </div>
         {% else %}
-          <div class="calendar-group">
+          <div class="calendar-group {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
             <h3>No events yet.</h3>
             <p class="calendar-note">Once operations tasks or owner dates are saved, they will appear here automatically.</p>
           </div>
@@ -482,7 +485,7 @@
             </div>
             <p class="calendar-note">Owners can create blocked dates and personal stays without touching the operational workflow.</p>
             {% if calendar_owner_properties %}
-              <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}">
+              <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}" data-owner-submit-state>
                 <div class="calendar-event-type-picker" aria-label="Event type">
                   <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>Blocked dates</button>
                   <button type="button" data-event-type="Personal Stay"><span>⌂</span>Personal stay</button>
@@ -558,6 +561,6 @@
       </aside>
     </section>
   </main>
-  <script src="/static/js/owner-experience.js?v=20260704"></script>
+  <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>

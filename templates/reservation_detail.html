@@ -220,7 +220,7 @@
     }
   </style>
 </head>
-<body class="reservation-detail-page">
+<body class="reservation-detail-page reservation-detail-page--{{ scope|e }}">
   <main class="reservation-detail-shell">
     <section class="reservation-detail-hero">
       <div>
@@ -246,10 +246,10 @@
       <div class="reservation-detail-stack">
         <article class="reservation-detail-panel">
           <div class="reservation-detail-badges">
-            <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
-            <span class="reservation-detail-chip">{{ reservation.status.replace('_', ' ').title() }}</span>
+            <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
+            <span class="reservation-detail-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
             <span class="reservation-detail-chip">{{ reservation.reservation_source|e }}</span>
-            <span class="reservation-detail-chip">{{ reservation.arrival_datetime|e }} - {{ reservation.departure_datetime|e }}</span>
+            <span class="reservation-detail-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
           </div>
           <div class="reservation-detail-dl u-mt-16">
             <div><dt>Guest</dt><dd>{{ reservation.guest_name|e }}<br>{{ reservation.guest_email|e }}{% if reservation.guest_phone %}<br>{{ reservation.guest_phone|e }}{% endif %}</dd></div>
@@ -270,11 +270,11 @@
                 <div class="reservation-detail-item">
                   <div class="reservation-detail-item__topline">
                     <strong>{{ item.title|e }}</strong>
-                    <time>{{ item.created_at|e }}</time>
+                    <time data-owner-datetime="{{ item.created_at|e }}">{{ item.created_at|e }}</time>
                   </div>
                   <div class="reservation-detail-meta u-mt-12">
                     <span class="reservation-detail-chip">{{ item.type|replace('_', ' ')|title }}</span>
-                    <span class="reservation-detail-chip">{{ item.status.replace('_', ' ').title() }}</span>
+                    <span class="reservation-detail-chip" data-owner-status="{{ item.status|e }}">{{ item.status.replace('_', ' ').title() }}</span>
                     {% if item.visibility %}
                       <span class="reservation-detail-chip">{{ item.visibility|title }}</span>
                     {% endif %}
@@ -286,7 +286,10 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="reservation-detail-empty">No timeline entries yet.</p>
+            <div class="reservation-detail-empty owner-premium-empty">
+              <h3>No activity yet</h3>
+              <p>Reservation updates will appear here as the stay progresses.</p>
+            </div>
           {% endif %}
         </article>
 
@@ -368,7 +371,7 @@
               <strong>{{ calendar_event.event_type|e }}</strong>
               <span>{{ calendar_event.start_datetime|e }} - {{ calendar_event.end_datetime|e }}</span>
               <div class="u-mt-12">
-                <span class="reservation-detail-chip">{{ calendar_event.status }}</span>
+                <span class="reservation-detail-chip" data-owner-status="{{ calendar_event.status|e }}">{{ calendar_event.status }}</span>
               </div>
             </div>
           {% else %}
@@ -389,5 +392,6 @@
       </aside>
     </section>
   </main>
+  {% if scope == 'owner' %}<script src="/static/js/owner-experience.js?v=20260706"></script>{% endif %}
 </body>
 </html>

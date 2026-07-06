@@ -221,11 +221,14 @@
                     <span>{{ property.city|e or property.location|e }}</span>
                   </div>
                 </div>
-                <span class="owner-property-card__status">{{ property.status_label|e }}</span>
+                <span class="owner-property-card__status" data-owner-status="{{ property.status_label|e }}">{{ property.status_label|e }}</span>
               </div>
               <div class="owner-property-card__hero-copy">
                 <span class="owner-property-card__progress">{{ property.readiness_percent }}% Ready</span>
                 <span class="owner-property-card__updated">Updated {{ property.last_updated_display|e }}</span>
+              </div>
+              <div class="owner-property-card__progress-meter" role="progressbar" aria-label="Property readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ property.readiness_percent }}">
+                <span style="--owner-progress: {{ property.readiness_percent }}%"></span>
               </div>
               <div class="owner-property-card__facts">
                 <div class="owner-property-card__fact">
@@ -252,11 +255,16 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="owner-properties-empty">No properties have been added yet. Start with the onboarding form and then manage them here.</p>
+        <div class="owner-properties-empty owner-premium-empty">
+          <h2>Your property workspace is ready</h2>
+          <p>Add your first property to begin tracking readiness, stays, and service activity in one place.</p>
+          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">Add property</a>
+        </div>
       {% endif %}
     </section>
   </main>
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>

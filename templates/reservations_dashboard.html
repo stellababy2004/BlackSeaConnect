@@ -230,9 +230,9 @@
     }
   </style>
 </head>
-<body class="reservations-page">
+<body class="reservations-page reservations-page--{{ scope|e }}">
   <main class="reservations-shell">
-    <section class="reservations-hero">
+    <section class="reservations-hero" id="top">
       <div>
         <p class="eyebrow">BlackSea Connect</p>
         <h1>{{ page_title }}</h1>
@@ -302,7 +302,7 @@
               <p class="section-heading__eyebrow">Create reservation</p>
               <h2>Manual reservation or block dates</h2>
             </div>
-            <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}">
+            <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}" data-owner-submit-state>
               <div class="reservations-form-grid">
                 <label>
                   <span>Reservation type</span>
@@ -402,12 +402,12 @@
                       <h3>{{ reservation.guest_label|e }}</h3>
                       <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
                     </div>
-                    <span class="reservations-badge reservations-badge--{{ reservation.property_status|lower|replace(' ', '-') }}">{{ reservation.property_status }}</span>
+                    <span class="reservations-badge reservations-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
                   </div>
                   <div class="reservations-card__meta">
-                    <span class="reservations-chip">{{ reservation.status.replace('_', ' ').title() }}</span>
+                    <span class="reservations-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
                     <span class="reservations-chip">{{ reservation.reservation_source|e }}</span>
-                    <span class="reservations-chip">{{ reservation.arrival_datetime|e }} - {{ reservation.departure_datetime|e }}</span>
+                    <span class="reservations-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
                   </div>
                   <p>
                     {% if reservation.guest_name %}
@@ -425,7 +425,7 @@
                         <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ reservation.id) }}">Open detail</a>
                       {% endif %}
                       {% if reservation.calendar_event %}
-                        <a class="button button--ghost" href="{{ localized_url('/admin/calendar?property=' ~ reservation.property_name) }}">Calendar</a>
+                        <a class="button button--ghost" href="{{ localized_url(('/owners/calendar?property=' if scope == 'owner' else '/admin/calendar?property=') ~ reservation.property_name) }}">Calendar</a>
                       {% endif %}
                     </div>
                   </div>
@@ -433,9 +433,10 @@
               {% endfor %}
             </div>
           {% else %}
-            <div class="reservations-empty">
-              <h3>No reservations yet.</h3>
-              <p>The booking engine will surface every manual stay, imported reservation, and blocked period here once created.</p>
+            <div class="reservations-empty {% if scope == 'owner' %}owner-premium-empty{% endif %}">
+              <h3>Your stays will appear here</h3>
+              <p>Create a manual reservation or block dates above. Imported stays will also appear automatically when available.</p>
+              {% if scope == 'owner' and create_allowed %}<a class="button button--primary" href="#top">Create reservation</a>{% endif %}
             </div>
           {% endif %}
         </article>
@@ -453,7 +454,7 @@
               {% for reservation in reservations[:5] %}
                 <div class="reservations-mini-item">
                   <strong>{{ reservation.guest_label|e }}</strong>
-                  <span>{{ reservation.arrival_datetime|e }} - {{ reservation.departure_datetime|e }}</span>
+                  <span><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
                 </div>
               {% endfor %}
             {% endif %}
@@ -481,5 +482,6 @@
       </aside>
     </section>
   </main>
+  {% if scope == 'owner' %}<script src="/static/js/owner-experience.js?v=20260706"></script>{% endif %}
 </body>
 </html>

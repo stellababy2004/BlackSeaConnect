@@ -34949,3 +34949,159 @@ body.calendar-page .calendar-block-form :where(h1, h2, h3, h4, p, span, strong, 
   -webkit-text-fill-color: #0f2345 !important;
   text-shadow: none !important;
 }
+/* Sprint 11: shared Owner Portal polish. Kept strictly within owner-facing page roots. */
+.owner-portal-page,
+.owner-properties-page,
+.owner-property-detail-page,
+.calendar-page--owner,
+.reservations-page--owner,
+.reservation-detail-page--owner {
+  --owner-ink: #102a43;
+  --owner-muted: #627487;
+  --owner-line: rgba(16, 42, 67, 0.1);
+  --owner-surface: rgba(255, 255, 255, 0.96);
+  --owner-shadow: 0 16px 44px rgba(16, 42, 67, 0.08);
+  color: var(--owner-ink);
+}
+
+.owner-portal-page :is(.owner-portal-card, .owner-request-panel, .owner-request-next),
+.owner-properties-page :is(.owner-properties-panel, .owner-property-card),
+.owner-property-detail-page :is(.owner-property-detail-panel, .owner-property-workspace-panel),
+.calendar-page--owner :is(.calendar-hero, .calendar-panel, .calendar-summary-card, .calendar-event),
+.reservations-page--owner :is(.reservations-hero, .reservations-panel, .reservations-card),
+.reservation-detail-page--owner :is(.reservation-detail-hero, .reservation-detail-panel) {
+  border-color: var(--owner-line);
+  border-radius: 24px;
+  background: var(--owner-surface);
+  box-shadow: var(--owner-shadow);
+}
+
+.owner-premium-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.owner-premium-badge::before {
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+.owner-premium-badge--new,
+.owner-premium-badge--scheduled,
+.owner-premium-badge--normal { border-color: #bcd9ea; background: #edf8ff; color: #17618a; }
+.owner-premium-badge--in-progress { border-color: #b8ddd4; background: #ebf8f4; color: #176b57; }
+.owner-premium-badge--waiting { border-color: #ead9aa; background: #fff9e8; color: #896314; }
+.owner-premium-badge--completed { border-color: #b9dfc8; background: #edf9f1; color: #247044; }
+.owner-premium-badge--cancelled { border-color: #d8dde3; background: #f3f5f7; color: #687685; }
+.owner-premium-badge--urgent,
+.owner-premium-badge--high { border-color: #efc0c0; background: #fff0f0; color: #a52d2d; }
+.owner-premium-badge--low { border-color: #d5dce4; background: #f5f7f9; color: #617181; }
+
+.owner-premium-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-height: 150px;
+  padding: 28px;
+  border: 1px dashed rgba(16, 42, 67, 0.18);
+  border-radius: 20px;
+  background: #f8fbfd;
+}
+.owner-premium-empty::before {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  background: #e8f4f7;
+  color: #176b75;
+  content: "✓";
+  font-weight: 900;
+}
+.owner-premium-empty :is(h2, h3, p) { margin: 0; }
+.owner-premium-empty p { max-width: 58ch; color: var(--owner-muted); }
+
+[data-owner-submit-state] button[type="submit"] { min-width: 148px; }
+[data-owner-submit-state] button.is-loading { cursor: wait; opacity: 0.78; }
+
+.owner-properties-page .owner-property-card__cover {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 18px;
+}
+.owner-properties-page .owner-property-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+.owner-properties-page .owner-property-card__hero-copy { gap: 10px; }
+.owner-properties-page .owner-property-card__progress { flex: 1; }
+.owner-properties-page .owner-property-card__progress-meter {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7edf1;
+}
+.owner-properties-page .owner-property-card__progress-meter span {
+  display: block;
+  width: var(--owner-progress);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #167c80, #59b894);
+}
+
+@media (max-width: 768px) {
+  .owner-portal-page,
+  .owner-properties-page,
+  .owner-property-detail-page,
+  .calendar-page--owner,
+  .reservations-page--owner,
+  .reservation-detail-page--owner { overflow-x: clip; }
+
+  .owner-portal-page :is(.owner-command-summary__metrics, .owner-kpi-grid),
+  .calendar-page--owner .calendar-summary-grid,
+  .reservations-page--owner .reservations-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .owner-properties-page .owner-properties-grid,
+  .calendar-page--owner :is(.calendar-grid, .calendar-filters, .calendar-owner-form__grid),
+  .reservations-page--owner :is(.reservations-grid, .reservations-form-grid),
+  .reservation-detail-page--owner .reservation-detail-grid { grid-template-columns: minmax(0, 1fr); }
+
+  .calendar-page--owner .calendar-tabs {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  .calendar-page--owner .calendar-tab { flex: 0 0 auto; }
+}
+
+@media (max-width: 430px) {
+  .owner-portal-page :is(.owner-command-summary__metrics, .owner-kpi-grid),
+  .calendar-page--owner .calendar-summary-grid,
+  .reservations-page--owner .reservations-summary-grid { grid-template-columns: minmax(0, 1fr); }
+
+  .owner-properties-page .owner-properties-shell,
+  .owner-property-detail-page .owner-property-detail-shell,
+  .calendar-page--owner .calendar-shell,
+  .reservations-page--owner .reservations-shell,
+  .reservation-detail-page--owner .reservation-detail-shell { width: 100%; padding-inline: 12px; }
+
+  .owner-properties-page .owner-property-card__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .owner-properties-page .owner-property-card__topline,
+  .reservations-page--owner .reservations-card__topline,
+  .reservation-detail-page--owner .reservation-detail-item__topline { align-items: flex-start; flex-direction: column; }
+
+  .owner-portal-page .button,
+  .owner-properties-page .button,
+  .owner-property-detail-page .button,
+  .calendar-page--owner .button,
+  .reservations-page--owner .button,
+  .reservation-detail-page--owner .button { max-width: 100%; white-space: normal; }
+}

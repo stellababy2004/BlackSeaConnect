@@ -327,7 +327,7 @@
           <div class="owner-property-detail-meta">
             <span class="owner-property-detail-chip">Owner portal</span>
             <span class="owner-property-detail-chip">Property profile</span>
-            <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
+            <span class="owner-property-detail-chip owner-property-detail-chip--status" data-owner-status="{{ property_context.property.status_label|e }}">{{ property_context.property.status_label|e }}</span>
           </div>
           <h1>{{ property_context.property.name|e }}</h1>
           <p class="owner-property-detail-location">{{ property_context.property.location|e }} · {{ owner_account.full_name|e }}</p>
@@ -387,8 +387,8 @@
       <div class="owner-property-overview__grid">
         <div><span>Property</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
         <div><span>Readiness</span><strong>{{ property_context.property.readiness_percent }}%</strong><small>{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} complete</small></div>
-        <div><span>Next arrival</span><strong>{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No arrival', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Schedule clear', true)|e }}</small></div>
-        <div><span>Next cleaning</span><strong>{{ property_context.availability.upcoming_departure.departure_datetime|default('No turnover', true)|e }}</strong><small>{% if property_context.availability.cleaning_required %}Cleaning required{% else %}No action required{% endif %}</small></div>
+        <div><span>Next arrival</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No arrival', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Schedule clear', true)|e }}</small></div>
+        <div><span>Next cleaning</span><strong data-owner-datetime="{{ property_context.availability.upcoming_departure.departure_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_departure.departure_datetime|default('No turnover', true)|e }}</strong><small>{% if property_context.availability.cleaning_required %}Cleaning required{% else %}No action required{% endif %}</small></div>
         <div><span>Open requests</span><strong>{{ open_request_count.value }}</strong><small>Property operations</small></div>
         <div class="{% if property_context.property.checklist_completed < property_context.property.checklist_total %}is-alert{% else %}is-healthy{% endif %}">
           <span>Key alerts</span>
@@ -485,7 +485,7 @@
             </div>
           </div>
 
-          <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data">
+          <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data" data-owner-submit-state>
             <input type="hidden" name="status" value="{{ property_context.property.status|e }}">
             <input type="hidden" name="notes" value="{{ property_context.property.notes|e }}">
             {% for field in ['guest_guide_ready', 'access_instructions_ready', 'emergency_contact_ready', 'cleaning_partner_ready'] %}
@@ -795,7 +795,7 @@
         <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">Property Notes</p>
           <h2 class="owner-property-detail-section-title">Internal notes</h2>
-          <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}">
+          <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}" data-owner-submit-state>
             <label>
               <span>Property notes</span>
               <textarea name="notes" placeholder="Notes for your local operations team">{{ property_context.property.notes|e }}</textarea>
@@ -902,10 +902,10 @@
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
                     <strong>{{ request.service_category|e }}</strong>
-                    <time>{{ request.created_at|e }}</time>
+                    <time data-owner-datetime="{{ request.created_at|e }}">{{ request.created_at|e }}</time>
                   </div>
                   <p>
-                    {{ request.status|upper|e }} &middot; {{ request.property|e }}
+                    <span data-owner-status="{{ request.status|e }}">{{ request.status|upper|e }}</span> &middot; {{ request.property|e }}
                     {% if request.description %}<br>{{ request.description|e }}{% endif %}
                   </p>
                 </div>
@@ -940,6 +940,6 @@
   </main>
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
-  <script src="/static/js/owner-experience.js?v=20260704"></script>
+  <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>

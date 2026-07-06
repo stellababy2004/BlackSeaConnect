@@ -1081,7 +1081,7 @@
                 {% if item.time_key %}
                   <time class="owner-timeline-item__time" data-i18n="{{ item.time_key }}">{{ item.time|e }}</time>
                 {% else %}
-                  <time class="owner-timeline-item__time">{{ item.time|e }}</time>
+                  <time class="owner-timeline-item__time" data-owner-datetime="{{ item.time|e }}">{{ item.time|e }}</time>
                 {% endif %}
                 <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
                 <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
@@ -1131,15 +1131,15 @@
                 <div class="owner-activity-item__topline">
                   <strong data-i18n="{{ item.service_category_key }}">{{ item.service_category|e }}</strong>
                   {% if item.status|lower == "new" %}
-                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusNew">{{ ui.owner_status_new }}</span>
+                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusNew" data-owner-status="NEW">{{ ui.owner_status_new }}</span>
                   {% elif item.status|lower == "assigned" %}
                     <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusAssigned">{{ ui.owner_status_assigned }}</span>
                   {% elif item.status|lower == "in_progress" %}
-                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusInProgress">{{ ui.owner_status_in_progress }}</span>
+                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusInProgress" data-owner-status="IN_PROGRESS">{{ ui.owner_status_in_progress }}</span>
                   {% elif item.status|lower == "completed" %}
-                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusCompleted">{{ ui.owner_status_completed }}</span>
+                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusCompleted" data-owner-status="COMPLETED">{{ ui.owner_status_completed }}</span>
                   {% else %}
-                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusCancelled">{{ ui.owner_status_cancelled }}</span>
+                    <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusCancelled" data-owner-status="CANCELLED">{{ ui.owner_status_cancelled }}</span>
                   {% endif %}
                 </div>
                 <p>{{ item.property|e }}</p>
@@ -1161,6 +1161,7 @@
 
   <script src="/static/js/translations.js?v=20260621"></script>
   <script src="/static/js/i18n.js?v=20260621"></script>
+  <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>
 
