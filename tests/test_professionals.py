@@ -1,5 +1,6 @@
 import base64
 import html as html_module
+import io
 import json
 import os
 import re
@@ -814,7 +815,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Висок",
                 "category": "Поддръжка",
                 "no_notifications": "Няма скорошни известия.",
-                "no_attachments": "Все още няма места за прикачване.",
+                "no_attachments": "Все още няма качени доказателства.",
             },
             "en": {
                 "portal": "Professional portal",
@@ -827,7 +828,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "High",
                 "category": "Maintenance",
                 "no_notifications": "No recent notifications.",
-                "no_attachments": "No attachment placeholders yet.",
+                "no_attachments": "No evidence uploaded yet.",
             },
             "fr": {
                 "portal": "Portail professionnel",
@@ -840,7 +841,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Élevée",
                 "category": "Maintenance",
                 "no_notifications": "Aucune notification récente.",
-                "no_attachments": "Aucun espace réservé de pièce jointe pour le moment.",
+                "no_attachments": "Aucune preuve téléversée pour le moment.",
             },
             "ru": {
                 "portal": "Портал профессионалов",
@@ -853,7 +854,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Высокий",
                 "category": "Обслуживание",
                 "no_notifications": "Недавних уведомлений нет.",
-                "no_attachments": "Пока нет заглушек для вложений.",
+                "no_attachments": "Подтверждения пока не загружены.",
             },
         }
 
@@ -882,6 +883,18 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertIn(f'href="/professionals/dashboard?lang={lang}"', tasks_html)
                 self.assertIn(f'href="/professionals/logout?lang={lang}"', tasks_html)
                 self.assertIn(f'href="/professionals/tasks/task-localized?lang={lang}"', tasks_html)
+                self.assertIn('input.addEventListener("input", filterCards)', tasks_html)
+
+                localized_status_search = self.client.get(
+                    "/professionals/tasks",
+                    query_string={"lang": lang, "q": expected["status"]},
+                )
+                self.assertIn("task-localized", localized_status_search.get_data(as_text=True))
+                owner_search = self.client.get(
+                    "/professionals/tasks",
+                    query_string={"lang": lang, "q": "Собственик"},
+                )
+                self.assertIn("task-localized", owner_search.get_data(as_text=True))
 
                 detail = self.client.get(f"/professionals/tasks/task-localized?lang={lang}")
                 self.assertEqual(detail.status_code, 200)
@@ -889,7 +902,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertIn(f'<html lang="{lang}">', detail_html)
                 self.assertIn(expected["back"], detail_html)
                 self.assertIn(expected["accept"], detail_html)
-                self.assertIn(expected["complete"], detail_html)
+                self.assertNotIn(f">{expected['complete']}<", detail_html)
                 self.assertIn(expected["status"], detail_html)
                 self.assertIn(expected["priority"], detail_html)
                 self.assertIn(expected["category"], detail_html)
@@ -897,6 +910,10 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertIn(f'href="/professionals/tasks?lang={lang}"', detail_html)
                 self.assertIn(f'href="/professionals/dashboard?lang={lang}"', detail_html)
                 self.assertIn(f'href="/admin/operations/task-localized?lang={lang}"', detail_html)
+                self.assertIn('data-navigation data-address=', detail_html)
+                self.assertIn("https://maps.apple.com/", detail_html)
+                self.assertIn('name="issue_category"', detail_html)
+                self.assertIn('name="issue_severity"', detail_html)
 
                 if lang != "en":
                     for forbidden in [
@@ -1025,9 +1042,66 @@ class ApplicationWorkflowTests(unittest.TestCase):
 
         with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "accept"}).status_code, 302)
+            invalid_start = self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "start"})
+            self.assertIn("error=transition_invalid", invalid_start.headers["Location"])
+            self.assertEqual(app_module._find_operations_task("task-lifecycle")["status"], "ACCEPTED")
+            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "on_the_way"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "arrived"}).status_code, 302)
             self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "start"}).status_code, 302)
+            for index, (checklist_key, _label) in enumerate(app_module.OPERATIONS_TASK_CHECKLIST_ITEMS):
+                checklist_response = self.client.post(
+                    "/professionals/tasks/task-lifecycle",
+                    data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
+                    headers={"X-Requested-With": "XMLHttpRequest"} if index == 0 else {},
+                )
+                if index == 0:
+                    self.assertEqual(checklist_response.status_code, 200)
+                    self.assertEqual(checklist_response.get_json()["checked_count"], 1)
+                    self.assertEqual(checklist_response.get_json()["progress"], 11)
+                    checklist_events = len([
+                        event for event in app_module._load_operations_task_events("task-lifecycle")
+                        if event["event_type"] == "checklist_updated"
+                    ])
+                    duplicate_response = self.client.post(
+                        "/professionals/tasks/task-lifecycle",
+                        data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
+                        headers={"X-Requested-With": "XMLHttpRequest"},
+                    )
+                    self.assertTrue(duplicate_response.get_json()["ok"])
+                    self.assertEqual(len([
+                        event for event in app_module._load_operations_task_events("task-lifecycle")
+                        if event["event_type"] == "checklist_updated"
+                    ]), checklist_events)
+                else:
+                    self.assertEqual(checklist_response.status_code, 302)
+            evidence_response = self.client.post(
+                "/professionals/tasks/task-lifecycle",
+                data={
+                    "task_action": "attachment",
+                    "attachment_category": "after_photos",
+                    "attachment_file": (io.BytesIO(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")), "after.png"),
+                },
+                content_type="multipart/form-data",
+            )
+            self.assertIn("notice=evidence_uploaded", evidence_response.headers["Location"])
             self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "comment", "note": "Checked keys and refreshed access."}).status_code, 302)
-            complete_response = self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "complete", "note": "Guest-ready and cleaned."})
+            edited_comment = self.client.post(
+                "/professionals/tasks/task-lifecycle",
+                data={"task_action": "edit_comment", "note": "Checked keys, refreshed access, and verified the lock."},
+            )
+            self.assertIn("notice=comment_edited", edited_comment.headers["Location"])
+            missing_note = self.client.post(
+                "/professionals/tasks/task-lifecycle",
+                data={"task_action": "complete", "completed_work": "Guest-ready and cleaned."},
+            )
+            self.assertIn("error=completion_note_required", missing_note.headers["Location"])
+            self.assertEqual(app_module._find_operations_task("task-lifecycle")["status"], "IN_PROGRESS")
+            complete_response = self.client.post("/professionals/tasks/task-lifecycle", data={
+                "task_action": "complete",
+                "completed_work": "Guest-ready and cleaned.",
+                "completion_notes": "Guest-ready and cleaned.",
+                "note": "Guest-ready and cleaned.",
+            })
 
         self.assertEqual(complete_response.status_code, 302)
         task_record = app_module._find_operations_task("task-lifecycle")
@@ -1038,6 +1112,8 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("professional_started", event_types)
         self.assertIn("professional_completed", event_types)
         self.assertIn("professional_comment_added", event_types)
+        self.assertIn("professional_comment_edited", event_types)
+        self.assertTrue(any(comment.get("edited_at") for comment in task_record["comments"]))
 
         calendar_events = [event for event in app_module._load_calendar_events() if event.get("operation_task_id") == "task-lifecycle"]
         self.assertTrue(calendar_events)
@@ -1047,7 +1123,60 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
 
-    def test_professional_arrival_workflow_completion_report_and_placeholders(self):
+    def test_professional_issue_validation_and_timeline(self):
+        self._seed_professional_account(
+            full_name="Issue Professional",
+            email="issue-pro@example.com",
+            status="ACTIVE",
+            professional_category="Maintenance",
+            account_id="professional-issue-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("issue-pro@example.com")
+        self._seed_operations_task(
+            "task-issue",
+            title="Issue task",
+            status="IN_PROGRESS",
+            assigned_professional_id=account["id"],
+            assigned_to="Issue Professional",
+        )
+        self._login_professional_via_magic("issue-pro@example.com")
+
+        empty_comment = self.client.post("/professionals/tasks/task-issue", data={"task_action": "comment", "note": "   "})
+        self.assertIn("error=comment_required", empty_comment.headers["Location"])
+        self.assertEqual(app_module._find_operations_task("task-issue")["comments"], [])
+
+        blocked_completion = self.client.post(
+            "/professionals/tasks/task-issue",
+            data={"task_action": "complete", "completed_work": "Done"},
+        )
+        self.assertIn("error=completion_checklist_required", blocked_completion.headers["Location"])
+        self.assertEqual(app_module._find_operations_task("task-issue")["status"], "IN_PROGRESS")
+
+        missing_category = self.client.post(
+            "/professionals/tasks/task-issue",
+            data={"task_action": "issue", "issue_description": "The supply valve is leaking."},
+        )
+        self.assertIn("error=issue_category_required", missing_category.headers["Location"])
+
+        reported = self.client.post(
+            "/professionals/tasks/task-issue",
+            data={
+                "task_action": "issue",
+                "issue_category": "damage",
+                "issue_severity": "high",
+                "issue_description": "The supply valve is leaking.\nWater is isolated.",
+                "issue_photos": (io.BytesIO(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")), "issue.png"),
+            },
+            content_type="multipart/form-data",
+        )
+        self.assertIn("notice=issue_reported", reported.headers["Location"])
+        task_record = app_module._find_operations_task("task-issue")
+        self.assertEqual(task_record["status"], "WAITING_OPERATIONS")
+        self.assertTrue(any(comment["type"] == "Issue" and "[DAMAGE · HIGH]" in comment["comment"] for comment in task_record["comments"]))
+        self.assertTrue(any(item["category"] == "issue_photo" for item in task_record["attachments"]))
+        self.assertTrue(any(event["event_type"] == "professional_issue_reported" for event in app_module._load_operations_task_events("task-issue")))
+
+    def test_professional_arrival_workflow_completion_report_and_evidence(self):
         self._seed_professional_account(
             full_name="Workflow Professional",
             email="workflow-pro@example.com",
@@ -1074,8 +1203,27 @@ class ApplicationWorkflowTests(unittest.TestCase):
             self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "accept"}).status_code, 302)
             self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "on_the_way"}).status_code, 302)
             self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "arrived"}).status_code, 302)
+            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "start"}).status_code, 302)
             self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "pause", "note": "Waiting for a spare key."}).status_code, 302)
             self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "resume"}).status_code, 302)
+            for checklist_key, _label in app_module.OPERATIONS_TASK_CHECKLIST_ITEMS:
+                self.assertEqual(self.client.post(
+                    "/professionals/tasks/task-workflow",
+                    data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
+                ).status_code, 302)
+            upload_response = self.client.post(
+                "/professionals/tasks/task-workflow",
+                data={
+                    "task_action": "attachment",
+                    "attachment_category": "after_photos",
+                    "attachment_files": [
+                        (io.BytesIO(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")), "after-one.png"),
+                        (io.BytesIO(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")), "after-two.png"),
+                    ],
+                },
+                content_type="multipart/form-data",
+            )
+            self.assertIn("notice=evidence_uploaded", upload_response.headers["Location"])
             self.assertEqual(self.client.post(
                 "/professionals/tasks/task-workflow",
                 data={
@@ -1086,8 +1234,6 @@ class ApplicationWorkflowTests(unittest.TestCase):
                     "recommendations": "Schedule a follow-up inspection next month.",
                     "follow_up_needed": "None",
                     "completion_notes": "Closeout notes saved.",
-                    "attachment_category": "after_photos",
-                    "attachment_name": "after-photo-placeholder.jpg",
                 },
             ).status_code, 302)
 
@@ -1098,7 +1244,12 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(task_record["completion_report"]["time_spent_minutes"], "95")
         self.assertEqual(task_record["completion_report"]["recommendations"], "Schedule a follow-up inspection next month.")
         self.assertEqual(task_record["completion_report"]["follow_up_needed"], "None")
-        self.assertTrue(any(item.get("category") == "after_photos" for item in task_record["attachments"]))
+        self.assertEqual(sum(1 for item in task_record["attachments"] if item.get("category") == "after_photos"), 2)
+        evidence = next(item for item in task_record["attachments"] if item.get("category") == "after_photos")
+        evidence_response = self.client.get(evidence["url"])
+        self.assertEqual(evidence_response.status_code, 200)
+        self.assertEqual(evidence_response.mimetype, "image/png")
+        evidence_response.close()
 
         events = app_module._load_operations_task_events("task-workflow")
         event_types = [event["event_type"] for event in events]
@@ -1120,3 +1271,9 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertTrue(any(row["metadata"] == "professional_workflow" for row in notifications))
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
+
+        detail_html = self.client.get("/professionals/tasks/task-workflow?lang=en").get_data(as_text=True)
+        self.assertLess(detail_html.index("Professional completed task"), detail_html.index("Professional accepted task"))
+        self.assertIn("data-evidence-form", detail_html)
+        self.assertIn("new DataTransfer()", detail_html)
+        self.assertIn('xhr.upload.addEventListener("progress"', detail_html)

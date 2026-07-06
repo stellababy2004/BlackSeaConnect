@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 {% set labels = {
   "page_title": public_i18n("professionals", "detailPageTitle", "BlackSea Connect | Professional Task Detail"),
   "back_to_tasks": public_i18n("professionals", "detailBackToTasks", "Back to tasks"),
@@ -36,15 +36,42 @@
   "recommendations": public_i18n("professionals", "detailRecommendations", "Recommendations"),
   "follow_up_needed": public_i18n("professionals", "detailFollowUpNeeded", "Follow-up needed"),
   "completion_notes": public_i18n("professionals", "detailCompletionNotes", "Completion notes"),
-  "evidence_placeholder_category": public_i18n("professionals", "detailEvidencePlaceholderCategory", "Evidence placeholder category"),
-  "no_evidence_placeholder": public_i18n("professionals", "detailNoEvidencePlaceholder", "No evidence placeholder"),
+  "evidence_category": public_i18n("professionals", "detailEvidenceCategory", "Evidence category"),
+  "no_evidence_category": public_i18n("professionals", "detailNoEvidenceCategory", "Select a category"),
   "evidence_file": public_i18n("professionals", "detailEvidenceFile", "Evidence file"),
   "evidence_note": public_i18n("professionals", "detailEvidenceNote", "Evidence note"),
+  "upload_evidence": public_i18n("professionals", "detailUploadEvidence", "Upload evidence"),
+  "evidence_requirements": public_i18n("professionals", "detailEvidenceRequirements", "JPEG, PNG, or WebP image, up to 10 MB."),
+  "view_evidence": public_i18n("professionals", "detailViewEvidence", "View evidence"),
+  "drop_evidence": public_i18n("professionals", "detailDropEvidence", "Drop images here or browse"),
+  "remove_image": public_i18n("professionals", "detailRemoveImage", "Remove"),
+  "upload_progress": public_i18n("professionals", "detailUploadProgress", "Upload progress"),
   "complete_work": public_i18n("professionals", "detailCompleteWork", "Complete work"),
+  "completion_requirements": public_i18n("professionals", "detailCompletionRequirements", "Complete every checklist item, upload evidence, and summarize the completed work."),
+  "completion_state_required": public_i18n("professionals", "detailCompletionStateRequired", "Start work before completing this task."),
   "internal_comments": public_i18n("professionals", "detailInternalComments", "Internal comments"),
   "operations_discussion": public_i18n("professionals", "detailOperationsDiscussion", "Operations discussion"),
   "add_internal_comment": public_i18n("professionals", "detailAddInternalComment", "Add internal comment"),
   "add_comment": public_i18n("professionals", "detailAddComment", "Add comment"),
+  "edit_comment": public_i18n("professionals", "detailEditComment", "Edit latest comment"),
+  "save_comment": public_i18n("professionals", "detailSaveComment", "Save comment"),
+  "edited": public_i18n("professionals", "detailEdited", "Edited"),
+  "no_comments": public_i18n("professionals", "detailNoComments", "No internal comments yet."),
+  "report_issue": public_i18n("professionals", "detailReportIssue", "Report issue"),
+  "issue_category": public_i18n("professionals", "detailIssueCategory", "Issue category"),
+  "issue_severity": public_i18n("professionals", "detailIssueSeverity", "Severity"),
+  "issue_description": public_i18n("professionals", "detailIssueDescription", "Issue description"),
+  "issue_description_placeholder": public_i18n("professionals", "detailIssueDescriptionPlaceholder", "Describe what happened and what Operations needs to know."),
+  "issue_photos": public_i18n("professionals", "detailIssuePhotos", "Issue photos"),
+  "issue_category_access": public_i18n("professionals", "detailIssueCategoryAccess", "Access"),
+  "issue_category_safety": public_i18n("professionals", "detailIssueCategorySafety", "Safety"),
+  "issue_category_damage": public_i18n("professionals", "detailIssueCategoryDamage", "Damage"),
+  "issue_category_supplies": public_i18n("professionals", "detailIssueCategorySupplies", "Supplies"),
+  "issue_category_other": public_i18n("professionals", "detailIssueCategoryOther", "Other"),
+  "issue_severity_low": public_i18n("professionals", "detailIssueSeverityLow", "Low"),
+  "issue_severity_medium": public_i18n("professionals", "detailIssueSeverityMedium", "Medium"),
+  "issue_severity_high": public_i18n("professionals", "detailIssueSeverityHigh", "High"),
+  "issue_severity_urgent": public_i18n("professionals", "detailIssueSeverityUrgent", "Urgent"),
   "checklist": public_i18n("professionals", "detailChecklist", "Checklist"),
   "task_checklist": public_i18n("professionals", "detailTaskChecklist", "Task checklist"),
   "no_checklist_items": public_i18n("professionals", "detailNoChecklistItems", "No checklist items are configured yet."),
@@ -53,7 +80,7 @@
   "attachments": public_i18n("professionals", "detailAttachments", "Attachments"),
   "before_after_evidence": public_i18n("professionals", "detailBeforeAfterEvidence", "Before / after evidence"),
   "attachment": public_i18n("professionals", "detailAttachment", "Attachment"),
-  "no_attachment_placeholders": public_i18n("professionals", "detailNoAttachmentPlaceholders", "No attachment placeholders yet."),
+  "no_attachments": public_i18n("professionals", "detailNoAttachments", "No evidence uploaded yet."),
   "latest_report": public_i18n("professionals", "detailLatestReport", "Latest report"),
   "no_completion_report": public_i18n("professionals", "detailNoCompletionReport", "No completion report saved yet."),
   "not_recorded": public_i18n("professionals", "detailNotRecorded", "Not recorded."),
@@ -64,6 +91,14 @@
   "location_not_set": public_i18n("professionals", "detailLocationNotSet", "Location not set"),
   "owner_not_set": public_i18n("professionals", "detailOwnerNotSet", "Owner not set"),
   "operational_task": public_i18n("professionals", "detailOperationalTask", "Operational task"),
+  "copy": public_i18n("professionals", "detailCopy", "Copy"),
+  "copied": public_i18n("professionals", "detailCopied", "Copied."),
+  "maps": public_i18n("professionals", "detailMaps", "Maps"),
+  "address": public_i18n("professionals", "detailAddress", "Address"),
+  "wifi_name": public_i18n("professionals", "detailWifiName", "Wi-Fi network"),
+  "wifi_password": public_i18n("professionals", "detailWifiPassword", "Wi-Fi password"),
+  "emergency_contact": public_i18n("professionals", "detailEmergencyContact", "Emergency contact"),
+  "action_loading": public_i18n("professionals", "detailActionLoading", "Workingâ€¦"),
   "task_status_new": public_i18n("professionals", "taskStatusNew", "New"),
   "task_status_assigned": public_i18n("professionals", "taskStatusAssigned", "Assigned"),
   "task_status_accepted": public_i18n("professionals", "taskStatusAccepted", "Accepted"),
@@ -89,6 +124,8 @@
   "task_event_professional_resumed": public_i18n("professionals", "taskEventProfessionalResumed", "Professional resumed task"),
   "task_event_professional_completed": public_i18n("professionals", "taskEventProfessionalCompleted", "Professional completed task"),
   "task_event_professional_comment_added": public_i18n("professionals", "taskEventProfessionalCommentAdded", "Professional comment added"),
+  "task_event_professional_comment_edited": public_i18n("professionals", "taskEventProfessionalCommentEdited", "Professional comment edited"),
+  "task_event_professional_issue_reported": public_i18n("professionals", "taskEventProfessionalIssueReported", "Professional reported an issue"),
   "task_event_completion_report_updated": public_i18n("professionals", "taskEventCompletionReportUpdated", "Completion report updated"),
   "task_event_attachment_added": public_i18n("professionals", "taskEventAttachmentAdded", "Attachment added"),
   "task_event_comment_added_internal": public_i18n("professionals", "taskEventInternalCommentAdded", "Internal comment added"),
@@ -100,7 +137,37 @@
   "task_event_checklist_updated": public_i18n("professionals", "taskEventChecklistUpdated", "Checklist updated"),
   "task_event_workflow_transitioned": public_i18n("professionals", "taskEventWorkflowTransitioned", "Workflow updated"),
   "task_event_audit_logged": public_i18n("professionals", "taskEventAuditLogged", "Audit logged"),
-  "task_event_unknown": public_i18n("professionals", "taskEventUnknown", "Update")
+  "task_event_unknown": public_i18n("professionals", "taskEventUnknown", "Update"),
+  "professional_actor": public_i18n("professionals", "detailProfessionalActor", "Professional"),
+  "operations_actor": public_i18n("professionals", "detailOperationsActor", "Operations"),
+  "notice_status_updated": public_i18n("professionals", "detailNoticeStatusUpdated", "Task status updated."),
+  "notice_checklist_saved": public_i18n("professionals", "detailNoticeChecklistSaved", "Checklist updated."),
+  "notice_comment_saved": public_i18n("professionals", "detailNoticeCommentSaved", "Comment added."),
+  "notice_comment_edited": public_i18n("professionals", "detailNoticeCommentEdited", "Comment updated."),
+  "notice_evidence_uploaded": public_i18n("professionals", "detailNoticeEvidenceUploaded", "Evidence uploaded."),
+  "notice_issue_reported": public_i18n("professionals", "detailNoticeIssueReported", "Issue reported to Operations."),
+  "notice_task_completed": public_i18n("professionals", "detailNoticeTaskCompleted", "Task completed."),
+  "error_transition_invalid": public_i18n("professionals", "detailErrorTransitionInvalid", "That workflow transition is not allowed."),
+  "error_checklist": public_i18n("professionals", "detailErrorChecklist", "The checklist could not be updated."),
+  "error_comment_required": public_i18n("professionals", "detailErrorCommentRequired", "Enter a comment before submitting."),
+  "error_comment_save": public_i18n("professionals", "detailErrorCommentSave", "The comment could not be saved."),
+  "error_comment_edit": public_i18n("professionals", "detailErrorCommentEdit", "The latest comment could not be updated."),
+  "error_evidence_required": public_i18n("professionals", "detailErrorEvidenceRequired", "Choose an image to upload."),
+  "error_evidence_type": public_i18n("professionals", "detailErrorEvidenceType", "Upload a valid JPEG, PNG, or WebP image."),
+  "error_evidence_empty": public_i18n("professionals", "detailErrorEvidenceEmpty", "The selected image is empty."),
+  "error_evidence_large": public_i18n("professionals", "detailErrorEvidenceLarge", "The image must be 10 MB or smaller."),
+  "error_evidence_save": public_i18n("professionals", "detailErrorEvidenceSave", "The evidence could not be saved."),
+  "error_issue_category": public_i18n("professionals", "detailErrorIssueCategory", "Select an issue category."),
+  "error_issue_severity": public_i18n("professionals", "detailErrorIssueSeverity", "Select an issue severity."),
+  "error_issue_description": public_i18n("professionals", "detailErrorIssueDescription", "Enter an issue description."),
+  "error_issue_locked": public_i18n("professionals", "detailErrorIssueLocked", "Completed tasks cannot receive new issue reports."),
+  "error_issue_save": public_i18n("professionals", "detailErrorIssueSave", "The issue could not be saved."),
+  "error_completion_state": public_i18n("professionals", "detailErrorCompletionState", "The task must be in progress before completion."),
+  "error_completion_checklist": public_i18n("professionals", "detailErrorCompletionChecklist", "Complete every checklist item first."),
+  "error_completion_evidence": public_i18n("professionals", "detailErrorCompletionEvidence", "Upload at least one evidence image first."),
+  "error_completion_summary": public_i18n("professionals", "detailErrorCompletionSummary", "Summarize the completed work first."),
+  "error_completion_note": public_i18n("professionals", "detailErrorCompletionNote", "Enter a completion note first."),
+  "error_action": public_i18n("professionals", "detailErrorAction", "The requested action could not be completed.")
 } %}
 {% set status_labels = {
   "NEW": labels.task_status_new,
@@ -158,8 +225,71 @@
   "professional_resumed": labels.task_event_professional_resumed,
   "professional_completed": labels.task_event_professional_completed,
   "professional_comment_added": labels.task_event_professional_comment_added,
+  "professional_comment_edited": labels.task_event_professional_comment_edited,
+  "professional_issue_reported": labels.task_event_professional_issue_reported,
   "workflow_transitioned": labels.task_event_workflow_transitioned,
   "audit_logged": labels.task_event_audit_logged
+} %}
+{% set checklist_labels = {
+  "cleaning": public_i18n("professionals", "detailChecklistCleaning", "Cleaning"),
+  "inspection": public_i18n("professionals", "detailChecklistInspection", "Inspection"),
+  "keys": public_i18n("professionals", "detailChecklistKeys", "Keys"),
+  "welcome_pack": public_i18n("professionals", "detailChecklistWelcomePack", "Welcome pack"),
+  "photos": public_i18n("professionals", "detailChecklistPhotos", "Photos"),
+  "utilities": public_i18n("professionals", "detailChecklistUtilities", "Utilities"),
+  "wifi": public_i18n("professionals", "detailChecklistWifi", "Wi-Fi"),
+  "parking": public_i18n("professionals", "detailChecklistParking", "Parking"),
+  "inventory": public_i18n("professionals", "detailChecklistInventory", "Inventory")
+} %}
+{% set notice_labels = {
+  "status_updated": labels.notice_status_updated,
+  "checklist_saved": labels.notice_checklist_saved,
+  "comment_saved": labels.notice_comment_saved,
+  "comment_edited": labels.notice_comment_edited,
+  "evidence_uploaded": labels.notice_evidence_uploaded,
+  "issue_reported": labels.notice_issue_reported,
+  "task_completed": labels.notice_task_completed
+} %}
+{% set error_labels = {
+  "transition_invalid": labels.error_transition_invalid,
+  "completion_invalid_state": labels.error_completion_state,
+  "completion_checklist_required": labels.error_completion_checklist,
+  "completion_evidence_required": labels.error_completion_evidence,
+  "completion_summary_required": labels.error_completion_summary,
+  "completion_note_required": labels.error_completion_note,
+  "completion_save_failed": labels.error_action,
+  "checklist_locked": labels.error_checklist,
+  "checklist_invalid": labels.error_checklist,
+  "checklist_save_failed": labels.error_checklist,
+  "comment_required": labels.error_comment_required,
+  "comment_save_failed": labels.error_comment_save,
+  "comment_edit_failed": labels.error_comment_edit,
+  "evidence_required": labels.error_evidence_required,
+  "evidence_invalid_type": labels.error_evidence_type,
+  "evidence_empty": labels.error_evidence_empty,
+  "evidence_too_large": labels.error_evidence_large,
+  "evidence_save_failed": labels.error_evidence_save,
+  "issue_category_required": labels.error_issue_category,
+  "issue_severity_required": labels.error_issue_severity,
+  "issue_description_required": labels.error_issue_description,
+  "issue_locked": labels.error_issue_locked,
+  "issue_save_failed": labels.error_issue_save,
+  "action_invalid": labels.error_action
+} %}
+{% set event_icons = {
+  "professional_accepted": "âœ“",
+  "professional_on_the_way": "â†’",
+  "professional_arrived": "âŒ–",
+  "professional_started": "â–¶",
+  "professional_paused": "â…¡",
+  "professional_resumed": "â–¶",
+  "professional_completed": "âœ“",
+  "professional_comment_added": "âœŽ",
+  "professional_comment_edited": "âœŽ",
+  "professional_issue_reported": "!",
+  "checklist_updated": "â˜‘",
+  "attachment_added": "â–£",
+  "completion_report_updated": "â‰¡"
 } %}
 <html lang="{{ page_lang }}">
 <head>
@@ -170,24 +300,32 @@
   <style>
     * { box-sizing:border-box; }
     html, body { max-width:100%; overflow-x:clip; }
+    .professional-task-page :is(a,button,input,select,textarea):focus-visible { outline:3px solid #96772e; outline-offset:3px; }
+    .professional-task-page .language-switcher__button { display:inline-flex; min-width:44px; min-height:44px; align-items:center; justify-content:center; }
     .professional-task-page { min-height:100vh; background:#f5f7f6; color:#0f2345; padding:24px 20px 72px; }
     .professional-task-shell { width:100%; max-width:1280px; min-width:0; margin:0 auto; display:grid; gap:18px; }
     .professional-panel { min-width:0; background:rgba(255,255,255,.96); border:1px solid rgba(15,35,69,.1); border-radius:24px; box-shadow:0 18px 42px rgba(15,35,69,.1); backdrop-filter:blur(18px); padding:26px; }
     .professional-hero { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap; }
-    .professional-hero h1 { font-size:clamp(2rem,5vw,3.25rem); letter-spacing:-.045em; }
-    .professional-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
+    .professional-hero > * { min-width:0; max-width:100%; }
+    .professional-hero h1 { max-width:100%; font-size:clamp(2rem,5vw,3.25rem); letter-spacing:-.045em; overflow-wrap:anywhere; }
+    .professional-meta { display:flex; max-width:100%; min-width:0; flex-wrap:wrap; gap:8px; align-items:center; }
+    .professional-badge { display:inline-flex; max-width:100%; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; white-space:normal; overflow-wrap:anywhere; }
     .professional-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); gap:18px; min-width:0; align-items:start; }
     .professional-grid-two-up { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px; }
     .professional-stack { display:grid; gap:18px; min-width:0; }
     .professional-task-actions { display:flex; gap:10px; flex-wrap:wrap; min-width:0; }
-    .professional-task-actions .button { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+    .professional-task-actions > * { min-width:0; max-width:100%; }
+    .professional-task-actions .button { max-width:100%; min-width:0; white-space:normal; overflow-wrap:anywhere; }
     .professional-workbar { position:sticky; top:10px; z-index:5; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:14px; padding:12px 14px; border:1px solid rgba(15,35,69,.12); border-radius:22px; background:rgba(255,255,255,.97); color:#0f2345; box-shadow:0 14px 30px rgba(15,35,69,.12); }
     .professional-live { display:flex; align-items:center; gap:9px; font-size:13px; font-weight:800; white-space:nowrap; }
     .professional-live::before { content:""; width:9px; height:9px; border-radius:50%; background:#318064; box-shadow:0 0 0 4px rgba(49,128,100,.15); }
     .professional-workbar .professional-status-controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:8px; min-width:0; }
     .professional-workbar form { min-width:0; }
     .professional-workbar .button { width:100%; max-width:100%; min-height:44px; padding:10px 12px; border:1px solid rgba(15,35,69,.12); white-space:normal; overflow-wrap:anywhere; line-height:1.2; }
+    .professional-workbar .button--primary { box-shadow:0 0 0 3px rgba(49,128,100,.16); }
+    .professional-task-page .is-loading { cursor:wait; opacity:.72; }
+    .professional-task-page .is-loading::before { content:""; width:14px; height:14px; margin-right:8px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:professional-spin .7s linear infinite; }
+    @keyframes professional-spin { to { transform:rotate(360deg); } }
     .professional-form { display:grid; gap:12px; }
     .professional-form label { color:#0f2345; font-weight:650; }
     .professional-form textarea,
@@ -200,14 +338,19 @@
     .professional-dl dt { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#5b6d84; font-weight:700; margin-bottom:6px; }
     .professional-dl dd { margin:0; line-height:1.55; word-break:break-word; }
     .professional-list { display:grid; gap:10px; }
-    .professional-list-item { min-width:0; padding:14px 16px; border-radius:18px; background:rgba(247,244,238,.92); border:1px solid rgba(15,35,69,.1); }
+    .professional-task-page .professional-list-item { min-width:0; padding:14px 16px; border-radius:18px; background:rgba(247,244,238,.96); border:1px solid rgba(15,35,69,.1); color:#0f2345; }
     .professional-list-item__topline { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
     .professional-list-item p { margin:8px 0 0; color:#23395d; line-height:1.6; overflow-wrap:anywhere; }
+    .professional-preserve-format { white-space:pre-wrap; }
+    .professional-alert { padding:14px 16px; border-radius:16px; font-weight:700; }
+    .professional-alert--success { color:#16624c; background:#e8f3ef; border:1px solid rgba(22,98,76,.18); }
+    .professional-alert--error { color:#8a2f2f; background:#fff0f0; border:1px solid rgba(138,47,47,.18); }
     .professional-timeline { display:grid; gap:10px; }
+    .professional-timeline-icon { display:inline-grid; place-items:center; flex:0 0 28px; height:28px; border-radius:9px; background:#e8f3ef; color:#16624c; font-weight:900; }
     .professional-kicker { color:#5b6d84; text-transform:uppercase; letter-spacing:0.08em; font-size:12px; font-weight:700; }
     .professional-photo-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
     .professional-photo-slot { min-width:0; min-height:140px; padding:18px; border-radius:22px; border:1px dashed rgba(15,35,69,.25); background:linear-gradient(145deg,#f7f4ee,#fff); display:flex; flex-direction:column; justify-content:flex-end; }
-    .professional-photo-slot::before { content:"＋"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
+    .professional-photo-slot::before { content:"ï¼‹"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
     .professional-photo-slot strong { display:block; margin-bottom:6px; }
     .professional-photo-slot p { margin:0; color:#40536e; line-height:1.55; }
     .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
@@ -217,8 +360,23 @@
     .professional-check-progress__track { flex:1; height:8px; overflow:hidden; border-radius:999px; background:#eee9df; }
     .professional-check-progress__track span { display:block; height:100%; background:linear-gradient(90deg,#96772e,#c2a45b); }
     .professional-check-item { display:flex; align-items:center; gap:12px; min-height:54px; }
-    .professional-check-mark { display:grid; place-items:center; flex:0 0 26px; height:26px; border:2px solid #c6b788; border-radius:8px; color:#fff; background:#fff; }
+    .professional-check-form { margin:0; }
+    .professional-check-toggle { display:flex; width:100%; min-height:54px; align-items:center; gap:12px; padding:0; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; }
+    .professional-check-toggle:focus-visible { outline:3px solid #96772e; outline-offset:4px; border-radius:12px; }
+    .professional-check-mark { display:grid; place-items:center; flex:0 0 28px; height:28px; border:2px solid #c6b788; border-radius:8px; color:#fff; background:#fff; }
     .professional-check-mark--done { border-color:#318064; background:#318064; }
+    .professional-evidence-image { display:block; width:100%; max-height:220px; margin-top:12px; border-radius:14px; object-fit:cover; }
+    .professional-dropzone { min-height:120px; display:grid; place-items:center; padding:18px; border:2px dashed rgba(15,35,69,.24); border-radius:18px; background:#fbfaf7; text-align:center; cursor:pointer; }
+    .professional-dropzone.is-dragging { border-color:#318064; background:#edf7f3; }
+    .professional-preview-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+    .professional-preview { position:relative; min-width:0; padding:8px; border-radius:14px; background:#f7f4ee; }
+    .professional-preview img { width:100%; height:96px; border-radius:10px; object-fit:cover; }
+    .professional-preview button { width:100%; min-height:44px; margin-top:6px; border:0; border-radius:10px; cursor:pointer; }
+    .professional-upload-progress { width:100%; height:10px; accent-color:#318064; }
+    .professional-chat { display:grid; gap:10px; margin-top:16px; }
+    .professional-chat-item { display:grid; grid-template-columns:38px minmax(0,1fr); gap:10px; }
+    .professional-chat-avatar { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:#e8f3ef; color:#16624c; font-weight:800; }
+    .professional-chat-bubble { min-width:0; padding:12px 14px; border-radius:6px 18px 18px; background:#f7f4ee; border:1px solid rgba(15,35,69,.1); }
     .professional-snapshot { background:linear-gradient(145deg,#fff,#f4f7f5); }
     .professional-snapshot .professional-dl > div { background:rgba(255,255,255,.8); }
     @media (max-width: 920px) {
@@ -229,14 +387,16 @@
     }
     @media (max-width:640px) {
       .professional-task-page { padding:10px 10px 98px; }
-      .professional-task-shell { gap:12px; }
-      .professional-panel { padding:18px 15px; border-radius:24px; }
-      .professional-hero .professional-task-actions { width:100%; }
-      .professional-hero .professional-task-actions .button { flex:1; }
+      .professional-task-shell { width:calc(100vw - 40px); max-width:calc(100vw - 40px); margin-inline:auto; gap:12px; }
+      .professional-panel { width:100%; max-width:100%; padding:18px 15px; border-radius:24px; }
+      .professional-meta .professional-badge:last-child { flex-basis:100%; }
+      .professional-hero .professional-task-actions { display:grid; width:100%; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .professional-hero .professional-task-actions .button { width:100%; min-height:48px; }
+      .professional-hero .language-switcher { grid-column:1 / -1; width:100%; min-width:0; }
       .professional-workbar { top:6px; margin-inline:0; padding:9px 10px; border-radius:20px; }
       .professional-workbar .professional-live { display:none; }
-      .professional-workbar .professional-status-controls { width:100%; }
-      .professional-workbar .button { min-height:46px; }
+      .professional-workbar .professional-status-controls { width:100%; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .professional-workbar .button { min-width:0; min-height:46px; }
       .professional-photo-grid { grid-template-columns:1fr 1fr; }
       .professional-photo-slot { min-height:135px; padding:14px; }
       .professional-form .button { width:100%; min-height:52px; }
@@ -246,10 +406,16 @@
 </head>
 <body class="professional-task-page">
   <main class="professional-task-shell">
+    {% if action_notice and notice_labels.get(action_notice) %}
+      <div class="professional-alert professional-alert--success" role="status">{{ notice_labels.get(action_notice) }}</div>
+    {% endif %}
+    {% if action_error %}
+      <div class="professional-alert professional-alert--error" role="alert">{{ error_labels.get(action_error, labels.error_action) }}</div>
+    {% endif %}
     <section class="professional-panel professional-hero">
       <div>
         {% set owner_email = task.owner_email|default('', true) %}
-        {% set owner_phone = task.owner_phone|default('', true) %}
+        {% set owner_phone = property_snapshot.owner_phone|default('', true) %}
         <div class="professional-meta">
           <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
           <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
@@ -263,7 +429,7 @@
         <a class="button button--secondary" href="{{ localized_url('/professionals/tasks') }}">{{ labels.back_to_tasks }}</a>
         <a class="button button--ghost" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
         <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
-        <div class="language-switcher" aria-label="Language switcher">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel', 'Language switcher') }}">
           {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
             {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
             <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
@@ -289,11 +455,13 @@
         {% elif current_status == 'PAUSED' %}
           <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
         {% endif %}
-        {% if task.property_location %}<a class="button button--secondary" href="https://www.google.com/maps/search/?api=1&amp;query={{ task.property_location|urlencode }}" target="_blank" rel="noopener">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</a>{% endif %}
+        {% if property_snapshot.address %}
+          <button class="button button--secondary" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>
+        {% endif %}
         {% if owner_phone %}<a class="button button--secondary" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
         <a class="button button--secondary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>
-        <a class="button button--secondary" href="#comments">{{ public_i18n('professionals', 'detailReportIssue', 'Report issue') }}</a>
-        <a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>
+        {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#issue-report">{{ labels.report_issue }}</a>{% endif %}
+        {% if current_status == 'IN_PROGRESS' %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
       </div>
     </nav>
 
@@ -322,15 +490,17 @@
           <p class="professional-kicker">{{ labels.property_and_owner }}</p>
           <h2>{{ public_i18n('professionals', 'detailPropertySnapshot', 'Property snapshot') }}</h2>
           <dl class="professional-dl">
-            <div><dt>{{ labels.property_info }}</dt><dd>{{ task.property_location|e or labels.location_not_set }}</dd></div>
-            <div><dt>{{ labels.owner_info }}</dt><dd>{{ task.owner_name|e or labels.owner_not_set }}{% if owner_email %}<br>{{ owner_email|e }}{% endif %}</dd></div>
+            <div><dt>{{ labels.owner_info }}</dt><dd>{{ task.owner_name|e or labels.owner_not_set }}{% if owner_phone %}<br>{{ owner_phone|e }}{% endif %}{% if owner_email %}<br>{{ owner_email|e }}{% endif %}</dd></div>
+            <div><dt>{{ labels.address }}</dt><dd>{{ property_snapshot.address|e or labels.location_not_set }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailGuest', 'Guest') }}</dt><dd>{{ task.guest_name|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailArrival', 'Arrival') }}</dt><dd>{{ task.arrival_date|default('', true)|e or task.check_in|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}</dt><dd>{{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ task.door_code|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>WiFi</dt><dd>{{ task.wifi|default('', true)|e or task.wifi_password|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ public_i18n('professionals', 'detailParking', 'Parking') }}</dt><dd>{{ task.parking|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions">{% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a>{% else %}<a class="button button--ghost" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>{% endif %}{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ property_snapshot.door_code|e or labels.not_recorded }}{% if property_snapshot.door_code %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.door_code|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
+            <div><dt>{{ labels.wifi_name }}</dt><dd>{{ property_snapshot.wifi_name|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ labels.wifi_password }}</dt><dd>{{ property_snapshot.wifi_password|e or labels.not_recorded }}{% if property_snapshot.wifi_password %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.wifi_password|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailParking', 'Parking') }}</dt><dd>{{ property_snapshot.parking|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ labels.emergency_contact }}</dt><dd>{{ property_snapshot.emergency_contact|e or labels.not_recorded }}</dd></div>
+            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions">{% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_email|e }}">{{ labels.copy }}</button>{% endif %}{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_phone|e }}">{{ labels.copy }}</button>{% endif %}{% if property_snapshot.address %}<button class="button button--ghost" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ labels.maps }}</button><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.address|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
             <div><dt>{{ labels.open_operations }}</dt><dd class="professional-task-actions"><a class="button button--secondary" href="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}">{{ labels.open_operations }}</a><a class="button button--ghost" href="mailto:concierge@blackseaconnect.com?subject={{ ('Professional task ' ~ task.request_id)|urlencode }}">{{ labels.support }}</a></dd></div>
           </dl>
         </article>
@@ -354,54 +524,72 @@
             {% else %}
               <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
             {% endif %}
-            {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
+            {% if current_status == 'IN_PROGRESS' %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
           </div>
         </article>
 
         <article class="professional-panel" id="completion-report">
           <p class="professional-kicker">{{ labels.completion_report }}</p>
           <h2>{{ labels.report_and_closeout }}</h2>
-          {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
+          {% if current_status == 'IN_PROGRESS' %}
+            <p><small>{{ labels.completion_requirements }}</small></p>
             <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
               <input type="hidden" name="task_action" value="complete">
-              <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
+              <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" required placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
               <label><span>{{ labels.materials_used }}</span><textarea name="materials_used" placeholder="{{ public_i18n('professionals', 'detailMaterialsUsedPlaceholder', 'List materials, parts, or supplies used.') }}"></textarea></label>
               <label><span>{{ labels.time_spent }}</span><input type="number" name="time_spent_minutes" min="0" placeholder="90"></label>
               <label><span>{{ labels.recommendations }}</span><textarea name="recommendations" placeholder="{{ public_i18n('professionals', 'detailRecommendationsPlaceholder', 'Any recommendations for Operations or the owner?') }}"></textarea></label>
               <label><span>{{ labels.follow_up_needed }}</span><textarea name="follow_up_needed" placeholder="{{ public_i18n('professionals', 'detailFollowUpNeededPlaceholder', 'Describe any follow-up that remains.') }}"></textarea></label>
-              <label><span>{{ labels.completion_notes }}</span><textarea name="completion_notes" placeholder="{{ public_i18n('professionals', 'detailCompletionNotesPlaceholder', 'Optional note for the completion timeline.') }}"></textarea></label>
+              <label><span>{{ labels.completion_notes }}</span><textarea name="completion_notes" required placeholder="{{ public_i18n('professionals', 'detailCompletionNotesPlaceholder', 'Enter the completion note for the timeline.') }}"></textarea></label>
               <button class="button button--primary" type="submit">{{ labels.complete_work }}</button>
             </form>
-          {% else %}
+          {% elif current_status in ['COMPLETED', 'ARCHIVED'] %}
             <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+          {% else %}
+            <p>{{ labels.completion_state_required }}</p>
           {% endif %}
         </article>
 
         <article class="professional-panel" id="evidence-upload">
           <p class="professional-kicker">{{ labels.attachments }}</p>
           <h2>{{ labels.before_after_evidence }}</h2>
-          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data">
+          {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
+          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
             <input type="hidden" name="task_action" value="attachment">
-            <label><span>{{ labels.evidence_placeholder_category }}</span>
-              <select name="attachment_category">
-                <option value="">{{ labels.no_evidence_placeholder }}</option>
+            <label><span>{{ labels.evidence_category }}</span>
+              <select name="attachment_category" required>
+                <option value="">{{ labels.no_evidence_category }}</option>
                 {% for slot_key, slot_label in attachment_labels.items() %}
                   <option value="{{ slot_key }}">{{ slot_label }}</option>
                 {% endfor %}
               </select>
             </label>
-            <label><span>{{ labels.evidence_file }}</span><input type="file" name="attachment_file" required></label>
-            <label><span>{{ labels.evidence_note }}</span><input type="text" name="attachment_name" placeholder="{{ public_i18n('professionals', 'detailEvidenceNotePlaceholder', 'Optional file name or placeholder note') }}"></label>
-            <div class="professional-photo-grid">
-              <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailBeforePhotos', 'Before photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
-              <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailAfterPhotos', 'After photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
-              <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailDamagePhotos', 'Damage photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
-              <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailInvoicePhotos', 'Invoice photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
-              <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailReceiptPhotos', 'Receipt photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
-            </div>
-            <button class="button button--secondary" type="submit">{{ public_i18n('professionals', 'detailAddEvidenceReference', 'Add evidence reference') }}</button>
+            <label class="professional-dropzone" data-dropzone>
+              <span><strong>{{ labels.drop_evidence }}</strong><br><small>{{ labels.evidence_requirements }}</small></span>
+              <input type="file" name="attachment_files" accept="image/jpeg,image/png,image/webp" multiple required style="position:absolute;inline-size:1px;block-size:1px;opacity:0;">
+            </label>
+            <div class="professional-preview-list" data-preview-list></div>
+            <label><span>{{ labels.evidence_note }}</span><input type="text" name="attachment_name" placeholder="{{ public_i18n('professionals', 'detailEvidenceNotePlaceholder', 'Optional evidence label') }}"></label>
+            <label hidden data-upload-progress-wrap><span>{{ labels.upload_progress }}</span><progress class="professional-upload-progress" max="100" value="0" data-upload-progress></progress></label>
+            <button class="button button--secondary" type="submit">{{ labels.upload_evidence }}</button>
+          </form>
+          {% endif %}
+        </article>
+
+        {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
+        <article class="professional-panel" id="issue-report">
+          <p class="professional-kicker">{{ labels.report_issue }}</p>
+          <h2>{{ labels.report_issue }}</h2>
+          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data">
+            <input type="hidden" name="task_action" value="issue">
+            <label><span>{{ labels.issue_category }}</span><select name="issue_category" required><option value=""></option><option value="access">{{ labels.issue_category_access }}</option><option value="safety">{{ labels.issue_category_safety }}</option><option value="damage">{{ labels.issue_category_damage }}</option><option value="supplies">{{ labels.issue_category_supplies }}</option><option value="other">{{ labels.issue_category_other }}</option></select></label>
+            <label><span>{{ labels.issue_severity }}</span><select name="issue_severity" required><option value=""></option><option value="low">{{ labels.issue_severity_low }}</option><option value="medium">{{ labels.issue_severity_medium }}</option><option value="high">{{ labels.issue_severity_high }}</option><option value="urgent">{{ labels.issue_severity_urgent }}</option></select></label>
+            <label><span>{{ labels.issue_description }}</span><textarea name="issue_description" required placeholder="{{ labels.issue_description_placeholder }}"></textarea></label>
+            <label><span>{{ labels.issue_photos }}</span><input type="file" name="issue_photos" accept="image/jpeg,image/png,image/webp" multiple><small>{{ labels.evidence_requirements }}</small></label>
+            <button class="button button--secondary" type="submit">{{ labels.report_issue }}</button>
           </form>
         </article>
+        {% endif %}
 
         <article class="professional-panel" id="comments">
           <p class="professional-kicker">{{ labels.internal_comments }}</p>
@@ -414,6 +602,30 @@
             </label>
             <button class="button button--secondary" type="submit">{{ labels.add_comment }}</button>
           </form>
+          {% if latest_editable_comment %}
+          <details style="margin-top:16px;">
+            <summary>{{ labels.edit_comment }}</summary>
+            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" style="margin-top:12px;">
+              <input type="hidden" name="task_action" value="edit_comment">
+              <label><span>{{ labels.edit_comment }}</span><textarea name="note" required>{{ latest_editable_comment.comment|e }}</textarea></label>
+              <button class="button button--secondary" type="submit">{{ labels.save_comment }}</button>
+            </form>
+          </details>
+          {% endif %}
+          <div class="professional-chat">
+            {% for comment in task.comments or [] %}
+              <div class="professional-chat-item">
+                <span class="professional-chat-avatar" aria-hidden="true">{{ comment.operator|default('?', true)|first|upper }}</span>
+                <div class="professional-chat-bubble">
+                  <div class="professional-list-item__topline"><strong>{{ comment.operator|e }}</strong><time>{{ comment.created_at|e }}</time></div>
+                  <p class="professional-preserve-format">{{ comment.comment|e }}</p>
+                  {% if comment.edited_at %}<small>{{ labels.edited }} Â· {{ comment.edited_at|e }}</small>{% endif %}
+                </div>
+              </div>
+            {% else %}
+              <p>{{ labels.no_comments }}</p>
+            {% endfor %}
+          </div>
         </article>
       </div>
 
@@ -424,19 +636,24 @@
           {% set checklist = task.checklist_items or [] %}
           {% set checked_count = checklist|selectattr('checked')|list|length %}
           {% set checklist_progress = ((checked_count * 100 / checklist|length)|round|int) if checklist else 0 %}
-          <div class="professional-check-progress">
-            <div class="professional-check-progress__track" aria-label="{{ checklist_progress }}%"><span style="width:{{ checklist_progress }}%"></span></div>
-            <strong>{{ checked_count }}/{{ checklist|length }}</strong>
+          <div class="professional-check-progress" data-check-progress>
+            <div class="professional-check-progress__track" aria-label="{{ checklist_progress }}%"><span style="width:{{ checklist_progress }}%" data-check-progress-bar></span></div>
+            <strong data-check-progress-count>{{ checked_count }}/{{ checklist|length }}</strong>
           </div>
           <div class="professional-list">
             {% for item in task.checklist_items or [] %}
-              <div class="professional-list-item professional-check-item">
-                <span class="professional-check-mark{% if item.checked %} professional-check-mark--done{% endif %}" aria-hidden="true">{% if item.checked %}✓{% endif %}</span>
-                <div class="professional-list-item__topline" style="flex:1;">
-                  <strong>{{ item.label|e }}</strong>
+              <form class="professional-list-item professional-check-item professional-check-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-checklist-form data-checklist-key="{{ item.key|e }}">
+                <input type="hidden" name="task_action" value="checklist">
+                <input type="hidden" name="checklist_key" value="{{ item.key|e }}">
+                <input type="hidden" name="checked" value="1">
+                <button class="professional-check-toggle" type="submit" aria-pressed="{{ 'true' if item.checked else 'false' }}" {% if item.checked or current_status in ['COMPLETED', 'ARCHIVED'] %}disabled{% endif %}>
+                <span class="professional-check-mark{% if item.checked %} professional-check-mark--done{% endif %}" aria-hidden="true">{% if item.checked %}âœ“{% endif %}</span>
+                <span class="professional-list-item__topline" style="flex:1;">
+                  <strong>{{ checklist_labels.get(item.key, item.label)|e }}</strong>
                   <span class="professional-badge">{{ labels.done if item.checked else labels.open }}</span>
-                </div>
-              </div>
+                </span>
+                </button>
+              </form>
             {% else %}
               <p>{{ labels.no_checklist_items }}</p>
             {% endfor %}
@@ -450,7 +667,7 @@
             {% for attachment in task.attachments or [] %}
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
-                  <strong>{{ attachment.name|e }}</strong>
+                  {% if attachment.url %}<a href="{{ attachment.url|e }}" target="_blank" rel="noopener"><strong>{{ attachment.name|e }}</strong></a>{% else %}<strong>{{ attachment.name|e }}</strong>{% endif %}
                   <time>{{ attachment.created_at|e }}</time>
                 </div>
                 <p>
@@ -461,11 +678,17 @@
                   {% else %}
                     {{ labels.attachment }}
                   {% endif %}
-                  {% if attachment.uploaded_by %} · {{ attachment.uploaded_by|e }}{% endif %}
+                  {% if attachment.uploaded_by %} Â· {{ attachment.uploaded_by|e }}{% endif %}
                 </p>
+                {% set attachment_name = attachment.name|default('', true)|lower %}
+                {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
+                {% set is_image_attachment = attachment_mime.startswith('image/') or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
+                {% if attachment.url and is_image_attachment %}
+                  <a href="{{ attachment.url|e }}" target="_blank" rel="noopener" aria-label="{{ labels.view_evidence }}: {{ attachment.name|e }}"><img class="professional-evidence-image" src="{{ attachment.url|e }}" alt="{{ attachment.name|e }}" loading="lazy"></a>
+                {% endif %}
               </div>
             {% else %}
-              <p>{{ labels.no_attachment_placeholders }}</p>
+              <p>{{ labels.no_attachments }}</p>
             {% endfor %}
           </div>
         </article>
@@ -500,16 +723,17 @@
           <h2>{{ labels.task_history }}</h2>
           <div class="professional-timeline">
             {% for event in timeline %}
+              {% set event_type = event.event_type|default('', true) %}
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
-                  <strong>{{ event.title|e }}</strong>
+                  <span style="display:flex;align-items:center;gap:9px;"><span class="professional-timeline-icon" aria-hidden="true">{{ event_icons.get(event_type, "â€¢") }}</span><strong>{{ timeline_labels.get(event_type, labels.task_event_unknown) }}</strong></span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
                 <div class="professional-meta" style="margin-top:8px;">
-                  <span class="professional-badge">{{ timeline_labels.get(event.event_type|default('', true), event.title|e) }}</span>
+                  <span class="professional-badge">{% if event_type.startswith('professional_') or event_type in ['attachment_added', 'comment_added_internal', 'checklist_updated', 'completion_report_updated'] %}{{ task.assigned_professional_label|e or labels.professional_actor }}{% else %}{{ labels.operations_actor }}{% endif %}</span>
                   <span class="professional-badge">{{ status_labels.get(event.status|upper, labels.task_status_unknown) }}</span>
                 </div>
-                {% if event.detail %}<p>{{ event.detail|e }}</p>{% endif %}
+                {% if event.detail %}<p class="professional-preserve-format">{{ event.detail|e }}</p>{% endif %}
               </div>
             {% else %}
               <p>{{ labels.no_timeline_entries }}</p>
@@ -519,5 +743,201 @@
       </div>
     </section>
   </main>
+  <script>
+    (() => {
+      const messages = {
+        loading: {{ labels.action_loading|tojson }},
+        copied: {{ labels.copied|tojson }},
+        done: {{ labels.done|tojson }},
+        genericError: {{ labels.error_action|tojson }},
+        remove: {{ labels.remove_image|tojson }}
+      };
+      const main = document.querySelector(".professional-task-shell");
+      const announce = (message, isError = false) => {
+        let alert = main.querySelector("[data-live-alert]");
+        if (!alert) {
+          alert = document.createElement("div");
+          alert.dataset.liveAlert = "";
+          alert.setAttribute("role", "status");
+          main.prepend(alert);
+        }
+        alert.className = `professional-alert ${isError ? "professional-alert--error" : "professional-alert--success"}`;
+        alert.textContent = message;
+      };
+      const setLoading = (form, loading) => {
+        form.setAttribute("aria-busy", String(loading));
+        form.querySelectorAll("button, input, select, textarea").forEach((control) => {
+          if (control.type !== "hidden") control.disabled = loading;
+        });
+        const submit = form.querySelector('[type="submit"]');
+        if (!submit) return;
+        if (!submit.dataset.label) submit.dataset.label = submit.textContent;
+        submit.classList.toggle("is-loading", loading);
+        submit.textContent = loading ? messages.loading : submit.dataset.label;
+      };
+      const parseActionResponse = async (response) => {
+        try {
+          return await response.json();
+        } catch (_error) {
+          return { ok: false, error: "action_invalid" };
+        }
+      };
+
+      document.querySelectorAll("form:not([data-evidence-form])").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!form.reportValidity()) return;
+          const formData = new FormData(form);
+          setLoading(form, true);
+          try {
+            const response = await fetch(form.action, {
+              method: "POST",
+              body: formData,
+              headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            const result = await parseActionResponse(response);
+            if (form.matches("[data-checklist-form]") && result.ok) {
+              const button = form.querySelector(".professional-check-toggle");
+              const mark = form.querySelector(".professional-check-mark");
+              const badge = form.querySelector(".professional-badge");
+              button.disabled = true;
+              button.setAttribute("aria-pressed", "true");
+              mark.classList.add("professional-check-mark--done");
+              mark.textContent = "âœ“";
+              badge.textContent = messages.done;
+              document.querySelector("[data-check-progress-bar]").style.width = `${result.progress}%`;
+              document.querySelector("[data-check-progress-count]").textContent = `${result.checked_count}/${result.total_count}`;
+              announce({{ labels.notice_checklist_saved|tojson }});
+              setLoading(form, false);
+              button.disabled = true;
+              return;
+            }
+            if (result.redirect) {
+              window.location.assign(result.redirect);
+              return;
+            }
+            announce(messages.genericError, true);
+          } catch (_error) {
+            announce(messages.genericError, true);
+          }
+          setLoading(form, false);
+        });
+      });
+
+      const copyText = async (value) => {
+        try {
+          await navigator.clipboard.writeText(value);
+        } catch (_error) {
+          const field = document.createElement("textarea");
+          field.value = value;
+          field.style.position = "fixed";
+          field.style.opacity = "0";
+          document.body.append(field);
+          field.select();
+          document.execCommand("copy");
+          field.remove();
+        }
+        announce(messages.copied);
+      };
+      document.querySelectorAll("[data-copy-value]").forEach((button) => {
+        button.addEventListener("click", () => copyText(button.dataset.copyValue));
+      });
+      document.querySelectorAll("[data-navigation]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const address = button.dataset.address;
+          const latitude = button.dataset.latitude;
+          const longitude = button.dataset.longitude;
+          if (latitude && longitude) {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${latitude},${longitude}`)}`, "_blank", "noopener");
+          } else if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            window.open(`https://maps.apple.com/?q=${encodeURIComponent(address)}`, "_blank", "noopener");
+          } else {
+            copyText(address);
+          }
+        });
+      });
+
+      const evidenceForm = document.querySelector("[data-evidence-form]");
+      if (evidenceForm) {
+        const input = evidenceForm.querySelector('input[type="file"]');
+        const dropzone = evidenceForm.querySelector("[data-dropzone]");
+        const previewList = evidenceForm.querySelector("[data-preview-list]");
+        const progressWrap = evidenceForm.querySelector("[data-upload-progress-wrap]");
+        const progress = evidenceForm.querySelector("[data-upload-progress]");
+        let selectedFiles = [];
+        const syncInput = () => {
+          const transfer = new DataTransfer();
+          selectedFiles.forEach((file) => transfer.items.add(file));
+          input.files = transfer.files;
+        };
+        const renderPreviews = () => {
+          previewList.replaceChildren();
+          selectedFiles.forEach((file, index) => {
+            const item = document.createElement("div");
+            item.className = "professional-preview";
+            const image = document.createElement("img");
+            image.alt = file.name;
+            image.src = URL.createObjectURL(file);
+            image.addEventListener("load", () => URL.revokeObjectURL(image.src), { once: true });
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = messages.remove;
+            remove.setAttribute("aria-label", `${messages.remove}: ${file.name}`);
+            remove.addEventListener("click", () => {
+              selectedFiles.splice(index, 1);
+              syncInput();
+              renderPreviews();
+            });
+            item.append(image, remove);
+            previewList.append(item);
+          });
+        };
+        const selectFiles = (files) => {
+          selectedFiles = Array.from(files);
+          syncInput();
+          renderPreviews();
+        };
+        input.addEventListener("change", () => selectFiles(input.files));
+        ["dragenter", "dragover"].forEach((name) => dropzone.addEventListener(name, (event) => {
+          event.preventDefault();
+          dropzone.classList.add("is-dragging");
+        }));
+        ["dragleave", "drop"].forEach((name) => dropzone.addEventListener(name, (event) => {
+          event.preventDefault();
+          dropzone.classList.remove("is-dragging");
+        }));
+        dropzone.addEventListener("drop", (event) => selectFiles(event.dataTransfer.files));
+        evidenceForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          if (!evidenceForm.reportValidity()) return;
+          const formData = new FormData(evidenceForm);
+          setLoading(evidenceForm, true);
+          progressWrap.hidden = false;
+          progress.value = 0;
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", evidenceForm.action);
+          xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          xhr.upload.addEventListener("progress", (uploadEvent) => {
+            if (uploadEvent.lengthComputable) progress.value = Math.round((uploadEvent.loaded / uploadEvent.total) * 100);
+          });
+          xhr.addEventListener("load", () => {
+            let result;
+            try { result = JSON.parse(xhr.responseText); } catch (_error) { result = {}; }
+            if (result.redirect) {
+              window.location.assign(result.redirect);
+            } else {
+              announce(messages.genericError, true);
+              setLoading(evidenceForm, false);
+            }
+          });
+          xhr.addEventListener("error", () => {
+            announce(messages.genericError, true);
+            setLoading(evidenceForm, false);
+          });
+          xhr.send(formData);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

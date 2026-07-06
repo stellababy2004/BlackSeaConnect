@@ -57,6 +57,16 @@
   "HIGH": labels.task_priority_high,
   "URGENT": labels.task_priority_urgent
 } %}
+{% set task_category_labels = {
+  "Cleaning": public_i18n("owners", "ownerCategoryCleaning", "Cleaning"),
+  "Inspection": public_i18n("owners", "ownerCategoryInspection", "Inspection"),
+  "Maintenance": public_i18n("owners", "ownerCategoryMaintenance", "Maintenance"),
+  "Airport Transfer": public_i18n("owners", "ownerCategoryAirportTransfer", "Airport Transfer"),
+  "Concierge Support": public_i18n("owners", "ownerCategoryConciergeSupport", "Concierge Support"),
+  "Guest Issue": public_i18n("owners", "ownerCategoryGuestIssue", "Guest Issue"),
+  "Seasonal Preparation": public_i18n("owners", "ownerCategorySeasonalPreparation", "Seasonal Preparation"),
+  "Other": public_i18n("owners", "ownerCategoryOther", "Other")
+} %}
 <html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
@@ -66,13 +76,15 @@
   <style>
     * { box-sizing:border-box; }
     html, body { max-width:100%; overflow-x:clip; }
+    .professional-tasks-page :is(a,button,input):focus-visible { outline:3px solid #96772e; outline-offset:3px; }
+    .professional-tasks-page .language-switcher__button { display:inline-flex; min-width:44px; min-height:44px; align-items:center; justify-content:center; }
     .professional-tasks-page { min-height:100vh; background:#f5f7f6; color:#0f2345; padding:24px 20px 64px; }
     .professional-tasks-shell { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
     .professional-panel { background:rgba(255,255,255,.96); border:1px solid rgba(15,35,69,.1); border-radius:24px; box-shadow:0 18px 42px rgba(15,35,69,.1); backdrop-filter:blur(18px); padding:26px; }
     .professional-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:22px; }
     .professional-header h1 { margin:4px 0 0; font-size:clamp(2rem,5vw,3.35rem); letter-spacing:-.045em; }
     .professional-tabs { display:flex; flex-wrap:wrap; gap:8px; padding:0 0 4px; margin-bottom:18px; }
-    .professional-tab { padding:9px 14px; border:1px solid rgba(15,35,69,.1); border-radius:999px; background:#f7f4ee; color:#40536e; font-size:13px; font-weight:750; text-decoration:none; }
+    .professional-tab { display:inline-flex; min-height:44px; align-items:center; padding:9px 14px; border:1px solid rgba(15,35,69,.1); border-radius:999px; background:#f7f4ee; color:#40536e; font-size:13px; font-weight:750; text-decoration:none; }
     .professional-tab--active { background:#e7f0ed; color:#17382e; border-color:rgba(39,101,79,.18); }
     .professional-task-list { display:grid; gap:14px; }
     .professional-task-card {
@@ -124,7 +136,7 @@
           <a class="button button--secondary" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
           <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
           <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
-          <div class="language-switcher" aria-label="Language switcher">
+          <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel', 'Language switcher') }}">
             {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
               {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
               <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
@@ -134,7 +146,7 @@
       </div>
 
       <nav class="professional-tabs" aria-label="{{ labels.title }}">
-        <a class="professional-tab{% if task_filter == 'all' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=all') }}">{{ labels.all_tasks }} · {{ assigned_tasks|length }}</a>
+        <a class="professional-tab{% if task_filter == 'all' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=all') }}">{{ labels.all_tasks }} · {{ total_count }}</a>
         <a class="professional-tab{% if task_filter == 'today' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=today') }}">{{ labels.today }}</a>
         <a class="professional-tab{% if task_filter == 'in_progress' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=in_progress') }}">{{ labels.task_status_in_progress }}</a>
         <a class="professional-tab{% if task_filter == 'completed' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=completed') }}">{{ labels.task_status_completed }}</a>
@@ -143,7 +155,7 @@
       <form class="professional-search" method="get" action="/professionals/tasks">
         <input type="hidden" name="lang" value="{{ page_lang }}">
         <input type="hidden" name="filter" value="{{ task_filter }}">
-        <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ labels.search_placeholder }}">
+        <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ labels.search_placeholder }}" aria-label="{{ labels.search_placeholder }}" autocomplete="off">
         <button class="button button--primary" type="submit">{{ labels.search }}</button>
       </form>
 
@@ -152,7 +164,8 @@
           {% set checklist = task.checklist_items or [] %}
           {% set done_items = checklist|selectattr('checked')|list|length %}
           {% set progress = ((done_items * 100 / checklist|length)|round|int) if checklist else (100 if task.status|upper in ['COMPLETED', 'ARCHIVED'] else 0) %}
-          <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
+          {% set normalized_category = task.category|default('', true)|trim|replace('_', ' ')|title %}
+          <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-search="{{ (task.title ~ ' ' ~ task.property_name ~ ' ' ~ task.property_location ~ ' ' ~ task.owner_name ~ ' ' ~ task.owner_email ~ ' ' ~ normalized_category ~ ' ' ~ status_labels.get(task.status|upper, task.status))|lower|e }}">
             <div class="professional-task-card__header">
               <div>
                 <div class="professional-task-card__meta">
@@ -165,7 +178,7 @@
             </div>
             <div class="professional-task-facts">
               <div class="professional-task-fact"><span>{{ labels.property }}</span><strong>{{ task.property_name|e or task.property_location|e or labels.not_set }}</strong></div>
-              <div class="professional-task-fact"><span>{{ labels.service }}</span><strong>{{ task.category|default('', true)|replace('_', ' ')|title or labels.not_set }}</strong></div>
+              <div class="professional-task-fact"><span>{{ labels.service }}</span><strong>{{ task_category_labels.get(normalized_category, normalized_category) or labels.not_set }}</strong></div>
               <div class="professional-task-fact"><span>{{ labels.time }}</span><strong>{{ task.due_time|default('', true)|e or task.due_date|e or labels.no_due_date }}</strong></div>
               <div class="professional-task-fact"><span>{{ labels.duration }}</span><strong>{% if task.estimated_duration_minutes|default(0, true) %}{{ task.estimated_duration_minutes }} min{% else %}{{ labels.not_set }}{% endif %}</strong></div>
               <div class="professional-task-fact"><span>{{ labels.reservation }}</span><strong>{{ task.reservation_reference|default('', true)|e or labels.not_set }}</strong></div>
@@ -180,5 +193,27 @@
       </div>
     </section>
   </main>
+  <script>
+    (() => {
+      const form = document.querySelector(".professional-search");
+      const input = form?.querySelector('input[name="q"]');
+      const cards = Array.from(document.querySelectorAll(".professional-task-card"));
+      if (!form || !input || !cards.length) return;
+      const filterCards = () => {
+        const query = input.value.trim().toLocaleLowerCase();
+        cards.forEach((card) => {
+          card.hidden = query !== "" && !card.dataset.search.includes(query);
+        });
+        const url = new URL(window.location.href);
+        query ? url.searchParams.set("q", input.value.trim()) : url.searchParams.delete("q");
+        window.history.replaceState({}, "", url);
+      };
+      input.addEventListener("input", filterCards);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        filterCards();
+      });
+    })();
+  </script>
 </body>
 </html>
