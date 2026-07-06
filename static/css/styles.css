@@ -1,4 +1,4 @@
-* {
+﻿* {
   box-sizing: border-box;
 }
 
@@ -6811,7 +6811,7 @@ body.operations-demo-page .operations-form {
 }
 
 .showcase-live-summary span:not(.showcase-live-summary__pulse)::before {
-    content: "•";
+    content: "â€¢";
     margin-right: 10px;
     color: rgba(255, 223, 173, 0.82);
 }
@@ -18779,7 +18779,7 @@ body.operations-demo-page .operations-modal__dialog {
 }
 
 .operations-command-list li::before {
-  content: "✓";
+  content: "âœ“";
   flex: 0 0 auto;
   color: var(--success);
   font-weight: 700;
@@ -26512,8 +26512,6 @@ body:not([class*="admin"]):not(.operations-demo-page) :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26552,8 +26550,6 @@ body:not([class*="admin"]):not(.operations-demo-page) :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26621,8 +26617,6 @@ body[class*="admin"] :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26650,8 +26644,6 @@ body.operations-demo-page :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26690,8 +26682,6 @@ body[class*="admin"] :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26719,8 +26709,6 @@ body.operations-demo-page :where(
   .home-resource-card,
   .showcase-panel,
   .cta-panel,
-  .reservations-panel,
-  .reservation-detail-panel,
   .professional-panel,
   .operations-preview-card,
   .operations-team-card,
@@ -26867,11 +26855,6 @@ body.admin-cockpit-page :where(
   .admin-kpi-card,
   .admin-empty-state,
   .operations-empty-state,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-empty,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .hero__copy,
@@ -26895,11 +26878,6 @@ body.operations-demo-page :where(
   .admin-kpi-card,
   .admin-empty-state,
   .operations-empty-state,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-empty,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .operations-hero__copy,
@@ -26912,12 +26890,6 @@ body.operations-demo-page :where(
 body.reservations-page :where(
   .surface-dark,
   .reservations-hero,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
   .reservation-detail-hero
 ) {
   border-radius: var(--surface-family-radius) !important;
@@ -27163,13 +27135,6 @@ body :where(
   .owner-login-card,
   .owner-login-panel,
   .professional-login-shell,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .admin-kpi-card,
@@ -27254,13 +27219,6 @@ body :where(
   .owner-login-card,
   .owner-login-panel,
   .professional-login-page .professional-login-shell,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .admin-kpi-card,
@@ -27341,13 +27299,6 @@ body :where(
   .owner-login-card,
   .owner-login-panel,
   .professional-login-page .professional-login-shell,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .admin-kpi-card,
@@ -27428,13 +27379,6 @@ body :where(
   .owner-login-card,
   .owner-login-panel,
   .professional-login-page .professional-login-shell,
-  .reservations-card,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
-  .reservation-detail-hero,
   .admin-cockpit-hero,
   .admin-cockpit-panel,
   .admin-kpi-card,
@@ -27958,7 +27902,7 @@ body.operations-demo-page .operations-hero__preview .operations-preview-card__la
   color: rgba(134, 103, 48, 0.9) !important;
 }
 
-/* Owner Portal 3.0 — operational cockpit */
+/* Owner Portal 3.0 â€” operational cockpit */
 body.owner-portal-page.owner-portal-dashboard-page .owner-dashboard-masthead {
   min-height: auto;
   padding-bottom: clamp(20px, 3vw, 34px);
@@ -28183,7 +28127,7 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-dashboard-disclosure >
 }
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-dashboard-disclosure[open] > summary::after {
-  content: "−";
+  content: "âˆ’";
 }
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-dashboard-disclosure > summary strong {
@@ -28504,7 +28448,7 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-status-badge--in-progr
   }
 }
 
-/* Owner Portal 2.0 — focused premium operations layer */
+/* Owner Portal 2.0 â€” focused premium operations layer */
 body.owner-portal-page.owner-portal-dashboard-page {
   --owner-ink: #153246;
   --owner-muted: #667c87;
@@ -28741,7 +28685,7 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-action-card::after {
   bottom: 13px;
   color: rgba(31, 122, 120, 0.34);
   font-size: 1.4rem;
-  content: "→";
+  content: "â†’";
 }
 
 body.owner-portal-page.owner-portal-dashboard-page .owner-action-card--emergency {
@@ -33161,7 +33105,7 @@ body.owner-property-detail-page .owner-property-knowledge-card > h4::after {
 
 body.owner-property-detail-page .owner-property-knowledge-section.is-open > h3::after,
 body.owner-property-detail-page .owner-property-knowledge-card.is-open > h4::after {
-  content: "−";
+  content: "âˆ’";
 }
 
 body.owner-property-detail-page .owner-property-knowledge-section > :not(h3) {
@@ -33623,7 +33567,7 @@ body.owner-property-detail-page .owner-property-equipment-item summary::after {
 }
 
 body.owner-property-detail-page .owner-property-equipment-item[open] summary::after {
-  content: "−";
+  content: "âˆ’";
 }
 
 body.owner-property-detail-page .owner-property-equipment-item summary span,
@@ -34877,15 +34821,9 @@ body:is(
   }
 }
 
-/* Owner Reservations � light authenticated surface override */
+/* Owner Reservations — light authenticated surface override */
 body.reservations-page :where(
   .reservations-hero,
-  .reservations-panel,
-  .reservations-summary-card,
-  .reservations-card,
-  .reservations-empty,
-  .reservations-mini-item,
-  .reservation-detail-panel,
   .reservation-detail-hero
 ) {
   background: rgba(255, 255, 255, 0.94) !important;
@@ -34903,4 +34841,111 @@ body.reservations-page :where(h1, h2, h3, p, span, strong, small, time, dd, dt, 
 body.reservations-page :where(.reservations-kpi, .reservations-summary-card) {
   background: rgba(255, 255, 255, 0.78) !important;
   backdrop-filter: blur(14px);
+}
+
+
+/* Owner Calendar / Reservations — light filter panels */
+body.owner-calendar-page :where(
+  .calendar-filters,
+  .owner-calendar-filters,
+  .calendar-filter-panel,
+  .calendar-filter-card,
+  .calendar-controls,
+  .calendar-filter-form,
+  .calendar-panel form,
+  .calendar-search-panel
+),
+body.reservations-page :where(
+  .calendar-filters,
+  .owner-calendar-filters,
+  .calendar-filter-panel,
+  .calendar-filter-card,
+  .calendar-controls,
+  .calendar-filter-form,
+  .calendar-panel form,
+  .calendar-search-panel,
+  .reservations-filters,
+  .reservations-filter-panel,
+  .reservations-filter-card
+) {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 22px 60px rgba(15, 35, 69, 0.14) !important;
+  color: #0f2345 !important;
+}
+
+body.owner-calendar-page :where(
+  .calendar-filters,
+  .owner-calendar-filters,
+  .calendar-filter-panel,
+  .calendar-filter-card,
+  .calendar-controls,
+  .calendar-filter-form,
+  .calendar-panel form,
+  .calendar-search-panel
+) :where(label, span, p, strong, small),
+body.reservations-page :where(
+  .calendar-filters,
+  .owner-calendar-filters,
+  .calendar-filter-panel,
+  .calendar-filter-card,
+  .calendar-controls,
+  .calendar-filter-form,
+  .calendar-panel form,
+  .calendar-search-panel,
+  .reservations-filters,
+  .reservations-filter-panel,
+  .reservations-filter-card
+) :where(label, span, p, strong, small) {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  text-shadow: none !important;
+}
+
+body.owner-calendar-page :where(.calendar-view-toggle .active, .calendar-view-btn.active),
+body.reservations-page :where(.calendar-view-toggle .active, .calendar-view-btn.active) {
+  background: linear-gradient(135deg, #ead99f, #9bd7df) !important;
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  border-color: rgba(15, 35, 69, 0.12) !important;
+}
+
+body.owner-calendar-page :where(select option),
+body.reservations-page :where(select option) {
+  color: #0f2345 !important;
+  background: #ffffff !important;
+}
+
+/* Owner Calendar — light filter panel override */
+body.calendar-page .calendar-panel .calendar-filters {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  color: #0f2345 !important;
+  box-shadow: 0 22px 60px rgba(15, 35, 69, 0.14) !important;
+}
+
+body.calendar-page .calendar-panel .calendar-filters :where(label, span, p, strong, small) {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+}
+
+/* Owner Calendar — light owner actions form */
+body.calendar-page .calendar-owner-actions,
+body.calendar-page .calendar-owner-actions form,
+body.calendar-page .calendar-actions-card,
+body.calendar-page .calendar-block-form {
+  background: rgba(255, 255, 255, 0.94) !important;
+  background-image: none !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  color: #0f2345 !important;
+  box-shadow: 0 22px 60px rgba(15, 35, 69, 0.14) !important;
+}
+
+body.calendar-page .calendar-owner-actions :where(h1, h2, h3, h4, p, span, strong, small, label, a),
+body.calendar-page .calendar-actions-card :where(h1, h2, h3, h4, p, span, strong, small, label, a),
+body.calendar-page .calendar-block-form :where(h1, h2, h3, h4, p, span, strong, small, label, a) {
+  color: #0f2345 !important;
+  -webkit-text-fill-color: #0f2345 !important;
+  text-shadow: none !important;
 }
