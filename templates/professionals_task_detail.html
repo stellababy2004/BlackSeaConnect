@@ -177,7 +177,7 @@
     .professional-hero h1 { font-size:clamp(2rem,5vw,3.25rem); letter-spacing:-.045em; }
     .professional-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; }
-    .professional-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); gap:18px; min-width:0; }
+    .professional-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); gap:18px; min-width:0; align-items:start; }
     .professional-grid-two-up { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px; }
     .professional-stack { display:grid; gap:18px; min-width:0; }
     .professional-task-actions { display:flex; gap:10px; flex-wrap:wrap; min-width:0; }
@@ -210,7 +210,9 @@
     .professional-photo-slot::before { content:"＋"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
     .professional-photo-slot strong { display:block; margin-bottom:6px; }
     .professional-photo-slot p { margin:0; color:#40536e; line-height:1.55; }
-    .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; }
+    .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
+    .professional-status-controls form { min-width:0; }
+    .professional-status-controls .button { max-width:100%; min-height:44px; white-space:normal; overflow-wrap:anywhere; }
     .professional-check-progress { display:flex; align-items:center; gap:12px; margin:0 0 14px; }
     .professional-check-progress__track { flex:1; height:8px; overflow:hidden; border-radius:999px; background:#eee9df; }
     .professional-check-progress__track span { display:block; height:100%; background:linear-gradient(90deg,#96772e,#c2a45b); }
@@ -261,18 +263,37 @@
         <a class="button button--secondary" href="{{ localized_url('/professionals/tasks') }}">{{ labels.back_to_tasks }}</a>
         <a class="button button--ghost" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
         <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
+        <div class="language-switcher" aria-label="Language switcher">
+          {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
+            {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
+            <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
+          {% endfor %}
+        </div>
       </div>
     </section>
 
+    {% set current_status = task.status|upper %}
     <nav class="professional-workbar" aria-label="{{ labels.status_controls }}">
       <span class="professional-live">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
       <div class="professional-status-controls">
-        <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+        {% if current_status in ['NEW', 'ASSIGNED'] %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+        {% elif current_status == 'ACCEPTED' %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
+        {% elif current_status == 'ON_THE_WAY' %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
+        {% elif current_status == 'ARRIVED' %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+        {% elif current_status == 'IN_PROGRESS' %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--primary" type="submit">{{ labels.pause }}</button></form>
+        {% elif current_status == 'PAUSED' %}
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
+        {% endif %}
         {% if task.property_location %}<a class="button button--secondary" href="https://www.google.com/maps/search/?api=1&amp;query={{ task.property_location|urlencode }}" target="_blank" rel="noopener">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</a>{% endif %}
         {% if owner_phone %}<a class="button button--secondary" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
-        <a class="button button--secondary" href="#photos">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>
+        <a class="button button--secondary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>
         <a class="button button--secondary" href="#comments">{{ public_i18n('professionals', 'detailReportIssue', 'Report issue') }}</a>
-        <a class="button button--secondary" href="#completion">{{ labels.complete_work }}</a>
+        <a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>
       </div>
     </nav>
 
@@ -309,35 +330,58 @@
             <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ task.door_code|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>WiFi</dt><dd>{{ task.wifi|default('', true)|e or task.wifi_password|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailParking', 'Parking') }}</dt><dd>{{ task.parking|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions"><a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a>{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}</dd></div>
-            <div><dt>{{ labels.open_operations }}</dt><dd class="professional-task-actions"><a class="button button--secondary" href="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}">{{ labels.open_operations }}</a></dd></div>
+            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions">{% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a>{% else %}<a class="button button--ghost" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>{% endif %}{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}</dd></div>
+            <div><dt>{{ labels.open_operations }}</dt><dd class="professional-task-actions"><a class="button button--secondary" href="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}">{{ labels.open_operations }}</a><a class="button button--ghost" href="mailto:concierge@blackseaconnect.com?subject={{ ('Professional task ' ~ task.request_id)|urlencode }}">{{ labels.support }}</a></dd></div>
           </dl>
         </article>
 
-        <article class="professional-panel" id="completion">
+        <article class="professional-panel">
           <p class="professional-kicker">{{ labels.status_controls }}</p>
           <h2>{{ labels.arrival_workflow }}</h2>
           <div class="professional-status-controls">
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--secondary" type="submit">{{ labels.on_my_way }}</button></form>
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--secondary" type="submit">{{ labels.arrived }}</button></form>
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--secondary" type="submit">{{ labels.start_work }}</button></form>
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--ghost" type="submit">{{ labels.pause }}</button></form>
-            <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--ghost" type="submit">{{ labels.resume }}</button></form>
+            {% if current_status in ['NEW', 'ASSIGNED'] %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+            {% elif current_status == 'ACCEPTED' %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
+            {% elif current_status == 'ON_THE_WAY' %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
+            {% elif current_status == 'ARRIVED' %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+            {% elif current_status == 'IN_PROGRESS' %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--primary" type="submit">{{ labels.pause }}</button></form>
+            {% elif current_status == 'PAUSED' %}
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
+            {% else %}
+              <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+            {% endif %}
+            {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
           </div>
         </article>
 
-        <article class="professional-panel">
+        <article class="professional-panel" id="completion-report">
           <p class="professional-kicker">{{ labels.completion_report }}</p>
           <h2>{{ labels.report_and_closeout }}</h2>
+          {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
+            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
+              <input type="hidden" name="task_action" value="complete">
+              <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
+              <label><span>{{ labels.materials_used }}</span><textarea name="materials_used" placeholder="{{ public_i18n('professionals', 'detailMaterialsUsedPlaceholder', 'List materials, parts, or supplies used.') }}"></textarea></label>
+              <label><span>{{ labels.time_spent }}</span><input type="number" name="time_spent_minutes" min="0" placeholder="90"></label>
+              <label><span>{{ labels.recommendations }}</span><textarea name="recommendations" placeholder="{{ public_i18n('professionals', 'detailRecommendationsPlaceholder', 'Any recommendations for Operations or the owner?') }}"></textarea></label>
+              <label><span>{{ labels.follow_up_needed }}</span><textarea name="follow_up_needed" placeholder="{{ public_i18n('professionals', 'detailFollowUpNeededPlaceholder', 'Describe any follow-up that remains.') }}"></textarea></label>
+              <label><span>{{ labels.completion_notes }}</span><textarea name="completion_notes" placeholder="{{ public_i18n('professionals', 'detailCompletionNotesPlaceholder', 'Optional note for the completion timeline.') }}"></textarea></label>
+              <button class="button button--primary" type="submit">{{ labels.complete_work }}</button>
+            </form>
+          {% else %}
+            <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+          {% endif %}
+        </article>
+
+        <article class="professional-panel" id="evidence-upload">
+          <p class="professional-kicker">{{ labels.attachments }}</p>
+          <h2>{{ labels.before_after_evidence }}</h2>
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data">
-            <input type="hidden" name="task_action" value="complete">
-            <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
-            <label><span>{{ labels.materials_used }}</span><textarea name="materials_used" placeholder="{{ public_i18n('professionals', 'detailMaterialsUsedPlaceholder', 'List materials, parts, or supplies used.') }}"></textarea></label>
-            <label><span>{{ labels.time_spent }}</span><input type="number" name="time_spent_minutes" min="0" placeholder="90"></label>
-            <label><span>{{ labels.recommendations }}</span><textarea name="recommendations" placeholder="{{ public_i18n('professionals', 'detailRecommendationsPlaceholder', 'Any recommendations for Operations or the owner?') }}"></textarea></label>
-            <label><span>{{ labels.follow_up_needed }}</span><textarea name="follow_up_needed" placeholder="{{ public_i18n('professionals', 'detailFollowUpNeededPlaceholder', 'Describe any follow-up that remains.') }}"></textarea></label>
-            <label><span>{{ labels.completion_notes }}</span><textarea name="completion_notes" placeholder="{{ public_i18n('professionals', 'detailCompletionNotesPlaceholder', 'Optional note for the completion timeline.') }}"></textarea></label>
+            <input type="hidden" name="task_action" value="attachment">
             <label><span>{{ labels.evidence_placeholder_category }}</span>
               <select name="attachment_category">
                 <option value="">{{ labels.no_evidence_placeholder }}</option>
@@ -346,16 +390,16 @@
                 {% endfor %}
               </select>
             </label>
-            <label><span>{{ labels.evidence_file }}</span><input type="file" name="attachment_file"></label>
+            <label><span>{{ labels.evidence_file }}</span><input type="file" name="attachment_file" required></label>
             <label><span>{{ labels.evidence_note }}</span><input type="text" name="attachment_name" placeholder="{{ public_i18n('professionals', 'detailEvidenceNotePlaceholder', 'Optional file name or placeholder note') }}"></label>
-            <div class="professional-photo-grid" id="photos">
+            <div class="professional-photo-grid">
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailBeforePhotos', 'Before photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailAfterPhotos', 'After photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailDamagePhotos', 'Damage photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailInvoicePhotos', 'Invoice photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
               <div class="professional-photo-slot"><strong>{{ public_i18n('professionals', 'detailReceiptPhotos', 'Receipt photos') }}</strong><p>{{ public_i18n('professionals', 'detailPhotoPlaceholderCopy', 'Placeholder only, references saved in SQLite.') }}</p></div>
             </div>
-            <button class="button button--primary" type="submit">{{ labels.complete_work }}</button>
+            <button class="button button--secondary" type="submit">{{ public_i18n('professionals', 'detailAddEvidenceReference', 'Add evidence reference') }}</button>
           </form>
         </article>
 
@@ -366,7 +410,7 @@
             <input type="hidden" name="task_action" value="comment">
             <label>
               <span>{{ labels.add_internal_comment }}</span>
-              <textarea name="note" placeholder="{{ public_i18n('professionals', 'detailInternalCommentPlaceholder', 'Share an update with Operations. Owners do not see this.') }}"></textarea>
+              <textarea name="note" required placeholder="{{ public_i18n('professionals', 'detailInternalCommentPlaceholder', 'Share an update with Operations. Owners do not see this.') }}"></textarea>
             </label>
             <button class="button button--secondary" type="submit">{{ labels.add_comment }}</button>
           </form>

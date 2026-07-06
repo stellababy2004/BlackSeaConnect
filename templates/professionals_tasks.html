@@ -72,7 +72,7 @@
     .professional-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:22px; }
     .professional-header h1 { margin:4px 0 0; font-size:clamp(2rem,5vw,3.35rem); letter-spacing:-.045em; }
     .professional-tabs { display:flex; flex-wrap:wrap; gap:8px; padding:0 0 4px; margin-bottom:18px; }
-    .professional-tab { padding:9px 14px; border:1px solid rgba(15,35,69,.1); border-radius:999px; background:#f7f4ee; color:#40536e; font-size:13px; font-weight:750; }
+    .professional-tab { padding:9px 14px; border:1px solid rgba(15,35,69,.1); border-radius:999px; background:#f7f4ee; color:#40536e; font-size:13px; font-weight:750; text-decoration:none; }
     .professional-tab--active { background:#e7f0ed; color:#17382e; border-color:rgba(39,101,79,.18); }
     .professional-task-list { display:grid; gap:14px; }
     .professional-task-card {
@@ -124,17 +124,25 @@
           <a class="button button--secondary" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
           <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
           <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
+          <div class="language-switcher" aria-label="Language switcher">
+            {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
+              {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
+              <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
+            {% endfor %}
+          </div>
         </div>
       </div>
 
       <nav class="professional-tabs" aria-label="{{ labels.title }}">
-        <span class="professional-tab professional-tab--active">{{ labels.all_tasks }} · {{ tasks|length }}</span>
-        <span class="professional-tab">{{ labels.today }}</span>
-        <span class="professional-tab">{{ labels.task_status_in_progress }}</span>
-        <span class="professional-tab">{{ labels.task_status_completed }}</span>
+        <a class="professional-tab{% if task_filter == 'all' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=all') }}">{{ labels.all_tasks }} · {{ assigned_tasks|length }}</a>
+        <a class="professional-tab{% if task_filter == 'today' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=today') }}">{{ labels.today }}</a>
+        <a class="professional-tab{% if task_filter == 'in_progress' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=in_progress') }}">{{ labels.task_status_in_progress }}</a>
+        <a class="professional-tab{% if task_filter == 'completed' %} professional-tab--active{% endif %}" href="{{ localized_url('/professionals/tasks?filter=completed') }}">{{ labels.task_status_completed }}</a>
       </nav>
 
-      <form class="professional-search" method="get" action="{{ localized_url('/professionals/tasks') }}">
+      <form class="professional-search" method="get" action="/professionals/tasks">
+        <input type="hidden" name="lang" value="{{ page_lang }}">
+        <input type="hidden" name="filter" value="{{ task_filter }}">
         <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ labels.search_placeholder }}">
         <button class="button button--primary" type="submit">{{ labels.search }}</button>
       </form>

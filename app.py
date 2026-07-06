@@ -13451,7 +13451,20 @@ def professionals_tasks():
     professional_account = _current_professional_account()
     context = _professional_dashboard_context(professional_account)
     search_query = str(request.args.get("q", "")).strip().lower()
+    task_filter = str(request.args.get("filter", "all")).strip().lower()
+    if task_filter not in {"all", "today", "in_progress", "completed"}:
+        task_filter = "all"
     tasks = context["assigned_tasks"]
+    today = datetime.now(timezone.utc).date().isoformat()
+    if task_filter == "today":
+        tasks = [task for task in tasks if str(task.get("due_date", "")).strip()[:10] == today]
+    elif task_filter == "in_progress":
+        tasks = [
+            task for task in tasks
+            if _normalize_operations_task_status(task.get("status", "NEW")) in {"ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED"}
+        ]
+    elif task_filter == "completed":
+        tasks = context["completed_tasks"]
     if search_query:
         tasks = [
             task
@@ -13463,7 +13476,13 @@ def professionals_tasks():
                 str(task.get("category", "")).lower(),
             ])
         ]
-    return render_template("professionals_tasks.html", **context, tasks=tasks, search_query=request.args.get("q", ""))
+    return render_template(
+        "professionals_tasks.html",
+        **context,
+        tasks=tasks,
+        search_query=request.args.get("q", ""),
+        task_filter=task_filter,
+    )
 
 
 @app.route("/professionals/tasks/<task_id>", methods=["GET", "POST"])

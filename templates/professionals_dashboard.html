@@ -277,6 +277,12 @@
         <a class="button button--secondary" href="{{ localized_url('/professionals/tasks') }}">{{ labels.view_tasks }}</a>
         <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
         <a class="button button--ghost" href="{{ localized_url('/professionals/logout') }}">{{ labels.logout }}</a>
+        <div class="language-switcher" aria-label="Language switcher">
+          {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
+            {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
+            <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
+          {% endfor %}
+        </div>
       </div>
     </section>
 
