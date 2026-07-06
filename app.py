@@ -4909,6 +4909,9 @@ def _ensure_owner_db_schema(conn):
         )
         _ensure_owner_account_schema(conn)
         _ensure_owner_property_schema(conn)
+        # Backfill helpers use the canonical persistence functions, which open
+        # their own connections. Release schema DDL locks before they run.
+        conn.commit()
         _seed_owner_property_activity_backfill(conn)
         _seed_operations_task_backfill(conn)
         _seed_calendar_event_backfill(conn)
@@ -6541,15 +6544,21 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
         with _owner_db_connection() as conn:
             _ensure_owner_db_schema(conn)
             _migrate_owner_jsonl_backups(conn)
+            primary_key_columns = {
+                str(row["name"])
+                for row in conn.execute("PRAGMA table_info(operations_tasks)").fetchall()
+                if int(row["pk"] or 0) > 0
+            }
+            conflict_column = "id" if "id" in primary_key_columns else "request_id"
             conn.execute(
-                """
+                f"""
                 INSERT INTO operations_tasks (
                     id, request_id, source_type, source_id, created_at, updated_at, title, category,
                     owner_name, owner_email, property_id, property_name, assigned_to, assigned_professional_id, priority, status,
                     due_date, notes, completed_at, completion_report_json, owner_id, property_location, admin_notes, request_status,
                     checklist_json, attachments_json, comments_json, organization_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
+                ON CONFLICT({conflict_column}) DO UPDATE SET
                     request_id = excluded.request_id,
                     source_type = excluded.source_type,
                     source_id = excluded.source_id,
@@ -16970,93 +16979,6 @@ def _seed_demo_professional_account():
             for index, label in enumerate(items, start=1)
         ])
 
-    def _seed_task(task_payload):
-        with _owner_db_connection() as conn:
-            _ensure_owner_db_schema(conn)
-            table_info = conn.execute("PRAGMA table_info(operations_tasks)").fetchall()
-            primary_key_columns = {
-                str(row["name"])
-                for row in table_info
-                if int(row["pk"] or 0) > 0
-            }
-
-        if "id" in primary_key_columns:
-            return _upsert_operations_task_from_source(task_payload)
-
-        task_id = str(task_payload["id"])
-        with _owner_db_connection() as conn:
-            _ensure_owner_db_schema(conn)
-            conn.execute(
-                """
-                INSERT INTO operations_tasks (
-                    request_id, owner_id, property_id, created_at, updated_at, title,
-                    property_name, property_location, owner_name, owner_email, category,
-                    priority, status, admin_notes, request_status, id, source_type,
-                    source_id, assigned_to, due_date, notes, completed_at, checklist_json,
-                    attachments_json, comments_json, assigned_professional_id,
-                    completion_report_json, organization_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(request_id) DO UPDATE SET
-                    owner_id = excluded.owner_id,
-                    property_id = excluded.property_id,
-                    updated_at = excluded.updated_at,
-                    title = excluded.title,
-                    property_name = excluded.property_name,
-                    property_location = excluded.property_location,
-                    owner_name = excluded.owner_name,
-                    owner_email = excluded.owner_email,
-                    category = excluded.category,
-                    priority = excluded.priority,
-                    status = excluded.status,
-                    admin_notes = excluded.admin_notes,
-                    request_status = excluded.request_status,
-                    id = excluded.id,
-                    source_type = excluded.source_type,
-                    source_id = excluded.source_id,
-                    assigned_to = excluded.assigned_to,
-                    due_date = excluded.due_date,
-                    notes = excluded.notes,
-                    completed_at = excluded.completed_at,
-                    checklist_json = excluded.checklist_json,
-                    attachments_json = excluded.attachments_json,
-                    comments_json = excluded.comments_json,
-                    assigned_professional_id = excluded.assigned_professional_id,
-                    completion_report_json = excluded.completion_report_json,
-                    organization_id = excluded.organization_id
-                """,
-                (
-                    task_id,
-                    task_payload["owner_id"],
-                    task_payload["property_id"],
-                    task_payload["created_at"],
-                    task_payload["updated_at"],
-                    task_payload["title"],
-                    task_payload["property_name"],
-                    task_payload["property_location"],
-                    task_payload["owner_name"],
-                    task_payload["owner_email"],
-                    task_payload["category"],
-                    task_payload["priority"],
-                    task_payload["status"],
-                    task_payload["admin_notes"],
-                    task_payload["request_status"],
-                    task_id,
-                    task_payload["source_type"],
-                    task_id,
-                    task_payload["assigned_to"],
-                    task_payload["due_date"],
-                    task_payload["notes"],
-                    task_payload.get("completed_at", ""),
-                    task_payload["checklist_json"],
-                    task_payload["attachments_json"],
-                    task_payload["comments_json"],
-                    task_payload["assigned_professional_id"],
-                    task_payload.get("completion_report_json", _operations_task_json_dumps({})),
-                    task_payload["organization_id"],
-                ),
-            )
-        return _find_operations_task(task_id)
-
     task_specs = (
         {
             "id": "demo-pro-task-turnover",
@@ -17182,7 +17104,7 @@ def _seed_demo_professional_account():
     tasks = []
     for index, spec in enumerate(task_specs):
         created_at = _iso(timedelta(days=-3, minutes=index))
-        task = _seed_task({
+        task = _upsert_operations_task_from_source({
             **spec,
             "request_id": spec["id"],
             "source_id": spec["id"],
@@ -17232,7 +17154,8 @@ def seed_demo_professional_command(magic_link=False, base_url=None):
         local_base_url = str(
             base_url
             or os.getenv("DEMO_PROFESSIONAL_BASE_URL")
-            or "http://127.0.0.1:5000"
+            or os.getenv("RENDER_EXTERNAL_URL")
+            or SITE_URL
         ).strip().rstrip("/")
         login_path = f"/auth/professional-magic/{token_record['token']}?lang=en"
         click.echo(f"One-time magic link (expires in {PROFESSIONAL_MAGIC_LINK_TTL_MINUTES} minutes):")
