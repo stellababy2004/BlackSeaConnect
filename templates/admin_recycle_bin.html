@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Recycle Bin</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow">ADMIN RECYCLE BIN</p>
+        <h1>Recoverable records</h1>
+        <p>Deleted service requests are recoverable for 30 days. Archived owners remain recoverable indefinitely.</p>
+      </div>
+      <div class="admin-cockpit-actions">
+        <a class="button button--secondary" href="{{ url_for('admin_service_requests') }}">Service requests</a>
+        <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}">Owner accounts</a>
+        <a class="button button--ghost" href="/admin">Back to cockpit</a>
+      </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages or purged_count %}
+        <section class="admin-cockpit-panel">
+          {% if purged_count %}
+            <p>{{ purged_count }} expired service request(s) were permanently purged.</p>
+          {% endif %}
+          {% for category, message in messages %}
+            <p>{{ message|e }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Service requests</p>
+          <h2>Deleted or archived requests</h2>
+        </div>
+      </div>
+      {% if deleted_requests %}
+        <div class="admin-pilot-list">
+          {% for item in deleted_requests %}
+            <article class="admin-pilot-card">
+              <div class="admin-pilot-card__topline">
+                <p class="eyebrow">{{ item.deleted_at or item.archived_at }}</p>
+                <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ 'DELETED' if item.deleted_at else 'ARCHIVED' }}</span>
+              </div>
+              <h3>{{ item.name|e }}</h3>
+              <p><strong>ID:</strong> {{ item.id|e }}</p>
+              <p><strong>Category:</strong> {{ item.service_category|e }}</p>
+              <p><strong>Property:</strong> {{ (item.property or item.property_city)|e }}</p>
+              <div class="admin-cockpit-actions">
+                <form method="post" action="{{ url_for('admin_service_request_restore', request_id=item.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+                  <button class="button button--secondary" type="submit">Restore request</button>
+                </form>
+                {% if is_super_admin %}
+                  <form method="post" action="{{ url_for('admin_service_request_purge', request_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+                    <button class="button button--ghost" type="submit">Delete permanently</button>
+                  </form>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No deleted service requests.</p>
+      {% endif %}
+    </section>
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Owners</p>
+          <h2>Archived owner dossiers</h2>
+        </div>
+      </div>
+      {% if archived_owners %}
+        <div class="admin-pilot-list">
+          {% for owner in archived_owners %}
+            <article class="admin-pilot-card">
+              <div class="admin-pilot-card__topline">
+                <p class="eyebrow">{{ owner.created_at|e }}</p>
+                <span class="admin-pilot-status">ARCHIVED</span>
+              </div>
+              <h3>{{ owner.full_name|e }}</h3>
+              <p><strong>Email:</strong> {{ owner.email|e }}</p>
+              <p><strong>Phone:</strong> {{ owner.phone|e }}</p>
+              <div class="admin-cockpit-actions">
+                <a class="button button--ghost" href="{{ url_for('admin_owner_account_detail', owner_id=owner.id) }}">Open owner</a>
+                <form method="post" action="{{ url_for('admin_owner_account_restore', owner_id=owner.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+                  <button class="button button--secondary" type="submit">Restore owner</button>
+                </form>
+                {% if is_super_admin %}
+                  <a class="button button--ghost" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner.id) }}">Delete permanently</a>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No archived owners.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

@@ -7,6 +7,7 @@ import csv
 import io
 import hmac
 import re
+import shutil
 from functools import wraps
 from contextlib import contextmanager
 from pathlib import Path
@@ -21,7 +22,7 @@ from threading import Thread
 from uuid import uuid4
 
 import click
-from flask import Flask, Response, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
+from flask import Flask, Response, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
 from werkzeug.utils import secure_filename
 
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
@@ -133,7 +134,7 @@ OWNER_MAGIC_LINK_TTL_MINUTES = 30
 PROFESSIONAL_MAGIC_LINK_TTL_MINUTES = 30
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
 SUPPORTED_LANGUAGES = {"bg", "en", "fr", "ru"}
-OWNER_STATUS_VALUES = {"PILOT", "ACTIVE", "INACTIVE", "VIP"}
+OWNER_STATUS_VALUES = {"PILOT", "ACTIVE", "INACTIVE", "VIP", "ARCHIVED"}
 OWNER_STATUS_DEFAULT = "PILOT"
 OWNER_LANGUAGE_DEFAULT = "bg"
 OWNER_PROPERTY_STATUS_VALUES = {"SETUP", "ACTIVE", "SEASONAL", "INACTIVE"}
@@ -8877,6 +8878,11 @@ def _normalize_service_request(record):
         "owner_email",
         "owner_name",
         "owner_phone",
+        "deleted_at",
+        "deleted_by",
+        "delete_reason",
+        "archived_at",
+        "archived_by",
     ):
         normalized[field] = str(normalized.get(field, "")).strip()
 
@@ -8886,7 +8892,15 @@ def _normalize_service_request(record):
     return normalized
 
 
-def _load_service_requests():
+def _is_service_request_deleted(record):
+    return bool(str((record or {}).get("deleted_at", "")).strip())
+
+
+def _is_service_request_archived(record):
+    return bool(str((record or {}).get("archived_at", "")).strip())
+
+
+def _load_service_requests(*, include_deleted=False, include_archived=False):
     path = SERVICE_REQUESTS_JSONL_PATH
     requests_list = []
 
@@ -8903,6 +8917,10 @@ def _load_service_requests():
 
             normalized = _normalize_service_request(record)
             if normalized:
+                if _is_service_request_deleted(normalized) and not include_deleted:
+                    continue
+                if _is_service_request_archived(normalized) and not include_archived:
+                    continue
                 requests_list.append(normalized)
 
     requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
@@ -8919,8 +8937,8 @@ def _save_service_requests(requests_list):
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
-def _find_service_request(request_id):
-    for record in _load_service_requests():
+def _find_service_request(request_id, *, include_deleted=False, include_archived=False):
+    for record in _load_service_requests(include_deleted=include_deleted, include_archived=include_archived):
         if str(record.get("id", "")) == str(request_id):
             return record
     return None
@@ -8963,6 +8981,139 @@ def _service_request_timeline_events(record):
         "detail": f"{record.get('service_category', '')} · {record.get('property_city') or record.get('property', '')}",
         "status": _normalize_service_request_status(record.get("status", "new")),
     }]
+
+
+def _admin_audit_deletion_action(entity_type, entity_id, action, *, before=None, after=None, metadata=None):
+    admin_user = _current_admin_operator_key()
+    audit_metadata = {
+        "admin_user": admin_user,
+        "deleted_object_type": entity_type,
+        "deleted_object_id": str(entity_id or "").strip(),
+        "timestamp": _utc_now_iso(),
+    }
+    if isinstance(metadata, dict):
+        audit_metadata.update(metadata)
+    return _append_audit_log(
+        entity_type,
+        entity_id,
+        action,
+        before=before or {},
+        after=after or {},
+        user_id=admin_user,
+        role_key=ROLE_PLATFORM_ADMIN,
+        metadata=audit_metadata,
+    )
+
+
+def _operations_task_upload_dir(task_id):
+    target_task_id = secure_filename(str(task_id or "").strip())
+    if not target_task_id:
+        return None
+    return PROFESSIONAL_TASK_EVIDENCE_DIR / target_task_id
+
+
+def _remove_path_if_safe(path):
+    if not path:
+        return
+    target = Path(path)
+    try:
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.is_file():
+            target.unlink()
+    except FileNotFoundError:
+        return
+    except Exception as exc:
+        app.logger.warning("Cleanup skipped for %s: %s", target, type(exc).__name__)
+
+
+def _delete_operations_task_records(conn, task_ids):
+    normalized_task_ids = [str(task_id or "").strip() for task_id in task_ids if str(task_id or "").strip()]
+    if not normalized_task_ids:
+        return []
+
+    placeholders = ",".join("?" for _ in normalized_task_ids)
+    rows = conn.execute(
+        f"""
+        SELECT id, request_id, source_id, attachments_json
+        FROM operations_tasks
+        WHERE id IN ({placeholders})
+           OR request_id IN ({placeholders})
+           OR source_id IN ({placeholders})
+        """,
+        [*normalized_task_ids, *normalized_task_ids, *normalized_task_ids],
+    ).fetchall()
+    canonical_ids = sorted({
+        str(row["id"] or row["request_id"] or row["source_id"]).strip()
+        for row in rows
+        if str(row["id"] or row["request_id"] or row["source_id"]).strip()
+    })
+    if not canonical_ids:
+        return []
+
+    canonical_placeholders = ",".join("?" for _ in canonical_ids)
+    conn.execute(f"DELETE FROM operations_task_events WHERE task_id IN ({canonical_placeholders})", canonical_ids)
+    conn.execute(f"DELETE FROM operations_notifications WHERE task_id IN ({canonical_placeholders})", canonical_ids)
+    conn.execute(f"DELETE FROM calendar_events WHERE operation_task_id IN ({canonical_placeholders})", canonical_ids)
+    conn.execute(
+        f"""
+        DELETE FROM operations_tasks
+        WHERE id IN ({canonical_placeholders})
+           OR request_id IN ({canonical_placeholders})
+           OR source_id IN ({canonical_placeholders})
+        """,
+        [*canonical_ids, *canonical_ids, *canonical_ids],
+    )
+    return canonical_ids
+
+
+def _permanently_delete_service_request_records(request_ids):
+    target_ids = {str(request_id or "").strip() for request_id in request_ids if str(request_id or "").strip()}
+    if not target_ids:
+        return []
+
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    deleted_records = [record for record in requests_list if str(record.get("id", "")).strip() in target_ids]
+    if not deleted_records:
+        return []
+
+    _save_service_requests([
+        record
+        for record in requests_list
+        if str(record.get("id", "")).strip() not in target_ids
+    ])
+
+    task_upload_dirs = []
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        task_ids = _delete_operations_task_records(conn, target_ids)
+        task_upload_dirs.extend(_operations_task_upload_dir(task_id) for task_id in task_ids)
+
+    for upload_dir in task_upload_dirs:
+        _remove_path_if_safe(upload_dir)
+
+    return deleted_records
+
+
+def _purge_expired_service_requests():
+    now = datetime.now(timezone.utc)
+    expired_ids = []
+    for record in _load_service_requests(include_deleted=True, include_archived=True):
+        deleted_at = _parse_iso_datetime(record.get("deleted_at", ""))
+        if deleted_at and now - deleted_at >= timedelta(days=30):
+            expired_ids.append(record.get("id", ""))
+    if not expired_ids:
+        return []
+    deleted_records = _permanently_delete_service_request_records(expired_ids)
+    for record in deleted_records:
+        _admin_audit_deletion_action(
+            "service_request",
+            record.get("id", ""),
+            "purged_after_retention",
+            before=record,
+            metadata={"retention_days": 30},
+        )
+    return deleted_records
 
 
 def _service_request_matching_providers(service_category):
@@ -14619,6 +14770,95 @@ def _admin_owner_account_service_requests(owner_account):
     return requests
 
 
+def _owner_related_counts(owner_account):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
+    properties = _admin_owner_account_properties(owner_id)
+    property_ids = {str(property_record.get("id", "")).strip() for property_record in properties if str(property_record.get("id", "")).strip()}
+    reservations = [
+        reservation
+        for reservation in _load_reservations(owner_id=owner_id, property_ids=list(property_ids))
+        if not property_ids or str(reservation.get("property_id", "")).strip() in property_ids
+    ]
+    operations = [
+        task
+        for task in _load_operations_tasks()
+        if (owner_id and str(task.get("owner_id", "")).strip() == owner_id)
+        or (owner_email and str(task.get("owner_email", "")).strip().lower() == owner_email)
+        or (property_ids and str(task.get("property_id", "")).strip() in property_ids)
+    ]
+    service_requests = _admin_owner_account_service_requests(owner_account)
+    return {
+        "properties": len(properties),
+        "reservations": len(reservations),
+        "operations": len(operations),
+        "service_requests": len(service_requests),
+        "invoices": 0,
+    }
+
+
+def _owner_delete_file_targets(owner_id, property_ids, task_ids):
+    targets = []
+    for property_id in property_ids:
+        targets.append(_owner_property_assets_path(property_id))
+        targets.append(_owner_property_upload_dir(property_id))
+    for task_id in task_ids:
+        targets.append(_operations_task_upload_dir(task_id))
+    return targets
+
+
+def _permanently_delete_owner(owner_account):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
+    if not owner_id:
+        return False
+
+    properties = _admin_owner_account_properties(owner_id)
+    property_ids = [str(property_record.get("id", "")).strip() for property_record in properties if str(property_record.get("id", "")).strip()]
+    service_request_ids = [record.get("id", "") for record in _admin_owner_account_service_requests(owner_account)]
+    task_ids = []
+    file_targets = []
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        task_rows = conn.execute(
+            """
+            SELECT id, request_id, source_id
+            FROM operations_tasks
+            WHERE owner_id = ?
+               OR lower(owner_email) = ?
+               OR property_id IN ({})
+            """.format(",".join("?" for _ in property_ids) or "''"),
+            [owner_id, owner_email, *property_ids],
+        ).fetchall()
+        task_ids = [
+            str(row["id"] or row["request_id"] or row["source_id"]).strip()
+            for row in task_rows
+            if str(row["id"] or row["request_id"] or row["source_id"]).strip()
+        ]
+        _delete_operations_task_records(conn, task_ids)
+        if property_ids:
+            placeholders = ",".join("?" for _ in property_ids)
+            conn.execute(f"DELETE FROM owner_property_activity_events WHERE owner_id = ? OR property_id IN ({placeholders})", [owner_id, *property_ids])
+            conn.execute(f"DELETE FROM reservations WHERE property_id IN ({placeholders})", property_ids)
+            conn.execute(f"DELETE FROM calendar_events WHERE property_id IN ({placeholders})", property_ids)
+            conn.execute(f"DELETE FROM owner_properties WHERE id IN ({placeholders}) OR owner_id = ?", [*property_ids, owner_id])
+        else:
+            conn.execute("DELETE FROM owner_properties WHERE owner_id = ?", (owner_id,))
+            conn.execute("DELETE FROM owner_property_activity_events WHERE owner_id = ?", (owner_id,))
+        conn.execute("DELETE FROM owner_activity_events WHERE owner_id = ?", (owner_id,))
+        conn.execute("DELETE FROM owner_magic_tokens WHERE lower(email) = ?", (owner_email,))
+        conn.execute("DELETE FROM owner_magic_email_events WHERE lower(submitted_email) = ?", (owner_email,))
+        conn.execute("DELETE FROM owner_accounts WHERE id = ? OR lower(email) = ?", (owner_id, owner_email))
+
+    _permanently_delete_service_request_records(service_request_ids)
+    file_targets = _owner_delete_file_targets(owner_id, property_ids, task_ids)
+    for target in file_targets:
+        _remove_path_if_safe(target)
+    return True
+
+
 def _admin_owner_account_timeline(owner_account, properties, service_requests, activity_events, magic_events):
     timeline = []
     owner_id = str(owner_account.get("id", "")).strip()
@@ -14722,11 +14962,62 @@ def _admin_owner_account_timeline(owner_account, properties, service_requests, a
     return deduped_timeline
 
 
+def _admin_csrf_token():
+    token = str(session.get("_admin_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_admin_csrf_token"] = token
+    return token
+
+
+def _validate_admin_csrf():
+    expected = str(session.get("_admin_csrf_token", "")).strip()
+    submitted = str(request.form.get("csrf_token", "")).strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+def _admin_csrf_error_response():
+    return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+
+
+@app.context_processor
+def _admin_template_context():
+    return {
+        "admin_csrf_token": _admin_csrf_token,
+    }
+
+
+def _admin_credentials_match(username, password, expected_username, expected_password):
+    return bool(
+        expected_username
+        and expected_password
+        and hmac.compare_digest(str(username or ""), expected_username)
+        and hmac.compare_digest(str(password or ""), expected_password)
+    )
+
+
+def _admin_super_credentials():
+    super_username = os.getenv("ADMIN_SUPER_USERNAME", "").strip()
+    super_password = os.getenv("ADMIN_SUPER_PASSWORD", "").strip()
+    if super_username and super_password:
+        return super_username, super_password
+    return os.getenv("ADMIN_USERNAME", "").strip(), os.getenv("ADMIN_PASSWORD", "").strip()
+
+
+def _current_admin_is_super_admin():
+    auth = request.authorization
+    if not auth:
+        return False
+    super_username, super_password = _admin_super_credentials()
+    return _admin_credentials_match(auth.username, auth.password, super_username, super_password)
+
+
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         admin_username = os.getenv("ADMIN_USERNAME", "").strip()
         admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+        super_username, super_password = _admin_super_credentials()
 
         if not admin_username or not admin_password:
             app.logger.warning("Admin access disabled: ADMIN_USERNAME or ADMIN_PASSWORD is missing.")
@@ -14736,9 +15027,9 @@ def admin_required(view):
         if not auth or not auth.username or not auth.password:
             return _admin_auth_response(401, "Unauthorized")
 
-        username_ok = hmac.compare_digest(str(auth.username), admin_username)
-        password_ok = hmac.compare_digest(str(auth.password), admin_password)
-        if not (username_ok and password_ok):
+        admin_ok = _admin_credentials_match(auth.username, auth.password, admin_username, admin_password)
+        super_ok = _admin_credentials_match(auth.username, auth.password, super_username, super_password)
+        if not (admin_ok or super_ok):
             return _admin_auth_response(401, "Unauthorized")
 
         return view(*args, **kwargs)
@@ -15066,6 +15357,9 @@ def admin_owner_accounts():
     filtered_owner_accounts = []
     search_tokens = [token for token in search_query.lower().split() if token]
     for owner_account in owner_accounts:
+        owner_status = _normalize_owner_status(owner_account.get("status", ""))
+        if owner_status == "ARCHIVED" and status_filter != "ARCHIVED":
+            continue
         owner_properties = _admin_owner_account_properties(owner_account.get("id", ""))
         searchable_parts = [
             owner_account.get("full_name", ""),
@@ -15078,7 +15372,7 @@ def admin_owner_accounts():
         searchable_text = " ".join(searchable_parts).lower()
         if search_tokens and not all(token in searchable_text for token in search_tokens):
             continue
-        if status_filter and _normalize_owner_status(owner_account.get("status", "")) != status_filter:
+        if status_filter and owner_status != status_filter:
             continue
         if language_filter and _normalize_owner_language(owner_account.get("language", "")) != language_filter:
             continue
@@ -15190,7 +15484,90 @@ def admin_owner_account_detail(owner_id):
         owner_status_events=owner_status_events,
         owner_registration_events=owner_registration_events,
         owner_login_events=owner_login_events,
+        is_super_admin=_current_admin_is_super_admin(),
     )
+
+
+@app.post("/admin/owner-accounts/<owner_id>/archive")
+@admin_required
+def admin_owner_account_archive(owner_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    owner_account = _find_owner_account(owner_id)
+    if not owner_account:
+        return Response("Owner account not found.", status=404, mimetype="text/plain")
+    before = dict(owner_account)
+    saved_account = _upsert_owner_account({
+        **owner_account,
+        "status": "ARCHIVED",
+        "internal_notes": str(owner_account.get("internal_notes", "")).strip(),
+    })
+    if saved_account:
+        _append_owner_activity_event(owner_id, "status_changed", "Owner archived", "Status changed to ARCHIVED")
+        _admin_audit_deletion_action("owner", owner_id, "archived", before=before, after=saved_account)
+        flash("Owner archived successfully.", "success")
+    return redirect(url_for("admin_owner_accounts"))
+
+
+@app.post("/admin/owner-accounts/<owner_id>/restore")
+@admin_required
+def admin_owner_account_restore(owner_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    owner_account = _find_owner_account(owner_id)
+    if not owner_account:
+        return Response("Owner account not found.", status=404, mimetype="text/plain")
+    restored_status = "ACTIVE"
+    saved_account = _upsert_owner_account({**owner_account, "status": restored_status})
+    if saved_account:
+        _append_owner_activity_event(owner_id, "status_changed", "Owner restored", "Status changed to ACTIVE")
+        _append_audit_log(
+            "owner",
+            owner_id,
+            "restored",
+            before=owner_account,
+            after=saved_account,
+            user_id=_current_admin_operator_key(),
+            role_key=ROLE_PLATFORM_ADMIN,
+            metadata={"admin_user": _current_admin_operator_key()},
+        )
+        flash("Owner restored successfully.", "success")
+    return redirect(url_for("admin_recycle_bin"))
+
+
+@app.get("/admin/owner-accounts/<owner_id>/delete")
+@admin_required
+def admin_owner_account_delete_confirm(owner_id):
+    if not _current_admin_is_super_admin():
+        return Response("Super admin permission required.", status=403, mimetype="text/plain")
+    owner_account = _find_owner_account(owner_id)
+    if not owner_account:
+        return Response("Owner account not found.", status=404, mimetype="text/plain")
+    return render_template(
+        "admin_owner_account_delete.html",
+        owner_account=owner_account,
+        counts=_owner_related_counts(owner_account),
+    )
+
+
+@app.post("/admin/owner-accounts/<owner_id>/delete")
+@admin_required
+def admin_owner_account_delete(owner_id):
+    if not _current_admin_is_super_admin():
+        return Response("Super admin permission required.", status=403, mimetype="text/plain")
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    if str(request.form.get("confirm_delete", "")).strip() != "DELETE":
+        return Response("Type DELETE to confirm.", status=400, mimetype="text/plain")
+    owner_account = _find_owner_account(owner_id)
+    if not owner_account:
+        return Response("Owner account not found.", status=404, mimetype="text/plain")
+    counts = _owner_related_counts(owner_account)
+    deleted = _permanently_delete_owner(owner_account)
+    if deleted:
+        _admin_audit_deletion_action("owner", owner_id, "permanently_deleted", before=owner_account, metadata={"counts": counts})
+        flash("Owner permanently deleted.", "success")
+    return redirect(url_for("admin_owner_accounts"))
 
 
 @app.get("/admin/properties")
@@ -18709,6 +19086,10 @@ def _build_admin_dashboard():
             "email": professional_account.get("email", ""),
             "company": professional_account.get("company", ""),
             "count": task_count,
+            "utilization": min(100, int(round((task_count / max(overload_threshold, 1)) * 100))),
+            "capacity_remaining": max(0, overload_threshold - task_count),
+            "workload_level": t("workloadLevelOverloaded", "Overloaded") if task_count > overload_threshold else t("workloadLevelFull", "Full") if task_count == overload_threshold else t("workloadLevelActive", "Active") if task_count else t("workloadLevelAvailable", "Available"),
+            "is_overloaded": task_count > overload_threshold,
             "tone": "danger" if task_count > overload_threshold else "warning" if task_count == overload_threshold else "info",
         })
     for label, task_count in professional_task_counts.items():
@@ -18720,6 +19101,10 @@ def _build_admin_dashboard():
             "email": "",
             "company": "",
             "count": task_count,
+            "utilization": min(100, int(round((task_count / max(overload_threshold, 1)) * 100))),
+            "capacity_remaining": max(0, overload_threshold - task_count),
+            "workload_level": t("workloadLevelOverloaded", "Overloaded") if task_count > overload_threshold else t("workloadLevelFull", "Full") if task_count == overload_threshold else t("workloadLevelActive", "Active") if task_count else t("workloadLevelAvailable", "Available"),
+            "is_overloaded": task_count > overload_threshold,
             "tone": "danger" if task_count > overload_threshold else "warning" if task_count == overload_threshold else "info",
         })
     professional_task_cards.sort(key=lambda item: (item["count"], item["name"]), reverse=True)
@@ -18901,6 +19286,19 @@ def _build_admin_dashboard():
             "tone": band["tone"],
             "badge": f"{risk_score} / 100",
             "summary": t("riskSummary", f"{len(overdue_property_tasks)} overdue, {len(unassigned_property_tasks)} unassigned, {len(arrival_within_24h)} arrivals in 24h"),
+            "overdue_count": len(overdue_property_tasks),
+            "unassigned_count": len(unassigned_property_tasks),
+            "conflicts_count": len(calendar_conflicts) + len(overlapping_reservations),
+            "cleaning_status": t("riskCleaningMissing", "Missing") if missing_cleaning else t("riskCleaningReady", "Ready"),
+            "owner_waiting_requests": len(pending_owner_requests),
+            "action_recommendation": (
+                t("riskActionAssignCleaner", "Assign cleaner before arrival.") if missing_cleaning
+                else t("riskActionResolveConflict", "Resolve calendar conflict.") if calendar_conflicts or overlapping_reservations
+                else t("riskActionContactOwner", "Contact owner immediately.") if pending_owner_requests
+                else t("riskActionAssignProfessional", "Assign professional before the next SLA window.") if unassigned_property_tasks
+                else t("riskActionCompleteOverdue", "Complete overdue operation.") if overdue_property_tasks
+                else t("riskActionMonitor", "Monitor normal operations.")
+            ),
             "factors": [
                 {"label": t("riskFactorOverdueOperations", "Overdue operations"), "count": len(overdue_property_tasks)},
                 {"label": t("riskFactorUnassignedOperations", "Unassigned operations"), "count": len(unassigned_property_tasks)},
@@ -19179,7 +19577,7 @@ def _build_admin_dashboard():
     smart_recommendations = []
     recommendation_signatures = set()
 
-    def _add_recommendation(title, detail, link):
+    def _add_recommendation(title, detail, link, *, impact="", cta=""):
         signature = (title, detail, link)
         if signature in recommendation_signatures:
             return
@@ -19187,6 +19585,9 @@ def _build_admin_dashboard():
         smart_recommendations.append({
             "title": title,
             "detail": detail,
+            "reason": detail,
+            "impact": impact or t("recommendationImpactDefault", "Reduces operational risk and protects the next guest window."),
+            "cta": cta or t("openContext", "Open context"),
             "link": link,
         })
 
@@ -19196,30 +19597,40 @@ def _build_admin_dashboard():
                 f"Assign cleaner to {alert['property']}",
                 alert["detail"] or "Operational task is waiting for assignment",
                 alert["link"] or "/admin/operations",
+                impact=t("recommendationImpactAssign", "Reduces operational risk before the next arrival."),
+                cta=t("recommendationCtaAssignProfessional", "Assign professional"),
             )
         elif alert["category"] == "reservations_arriving_within_24h_without_completed_preparation" and alert["property"]:
             _add_recommendation(
                 f"Prepare {alert['property']} for arrival",
                 "Arrival is less than 24 hours away",
                 alert["link"] or "/admin/reservations",
+                impact=t("recommendationImpactArrival", "Protects arrival readiness and owner confidence."),
+                cta=t("recommendationCtaPrepareArrival", "Prepare arrival"),
             )
         elif alert["category"] == "professionals_overloaded" and alert["operation"]:
             _add_recommendation(
                 f"Move operation to another team",
                 f"{alert['operation']} is carrying too many open tasks",
                 alert["link"] or "/admin/professionals",
+                impact=t("recommendationImpactCapacity", "Reduces overload and improves SLA health."),
+                cta=t("recommendationCtaRebalance", "Rebalance workload"),
             )
         elif alert["category"] == "operations_without_due_dates":
             _add_recommendation(
                 "Add due dates to open operations",
                 alert["operation"] or "An open operation is missing a due date",
                 alert["link"] or "/admin/operations",
+                impact=t("recommendationImpactDueDate", "Improves planning clarity and SLA tracking."),
+                cta=t("recommendationCtaAddDueDate", "Add due date"),
             )
         elif alert["category"] == "owner_requests_waiting" and alert["property"]:
             _add_recommendation(
                 f"Follow up owner request for {alert['property']}",
                 "The owner has been waiting too long for an update",
                 alert["link"] or "/admin/service-requests",
+                impact=t("recommendationImpactOwner", "Reduces owner wait time and escalation risk."),
+                cta=t("recommendationCtaContactOwner", "Contact owner"),
             )
 
     for card in property_risk_cards[:8]:
@@ -19229,6 +19640,8 @@ def _build_admin_dashboard():
             f"Reduce risk on {card['name']}",
             card["summary"],
             f"/admin/properties/{card['id']}",
+            impact=t("recommendationImpactRisk", "Lowers the property risk score and clears executive alerts."),
+            cta=t("recommendationCtaReviewRisk", "Review risk"),
         )
 
     for property_record in owner_properties:
@@ -19247,12 +19660,16 @@ def _build_admin_dashboard():
                 f"Reservation can now be confirmed for {property_name}",
                 "Readiness is complete and the next reservation is clear to confirm",
                 f"/admin/properties/{property_id}",
+                impact=t("recommendationImpactConfirm", "Turns completed readiness into booking confidence."),
+                cta=t("recommendationCtaConfirmReservation", "Confirm reservation"),
             )
         elif readiness_percent == 100 and not upcoming_pending and not property_tasks_map.get(property_id, []):
             _add_recommendation(
                 f"Property ready for next reservation",
                 property_name,
                 f"/admin/properties/{property_id}",
+                impact=t("recommendationImpactReady", "Keeps available inventory visible to operations."),
+                cta=t("recommendationCtaOpenProperty", "Open property"),
             )
 
     smart_recommendations = smart_recommendations[:12]
@@ -19286,6 +19703,58 @@ def _build_admin_dashboard():
             "revenue": 0,
         },
     }
+    alert_category_counts = {}
+    for alert in executive_alerts:
+        alert_category = str(alert.get("category", "")).strip()
+        alert_category_counts[alert_category] = alert_category_counts.get(alert_category, 0) + 1
+
+    occupied_properties_today = sum(1 for reservation in reservations if _reservation_is_occupying(reservation, today))
+    available_properties_today = sum(
+        1
+        for property_record in owner_properties
+        if _property_availability_engine(property_record, reservations=reservations, operations_tasks=operations_tasks)["state"] in {"Available", "Ready"}
+    )
+    top_dashboard_sections = [
+        {
+            "title": t("criticalAlertsTitle", "Critical alerts"),
+            "tone": "danger" if executive_alerts else "success",
+            "cards": [
+                {"label": t("criticalOverdueOperations", "Overdue operations"), "value": len(overdue_operations), "tone": "danger" if overdue_operations else "success", "href": "/admin/operations"},
+                {"label": t("criticalUnassignedOperations", "Unassigned operations"), "value": alert_category_counts.get("unassigned_operations", 0), "tone": "warning" if alert_category_counts.get("unassigned_operations", 0) else "success", "href": "/admin/operations"},
+                {"label": t("criticalCalendarConflicts", "Calendar conflicts"), "value": alert_category_counts.get("calendar_conflicts", 0) + alert_category_counts.get("overlapping_reservations", 0), "tone": "danger" if alert_category_counts.get("overlapping_reservations", 0) else "warning" if alert_category_counts.get("calendar_conflicts", 0) else "success", "href": "/admin/calendar"},
+                {"label": t("criticalOwnerRequestsWaiting", "Owner requests waiting"), "value": alert_category_counts.get("owner_requests_waiting", 0), "tone": "warning" if alert_category_counts.get("owner_requests_waiting", 0) else "success", "href": "/admin/service-requests"},
+            ],
+        },
+        {
+            "title": t("todayOperationsTitle", "Today's operations"),
+            "tone": "info",
+            "cards": [
+                {"label": t("todayArrivals", "Arrivals today"), "value": reservation_widget["stats"]["arrivals_today"], "tone": "info", "href": "/admin/reservations"},
+                {"label": t("todayDepartures", "Departures today"), "value": reservation_widget["stats"]["departures_today"], "tone": "info", "href": "/admin/reservations"},
+                {"label": t("todayOccupiedAvailableProperties", "Occupied / available properties"), "value": f"{occupied_properties_today} / {available_properties_today}", "tone": "success" if available_properties_today else "info", "href": "/admin/properties"},
+            ],
+        },
+        {
+            "title": t("businessMetricsTitle", "Business metrics"),
+            "tone": "neutral",
+            "cards": [
+                {"label": t("businessOccupancyRevenueSla", "Occupancy / revenue / SLA"), "value": f"{occupancy_engine['occupancy_percent']}% / {reservation_widget['stats']['revenue']} / {sla_health}%", "tone": "success" if sla_health >= 85 else "warning" if sla_health >= 60 else "danger", "href": "/admin/operations"},
+            ],
+        },
+    ]
+    executive_summary_lines = [
+        t("summaryOverdueOperations", "{} operations are overdue.").replace("{}", str(len(overdue_operations))),
+        t("summaryUnassignedOperations", "{} operations have no assigned professional.").replace("{}", str(alert_category_counts.get("unassigned_operations", 0))),
+        t("summaryArrivals24h", "{} arrivals are expected in the next 24 hours.").replace("{}", str(sum(1 for reservation in reservations if (arrival_dt := _reservation_date_bounds(reservation)[0]) and now <= arrival_dt <= now + timedelta(hours=24)))),
+    ]
+    if property_risk_cards:
+        executive_summary_lines.append(
+            t("summaryImmediateAttention", "{} requires immediate attention.").replace("{}", property_risk_cards[0]["name"])
+            if property_risk_cards[0]["score"] >= 35
+            else t("summaryOperationsStable", "Operations are stable across the active portfolio.")
+        )
+    else:
+        executive_summary_lines.append(t("summaryNoProperties", "No properties are currently in the operational risk model."))
 
     return {
         "total_leads": len(pilot_requests),
@@ -19308,6 +19777,8 @@ def _build_admin_dashboard():
         "service_requests_this_month": requests_this_month,
         "partner_status_counts": partner_counts,
         "professional_status_counts": professional_counts,
+        "top_dashboard_sections": top_dashboard_sections,
+        "executive_summary_lines": executive_summary_lines,
         "executive_kpis": executive_kpis,
         "executive_alerts": executive_alerts,
         "property_risk_cards": property_risk_cards,
@@ -19920,6 +20391,7 @@ def admin_professional_update(application_id):
 @app.get("/admin/service-requests")
 @admin_required
 def admin_service_requests():
+    _purge_expired_service_requests()
     requests_list = _load_service_requests()
     counts = _service_request_status_counts(requests_list)
     return render_template(
@@ -19949,12 +20421,14 @@ def admin_service_request_detail(request_id):
 @app.post("/admin/service-requests/<request_id>/update")
 @admin_required
 def admin_service_request_update(request_id):
-    requests_list = _load_service_requests()
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
     updated = False
 
     for record in requests_list:
         if str(record.get("id", "")) != str(request_id):
             continue
+        if _is_service_request_deleted(record):
+            return Response("Deleted service requests must be restored before editing.", status=409, mimetype="text/plain")
 
         raw_status = str(request.form.get("status", "")).strip()
         original_status = _normalize_service_request_status(record.get("status", "new"))
@@ -20059,6 +20533,155 @@ def admin_service_request_update(request_id):
     _save_service_requests(requests_list)
     _upsert_operations_task_from_service_request(record)
     return redirect(url_for("admin_service_request_detail", request_id=request_id))
+
+
+@app.post("/admin/service-requests/<request_id>/close")
+@admin_required
+def admin_service_request_close(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    for record in requests_list:
+        if str(record.get("id", "")) == str(request_id):
+            if _is_service_request_deleted(record):
+                return Response("Deleted service requests must be restored before closing.", status=409, mimetype="text/plain")
+            before = dict(record)
+            record["status"] = "completed"
+            record["last_update_at"] = _utc_now_iso()
+            _append_service_request_timeline_event(record, "SERVICE_REQUEST_COMPLETED", "Service request closed", "Closed by admin", status="completed")
+            _save_service_requests(requests_list)
+            _upsert_operations_task_from_service_request(record)
+            _append_audit_log("service_request", request_id, "closed", before=before, after=record, user_id=_current_admin_operator_key(), role_key=ROLE_PLATFORM_ADMIN, metadata={"admin_user": _current_admin_operator_key()})
+            flash("Service request closed.", "success")
+            return redirect(url_for("admin_service_request_detail", request_id=request_id))
+    return jsonify({"ok": False, "error": "not_found"}), 404
+
+
+@app.post("/admin/service-requests/<request_id>/archive")
+@admin_required
+def admin_service_request_archive(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    for record in requests_list:
+        if str(record.get("id", "")) == str(request_id):
+            if _is_service_request_deleted(record):
+                return Response("Deleted service requests must be restored before archiving.", status=409, mimetype="text/plain")
+            before = dict(record)
+            record["archived_at"] = _utc_now_iso()
+            record["archived_by"] = _current_admin_operator_key()
+            record["last_update_at"] = record["archived_at"]
+            _append_service_request_timeline_event(record, "SERVICE_REQUEST_ARCHIVED", "Service request archived", "Archived by admin", status=record.get("status", "new"))
+            _save_service_requests(requests_list)
+            _append_audit_log("service_request", request_id, "archived", before=before, after=record, user_id=_current_admin_operator_key(), role_key=ROLE_PLATFORM_ADMIN, metadata={"admin_user": _current_admin_operator_key()})
+            flash("Service request archived.", "success")
+            return redirect(url_for("admin_service_requests"))
+    return jsonify({"ok": False, "error": "not_found"}), 404
+
+
+@app.post("/admin/service-requests/<request_id>/duplicate")
+@admin_required
+def admin_service_request_duplicate(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    source = _find_service_request(request_id)
+    if not source:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+    duplicate = {
+        **source,
+        "id": f"service-{uuid4().hex[:16]}",
+        "created_at": _utc_now_iso(),
+        "last_update_at": _utc_now_iso(),
+        "status": "new",
+        "deleted_at": "",
+        "deleted_by": "",
+        "delete_reason": "",
+        "archived_at": "",
+        "archived_by": "",
+        "timeline": [],
+    }
+    _append_service_request_timeline_event(duplicate, "SERVICE_REQUEST_CREATED", "Service request duplicated", f"Duplicated from {request_id}", status="new")
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    requests_list.append(duplicate)
+    _save_service_requests(requests_list)
+    _append_audit_log("service_request", duplicate["id"], "duplicated", before=source, after=duplicate, user_id=_current_admin_operator_key(), role_key=ROLE_PLATFORM_ADMIN, metadata={"admin_user": _current_admin_operator_key(), "source_request_id": request_id})
+    flash("Service request duplicated.", "success")
+    return redirect(url_for("admin_service_request_detail", request_id=duplicate["id"]))
+
+
+@app.post("/admin/service-requests/<request_id>/delete")
+@admin_required
+def admin_service_request_delete(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    for record in requests_list:
+        if str(record.get("id", "")) == str(request_id):
+            before = dict(record)
+            record["deleted_at"] = _utc_now_iso()
+            record["deleted_by"] = _current_admin_operator_key()
+            record["delete_reason"] = str(request.form.get("delete_reason", "")).strip() or "admin_deleted"
+            record["last_update_at"] = record["deleted_at"]
+            _save_service_requests(requests_list)
+            _admin_audit_deletion_action("service_request", request_id, "deleted_to_recycle_bin", before=before, after=record, metadata={"retention_days": 30})
+            flash("Service request moved to recycle bin. It remains recoverable for 30 days.", "success")
+            return redirect(request.form.get("next") or url_for("admin_service_requests"))
+    return jsonify({"ok": False, "error": "not_found"}), 404
+
+
+@app.post("/admin/service-requests/<request_id>/restore")
+@admin_required
+def admin_service_request_restore(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    requests_list = _load_service_requests(include_deleted=True, include_archived=True)
+    for record in requests_list:
+        if str(record.get("id", "")) == str(request_id):
+            before = dict(record)
+            record["deleted_at"] = ""
+            record["deleted_by"] = ""
+            record["delete_reason"] = ""
+            record["archived_at"] = ""
+            record["archived_by"] = ""
+            record["last_update_at"] = _utc_now_iso()
+            _append_service_request_timeline_event(record, "SERVICE_REQUEST_RESTORED", "Service request restored", "Restored by admin", status=record.get("status", "new"))
+            _save_service_requests(requests_list)
+            _append_audit_log("service_request", request_id, "restored", before=before, after=record, user_id=_current_admin_operator_key(), role_key=ROLE_PLATFORM_ADMIN, metadata={"admin_user": _current_admin_operator_key()})
+            flash("Service request restored.", "success")
+            return redirect(url_for("admin_recycle_bin"))
+    return jsonify({"ok": False, "error": "not_found"}), 404
+
+
+@app.post("/admin/service-requests/<request_id>/purge")
+@admin_required
+def admin_service_request_purge(request_id):
+    if not _current_admin_is_super_admin():
+        return Response("Super admin permission required.", status=403, mimetype="text/plain")
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    record = _find_service_request(request_id, include_deleted=True, include_archived=True)
+    if not record:
+        return jsonify({"ok": False, "error": "not_found"}), 404
+    deleted_records = _permanently_delete_service_request_records([request_id])
+    if deleted_records:
+        _admin_audit_deletion_action("service_request", request_id, "permanently_deleted", before=record)
+        flash("Service request permanently deleted.", "success")
+    return redirect(url_for("admin_recycle_bin"))
+
+
+@app.get("/admin/recycle-bin")
+@admin_required
+def admin_recycle_bin():
+    purged_records = _purge_expired_service_requests()
+    deleted_requests = [record for record in _load_service_requests(include_deleted=True, include_archived=True) if _is_service_request_deleted(record) or _is_service_request_archived(record)]
+    archived_owners = [owner for owner in _load_owner_accounts() if _normalize_owner_status(owner.get("status", "")) == "ARCHIVED"]
+    return render_template(
+        "admin_recycle_bin.html",
+        deleted_requests=deleted_requests,
+        archived_owners=archived_owners,
+        purged_count=len(purged_records),
+        is_super_admin=_current_admin_is_super_admin(),
+    )
 
 
 def _update_operations_task_notes(task_id, notes):

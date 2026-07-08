@@ -1,0 +1,62 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | Delete Owner</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="admin-cockpit-page">
+  <main class="admin-cockpit-shell">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+      <div>
+        <p class="eyebrow">SUPER ADMIN ONLY</p>
+        <h1>Delete owner permanently</h1>
+        <p>This action is irreversible and removes the owner dossier and related operational data.</p>
+      </div>
+      <div class="admin-cockpit-actions">
+        <a class="button button--secondary" href="{{ url_for('admin_owner_account_detail', owner_id=owner_account.id) }}">Cancel</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
+      </div>
+    </section>
+
+    <section class="admin-cockpit-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="eyebrow">Owner dossier</p>
+          <h2>{{ owner_account.full_name|e }}</h2>
+        </div>
+      </div>
+      <p>This owner currently has:</p>
+      <ul>
+        <li>{{ counts.properties }} properties</li>
+        <li>{{ counts.reservations }} reservations</li>
+        <li>{{ counts.operations }} operations</li>
+        <li>{{ counts.service_requests }} service requests</li>
+        <li>{{ counts.invoices }} invoices</li>
+      </ul>
+      <p>Deleting this owner will permanently remove all related data.</p>
+
+      <form class="admin-pilot-status-form" method="post" action="{{ url_for('admin_owner_account_delete', owner_id=owner_account.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+        <label>
+          <span>Type DELETE to continue:</span>
+          <input class="admin-request-detail-form__control" name="confirm_delete" id="confirm-delete" autocomplete="off">
+        </label>
+        <div class="admin-cockpit-actions">
+          <a class="button button--secondary" href="{{ url_for('admin_owner_account_detail', owner_id=owner_account.id) }}">Cancel</a>
+          <button class="button button--primary" id="delete-owner-button" type="submit" disabled>Delete owner permanently</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script>
+    const confirmInput = document.getElementById('confirm-delete');
+    const deleteButton = document.getElementById('delete-owner-button');
+    confirmInput.addEventListener('input', () => {
+      deleteButton.disabled = confirmInput.value !== 'DELETE';
+    });
+  </script>
+</body>
+</html>
+

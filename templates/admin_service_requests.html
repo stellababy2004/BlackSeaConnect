@@ -21,10 +21,21 @@
       </div>
       <div class="admin-cockpit-actions">
         <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">Back to cockpit</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
         <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
         <a class="button button--ghost" href="/owners/register">Owner registration</a>
       </div>
     </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="admin-cockpit-panel">
+          {% for category, message in messages %}
+            <p class="admin-request-detail-description__copy">{{ message|e }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
 
     <section class="admin-kpi-grid" aria-label="Service request metrics">
       <article class="admin-kpi-card">
@@ -56,7 +67,7 @@
     {% if requests %}
       <section class="admin-pilot-list">
         {% for item in requests %}
-          <a class="admin-pilot-card admin-pilot-card--link" href="/admin/service-requests/{{ item.id|e }}" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
+          <article class="admin-pilot-card" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
@@ -69,7 +80,24 @@
             <p><strong>Category:</strong> {{ item.service_category|e }}</p>
             <p><strong>Preferred date:</strong> {{ item.preferred_date|e }}</p>
             <p><strong>Assigned professional:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</p>
-          </a>
+            <div class="admin-cockpit-actions">
+              <a class="button button--primary" href="/admin/service-requests/{{ item.id|e }}">Open request</a>
+              <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button class="button button--ghost" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Delete request</button>
+                <dialog id="delete-request-{{ item.id|e }}" class="admin-cockpit-panel">
+                  <h2>Delete request</h2>
+                  <p>Are you sure you want to delete this request?</p>
+                  <p>This request remains recoverable in the recycle bin for 30 days.</p>
+                  <div class="admin-cockpit-actions">
+                    <button class="button button--secondary" type="button" data-close-delete-modal>Cancel</button>
+                    <button class="button button--primary" type="submit">Delete request</button>
+                  </div>
+                </dialog>
+              </form>
+            </div>
+          </article>
         {% endfor %}
       </section>
     {% else %}
@@ -82,6 +110,17 @@
 
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
+  <script>
+    document.querySelectorAll('[data-open-delete-modal]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = document.getElementById(button.dataset.openDeleteModal);
+        if (modal && typeof modal.showModal === 'function') modal.showModal();
+      });
+    });
+    document.querySelectorAll('[data-close-delete-modal]').forEach((button) => {
+      button.addEventListener('click', () => button.closest('dialog')?.close());
+    });
+  </script>
 </body>
 </html>
 

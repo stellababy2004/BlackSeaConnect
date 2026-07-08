@@ -557,6 +557,609 @@
         justify-content: flex-start;
       }
     }
+    .admin-operations-detail-page {
+      background: linear-gradient(180deg, #eef5f2 0, #f8faf9 300px, #f3f5f4 100%);
+      color: #17352d;
+    }
+    .admin-operations-detail-shell {
+      max-width: 1540px;
+      gap: 14px;
+    }
+    .admin-operations-sticky-bar,
+    .admin-operations-detail-hero,
+    .admin-operations-detail-panel,
+    .admin-operations-workflow__step,
+    .admin-operations-dl > div,
+    .admin-operations-checklist__item,
+    .admin-operations-comment,
+    .admin-operations-list-item,
+    .admin-operations-dropzone {
+      border-radius: 8px;
+    }
+    .admin-operations-sticky-bar {
+      top: 10px;
+      border-color: rgba(28, 82, 67, .14);
+      background: rgba(250, 252, 251, .94);
+      box-shadow: 0 16px 38px rgba(21, 47, 39, .1);
+    }
+    .admin-operations-sticky-bar__grid {
+      grid-template-columns: minmax(180px, 1fr) repeat(3, minmax(126px, .55fr)) minmax(120px, .5fr) auto;
+    }
+    .admin-operations-sticky-bar__meta span,
+    .admin-operations-dl dt {
+      color: #4f7065;
+      letter-spacing: .06em;
+    }
+    .admin-operations-sticky-bar__meta strong,
+    .admin-operations-dl dd,
+    .admin-operations-section-title {
+      color: #17352d;
+    }
+    .admin-operations-sticky-bar__actions .button,
+    .admin-operations-detail-actions .button,
+    .admin-operations-contact-actions .button,
+    .admin-operations-form .button {
+      border-radius: 7px;
+    }
+    .admin-operations-detail-hero,
+    .admin-operations-detail-panel {
+      border-color: rgba(28, 82, 67, .13);
+      box-shadow: 0 12px 34px rgba(21, 47, 39, .07);
+    }
+    .admin-operations-detail-hero {
+      align-items: center;
+      background: linear-gradient(125deg, rgba(255,255,255,.97), rgba(239,248,244,.92));
+    }
+    .admin-operations-detail-hero h1 {
+      max-width: 940px;
+      margin-top: 8px;
+      font-size: clamp(1.65rem, 2.7vw, 2.65rem);
+      letter-spacing: 0;
+    }
+    .admin-operations-detail-copy {
+      max-width: 760px;
+      font-size: .92rem;
+      line-height: 1.55;
+    }
+    .admin-operations-health-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .admin-operations-health-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(28, 82, 67, .12);
+      border-left: 3px solid #55a17e;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .82);
+      box-shadow: 0 8px 22px rgba(21, 47, 39, .045);
+    }
+    .admin-operations-health-card:nth-child(2) {
+      border-left-color: #d3a041;
+    }
+    .admin-operations-health-card:nth-child(3) {
+      border-left-color: #5c6fbb;
+    }
+    .admin-operations-health-card:nth-child(4) {
+      border-left-color: #c85b52;
+    }
+    .admin-operations-health-card span {
+      color: #60736c;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .admin-operations-health-card strong {
+      color: #17352d;
+      font-size: .96rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .admin-operations-workflow__rail {
+      gap: 8px;
+    }
+    .admin-operations-workflow__step {
+      position: relative;
+      min-height: 46px;
+      padding: 13px;
+      color: #60736c;
+      background: rgba(255, 255, 255, .72);
+      border-color: rgba(28, 82, 67, .1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+    }
+    .admin-operations-workflow__step.is-active {
+      background: #17352d;
+      border-color: #17352d;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(23, 53, 45, .16);
+    }
+    .admin-operations-workspace {
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, .72fr);
+      gap: 14px;
+    }
+    .admin-operations-stack,
+    .admin-operations-sidebar {
+      gap: 14px;
+    }
+    .admin-operations-sidebar {
+      top: 96px;
+    }
+    .admin-operations-section-title {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+    .admin-operations-sla {
+      border-left-color: #55a17e;
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,248,246,.96));
+    }
+    .admin-operations-sla.is-overdue {
+      border-left-color: #c85b52;
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(254,242,242,.96));
+    }
+    .admin-operations-dl {
+      gap: 8px;
+    }
+    .admin-operations-dl > div,
+    .admin-operations-checklist__item {
+      background: #f5f8f6;
+      border-color: rgba(28, 82, 67, .08);
+    }
+    .admin-operations-form input,
+    .admin-operations-form select,
+    .admin-operations-form textarea {
+      border-radius: 7px;
+      border-color: rgba(28, 82, 67, .16);
+    }
+    .admin-operations-form input:focus,
+    .admin-operations-form select:focus,
+    .admin-operations-form textarea:focus {
+      border-color: rgba(35, 117, 88, .55);
+      box-shadow: 0 0 0 3px rgba(69, 154, 116, .16);
+      outline: none;
+    }
+    .admin-operations-progress__bar {
+      height: 10px;
+      background: #e3ebe7;
+    }
+    .admin-operations-progress__bar span {
+      background: linear-gradient(90deg, #55a17e 0%, #d3a041 100%);
+    }
+    .admin-operations-table {
+      display: block;
+      overflow-x: auto;
+      border: 1px solid rgba(28, 82, 67, .08);
+      border-radius: 8px;
+    }
+    .admin-operations-table th {
+      color: #4f7065;
+      background: #f5f8f6;
+    }
+    .admin-operations-list-item,
+    .admin-operations-comment {
+      border-color: rgba(28, 82, 67, .1);
+      background: #fff;
+    }
+    .admin-operations-timeline-item::before {
+      border-color: #55a17e;
+      box-shadow: 0 0 0 4px rgba(85, 161, 126, .1);
+    }
+    .admin-operations-timeline-rail::before {
+      background: #dce7e2;
+    }
+    .admin-operations-timeline-item__icon {
+      border-radius: 7px;
+      background: #edf5f1;
+      color: #276c57;
+    }
+    .admin-operations-detail-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 14px 18px;
+      min-height: 0;
+    }
+    .admin-operations-detail-hero h1 {
+      margin: 5px 0 4px;
+      font-size: clamp(1.25rem, 2vw, 1.85rem);
+      line-height: 1.16;
+    }
+    .admin-operations-detail-copy {
+      max-width: 720px;
+      font-size: .82rem;
+      line-height: 1.42;
+    }
+    .admin-operations-detail-meta {
+      gap: 6px;
+    }
+    .admin-operations-chip {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+    .admin-operations-health-grid {
+      grid-template-columns: minmax(240px, 1.2fr) repeat(4, minmax(150px, .8fr));
+      align-items: stretch;
+    }
+    .admin-operations-health-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 86px;
+      padding: 14px;
+    }
+    .admin-operations-health-card--primary {
+      grid-row: span 2;
+      min-height: 182px;
+      background: linear-gradient(145deg, #17352d, #255f4d);
+      color: #fff;
+      border-color: rgba(23, 53, 45, .2);
+      border-left-color: #d3a041;
+    }
+    .admin-operations-health-card--primary span,
+    .admin-operations-health-card--primary strong,
+    .admin-operations-health-card--primary small {
+      color: #fff;
+    }
+    .admin-operations-health-card--primary strong {
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+    }
+    .admin-operations-health-card small,
+    .admin-operations-control-card small,
+    .admin-operations-property-tile small,
+    .admin-operations-recommendation-card small {
+      color: #60736c;
+      line-height: 1.35;
+    }
+    .admin-operations-health-meter {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .22);
+      margin-top: 8px;
+    }
+    .admin-operations-health-meter span {
+      display: block;
+      height: 100%;
+      background: #d3a041;
+      border-radius: inherit;
+    }
+    .admin-operations-control-grid,
+    .admin-operations-property-grid,
+    .admin-operations-recommendation-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-operations-control-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-operations-control-card,
+    .admin-operations-property-tile,
+    .admin-operations-recommendation-card {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid rgba(28, 82, 67, .1);
+      border-radius: 8px;
+      background: #f7faf8;
+    }
+    .admin-operations-control-card strong,
+    .admin-operations-property-tile strong,
+    .admin-operations-recommendation-card strong {
+      color: #17352d;
+      overflow-wrap: anywhere;
+    }
+    .admin-operations-control-card span,
+    .admin-operations-property-tile span,
+    .admin-operations-recommendation-card span {
+      color: #60736c;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .admin-operations-control-card--current {
+      background: #17352d;
+      border-color: #17352d;
+    }
+    .admin-operations-control-card--current span,
+    .admin-operations-control-card--current strong,
+    .admin-operations-control-card--current small {
+      color: #fff;
+    }
+    .admin-operations-pro-grid {
+      display: grid;
+      gap: 8px;
+    }
+    .admin-operations-pro-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid rgba(28, 82, 67, .09);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .admin-operations-pro-row__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 5px;
+    }
+    .admin-operations-mini-form {
+      display: contents;
+    }
+    .admin-operations-property-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .admin-operations-property-tile {
+      border-left: 3px solid #55a17e;
+    }
+    .admin-operations-property-tile:nth-child(2) {
+      border-left-color: #d3a041;
+    }
+    .admin-operations-property-tile:nth-child(3) {
+      border-left-color: #5c6fbb;
+    }
+    .admin-operations-property-tile:nth-child(4) {
+      border-left-color: #c85b52;
+    }
+    .admin-operations-recommendation-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .admin-operations-recommendation-card {
+      background: #fff;
+      border-top: 3px solid #55a17e;
+    }
+    .admin-operations-recommendation-card:nth-child(2) {
+      border-top-color: #d3a041;
+    }
+    .admin-operations-recommendation-card:nth-child(3) {
+      border-top-color: #5c6fbb;
+    }
+    .admin-operations-timeline-rail {
+      gap: 0;
+      padding-left: 28px;
+    }
+    .admin-operations-timeline-rail::before {
+      left: 12px;
+      top: 16px;
+      bottom: 16px;
+    }
+    .admin-operations-timeline-item {
+      border: 0;
+      border-radius: 0;
+      border-bottom: 1px solid #e3ebe7;
+      box-shadow: none;
+      padding: 14px 0 14px 12px;
+    }
+    .admin-operations-timeline-item:last-child {
+      border-bottom: 0;
+    }
+    .admin-operations-timeline-item::before {
+      left: -23px;
+      top: 18px;
+      width: 12px;
+      height: 12px;
+      background: #f8faf9;
+    }
+    .admin-operations-timeline-item__header time {
+      color: #60736c;
+      font-size: .74rem;
+      white-space: nowrap;
+    }
+    @media (max-width: 1100px) {
+      .admin-operations-sticky-bar__grid,
+      .admin-operations-workspace {
+        grid-template-columns: 1fr;
+      }
+      .admin-operations-sidebar {
+        position: static;
+      }
+      .admin-operations-health-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .admin-operations-health-card--primary {
+        grid-row: auto;
+      }
+      .admin-operations-control-grid,
+      .admin-operations-recommendation-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .admin-operations-detail-page {
+        padding: 10px;
+      }
+      .admin-operations-detail-hero {
+        grid-template-columns: 1fr;
+      }
+      .admin-operations-detail-hero,
+      .admin-operations-detail-panel {
+        padding: 16px;
+      }
+      .admin-operations-health-grid,
+      .admin-operations-dl,
+      .admin-operations-property-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-operations-pro-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    .admin-operations-detail-page .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .admin-operations-detail-page .button {
+      min-height: 34px !important;
+      padding: 8px 12px !important;
+      border-radius: 8px !important;
+      font-size: .78rem !important;
+      line-height: 1.15 !important;
+      letter-spacing: 0 !important;
+      box-shadow: none !important;
+    }
+    .admin-operations-detail-page .button[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .admin-operations-sticky-bar {
+      padding: 9px 11px !important;
+      border-radius: 10px !important;
+    }
+    .admin-operations-sticky-bar__grid {
+      grid-template-columns: repeat(4, minmax(120px, 1fr)) minmax(500px, auto) !important;
+      gap: 8px !important;
+    }
+    .admin-operations-sticky-bar__meta {
+      min-width: 0;
+      padding: 5px 6px;
+    }
+    .admin-operations-sticky-bar__meta span {
+      font-size: .58rem !important;
+      line-height: 1.1;
+    }
+    .admin-operations-sticky-bar__meta strong {
+      font-size: .86rem !important;
+      line-height: 1.18;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-operations-sticky-bar__actions {
+      display: grid !important;
+      grid-template-columns: repeat(5, max-content);
+      justify-content: end !important;
+      align-items: center;
+      gap: 6px !important;
+    }
+    .admin-operations-sticky-bar__actions .button {
+      min-height: 32px !important;
+      padding: 7px 10px !important;
+      font-size: .72rem !important;
+    }
+    .admin-operations-detail-panel {
+      padding: 18px !important;
+      border-radius: 12px !important;
+    }
+    .admin-operations-detail-hero {
+      padding: 13px 16px !important;
+      border-radius: 12px !important;
+    }
+    .admin-operations-detail-hero h1 {
+      font-size: clamp(1.35rem, 2.15vw, 2rem) !important;
+      margin: 6px 0 5px !important;
+    }
+    .admin-operations-section-title {
+      font-size: 1.08rem !important;
+      line-height: 1.22 !important;
+      margin-bottom: 12px !important;
+    }
+    .admin-operations-detail-page h1,
+    .admin-operations-detail-page h2,
+    .admin-operations-detail-page h3,
+    .admin-operations-detail-page strong,
+    .admin-operations-detail-page dt,
+    .admin-operations-detail-page dd {
+      color: #07152f;
+    }
+    .admin-operations-health-card--primary,
+    .admin-operations-control-card--current {
+      background: #143d31 !important;
+    }
+    .admin-operations-health-card--primary span,
+    .admin-operations-health-card--primary strong,
+    .admin-operations-health-card--primary small,
+    .admin-operations-control-card--current span,
+    .admin-operations-control-card--current strong,
+    .admin-operations-control-card--current small {
+      color: #fff !important;
+    }
+    .admin-operations-form {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+    .admin-operations-form label {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      color: #31453f !important;
+    }
+    .admin-operations-form label > span {
+      color: #4f7065 !important;
+      font-size: .68rem !important;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .admin-operations-form input,
+    .admin-operations-form select,
+    .admin-operations-form textarea {
+      min-height: 40px !important;
+      background: #fff !important;
+      color: #07152f !important;
+      border: 1px solid rgba(28, 82, 67, .18) !important;
+      border-radius: 8px !important;
+      padding: 9px 11px !important;
+      box-shadow: none !important;
+    }
+    .admin-operations-form textarea {
+      min-height: 96px !important;
+    }
+    .admin-operations-checklist {
+      background: #102437;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .admin-operations-checklist__item {
+      min-height: 54px;
+      background: #fff !important;
+      border-radius: 8px !important;
+    }
+    .admin-operations-workflow {
+      gap: 8px !important;
+    }
+    .admin-operations-workflow__step {
+      min-height: 38px !important;
+      padding: 9px 11px !important;
+      border-radius: 9px !important;
+      font-size: .82rem;
+    }
+    @media (max-width: 1320px) {
+      .admin-operations-sticky-bar__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+      .admin-operations-sticky-bar__actions {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(5, max-content);
+        justify-content: start !important;
+      }
+    }
+    @media (max-width: 760px) {
+      .admin-operations-sticky-bar__grid,
+      .admin-operations-sticky-bar__actions {
+        grid-template-columns: 1fr !important;
+      }
+      .admin-operations-sticky-bar__actions .button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body class="admin-operations-detail-page">
@@ -607,6 +1210,68 @@
       </div>
     </section>
 
+    <section class="admin-operations-health-grid" aria-label="Task health">
+      <article class="admin-operations-health-card admin-operations-health-card--primary">
+        <span>Operational health</span>
+        <strong>{% if task.overdue %}At risk{% elif task.status in ['COMPLETED', 'ARCHIVED'] %}Closed{% elif checklist_percentage >= 75 %}Stable{% elif task.assigned_professional_label or task.assigned_to %}Moving{% else %}Needs owner{% endif %}</strong>
+        <small>
+          {% if task.overdue %}
+            SLA is overdue. Prioritize assignment, owner communication, and timeline notes.
+          {% elif task.status in ['COMPLETED', 'ARCHIVED'] %}
+            Work is complete. Confirm closeout evidence and archive when ready.
+          {% elif task.assigned_professional_label or task.assigned_to %}
+            Professional ownership is visible. Keep checklist and deadline current.
+          {% else %}
+            No professional is assigned. Use the control panel below to dispatch.
+          {% endif %}
+        </small>
+        <div class="admin-operations-health-meter" aria-label="Checklist completion">
+          <span style="width: {{ checklist_percentage }}%;"></span>
+        </div>
+        <small>{{ checklist_completed_count }} of {{ checklist_total_count }} checklist items complete</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Status</span>
+        <strong>{{ task.status_label|e }}</strong>
+        <small>{{ task.updated_at|e }}</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Priority</span>
+        <strong>{{ task.priority_label|e }}</strong>
+        <small>{% if task.overdue %}Escalation candidate{% else %}Board priority{% endif %}</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Professional</span>
+        <strong>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</strong>
+        <small>{% if assigned_professional_account %}Assigned account available{% else %}Dispatch needed{% endif %}</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>SLA</span>
+        <strong>{{ sla_time_remaining|e }}</strong>
+        <small>Due {{ task.due_date|e or 'not set' }}</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Property</span>
+        <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</strong>
+        <small>{% if task.property_location %}{{ task.property_location|e }}{% elif property_record and property_record.location %}{{ property_record.location|e }}{% else %}Location pending{% endif %}</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Evidence</span>
+        <strong>{{ attachments|length if attachments else 0 }}</strong>
+        <small>Attachment records</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Activity</span>
+        <strong>{{ timeline|length if timeline else 0 }}</strong>
+        <small>Timeline events</small>
+      </article>
+      <article class="admin-operations-health-card">
+        <span>Owner</span>
+        <strong>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</strong>
+        <small>{% if owner_account %}Account linked{% else %}Task contact{% endif %}</small>
+      </article>
+    </section>
+
     <section class="admin-operations-workflow">
       <div class="admin-operations-workflow__rail" aria-label="Task workflow">
         <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Owner</div>
@@ -616,6 +1281,17 @@
       </div>
       <p class="sr-only">Owner -> Operations -> Professional -> Completed</p>
     </section>
+
+    {% set assignment_recommendation = namespace(professional=none, available_count=0) %}
+    {% for professional in professional_accounts %}
+      {% set professional_status = professional.status|default('')|upper %}
+      {% if professional_status in ['APPROVED', 'ACTIVE'] %}
+        {% set assignment_recommendation.available_count = assignment_recommendation.available_count + 1 %}
+      {% endif %}
+      {% if not assignment_recommendation.professional and professional_status in ['APPROVED', 'ACTIVE'] and task.category and task.category|lower in professional.service_categories|default('')|lower %}
+        {% set assignment_recommendation.professional = professional %}
+      {% endif %}
+    {% endfor %}
 
     <section class="admin-operations-workspace">
       <div class="admin-operations-stack">
@@ -649,8 +1325,118 @@
         </article>
 
         <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Recommendations</p>
+          <h2 class="admin-operations-section-title">Next best operational moves</h2>
+          <div class="admin-operations-recommendation-grid">
+            <div class="admin-operations-recommendation-card">
+              <span>Dispatch</span>
+              {% if task.assigned_professional_label or task.assigned_to %}
+                <strong>Keep current assignee</strong>
+                <small>{{ task.assigned_professional_label|e or task.assigned_to|e }} is already accountable. Use the timeline for follow-up decisions.</small>
+              {% elif assignment_recommendation.professional %}
+                <strong>Assign {{ assignment_recommendation.professional.full_name|e }}</strong>
+                <small>Service category matches {{ task.category|e }} from the available professional list.</small>
+              {% else %}
+                <strong>Select manually</strong>
+                <small>No exact service-category match is visible. Use the control panel selector.</small>
+              {% endif %}
+            </div>
+            <div class="admin-operations-recommendation-card">
+              <span>SLA</span>
+              {% if task.overdue %}
+                <strong>Escalate deadline</strong>
+                <small>Task is overdue. Prioritize owner/professional communication before changing the board state.</small>
+              {% elif task.due_date %}
+                <strong>Protect due date</strong>
+                <small>Due {{ task.due_date|e }} with {{ sla_time_remaining|e }} remaining.</small>
+              {% else %}
+                <strong>Add due date</strong>
+                <small>No deadline is set. Add one to make the operation measurable.</small>
+              {% endif %}
+            </div>
+            <div class="admin-operations-recommendation-card">
+              <span>Evidence</span>
+              {% if attachments %}
+                <strong>Review evidence</strong>
+                <small>{{ attachments|length }} attachment record{% if attachments|length != 1 %}s{% endif %} available for the task.</small>
+              {% elif checklist_percentage >= 75 %}
+                <strong>Request closeout proof</strong>
+                <small>Checklist is advanced but no attachment records are visible yet.</small>
+              {% else %}
+                <strong>Capture first proof</strong>
+                <small>Add photos, invoices, or inspection evidence as the task progresses.</small>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+
+        <article class="admin-operations-detail-panel">
           <p class="eyebrow">Workflow controls</p>
-          <h2 class="admin-operations-section-title">Assignment and workflow</h2>
+          <h2 class="admin-operations-section-title">Assignment control panel</h2>
+          <div class="admin-operations-control-grid u-mb-14">
+            <div class="admin-operations-control-card admin-operations-control-card--current">
+              <span>Current assignee</span>
+              <strong>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</strong>
+              <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or assigned_professional_account.service_categories|e or 'Professional account linked' }}{% else %}No dispatch owner yet{% endif %}</small>
+            </div>
+            <div class="admin-operations-control-card">
+              <span>Recommended</span>
+              {% if assignment_recommendation.professional %}
+                <strong>{{ assignment_recommendation.professional.full_name|e }}</strong>
+                <small>{{ assignment_recommendation.professional.company|e or assignment_recommendation.professional.service_categories|e or 'Approved professional' }}</small>
+              {% else %}
+                <strong>No exact match</strong>
+                <small>Use the available professionals list or manual selector.</small>
+              {% endif %}
+            </div>
+            <div class="admin-operations-control-card">
+              <span>Dispatch state</span>
+              <strong>{% if task.assigned_professional_label or task.assigned_to %}Assigned{% else %}Open{% endif %}</strong>
+              <small>{% if task.status == 'NEW' %}Assignment will move new tasks into assigned state.{% else %}Current workflow status is preserved on quick assign.{% endif %}</small>
+            </div>
+          </div>
+          {% if assignment_recommendation.professional %}
+            <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.request_id|e }}">
+              <input type="hidden" name="task_action" value="details">
+              <input type="hidden" name="status" value="{{ task.status|e }}">
+              <input type="hidden" name="assigned_professional_id" value="{{ assignment_recommendation.professional.id|e }}">
+              <input type="hidden" name="priority" value="{{ task.priority|e }}">
+              <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
+              <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
+              <button class="button button--primary" type="submit">Assign recommended professional</button>
+            </form>
+          {% endif %}
+          <p class="eyebrow">Nearby available professionals</p>
+          <div class="admin-operations-pro-grid u-mb-14">
+            {% if assignment_recommendation.available_count == 0 %}
+              <p class="admin-operations-empty">No approved or active professionals are available in the current account list.</p>
+            {% endif %}
+            {% for professional in professional_accounts %}
+              {% set professional_status = professional.status|default('')|upper %}
+              {% if professional_status in ['APPROVED', 'ACTIVE'] %}
+                <div class="admin-operations-pro-row">
+                  <div>
+                    <strong>{{ professional.full_name|e }}</strong>
+                    <div class="admin-operations-pro-row__meta">
+                      <span class="admin-operations-chip">{{ professional_status|e }}</span>
+                      {% if professional.company %}<span class="admin-operations-chip">{{ professional.company|e }}</span>{% endif %}
+                      {% if professional.city %}<span class="admin-operations-chip">{{ professional.city|e }}</span>{% endif %}
+                      {% if professional.service_categories %}<span class="admin-operations-chip">{{ professional.service_categories|e }}</span>{% endif %}
+                    </div>
+                  </div>
+                  <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+                    <input type="hidden" name="task_action" value="details">
+                    <input type="hidden" name="status" value="{{ task.status|e }}">
+                    <input type="hidden" name="assigned_professional_id" value="{{ professional.id|e }}">
+                    <input type="hidden" name="priority" value="{{ task.priority|e }}">
+                    <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
+                    <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
+                    <button class="button button--secondary" type="submit">Assign</button>
+                  </form>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
           <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="details">
             <label>
@@ -808,16 +1594,42 @@
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Owner contact</p>
-          <h2 class="admin-operations-section-title">Owner and property</h2>
+          <p class="eyebrow">Property context</p>
+          <h2 class="admin-operations-section-title">Operational property profile</h2>
           {% set owner_email = owner_account.email if owner_account else task.owner_email %}
           {% set owner_phone = owner_account.phone if owner_account else task.owner_phone %}
-          <dl class="admin-operations-dl">
-            <div><dt>Owner name</dt><dd>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</dd></div>
-            <div><dt>Email</dt><dd>{{ owner_email|e or 'Not set' }}</dd></div>
-            <div><dt>Phone</dt><dd>{{ owner_phone|e or 'Not set' }}</dd></div>
-            <div><dt>Property</dt><dd>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</dd></div>
-          </dl>
+          <div class="admin-operations-property-grid">
+            <div class="admin-operations-property-tile">
+              <span>Property</span>
+              <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</strong>
+              <small>{% if property_record and property_record.property_type %}{{ property_record.property_type|e }}{% else %}{{ task.category|e }} task{% endif %}</small>
+            </div>
+            <div class="admin-operations-property-tile">
+              <span>Location</span>
+              <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Not set{% endif %}</strong>
+              <small>Used for dispatch context.</small>
+            </div>
+            <div class="admin-operations-property-tile">
+              <span>Configuration</span>
+              <strong>{% if property_record %}{{ property_record.bedrooms|e or '0' }} bed / {{ property_record.bathrooms|e or '0' }} bath{% else %}Not linked{% endif %}</strong>
+              <small>{% if property_record and property_record.guest_capacity %}Capacity {{ property_record.guest_capacity|e }} guests{% else %}Capacity not recorded{% endif %}</small>
+            </div>
+            <div class="admin-operations-property-tile">
+              <span>Reservation</span>
+              <strong>{% if linked_reservation %}{{ linked_reservation.status.replace('_', ' ').title() }}{% else %}No linked stay{% endif %}</strong>
+              <small>{% if linked_reservation %}{{ linked_reservation.arrival_datetime|e }} - {{ linked_reservation.departure_datetime|e }}{% else %}Standalone operation{% endif %}</small>
+            </div>
+            <div class="admin-operations-property-tile">
+              <span>Owner channel</span>
+              <strong>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</strong>
+              <small>{% if owner_email %}{{ owner_email|e }}{% elif owner_phone %}{{ owner_phone|e }}{% else %}No contact visible{% endif %}</small>
+            </div>
+            <div class="admin-operations-property-tile">
+              <span>Readiness</span>
+              <strong>{% if property_record and property_record.guest_guide_ready and property_record.access_instructions_ready and property_record.emergency_contact_ready %}Ready{% elif property_record %}Partial{% else %}Unknown{% endif %}</strong>
+              <small>{% if property_record %}Guide {{ 'yes' if property_record.guest_guide_ready else 'no' }} / Access {{ 'yes' if property_record.access_instructions_ready else 'no' }} / Emergency {{ 'yes' if property_record.emergency_contact_ready else 'no' }}{% else %}No property record linked{% endif %}</small>
+            </div>
+          </div>
           <div class="admin-operations-contact-actions u-mt-14">
             {% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">Mailto</a>{% endif %}
             {% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">Tel</a>{% endif %}
@@ -853,28 +1665,6 @@
             </table>
           {% else %}
             <p class="admin-operations-empty">No linked service requests yet.</p>
-          {% endif %}
-        </article>
-
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Assignment history</p>
-          <h2 class="admin-operations-section-title">Recent assignment changes</h2>
-          {% if assignment_history %}
-            <div class="admin-operations-list">
-              {% for event in assignment_history %}
-                <div class="admin-operations-list-item">
-                  <div class="admin-operations-list-item__topline">
-                    <strong>{{ event.title|e }}</strong>
-                    <time>{{ event.created_at|e }}</time>
-                  </div>
-                  {% if event.detail %}
-                    <p>{{ event.detail|e }}</p>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="admin-operations-empty">No assignment changes yet.</p>
           {% endif %}
         </article>
 
@@ -922,18 +1712,35 @@
 
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Timeline</p>
-          <h2 class="admin-operations-section-title">Task activity</h2>
-          {% if assignment_history %}
-            <p class="admin-operations-empty u-mb-12">Assignment history is captured in the timeline below.</p>
-          {% endif %}
-          {% if timeline %}
+          <h2 class="admin-operations-section-title">Operational activity</h2>
+          {% if timeline or assignment_history %}
             <div class="admin-operations-timeline-rail">
+              {% if assignment_history %}
+                {% for event in assignment_history %}
+                  <div class="admin-operations-list-item admin-operations-timeline-item">
+                    <div class="admin-operations-timeline-item__header">
+                      <div class="admin-operations-timeline-item__title">
+                        <span class="admin-operations-timeline-item__icon">A</span>
+                        <strong>{{ event.title|e }}</strong>
+                      </div>
+                      <time>{{ event.created_at|e }}</time>
+                    </div>
+                    <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
+                      <span class="admin-operations-chip">Assignment</span>
+                      <span class="admin-operations-chip admin-operations-chip--status">{{ task.status_label|e }}</span>
+                    </div>
+                    {% if event.detail %}
+                      <p>{{ event.detail|e }}</p>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              {% endif %}
               {% for event in timeline %}
                 <div class="admin-operations-list-item admin-operations-timeline-item">
                   <div class="admin-operations-timeline-item__header">
                     <div class="admin-operations-timeline-item__title">
                       <span class="admin-operations-timeline-item__icon">
-                        {% if event.event_type == 'professional_completed' %}C{% elif event.event_type == 'professional_accepted' %}A{% elif event.event_type == 'professional_started' %}S{% elif event.event_type == 'professional_paused' %}P{% elif event.event_type == 'professional_resumed' %}R{% elif event.event_type == 'attachment_added' %}U{% elif event.event_type == 'comment_added_internal' %}N{% else %}•{% endif %}
+                        {% if event.event_type == 'professional_completed' %}C{% elif event.event_type == 'professional_accepted' %}A{% elif event.event_type == 'professional_started' %}S{% elif event.event_type == 'professional_paused' %}P{% elif event.event_type == 'professional_resumed' %}R{% elif event.event_type == 'attachment_added' %}U{% elif event.event_type == 'comment_added_internal' %}N{% elif event.event_type in ['assigned', 'professional_assigned'] %}A{% elif event.event_type == 'status_changed' %}S{% else %}&bull;{% endif %}
                       </span>
                       <strong>{{ event.title|e }}</strong>
                     </div>

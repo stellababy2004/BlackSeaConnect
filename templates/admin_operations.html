@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .admin-operations-page {
-      background: linear-gradient(180deg, #f6f4ef 0%, #fbfaf7 56%, #efebe2 100%);
+      background: #f7f9f8;
       min-height: 100vh;
       color: #1f2937;
     }
@@ -285,7 +285,7 @@
     }
     /* Operations Center 4.0 — mission-control presentation layer. */
     .admin-operations-page {
-      background: linear-gradient(180deg, #eaf3f0 0, #f7f9f8 260px, #f4f6f5 100%);
+      background: #f7f9f8;
       color: #17352d;
     }
     .admin-operations-shell { max-width: 1680px; padding: 16px 18px 40px; gap: 12px; }
@@ -299,7 +299,7 @@
       display: grid;
       grid-template-columns: minmax(270px, .65fr) minmax(680px, 1.6fr);
       padding: 18px 20px;
-      background: linear-gradient(125deg, rgba(255,255,255,.96), rgba(239,248,244,.9));
+      background: rgba(255,255,255,.96);
       align-items: center;
     }
     .admin-operations-hero h1 { margin: 3px 0 5px; font-size: clamp(1.65rem, 2.5vw, 2.5rem); }
@@ -416,6 +416,515 @@
       .admin-live-card:last-child { display: none; }
       .admin-property-strip { grid-template-columns: 1fr; }
     }
+    .admin-operations-page {
+      background: #f7f9f8;
+    }
+    .admin-operations-shell {
+      gap: 14px;
+    }
+    .admin-operations-hero,
+    .admin-operations-panel,
+    .admin-live-card,
+    .admin-property-ops,
+    .admin-operations-column,
+    .admin-operations-card,
+    .admin-operations-kpi {
+      border-radius: 8px;
+    }
+    .admin-operations-hero {
+      border-color: rgba(28, 82, 67, .14);
+      box-shadow: 0 18px 44px rgba(21, 47, 39, .08);
+    }
+    .admin-operations-hero h1 {
+      letter-spacing: 0;
+    }
+    .admin-operations-actions .button,
+    .admin-filter-actions .button,
+    .admin-operations-card__quick {
+      border-radius: 7px;
+    }
+    .admin-mission-metric,
+    .admin-property-ops__metrics div {
+      border-radius: 7px;
+    }
+    .admin-mission-metric strong,
+    .admin-operations-kpi strong {
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-operations-filters-panel {
+      top: 10px;
+      border-color: rgba(28, 82, 67, .16);
+      box-shadow: 0 12px 30px rgba(21, 47, 39, .08);
+    }
+    .admin-operations-filter input:focus,
+    .admin-operations-filter select:focus {
+      border-color: rgba(35, 117, 88, .55);
+      box-shadow: 0 0 0 3px rgba(69, 154, 116, .16);
+      outline: none;
+    }
+    .admin-operations-board-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+      padding: 2px 2px 0;
+    }
+    .admin-operations-board-title {
+      display: grid;
+      gap: 3px;
+    }
+    .admin-operations-board-title h2 {
+      margin: 0;
+      color: #16382f;
+      font-size: 1.02rem;
+      letter-spacing: 0;
+    }
+    .admin-operations-board-title p {
+      margin: 0;
+      color: #61746d;
+      font-size: .78rem;
+    }
+    .admin-operations-status-chips {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid rgba(28, 82, 67, .12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .78);
+    }
+    .admin-operations-status-chips span {
+      min-height: 30px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      color: #60736c;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .admin-operations-status-chips .is-active {
+      background: #183b31;
+      color: #fff;
+    }
+    .admin-operations-board {
+      align-items: start;
+    }
+    .admin-operations-kpi {
+      display: grid;
+      gap: 3px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease, background .16s ease;
+    }
+    .admin-operations-kpi:hover {
+      border-color: rgba(35, 117, 88, .3);
+      box-shadow: 0 10px 24px rgba(25, 55, 47, .08);
+      transform: translateY(-1px);
+    }
+    .admin-operations-kpi.is-active {
+      border-color: rgba(24, 59, 49, .42);
+      background: #183b31;
+      box-shadow: 0 12px 28px rgba(24, 59, 49, .18);
+    }
+    .admin-operations-kpi.is-active span,
+    .admin-operations-kpi.is-active strong,
+    .admin-operations-kpi.is-active small,
+    .admin-operations-kpi.is-active .admin-operations-kpi__hint {
+      color: #fff;
+    }
+    .admin-operations-kpi:focus-visible {
+      outline: 3px solid rgba(69, 154, 116, .3);
+      outline-offset: 2px;
+    }
+    .admin-operations-kpi small {
+      color: #60736c;
+      font-size: .66rem;
+      line-height: 1.25;
+    }
+    .admin-operations-kpi__hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #276c57;
+      font-size: .66rem;
+      font-weight: 800;
+    }
+    .admin-operations-filter.is-active span {
+      color: #17352d;
+    }
+    .admin-operations-filter.is-active input,
+    .admin-operations-filter.is-active select {
+      border-color: rgba(35, 117, 88, .46);
+      background: #f4faf7;
+      box-shadow: inset 3px 0 0 #55a17e;
+    }
+    .admin-operations-filter-summary {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(28, 82, 67, .12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .86);
+      box-shadow: 0 8px 22px rgba(21, 47, 39, .05);
+    }
+    .admin-operations-filter-summary strong {
+      color: #17352d;
+      font-size: .9rem;
+    }
+    .admin-operations-filter-summary span {
+      color: #60736c;
+      font-size: .74rem;
+    }
+    .admin-operations-empty-state {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 34px 20px;
+      border: 1px dashed rgba(28, 82, 67, .22);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .86);
+      text-align: center;
+    }
+    .admin-operations-empty-state__icon {
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: #edf5f1;
+      color: #276c57;
+      font-weight: 900;
+      font-size: 1.15rem;
+    }
+    .admin-operations-empty-state h2 {
+      margin: 0;
+      color: #17352d;
+      font-size: 1.05rem;
+    }
+    .admin-operations-empty-state p {
+      max-width: 520px;
+      margin: 0;
+      color: #60736c;
+      line-height: 1.5;
+      font-size: .84rem;
+    }
+    .admin-operations-board {
+      grid-template-columns: repeat(5, minmax(190px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-width: thin;
+      padding-bottom: 8px;
+    }
+    .admin-operations-kpi-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .admin-operations-column {
+      min-width: 190px;
+      min-height: 0;
+      overflow: hidden;
+      border-color: rgba(31, 67, 56, .1);
+      background: #eef4f1;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+    .admin-operations-column__header {
+      position: static;
+      background: rgba(248, 251, 249, .94);
+      backdrop-filter: blur(14px);
+      min-height: 48px;
+    }
+    .admin-operations-column__header h2 {
+      letter-spacing: .05em;
+    }
+    .admin-operations-column__body {
+      min-height: 120px;
+      padding-top: 12px;
+    }
+    .admin-operations-card {
+      position: relative;
+      border-color: rgba(24, 59, 49, .11);
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .admin-operations-card::before {
+      content: "";
+      position: absolute;
+      inset: 10px auto 10px 0;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: #7ea792;
+    }
+    .admin-operations-card:focus-visible {
+      outline: 3px solid rgba(69, 154, 116, .28);
+      outline-offset: 2px;
+    }
+    .admin-operations-card:hover {
+      border-color: rgba(35, 117, 88, .28);
+      transform: translateY(-2px);
+    }
+    .admin-operations-card__title {
+      padding-left: 2px;
+      color: #17352d;
+      font-weight: 800;
+    }
+    .admin-operations-card__signals span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #f2f6f4;
+    }
+    .admin-operations-card__empty {
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .58);
+      padding: 12px;
+      font-size: .72rem;
+    }
+    .admin-operations-badge--urgent + .admin-operations-card__overdue,
+    .admin-operations-card__overdue {
+      box-shadow: inset 0 0 0 1px rgba(155, 49, 49, .08);
+    }
+    .admin-operations-card:has(.admin-operations-badge--urgent)::before {
+      background: #c75a52;
+    }
+    .admin-operations-card:has(.admin-operations-badge--high)::before {
+      background: #d4a23e;
+    }
+    .admin-live-card {
+      border-color: rgba(28, 82, 67, .13);
+    }
+    .admin-property-ops {
+      display: grid;
+      gap: 8px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .admin-property-ops:hover {
+      border-color: rgba(35, 117, 88, .28);
+      box-shadow: 0 10px 24px rgba(25, 55, 47, .08);
+      transform: translateY(-1px);
+    }
+    .admin-property-ops:focus-visible {
+      outline: 3px solid rgba(69, 154, 116, .3);
+      outline-offset: 2px;
+    }
+    .admin-property-ops .admin-operations-card__quick {
+      margin-top: 2px;
+    }
+    .admin-property-ops__badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .admin-property-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #edf3f0;
+      color: #315f50;
+      font-size: .62rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .admin-property-badge--danger {
+      background: rgba(170, 47, 47, .12);
+      color: #9b3131;
+    }
+    .admin-property-badge--warn {
+      background: rgba(212, 162, 62, .16);
+      color: #7b5c18;
+    }
+    .admin-operations-page {
+      --ops-healthy-bg: #f1f8f3;
+      --ops-healthy-border: rgba(52, 112, 78, .22);
+      --ops-healthy-badge-bg: #dceee3;
+      --ops-healthy-badge-text: #22583b;
+      --ops-healthy-shadow: rgba(35, 91, 59, .08);
+      --ops-attention-bg: #fff8e8;
+      --ops-attention-border: rgba(190, 139, 38, .28);
+      --ops-attention-badge-bg: #f7e6b8;
+      --ops-attention-badge-text: #765418;
+      --ops-attention-shadow: rgba(151, 105, 22, .1);
+      --ops-critical-bg: #fff0f1;
+      --ops-critical-border: rgba(196, 92, 92, .34);
+      --ops-critical-badge-bg: rgba(196, 92, 92, .2);
+      --ops-critical-badge-text: #9b3131;
+      --ops-critical-shadow: rgba(196, 92, 92, .16);
+      --ops-info-bg: #fff;
+      --ops-info-border: rgba(28, 82, 67, .12);
+    }
+    .admin-property-ops,
+    .admin-operations-card,
+    .admin-operations-kpi,
+    .admin-live-card {
+      background: var(--ops-info-bg);
+      border-color: var(--ops-info-border);
+    }
+    .admin-property-ops--healthy,
+    .admin-operations-card--healthy,
+    .admin-operations-kpi--healthy {
+      background: var(--ops-healthy-bg);
+      border-color: var(--ops-healthy-border);
+      border-left-color: var(--ops-healthy-border);
+      box-shadow: 0 10px 24px var(--ops-healthy-shadow);
+    }
+    .admin-property-ops--attention,
+    .admin-operations-card--attention,
+    .admin-operations-kpi--attention {
+      background: var(--ops-attention-bg);
+      border-color: var(--ops-attention-border);
+      border-left-color: var(--ops-attention-border);
+      box-shadow: 0 10px 24px var(--ops-attention-shadow);
+    }
+    .admin-property-ops--critical,
+    .admin-operations-card--critical,
+    .admin-operations-kpi--critical {
+      background: var(--ops-critical-bg);
+      border-color: var(--ops-critical-border);
+      border-left-color: var(--ops-critical-border);
+      box-shadow: 0 12px 26px var(--ops-critical-shadow);
+    }
+    .admin-property-ops--healthy:hover,
+    .admin-operations-card--healthy:hover {
+      border-color: rgba(52, 112, 78, .36);
+      box-shadow: 0 14px 30px rgba(35, 91, 59, .12);
+    }
+    .admin-property-ops--attention:hover,
+    .admin-operations-card--attention:hover {
+      border-color: rgba(190, 139, 38, .42);
+      box-shadow: 0 14px 30px rgba(151, 105, 22, .14);
+    }
+    .admin-property-ops--critical:hover,
+    .admin-operations-card--critical:hover {
+      border-color: rgba(196, 92, 92, .48);
+      box-shadow: 0 16px 34px rgba(196, 92, 92, .2);
+    }
+    .admin-property-ops--healthy .admin-property-badge,
+    .admin-operations-card--healthy .admin-operations-badge {
+      background: var(--ops-healthy-badge-bg);
+      color: var(--ops-healthy-badge-text);
+    }
+    .admin-property-ops--attention .admin-property-badge,
+    .admin-operations-card--attention .admin-operations-badge {
+      background: var(--ops-attention-badge-bg);
+      color: var(--ops-attention-badge-text);
+    }
+    .admin-property-ops--critical .admin-property-badge,
+    .admin-operations-card--critical .admin-operations-badge,
+    .admin-property-ops--critical .admin-property-badge--danger,
+    .admin-operations-card--critical .admin-operations-card__overdue {
+      background: var(--ops-critical-badge-bg);
+      color: var(--ops-critical-badge-text);
+    }
+    .admin-property-ops--healthy .admin-operations-card__quick,
+    .admin-operations-card--healthy .admin-operations-card__quick {
+      border-top-color: rgba(52, 112, 78, .18);
+      color: var(--ops-healthy-badge-text);
+    }
+    .admin-property-ops--attention .admin-operations-card__quick,
+    .admin-operations-card--attention .admin-operations-card__quick {
+      border-top-color: rgba(190, 139, 38, .2);
+      color: var(--ops-attention-badge-text);
+    }
+    .admin-property-ops--critical .admin-operations-card__quick,
+    .admin-operations-card--critical .admin-operations-card__quick {
+      border-top-color: rgba(196, 92, 92, .2);
+      color: var(--ops-critical-badge-text);
+    }
+    .admin-operations-card--healthy::before { background: #4f936b; }
+    .admin-operations-card--attention::before { background: #c59430; }
+    .admin-operations-card--critical::before { background: #c45c5c; }
+    .admin-property-ops__metrics div {
+      background: rgba(255, 255, 255, .62);
+      border: 1px solid rgba(31, 41, 55, .06);
+    }
+    .admin-heatmap span {
+      box-shadow: inset 0 0 0 1px rgba(24, 59, 49, .08);
+    }
+    .admin-task-drawer {
+      border-radius: 0;
+    }
+    .admin-task-drawer__close:hover {
+      background: #dfeae5;
+    }
+    @media (max-width: 760px) {
+      .admin-operations-board-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .admin-operations-status-chips {
+        overflow-x: auto;
+      }
+      .admin-operations-column__header {
+        position: static;
+      }
+      .admin-operations-board {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+      .admin-operations-column {
+        min-width: 0;
+      }
+    }
+    @media (max-width: 1180px) {
+      .admin-operations-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .admin-operations-board {
+        grid-template-columns: repeat(5, minmax(220px, 1fr));
+      }
+      .admin-operations-column {
+        min-width: 220px;
+      }
+    }
+    @media (max-width: 760px) {
+      .admin-operations-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 520px) {
+      .admin-operations-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    body.admin-operations-page {
+      background-color: #f6f8fb !important;
+      background-image: none !important;
+      background-repeat: no-repeat !important;
+      background-attachment: scroll !important;
+      color: #10192e;
+      overflow-x: hidden;
+    }
+    body.admin-operations-page::before,
+    body.admin-operations-page::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 999px;
+      background: rgba(15, 35, 52, .08);
+    }
+    body.admin-operations-page::before {
+      width: 520px;
+      height: 520px;
+      left: -160px;
+      top: 260px;
+    }
+    body.admin-operations-page::after {
+      width: 420px;
+      height: 420px;
+      right: -120px;
+      top: 120px;
+    }
+    .admin-operations-page .admin-operations-shell {
+      position: relative;
+      z-index: 1;
+    }
   </style>
 </head>
 <body class="admin-operations-page">
@@ -455,11 +964,11 @@
 
     <section class="admin-operations-panel admin-operations-filters-panel">
       <form class="admin-operations-filters" method="get" action="/admin/operations">
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.search_query %}is-active{% endif %}">
           <span>Search</span>
           <input type="search" name="q" value="{{ filters.search_query|e }}" placeholder="Task title, property, owner, category">
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.property_filter %}is-active{% endif %}">
           <span>Property</span>
           <select name="property">
             <option value="">All properties</option>
@@ -468,7 +977,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.owner_filter %}is-active{% endif %}">
           <span>Owner</span>
           <select name="owner">
             <option value="">All owners</option>
@@ -477,7 +986,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.professional_filter %}is-active{% endif %}">
           <span>Professional</span>
           <select name="professional">
             <option value="">All professionals</option>
@@ -486,7 +995,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.category_filter %}is-active{% endif %}">
           <span>Category</span>
           <select name="category">
             <option value="">All categories</option>
@@ -495,7 +1004,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.priority_filter %}is-active{% endif %}">
           <span>Priority</span>
           <select name="priority">
             <option value="">All priorities</option>
@@ -504,7 +1013,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.status_filter %}is-active{% endif %}">
           <span>Status</span>
           <select name="status">
             <option value="">All statuses</option>
@@ -513,7 +1022,7 @@
             {% endfor %}
           </select>
         </label>
-        <label class="admin-operations-filter">
+        <label class="admin-operations-filter {% if filters.date_filter %}is-active{% endif %}">
           <span>Date</span>
           <input type="date" name="date" value="{{ filters.date_filter|e }}">
         </label>
@@ -525,53 +1034,133 @@
       </form>
     </section>
 
-    <section class="admin-operations-kpi-grid" aria-label="SLA metrics">
-      <article class="admin-operations-kpi">
+    {% set no_filters_active = not (filters.search_query or filters.property_filter or filters.owner_filter or filters.professional_filter or filters.category_filter or filters.priority_filter or filters.status_filter or filters.date_filter) %}
+    <section class="admin-operations-kpi-grid" aria-label="Operations quick filters">
+      <a class="admin-operations-kpi admin-operations-kpi--{% if counts.overdue_tasks > 0 %}critical{% elif counts.open_tasks > 0 %}attention{% else %}healthy{% endif %} {% if no_filters_active %}is-active{% endif %}" href="/admin/operations" aria-label="Show all open operations without a status filter">
         <span>Open Tasks</span>
         <strong>{{ counts.open_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi">
+        <small>All active board lanes</small>
+        <span class="admin-operations-kpi__hint">Filter view -&gt;</span>
+      </a>
+      <a class="admin-operations-kpi admin-operations-kpi--healthy" href="/admin/operations" title="No dedicated on-time filter exists yet; opening the unfiltered active board." aria-label="Show operations board; no dedicated on-time filter is currently supported">
         <span>On Time</span>
         <strong>{{ counts.open_tasks - counts.overdue_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi">
+        <small>No exact on-time query is available</small>
+        <span class="admin-operations-kpi__hint">Open board -&gt;</span>
+      </a>
+      <a class="admin-operations-kpi admin-operations-kpi--{% if mission.risk > 0 %}attention{% else %}healthy{% endif %} {% if filters.priority_filter == 'HIGH' %}is-active{% endif %}" href="/admin/operations?priority=HIGH" aria-label="Filter operations by high priority tasks closest to at-risk work">
         <span>At Risk</span>
         <strong>{{ mission.risk }}</strong>
-      </article>
-      <article class="admin-operations-kpi">
-        <span>Average completion</span>
-        <strong>—</strong>
-      </article>
-      <article class="admin-operations-kpi">
+        <small>High priority, not overdue</small>
+        <span class="admin-operations-kpi__hint">Priority filter -&gt;</span>
+      </a>
+      <a class="admin-operations-kpi admin-operations-kpi--{% if counts.overdue_tasks > 0 %}critical{% else %}healthy{% endif %}" href="/admin/operations" title="No dedicated overdue/SLA filter is currently supported by the board route; opening the closest existing board view instead." aria-label="Open operations board; dedicated overdue filter is not yet available">
         <span>Overdue</span>
         <strong>{{ counts.overdue_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi" style="display:none;">
+        <small>No dedicated overdue filter yet</small>
+        <span class="admin-operations-kpi__hint">Open board -&gt;</span>
+      </a>
+      <a class="admin-operations-kpi admin-operations-kpi--healthy {% if filters.status_filter == 'COMPLETED' %}is-active{% endif %}" href="/admin/operations?status=COMPLETED" aria-label="Filter operations by completed status">
         <span>Completed Tasks</span>
         <strong>{{ counts.completed_tasks }}</strong>
-      </article>
-      <article class="admin-operations-kpi" style="display:none;">
+        <small>Completed status lane</small>
+        <span class="admin-operations-kpi__hint">Status filter -&gt;</span>
+      </a>
+      <a class="admin-operations-kpi admin-operations-kpi--{% if counts.assigned_tasks > 0 %}attention{% else %}healthy{% endif %} {% if filters.status_filter == 'ASSIGNED' %}is-active{% endif %}" href="/admin/operations?status=ASSIGNED" aria-label="Filter operations by assigned status">
         <span>Assigned Tasks</span>
         <strong>{{ counts.assigned_tasks }}</strong>
-      </article>
+        <small>Assigned status lane</small>
+        <span class="admin-operations-kpi__hint">Status filter -&gt;</span>
+      </a>
+    </section>
+
+    <section class="admin-operations-board-head" aria-label="Board summary">
+      <div class="admin-operations-board-title">
+        <h2>Operations pipeline</h2>
+        <p>{{ counts.open_tasks }} open · {{ counts.overdue_tasks }} overdue · {{ counts.completed_today }} completed today</p>
+      </div>
+      <div class="admin-operations-status-chips" aria-label="Board totals">
+        <span class="is-active">{{ counts.open_tasks }} open</span>
+        <span>{{ counts.overdue_tasks }} overdue</span>
+        <span>{{ counts.completed_today }} done today</span>
+      </div>
     </section>
 
     <section class="admin-property-strip" aria-label="Property operations">
       {% for property_group in tasks|groupby('property_label') %}
         {% set property_tasks = property_group.list %}
         {% set first_task = property_tasks[0] %}
-        <article class="admin-property-ops">
+          {% set property_overdue_count = property_tasks|selectattr('overdue')|list|length %}
+          {% set property_urgent_count = property_tasks|selectattr('priority', 'equalto', 'URGENT')|list|length %}
+          {% set property_high_count = property_tasks|selectattr('priority', 'equalto', 'HIGH')|list|length %}
+          {% set property_state = namespace(open=0, assigned=0, missing=0) %}
+          {% for property_task in property_tasks %}
+            {% set property_task_status = property_task.status|upper %}
+            {% set property_task_is_open = property_task_status not in ['DONE', 'COMPLETED', 'ARCHIVED'] %}
+            {% if property_task_is_open %}
+              {% set property_state.open = property_state.open + 1 %}
+            {% endif %}
+            {% if property_task.assigned_professional_label or property_task.assigned_to %}
+              {% set property_state.assigned = property_state.assigned + 1 %}
+            {% elif property_task_is_open %}
+              {% set property_state.missing = property_state.missing + 1 %}
+            {% endif %}
+          {% endfor %}
+          {% set property_tone = 'critical' if property_overdue_count or property_urgent_count else 'attention' if property_state.open or property_state.missing or property_high_count else 'healthy' %}
+          {% set property_status_label = 'Critical' if property_tone == 'critical' else 'Attention' if property_tone == 'attention' else 'Healthy' %}
+        <a class="admin-property-ops admin-property-ops--{{ property_tone }}" href="/admin/operations?property={{ property_group.grouper|urlencode }}" aria-label="Open operations for {{ property_group.grouper|default('Unassigned property', true)|e }}">
           <h3>{{ property_group.grouper|default('Unassigned property', true)|e }}</h3>
+          <div class="admin-property-ops__badges" aria-label="Property operation state">
+            <span class="admin-property-badge">{{ property_status_label }}</span>
+            <span class="admin-property-badge">Open {{ property_state.open }}</span>
+            <span class="admin-property-badge {% if property_overdue_count %}admin-property-badge--danger{% endif %}">Overdue {{ property_overdue_count }}</span>
+            <span class="admin-property-badge {% if property_state.missing %}admin-property-badge--warn{% endif %}">Unassigned {{ property_state.missing }}</span>
+          </div>
           <div class="admin-property-ops__metrics">
-            <div><span>Open tasks</span><strong>{{ property_tasks|length }}</strong></div>
-            <div><span>Urgent</span><strong>{{ property_tasks|selectattr('priority', 'equalto', 'URGENT')|list|length }}</strong></div>
+            <div><span>Open tasks</span><strong>{{ property_state.open }}</strong></div>
+            <div><span>Urgent</span><strong>{{ property_urgent_count }}</strong></div>
             <div><span>Assigned</span><strong>{{ first_task.assigned_professional_label|default(first_task.assigned_to, true)|default('—', true)|e }}</strong></div>
           </div>
-          <a class="admin-operations-card__quick" href="/admin/operations?property={{ property_group.grouper|urlencode }}">Open Operations <span>→</span></a>
-        </article>
+          <span class="admin-operations-card__quick">Open Operations <span>→</span></span>
+        </a>
       {% else %}
-        <article class="admin-property-ops"><h3>All properties are clear</h3><p class="admin-operations-copy">No property operations need attention.</p></article>
+        <article class="admin-property-ops admin-property-ops--healthy"><h3>All properties are clear</h3><p class="admin-operations-copy">No property operations need attention.</p></article>
       {% endfor %}
+    </section>
+
+    {% set filter_summary = namespace(label='All operations') %}
+    {% if filters.status_filter == 'COMPLETED' %}
+      {% set filter_summary.label = 'Completed tasks' %}
+    {% elif filters.status_filter == 'ASSIGNED' %}
+      {% set filter_summary.label = 'Assigned tasks' %}
+    {% elif filters.status_filter %}
+      {% for option in status_options %}
+        {% if option.value == filters.status_filter %}
+          {% set filter_summary.label = option.label ~ ' tasks' %}
+        {% endif %}
+      {% endfor %}
+    {% elif filters.priority_filter == 'HIGH' %}
+      {% set filter_summary.label = 'High priority' %}
+    {% elif filters.priority_filter == 'URGENT' %}
+      {% set filter_summary.label = 'Urgent priority' %}
+    {% elif filters.priority_filter %}
+      {% set filter_summary.label = filters.priority_filter|title ~ ' priority' %}
+    {% elif filters.property_filter %}
+      {% set filter_summary.label = filters.property_filter %}
+    {% elif filters.professional_filter %}
+      {% set filter_summary.label = 'Professional: ' ~ filters.professional_filter %}
+    {% elif filters.owner_filter %}
+      {% set filter_summary.label = 'Owner: ' ~ filters.owner_filter %}
+    {% elif filters.category_filter %}
+      {% set filter_summary.label = filters.category_filter %}
+    {% elif filters.date_filter %}
+      {% set filter_summary.label = 'Date: ' ~ filters.date_filter %}
+    {% elif filters.search_query %}
+      {% set filter_summary.label = 'Search: ' ~ filters.search_query %}
+    {% endif %}
+    <section class="admin-operations-filter-summary" aria-label="Current board filter">
+      <strong>Showing: {{ filter_summary.label|e }}</strong>
+      <span>{{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %} in this view</span>
     </section>
 
     {% set board_groups = [
@@ -581,6 +1170,14 @@
       {'label': 'Waiting', 'target': 'WAITING_OPERATIONS', 'statuses': ['WAITING_OWNER', 'WAITING_OPERATIONS']},
       {'label': 'Completed', 'target': 'COMPLETED', 'statuses': ['DONE', 'COMPLETED', 'ARCHIVED']}
     ] %}
+    {% if tasks|length == 0 %}
+      <section class="admin-operations-empty-state" aria-live="polite">
+        <span class="admin-operations-empty-state__icon" aria-hidden="true">0</span>
+        <h2>No operations match the current filters</h2>
+        <p>The board is clear for this view. Adjust the filters above or reset to return to the full operations pipeline.</p>
+        <a class="button button--primary" href="/admin/operations">Clear filters</a>
+      </section>
+    {% else %}
     <div class="admin-operations-workspace">
       <section class="admin-operations-board" data-operations-board aria-label="Live operations board">
         {% for group in board_groups %}
@@ -594,7 +1191,11 @@
             <div class="admin-operations-column__body">
               {% for task in tasks %}
                 {% if task.status|upper in group.statuses %}
-                  <a class="admin-operations-card" href="/admin/operations/{{ task.request_id|e }}" data-task-card data-task-drawer-link draggable="true" data-task-id="{{ task.request_id|e }}">
+                  {% set task_status_upper = task.status|upper %}
+                  {% set task_is_open = task_status_upper not in ['DONE', 'COMPLETED', 'ARCHIVED'] %}
+                  {% set task_is_unassigned = task_is_open and not (task.assigned_professional_label or task.assigned_to) %}
+                  {% set task_tone = 'critical' if task.overdue or task.priority == 'URGENT' else 'attention' if task_is_open or task.priority == 'HIGH' or task_is_unassigned else 'healthy' %}
+                  <a class="admin-operations-card admin-operations-card--{{ task_tone }}" href="/admin/operations/{{ task.request_id|e }}" data-task-card data-task-drawer-link draggable="true" data-task-id="{{ task.request_id|e }}">
                     <div class="admin-operations-card__topline">
                       <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span>
                       <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>SLA overdue</span>
@@ -652,6 +1253,7 @@
         </section>
       </aside>
     </div>
+    {% endif %}
 
     <dialog class="admin-task-drawer" data-task-drawer>
       <div class="admin-task-drawer__head">

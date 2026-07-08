@@ -21,10 +21,21 @@
       </div>
       <div class="admin-cockpit-actions">
         <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
         <a class="button button--ghost" href="/admin/operations/{{ item.id|e }}">Open in Operations</a>
         <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
       </div>
     </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="admin-cockpit-panel">
+          {% for category, message in messages %}
+            <p class="admin-request-detail-description__copy">{{ message|e }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
 
     <article class="admin-pilot-card admin-request-detail-card">
       <div class="admin-pilot-card__topline admin-request-detail-card__topline">
@@ -34,6 +45,43 @@
 
       <h2 class="admin-request-detail-card__title">{{ item.name|e }}</h2>
       <p class="admin-request-detail-card__source"><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
+
+      <section class="admin-cockpit-panel">
+        <div class="admin-panel-header">
+          <div>
+            <p class="eyebrow">Service Request actions</p>
+            <h3>Operational actions</h3>
+          </div>
+        </div>
+        <div class="admin-cockpit-actions">
+          <form method="post" action="{{ url_for('admin_service_request_close', request_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <button class="button button--secondary" type="submit">Close request</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_service_request_archive', request_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <button class="button button--ghost" type="submit">Archive request</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_service_request_duplicate', request_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <button class="button button--ghost" type="submit">Duplicate request</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <input type="hidden" name="next" value="{{ url_for('admin_service_requests') }}">
+            <button class="button button--ghost" type="button" data-open-delete-modal="delete-request-detail">Delete request</button>
+            <dialog id="delete-request-detail" class="admin-cockpit-panel">
+              <h2>Delete request</h2>
+              <p>Are you sure you want to delete this request?</p>
+              <p>This request remains recoverable in the recycle bin for 30 days.</p>
+              <div class="admin-cockpit-actions">
+                <button class="button button--secondary" type="button" data-close-delete-modal>Cancel</button>
+                <button class="button button--primary" type="submit">Delete request</button>
+              </div>
+            </dialog>
+          </form>
+        </div>
+      </section>
 
       <dl class="admin-pilot-details admin-request-detail-details">
         <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
@@ -59,6 +107,7 @@
       </section>
 
       <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label>
           <span>Status</span>
           <select class="admin-request-detail-form__control" name="status" required>
@@ -145,6 +194,17 @@
 
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js"></script>
+  <script>
+    document.querySelectorAll('[data-open-delete-modal]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = document.getElementById(button.dataset.openDeleteModal);
+        if (modal && typeof modal.showModal === 'function') modal.showModal();
+      });
+    });
+    document.querySelectorAll('[data-close-delete-modal]').forEach((button) => {
+      button.addEventListener('click', () => button.closest('dialog')?.close());
+    });
+  </script>
 </body>
 </html>
 

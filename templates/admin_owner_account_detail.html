@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -253,14 +253,35 @@
       </div>
       <div class="admin-owner-detail-actions">
         <a class="button button--secondary" href="/admin/owner-accounts">Back to owner accounts</a>
+        <a class="button button--ghost" href="#owner-settings">Edit owner</a>
+        <form method="post" action="{{ url_for('admin_owner_account_archive', owner_id=owner_account.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+          <button class="button button--ghost" type="submit">Archive owner</button>
+        </form>
+        <a class="button button--ghost" href="{{ url_for('admin_owner_account_detail', owner_id=owner_account.id) }}">Export owner data</a>
+        <a class="button button--ghost" href="{{ url_for('admin_property_detail', property_id=properties[0].id) if properties else url_for('admin_properties') }}">Transfer properties</a>
+        {% if is_super_admin %}
+          <a class="button button--ghost" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner_account.id) }}">Delete owner permanently</a>
+        {% endif %}
         <a class="button button--ghost" href="{{ url_for('admin_operations', owner=owner_account.email) }}">Open Tasks</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
         <a class="button button--ghost" href="/admin">Back to cockpit</a>
       </div>
     </section>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="admin-owner-detail-panel">
+          {% for category, message in messages %}
+            <p class="admin-owner-detail-empty">{{ message|e }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
     <section class="admin-owner-detail-grid">
       <div class="admin-owner-detail-stack">
-        <article class="admin-owner-detail-panel">
+        <article class="admin-owner-detail-panel" id="owner-settings">
           <p class="eyebrow">Owner profile</p>
           <h2 class="admin-owner-detail-section-title">Account details</h2>
           <dl class="admin-owner-detail-dl">
@@ -349,6 +370,7 @@
           <p class="eyebrow">Owner settings</p>
           <h2 class="admin-owner-detail-section-title">Status and internal notes</h2>
           <form class="admin-owner-detail-form" method="post" action="/admin/owner-accounts/{{ owner_account.id|e }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
               <span>Status</span>
               <select name="status" required>
@@ -391,3 +413,4 @@
   </main>
 </body>
 </html>
+

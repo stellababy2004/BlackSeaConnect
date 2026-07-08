@@ -221,6 +221,72 @@
         top: auto;
       }
     }
+
+    body.reservation-import-page {
+      background-color: #f6f8fb !important;
+      background-image: none !important;
+      background-repeat: no-repeat !important;
+      background-attachment: scroll !important;
+      color: #10192e;
+      overflow-x: hidden;
+    }
+    body.reservation-import-page::before,
+    body.reservation-import-page::after {
+      content: "";
+      display: block !important;
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 999px;
+      opacity: 1;
+      filter: none !important;
+      mix-blend-mode: normal;
+      background: rgba(16, 25, 46, 0.072);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+    body.reservation-import-page::before {
+      width: 520px;
+      height: 520px;
+      left: -125px;
+      right: auto;
+      top: 170px;
+      bottom: auto;
+    }
+    body.reservation-import-page::after {
+      width: 430px;
+      height: 430px;
+      right: -110px;
+      left: auto;
+      top: 235px;
+      bottom: auto;
+    }
+    .reservation-import-page .reservation-import-shell {
+      position: relative;
+      z-index: 1;
+    }
+    .reservation-import-page :where(.reservation-import-hero, .reservation-import-panel, .reservation-import-step, .reservation-import-report__group, .reservation-import-empty) {
+      background: rgba(255, 255, 255, 0.94) !important;
+      background-image: none !important;
+      border-color: rgba(16, 25, 46, 0.1) !important;
+      box-shadow: 0 18px 44px rgba(16, 25, 46, 0.08) !important;
+      color: #10192e !important;
+      text-shadow: none !important;
+    }
+    .reservation-import-page :where(h1, h2, h3, h4, p, span, strong, small, time, dd, dt, li, label, a) {
+      color: #10192e !important;
+      -webkit-text-fill-color: #10192e !important;
+      text-shadow: none !important;
+    }
+    .reservation-import-page :where(.reservation-import-copy, .reservation-import-source-note, .reservation-import-muted, .reservation-import-report__list, .reservation-import-panel label, .reservation-import-form label) {
+      color: #5f6b7a !important;
+      -webkit-text-fill-color: #5f6b7a !important;
+    }
+    .reservation-import-page :where(input, select, textarea, .form-control, .form-select) {
+      background: #ffffff !important;
+      border-color: rgba(16, 25, 46, 0.14) !important;
+      color: #10192e !important;
+      box-shadow: 0 1px 2px rgba(16, 25, 46, 0.04) !important;
+    }
   </style>
 </head>
 <body class="reservation-import-page">
