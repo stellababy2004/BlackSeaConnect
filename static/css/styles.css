@@ -35264,3 +35264,25 @@ body.reservations-page :where(input, select, textarea, .form-control, .form-sele
   background: #0f172a !important;
   color: #ffffff !important;
 }
+
+/* Admin cockpit alert readability fix */
+body.admin-cockpit-page .admin-alert-feed,
+body.admin-cockpit-page .admin-alert-feed__grid {
+  grid-template-columns: 1fr !important;
+}
+
+body.admin-cockpit-page .admin-alert-card,
+body.admin-cockpit-page .admin-alert-row,
+body.admin-cockpit-page .admin-alert-feed__item {
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
+body.admin-cockpit-page .admin-alert-card *,
+body.admin-cockpit-page .admin-alert-row *,
+body.admin-cockpit-page .admin-alert-feed__item * {
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
