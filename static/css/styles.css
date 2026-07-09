@@ -1,4 +1,4 @@
-﻿* {
+* {
   box-sizing: border-box;
 }
 
@@ -21840,13 +21840,13 @@ body.operations-demo-page .operations-arrival-step__status {
 }
 
 /* Restore intentional dark admin cards after the public override above. */
-body.admin-cockpit-page .admin-cockpit-hero,
-body.admin-cockpit-page .admin-cockpit-panel,
-body.admin-cockpit-page .admin-kpi-card,
-body.admin-cockpit-page .admin-empty-state,
-body.admin-cockpit-page .admin-pilot-card,
+body.admin-exec-page .admin-cockpit-hero,
+body.admin-exec-page .admin-cockpit-panel,
+body.admin-exec-page .admin-kpi-card,
+body.admin-exec-page .admin-empty-state,
+body.admin-exec-page .admin-pilot-card,
 body.admin-cockpit-page .admin-pipeline-card,
-body.admin-cockpit-page .admin-activity-item,
+body.admin-exec-page .admin-activity-item,
 body.admin-cockpit-page .admin-pilot-list .admin-pilot-card,
 body.admin-pilot-detail-page .glass-card,
 body.admin-pilot-detail-page .hero-card,
@@ -21867,15 +21867,15 @@ body.admin-pilot-detail-page .timeline-card {
   color: #F8F6F2 !important;
 }
 
-body.admin-cockpit-page .admin-cockpit-hero h1,
-body.admin-cockpit-page .admin-cockpit-panel h2,
-body.admin-cockpit-page .admin-cockpit-panel h3,
-body.admin-cockpit-page .admin-kpi-card strong,
-body.admin-cockpit-page .admin-pilot-card h2,
-body.admin-cockpit-page .admin-pilot-card p,
+body.admin-exec-page .admin-cockpit-hero h1,
+body.admin-exec-page .admin-cockpit-panel h2,
+body.admin-exec-page .admin-cockpit-panel h3,
+body.admin-exec-page .admin-kpi-card strong,
+body.admin-exec-page .admin-pilot-card h2,
+body.admin-exec-page .admin-pilot-card p,
 body.admin-cockpit-page .admin-pipeline-card strong,
-body.admin-cockpit-page .admin-activity-item strong,
-body.admin-cockpit-page .admin-empty-state p,
+body.admin-exec-page .admin-activity-item strong,
+body.admin-exec-page .admin-empty-state p,
 body.admin-pilot-detail-page .glass-card h1,
 body.admin-pilot-detail-page .glass-card h2,
 body.admin-pilot-detail-page .glass-card h3,
@@ -21915,13 +21915,13 @@ body.admin-pilot-detail-page .timeline-card h4 {
   color: #F8F6F2 !important;
 }
 
-body.admin-cockpit-page .admin-cockpit-hero p,
-body.admin-cockpit-page .admin-cockpit-panel p,
-body.admin-cockpit-page .admin-empty-state p,
-body.admin-cockpit-page .admin-kpi-card span,
+body.admin-exec-page .admin-cockpit-hero p,
+body.admin-exec-page .admin-cockpit-panel p,
+body.admin-exec-page .admin-empty-state p,
+body.admin-exec-page .admin-kpi-card span,
 body.admin-cockpit-page .admin-panel-header .eyebrow,
 body.admin-cockpit-page .admin-pipeline-card span,
-body.admin-cockpit-page .admin-activity-item p,
+body.admin-exec-page .admin-activity-item p,
 body.admin-cockpit-page .admin-activity-meta time,
 body.admin-pilot-detail-page .glass-card p,
 body.admin-pilot-detail-page .glass-card li,
@@ -21962,8 +21962,8 @@ body.admin-pilot-detail-page .timeline-card dd {
   color: rgba(248, 246, 242, 0.82) !important;
 }
 
-body.admin-cockpit-page .admin-pilot-card .eyebrow,
-body.admin-cockpit-page .admin-pilot-card time,
+body.admin-exec-page .admin-pilot-card .eyebrow,
+body.admin-exec-page .admin-pilot-card time,
 body.admin-pilot-detail-page .trust-strip__chip,
 body.admin-pilot-detail-page .partner-card .trust-strip__chip,
 body.admin-pilot-detail-page .feature-card .feature-card__icon {
@@ -27552,17 +27552,17 @@ body.guest-portal-page .guest-portal-service,
 body.guest-portal-page .guest-portal-access,
 body.guest-portal-page .guest-portal-qr,
 body.guest-portal-page .guest-portal-instructions,
-body.admin-cockpit-page .admin-cockpit-hero,
-body.admin-cockpit-page .admin-cockpit-panel,
-body.admin-cockpit-page .admin-kpi-card,
-body.admin-cockpit-page .admin-empty-state,
-body.admin-cockpit-page .admin-pilot-card,
-body.admin-cockpit-page .admin-mini-card,
-body.admin-cockpit-page .admin-list-card,
-body.admin-cockpit-page .admin-activity-item,
-body.admin-cockpit-page .admin-property-card,
-body.admin-cockpit-page .admin-timeline-card,
-body.admin-cockpit-page .admin-workload-card,
+body.admin-exec-page .admin-cockpit-hero,
+body.admin-exec-page .admin-cockpit-panel,
+body.admin-exec-page .admin-kpi-card,
+body.admin-exec-page .admin-empty-state,
+body.admin-exec-page .admin-pilot-card,
+body.admin-exec-page .admin-mini-card,
+body.admin-exec-page .admin-list-card,
+body.admin-exec-page .admin-activity-item,
+body.admin-exec-page .admin-property-card,
+body.admin-exec-page .admin-timeline-card,
+body.admin-exec-page .admin-workload-card,
 body.reservations-page .reservations-hero,
 body.reservations-page .reservations-panel,
 body.reservations-page .reservations-summary-card,
@@ -35206,4 +35206,61 @@ body.reservations-page :where(input, select, textarea, .form-control, .form-sele
   border: 1px solid rgba(16, 25, 46, 0.14) !important;
   color: #10192e !important;
   box-shadow: 0 1px 2px rgba(16, 25, 46, 0.04) !important;
+}
+/* Admin service/recycle light rescue pass */
+.admin-service-card,
+.service-request-card,
+.recycle-bin-card,
+.deleted-request-card,
+.archived-request-card,
+.request-detail-card,
+.admin-recycle-card {
+  background: rgba(255,255,255,0.94) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  box-shadow: 0 18px 45px rgba(15,23,42,0.10) !important;
+}
+
+.admin-service-card *,
+.service-request-card *,
+.recycle-bin-card *,
+.deleted-request-card *,
+.archived-request-card *,
+.request-detail-card *,
+.admin-recycle-card * {
+  color: #0f172a !important;
+}
+
+.admin-service-card .muted,
+.service-request-card .muted,
+.recycle-bin-card .muted,
+.deleted-request-card .muted,
+.archived-request-card .muted {
+  color: #475569 !important;
+}
+
+.admin-service-card .button,
+.service-request-card .button,
+.recycle-bin-card .button,
+.deleted-request-card .button,
+.archived-request-card .button,
+.request-detail-card .button {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,0.14) !important;
+}
+
+.admin-service-card .button--danger,
+.service-request-card .button--danger,
+.recycle-bin-card .button--danger {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border-color: #fecaca !important;
+}
+
+.admin-service-card .button--primary,
+.service-request-card .button--primary,
+.recycle-bin-card .button--primary {
+  background: #0f172a !important;
+  color: #ffffff !important;
 }

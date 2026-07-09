@@ -10,6 +10,429 @@
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title>BlackSea Connect | Service Request Detail</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-request-actions-panel {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+      align-items: stretch;
+      margin: 18px 0 22px;
+    }
+
+    .admin-request-actions-card {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid rgba(20, 35, 52, 0.1);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(20, 35, 52, 0.06);
+      color: #142334;
+    }
+
+    .admin-request-actions-card__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .admin-request-actions-card__header h3,
+    .admin-request-delete-dialog h2 {
+      margin: 0;
+      color: #142334;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-request-actions-card__header p,
+    .admin-request-delete-dialog p {
+      margin: 4px 0 0;
+      color: #5d6b7a;
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .admin-request-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .admin-request-actions-row form,
+    .admin-request-danger-form {
+      display: inline-flex !important;
+      align-items: flex-start;
+      width: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .admin-request-action-button {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto !important;
+      min-height: 38px !important;
+      padding: 8px 13px !important;
+      border-radius: 999px !important;
+      border: 1px solid rgba(20, 35, 52, 0.14) !important;
+      background-color: rgba(255, 255, 255, 0.72) !important;
+      background-image: none !important;
+      color: #142334 !important;
+      box-shadow: none !important;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 750;
+      line-height: 1.1;
+      text-decoration: none;
+    }
+
+    .admin-request-action-button:hover,
+    .admin-request-action-button:focus-visible {
+      border-color: rgba(20, 35, 52, 0.24) !important;
+      background-color: #f6f8fb !important;
+      background-image: none !important;
+      transform: translateY(-1px);
+    }
+
+    .admin-request-actions-card--danger {
+      border-color: rgba(217, 45, 32, 0.34);
+      box-shadow: 0 12px 28px rgba(196, 92, 92, 0.07);
+    }
+
+    .admin-request-actions-card--danger h3 {
+      color: #981b12;
+    }
+
+    .admin-request-delete-button {
+      min-width: 150px;
+      color: #b42318 !important;
+      border-color: #d92d20 !important;
+      background-color: transparent !important;
+      background-image: none !important;
+    }
+
+    .admin-request-delete-button:hover,
+    .admin-request-delete-button:focus-visible,
+    .admin-request-delete-confirm:hover,
+    .admin-request-delete-confirm:focus-visible {
+      color: #fff !important;
+      border-color: #b83232 !important;
+      background-color: #b83232 !important;
+      background-image: none !important;
+    }
+
+    body.admin-cockpit-page .admin-request-actions-panel .admin-request-delete-button,
+    body.admin-cockpit-page .admin-request-delete-dialog .admin-request-delete-confirm {
+      color: #b42318 !important;
+      -webkit-text-fill-color: #b42318 !important;
+      border: 1.5px solid #d92d20 !important;
+      background: transparent !important;
+      background-image: none !important;
+    }
+
+    body.admin-cockpit-page .admin-request-actions-panel .admin-request-delete-button:hover,
+    body.admin-cockpit-page .admin-request-actions-panel .admin-request-delete-button:focus-visible,
+    body.admin-cockpit-page .admin-request-delete-dialog .admin-request-delete-confirm:hover,
+    body.admin-cockpit-page .admin-request-delete-dialog .admin-request-delete-confirm:focus-visible {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+      border-color: #b42318 !important;
+      background: #b42318 !important;
+      background-image: none !important;
+    }
+
+    .admin-request-delete-dialog {
+      width: min(560px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid rgba(20, 35, 52, 0.12);
+      border-radius: 18px;
+      background-color: #fff !important;
+      background-image: none !important;
+      box-shadow: 0 28px 80px rgba(20, 35, 52, 0.24);
+      color: #142334;
+    }
+
+    .admin-request-delete-dialog::backdrop {
+      background: rgba(12, 22, 34, 0.52);
+      backdrop-filter: blur(4px);
+    }
+
+    .admin-request-delete-dialog__body {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+    }
+
+    .admin-request-delete-dialog__meta {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 0;
+    }
+
+    .admin-request-delete-dialog__meta div {
+      padding: 10px 12px;
+      border: 1px solid rgba(20, 35, 52, 0.09);
+      border-radius: 12px;
+      background: #f7f9fb;
+    }
+
+    .admin-request-delete-dialog__meta dt {
+      color: #6d7a89;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .admin-request-delete-dialog__meta dd {
+      margin: 4px 0 0;
+      color: #142334;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .admin-request-delete-dialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .admin-request-delete-confirm {
+      color: #b83232 !important;
+      border-color: rgba(184, 50, 50, 0.7) !important;
+      background-color: transparent !important;
+      background-image: none !important;
+    }
+
+    body.admin-pilot-detail-page {
+      color: #142334;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-card {
+      background: rgba(255, 255, 255, 0.96) !important;
+      background-image: none !important;
+      border: 1px solid rgba(20, 35, 52, 0.12) !important;
+      box-shadow: 0 22px 60px rgba(20, 35, 52, 0.12) !important;
+      color: #142334 !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-card :where(h2, h3, p, span, strong, time, dd, dt, label) {
+      color: #142334 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-card :where(.eyebrow, dt, time) {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-card__title {
+      color: #0f1f35 !important;
+      -webkit-text-fill-color: #0f1f35 !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-card__source,
+    body.admin-pilot-detail-page .admin-request-detail-description__copy,
+    body.admin-pilot-detail-page .admin-request-detail-timeline__item p {
+      color: #334155 !important;
+      -webkit-text-fill-color: #334155 !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-details {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 22px 0;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-details > div,
+    body.admin-pilot-detail-page .admin-request-detail-description,
+    body.admin-pilot-detail-page .admin-request-detail-matching,
+    body.admin-pilot-detail-page .admin-request-detail-timeline,
+    body.admin-pilot-detail-page .admin-request-detail-form {
+      background: #fff !important;
+      background-image: none !important;
+      border: 1px solid rgba(20, 35, 52, 0.1) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 12px 30px rgba(20, 35, 52, 0.07) !important;
+      color: #142334 !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-details > div {
+      padding: 14px 16px !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-details dt {
+      margin: 0 0 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-details dd {
+      margin: 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-form {
+      width: min(100%, 980px) !important;
+      margin: 22px auto !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-form label {
+      background: #f8fafc !important;
+      background-image: none !important;
+      border: 1px solid rgba(20, 35, 52, 0.1) !important;
+      border-radius: 14px !important;
+      padding: 14px !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-form label > span {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-form__control {
+      background: #fff !important;
+      background-image: none !important;
+      border: 1px solid rgba(20, 35, 52, 0.16) !important;
+      color: #142334 !important;
+      -webkit-text-fill-color: #142334 !important;
+      box-shadow: none !important;
+    }
+
+    body.admin-pilot-detail-page .admin-request-detail-form__control::placeholder {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+    }
+
+    body.admin-pilot-detail-page .admin-panel-header h3,
+    body.admin-pilot-detail-page .admin-empty-state h3,
+    body.admin-pilot-detail-page .admin-timeline-item strong {
+      color: #0f1f35 !important;
+      -webkit-text-fill-color: #0f1f35 !important;
+    }
+
+    body.admin-pilot-detail-page .partner-card,
+    body.admin-pilot-detail-page .admin-empty-state,
+    body.admin-pilot-detail-page .admin-timeline-item {
+      background: #f8fafc !important;
+      background-image: none !important;
+      border-color: rgba(20, 35, 52, 0.1) !important;
+      color: #142334 !important;
+    }
+
+    body.admin-pilot-detail-page .partner-card :where(strong, p, span),
+    body.admin-pilot-detail-page .admin-empty-state :where(h3, p),
+    body.admin-pilot-detail-page .admin-timeline-item :where(strong, p, span, time) {
+      color: #142334 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    @media (max-width: 640px) {
+      .admin-request-actions-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-request-actions-card__header,
+      .admin-request-delete-dialog__actions {
+        display: grid;
+      }
+
+      .admin-request-actions-row,
+      .admin-request-actions-row form,
+      .admin-request-action-button,
+      .admin-request-danger-form,
+      .admin-request-delete-dialog__actions .button {
+        width: 100%;
+      }
+
+      .admin-request-delete-dialog__meta {
+        grid-template-columns: 1fr;
+      }
+
+      body.admin-pilot-detail-page .admin-request-detail-details {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Admin service/recycle light theme override */
+  body.admin-cockpit-page,
+  body.admin-pilot-detail-page {
+    background: #f4f7fb !important;
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-cockpit-shell,
+  body.admin-pilot-detail-page .admin-cockpit-shell {
+    background: rgba(255,255,255,.72) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card,
+  body.admin-cockpit-page .admin-cockpit-panel,
+  body.admin-cockpit-page .admin-recycle-card,
+  body.admin-pilot-detail-page .admin-pilot-card,
+  body.admin-pilot-detail-page .admin-cockpit-panel,
+  body.admin-pilot-detail-page .admin-request-actions-card {
+    background: rgba(255,255,255,.96) !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.10) !important;
+    box-shadow: 0 18px 45px rgba(15,23,42,.12) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card *,
+  body.admin-cockpit-page .admin-cockpit-panel *,
+  body.admin-cockpit-page .admin-recycle-card *,
+  body.admin-pilot-detail-page .admin-pilot-card *,
+  body.admin-pilot-detail-page .admin-cockpit-panel *,
+  body.admin-pilot-detail-page .admin-request-actions-card * {
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button,
+  body.admin-cockpit-page .admin-request-list-button,
+  body.admin-pilot-detail-page .admin-request-action-button {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button--danger,
+  body.admin-cockpit-page .admin-request-list-button--danger,
+  body.admin-pilot-detail-page .admin-request-delete-button {
+    background: transparent !important;
+    color: #b42318 !important;
+    border: 1px solid rgba(180,35,24,.45) !important;
+  }
+
+  body.admin-cockpit-page dialog,
+  body.admin-pilot-detail-page dialog {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+    box-shadow: 0 24px 80px rgba(15,23,42,.28) !important;
+  }
+
+  body.admin-cockpit-page dialog::backdrop,
+  body.admin-pilot-detail-page dialog::backdrop {
+    background: rgba(15,23,42,.38) !important;
+  }
+</style>
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   <main class="admin-cockpit-shell">
@@ -46,37 +469,72 @@
       <h2 class="admin-request-detail-card__title">{{ item.name|e }}</h2>
       <p class="admin-request-detail-card__source"><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
 
-      <section class="admin-cockpit-panel">
-        <div class="admin-panel-header">
-          <div>
-            <p class="eyebrow">Service Request actions</p>
-            <h3>Operational actions</h3>
+      <section class="admin-request-actions-panel" aria-label="Service request actions">
+        <div class="admin-request-actions-card">
+          <div class="admin-request-actions-card__header">
+            <div>
+              <p class="eyebrow">Request actions</p>
+              <h3>Operational controls</h3>
+              <p>Close, archive, or duplicate this request without changing assignment details.</p>
+            </div>
+          </div>
+          <div class="admin-request-actions-row">
+            <form method="post" action="{{ url_for('admin_service_request_close', request_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+              <button class="admin-request-action-button" type="submit">Close request</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_service_request_archive', request_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+              <button class="admin-request-action-button" type="submit">Archive request</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_service_request_duplicate', request_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+              <button class="admin-request-action-button" type="submit">Duplicate request</button>
+            </form>
           </div>
         </div>
-        <div class="admin-cockpit-actions">
-          <form method="post" action="{{ url_for('admin_service_request_close', request_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-            <button class="button button--secondary" type="submit">Close request</button>
-          </form>
-          <form method="post" action="{{ url_for('admin_service_request_archive', request_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-            <button class="button button--ghost" type="submit">Archive request</button>
-          </form>
-          <form method="post" action="{{ url_for('admin_service_request_duplicate', request_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-            <button class="button button--ghost" type="submit">Duplicate request</button>
-          </form>
-          <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
+
+        <div class="admin-request-actions-card admin-request-actions-card--danger">
+          <div class="admin-request-actions-card__header">
+            <div>
+              <p class="eyebrow">Danger zone</p>
+              <h3>Delete request</h3>
+              <p>Deleting moves this request to the recycle bin, where it remains recoverable for 30 days.</p>
+            </div>
+          </div>
+          <form class="admin-request-danger-form" method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
             <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <input type="hidden" name="next" value="{{ url_for('admin_service_requests') }}">
-            <button class="button button--ghost" type="button" data-open-delete-modal="delete-request-detail">Delete request</button>
-            <dialog id="delete-request-detail" class="admin-cockpit-panel">
-              <h2>Delete request</h2>
-              <p>Are you sure you want to delete this request?</p>
-              <p>This request remains recoverable in the recycle bin for 30 days.</p>
-              <div class="admin-cockpit-actions">
-                <button class="button button--secondary" type="button" data-close-delete-modal>Cancel</button>
-                <button class="button button--primary" type="submit">Delete request</button>
+            <button class="admin-request-action-button admin-request-delete-button" type="button" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;" data-open-delete-modal="delete-request-detail">Delete request</button>
+            <dialog id="delete-request-detail" class="admin-request-delete-dialog">
+              <div class="admin-request-delete-dialog__body">
+                <div>
+                  <p class="eyebrow">Confirm deletion</p>
+                  <h2>Delete this request?</h2>
+                  <p>This request will be removed from active workflows and kept in the recycle bin for 30 days.</p>
+                </div>
+                <dl class="admin-request-delete-dialog__meta">
+                  <div>
+                    <dt>Property</dt>
+                    <dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd>
+                  </div>
+                  <div>
+                    <dt>Guest</dt>
+                    <dd>{{ item.name|e }}</dd>
+                  </div>
+                  <div>
+                    <dt>Request ID</dt>
+                    <dd>{{ item.id|e }}</dd>
+                  </div>
+                  <div>
+                    <dt>Creation date</dt>
+                    <dd>{{ item.created_at|e }}</dd>
+                  </div>
+                </dl>
+                <div class="admin-request-delete-dialog__actions">
+                  <button class="admin-request-action-button" type="button" data-close-delete-modal>Cancel</button>
+                  <button class="admin-request-action-button admin-request-delete-confirm" type="submit" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;">Delete request</button>
+                </div>
               </div>
             </dialog>
           </form>

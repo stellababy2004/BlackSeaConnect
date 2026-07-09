@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit · BlackSea Connect') }}</title>
+  <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit Ã‚Â· BlackSea Connect') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     body.admin-cockpit-page {
@@ -2132,7 +2132,7 @@
       gap: 18px;
     }
     .admin-exec-kpis > .admin-kpi-grid {
-      display: none;
+      display: grid;
     }
     .admin-command-center__grid {
       display: grid;
@@ -2236,6 +2236,123 @@
       letter-spacing: .08em;
       text-transform: uppercase;
     }
+    .admin-dispatch-kpi-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .admin-dispatch-kpi {
+      display: grid;
+      gap: 6px;
+      min-height: 88px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(20, 35, 52, .12);
+      background: #fff;
+      color: var(--ops-status-text);
+      text-decoration: none;
+    }
+    .admin-dispatch-kpi span {
+      color: var(--ops-status-muted);
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    .admin-dispatch-kpi strong {
+      font-size: 1.7rem;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-recommendation-dispatch {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-dispatch-field-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .admin-dispatch-field {
+      padding: 9px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .68);
+      border: 1px solid rgba(20, 35, 52, .1);
+    }
+    .admin-dispatch-field strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ops-status-muted) !important;
+      font-size: .68rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .admin-dispatch-field--wide {
+      grid-column: 1 / -1;
+    }
+    .admin-timeline-event--compact {
+      display: grid;
+      grid-template-columns: 72px 120px minmax(150px, 1fr) minmax(120px, .8fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px 10px !important;
+    }
+    .admin-timeline-event--compact .admin-timeline-event__meta,
+    .admin-timeline-event--compact .admin-meta-line {
+      font-size: .78rem;
+      line-height: 1.25;
+    }
+    .admin-timeline-time {
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-source-link {
+      color: var(--ops-status-text);
+      font-size: .78rem;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .admin-source-link:hover {
+      text-decoration: underline;
+    }
+    .admin-risk-card--compact {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-risk-card--compact .admin-risk-factors {
+      margin-top: 0;
+    }
+    .admin-risk-context {
+      justify-self: start;
+    }
+    @media (max-width: 1180px) {
+      .admin-dispatch-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .admin-timeline-event--compact {
+        grid-template-columns: 64px 110px minmax(0, 1fr);
+      }
+      .admin-timeline-event--compact .admin-meta-line:nth-of-type(2),
+      .admin-timeline-event--compact .admin-source-link {
+        grid-column: 3;
+      }
+    }
+    @media (max-width: 720px) {
+      .admin-dispatch-kpi-grid,
+      .admin-dispatch-field-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-timeline-event--compact {
+        grid-template-columns: 58px minmax(0, 1fr);
+      }
+      .admin-timeline-event--compact .admin-badge,
+      .admin-timeline-event--compact .admin-meta-line,
+      .admin-timeline-event--compact .admin-source-link {
+        grid-column: 2;
+      }
+    }
     .admin-workload-stat-grid {
       display: grid;
       gap: 8px;
@@ -2266,17 +2383,697 @@
         grid-template-columns: 1fr;
       }
     }
+    body.admin-cockpit-page {
+      --cockpit-ink: #10192e;
+      --cockpit-muted: #667085;
+      --cockpit-line: #e7ebf2;
+      --cockpit-panel: #ffffff;
+      --cockpit-page: #f7f9fc;
+      --cockpit-shadow: 0 16px 40px rgba(16, 25, 46, .08);
+      --cockpit-red: #dc342f;
+      --cockpit-red-bg: #fff1f1;
+      --cockpit-red-border: #f4c6c4;
+      --cockpit-amber: #f18b00;
+      --cockpit-amber-bg: #fff8eb;
+      --cockpit-amber-border: #f3d49a;
+      --cockpit-green: #21b86b;
+      --cockpit-green-bg: #effaf4;
+      --cockpit-green-border: #bce8cf;
+      --cockpit-blue: #3468df;
+      --cockpit-blue-bg: #f2f6ff;
+      --cockpit-blue-border: #cddcff;
+      background: var(--cockpit-page) !important;
+      color: var(--cockpit-ink) !important;
+      font-family: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+    body.admin-cockpit-page::before,
+    body.admin-cockpit-page::after {
+      display: none !important;
+    }
+    .admin-cockpit-page .admin-cockpit-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, .95fr);
+      gap: 12px;
+      width: min(1780px, calc(100% - 28px));
+      padding: 22px 0 34px;
+    }
+    .admin-cockpit-page .admin-cockpit-hero,
+    .admin-cockpit-page .admin-dashboard-section {
+      background: var(--cockpit-panel) !important;
+      border: 1px solid var(--cockpit-line) !important;
+      border-radius: 20px !important;
+      box-shadow: var(--cockpit-shadow) !important;
+      color: var(--cockpit-ink) !important;
+      backdrop-filter: none !important;
+      margin: 0 !important;
+    }
+    .admin-cockpit-page .admin-cockpit-hero {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(560px, 1.2fr);
+      gap: 44px;
+      align-items: start;
+      padding: 28px 36px !important;
+    }
+    .admin-cockpit-page .admin-kicker,
+    .admin-cockpit-page .admin-pill,
+    .admin-cockpit-page .admin-badge,
+    .admin-cockpit-page .admin-section-head h2,
+    .admin-cockpit-page .admin-dispatch-kpi span,
+    .admin-cockpit-page .admin-recommendation-card__meta,
+    .admin-cockpit-page .admin-risk-card__meta,
+    .admin-cockpit-page .admin-meta-line,
+    .admin-cockpit-page .admin-submeta {
+      color: var(--cockpit-muted) !important;
+      -webkit-text-fill-color: currentColor !important;
+      text-shadow: none !important;
+    }
+    .admin-cockpit-page .admin-kicker,
+    .admin-cockpit-page .admin-section-head h2,
+    .admin-cockpit-page .admin-hero-summary .admin-pill {
+      color: var(--cockpit-ink) !important;
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .admin-cockpit-page .admin-cockpit-hero h1 {
+      color: var(--cockpit-ink) !important;
+      font-size: clamp(2.1rem, 3.5vw, 4rem);
+      line-height: .96;
+      letter-spacing: -.04em;
+    }
+    .admin-cockpit-page .admin-hero-copy {
+      max-width: 66ch;
+      color: #344256 !important;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+    .admin-cockpit-page .admin-hero-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .admin-cockpit-page .admin-status-chip,
+    .admin-cockpit-page .admin-clock-chip,
+    .admin-cockpit-page .admin-health-chip {
+      min-height: 38px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #fff !important;
+      border: 1px solid var(--cockpit-line) !important;
+      color: var(--cockpit-ink) !important;
+      box-shadow: 0 8px 22px rgba(16, 25, 46, .05);
+    }
+    .admin-cockpit-page .admin-health-chip[data-tone="danger"] {
+      color: var(--cockpit-amber) !important;
+      background: var(--cockpit-amber-bg) !important;
+      border-color: var(--cockpit-amber-border) !important;
+    }
+    .admin-cockpit-page .admin-health-chip[data-tone="warning"] {
+      color: var(--cockpit-amber) !important;
+      background: var(--cockpit-amber-bg) !important;
+      border-color: var(--cockpit-amber-border) !important;
+    }
+    .admin-cockpit-page .admin-health-chip[data-tone="success"] {
+      color: #15834d !important;
+      background: var(--cockpit-green-bg) !important;
+      border-color: var(--cockpit-green-border) !important;
+    }
+    .admin-cockpit-page .admin-hero-side {
+      gap: 10px;
+    }
+    .admin-cockpit-page .admin-hero-summary {
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .admin-cockpit-page .admin-hero-summary strong,
+    .admin-cockpit-page .admin-hero-summary .admin-submeta {
+      display: none;
+    }
+    .admin-cockpit-page .admin-hero-stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-cockpit-page .admin-hero-stat,
+    .admin-cockpit-page .admin-dispatch-kpi,
+    .admin-cockpit-page .admin-recommendation-card,
+    .admin-cockpit-page .admin-alert-card,
+    .admin-cockpit-page .admin-risk-card,
+    .admin-cockpit-page .admin-timeline-event,
+    .admin-cockpit-page .admin-empty-state {
+      background: #fff !important;
+      border: 1px solid var(--cockpit-line) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 10px 26px rgba(16, 25, 46, .06) !important;
+      color: var(--cockpit-ink) !important;
+      text-shadow: none !important;
+    }
+    .admin-cockpit-page .admin-hero-stat {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 12px;
+      align-items: start;
+      min-height: 92px;
+      padding: 16px;
+    }
+    .admin-cockpit-page .admin-hero-stat > span:not(.admin-kpi-symbol) {
+      color: var(--cockpit-muted) !important;
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+    .admin-cockpit-page .admin-hero-stat strong {
+      grid-column: 1 / -1;
+      color: var(--cockpit-ink) !important;
+      font-size: 1.45rem;
+      line-height: 1;
+    }
+    .admin-cockpit-page .admin-kpi-symbol {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .64rem;
+      font-weight: 900;
+      letter-spacing: .02em;
+      background: var(--cockpit-blue-bg);
+      color: var(--cockpit-blue) !important;
+      border: 1px solid var(--cockpit-blue-border);
+    }
+    .admin-cockpit-page [data-tone="success"] .admin-kpi-symbol {
+      background: var(--cockpit-green-bg);
+      color: var(--cockpit-green) !important;
+      border-color: var(--cockpit-green-border);
+    }
+    .admin-cockpit-page [data-tone="warning"] .admin-kpi-symbol {
+      background: var(--cockpit-amber-bg);
+      color: var(--cockpit-amber) !important;
+      border-color: var(--cockpit-amber-border);
+    }
+    .admin-cockpit-page [data-tone="danger"] .admin-kpi-symbol {
+      background: var(--cockpit-red-bg);
+      color: var(--cockpit-red) !important;
+      border-color: var(--cockpit-red-border);
+    }
+    .admin-cockpit-page .admin-cockpit-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-cockpit-page .button,
+    .admin-cockpit-page .admin-source-link,
+    .admin-cockpit-page .admin-section-link {
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 900;
+      text-decoration: none;
+    }
+    .admin-cockpit-page .admin-cockpit-actions .button,
+    .admin-cockpit-page .admin-risk-context {
+      min-height: 44px;
+      background: #fff !important;
+      color: var(--cockpit-ink) !important;
+      border: 1px solid var(--cockpit-line) !important;
+      box-shadow: 0 8px 20px rgba(16, 25, 46, .05);
+    }
+    .admin-cockpit-page .admin-dashboard-section {
+      padding: 16px !important;
+    }
+    .admin-cockpit-page .admin-section-head {
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .admin-cockpit-page .admin-section-link {
+      color: #263654 !important;
+      white-space: nowrap;
+    }
+    .admin-cockpit-page .admin-exec-kpis {
+      grid-column: 1;
+    }
+    .admin-cockpit-page .admin-exec-alerts {
+      grid-column: 2;
+      background: #fff !important;
+      border-color: var(--cockpit-line) !important;
+    }
+    .admin-cockpit-page .admin-snapshot-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .admin-cockpit-page .admin-snapshot-kpi {
+      min-height: 142px;
+      align-content: start;
+      padding: 16px;
+    }
+    .admin-cockpit-page .admin-snapshot-kpi .admin-kpi-symbol {
+      margin-bottom: 12px;
+    }
+    .admin-cockpit-page .admin-snapshot-kpi span:not(.admin-kpi-symbol) {
+      min-height: 34px;
+      color: #263654 !important;
+      font-size: .76rem;
+      line-height: 1.28;
+    }
+    .admin-cockpit-page .admin-snapshot-kpi strong {
+      color: var(--cockpit-ink) !important;
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+    .admin-cockpit-page .admin-snapshot-kpi small {
+      color: var(--cockpit-muted) !important;
+      font-weight: 700;
+    }
+    .admin-cockpit-page .admin-dispatch-kpi[data-tone="danger"],
+    .admin-cockpit-page .admin-recommendation-card[data-tone="danger"],
+    .admin-cockpit-page .admin-alert-card[data-severity="critical"] {
+      background: var(--cockpit-red-bg) !important;
+      border-color: var(--cockpit-red-border) !important;
+    }
+    .admin-cockpit-page .admin-dispatch-kpi[data-tone="warning"] {
+      background: var(--cockpit-amber-bg) !important;
+      border-color: var(--cockpit-amber-border) !important;
+    }
+    .admin-cockpit-page .admin-dispatch-kpi[data-tone="success"] {
+      background: var(--cockpit-green-bg) !important;
+      border-color: var(--cockpit-green-border) !important;
+    }
+    .admin-cockpit-page .admin-dispatch-kpi[data-tone="info"] {
+      background: var(--cockpit-blue-bg) !important;
+      border-color: var(--cockpit-blue-border) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      background: transparent !important;
+      border: 0 !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__item {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) auto;
+      gap: 6px 16px;
+      align-items: center;
+      min-height: 92px;
+      padding: 16px 18px !important;
+      background: #fff !important;
+      border: 1px solid var(--cockpit-line) !important;
+      border-radius: 14px !important;
+      box-shadow: 0 8px 18px rgba(16, 25, 46, .04) !important;
+      color: var(--cockpit-ink) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__item[data-severity="critical"] {
+      background: #fff8f8 !important;
+      border-color: rgba(220, 52, 47, .18) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: var(--cockpit-amber);
+      box-shadow: 0 0 0 5px rgba(184, 111, 0, .1);
+      justify-self: center;
+      grid-row: 1 / span 4;
+    }
+    .admin-cockpit-page .admin-alert-feed__item[data-severity="critical"] .admin-alert-feed__icon {
+      background: var(--cockpit-red);
+      box-shadow: 0 0 0 5px rgba(220, 52, 47, .1);
+    }
+    .admin-cockpit-page .admin-alert-feed__title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+      grid-column: 2;
+    }
+    .admin-cockpit-page .admin-alert-feed__title strong {
+      color: var(--cockpit-ink) !important;
+      font-size: .9rem;
+      line-height: 1.3;
+    }
+    .admin-cockpit-page .admin-alert-card.admin-alert-feed__item .admin-alert-feed__title strong {
+      color: var(--cockpit-ink) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__property,
+    .admin-cockpit-page .admin-alert-feed__context,
+    .admin-cockpit-page .admin-alert-feed__time {
+      color: var(--cockpit-muted) !important;
+      font-size: .82rem;
+      line-height: 1.35;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .admin-cockpit-page .admin-alert-feed__property {
+      color: var(--cockpit-ink) !important;
+      font-weight: 800;
+      grid-column: 2;
+    }
+    .admin-cockpit-page .admin-alert-card.admin-alert-feed__item .admin-alert-feed__property {
+      color: var(--cockpit-ink) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__context {
+      grid-column: 2;
+    }
+    .admin-cockpit-page .admin-alert-card.admin-alert-feed__item .admin-alert-feed__context,
+    .admin-cockpit-page .admin-alert-card.admin-alert-feed__item .admin-alert-feed__time {
+      color: var(--cockpit-muted) !important;
+    }
+    .admin-cockpit-page .admin-alert-feed__time {
+      grid-column: 2;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .admin-cockpit-page .admin-alert-feed__item .button {
+      grid-column: 3;
+      grid-row: 1 / span 4;
+      align-self: center;
+      justify-self: end;
+      min-height: 34px;
+      padding: 7px 12px;
+      background: transparent !important;
+      border: 1px solid rgba(16, 25, 46, .14) !important;
+      color: var(--cockpit-ink) !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+    }
+    .admin-cockpit-page .admin-badge {
+      min-height: 24px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: .64rem;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .admin-cockpit-page .admin-badge--danger {
+      background: #ffe1df !important;
+      border-color: var(--cockpit-red-border) !important;
+      color: var(--cockpit-red) !important;
+    }
+    .admin-cockpit-page .admin-badge--warning {
+      background: #fff0d6 !important;
+      border-color: var(--cockpit-amber-border) !important;
+      color: #b76000 !important;
+    }
+    .admin-cockpit-page .admin-badge--success {
+      background: #dff7ea !important;
+      border-color: var(--cockpit-green-border) !important;
+      color: #13804a !important;
+    }
+    .admin-cockpit-page .admin-badge--info,
+    .admin-cockpit-page .admin-badge--neutral,
+    .admin-cockpit-page .admin-badge--arrival,
+    .admin-cockpit-page .admin-badge--departure,
+    .admin-cockpit-page .admin-badge--primary {
+      background: #eaf0ff !important;
+      border-color: var(--cockpit-blue-border) !important;
+      color: var(--cockpit-blue) !important;
+    }
+    .admin-cockpit-page .admin-compact-disclosure {
+      padding: 0 !important;
+      overflow: hidden;
+    }
+    .admin-cockpit-page .admin-compact-disclosure > summary {
+      padding: 16px 16px 10px;
+      background: transparent !important;
+      border: 0 !important;
+      list-style: none;
+    }
+    .admin-cockpit-page .admin-compact-disclosure > summary::after {
+      color: var(--cockpit-muted) !important;
+    }
+    .admin-cockpit-page .admin-compact-content {
+      padding: 0 16px 16px;
+    }
+    .admin-cockpit-page .admin-recommendation-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .admin-cockpit-page .admin-action-queue {
+      display: grid;
+      gap: 12px;
+    }
+    .admin-cockpit-page .admin-action-queue__row {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.1fr) minmax(190px, .9fr) auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 112px;
+      padding: 16px 18px !important;
+      background: #fff !important;
+      border: 1px solid var(--cockpit-line) !important;
+      border-radius: 14px !important;
+      box-shadow: 0 8px 18px rgba(16, 25, 46, .04) !important;
+      color: var(--cockpit-ink) !important;
+    }
+    .admin-cockpit-page .admin-action-queue__row[data-priority="danger"] {
+      background: #fff8f8 !important;
+      border-color: rgba(220, 52, 47, .18) !important;
+    }
+    .admin-cockpit-page .admin-action-queue__row[data-priority="warning"] {
+      background: #fffdf8 !important;
+      border-color: rgba(241, 139, 0, .18) !important;
+    }
+    .admin-cockpit-page .admin-action-queue__main,
+    .admin-cockpit-page .admin-action-queue__metrics {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .admin-cockpit-page .admin-action-queue__title {
+      display: block;
+      color: var(--cockpit-ink) !important;
+      font-size: .96rem;
+      line-height: 1.25;
+    }
+    .admin-cockpit-page .admin-action-queue__property {
+      color: var(--cockpit-ink) !important;
+      font-size: .84rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+    .admin-cockpit-page .admin-action-queue__reason,
+    .admin-cockpit-page .admin-action-queue__metric {
+      color: var(--cockpit-muted) !important;
+      font-size: .82rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .admin-cockpit-page .admin-action-queue__metric strong {
+      color: var(--cockpit-ink) !important;
+      font-size: .76rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .admin-cockpit-page .admin-action-queue__row .button {
+      justify-self: end;
+      min-height: 38px;
+      padding: 8px 14px;
+      background: var(--cockpit-ink) !important;
+      border: 0 !important;
+      color: #fff !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+    }
+    .admin-cockpit-page .admin-secondary-details {
+      display: contents;
+    }
+    .admin-cockpit-page .admin-secondary-details .admin-dashboard-section {
+      grid-column: 2;
+    }
+    .admin-cockpit-page .admin-risk-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+      gap: 10px;
+    }
+    .admin-cockpit-page .admin-risk-card {
+      min-height: 184px;
+      padding: 12px !important;
+      box-shadow: none !important;
+    }
+    .admin-cockpit-page .admin-risk-card[data-tone="success"] {
+      background: var(--cockpit-green-bg) !important;
+      border-color: var(--cockpit-green-border) !important;
+    }
+    .admin-cockpit-page .admin-risk-card[data-tone="warning"] {
+      background: var(--cockpit-amber-bg) !important;
+      border-color: var(--cockpit-amber-border) !important;
+    }
+    .admin-cockpit-page .admin-risk-card[data-tone="danger"] {
+      background: var(--cockpit-red-bg) !important;
+      border-color: var(--cockpit-red-border) !important;
+    }
+    .admin-cockpit-page .admin-risk-card__head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .admin-cockpit-page .admin-risk-scoreline {
+      display: grid;
+      gap: 6px;
+      margin: 4px 0 8px;
+    }
+    .admin-cockpit-page .admin-risk-scoreline strong {
+      font-size: .82rem;
+    }
+    .admin-cockpit-page .admin-risk-scorebar {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(16, 25, 46, .1);
+    }
+    .admin-cockpit-page .admin-risk-scorebar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--cockpit-green);
+    }
+    .admin-cockpit-page .admin-risk-card[data-tone="warning"] .admin-risk-scorebar span {
+      background: var(--cockpit-amber);
+    }
+    .admin-cockpit-page .admin-risk-card[data-tone="danger"] .admin-risk-scorebar span {
+      background: var(--cockpit-red);
+    }
+    .admin-cockpit-page .admin-risk-factors {
+      gap: 3px;
+      font-size: .78rem;
+    }
+    .admin-cockpit-page .admin-risk-factors span {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .admin-cockpit-page .admin-risk-context {
+      justify-self: stretch;
+      margin-top: 4px;
+      min-height: 34px;
+      font-size: .72rem;
+    }
+    .admin-cockpit-page .admin-timeline-feed {
+      max-height: 324px;
+      overflow: auto;
+      border: 1px solid var(--cockpit-line);
+      border-radius: 14px;
+      background: #fff;
+      gap: 0;
+    }
+    .admin-cockpit-page .admin-timeline-event--compact {
+      display: grid;
+      grid-template-columns: 110px 130px minmax(220px, 1.2fr) minmax(180px, 1fr) minmax(180px, 1fr) 110px;
+      gap: 12px;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border-bottom: 1px solid var(--cockpit-line) !important;
+    }
+    .admin-cockpit-page .admin-timeline-event--compact strong,
+    .admin-cockpit-page .admin-timeline-time,
+    .admin-cockpit-page .admin-source-link {
+      color: var(--cockpit-ink) !important;
+      font-size: .8rem;
+    }
+    .admin-cockpit-page .admin-source-link {
+      justify-self: end;
+    }
+    .admin-cockpit-page .admin-compact-disclosure:has(.admin-timeline-feed) {
+      grid-column: 1 / -1;
+    }
+    @media (max-width: 1280px) {
+      .admin-cockpit-page .admin-cockpit-shell,
+      .admin-cockpit-page .admin-cockpit-hero {
+        grid-template-columns: 1fr;
+      }
+      .admin-cockpit-page .admin-exec-kpis,
+      .admin-cockpit-page .admin-exec-alerts,
+      .admin-cockpit-page .admin-secondary-details .admin-dashboard-section {
+        grid-column: 1;
+      }
+      .admin-cockpit-page .admin-snapshot-grid,
+      .admin-cockpit-page .admin-risk-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .admin-cockpit-page .admin-recommendation-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-cockpit-page .admin-action-queue__row {
+        grid-template-columns: minmax(0, 1fr) minmax(180px, .8fr) auto;
+      }
+    }
+    @media (max-width: 760px) {
+      .admin-cockpit-page .admin-cockpit-shell {
+        width: min(100% - 16px, 1780px);
+      }
+      .admin-cockpit-page .admin-cockpit-hero {
+        padding: 20px !important;
+      }
+      .admin-cockpit-page .admin-hero-stat-row,
+      .admin-cockpit-page .admin-cockpit-actions,
+      .admin-cockpit-page .admin-snapshot-grid,
+      .admin-cockpit-page .admin-risk-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .admin-cockpit-page .admin-alert-row,
+      .admin-cockpit-page .admin-timeline-event--compact {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .admin-cockpit-page .admin-alert-feed__item {
+        grid-template-columns: 22px minmax(0, 1fr);
+        gap: 6px 12px;
+        padding: 14px !important;
+      }
+      .admin-cockpit-page .admin-alert-feed__icon {
+        grid-column: 1;
+        grid-row: 1 / span 5;
+      }
+      .admin-cockpit-page .admin-alert-feed__title,
+      .admin-cockpit-page .admin-alert-feed__property,
+      .admin-cockpit-page .admin-alert-feed__context,
+      .admin-cockpit-page .admin-alert-feed__time,
+      .admin-cockpit-page .admin-alert-feed__item .button {
+        grid-column: 2;
+      }
+      .admin-cockpit-page .admin-alert-feed__item .button {
+        grid-row: auto;
+        justify-self: start;
+        margin-top: 4px;
+      }
+      .admin-cockpit-page .admin-action-queue__row {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        gap: 10px;
+        padding: 14px !important;
+      }
+      .admin-cockpit-page .admin-action-queue__row .button {
+        justify-self: start;
+      }
+      .admin-cockpit-page .admin-source-link {
+        justify-self: start;
+      }
+    }
   </style>
 </head>
-<body class="admin-cockpit-page">
+<body class="admin-cockpit-page admin-exec-page">
   <main class="admin-cockpit-shell">
     {% set admin_lang = 'en' if page_lang == 'en' else 'bg' %}
     {% if admin_lang == 'bg' %}
-      {% set tone_labels = {'success': 'ДОБРЕ', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'info': 'ИНФО', 'neutral': 'ИНФО', 'primary': 'ОСНОВНО'} %}
-      {% set severity_labels = {'critical': 'Критично', 'high': 'Високо', 'medium': 'Средно', 'low': 'Ниско', 'info': 'Инфо'} %}
-      {% set category_labels = {'overdue operations': 'Просрочени операции', 'unassigned operations': 'Невъзложени операции', 'operations without due dates': 'Операции без срок', 'owner requests waiting': 'Чакащи заявки от собственици', 'properties without readiness': 'Имот без пълна готовност', 'reservations arriving within 24h without completed preparation': 'Пристигане без завършена подготовка', 'reservations missing assigned cleaning': 'Резервации без възложено почистване', 'calendar conflicts': 'Конфликти в календара', 'overlapping reservations': 'Припокриващи се резервации', 'professionals overloaded': 'Претоварени професионалисти', 'operation': 'Операция', 'reservation': 'Резервация', 'professional': 'Професионалист', 'owner': 'Собственик'} %}
-      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Scheduled': 'Планирано', 'Completed': 'Приключено', 'Waiting': 'Чака', 'Assigned': 'Възложено', 'In Progress': 'В процес', 'Pending': 'Чакащо', 'Confirmed': 'Потвърдено', 'Checked In': 'Настанен', 'Checked Out': 'Освободен', 'Available': 'Наличен', 'Occupied': 'Зает', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокиран', 'Ready': 'Готов', 'None': 'Няма'} %}
-      {% set detail_labels = {'operation is past due': 'Операцията е просрочена.', 'operation has no assigned professional': 'Операцията няма назначен професионалист.', 'open operation is missing a due date': 'Отворената операция няма зададен срок.', 'owner request has been waiting longer than 48 hours': 'Заявката от собственик чака повече от 48 часа.', 'upcoming arrival still needs preparation': 'Предстоящото пристигане все още изисква подготовка.', 'reservation is approaching without an assigned cleaning task': 'Резервацията наближава без възложено почистване.', 'calendar event overlaps with a reservation': 'Събитие в календара се припокрива с резервация.', 'reservations share overlapping occupancy windows': 'Резервациите имат припокриващи се периоди на заетост.'} %}
+      {% set tone_labels = {'success': 'Ãâ€ÃÅ¾Ãâ€˜ÃÂ Ãâ€¢', 'warning': 'Ãâ€™ÃÂÃËœÃÅ“ÃÂÃÂÃËœÃâ€¢', 'danger': 'ÃÅ¡ÃÂ ÃËœÃÂ¢ÃËœÃÂ§ÃÂÃÅ¾', 'info': 'ÃËœÃÂÃÂ¤ÃÅ¾', 'neutral': 'ÃËœÃÂÃÂ¤ÃÅ¾', 'primary': 'ÃÅ¾ÃÂ¡ÃÂÃÅ¾Ãâ€™ÃÂÃÅ¾'} %}
+      {% set severity_labels = {'critical': 'ÃÅ¡Ã‘â‚¬ÃÂ¸Ã‘â€šÃÂ¸Ã‘â€¡ÃÂ½ÃÂ¾', 'high': 'Ãâ€™ÃÂ¸Ã‘ÂÃÂ¾ÃÂºÃÂ¾', 'medium': 'ÃÂ¡Ã‘â‚¬ÃÂµÃÂ´ÃÂ½ÃÂ¾', 'low': 'ÃÂÃÂ¸Ã‘ÂÃÂºÃÂ¾', 'info': 'ÃËœÃÂ½Ã‘â€žÃÂ¾'} %}
+      {% set category_labels = {'overdue operations': 'ÃÅ¸Ã‘â‚¬ÃÂ¾Ã‘ÂÃ‘â‚¬ÃÂ¾Ã‘â€¡ÃÂµÃÂ½ÃÂ¸ ÃÂ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸', 'unassigned operations': 'ÃÂÃÂµÃÂ²Ã‘Å ÃÂ·ÃÂ»ÃÂ¾ÃÂ¶ÃÂµÃÂ½ÃÂ¸ ÃÂ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸', 'operations without due dates': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸ ÃÂ±ÃÂµÃÂ· Ã‘ÂÃ‘â‚¬ÃÂ¾ÃÂº', 'owner requests waiting': 'ÃÂ§ÃÂ°ÃÂºÃÂ°Ã‘â€°ÃÂ¸ ÃÂ·ÃÂ°Ã‘ÂÃÂ²ÃÂºÃÂ¸ ÃÂ¾Ã‘â€š Ã‘ÂÃÂ¾ÃÂ±Ã‘ÂÃ‘â€šÃÂ²ÃÂµÃÂ½ÃÂ¸Ã‘â€ ÃÂ¸', 'properties without readiness': 'ÃËœÃÂ¼ÃÂ¾Ã‘â€š ÃÂ±ÃÂµÃÂ· ÃÂ¿Ã‘Å ÃÂ»ÃÂ½ÃÂ° ÃÂ³ÃÂ¾Ã‘â€šÃÂ¾ÃÂ²ÃÂ½ÃÂ¾Ã‘ÂÃ‘â€š', 'reservations arriving within 24h without completed preparation': 'ÃÅ¸Ã‘â‚¬ÃÂ¸Ã‘ÂÃ‘â€šÃÂ¸ÃÂ³ÃÂ°ÃÂ½ÃÂµ ÃÂ±ÃÂµÃÂ· ÃÂ·ÃÂ°ÃÂ²Ã‘Å Ã‘â‚¬Ã‘Ë†ÃÂµÃÂ½ÃÂ° ÃÂ¿ÃÂ¾ÃÂ´ÃÂ³ÃÂ¾Ã‘â€šÃÂ¾ÃÂ²ÃÂºÃÂ°', 'reservations missing assigned cleaning': 'ÃÂ ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸ ÃÂ±ÃÂµÃÂ· ÃÂ²Ã‘Å ÃÂ·ÃÂ»ÃÂ¾ÃÂ¶ÃÂµÃÂ½ÃÂ¾ ÃÂ¿ÃÂ¾Ã‘â€¡ÃÂ¸Ã‘ÂÃ‘â€šÃÂ²ÃÂ°ÃÂ½ÃÂµ', 'calendar conflicts': 'ÃÅ¡ÃÂ¾ÃÂ½Ã‘â€žÃÂ»ÃÂ¸ÃÂºÃ‘â€šÃÂ¸ ÃÂ² ÃÂºÃÂ°ÃÂ»ÃÂµÃÂ½ÃÂ´ÃÂ°Ã‘â‚¬ÃÂ°', 'overlapping reservations': 'ÃÅ¸Ã‘â‚¬ÃÂ¸ÃÂ¿ÃÂ¾ÃÂºÃ‘â‚¬ÃÂ¸ÃÂ²ÃÂ°Ã‘â€°ÃÂ¸ Ã‘ÂÃÂµ Ã‘â‚¬ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸', 'professionals overloaded': 'ÃÅ¸Ã‘â‚¬ÃÂµÃ‘â€šÃÂ¾ÃÂ²ÃÂ°Ã‘â‚¬ÃÂµÃÂ½ÃÂ¸ ÃÂ¿Ã‘â‚¬ÃÂ¾Ã‘â€žÃÂµÃ‘ÂÃÂ¸ÃÂ¾ÃÂ½ÃÂ°ÃÂ»ÃÂ¸Ã‘ÂÃ‘â€šÃÂ¸', 'operation': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â', 'reservation': 'ÃÂ ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â', 'professional': 'ÃÅ¸Ã‘â‚¬ÃÂ¾Ã‘â€žÃÂµÃ‘ÂÃÂ¸ÃÂ¾ÃÂ½ÃÂ°ÃÂ»ÃÂ¸Ã‘ÂÃ‘â€š', 'owner': 'ÃÂ¡ÃÂ¾ÃÂ±Ã‘ÂÃ‘â€šÃÂ²ÃÂµÃÂ½ÃÂ¸ÃÂº'} %}
+      {% set value_labels = {'Operation': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â', 'Reservation': 'ÃÂ ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â', 'Professional': 'ÃÅ¸Ã‘â‚¬ÃÂ¾Ã‘â€žÃÂµÃ‘ÂÃÂ¸ÃÂ¾ÃÂ½ÃÂ°ÃÂ»ÃÂ¸Ã‘ÂÃ‘â€š', 'Owner': 'ÃÂ¡ÃÂ¾ÃÂ±Ã‘ÂÃ‘â€šÃÂ²ÃÂµÃÂ½ÃÂ¸ÃÂº', 'Operations': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸', 'Scheduled': 'ÃÅ¸ÃÂ»ÃÂ°ÃÂ½ÃÂ¸Ã‘â‚¬ÃÂ°ÃÂ½ÃÂ¾', 'Completed': 'ÃÅ¸Ã‘â‚¬ÃÂ¸ÃÂºÃÂ»Ã‘Å½Ã‘â€¡ÃÂµÃÂ½ÃÂ¾', 'Waiting': 'ÃÂ§ÃÂ°ÃÂºÃÂ°', 'Assigned': 'Ãâ€™Ã‘Å ÃÂ·ÃÂ»ÃÂ¾ÃÂ¶ÃÂµÃÂ½ÃÂ¾', 'In Progress': 'Ãâ€™ ÃÂ¿Ã‘â‚¬ÃÂ¾Ã‘â€ ÃÂµÃ‘Â', 'Pending': 'ÃÂ§ÃÂ°ÃÂºÃÂ°Ã‘â€°ÃÂ¾', 'Confirmed': 'ÃÅ¸ÃÂ¾Ã‘â€šÃÂ²Ã‘Å Ã‘â‚¬ÃÂ´ÃÂµÃÂ½ÃÂ¾', 'Checked In': 'ÃÂÃÂ°Ã‘ÂÃ‘â€šÃÂ°ÃÂ½ÃÂµÃÂ½', 'Checked Out': 'ÃÅ¾Ã‘ÂÃÂ²ÃÂ¾ÃÂ±ÃÂ¾ÃÂ´ÃÂµÃÂ½', 'Available': 'ÃÂÃÂ°ÃÂ»ÃÂ¸Ã‘â€¡ÃÂµÃÂ½', 'Occupied': 'Ãâ€”ÃÂ°ÃÂµÃ‘â€š', 'Preparing': 'ÃÅ¸ÃÂ¾ÃÂ´ÃÂ³ÃÂ¾Ã‘â€šÃÂ¾ÃÂ²ÃÂºÃÂ°', 'Cleaning': 'ÃÅ¸ÃÂ¾Ã‘â€¡ÃÂ¸Ã‘ÂÃ‘â€šÃÂ²ÃÂ°ÃÂ½ÃÂµ', 'Maintenance': 'ÃÅ¸ÃÂ¾ÃÂ´ÃÂ´Ã‘â‚¬Ã‘Å ÃÂ¶ÃÂºÃÂ°', 'Blocked': 'Ãâ€˜ÃÂ»ÃÂ¾ÃÂºÃÂ¸Ã‘â‚¬ÃÂ°ÃÂ½', 'Ready': 'Ãâ€œÃÂ¾Ã‘â€šÃÂ¾ÃÂ²', 'None': 'ÃÂÃ‘ÂÃÂ¼ÃÂ°'} %}
+      {% set detail_labels = {'operation is past due': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸Ã‘ÂÃ‘â€šÃÂ° ÃÂµ ÃÂ¿Ã‘â‚¬ÃÂ¾Ã‘ÂÃ‘â‚¬ÃÂ¾Ã‘â€¡ÃÂµÃÂ½ÃÂ°.', 'operation has no assigned professional': 'ÃÅ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸Ã‘ÂÃ‘â€šÃÂ° ÃÂ½Ã‘ÂÃÂ¼ÃÂ° ÃÂ½ÃÂ°ÃÂ·ÃÂ½ÃÂ°Ã‘â€¡ÃÂµÃÂ½ ÃÂ¿Ã‘â‚¬ÃÂ¾Ã‘â€žÃÂµÃ‘ÂÃÂ¸ÃÂ¾ÃÂ½ÃÂ°ÃÂ»ÃÂ¸Ã‘ÂÃ‘â€š.', 'open operation is missing a due date': 'ÃÅ¾Ã‘â€šÃÂ²ÃÂ¾Ã‘â‚¬ÃÂµÃÂ½ÃÂ°Ã‘â€šÃÂ° ÃÂ¾ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â ÃÂ½Ã‘ÂÃÂ¼ÃÂ° ÃÂ·ÃÂ°ÃÂ´ÃÂ°ÃÂ´ÃÂµÃÂ½ Ã‘ÂÃ‘â‚¬ÃÂ¾ÃÂº.', 'owner request has been waiting longer than 48 hours': 'Ãâ€”ÃÂ°Ã‘ÂÃÂ²ÃÂºÃÂ°Ã‘â€šÃÂ° ÃÂ¾Ã‘â€š Ã‘ÂÃÂ¾ÃÂ±Ã‘ÂÃ‘â€šÃÂ²ÃÂµÃÂ½ÃÂ¸ÃÂº Ã‘â€¡ÃÂ°ÃÂºÃÂ° ÃÂ¿ÃÂ¾ÃÂ²ÃÂµÃ‘â€¡ÃÂµ ÃÂ¾Ã‘â€š 48 Ã‘â€¡ÃÂ°Ã‘ÂÃÂ°.', 'upcoming arrival still needs preparation': 'ÃÅ¸Ã‘â‚¬ÃÂµÃÂ´Ã‘ÂÃ‘â€šÃÂ¾Ã‘ÂÃ‘â€°ÃÂ¾Ã‘â€šÃÂ¾ ÃÂ¿Ã‘â‚¬ÃÂ¸Ã‘ÂÃ‘â€šÃÂ¸ÃÂ³ÃÂ°ÃÂ½ÃÂµ ÃÂ²Ã‘ÂÃÂµ ÃÂ¾Ã‘â€°ÃÂµ ÃÂ¸ÃÂ·ÃÂ¸Ã‘ÂÃÂºÃÂ²ÃÂ° ÃÂ¿ÃÂ¾ÃÂ´ÃÂ³ÃÂ¾Ã‘â€šÃÂ¾ÃÂ²ÃÂºÃÂ°.', 'reservation is approaching without an assigned cleaning task': 'ÃÂ ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸Ã‘ÂÃ‘â€šÃÂ° ÃÂ½ÃÂ°ÃÂ±ÃÂ»ÃÂ¸ÃÂ¶ÃÂ°ÃÂ²ÃÂ° ÃÂ±ÃÂµÃÂ· ÃÂ²Ã‘Å ÃÂ·ÃÂ»ÃÂ¾ÃÂ¶ÃÂµÃÂ½ÃÂ¾ ÃÂ¿ÃÂ¾Ã‘â€¡ÃÂ¸Ã‘ÂÃ‘â€šÃÂ²ÃÂ°ÃÂ½ÃÂµ.', 'calendar event overlaps with a reservation': 'ÃÂ¡Ã‘Å ÃÂ±ÃÂ¸Ã‘â€šÃÂ¸ÃÂµ ÃÂ² ÃÂºÃÂ°ÃÂ»ÃÂµÃÂ½ÃÂ´ÃÂ°Ã‘â‚¬ÃÂ° Ã‘ÂÃÂµ ÃÂ¿Ã‘â‚¬ÃÂ¸ÃÂ¿ÃÂ¾ÃÂºÃ‘â‚¬ÃÂ¸ÃÂ²ÃÂ° Ã‘Â Ã‘â‚¬ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸Ã‘Â.', 'reservations share overlapping occupancy windows': 'ÃÂ ÃÂµÃÂ·ÃÂµÃ‘â‚¬ÃÂ²ÃÂ°Ã‘â€ ÃÂ¸ÃÂ¸Ã‘â€šÃÂµ ÃÂ¸ÃÂ¼ÃÂ°Ã‘â€š ÃÂ¿Ã‘â‚¬ÃÂ¸ÃÂ¿ÃÂ¾ÃÂºÃ‘â‚¬ÃÂ¸ÃÂ²ÃÂ°Ã‘â€°ÃÂ¸ Ã‘ÂÃÂµ ÃÂ¿ÃÂµÃ‘â‚¬ÃÂ¸ÃÂ¾ÃÂ´ÃÂ¸ ÃÂ½ÃÂ° ÃÂ·ÃÂ°ÃÂµÃ‘â€šÃÂ¾Ã‘ÂÃ‘â€š.'} %}
     {% else %}
       {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
       {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
@@ -2285,6 +3082,21 @@
       {% set detail_labels = {} %}
     {% endif %}
     {% set semantic_tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'neutral': 'HEALTHY', 'info': 'HEALTHY'} %}
+    {% set actionable_alert_categories = ['overdue_operations', 'unassigned_operations', 'calendar_conflicts', 'overlapping_reservations', 'reservations_missing_assigned_cleaning', 'owner_requests_waiting'] %}
+    {% set critical_alert_count = namespace(value=0) %}
+    {% set snapshot_counts = namespace(unassigned=0, owner_waiting=0, calendar_conflicts=0) %}
+    {% for alert in executive_alerts %}
+      {% if alert.category in actionable_alert_categories %}
+        {% set critical_alert_count.value = critical_alert_count.value + 1 %}
+      {% endif %}
+      {% if alert.category == 'unassigned_operations' %}
+        {% set snapshot_counts.unassigned = snapshot_counts.unassigned + 1 %}
+      {% elif alert.category == 'owner_requests_waiting' %}
+        {% set snapshot_counts.owner_waiting = snapshot_counts.owner_waiting + 1 %}
+      {% elif alert.category in ['calendar_conflicts', 'overlapping_reservations'] %}
+        {% set snapshot_counts.calendar_conflicts = snapshot_counts.calendar_conflicts + 1 %}
+      {% endif %}
+    {% endfor %}
     <div class="admin-legacy-anchors" aria-hidden="true" style="display:none">
       Calendar engine View calendar Today's Operations Upcoming Check-ins Upcoming Check-outs Today's Cleaning Overdue Events Reservation engine Booking and availability Today's check-ins Today's check-outs
     </div>
@@ -2312,33 +3124,39 @@
         <div class="admin-kicker">{{ public_i18n('adminHome', 'heroKicker', 'BlackSea Connect') }}</div>
         <h1>{{ public_i18n('adminHome', 'heroTitle', 'Executive operations cockpit') }}</h1>
         <p class="admin-hero-copy">
-          {{ public_i18n('adminHome', 'heroCopy', 'A single command view for reservations, operations, calendar flow, property status, and professional capacity. Everything on this page is computed from the existing persistence layer.') }}
+          {{ public_i18n('adminHome', 'heroCopy', 'COO command center for live property operations, guest readiness, and owner response. Focused on what needs your attention now.') }}
         </p>
         <div class="admin-hero-status" aria-label="Live status summary">
           <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> {{ public_i18n('adminHome', 'liveStatus', 'Live') }}</span>
           <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">{{ 'Обновяване...' if admin_lang == 'bg' else 'Updating...' }}</time></span>
           {% set system_health_tone = 'success' if operations_summary.late_operations == 0 and sla_monitoring.late_percent < 10 else 'warning' if operations_summary.late_operations < 4 and sla_monitoring.late_percent < 25 else 'danger' %}
-          <span class="admin-health-chip" data-tone="{{ system_health_tone }}">{{ public_i18n('adminHome', 'systemHealthy', 'Healthy') if system_health_tone == 'success' else public_i18n('adminHome', 'systemWatch', 'Watch') if system_health_tone == 'warning' else public_i18n('adminHome', 'systemCritical', 'Critical') }}</span>
+          <span class="admin-health-chip" data-tone="{{ system_health_tone }}">{{ public_i18n('adminHome', 'operationalStatusHealthy', 'Operations steady') if system_health_tone == 'success' else public_i18n('adminHome', 'operationalStatusWatch', 'Attention required') if system_health_tone == 'warning' else public_i18n('adminHome', 'operationalPressureHigh', 'Operational pressure high') }}</span>
         </div>
       </div>
       <div class="admin-hero-side">
         <div class="admin-hero-summary">
-          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'snapshotPill', 'Live operating snapshot') }}</span>
-          <strong>{{ public_i18n('adminHome', 'snapshotCompletedToday', '{} operations completed today')|replace('{}', operations_summary.completed_today|string) }}</strong>
-          <span class="admin-submeta">{{ public_i18n('adminHome', 'snapshotAvailability', '{} professionals available and {} late operations in view')|replace('{}', professional_summary.available|string, 1)|replace('{}', operations_summary.late_operations|string, 1) }}</span>
+          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'dispatchBriefTitle', 'Dispatch brief') }}</span>
         </div>
         <div class="admin-hero-stat-row" aria-label="Executive health snapshot">
-          <div class="admin-hero-stat">
+          <div class="admin-hero-stat" data-tone="success">
+            <span class="admin-kpi-symbol">OK</span>
+            <span>{{ public_i18n('adminHome', 'operationsCompletedToday', 'Operations completed today') }}</span>
+            <strong>{{ operations_summary.completed_today }}</strong>
+          </div>
+          <div class="admin-hero-stat" data-tone="warning">
+            <span class="admin-kpi-symbol">QU</span>
             <span>{{ public_i18n('adminHome', 'currentQueue', 'Current queue') }}</span>
             <strong>{{ operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</strong>
           </div>
-          <div class="admin-hero-stat">
-            <span>{{ public_i18n('adminHome', 'riskSignals', 'Risk signals') }}</span>
-            <strong>{{ executive_alerts|length }}</strong>
+          <div class="admin-hero-stat" data-tone="danger">
+            <span class="admin-kpi-symbol">AL</span>
+            <span>{{ public_i18n('adminHome', 'criticalAlertsTitle', 'Critical alerts') }}</span>
+            <strong>{{ critical_alert_count.value }}</strong>
           </div>
-          <div class="admin-hero-stat">
-            <span>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</span>
-            <strong>{{ sla_monitoring.late_percent }}% {{ 'закъснели' if admin_lang == 'bg' else 'late' }}</strong>
+          <div class="admin-hero-stat" data-tone="info">
+            <span class="admin-kpi-symbol">PR</span>
+            <span>{{ public_i18n('adminHome', 'availablePros', 'Available pros') }}</span>
+            <strong>{{ professional_summary.available }}</strong>
           </div>
         </div>
         <div class="admin-cockpit-actions">
@@ -2346,6 +3164,7 @@
           <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
           <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
           <a class="button button--secondary" href="/admin/properties">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
+          <a class="button button--secondary" href="/admin/directory">Directory</a>
         </div>
       </div>
     </section>
@@ -2354,42 +3173,89 @@
       <div class="admin-section-head">
         <div>
           <span class="admin-pill admin-pill--neutral">{{ public_i18n('adminHome', 'section1Pill', 'Section 1') }}</span>
-          <h2>{{ public_i18n('adminHome', 'commandCenterTitle', 'Operations command center') }}</h2>
+          <h2>{{ public_i18n('adminHome', 'commandCenterTitle', 'Executive snapshot') }}</h2>
         </div>
       </div>
-      <div class="admin-command-center">
-        <div class="admin-command-center__grid">
-          {% for section in top_dashboard_sections %}
-            <div class="admin-command-group" data-tone="{{ section.tone }}">
-              <h3 class="admin-command-group__title">{{ section.title }}</h3>
-              <div class="admin-command-group__cards">
-                {% for card in section.cards %}
-                  <a class="admin-command-card" data-tone="{{ card.tone }}" href="{{ card.href }}">
-                    <span>{{ card.label }}</span>
-                    <strong>
-                      {% if card.value is number %}
-                        <span class="js-count" data-target="{{ card.value }}">0</span>
-                      {% else %}
-                        {{ card.value }}
-                      {% endif %}
-                    </strong>
-                  </a>
-                {% endfor %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-        <aside class="admin-executive-summary" aria-label="{{ public_i18n('adminHome', 'executiveSummaryTitle', 'Executive summary') }}">
-          <h3>{{ public_i18n('adminHome', 'executiveSummaryTitle', 'Executive summary') }}</h3>
-          <ul>
-            {% for line in executive_summary_lines %}
-              <li>{{ line }}</li>
-            {% endfor %}
-          </ul>
-        </aside>
+      <div class="admin-dispatch-kpi-grid admin-snapshot-grid" aria-label="{{ public_i18n('adminHome', 'commandCenterTitle', 'Executive snapshot') }}">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="danger" href="/admin/operations">
+          <span class="admin-kpi-symbol">LA</span>
+          <span>{{ public_i18n('adminHome', 'lateOperations', 'Late operations') }}</span>
+          <strong>{{ operations_summary.late_operations }}</strong>
+          <small>{{ public_i18n('adminHome', 'needAttention', 'Need attention') }}</small>
+        </a>
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="/admin/operations">
+          <span class="admin-kpi-symbol">UN</span>
+          <span>{{ public_i18n('adminHome', 'unassignedOperations', 'Unassigned operations') }}</span>
+          <strong>{{ snapshot_counts.unassigned }}</strong>
+          <small>{{ public_i18n('adminHome', 'requireAssignment', 'Require assignment') }}</small>
+        </a>
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="/admin/service-requests">
+          <span class="admin-kpi-symbol">OW</span>
+          <span>{{ public_i18n('adminHome', 'ownerRequestsWaiting', 'Owner requests waiting') }}</span>
+          <strong>{{ snapshot_counts.owner_waiting }}</strong>
+          <small>{{ public_i18n('adminHome', 'awaitingResponse', 'Awaiting response') }}</small>
+        </a>
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="info" href="/admin/calendar">
+          <span class="admin-kpi-symbol">CA</span>
+          <span>{{ public_i18n('adminHome', 'calendarConflicts', 'Calendar conflicts') }}</span>
+          <strong>{{ snapshot_counts.calendar_conflicts }}</strong>
+          <small>{{ public_i18n('adminHome', 'needResolution', 'Need resolution') }}</small>
+        </a>
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="{{ system_health_tone }}" href="/admin/operations">
+          <span class="admin-kpi-symbol">SL</span>
+          <span>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</span>
+          <strong>{{ 100 - sla_monitoring.late_percent }}%</strong>
+          <small>{{ public_i18n('adminHome', 'slaHelper', 'Current health') }}</small>
+        </a>
       </div>
+      {% if false %}
       <div class="admin-kpi-grid">
-        {% for card in executive_kpis %}
+        <a class="admin-kpi-card" data-tone="warning" href="/admin/operations">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">OP</span>
+            <span class="admin-badge admin-badge--warning">{{ tone_labels.get('warning', 'ATTENTION') }}</span>
+          </div>
+          <h3>{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</h3>
+          <div class="admin-kpi-value">{{ operations_summary.late_operations + operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'openBoard', 'Open board') }}</div>
+        </a>
+        <a class="admin-kpi-card" data-tone="{{ system_health_tone }}" href="/admin/operations">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">SL</span>
+            <span class="admin-badge admin-badge--{{ system_health_tone }}">{{ tone_labels.get(system_health_tone, system_health_tone|title) }}</span>
+          </div>
+          <h3>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</h3>
+          <div class="admin-kpi-value">{{ 100 - sla_monitoring.late_percent }}%</div>
+          <div class="admin-kpi-trend">{{ sla_monitoring.late_percent }}% {{ public_i18n('adminHome', 'late', 'Late')|lower }}</div>
+        </a>
+        <a class="admin-kpi-card" data-tone="warning" href="/admin/operations">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">QU</span>
+            <span class="admin-badge admin-badge--warning">{{ tone_labels.get('warning', 'ATTENTION') }}</span>
+          </div>
+          <h3>{{ public_i18n('adminHome', 'currentQueue', 'Current queue') }}</h3>
+          <div class="admin-kpi-value">{{ operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'waiting', 'Waiting') }}</div>
+        </a>
+        <a class="admin-kpi-card" data-tone="{% if critical_alert_count.value %}danger{% else %}success{% endif %}" href="#executive-alerts">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">AL</span>
+            <span class="admin-badge admin-badge--{% if critical_alert_count.value %}danger{% else %}success{% endif %}">{{ tone_labels.get('danger' if critical_alert_count.value else 'success', 'INFO') }}</span>
+          </div>
+          <h3>{{ public_i18n('adminHome', 'alertPill', 'Critical alerts') }}</h3>
+          <div class="admin-kpi-value">{{ critical_alert_count.value }}</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</div>
+        </a>
+        <a class="admin-kpi-card" data-tone="success" href="/admin/professionals">
+          <div class="admin-kpi-top">
+            <span class="admin-kpi-icon">PR</span>
+            <span class="admin-badge admin-badge--success">{{ tone_labels.get('success', 'HEALTHY') }}</span>
+          </div>
+          <h3>{{ public_i18n('adminHome', 'available', 'Available professionals') }}</h3>
+          <div class="admin-kpi-value">{{ professional_summary.available }}</div>
+          <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'professionalCapacityTitle', 'Professional capacity') }}</div>
+        </a>
+        {% for card in executive_kpis[:0] %}
           <article class="admin-kpi-card" data-tone="{{ card.tone }}">
             <div class="admin-kpi-top">
               <span class="admin-kpi-icon">{{ card.icon[:2]|upper }}</span>
@@ -2405,7 +3271,7 @@
             </div>
             <div class="admin-kpi-meta">
               <div class="admin-kpi-trend">
-                <span class="admin-trend-arrow" aria-hidden="true">{% if card.tone == 'success' %}↑{% elif card.tone == 'danger' %}↓{% else %}→{% endif %}</span>
+                <span class="admin-trend-arrow" aria-hidden="true">{% if card.tone == 'success' %}Ã¢â€ â€˜{% elif card.tone == 'danger' %}Ã¢â€ â€œ{% else %}Ã¢â€ â€™{% endif %}</span>
                 <span>{{ card.trend }}</span>
               </div>
             </div>
@@ -2430,7 +3296,7 @@
         </a>
         <a class="admin-exec-action" data-tone="danger" href="#executive-alerts">
           <span>{{ public_i18n('adminHome', 'alertPill', 'Executive alerts') }}</span>
-          <strong>{{ executive_alerts|length }}</strong>
+          <strong>{{ critical_alert_count.value }}</strong>
           <small>{{ public_i18n('adminHome', 'openContext', 'Open context') }}</small>
         </a>
         <a class="admin-exec-action" data-tone="neutral" href="/admin/calendar">
@@ -2439,78 +3305,71 @@
           <small>{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</small>
         </a>
       </div>
+      {% endif %}
     </section>
 
     <section id="executive-alerts" class="admin-dashboard-section admin-exec-alerts">
       <div class="admin-section-head">
         <div>
-          <span class="admin-pill admin-pill--danger">{{ public_i18n('adminHome', 'alertPill', 'Executive alerts') }}</span>
-          <h2>{{ public_i18n('adminHome', 'alertTitle', 'Executive alerts') }}</h2>
+          <span class="admin-pill admin-pill--danger">{{ public_i18n('adminHome', 'criticalAlertsPill', 'Critical alerts') }}</span>
+          <h2>{{ public_i18n('adminHome', 'criticalAlertsHeading', 'Critical alerts') }}</h2>
         </div>
+        <a class="admin-section-link" href="/admin/operations">{{ public_i18n('adminHome', 'viewAllAlerts', 'View all alerts') }}</a>
       </div>
-      {% if executive_alerts %}
-        <div class="admin-alert-grid">
+      {% if critical_alert_count.value %}
+        <div class="admin-alert-grid admin-alert-feed">
+          {% set alert_limit = namespace(shown=0) %}
           {% for alert in executive_alerts %}
-            {% set alert_icon = '!' %}
-            {% if 'reservation' in alert.category|lower %}
-              {% set alert_icon = 'R' %}
-            {% elif 'professional' in alert.category|lower %}
-              {% set alert_icon = 'P' %}
-            {% elif 'operation' in alert.category|lower %}
-              {% set alert_icon = 'O' %}
-            {% elif 'owner' in alert.category|lower %}
-              {% set alert_icon = 'S' %}
-            {% endif %}
-            <article class="admin-alert-card" data-severity="{{ alert.severity }}" data-kind="{{ alert.category|lower }}" style="order: {{ 0 if alert.severity == 'critical' else 1 }};">
-              <div class="admin-alert-card__head">
-                <div class="admin-kpi-meta">
-                  <span class="admin-alert-card__icon" aria-hidden="true">{{ alert_icon }}</span>
-                  <div>
-                    {% set alert_category_key = alert.category|lower|replace('_', ' ') %}
-                    <strong>{{ category_labels.get(alert_category_key, alert.category|replace('_', ' ')|title) }}</strong>
-                    <div class="admin-alert-card__meta">{{ alert.created_at_display }}</div>
-                  </div>
-                </div>
+            {% if alert.category in actionable_alert_categories and alert_limit.shown < 5 %}
+            {% set alert_limit.shown = alert_limit.shown + 1 %}
+            {% set alert_category_key = alert.category|lower|replace('_', ' ') %}
+            {% set alert_detail_key = alert.detail|lower if alert.detail else '' %}
+            <article class="admin-alert-card admin-alert-row admin-alert-feed__item" data-severity="{{ alert.severity }}" data-kind="{{ alert.category|lower }}" style="order: {{ 0 if alert.severity == 'critical' else 1 }};">
+              <span class="admin-alert-feed__icon" aria-hidden="true"></span>
+              <div class="admin-alert-feed__title">
+                <strong>{{ category_labels.get(alert_category_key, alert.category|replace('_', ' ')|title) }}</strong>
                 <span class="admin-badge admin-badge--{{ alert.tone }}">{{ severity_labels.get(alert.severity, alert.severity|title) }}</span>
               </div>
-              <div class="admin-summary-list">
-                {% if alert.property %}<span><strong>{{ public_i18n('adminHome', 'propertyLabel', 'Property') }}</strong><span>{{ alert.property }}</span></span>{% endif %}
-                {% if alert.reservation %}<span><strong>{{ public_i18n('adminHome', 'reservationLabel', 'Reservation') }}</strong><span>{{ alert.reservation }}</span></span>{% endif %}
-                {% if alert.operation %}<span><strong>{{ public_i18n('adminHome', 'operationLabel', 'Operation') }}</strong><span>{{ alert.operation }}</span></span>{% endif %}
+              <div class="admin-alert-feed__property">
+                {{ alert.property or value_labels.get('None', 'None') }}
               </div>
-              {% if alert.detail %}
-                {% set alert_detail_key = alert.detail|lower %}
-                <div class="admin-meta-line">{{ detail_labels.get(alert_detail_key, alert.detail) }}</div>
-              {% endif %}
-              {% if alert.recommended_action %}
-                <p><strong>{{ public_i18n('adminHome', 'recommendedActionLabel', 'Recommended action:') }}</strong>
+              <div class="admin-alert-feed__context">
+                {% if alert.operation %}
+                  {{ alert.operation }}
+                {% elif alert.reservation %}
+                  {{ alert.reservation }}
+                {% elif alert.detail %}
+                  {{ detail_labels.get(alert_detail_key, alert.detail) }}
+                {% elif alert.recommended_action %}
                   {% if admin_lang == 'bg' and alert_category_key == 'overdue operations' and alert.property %}
-                    Приключете просрочената операция за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'unassigned operations' and alert.property %}
-                    Назначете професионалист за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'operations without due dates' %}
-                    Добавете срок към операцията
                   {% elif admin_lang == 'bg' and alert_category_key == 'owner requests waiting' and alert.property %}
-                    Проследете заявката от собственик за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'properties without readiness' and alert.property %}
-                    Завършете контролния списък за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'reservations arriving within 24h without completed preparation' and alert.property %}
-                    Подгответе {{ alert.property }} преди пристигането
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'reservations missing assigned cleaning' and alert.property %}
-                    Назначете почистване за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'calendar conflicts' and alert.property %}
-                    Разрешете конфликта в календара за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'overlapping reservations' and alert.property %}
-                    Прегледайте припокриващите се резервации за {{ alert.property }}
+                    {{ alert.recommended_action }}
                   {% elif admin_lang == 'bg' and alert_category_key == 'professionals overloaded' %}
-                    Преразпределете натоварването към свободен професионалист
                   {% else %}
                     {{ alert.recommended_action }}
                   {% endif %}
-                </p>
-              {% endif %}
-              {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</a>{% endif %}
+                {% else %}
+                  {{ category_labels.get(alert_category_key, alert.category|replace('_', ' ')|title) }}
+                {% endif %}
+              </div>
+              <time class="admin-alert-feed__time">{{ alert.created_at_display }}</time>
+              {% if alert.link %}<a class="button button--secondary" href="{{ alert.link }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }} &rarr;</a>{% endif %}
             </article>
+            {% endif %}
           {% endfor %}
         </div>
       {% else %}
@@ -2524,6 +3383,110 @@
       {% endif %}
     </section>
 
+    <details class="admin-dashboard-section admin-compact-disclosure" open>
+      <summary>
+        <div>
+          <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'recommendedActionsPill', 'Section 3') }}</span>
+          <h2>{{ public_i18n('adminHome', 'recommendedActionsHeading', 'Recommended actions') }}</h2>
+        </div>
+      </summary>
+      <div class="admin-compact-content">
+      {% if smart_recommendations %}
+        <div class="admin-recommendation-grid admin-action-queue">
+          {% for item in smart_recommendations[:5] %}
+            {% set priority_tone = 'danger' if loop.index <= 2 else 'warning' %}
+            {% set priority_label = public_i18n('adminHome', 'priorityCritical', 'Critical') if loop.index <= 2 else public_i18n('adminHome', 'priorityHigh', 'High') %}
+            {% set estimated_delay = '12h' if 'Assign' in item.title or 'arrival' in item.title|lower else '48h' if 'owner' in item.title|lower else '24h' if 'risk' in item.title|lower else '8h' %}
+            {% set action_property = namespace(value=value_labels.get('None', 'None')) %}
+            {% if item.title.startswith('Assign cleaner to ') %}
+              {% set action_property.value = item.title|replace('Assign cleaner to ', '') %}
+            {% elif item.title.startswith('Prepare ') and item.title.endswith(' for arrival') %}
+              {% set action_property.value = item.title|replace('Prepare ', '')|replace(' for arrival', '') %}
+            {% elif item.title.startswith('Follow up owner request for ') %}
+              {% set action_property.value = item.title|replace('Follow up owner request for ', '') %}
+            {% elif item.title.startswith('Reduce risk on ') %}
+              {% set action_property.value = item.title|replace('Reduce risk on ', '') %}
+            {% elif item.title.startswith('Reservation can now be confirmed for ') %}
+              {% set action_property.value = item.title|replace('Reservation can now be confirmed for ', '') %}
+            {% elif item.title == 'Property ready for next reservation' and item.detail %}
+              {% set action_property.value = item.detail %}
+            {% endif %}
+            <article class="admin-recommendation-card admin-action-queue__row" data-priority="{{ priority_tone }}">
+              <div class="admin-action-queue__main">
+                <span class="admin-badge admin-badge--{{ priority_tone }}">{{ priority_label }}</span>
+                <strong class="admin-action-queue__title">{{ item.title }}</strong>
+                <span class="admin-action-queue__property">{{ action_property.value }}</span>
+                {% if item.reason %}<span class="admin-action-queue__reason">{{ item.reason }}</span>{% endif %}
+              </div>
+              <div class="admin-action-queue__metrics">
+                <span class="admin-action-queue__metric"><strong>{{ public_i18n('adminHome', 'recommendationImpact', 'Expected impact') }}:</strong> {{ item.impact }}</span>
+                <span class="admin-action-queue__metric"><strong>{{ public_i18n('adminHome', 'estimatedDelayPrevented', 'Delay prevented') }}:</strong> {{ estimated_delay }}</span>
+              </div>
+              {% if item.link %}<a class="button button--primary" href="{{ item.link }}">{{ item.cta }} &rarr;</a>{% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>{{ public_i18n('adminHome', 'noRecommendationsTitle', 'No recommendations right now.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noRecommendationsCopy', 'As alerts, risk, and workload shift, the dashboard will suggest the next best operational action.') }}</p>
+        </div>
+      {% endif %}
+      </div>
+    </details>
+
+    <details class="admin-dashboard-section admin-compact-disclosure" open>
+      <summary>
+        <div>
+          <span class="admin-pill admin-pill--info">{{ public_i18n('adminHome', 'timelinePill', 'Section 4') }}</span>
+          <h2>{{ public_i18n('adminHome', 'timelineTitle', 'Unified timeline') }}</h2>
+        </div>
+      </summary>
+      <div class="admin-compact-content">
+      {% if executive_timeline %}
+        <div class="admin-timeline-feed">
+          {% for event in executive_timeline[:10] %}
+            <article class="admin-timeline-event admin-timeline-event--compact" data-tone="{{ event.tone }}" data-kind="{{ event.type|lower|replace(' ', '-') }}" data-timestamp="{{ event.timestamp }}">
+              <span class="admin-timeline-time">{{ event.timestamp_display }}</span>
+              <span class="admin-badge admin-badge--{{ event.tone }}">{{ value_labels.get(event.type, event.type) }}</span>
+              <strong>{{ event.summary }}</strong>
+              <span class="admin-meta-line">{{ event.property or public_i18n('adminHome', 'noPropertyLabel', 'No property') }}</span>
+              <span class="admin-meta-line">{{ event.actor or public_i18n('adminHome', 'operationsDesk', 'Operations desk') }}</span>
+              {% if event.link %}<a class="admin-source-link" href="{{ event.link }}">{{ public_i18n('adminHome', 'openSource', 'Open source') }}</a>{% endif %}
+            </article>
+          {% endfor %}
+          {% if executive_timeline|length > 10 %}
+            <details class="admin-compact-disclosure">
+              <summary>
+                <div>
+                  <span class="admin-pill admin-pill--neutral">{{ public_i18n('adminHome', 'loadMore', 'Load more') }}</span>
+                  <h2>{{ executive_timeline|length - 10 }} {{ public_i18n('adminHome', 'moreEvents', 'more events') }}</h2>
+                </div>
+              </summary>
+              <div class="admin-compact-content admin-timeline-feed">
+                {% for event in executive_timeline[10:] %}
+                  <article class="admin-timeline-event admin-timeline-event--compact" data-tone="{{ event.tone }}" data-kind="{{ event.type|lower|replace(' ', '-') }}" data-timestamp="{{ event.timestamp }}">
+                    <span class="admin-timeline-time">{{ event.timestamp_display }}</span>
+                    <span class="admin-badge admin-badge--{{ event.tone }}">{{ value_labels.get(event.type, event.type) }}</span>
+                    <strong>{{ event.summary }}</strong>
+                    <span class="admin-meta-line">{{ event.property or public_i18n('adminHome', 'noPropertyLabel', 'No property') }}</span>
+                    <span class="admin-meta-line">{{ event.actor or public_i18n('adminHome', 'operationsDesk', 'Operations desk') }}</span>
+                    {% if event.link %}<a class="admin-source-link" href="{{ event.link }}">{{ public_i18n('adminHome', 'openSource', 'Open source') }}</a>{% endif %}
+                  </article>
+                {% endfor %}
+              </div>
+            </details>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <h3>{{ public_i18n('adminHome', 'noTimelineTitle', 'No executive events yet.') }}</h3>
+          <p>{{ public_i18n('adminHome', 'noTimelineCopy', 'Reservations, operations, calendar, professionals, owner requests, and system events will populate this feed automatically.') }}</p>
+        </div>
+      {% endif %}
+      </div>
+    </details>
+
     <section class="admin-secondary-details">
     <details class="admin-dashboard-section admin-compact-disclosure" open>
       <summary>
@@ -2534,58 +3497,34 @@
       </summary>
       <div class="admin-compact-content">
       <div class="admin-risk-grid">
-        {% for property in property_risk_cards %}
+        {% for property in property_risk_cards[:5] %}
           {% set risk_tone = 'danger' if property.score > 65 else 'warning' if property.score >= 35 else 'success' %}
-          <article class="admin-risk-card" data-tone="{{ risk_tone }}">
+          <article class="admin-risk-card admin-risk-card--compact" data-tone="{{ risk_tone }}">
             <div class="admin-risk-card__head">
               <div>
                 <strong>{{ property.name }}</strong>
-                <div class="admin-risk-card__meta">{{ property.location }}</div>
+                {% if property.location %}<div class="admin-risk-card__meta">{{ property.location }}</div>{% endif %}
               </div>
-              <span class="admin-badge admin-badge--{{ risk_tone }}">{{ semantic_tone_labels.get(risk_tone, 'HEALTHY') }}</span>
+              <span class="admin-badge admin-badge--{{ risk_tone }}">{{ property.badge or semantic_tone_labels.get(risk_tone, 'HEALTHY') }}</span>
             </div>
-            <div class="admin-risk-score-wrap">
-              <div class="admin-health-gauge" style="--gauge: {{ property.score }};" aria-label="Risk score {{ property.score }} out of 100">
-                <div>
-                  <div class="admin-health-gauge__value">{{ property.score }}</div>
-                  <span class="admin-health-gauge__label">{{ public_i18n('adminHome', 'riskScoreLabel', 'Risk score') }}</span>
-                </div>
-              </div>
-              <div class="admin-risk-meter">
-                <span class="admin-badge admin-badge--{{ risk_tone }} admin-risk-score-badge">{{ property.badge }}</span>
-                <div class="admin-property-progress admin-property-meter__bar" aria-hidden="true">
-                  <span class="admin-property-progress__fill" style="width: {{ property.score }}%;"></span>
-                </div>
-                <p>{{ property.summary }}</p>
-                <ul class="admin-operational-reasons" aria-label="{{ public_i18n('adminHome', 'riskReasons', 'Risk reasons') }}">
-                  {% for factor in property.factors if factor.count %}
-                    <li>{{ factor.count }} {{ factor.label|lower }}</li>
-                  {% else %}
-                    <li>{{ public_i18n('adminHome', 'healthyNoActiveRisk', 'No active operational risk conditions') }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
+            <div class="admin-risk-scoreline">
+              <strong>{{ property.score }} / 100</strong>
+              <div class="admin-risk-scorebar" aria-hidden="true"><span style="width: {{ property.score }}%;"></span></div>
             </div>
             <div class="admin-risk-factors">
-              {% for factor in property.factors %}
-                <span><strong>{{ factor.label }}</strong><span>{{ factor.count }}</span></span>
-              {% endfor %}
-            </div>
-            <div class="admin-risk-detail-grid">
-              <span><strong>{{ public_i18n('adminHome', 'riskLevel', 'Risk level') }}</strong><br>{{ property.tier }}</span>
               <span><strong>{{ public_i18n('adminHome', 'riskOverdueCount', 'Overdue count') }}</strong><br>{{ property.overdue_count }}</span>
               <span><strong>{{ public_i18n('adminHome', 'riskUnassignedCount', 'Unassigned count') }}</strong><br>{{ property.unassigned_count }}</span>
-              <span><strong>{{ public_i18n('adminHome', 'riskConflictsCount', 'Conflicts count') }}</strong><br>{{ property.conflicts_count }}</span>
-              <span><strong>{{ public_i18n('adminHome', 'riskCleaningStatus', 'Cleaning status') }}</strong><br>{{ property.cleaning_status }}</span>
               <span><strong>{{ public_i18n('adminHome', 'riskOwnerWaitingRequests', 'Owner waiting requests') }}</strong><br>{{ property.owner_waiting_requests }}</span>
             </div>
-            <p><strong>{{ public_i18n('adminHome', 'riskRecommendedAction', 'Action recommendation') }}</strong><br>{{ property.action_recommendation }}</p>
+            <a class="button button--secondary admin-risk-context" href="/admin/properties/{{ property.id }}">{{ public_i18n('adminHome', 'openRiskContext', 'Open risk context') }}</a>
           </article>
         {% endfor %}
       </div>
       </div>
     </details>
 
+    </section>
+    {% if false %}
     <details class="admin-dashboard-section admin-compact-disclosure" open>
       <summary>
         <div>
@@ -2596,7 +3535,7 @@
       <div class="admin-compact-content">
       {% if executive_timeline %}
         <div class="admin-timeline-feed">
-          {% for event in executive_timeline %}
+          {% for event in executive_timeline[:10] %}
             <article class="admin-timeline-event" data-tone="{{ event.tone }}" data-kind="{{ event.type|lower|replace(' ', '-') }}" data-timestamp="{{ event.timestamp }}">
               <div class="admin-timeline-event__head">
                 <div class="admin-timeline-event__icon">{{ event.icon }}</div>
@@ -2614,6 +3553,36 @@
               </div>
             </article>
           {% endfor %}
+          {% if executive_timeline|length > 10 %}
+            <details class="admin-compact-disclosure">
+              <summary>
+                <div>
+                  <span class="admin-pill admin-pill--neutral">{{ public_i18n('adminHome', 'loadMore', 'Load more') }}</span>
+                  <h2>{{ executive_timeline|length - 10 }} {{ public_i18n('adminHome', 'moreEvents', 'more events') }}</h2>
+                </div>
+              </summary>
+              <div class="admin-compact-content admin-timeline-feed">
+                {% for event in executive_timeline[10:] %}
+                  <article class="admin-timeline-event" data-tone="{{ event.tone }}" data-kind="{{ event.type|lower|replace(' ', '-') }}" data-timestamp="{{ event.timestamp }}">
+                    <div class="admin-timeline-event__head">
+                      <div class="admin-timeline-event__icon">{{ event.icon }}</div>
+                      <div>
+                        <strong>{{ value_labels.get(event.type, event.type) }}</strong>
+                        <div class="admin-timeline-event__meta">{{ event.timestamp_display }}</div>
+                      </div>
+                      <span class="admin-badge admin-badge--{{ event.tone }}">{{ value_labels.get(event.type, event.type) }}</span>
+                    </div>
+                    <div class="admin-timeline-event__body">
+                      <strong>{{ event.summary }}</strong>
+                      {% if event.property %}<div class="admin-meta-line">{{ event.property }}</div>{% endif %}
+                      {% if event.actor %}<div class="admin-meta-line">{{ public_i18n('adminHome', 'actorLabel', 'Actor:') }} {{ event.actor }}</div>{% endif %}
+                      {% if event.link %}<a class="button button--secondary" href="{{ event.link }}">{{ public_i18n('adminHome', 'openSource', 'Open source') }}</a>{% endif %}
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            </details>
+          {% endif %}
         </div>
       {% else %}
         <div class="admin-empty-state">
@@ -3084,7 +4053,7 @@
                   <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">{{ public_i18n('adminHome', 'maintenance', 'Maintenance') }} {% if property.maintenance_required %}{{ public_i18n('adminHome', 'flagged', 'flagged') }}{% else %}{{ public_i18n('adminHome', 'clear', 'clear') }}{% endif %}</span>
                   <span class="admin-badge admin-badge--info">{{ public_i18n('adminHome', 'availability', 'Availability') }} {{ property.availability }}%</span>
                   {% if property.risk_score is defined %}
-                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ 'Риск' if admin_lang == 'bg' else 'Risk' }} {{ property.risk_score }}/100</span>
+                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ 'ÃÂ ÃÂ¸Ã‘ÂÃÂº' if admin_lang == 'bg' else 'Risk' }} {{ property.risk_score }}/100</span>
                     <span class="admin-submeta">{{ public_i18n('adminHome', 'riskScore', 'Risk score') }} {{ property.risk_score }}/100</span>
                   {% endif %}
                 </div>
@@ -3230,6 +4199,7 @@
       </div>
     </details>
     </section>
+    {% endif %}
   </main>
   <script>
     (function () {
@@ -3287,7 +4257,7 @@
         if (!Number.isNaN(isoDate.getTime())) {
           return isoDate;
         }
-        const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})\s*[·\.]\s*(\d{2}):(\d{2})\s*UTC$/i);
+        const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})\s*[Ã‚Â·\.]\s*(\d{2}):(\d{2})\s*UTC$/i);
         if (!match) {
           return null;
         }
@@ -3302,17 +4272,17 @@
       function formatRelativeTime(date) {
         const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
         if (diffMinutes < 1) {
-          return adminLang === 'bg' ? 'току-що' : 'just now';
+          return adminLang === 'bg' ? 'Ã‘â€šÃÂ¾ÃÂºÃ‘Æ’-Ã‘â€°ÃÂ¾' : 'just now';
         }
         if (diffMinutes < 60) {
-          return adminLang === 'bg' ? `преди ${diffMinutes} мин` : `${diffMinutes}m ago`;
+          return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffMinutes} ÃÂ¼ÃÂ¸ÃÂ½` : `${diffMinutes}m ago`;
         }
         const diffHours = Math.round(diffMinutes / 60);
         if (diffHours < 24) {
-          return adminLang === 'bg' ? `преди ${diffHours} ч` : `${diffHours}h ago`;
+          return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffHours} Ã‘â€¡` : `${diffHours}h ago`;
         }
         const diffDays = Math.round(diffHours / 24);
-        return adminLang === 'bg' ? `преди ${diffDays} д` : `${diffDays}d ago`;
+        return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffDays} ÃÂ´` : `${diffDays}d ago`;
       }
 
       function updateRelativeTimes() {

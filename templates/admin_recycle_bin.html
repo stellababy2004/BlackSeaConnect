@@ -5,6 +5,191 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BlackSea Connect | Recycle Bin</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-recycle-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .admin-recycle-card {
+      display: grid;
+      gap: 12px;
+      padding: 22px;
+      border: 1px solid rgba(20, 35, 52, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      background-image: none;
+      box-shadow: 0 18px 44px rgba(20, 35, 52, 0.1);
+      color: #142334;
+    }
+
+    .admin-recycle-card :where(h3, p, strong, span) {
+      color: #142334 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    .admin-recycle-card .eyebrow {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+    }
+
+    .admin-recycle-card h3 {
+      margin: 0;
+      color: #0f1f35 !important;
+      -webkit-text-fill-color: #0f1f35 !important;
+      font-size: 1.35rem;
+    }
+
+    .admin-recycle-card p {
+      margin: 0;
+      color: #334155 !important;
+      -webkit-text-fill-color: #334155 !important;
+    }
+
+    .admin-recycle-card .admin-pilot-status {
+      background: #f1e3bf !important;
+      border: 1px solid rgba(20, 35, 52, 0.16) !important;
+      color: #142334 !important;
+      -webkit-text-fill-color: #142334 !important;
+      box-shadow: none !important;
+    }
+
+    .admin-recycle-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .admin-recycle-actions form {
+      display: inline-flex !important;
+      width: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .admin-recycle-button {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 15px;
+      border-radius: 999px;
+      border: 1px solid rgba(20, 35, 52, 0.14);
+      background: rgba(255, 255, 255, 0.72);
+      background-image: none;
+      color: #142334 !important;
+      -webkit-text-fill-color: #142334 !important;
+      box-shadow: 0 10px 24px rgba(20, 35, 52, 0.08);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 750;
+      line-height: 1.1;
+      text-decoration: none;
+    }
+
+    .admin-recycle-button:hover,
+    .admin-recycle-button:focus-visible {
+      border-color: rgba(20, 35, 52, 0.24);
+      background: #f6f8fb;
+      background-image: none;
+      transform: translateY(-1px);
+    }
+
+    .admin-recycle-button--danger {
+      color: #b42318 !important;
+      -webkit-text-fill-color: #b42318 !important;
+      border: 1.5px solid #d92d20 !important;
+      background: transparent !important;
+      background-image: none !important;
+      box-shadow: none;
+    }
+
+    .admin-recycle-button--danger:hover,
+    .admin-recycle-button--danger:focus-visible {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+      border-color: #b42318 !important;
+      background: #b42318 !important;
+      background-image: none !important;
+    }
+
+    @media (max-width: 640px) {
+      .admin-recycle-actions,
+      .admin-recycle-actions form,
+      .admin-recycle-button {
+        width: 100%;
+      }
+    }
+    /* Admin service/recycle light theme override */
+  body.admin-cockpit-page,
+  body.admin-pilot-detail-page {
+    background: #f4f7fb !important;
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-cockpit-shell,
+  body.admin-pilot-detail-page .admin-cockpit-shell {
+    background: rgba(255,255,255,.72) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card,
+  body.admin-cockpit-page .admin-cockpit-panel,
+  body.admin-cockpit-page .admin-recycle-card,
+  body.admin-pilot-detail-page .admin-pilot-card,
+  body.admin-pilot-detail-page .admin-cockpit-panel,
+  body.admin-pilot-detail-page .admin-request-actions-card {
+    background: rgba(255,255,255,.96) !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.10) !important;
+    box-shadow: 0 18px 45px rgba(15,23,42,.12) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card *,
+  body.admin-cockpit-page .admin-cockpit-panel *,
+  body.admin-cockpit-page .admin-recycle-card *,
+  body.admin-pilot-detail-page .admin-pilot-card *,
+  body.admin-pilot-detail-page .admin-cockpit-panel *,
+  body.admin-pilot-detail-page .admin-request-actions-card * {
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button,
+  body.admin-cockpit-page .admin-request-list-button,
+  body.admin-pilot-detail-page .admin-request-action-button {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button--danger,
+  body.admin-cockpit-page .admin-request-list-button--danger,
+  body.admin-pilot-detail-page .admin-request-delete-button {
+    background: transparent !important;
+    color: #b42318 !important;
+    border: 1px solid rgba(180,35,24,.45) !important;
+  }
+
+  body.admin-cockpit-page dialog,
+  body.admin-pilot-detail-page dialog {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+    box-shadow: 0 24px 80px rgba(15,23,42,.28) !important;
+  }
+
+  body.admin-cockpit-page dialog::backdrop,
+  body.admin-pilot-detail-page dialog::backdrop {
+    background: rgba(15,23,42,.38) !important;
+  }
+</style>
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
@@ -42,9 +227,9 @@
         </div>
       </div>
       {% if deleted_requests %}
-        <div class="admin-pilot-list">
+        <div class="admin-recycle-list">
           {% for item in deleted_requests %}
-            <article class="admin-pilot-card">
+            <article class="admin-recycle-card">
               <div class="admin-pilot-card__topline">
                 <p class="eyebrow">{{ item.deleted_at or item.archived_at }}</p>
                 <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ 'DELETED' if item.deleted_at else 'ARCHIVED' }}</span>
@@ -53,15 +238,15 @@
               <p><strong>ID:</strong> {{ item.id|e }}</p>
               <p><strong>Category:</strong> {{ item.service_category|e }}</p>
               <p><strong>Property:</strong> {{ (item.property or item.property_city)|e }}</p>
-              <div class="admin-cockpit-actions">
+              <div class="admin-recycle-actions">
                 <form method="post" action="{{ url_for('admin_service_request_restore', request_id=item.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-                  <button class="button button--secondary" type="submit">Restore request</button>
+                  <button class="admin-recycle-button" type="submit">Restore request</button>
                 </form>
                 {% if is_super_admin %}
                   <form method="post" action="{{ url_for('admin_service_request_purge', request_id=item.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-                    <button class="button button--ghost" type="submit">Delete permanently</button>
+                    <button class="admin-recycle-button admin-recycle-button--danger" type="submit">Delete permanently</button>
                   </form>
                 {% endif %}
               </div>
@@ -81,9 +266,9 @@
         </div>
       </div>
       {% if archived_owners %}
-        <div class="admin-pilot-list">
+        <div class="admin-recycle-list">
           {% for owner in archived_owners %}
-            <article class="admin-pilot-card">
+            <article class="admin-recycle-card">
               <div class="admin-pilot-card__topline">
                 <p class="eyebrow">{{ owner.created_at|e }}</p>
                 <span class="admin-pilot-status">ARCHIVED</span>
@@ -91,14 +276,14 @@
               <h3>{{ owner.full_name|e }}</h3>
               <p><strong>Email:</strong> {{ owner.email|e }}</p>
               <p><strong>Phone:</strong> {{ owner.phone|e }}</p>
-              <div class="admin-cockpit-actions">
-                <a class="button button--ghost" href="{{ url_for('admin_owner_account_detail', owner_id=owner.id) }}">Open owner</a>
+              <div class="admin-recycle-actions">
+                <a class="admin-recycle-button" href="{{ url_for('admin_owner_account_detail', owner_id=owner.id) }}">Open owner</a>
                 <form method="post" action="{{ url_for('admin_owner_account_restore', owner_id=owner.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-                  <button class="button button--secondary" type="submit">Restore owner</button>
+                  <button class="admin-recycle-button" type="submit">Restore owner</button>
                 </form>
                 {% if is_super_admin %}
-                  <a class="button button--ghost" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner.id) }}">Delete permanently</a>
+                  <a class="admin-recycle-button admin-recycle-button--danger" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner.id) }}">Delete permanently</a>
                 {% endif %}
               </div>
             </article>

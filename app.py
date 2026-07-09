@@ -21037,6 +21037,35 @@ def admin_demo_data_clear():
     return redirect(url_for("admin_demo_data", message="cleared"))
 
 
+
+@app.get("/admin/directory")
+@admin_required
+def admin_directory():
+    directory_users = [
+        {"name": "Stella", "type": "Admin", "role": "Super Admin", "status": "Active", "scope": "Full platform"},
+        {"name": "Operations Manager", "type": "Operator", "role": "Operations Manager", "status": "Planned", "scope": "Operations + dispatch"},
+        {"name": "Dispatcher", "type": "Operator", "role": "Dispatcher", "status": "Planned", "scope": "Tasks + calendar"},
+        {"name": "Owner Success", "type": "Operator", "role": "Owner Success", "status": "Planned", "scope": "Owners + requests"},
+        {"name": "Professional", "type": "Field user", "role": "Professional", "status": "Planned", "scope": "Assigned tasks only"},
+        {"name": "Owner", "type": "Owner", "role": "Owner", "status": "Planned", "scope": "Own properties only"},
+        {"name": "Auditor", "type": "Read only", "role": "Auditor", "status": "Planned", "scope": "Read-only audit"},
+    ]
+    role_matrix = [
+        {"role": "Super Admin", "access": "Everything", "can_edit": "Yes", "can_delete": "Yes"},
+        {"role": "Operations Manager", "access": "Operations, properties, calendar, owners", "can_edit": "Yes", "can_delete": "Limited"},
+        {"role": "Dispatcher", "access": "Operations and calendar", "can_edit": "Yes", "can_delete": "No"},
+        {"role": "Owner Success", "access": "Owners and service requests", "can_edit": "Yes", "can_delete": "No"},
+        {"role": "Professional", "access": "Assigned operations", "can_edit": "Status only", "can_delete": "No"},
+        {"role": "Owner", "access": "Own properties and requests", "can_edit": "Requests only", "can_delete": "No"},
+        {"role": "Auditor", "access": "Read-only cockpit and audit", "can_edit": "No", "can_delete": "No"},
+    ]
+    return render_template(
+        "admin_directory.html",
+        directory_users=directory_users,
+        role_matrix=role_matrix,
+    )
+
+
 @app.get("/admin")
 @admin_required
 def admin_home():

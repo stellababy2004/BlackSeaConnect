@@ -10,6 +10,272 @@
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title>BlackSea Connect | Service Requests</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .admin-request-list-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .admin-request-list-actions form {
+      display: inline-flex !important;
+      width: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .admin-request-list-button {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 15px;
+      border-radius: 999px;
+      border: 1px solid rgba(20, 35, 52, 0.14);
+      background: rgba(255, 255, 255, 0.72);
+      background-image: none;
+      color: #142334;
+      box-shadow: 0 10px 24px rgba(20, 35, 52, 0.08);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 750;
+      line-height: 1.1;
+      text-decoration: none;
+    }
+
+    .admin-request-list-button:hover,
+    .admin-request-list-button:focus-visible {
+      border-color: rgba(20, 35, 52, 0.24);
+      background: #f6f8fb;
+      background-image: none;
+      transform: translateY(-1px);
+    }
+
+    .admin-request-list-button--danger {
+      color: #b42318 !important;
+      -webkit-text-fill-color: #b42318 !important;
+      border: 1.5px solid #d92d20 !important;
+      background: transparent !important;
+      background-image: none !important;
+      box-shadow: none;
+    }
+
+    .admin-request-list-button--danger:hover,
+    .admin-request-list-button--danger:focus-visible {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+      border-color: #b42318 !important;
+      background: #b42318 !important;
+      background-image: none !important;
+    }
+
+    .admin-request-list-delete-dialog {
+      width: min(560px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid rgba(20, 35, 52, 0.12);
+      border-radius: 18px;
+      background: #fff !important;
+      background-image: none !important;
+      box-shadow: 0 28px 80px rgba(20, 35, 52, 0.24);
+      color: #142334;
+    }
+
+    .admin-request-list-delete-dialog::backdrop {
+      background: rgba(12, 22, 34, 0.52);
+      backdrop-filter: blur(4px);
+    }
+
+    .admin-request-list-delete-dialog__body {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+    }
+
+    .admin-request-list-delete-dialog h2,
+    .admin-request-list-delete-dialog p,
+    .admin-request-list-delete-dialog dt,
+    .admin-request-list-delete-dialog dd {
+      color: #142334 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    .admin-request-list-delete-dialog h2 {
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-request-list-delete-dialog p {
+      margin: 4px 0 0;
+      color: #5d6b7a !important;
+      line-height: 1.5;
+    }
+
+    .admin-request-list-delete-dialog__meta {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 0;
+    }
+
+    .admin-request-list-delete-dialog__meta div {
+      padding: 10px 12px;
+      border: 1px solid rgba(20, 35, 52, 0.09);
+      border-radius: 12px;
+      background: #f7f9fb;
+    }
+
+    .admin-request-list-delete-dialog__meta dt {
+      color: #6d7a89 !important;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .admin-request-list-delete-dialog__meta dd {
+      margin: 4px 0 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .admin-request-list-delete-dialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card {
+      background: rgba(255, 255, 255, 0.96) !important;
+      background-image: none !important;
+      border: 1px solid rgba(20, 35, 52, 0.12) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 18px 44px rgba(20, 35, 52, 0.1) !important;
+      color: #142334 !important;
+      padding: 24px !important;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card :where(h2, p, strong, span, time) {
+      color: #142334 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card h2 {
+      color: #0f1f35 !important;
+      -webkit-text-fill-color: #0f1f35 !important;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card p {
+      color: #334155 !important;
+      -webkit-text-fill-color: #334155 !important;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .eyebrow {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-card__topline {
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    body.admin-cockpit-page .admin-pilot-list .admin-pilot-status {
+      background: #f1e3bf !important;
+      border: 1px solid rgba(20, 35, 52, 0.16) !important;
+      color: #142334 !important;
+      -webkit-text-fill-color: #142334 !important;
+      box-shadow: none !important;
+    }
+
+    @media (max-width: 640px) {
+      .admin-request-list-actions,
+      .admin-request-list-actions form,
+      .admin-request-list-button,
+      .admin-request-list-delete-dialog__actions,
+      .admin-request-list-delete-dialog__actions .admin-request-list-button {
+        width: 100%;
+      }
+
+      .admin-request-list-delete-dialog__meta {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Admin service/recycle light theme override */
+  body.admin-cockpit-page,
+  body.admin-pilot-detail-page {
+    background: #f4f7fb !important;
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-cockpit-shell,
+  body.admin-pilot-detail-page .admin-cockpit-shell {
+    background: rgba(255,255,255,.72) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card,
+  body.admin-cockpit-page .admin-cockpit-panel,
+  body.admin-cockpit-page .admin-recycle-card,
+  body.admin-pilot-detail-page .admin-pilot-card,
+  body.admin-pilot-detail-page .admin-cockpit-panel,
+  body.admin-pilot-detail-page .admin-request-actions-card {
+    background: rgba(255,255,255,.96) !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.10) !important;
+    box-shadow: 0 18px 45px rgba(15,23,42,.12) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  body.admin-cockpit-page .admin-pilot-card *,
+  body.admin-cockpit-page .admin-cockpit-panel *,
+  body.admin-cockpit-page .admin-recycle-card *,
+  body.admin-pilot-detail-page .admin-pilot-card *,
+  body.admin-pilot-detail-page .admin-cockpit-panel *,
+  body.admin-pilot-detail-page .admin-request-actions-card * {
+    color: #0f172a !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button,
+  body.admin-cockpit-page .admin-request-list-button,
+  body.admin-pilot-detail-page .admin-request-action-button {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+  }
+
+  body.admin-cockpit-page .admin-recycle-button--danger,
+  body.admin-cockpit-page .admin-request-list-button--danger,
+  body.admin-pilot-detail-page .admin-request-delete-button {
+    background: transparent !important;
+    color: #b42318 !important;
+    border: 1px solid rgba(180,35,24,.45) !important;
+  }
+
+  body.admin-cockpit-page dialog,
+  body.admin-pilot-detail-page dialog {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(15,23,42,.12) !important;
+    box-shadow: 0 24px 80px rgba(15,23,42,.28) !important;
+  }
+
+  body.admin-cockpit-page dialog::backdrop,
+  body.admin-pilot-detail-page dialog::backdrop {
+    background: rgba(15,23,42,.38) !important;
+  }
+</style>
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
@@ -67,7 +333,7 @@
     {% if requests %}
       <section class="admin-pilot-list">
         {% for item in requests %}
-          <article class="admin-pilot-card" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
+          <article class="admin-pilot-card" style="background: rgba(255, 255, 255, 0.96) !important; background-image: none !important; border: 1px solid rgba(20, 35, 52, 0.12) !important; box-shadow: 0 18px 44px rgba(20, 35, 52, 0.1) !important; color: #142334 !important;" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
@@ -80,19 +346,41 @@
             <p><strong>Category:</strong> {{ item.service_category|e }}</p>
             <p><strong>Preferred date:</strong> {{ item.preferred_date|e }}</p>
             <p><strong>Assigned professional:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</p>
-            <div class="admin-cockpit-actions">
-              <a class="button button--primary" href="/admin/service-requests/{{ item.id|e }}">Open request</a>
+            <div class="admin-request-list-actions">
+              <a class="admin-request-list-button" href="/admin/service-requests/{{ item.id|e }}">Open request</a>
               <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                 <input type="hidden" name="next" value="{{ request.full_path }}">
-                <button class="button button--ghost" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Delete request</button>
-                <dialog id="delete-request-{{ item.id|e }}" class="admin-cockpit-panel">
-                  <h2>Delete request</h2>
-                  <p>Are you sure you want to delete this request?</p>
-                  <p>This request remains recoverable in the recycle bin for 30 days.</p>
-                  <div class="admin-cockpit-actions">
-                    <button class="button button--secondary" type="button" data-close-delete-modal>Cancel</button>
-                    <button class="button button--primary" type="submit">Delete request</button>
+                <button class="admin-request-list-button admin-request-list-button--danger" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Delete request</button>
+                <dialog id="delete-request-{{ item.id|e }}" class="admin-request-list-delete-dialog">
+                  <div class="admin-request-list-delete-dialog__body">
+                    <div>
+                      <p class="eyebrow">Confirm deletion</p>
+                      <h2>Delete this request?</h2>
+                      <p>This request will be removed from active workflows and kept in the recycle bin for 30 days.</p>
+                    </div>
+                    <dl class="admin-request-list-delete-dialog__meta">
+                      <div>
+                        <dt>Property</dt>
+                        <dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd>
+                      </div>
+                      <div>
+                        <dt>Guest</dt>
+                        <dd>{{ item.name|e }}</dd>
+                      </div>
+                      <div>
+                        <dt>Request ID</dt>
+                        <dd>{{ item.id|e }}</dd>
+                      </div>
+                      <div>
+                        <dt>Creation date</dt>
+                        <dd>{{ item.created_at|e }}</dd>
+                      </div>
+                    </dl>
+                    <div class="admin-request-list-delete-dialog__actions">
+                      <button class="admin-request-list-button" type="button" data-close-delete-modal>Cancel</button>
+                      <button class="admin-request-list-button admin-request-list-button--danger" type="submit">Delete request</button>
+                    </div>
                   </div>
                 </dialog>
               </form>
