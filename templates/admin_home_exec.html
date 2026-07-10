@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="{{ 'en' if page_lang == 'en' else 'bg' }}">
 <head>
   <meta charset="UTF-8">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit · BlackSea Connect') }}</title>
+  <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit - BlackSea Connect') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     body.admin-cockpit-page {
@@ -3069,11 +3069,11 @@
   <main class="admin-cockpit-shell">
     {% set admin_lang = 'en' if page_lang == 'en' else 'bg' %}
     {% if admin_lang == 'bg' %}
-      {% set tone_labels = {'success': 'ДОБРЕ', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'info': 'ИНФО', 'neutral': 'ИНФО', 'primary': 'ОСНОВНО'} %}
-      {% set severity_labels = {'critical': 'Критично', 'high': 'Високо', 'medium': 'Средно', 'low': 'Ниско', 'info': 'Инфо'} %}
-      {% set category_labels = {'overdue operations': 'Просрочени операции', 'unassigned operations': 'Невъзложени операции', 'operations without due dates': 'Операции без срок', 'owner requests waiting': 'Чакащи заявки от собственици', 'properties without readiness': 'Имот без пълна готовност', 'reservations arriving within 24h without completed preparation': 'Пристигане без завършена подготовка', 'reservations missing assigned cleaning': 'Резервации без възложено почистване', 'calendar conflicts': 'Конфликти в календара', 'overlapping reservations': 'Припокриващи се резервации', 'professionals overloaded': 'Претоварени професионалисти', 'operation': 'Операция', 'reservation': 'Резервация', 'professional': 'Професионалист', 'owner': 'Собственик'} %}
-      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Scheduled': 'Планирано', 'Completed': 'Приключено', 'Waiting': 'Чака', 'Assigned': 'Възложено', 'In Progress': 'В процес', 'Pending': 'Чакащо', 'Confirmed': 'Потвърдено', 'Checked In': 'Настанен', 'Checked Out': 'Освободен', 'Available': 'Наличен', 'Occupied': 'Зает', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокиран', 'Ready': 'Готов', 'None': 'Няма'} %}
-      {% set detail_labels = {'operation is past due': 'Операцията е просрочена.', 'operation has no assigned professional': 'Операцията няма назначен професионалист.', 'open operation is missing a due date': 'Отворената операция няма зададен срок.', 'owner request has been waiting longer than 48 hours': 'Заявката от собственик чака повече от 48 часа.', 'upcoming arrival still needs preparation': 'Предстоящото пристигане все още изисква подготовка.', 'reservation is approaching without an assigned cleaning task': 'Резервацията наближава без възложено почистване.', 'calendar event overlaps with a reservation': 'Събитие в календара се припокрива с резервация.', 'reservations share overlapping occupancy windows': 'Резервациите имат припокриващи се периоди на заетост.'} %}
+      {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
+      {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
+      {% set category_labels = {'overdue operations': 'Overdue operations', 'unassigned operations': 'Unassigned operations', 'operations without due dates': 'Operations without due dates', 'owner requests waiting': 'Owner requests waiting', 'properties without readiness': 'Properties without readiness', 'reservations arriving within 24h without completed preparation': 'Arrivals without completed preparation', 'reservations missing assigned cleaning': 'Reservations missing cleaning assignment', 'calendar conflicts': 'Calendar conflicts', 'overlapping reservations': 'Overlapping reservations', 'professionals overloaded': 'Professionals overloaded', 'operation': 'Operation', 'reservation': 'Reservation', 'professional': 'Professional', 'owner': 'Owner'} %}
+      {% set value_labels = {'Operation': 'Operation', 'Reservation': 'Reservation', 'Professional': 'Professional', 'Owner': 'Owner', 'Operations': 'Operations', 'Scheduled': 'Scheduled', 'Completed': 'Completed', 'Waiting': 'Waiting', 'Assigned': 'Assigned', 'In Progress': 'In Progress', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Checked In': 'Checked In', 'Checked Out': 'Checked Out', 'Available': 'Available', 'Occupied': 'Occupied', 'Preparing': 'Preparing', 'Cleaning': 'Cleaning', 'Maintenance': 'Maintenance', 'Blocked': 'Blocked', 'Ready': 'Ready', 'None': 'None'} %}
+      {% set detail_labels = {'operation is past due': 'Operation is past due.', 'operation has no assigned professional': 'Operation has no assigned professional.', 'open operation is missing a due date': 'Open operation is missing a due date.', 'owner request has been waiting longer than 48 hours': 'Owner request has been waiting longer than 48 hours.', 'upcoming arrival still needs preparation': 'Upcoming arrival still needs preparation.', 'reservation is approaching without an assigned cleaning task': 'Reservation is approaching without an assigned cleaning task.', 'calendar event overlaps with a reservation': 'Calendar event overlaps with a reservation.', 'reservations share overlapping occupancy windows': 'Reservations share overlapping occupancy windows.'} %}
     {% else %}
       {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
       {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
@@ -3128,7 +3128,7 @@
         </p>
         <div class="admin-hero-status" aria-label="Live status summary">
           <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> {{ public_i18n('adminHome', 'liveStatus', 'Live') }}</span>
-          <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">{{ 'Обновяване...' if admin_lang == 'bg' else 'Updating...' }}</time></span>
+          <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">Updating...</time></span>
           {% set system_health_tone = 'success' if operations_summary.late_operations == 0 and sla_monitoring.late_percent < 10 else 'warning' if operations_summary.late_operations < 4 and sla_monitoring.late_percent < 25 else 'danger' %}
           <span class="admin-health-chip" data-tone="{{ system_health_tone }}">{{ public_i18n('adminHome', 'operationalStatusHealthy', 'Operations steady') if system_health_tone == 'success' else public_i18n('adminHome', 'operationalStatusWatch', 'Attention required') if system_health_tone == 'warning' else public_i18n('adminHome', 'operationalPressureHigh', 'Operational pressure high') }}</span>
         </div>
@@ -3160,6 +3160,7 @@
           </div>
         </div>
         <div class="admin-cockpit-actions">
+          <a class="button button--primary" href="/admin/operator">Operator Console</a>
           <a class="button button--primary" href="/admin/operations">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
           <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
           <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
@@ -3271,7 +3272,7 @@
             </div>
             <div class="admin-kpi-meta">
               <div class="admin-kpi-trend">
-                <span class="admin-trend-arrow" aria-hidden="true">{% if card.tone == 'success' %}Ã¢â€ â€˜{% elif card.tone == 'danger' %}Ã¢â€ â€œ{% else %}Ã¢â€ â€™{% endif %}</span>
+                <span class="admin-trend-arrow" aria-hidden="true">{% if card.tone == 'success' %}^{% elif card.tone == 'danger' %}v{% else %}->{% endif %}</span>
                 <span>{{ card.trend }}</span>
               </div>
             </div>
@@ -4053,7 +4054,7 @@
                   <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">{{ public_i18n('adminHome', 'maintenance', 'Maintenance') }} {% if property.maintenance_required %}{{ public_i18n('adminHome', 'flagged', 'flagged') }}{% else %}{{ public_i18n('adminHome', 'clear', 'clear') }}{% endif %}</span>
                   <span class="admin-badge admin-badge--info">{{ public_i18n('adminHome', 'availability', 'Availability') }} {{ property.availability }}%</span>
                   {% if property.risk_score is defined %}
-                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ 'ÃÂ ÃÂ¸Ã‘ÂÃÂº' if admin_lang == 'bg' else 'Risk' }} {{ property.risk_score }}/100</span>
+                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ 'Risk' }} {{ property.risk_score }}/100</span>
                     <span class="admin-submeta">{{ public_i18n('adminHome', 'riskScore', 'Risk score') }} {{ property.risk_score }}/100</span>
                   {% endif %}
                 </div>
@@ -4257,7 +4258,7 @@
         if (!Number.isNaN(isoDate.getTime())) {
           return isoDate;
         }
-        const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})\s*[·\.]\s*(\d{2}):(\d{2})\s*UTC$/i);
+        const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})\s*[\.]\s*(\d{2}):(\d{2})\s*UTC$/i);
         if (!match) {
           return null;
         }
@@ -4272,17 +4273,17 @@
       function formatRelativeTime(date) {
         const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
         if (diffMinutes < 1) {
-          return adminLang === 'bg' ? 'Ã‘â€šÃÂ¾ÃÂºÃ‘Æ’-Ã‘â€°ÃÂ¾' : 'just now';
+          return 'just now';
         }
         if (diffMinutes < 60) {
-          return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffMinutes} ÃÂ¼ÃÂ¸ÃÂ½` : `${diffMinutes}m ago`;
+          return `${diffMinutes}m ago`;
         }
         const diffHours = Math.round(diffMinutes / 60);
         if (diffHours < 24) {
-          return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffHours} Ã‘â€¡` : `${diffHours}h ago`;
+          return `${diffHours}h ago`;
         }
         const diffDays = Math.round(diffHours / 24);
-        return adminLang === 'bg' ? `ÃÂ¿Ã‘â‚¬ÃÂµÃÂ´ÃÂ¸ ${diffDays} ÃÂ´` : `${diffDays}d ago`;
+        return `${diffDays}d ago`;
       }
 
       function updateRelativeTimes() {
@@ -4298,6 +4299,6 @@
       updateRelativeTimes();
       window.setInterval(updateRelativeTimes, 60000);
     })();
-  </script>
+</script>
 </body>
 </html>

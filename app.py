@@ -14659,6 +14659,157 @@ def _admin_operations_board_context():
     }
 
 
+def _operator_console_datetime(value):
+    parsed = _parse_iso_datetime(value) or _calendar_parse_datetime(value)[0]
+    if not parsed:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _operator_console_time_label(value):
+    parsed = _operator_console_datetime(value)
+    if not parsed:
+        return str(value or "").strip() or "No time set"
+    return parsed.strftime("%d %b %H:%M")
+
+
+def _operator_console_task_card(task_record, *, cta_label="Open operation"):
+    task = task_record or {}
+    return {
+        "id": str(task.get("id", "")).strip() or str(task.get("request_id", "")).strip(),
+        "priority": _operations_task_priority_label(task.get("priority", "NORMAL")),
+        "priority_tone": _operations_task_priority_tone(task.get("priority", "NORMAL")),
+        "property": str(task.get("property_label", "") or task.get("property_name", "") or task.get("property_location", "") or "Unassigned property").strip(),
+        "title": str(task.get("title", "") or task.get("category", "") or "Operation").strip(),
+        "status": _operations_task_status_label(task.get("status", "NEW")),
+        "time": _operator_console_time_label(task.get("due_date") or task.get("created_at")),
+        "href": url_for("admin_operations_detail", task_id=str(task.get("id", "") or task.get("request_id", "")).strip()),
+        "cta": cta_label,
+        "kind": "Operation",
+    }
+
+
+def _operator_console_request_card(request_record):
+    item = request_record or {}
+    request_id = str(item.get("id", "")).strip()
+    return {
+        "id": request_id,
+        "priority": str(item.get("urgency", "") or "Owner").strip().title(),
+        "priority_tone": "high" if str(item.get("urgency", "")).strip().lower() in {"urgent", "high", "asap", "emergency"} else "normal",
+        "property": str(item.get("property_name", "") or item.get("property_location", "") or item.get("city", "") or "Property pending").strip(),
+        "title": str(item.get("service_category", "") or item.get("description", "") or "Service request").strip(),
+        "status": _normalize_service_request_status(item.get("status", "new")).replace("_", " ").title(),
+        "time": _operator_console_time_label(item.get("preferred_date") or item.get("created_at")),
+        "href": url_for("admin_service_request_detail", request_id=request_id),
+        "cta": "Open request",
+        "kind": "Owner request" if str(item.get("request_source", "")).lower() == "owner" else "Request",
+    }
+
+
+def _operator_console_context():
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    next_24h = now + timedelta(hours=24)
+
+    operations_context = _admin_operations_board_context()
+    tasks = operations_context.get("tasks", [])
+    open_statuses = {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"}
+    open_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in open_statuses]
+    late_tasks = [task for task in open_tasks if _admin_operations_task_is_overdue(task)]
+    unassigned_tasks = [
+        task for task in open_tasks
+        if not str(task.get("assigned_to", "")).strip() and not str(task.get("assigned_professional_id", "")).strip()
+    ]
+
+    service_requests = [
+        record for record in _load_service_requests()
+        if _normalize_service_request_status(record.get("status", "new")) in {"new", "assigned", "in_progress"}
+    ]
+    owner_requests = [
+        record for record in service_requests
+        if str(record.get("request_source", "public")).strip().lower() in {"owner", "public", ""}
+    ]
+
+    reservation_context = _reservation_list_context(scope="admin", filters={})
+    reservations = reservation_context.get("reservations", [])
+    arrivals_next_24h = []
+    for reservation in reservations:
+        arrival_dt = _operator_console_datetime(reservation.get("arrival_datetime", ""))
+        if arrival_dt and now <= arrival_dt <= next_24h:
+            arrivals_next_24h.append(reservation)
+
+    calendar_context = _build_calendar_page_context("admin")
+    calendar_events_today = []
+    for event in calendar_context.get("calendar_events", []):
+        event_dt = _operator_console_datetime(event.get("start_datetime", ""))
+        if event_dt and event_dt.date() == today:
+            calendar_events_today.append(event)
+
+    available_professionals = [
+        account for account in _load_professional_accounts()
+        if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
+    ]
+
+    critical_cards = []
+    critical_cards.extend(_operator_console_task_card(task) for task in sorted(late_tasks, key=lambda item: str(item.get("due_date", "") or item.get("created_at", "")))[:5])
+    remaining_slots = max(0, 5 - len(critical_cards))
+    if remaining_slots:
+        urgent_tasks = [
+            task for task in open_tasks
+            if _normalize_operations_task_priority(task.get("priority", "NORMAL")) in {"URGENT", "HIGH"} and task not in late_tasks
+        ]
+        critical_cards.extend(_operator_console_task_card(task) for task in urgent_tasks[:remaining_slots])
+    remaining_slots = max(0, 5 - len(critical_cards))
+    if remaining_slots:
+        critical_cards.extend(_operator_console_request_card(record) for record in owner_requests[:remaining_slots])
+
+    timeline = []
+    for reservation in arrivals_next_24h[:8]:
+        timeline.append({
+            "time": _operator_console_time_label(reservation.get("arrival_datetime", "")),
+            "type": "Arrival",
+            "title": _reservation_guest_name(reservation) or "Guest arrival",
+            "property": str(reservation.get("property_name", "") or reservation.get("property_location", "") or "Property pending").strip(),
+            "href": url_for("admin_reservation_detail", reservation_id=reservation.get("id", "")),
+        })
+    for task in open_tasks:
+        due_dt = _operator_console_datetime(task.get("due_date", ""))
+        if due_dt and due_dt.date() == today:
+            timeline.append({
+                "time": _operator_console_time_label(task.get("due_date", "")),
+                "type": "Operation",
+                "title": str(task.get("title", "") or "Operation").strip(),
+                "property": str(task.get("property_label", "") or task.get("property_name", "") or "Property pending").strip(),
+                "href": url_for("admin_operations_detail", task_id=task.get("id", "")),
+            })
+    for event in calendar_events_today[:8]:
+        timeline.append({
+            "time": _operator_console_time_label(event.get("start_datetime", "")),
+            "type": str(event.get("event_type", "") or "Calendar").strip(),
+            "title": str(event.get("title", "") or "Calendar item").strip(),
+            "property": str(event.get("property_label", "") or event.get("city", "") or "Calendar").strip(),
+            "href": url_for("admin_calendar"),
+        })
+    timeline.sort(key=lambda item: item.get("time", ""))
+
+    return {
+        "summary": {
+            "late_tasks": len(late_tasks),
+            "unassigned_tasks": len(unassigned_tasks),
+            "owner_requests_waiting": len(owner_requests),
+            "arrivals_next_24h": len(arrivals_next_24h),
+            "available_professionals": len(available_professionals),
+        },
+        "critical_items": critical_cards[:5],
+        "needs_assignment": [_operator_console_task_card(task, cta_label="Assign professional") for task in unassigned_tasks[:8]],
+        "owner_requests": [_operator_console_request_card(record) for record in owner_requests[:8]],
+        "timeline": timeline[:12],
+        "available_professionals": available_professionals[:8],
+    }
+
+
 def _admin_notifications_context():
     overdue_monitor = _run_operations_overdue_monitor()
     current_operator_key = _current_admin_operator_key()
@@ -20794,6 +20945,12 @@ def admin_reservation_detail(reservation_id):
 def admin_operations():
     context = _admin_operations_board_context()
     return render_template("admin_operations.html", **context)
+
+
+@app.get("/admin/operator")
+@admin_required
+def admin_operator_console():
+    return render_template("admin_operator.html", **_operator_console_context())
 
 
 @app.route("/admin/notifications", methods=["GET", "POST"])

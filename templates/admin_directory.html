@@ -29,7 +29,7 @@
     @media (max-width:900px){ .dir-hero{display:block}.dir-grid{grid-template-columns:1fr}.dir-shell{width:calc(100vw - 24px)} h1{font-size:36px} }
   </style>
 </head>
-<body>
+<body class="admin-directory-page">
   <main class="dir-shell">
     <section class="dir-hero">
       <div>
@@ -38,6 +38,7 @@
         <p>Central view for administrators, operators, owners and professionals. This first version is a safe role blueprint before connecting it to real accounts and permissions.</p>
       </div>
       <div class="dir-actions">
+        <a class="btn btn-primary" href="{{ url_for('admin_operator_console') }}">Operator Console</a>
         <a class="btn" href="{{ url_for('admin_home') }}">Back to cockpit</a>
         <a class="btn" href="{{ url_for('admin_owner_accounts') }}">Owner accounts</a>
         <a class="btn" href="{{ url_for('admin_professionals') }}">Professionals</a>

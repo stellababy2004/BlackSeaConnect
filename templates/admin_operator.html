@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Operator Console · BlackSea Connect</title>
+</head>
+<body class="admin-operator-page admin-light-page">
+  <main class="admin-light-shell operator-console-shell">
+    <section class="admin-light-hero operator-console-hero">
+      <div>
+        <p class="admin-light-kicker">BlackSea Connect</p>
+        <h1>Operator Console</h1>
+        <p>Today's operational workbench</p>
+      </div>
+      <nav class="admin-light-actions" aria-label="Operator navigation">
+        <a class="button button--secondary" href="{{ url_for('admin_home') }}">Back to cockpit</a>
+        <a class="button button--primary" href="{{ url_for('admin_operations') }}">Open operations</a>
+        <a class="button button--secondary" href="{{ url_for('admin_service_requests') }}">Open service requests</a>
+        <a class="button button--secondary" href="{{ url_for('admin_calendar') }}">Open calendar</a>
+      </nav>
+    </section>
+
+    <section class="admin-light-kpi-grid operator-summary" aria-label="Today summary">
+      <article class="admin-light-kpi" data-tone="danger">
+        <span>Late tasks</span>
+        <strong>{{ summary.late_tasks }}</strong>
+      </article>
+      <article class="admin-light-kpi" data-tone="warning">
+        <span>Unassigned tasks</span>
+        <strong>{{ summary.unassigned_tasks }}</strong>
+      </article>
+      <article class="admin-light-kpi" data-tone="warning">
+        <span>Owner requests waiting</span>
+        <strong>{{ summary.owner_requests_waiting }}</strong>
+      </article>
+      <article class="admin-light-kpi" data-tone="info">
+        <span>Arrivals today / next 24h</span>
+        <strong>{{ summary.arrivals_next_24h }}</strong>
+      </article>
+      <article class="admin-light-kpi" data-tone="success">
+        <span>Available professionals</span>
+        <strong>{{ summary.available_professionals }}</strong>
+      </article>
+    </section>
+
+    <section class="operator-console-grid">
+      <article class="admin-light-panel operator-console-panel operator-console-panel--wide">
+        <div class="admin-light-panel__header">
+          <div>
+            <p class="admin-light-kicker">Priority queue</p>
+            <h2>Critical now</h2>
+          </div>
+        </div>
+        {% if critical_items %}
+          <div class="operator-list">
+            {% for item in critical_items %}
+              <a class="operator-row" href="{{ item.href }}">
+                <span class="admin-light-badge admin-light-badge--{{ item.priority_tone }}">{{ item.priority }}</span>
+                <span>
+                  <strong>{{ item.property|e }}</strong>
+                  <small>{{ item.kind|e }} · {{ item.title|e }}</small>
+                </span>
+                <time>{{ item.time|e }}</time>
+                <em>{{ item.cta|e }}</em>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-light-empty">
+            <h3>No critical items right now.</h3>
+            <p>Late, urgent, and waiting items will appear here first.</p>
+          </div>
+        {% endif %}
+      </article>
+
+      <article class="admin-light-panel operator-console-panel">
+        <div class="admin-light-panel__header">
+          <div>
+            <p class="admin-light-kicker">Dispatch</p>
+            <h2>Needs assignment</h2>
+          </div>
+          <a class="admin-light-link" href="{{ url_for('admin_operations') }}">Open board</a>
+        </div>
+        {% if needs_assignment %}
+          <div class="operator-list">
+            {% for item in needs_assignment %}
+              <a class="operator-row operator-row--compact" href="{{ item.href }}">
+                <span>
+                  <strong>{{ item.property|e }}</strong>
+                  <small>{{ item.title|e }} · {{ item.time|e }}</small>
+                </span>
+                <em>Assign professional</em>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-light-empty"><h3>Everything assigned.</h3><p>Unassigned operations will appear here.</p></div>
+        {% endif %}
+      </article>
+
+      <article class="admin-light-panel operator-console-panel">
+        <div class="admin-light-panel__header">
+          <div>
+            <p class="admin-light-kicker">Requests</p>
+            <h2>Owner requests</h2>
+          </div>
+          <a class="admin-light-link" href="{{ url_for('admin_service_requests') }}">All requests</a>
+        </div>
+        {% if owner_requests %}
+          <div class="operator-list">
+            {% for item in owner_requests %}
+              <a class="operator-row operator-row--compact" href="{{ item.href }}">
+                <span>
+                  <strong>{{ item.property|e }}</strong>
+                  <small>{{ item.title|e }} · {{ item.status|e }}</small>
+                </span>
+                <em>Open request</em>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-light-empty"><h3>No waiting owner requests.</h3><p>New owner and public requests will appear here.</p></div>
+        {% endif %}
+      </article>
+
+      <article class="admin-light-panel operator-console-panel operator-console-panel--wide">
+        <div class="admin-light-panel__header">
+          <div>
+            <p class="admin-light-kicker">Today</p>
+            <h2>Today timeline</h2>
+          </div>
+          <a class="admin-light-link" href="{{ url_for('admin_calendar') }}">Open calendar</a>
+        </div>
+        {% if timeline %}
+          <div class="operator-timeline">
+            {% for item in timeline %}
+              <a class="operator-timeline__item" href="{{ item.href }}">
+                <time>{{ item.time|e }}</time>
+                <span>
+                  <strong>{{ item.type|e }} · {{ item.title|e }}</strong>
+                  <small>{{ item.property|e }}</small>
+                </span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-light-empty"><h3>No timeline items for today.</h3><p>Arrivals, departures, operations, and calendar items will appear here.</p></div>
+        {% endif %}
+      </article>
+
+      <article class="admin-light-panel operator-console-panel">
+        <div class="admin-light-panel__header">
+          <div>
+            <p class="admin-light-kicker">Shortcuts</p>
+            <h2>Quick actions</h2>
+          </div>
+        </div>
+        <div class="operator-quick-actions">
+          <a class="button button--primary" href="{{ url_for('admin_operations') }}">Create operation</a>
+          <a class="button button--secondary" href="{{ url_for('admin_reservation_import') }}">Import reservation</a>
+          <a class="button button--secondary" href="{{ url_for('admin_directory') }}">Open directory</a>
+          <a class="button button--secondary" href="{{ url_for('admin_recycle_bin') }}">Open recycle bin</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

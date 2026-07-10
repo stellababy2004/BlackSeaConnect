@@ -200,6 +200,7 @@
         <p>Deleted service requests are recoverable for 30 days. Archived owners remain recoverable indefinitely.</p>
       </div>
       <div class="admin-cockpit-actions">
+        <a class="button button--primary" href="{{ url_for('admin_operator_console') }}">Operator Console</a>
         <a class="button button--secondary" href="{{ url_for('admin_service_requests') }}">Service requests</a>
         <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}">Owner accounts</a>
         <a class="button button--ghost" href="/admin">Back to cockpit</a>

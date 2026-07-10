@@ -35286,3 +35286,565 @@ body.admin-cockpit-page .admin-alert-feed__item * {
   word-break: normal !important;
   hyphens: none !important;
 }
+
+/* Admin UX consolidation: scoped light control-room system. */
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) {
+  --admin-ink: #10233f;
+  --admin-muted: #66758a;
+  --admin-line: rgba(16, 35, 63, 0.11);
+  --admin-line-strong: rgba(16, 35, 63, 0.18);
+  --admin-surface: rgba(255, 255, 255, 0.96);
+  --admin-surface-soft: #f7fafc;
+  --admin-champagne: #ead99f;
+  --admin-blue: #a8d8e8;
+  --admin-shadow: 0 18px 46px rgba(16, 35, 63, 0.08);
+  background: #f6f8fb !important;
+  background-image: linear-gradient(180deg, #fbfcfe 0%, #f3f7fb 100%) !important;
+  color: var(--admin-ink) !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(h1, h2, h3, h4, h5, h6, strong, label, dt, th) {
+  color: var(--admin-ink) !important;
+  text-shadow: none !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(p, span, small, time, dd, td, li, a) {
+  text-shadow: none !important;
+}
+
+body:is(.admin-cockpit-page, .admin-exec-page, .admin-directory-page, .admin-operator-page) :where(.admin-cockpit-shell, .dir-shell, .admin-light-shell),
+body:is(.admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page, .admin-owner-detail-page) :where(.admin-properties-shell, .admin-property-detail-shell, .admin-owner-accounts-shell, .admin-owner-detail-shell),
+body:is(.admin-operations-page, .admin-operations-detail-page) :where(.admin-operations-shell, .admin-operations-detail-shell),
+body:is(.calendar-page--admin, .reservations-page--admin, .reservation-detail-page--admin, .reservation-import-page) :where(.calendar-shell, .reservations-shell, .reservation-detail-shell, .reservation-import-shell) {
+  position: relative;
+  z-index: 1;
+  width: min(1380px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-dashboard-section,
+  .admin-kpi-card,
+  .admin-dispatch-kpi,
+  .admin-alert-card,
+  .admin-alert-row,
+  .admin-activity-item,
+  .admin-pipeline-card,
+  .admin-empty-state,
+  .admin-service-card,
+  .service-request-card,
+  .request-detail-card,
+  .admin-recycle-card,
+  .recycle-bin-card,
+  .deleted-request-card,
+  .archived-request-card,
+  .admin-properties-panel,
+  .admin-property-detail-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-operations-hero,
+  .admin-operations-panel,
+  .admin-operations-kpi,
+  .admin-operations-detail-panel,
+  .calendar-hero,
+  .calendar-panel,
+  .calendar-event,
+  .calendar-summary-card,
+  .reservations-hero,
+  .reservations-panel,
+  .reservations-card,
+  .reservations-kpi,
+  .reservation-detail-hero,
+  .reservation-detail-panel,
+  .reservation-import-panel,
+  .dir-hero,
+  .dir-panel,
+  .metric,
+  .admin-light-hero,
+  .admin-light-panel,
+  .admin-light-kpi
+) {
+  background: var(--admin-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--admin-line) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--admin-shadow) !important;
+  color: var(--admin-ink) !important;
+  backdrop-filter: none !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-operator-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(.admin-cockpit-hero, .admin-operations-hero, .calendar-hero, .reservations-hero, .reservation-detail-hero, .admin-light-hero) {
+  padding: clamp(22px, 3vw, 34px) !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(.button, .btn, button, input[type="submit"], .admin-request-list-button) {
+  border-radius: 999px !important;
+  border: 1px solid var(--admin-line-strong) !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: var(--admin-ink) !important;
+  -webkit-text-fill-color: var(--admin-ink) !important;
+  box-shadow: 0 8px 20px rgba(16, 35, 63, 0.07) !important;
+  font-weight: 800 !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(.button--primary, .btn-primary, button[type="submit"]:not(.button--danger), input[type="submit"]) {
+  background: linear-gradient(135deg, var(--admin-champagne), var(--admin-blue)) !important;
+  color: var(--admin-ink) !important;
+  -webkit-text-fill-color: var(--admin-ink) !important;
+  border-color: rgba(16, 35, 63, 0.13) !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(.button--danger, .admin-request-list-button--danger, .danger, button[name*="delete"], button[value*="delete"]) {
+  background: #fff5f5 !important;
+  color: #a53636 !important;
+  -webkit-text-fill-color: #a53636 !important;
+  border-color: #f0c4c4 !important;
+  box-shadow: none !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(input, select, textarea) {
+  background: #ffffff !important;
+  border: 1px solid var(--admin-line-strong) !important;
+  color: var(--admin-ink) !important;
+  box-shadow: 0 1px 2px rgba(16, 35, 63, 0.04) !important;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(table) {
+  background: #ffffff !important;
+  border: 1px solid var(--admin-line) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+}
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .reservation-import-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :where(th) {
+  background: #f5f8fb !important;
+  color: var(--admin-muted) !important;
+}
+
+.admin-light-shell {
+  padding: 28px 0 52px;
+}
+
+.admin-light-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.admin-light-hero h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 1;
+}
+
+.admin-light-hero p {
+  margin: 0;
+  color: var(--admin-muted);
+}
+
+.admin-light-kicker {
+  margin: 0 0 8px;
+  color: #5f6d80 !important;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.admin-light-actions,
+.operator-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-light-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-light-kpi {
+  padding: 18px;
+}
+
+.admin-light-kpi span {
+  display: block;
+  color: var(--admin-muted) !important;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-light-kpi strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.admin-light-kpi[data-tone="danger"] { border-left: 4px solid #df8b8b !important; }
+.admin-light-kpi[data-tone="warning"] { border-left: 4px solid #dcc071 !important; }
+.admin-light-kpi[data-tone="info"] { border-left: 4px solid #8fc9dd !important; }
+.admin-light-kpi[data-tone="success"] { border-left: 4px solid #87c8a0 !important; }
+
+.operator-console-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 18px;
+}
+
+.operator-console-panel {
+  padding: 20px;
+}
+
+.operator-console-panel--wide {
+  grid-column: span 1;
+}
+
+.admin-light-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-light-panel__header h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.admin-light-link {
+  color: #17617a !important;
+  font-size: 0.88rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.operator-list,
+.operator-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.operator-row,
+.operator-timeline__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 14px;
+  background: #fbfdff;
+  color: var(--admin-ink) !important;
+  text-decoration: none;
+}
+
+.operator-row--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.operator-row strong,
+.operator-timeline__item strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operator-row small,
+.operator-timeline__item small {
+  display: block;
+  margin-top: 3px;
+  color: var(--admin-muted) !important;
+}
+
+.operator-row em {
+  color: #17617a;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.operator-row time,
+.operator-timeline__item time {
+  color: var(--admin-muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.operator-timeline__item {
+  grid-template-columns: 92px minmax(0, 1fr);
+}
+
+.admin-light-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.admin-light-badge--urgent,
+.admin-light-badge--high {
+  background: #fff0f0;
+  color: #9d3030;
+}
+
+.admin-light-badge--normal {
+  background: #eef7fb;
+  color: #17617a;
+}
+
+.admin-light-badge--low {
+  background: #f1f4f7;
+  color: #657386;
+}
+
+.admin-light-empty {
+  padding: 18px;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: 14px;
+  background: var(--admin-surface-soft);
+}
+
+.admin-light-empty h3,
+.admin-light-empty p {
+  margin: 0;
+}
+
+.admin-light-empty p {
+  margin-top: 6px;
+  color: var(--admin-muted) !important;
+}
+
+@media (max-width: 980px) {
+  .admin-light-hero,
+  .admin-light-panel__header {
+    display: grid;
+  }
+
+  .admin-light-actions,
+  .operator-quick-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-light-kpi-grid,
+  .operator-console-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .operator-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .operator-row .admin-light-badge {
+    justify-self: start;
+  }
+}
