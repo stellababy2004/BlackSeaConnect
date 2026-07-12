@@ -21847,7 +21847,7 @@ body.admin-exec-page .admin-empty-state,
 body.admin-exec-page .admin-pilot-card,
 body.admin-cockpit-page .admin-pipeline-card,
 body.admin-exec-page .admin-activity-item,
-body.admin-cockpit-page .admin-pilot-list .admin-pilot-card,
+body.admin-cockpit-page:not(.admin-professionals-page) .admin-pilot-list .admin-pilot-card,
 body.admin-pilot-detail-page .glass-card,
 body.admin-pilot-detail-page .hero-card,
 body.admin-pilot-detail-page .empty-state,
@@ -27902,7 +27902,7 @@ body.operations-demo-page .operations-hero__preview .operations-preview-card__la
   color: rgba(134, 103, 48, 0.9) !important;
 }
 
-/* Owner Portal 3.0 â€” operational cockpit */
+/* Owner Portal 3.0 - operational cockpit */
 body.owner-portal-page.owner-portal-dashboard-page .owner-dashboard-masthead {
   min-height: auto;
   padding-bottom: clamp(20px, 3vw, 34px);
@@ -28448,7 +28448,7 @@ body.owner-portal-page.owner-portal-dashboard-page .owner-status-badge--in-progr
   }
 }
 
-/* Owner Portal 2.0 â€” focused premium operations layer */
+/* Owner Portal 2.0 - focused premium operations layer */
 body.owner-portal-page.owner-portal-dashboard-page {
   --owner-ink: #153246;
   --owner-muted: #667c87;
@@ -34821,7 +34821,7 @@ body:is(
   }
 }
 
-/* Owner Reservations — light authenticated surface override */
+/* Owner Reservations â€” light authenticated surface override */
 body.reservations-page :where(
   .reservations-hero,
   .reservation-detail-hero
@@ -34844,7 +34844,7 @@ body.reservations-page :where(.reservations-kpi, .reservations-summary-card) {
 }
 
 
-/* Owner Calendar / Reservations — light filter panels */
+/* Owner Calendar / Reservations â€” light filter panels */
 body.owner-calendar-page :where(
   .calendar-filters,
   .owner-calendar-filters,
@@ -34917,7 +34917,7 @@ body.reservations-page :where(select option) {
   background: #ffffff !important;
 }
 
-/* Owner Calendar — light filter panel override */
+/* Owner Calendar â€” light filter panel override */
 body.calendar-page .calendar-panel .calendar-filters {
   background: rgba(255, 255, 255, 0.94) !important;
   border: 1px solid rgba(15, 35, 69, 0.12) !important;
@@ -34930,7 +34930,7 @@ body.calendar-page .calendar-panel .calendar-filters :where(label, span, p, stro
   -webkit-text-fill-color: #0f2345 !important;
 }
 
-/* Owner Calendar — light owner actions form */
+/* Owner Calendar â€” light owner actions form */
 body.calendar-page .calendar-owner-actions,
 body.calendar-page .calendar-owner-actions form,
 body.calendar-page .calendar-actions-card,
@@ -35026,7 +35026,7 @@ body.calendar-page .calendar-block-form :where(h1, h2, h3, h4, p, span, strong, 
   border-radius: 14px;
   background: #e8f4f7;
   color: #176b75;
-  content: "✓";
+  content: "âœ“";
   font-weight: 900;
 }
 .owner-premium-empty :is(h2, h3, p) { margin: 0; }
@@ -35311,13 +35311,17 @@ body:is(
   --admin-muted: #66758a;
   --admin-line: rgba(16, 35, 63, 0.11);
   --admin-line-strong: rgba(16, 35, 63, 0.18);
-  --admin-surface: rgba(255, 255, 255, 0.96);
+  --admin-surface: rgba(255, 255, 255, 0.92);
   --admin-surface-soft: #f7fafc;
   --admin-champagne: #ead99f;
   --admin-blue: #a8d8e8;
-  --admin-shadow: 0 18px 46px rgba(16, 35, 63, 0.08);
-  background: #f6f8fb !important;
-  background-image: linear-gradient(180deg, #fbfcfe 0%, #f3f7fb 100%) !important;
+  --admin-shadow: 0 14px 38px rgba(22, 42, 70, 0.08);
+  background: #f4f7fb !important;
+  background-image:
+    radial-gradient(circle at 8% 8%, rgba(110, 177, 214, 0.10), transparent 32%),
+    radial-gradient(circle at 92% 10%, rgba(224, 191, 111, 0.10), transparent 28%),
+    linear-gradient(180deg, #f6f8fb 0%, #eef3f8 100%) !important;
+  background-attachment: fixed !important;
   color: var(--admin-ink) !important;
 }
 
@@ -35441,10 +35445,10 @@ body:is(
   background: var(--admin-surface) !important;
   background-image: none !important;
   border: 1px solid var(--admin-line) !important;
-  border-radius: 18px !important;
+  border-radius: 22px !important;
   box-shadow: var(--admin-shadow) !important;
   color: var(--admin-ink) !important;
-  backdrop-filter: none !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 body:is(
@@ -35480,7 +35484,7 @@ body:is(
   .reservations-page--admin,
   .reservation-detail-page--admin
 ) :where(.button, .btn, button, input[type="submit"], .admin-request-list-button) {
-  border-radius: 999px !important;
+  border-radius: 12px !important;
   border: 1px solid var(--admin-line-strong) !important;
   background: #ffffff !important;
   background-image: none !important;
@@ -35509,10 +35513,10 @@ body:is(
   .reservations-page--admin,
   .reservation-detail-page--admin
 ) :where(.button--primary, .btn-primary, button[type="submit"]:not(.button--danger), input[type="submit"]) {
-  background: linear-gradient(135deg, var(--admin-champagne), var(--admin-blue)) !important;
-  color: var(--admin-ink) !important;
-  -webkit-text-fill-color: var(--admin-ink) !important;
-  border-color: rgba(16, 35, 63, 0.13) !important;
+  background: #163654 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: #163654 !important;
 }
 
 body:is(
@@ -35654,6 +35658,40 @@ body:is(
   justify-content: flex-end;
 }
 
+.admin-light-nav,
+.admin-compact-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-light-nav a,
+.admin-compact-nav a {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--admin-ink) !important;
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.admin-light-nav a.is-active,
+.admin-compact-nav a.is-active {
+  background: #163654;
+  color: #ffffff !important;
+  border-color: #163654;
+}
+
+.admin-light-nav a.is-secondary,
+.admin-compact-nav a.is-secondary {
+  background: transparent;
+  color: #526277 !important;
+}
+
 .admin-light-kpi-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -35662,7 +35700,7 @@ body:is(
 }
 
 .admin-light-kpi {
-  padding: 18px;
+  padding: 14px;
 }
 
 .admin-light-kpi span {
@@ -35674,12 +35712,209 @@ body:is(
 
 .admin-light-kpi strong {
   display: block;
-  margin-top: 8px;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  margin-top: 6px;
+  font-size: clamp(1.55rem, 2.4vw, 2.2rem);
   line-height: 1;
 }
 
+.admin-light-kpi small {
+  display: block;
+  margin-top: 5px;
+  color: var(--admin-muted) !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
 .admin-light-kpi[data-tone="danger"] { border-left: 4px solid #df8b8b !important; }
+
+/* Operations task detail polish: layered concierge-grade control surface. */
+body.admin-operations-detail-page {
+  --ops-detail-ink: #111827;
+  --ops-detail-muted: #536274;
+  --ops-detail-line: rgba(22, 34, 51, .12);
+  --ops-detail-line-strong: rgba(22, 34, 51, .18);
+  --ops-detail-surface: rgba(255, 255, 255, .94);
+  --ops-detail-surface-raised: rgba(255, 255, 255, .98);
+  --ops-detail-gold: #b88928;
+  --ops-detail-teal: #176f70;
+  --ops-detail-shadow: 0 18px 44px rgba(15, 23, 42, .10);
+  --ops-detail-shadow-soft: 0 10px 28px rgba(15, 23, 42, .07);
+  background-color: #eef3f4 !important;
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, .82) 0%, rgba(239, 246, 247, .74) 42%, rgba(242, 236, 222, .70) 100%),
+    radial-gradient(circle at 12% 0%, rgba(184, 137, 40, .16), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(23, 111, 112, .14), transparent 30%) !important;
+  background-attachment: fixed !important;
+  color: var(--ops-detail-ink) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-detail-shell {
+  gap: 16px !important;
+}
+
+body.admin-operations-detail-page :is(
+  .admin-operations-sticky-bar,
+  .admin-operations-detail-hero,
+  .admin-operations-detail-panel,
+  .admin-operations-health-card,
+  .admin-operations-summary-header
+) {
+  border: 1px solid rgba(255, 255, 255, .72) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(250, 252, 252, .92)) !important;
+  box-shadow: var(--ops-detail-shadow) !important;
+  color: var(--ops-detail-ink) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-detail-panel {
+  border-color: var(--ops-detail-line) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-detail-hero {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .98) 0%, rgba(242, 249, 247, .96) 56%, rgba(250, 244, 231, .94) 100%) !important;
+  border-color: rgba(184, 137, 40, .20) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+  max-width: 980px;
+  color: #0c1728 !important;
+  font-size: clamp(1.7rem, 2.4vw, 2.45rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.08 !important;
+}
+
+body.admin-operations-detail-page .admin-operations-section-title {
+  color: #0c1728 !important;
+  font-size: clamp(1.05rem, 1.25vw, 1.22rem) !important;
+  font-weight: 820 !important;
+  line-height: 1.18 !important;
+}
+
+body.admin-operations-detail-page :is(.admin-operations-detail-copy, .admin-operations-empty, .admin-operations-attachment-empty),
+body.admin-operations-detail-page :is(.admin-operations-health-card small, .admin-operations-control-card small, .admin-operations-property-tile small, .admin-operations-recommendation-card small) {
+  color: var(--ops-detail-muted) !important;
+  -webkit-text-fill-color: var(--ops-detail-muted) !important;
+  line-height: 1.55 !important;
+}
+
+body.admin-operations-detail-page .admin-operations-summary-header {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 16px !important;
+  background: rgba(22, 34, 51, .10) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-summary-header > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, .90);
+}
+
+body.admin-operations-detail-page .admin-operations-summary-header span,
+body.admin-operations-detail-page .admin-operations-dl dt,
+body.admin-operations-detail-page .admin-operations-form label > span,
+body.admin-operations-detail-page .eyebrow {
+  color: #536274 !important;
+  -webkit-text-fill-color: #536274 !important;
+  font-size: .68rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+body.admin-operations-detail-page .admin-operations-summary-header strong {
+  color: var(--ops-detail-ink) !important;
+  overflow-wrap: anywhere;
+}
+
+body.admin-operations-detail-page .admin-operations-workflow__rail {
+  gap: 8px !important;
+  padding: 5px;
+  border: 1px solid var(--ops-detail-line) !important;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: var(--ops-detail-shadow-soft);
+}
+
+body.admin-operations-detail-page .admin-operations-workflow__step {
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: #536274 !important;
+  font-weight: 820 !important;
+}
+
+body.admin-operations-detail-page .admin-operations-workflow__step.is-active {
+  background: linear-gradient(135deg, #10233f, #176f70) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  box-shadow: 0 12px 26px rgba(16, 35, 63, .18) !important;
+}
+
+body.admin-operations-detail-page :is(.admin-operations-dl > div, .admin-operations-checklist__item, .admin-operations-comment, .admin-operations-list-item, .admin-operations-control-card, .admin-operations-property-tile, .admin-operations-recommendation-card, .admin-operations-dropzone) {
+  background: var(--ops-detail-surface-raised) !important;
+  border-color: var(--ops-detail-line) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .045) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-control-card--current {
+  background: linear-gradient(135deg, #10233f, #154f50) !important;
+  border-color: rgba(255, 255, 255, .28) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-control-card--current :is(span, strong, small) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+body.admin-operations-detail-page .admin-operations-sla {
+  border-left: 4px solid var(--ops-detail-teal) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-sla.is-overdue {
+  border-left-color: #b42318 !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(255, 246, 246, .95)) !important;
+}
+
+body.admin-operations-detail-page .admin-operations-completion-highlight {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, .98), rgba(250, 244, 231, .96)) !important;
+  border-color: rgba(184, 137, 40, .24) !important;
+}
+
+body.admin-operations-detail-page :is(.admin-operations-badge, .admin-operations-chip, .admin-operations-note-type) {
+  border: 1px solid rgba(22, 34, 51, .08);
+  background: rgba(23, 111, 112, .09) !important;
+  color: #124f50 !important;
+  -webkit-text-fill-color: #124f50 !important;
+}
+
+body.admin-operations-detail-page .admin-operations-badge--done {
+  background: rgba(33, 110, 78, .12) !important;
+  color: #195c40 !important;
+  -webkit-text-fill-color: #195c40 !important;
+}
+
+@media (max-width: 1100px) {
+  body.admin-operations-detail-page .admin-operations-summary-header {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  body.admin-operations-detail-page .admin-operations-summary-header {
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-operations-detail-page .admin-operations-workflow__rail {
+    grid-template-columns: 1fr !important;
+  }
+}
 .admin-light-kpi[data-tone="warning"] { border-left: 4px solid #dcc071 !important; }
 .admin-light-kpi[data-tone="info"] { border-left: 4px solid #8fc9dd !important; }
 .admin-light-kpi[data-tone="success"] { border-left: 4px solid #87c8a0 !important; }
@@ -35734,7 +35969,7 @@ body:is(
   padding: 12px;
   border: 1px solid var(--admin-line);
   border-radius: 14px;
-  background: #fbfdff;
+  background: #f8fafc;
   color: var(--admin-ink) !important;
   text-decoration: none;
 }
@@ -35749,6 +35984,12 @@ body:is(
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.operator-row[title] strong,
+.admin-operations-card__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .operator-row small,
@@ -35848,3 +36089,1289 @@ body:is(
     justify-self: start;
   }
 }
+
+@media (max-width: 640px) {
+  .admin-light-nav,
+  .admin-compact-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .admin-light-nav a,
+  .admin-compact-nav a {
+    flex: 0 0 auto;
+  }
+}
+
+/* ============================================================
+   ADMIN DESIGN CONSOLIDATION â€” DARK SURFACE CONTRAST
+   ============================================================ */
+
+:root {
+  --admin-dark-surface: #071a2a;
+  --admin-dark-surface-soft: #0c2235;
+  --admin-dark-text: #f8fafc;
+  --admin-dark-muted: #cbd5e1;
+  --admin-dark-label: #d9e2ec;
+  --admin-control-text: #10243a;
+  --admin-control-surface: #f8fafc;
+}
+
+/*
+ * Explicit dark admin surfaces.
+ * Non-existing selectors are harmless and allow the rule to cover
+ * the current admin modules without changing light cards.
+ */
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-directory-panel,
+  .admin-directory-filter,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-professional-panel,
+  .admin-owner-filter,
+  .admin-owner-search,
+  .admin-owner-card--dark,
+  .admin-property-filter,
+  .admin-properties-filter,
+  .admin-property-card--dark,
+  .admin-service-hero,
+  .admin-service-filter,
+  .admin-service-card--dark,
+  .admin-search-panel,
+  .admin-filter-panel,
+  .admin-dark-panel,
+  .admin-dark-surface
+) {
+  color: var(--admin-dark-text) !important;
+}
+
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-directory-panel,
+  .admin-directory-filter,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-professional-panel,
+  .admin-owner-filter,
+  .admin-owner-search,
+  .admin-owner-card--dark,
+  .admin-property-filter,
+  .admin-properties-filter,
+  .admin-property-card--dark,
+  .admin-service-hero,
+  .admin-service-filter,
+  .admin-service-card--dark,
+  .admin-search-panel,
+  .admin-filter-panel,
+  .admin-dark-panel,
+  .admin-dark-surface
+)
+:is(
+  h1, h2, h3, h4, h5, h6,
+  p, span, small, strong, label, legend,
+  dt, dd, time, a
+) {
+  color: inherit !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-directory-panel,
+  .admin-directory-filter,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-professional-panel,
+  .admin-owner-filter,
+  .admin-owner-search,
+  .admin-owner-card--dark,
+  .admin-property-filter,
+  .admin-properties-filter,
+  .admin-property-card--dark,
+  .admin-service-hero,
+  .admin-service-filter,
+  .admin-service-card--dark,
+  .admin-search-panel,
+  .admin-filter-panel,
+  .admin-dark-panel,
+  .admin-dark-surface
+)
+:is(input, select, textarea) {
+  color: var(--admin-control-text) !important;
+  background: var(--admin-control-surface) !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+  opacity: 1 !important;
+}
+
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-directory-panel,
+  .admin-directory-filter,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-professional-panel,
+  .admin-owner-filter,
+  .admin-owner-search,
+  .admin-owner-card--dark,
+  .admin-property-filter,
+  .admin-properties-filter,
+  .admin-property-card--dark,
+  .admin-service-hero,
+  .admin-service-filter,
+  .admin-service-card--dark,
+  .admin-search-panel,
+  .admin-filter-panel,
+  .admin-dark-panel,
+  .admin-dark-surface
+)
+:is(input, textarea)::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-owner-card--dark,
+  .admin-property-card--dark,
+  .admin-service-card--dark,
+  .admin-dark-panel
+) .button:not(.button--primary):not(.button--danger),
+:is(
+  .admin-directory-hero,
+  .admin-directory-card,
+  .admin-professional-card,
+  .admin-professionals-card,
+  .admin-owner-card--dark,
+  .admin-property-card--dark,
+  .admin-service-card--dark,
+  .admin-dark-panel
+) button:not(.button--primary):not(.button--danger) {
+  color: #10243a !important;
+  background: #f8fafc !important;
+}
+
+
+/* ============================================================
+   ADMIN DIALOG CONTRAST
+   ============================================================ */
+
+:is(
+  dialog[data-admin-create-dialog],
+  dialog[data-admin-edit-dialog],
+  dialog[data-reconcile-dialog],
+  dialog[data-assignment-dialog],
+  dialog[data-time-dialog],
+  .admin-ops-dialog
+) {
+  color: #f8fafc !important;
+}
+
+:is(
+  dialog[data-admin-create-dialog],
+  dialog[data-admin-edit-dialog],
+  dialog[data-reconcile-dialog],
+  dialog[data-assignment-dialog],
+  dialog[data-time-dialog],
+  .admin-ops-dialog
+)
+:is(h1, h2, h3, h4, p, label, legend, small, span, strong) {
+  color: #f8fafc !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(
+  dialog[data-admin-create-dialog],
+  dialog[data-admin-edit-dialog],
+  dialog[data-reconcile-dialog],
+  dialog[data-assignment-dialog],
+  dialog[data-time-dialog],
+  .admin-ops-dialog
+)
+:is(input, select, textarea) {
+  color: #10243a !important;
+  background: #f8fafc !important;
+  border-color: rgba(255,255,255,.45) !important;
+  opacity: 1 !important;
+}
+
+:is(
+  dialog[data-admin-create-dialog],
+  dialog[data-admin-edit-dialog],
+  dialog[data-reconcile-dialog],
+  dialog[data-assignment-dialog],
+  dialog[data-time-dialog],
+  .admin-ops-dialog
+)
+:is(input, textarea)::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+:is(
+  dialog[data-admin-create-dialog],
+  dialog[data-admin-edit-dialog],
+  dialog[data-reconcile-dialog],
+  dialog[data-assignment-dialog],
+  dialog[data-time-dialog],
+  .admin-ops-dialog
+) option {
+  color: #10243a !important;
+  background: #fff !important;
+}
+
+
+/* ============================================================
+   DARK RECORD CARD FALLBACKS FOR CURRENT ADMIN MODULES
+   ============================================================ */
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-owner-accounts-page,
+  .admin-properties-page,
+  .admin-service-requests-page
+)
+:is(
+  article[class*="directory"],
+  article[class*="professional"],
+  article[class*="owner"],
+  article[class*="property"],
+  article[class*="request"]
+)[style*="background"],
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-owner-accounts-page,
+  .admin-properties-page,
+  .admin-service-requests-page
+)
+:is(
+  section[class*="filter"],
+  form[class*="filter"],
+  form[class*="search"]
+) {
+  --admin-local-text: #f8fafc;
+}
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-owner-accounts-page,
+  .admin-properties-page,
+  .admin-service-requests-page
+)
+:is(
+  article[class*="directory"],
+  article[class*="professional"],
+  article[class*="owner"],
+  article[class*="property"],
+  article[class*="request"]
+)[style*="background"]
+:is(h1,h2,h3,h4,p,span,small,strong,label,time) {
+  color: var(--admin-local-text, inherit) !important;
+  opacity: 1 !important;
+}
+
+/* ============================================================
+   FINAL ADMIN LIGHT AUTHORITY
+   Resolves legacy dark cockpit / enterprise light cascade conflicts.
+   ============================================================ */
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) {
+  --final-admin-bg: #f4f7fb;
+  --final-admin-surface: #ffffff;
+  --final-admin-surface-soft: #f8fafc;
+  --final-admin-ink: #10233f;
+  --final-admin-muted: #64748b;
+  --final-admin-line: rgba(16, 35, 63, 0.12);
+  --final-admin-primary: #163654;
+
+  color: var(--final-admin-ink) !important;
+  background-color: var(--final-admin-bg) !important;
+}
+
+/* Page shells remain transparent over the shared canvas. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell,
+  main
+) {
+  color: var(--final-admin-ink) !important;
+}
+
+/* Every functional information surface is explicitly light. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-pipeline-card,
+  .admin-activity-item,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .glass-card,
+  .professional-card,
+  .admin-professional-card,
+  .admin-directory-card,
+  .admin-properties-panel,
+  .admin-property-detail-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-service-card,
+  .service-request-card,
+  .request-detail-card,
+  .admin-recycle-card,
+  .recycle-bin-card,
+  .deleted-request-card,
+  .archived-request-card,
+  .form-card,
+  .section-card,
+  .panel
+) {
+  color: var(--final-admin-ink) !important;
+  background: var(--final-admin-surface) !important;
+  background-color: var(--final-admin-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--final-admin-line) !important;
+  box-shadow: 0 12px 32px rgba(16, 35, 63, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+/* Text must never inherit the legacy white/dark cockpit palette. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-kpi-card,
+  .admin-pipeline-card,
+  .admin-activity-item,
+  .admin-empty-state,
+  .admin-pilot-card,
+  .glass-card,
+  .professional-card,
+  .admin-professional-card,
+  .admin-directory-card,
+  .admin-properties-panel,
+  .admin-property-detail-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-service-card,
+  .service-request-card,
+  .request-detail-card,
+  .admin-recycle-card,
+  .recycle-bin-card,
+  .deleted-request-card,
+  .archived-request-card,
+  .form-card,
+  .section-card,
+  .panel
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  strong, label, legend, dt, dd,
+  p, span, small, time, li, a, th, td
+) {
+  color: var(--final-admin-ink) !important;
+  -webkit-text-fill-color: var(--final-admin-ink) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Secondary copy. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .muted,
+  .eyebrow,
+  .admin-panel-header p,
+  .admin-activity-meta,
+  .admin-empty-state p,
+  small
+) {
+  color: var(--final-admin-muted) !important;
+  -webkit-text-fill-color: var(--final-admin-muted) !important;
+}
+
+/* Search/filter controls are crisp and readable. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(input, select, textarea) {
+  color: var(--final-admin-ink) !important;
+  -webkit-text-fill-color: var(--final-admin-ink) !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid rgba(16, 35, 63, 0.18) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(input, textarea)::placeholder {
+  color: #7b8798 !important;
+  -webkit-text-fill-color: #7b8798 !important;
+  opacity: 1 !important;
+}
+
+/* Buttons: one predictable visual system. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(.button, .btn, button, input[type="submit"]) {
+  color: var(--final-admin-ink) !important;
+  -webkit-text-fill-color: var(--final-admin-ink) !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid rgba(16, 35, 63, 0.18) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .button--primary,
+  .btn-primary,
+  button[type="submit"]:not(.button--danger),
+  input[type="submit"]
+) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: var(--final-admin-primary) !important;
+  border-color: var(--final-admin-primary) !important;
+}
+
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(.button--danger, .btn-danger, button[name*="delete"]) {
+  color: #991b1b !important;
+  -webkit-text-fill-color: #991b1b !important;
+  background: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+/* Keep status badges intentional instead of flattening them to card text. */
+body:is(
+  .admin-directory-page,
+  .admin-professionals-page,
+  .admin-properties-page,
+  .admin-owner-accounts-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page
+) :is(
+  .badge,
+  [class*="badge--"],
+  [class*="status--"],
+  [class*="chip--"]
+) {
+  -webkit-text-fill-color: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* FINAL ADMIN LIGHT AUTHORITY */
+
+/* ============================================================
+   ROOT-SHELL ADMIN LIGHT FIX
+   Uses actual page containers instead of missing body classes.
+   ============================================================ */
+
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) {
+  --root-admin-surface: #ffffff;
+  --root-admin-soft: #f8fafc;
+  --root-admin-ink: #10233f;
+  --root-admin-muted: #64748b;
+  --root-admin-line: rgba(16, 35, 63, 0.12);
+  --root-admin-primary: #163f63;
+
+  color: var(--root-admin-ink) !important;
+}
+
+/* Functional cards and panels */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-pipeline-card,
+  .admin-pilot-card,
+  .admin-directory-card,
+  .admin-professional-card,
+  .professional-card,
+  .application-card,
+  .admin-properties-panel,
+  .admin-property-detail-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-recycle-card,
+  .recycle-bin-card,
+  .deleted-request-card,
+  .archived-request-card,
+  .admin-filter-panel,
+  .filter-panel,
+  .search-panel,
+  form[class*="filter"],
+  form[class*="search"]
+) {
+  color: var(--root-admin-ink) !important;
+  background: var(--root-admin-surface) !important;
+  background-color: var(--root-admin-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--root-admin-line) !important;
+  box-shadow: 0 12px 30px rgba(16, 35, 63, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+/* All text inside those surfaces */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  .admin-cockpit-hero,
+  .admin-cockpit-panel,
+  .admin-pipeline-card,
+  .admin-pilot-card,
+  .admin-directory-card,
+  .admin-professional-card,
+  .professional-card,
+  .application-card,
+  .admin-properties-panel,
+  .admin-property-detail-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-recycle-card,
+  .recycle-bin-card,
+  .deleted-request-card,
+  .archived-request-card,
+  .admin-filter-panel,
+  .filter-panel,
+  .search-panel,
+  form[class*="filter"],
+  form[class*="search"]
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  p, span, small, strong,
+  label, legend, dt, dd,
+  time, li, a, th, td
+) {
+  color: var(--root-admin-ink) !important;
+  -webkit-text-fill-color: var(--root-admin-ink) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Form controls */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  .admin-cockpit-panel,
+  .admin-properties-panel,
+  .admin-owner-accounts-panel,
+  .admin-filter-panel,
+  .filter-panel,
+  .search-panel,
+  form[class*="filter"],
+  form[class*="search"]
+) :is(input, select, textarea) {
+  color: var(--root-admin-ink) !important;
+  -webkit-text-fill-color: var(--root-admin-ink) !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid rgba(16, 35, 63, 0.18) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(input, textarea)::placeholder {
+  color: #718096 !important;
+  -webkit-text-fill-color: #718096 !important;
+  opacity: 1 !important;
+}
+
+/* Preserve readable buttons */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(.button--primary, .btn-primary, button[type="submit"]) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: var(--root-admin-primary) !important;
+  border-color: var(--root-admin-primary) !important;
+}
+
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(.button--ghost, .btn-secondary) {
+  color: var(--root-admin-ink) !important;
+  -webkit-text-fill-color: var(--root-admin-ink) !important;
+  background: #ffffff !important;
+  border-color: rgba(16, 35, 63, 0.18) !important;
+}
+
+/* Status chips keep their intentional backgrounds */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-owner-accounts-shell
+) :is(
+  .badge,
+  [class*="badge--"],
+  [class*="status--"],
+  [class*="chip--"]
+) {
+  -webkit-text-fill-color: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* ROOT-SHELL ADMIN LIGHT FIX */
+
+/* ============================================================
+   BRUTAL ADMIN LIGHT OVERRIDE
+   Final authority over all legacy dark admin surfaces.
+   ============================================================ */
+
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) {
+  color: #10233f !important;
+}
+
+/*
+ * Force every structural card, panel, form and clickable record
+ * inside the affected admin modules to a light surface.
+ */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  article,
+  form,
+  section[class*="panel"],
+  section[class*="card"],
+  section[class*="hero"],
+  div[class*="panel"],
+  div[class*="card"],
+  div[class*="hero"],
+  a[class*="card"],
+  a[class*="panel"],
+  li[class*="card"]
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+
+  border-color: rgba(16, 35, 63, 0.14) !important;
+  box-shadow: 0 12px 30px rgba(16, 35, 63, 0.08) !important;
+
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Force all textual descendants to visible navy. */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  article,
+  form,
+  section[class*="panel"],
+  section[class*="card"],
+  section[class*="hero"],
+  div[class*="panel"],
+  div[class*="card"],
+  div[class*="hero"],
+  a[class*="card"],
+  a[class*="panel"],
+  li[class*="card"]
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  p, span, strong, small,
+  label, legend, time,
+  dt, dd, li, a,
+  th, td
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Explicit current admin components. */
+:is(
+  .admin-cockpit-panel,
+  .admin-cockpit-hero,
+  .admin-pipeline-card,
+  .admin-professional-card,
+  .professional-card,
+  .application-card,
+  .directory-card,
+  .admin-directory-card,
+  .admin-properties-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-property-detail-panel,
+  .admin-filter-panel,
+  .filter-panel,
+  .search-panel,
+  .admin-recycle-card,
+  .recycle-bin-card
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:is(
+  .admin-cockpit-panel,
+  .admin-cockpit-hero,
+  .admin-pipeline-card,
+  .admin-professional-card,
+  .professional-card,
+  .application-card,
+  .directory-card,
+  .admin-directory-card,
+  .admin-properties-panel,
+  .admin-owner-accounts-panel,
+  .admin-owner-detail-panel,
+  .admin-property-detail-panel,
+  .admin-filter-panel,
+  .filter-panel,
+  .search-panel,
+  .admin-recycle-card,
+  .recycle-bin-card
+) * {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Controls stay white and readable. */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(input, select, textarea) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid rgba(16, 35, 63, 0.20) !important;
+  opacity: 1 !important;
+}
+
+/* Primary buttons remain navy. */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-property-detail-shell,
+  .admin-owner-accounts-shell,
+  .admin-owner-detail-shell
+) :is(
+  .button--primary,
+  .btn-primary,
+  button[type="submit"],
+  input[type="submit"]
+) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #163f63 !important;
+  background-color: #163f63 !important;
+  border-color: #163f63 !important;
+}
+
+/* Do not flatten status badges. */
+:is(
+  .dir-shell,
+  .admin-cockpit-shell,
+  .admin-properties-shell,
+  .admin-owner-accounts-shell
+) :is(
+  .badge,
+  [class*="badge"],
+  [class*="status"],
+  [class*="chip"]
+) {
+  -webkit-text-fill-color: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* BRUTAL ADMIN LIGHT OVERRIDE */
+
+/* ============================================================
+   DIRECT PROFESSIONAL RECORD LIGHT FIX
+   The whole professional result is a clickable record link.
+   ============================================================ */
+
+.dir-shell a[href^="/admin/professionals/"],
+.dir-shell article:has(a[href^="/admin/professionals/"]),
+.dir-shell li:has(a[href^="/admin/professionals/"]),
+.dir-shell div:has(> a[href^="/admin/professionals/"]) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+
+  border-color: rgba(16, 35, 63, 0.14) !important;
+  box-shadow: 0 12px 30px rgba(16, 35, 63, 0.08) !important;
+
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dir-shell a[href^="/admin/professionals/"] *,
+.dir-shell article:has(a[href^="/admin/professionals/"]) *,
+.dir-shell li:has(a[href^="/admin/professionals/"]) * {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Status badge keeps its gold treatment. */
+.dir-shell a[href^="/admin/professionals/"] :is(
+  .badge,
+  [class*="badge"],
+  [class*="status"],
+  [class*="chip"]
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  opacity: 1 !important;
+}
+
+/* Clean hover state without bringing the dark theme back. */
+.dir-shell a[href^="/admin/professionals/"]:hover {
+  color: #10233f !important;
+  background: #f8fafc !important;
+  transform: translateY(-2px);
+}
+
+/* DIRECT PROFESSIONAL RECORD LIGHT FIX */
+
+/* ============================================================
+   PROFESSIONALS PAGE LIGHT CARD
+   Scoped only to /admin/professionals.
+   ============================================================ */
+
+.admin-professionals-page .admin-pilot-list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-professionals-page .admin-pilot-card,
+.admin-professionals-page .admin-pilot-card--link {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+
+  border: 1px solid rgba(16, 35, 63, 0.14) !important;
+  border-radius: 1.5rem !important;
+
+  box-shadow:
+    0 18px 42px rgba(16, 35, 63, 0.10),
+    0 2px 8px rgba(16, 35, 63, 0.05) !important;
+
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  text-decoration: none !important;
+  overflow: hidden;
+}
+
+.admin-professionals-page .admin-pilot-card:hover,
+.admin-professionals-page .admin-pilot-card--link:hover {
+  color: #10233f !important;
+  background: #f8fafc !important;
+  border-color: rgba(16, 35, 63, 0.22) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 48px rgba(16, 35, 63, 0.13),
+    0 3px 10px rgba(16, 35, 63, 0.06) !important;
+}
+
+.admin-professionals-page .admin-pilot-card *,
+.admin-professionals-page .admin-pilot-card--link * {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.admin-professionals-page .admin-pilot-card__topline {
+  color: #10233f !important;
+  background: #f8fafc !important;
+  border-bottom: 1px solid rgba(16, 35, 63, 0.10) !important;
+  margin:
+    calc(var(--space-lg, 1.5rem) * -1)
+    calc(var(--space-lg, 1.5rem) * -1)
+    1.25rem !important;
+  padding: 1rem 1.5rem !important;
+}
+
+.admin-professionals-page .admin-pilot-card h2 {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  margin-top: 0 !important;
+}
+
+.admin-professionals-page .admin-pilot-card p {
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+}
+
+.admin-professionals-page .admin-pilot-card p strong {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+}
+
+.admin-professionals-page .admin-pilot-status {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  background: #f6e7b5 !important;
+  border: 1px solid rgba(151, 112, 20, 0.28) !important;
+  opacity: 1 !important;
+}
+
+/* PROFESSIONALS PAGE LIGHT CARD */
+
+
+/* ============================================================
+   SERVICE REQUEST DETAIL BUTTON VISIBILITY FIX
+   Edge was inheriting white -webkit-text-fill-color.
+   ============================================================ */
+
+body.admin-pilot-detail-page .admin-request-action-button {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+body.admin-pilot-detail-page .admin-request-action-button:hover,
+body.admin-pilot-detail-page .admin-request-action-button:focus-visible {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+  background: #f8fafc !important;
+}
+
+body.admin-pilot-detail-page .admin-request-detail-form__submit,
+body.admin-pilot-detail-page button.button--primary.admin-request-detail-form__submit {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #163654 !important;
+  background-color: #163654 !important;
+  opacity: 1 !important;
+}
+
+body.admin-pilot-detail-page .admin-request-detail-form__submit:hover,
+body.admin-pilot-detail-page .admin-request-detail-form__submit:focus-visible {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #102f4c !important;
+}
+
+body.admin-pilot-detail-page .admin-request-detail-form__submit:disabled {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  background: #e2e8f0 !important;
+  background-color: #e2e8f0 !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+
+/* SERVICE REQUEST DETAIL BUTTON VISIBILITY FIX */
+/* ============================================================
+   ADMIN DARK PRIMARY BUTTON TEXT FIX
+   Keeps text visible only on genuinely dark primary buttons.
+   ============================================================ */
+
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :is(
+  a.button--primary,
+  button.button--primary,
+  input.button--primary
+) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* White and ghost buttons must always keep dark readable text. */
+body:is(
+  .admin-cockpit-page,
+  .admin-exec-page,
+  .admin-directory-page,
+  .admin-service-requests-page,
+  .admin-recycle-bin-page,
+  .admin-properties-page,
+  .admin-property-detail-page,
+  .admin-operations-page,
+  .admin-operations-detail-page,
+  .admin-owner-accounts-page,
+  .admin-owner-detail-page,
+  .admin-professionals-page,
+  .admin-operator-page,
+  .calendar-page--admin,
+  .reservations-page--admin,
+  .reservation-detail-page--admin
+) :is(
+  .button--secondary,
+  .button--ghost,
+  .admin-request-action-button
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+}
+
+/* Executive cockpit shortcut buttons are light surfaces. */
+.admin-exec-page .admin-cockpit-actions :is(a, button),
+.admin-exec-page .admin-dispatch-actions :is(a, button),
+.admin-exec-page .admin-quick-actions :is(a, button) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+}
+
+/* ADMIN DARK PRIMARY BUTTON TEXT FIX */
+
+/* ============================================================
+   EXECUTIVE PRIMARY BUTTON SURFACE FIX
+   Primary actions on /admin must be dark with white text.
+   ============================================================ */
+
+body.admin-exec-page :is(
+  a.button.button--primary,
+  button.button.button--primary,
+  input.button.button--primary,
+  a.button--primary,
+  button.button--primary,
+  input.button--primary
+) {
+  background: #163654 !important;
+  background-color: #163654 !important;
+  background-image: none !important;
+
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+
+  border-color: #163654 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow: none !important;
+}
+
+body.admin-exec-page :is(
+  a.button.button--primary,
+  button.button.button--primary,
+  a.button--primary,
+  button.button--primary
+):hover {
+  background: #102d49 !important;
+  background-color: #102d49 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Preserve readable dark text on genuinely light action buttons. */
+body.admin-exec-page :is(
+  .button--secondary,
+  .button--ghost
+) {
+  color: #10233f !important;
+  -webkit-text-fill-color: #10233f !important;
+}
+
+/* EXECUTIVE PRIMARY BUTTON SURFACE FIX */

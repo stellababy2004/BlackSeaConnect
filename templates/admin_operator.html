@@ -1,48 +1,53 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <title>Operator Console · BlackSea Connect</title>
+  <title>Операторска конзола · BlackSea Connect</title>
 </head>
 <body class="admin-operator-page admin-light-page">
   <main class="admin-light-shell operator-console-shell">
     <section class="admin-light-hero operator-console-hero">
       <div>
         <p class="admin-light-kicker">BlackSea Connect</p>
-        <h1>Operator Console</h1>
-        <p>Today's operational workbench</p>
+        <h1>Операторска конзола</h1>
+        <p>Днешното оперативно работно място</p>
       </div>
-      <nav class="admin-light-actions" aria-label="Operator navigation">
-        <a class="button button--secondary" href="{{ url_for('admin_home') }}">Back to cockpit</a>
-        <a class="button button--primary" href="{{ url_for('admin_operations') }}">Open operations</a>
-        <a class="button button--secondary" href="{{ url_for('admin_service_requests') }}">Open service requests</a>
-        <a class="button button--secondary" href="{{ url_for('admin_calendar') }}">Open calendar</a>
+      <nav class="admin-light-nav" aria-label="Операторска навигация">
+        <a class="is-active" href="{{ url_for('admin_operations') }}">Операции</a>
+        <a href="{{ url_for('admin_service_requests') }}">Заявки</a>
+        <a href="{{ url_for('admin_calendar') }}">Календар</a>
+        <a class="is-secondary" href="{{ url_for('admin_home') }}">Назад към управленския панел</a>
       </nav>
     </section>
 
-    <section class="admin-light-kpi-grid operator-summary" aria-label="Today summary">
+    <section class="admin-light-kpi-grid operator-summary" aria-label="Днешен обзор">
       <article class="admin-light-kpi" data-tone="danger">
-        <span>Late tasks</span>
+        <span>Просрочени задачи</span>
         <strong>{{ summary.late_tasks }}</strong>
+        <small>Изисква внимание</small>
       </article>
       <article class="admin-light-kpi" data-tone="warning">
-        <span>Unassigned tasks</span>
+        <span>Невъзложени задачи</span>
         <strong>{{ summary.unassigned_tasks }}</strong>
+        <small>Необходимо възлагане</small>
       </article>
       <article class="admin-light-kpi" data-tone="warning">
-        <span>Owner requests waiting</span>
+        <span>Чакащи заявки</span>
         <strong>{{ summary.owner_requests_waiting }}</strong>
+        <small>Очаква отговор</small>
       </article>
       <article class="admin-light-kpi" data-tone="info">
-        <span>Arrivals today / next 24h</span>
+        <span>Пристигания днес / 24 ч.</span>
         <strong>{{ summary.arrivals_next_24h }}</strong>
+        <small>Планирани пристигания</small>
       </article>
       <article class="admin-light-kpi" data-tone="success">
-        <span>Available professionals</span>
+        <span>Свободни професионалисти</span>
         <strong>{{ summary.available_professionals }}</strong>
+        <small>Достъпни за работа</small>
       </article>
     </section>
 
@@ -50,28 +55,28 @@
       <article class="admin-light-panel operator-console-panel operator-console-panel--wide">
         <div class="admin-light-panel__header">
           <div>
-            <p class="admin-light-kicker">Priority queue</p>
-            <h2>Critical now</h2>
+            <p class="admin-light-kicker">Приоритетна опашка</p>
+            <h2>Спешно сега</h2>
           </div>
         </div>
         {% if critical_items %}
           <div class="operator-list">
-            {% for item in critical_items %}
-              <a class="operator-row" href="{{ item.href }}">
+            {% for item in critical_items[:5] %}
+              <a class="operator-row" href="{{ item.href }}" title="{{ item.title|e }}">
                 <span class="admin-light-badge admin-light-badge--{{ item.priority_tone }}">{{ item.priority }}</span>
                 <span>
                   <strong>{{ item.property|e }}</strong>
                   <small>{{ item.kind|e }} · {{ item.title|e }}</small>
                 </span>
                 <time>{{ item.time|e }}</time>
-                <em>{{ item.cta|e }}</em>
+                <em>Отвори</em>
               </a>
             {% endfor %}
           </div>
         {% else %}
           <div class="admin-light-empty">
-            <h3>No critical items right now.</h3>
-            <p>Late, urgent, and waiting items will appear here first.</p>
+            <h3>Няма спешни задачи в момента.</h3>
+            <p>Просрочени, спешни и чакащи задачи ще се показват първо тук.</p>
           </div>
         {% endif %}
       </article>
@@ -79,60 +84,60 @@
       <article class="admin-light-panel operator-console-panel">
         <div class="admin-light-panel__header">
           <div>
-            <p class="admin-light-kicker">Dispatch</p>
-            <h2>Needs assignment</h2>
+            <p class="admin-light-kicker">Диспечиране</p>
+            <h2>Изискват възлагане</h2>
           </div>
-          <a class="admin-light-link" href="{{ url_for('admin_operations') }}">Open board</a>
+          <a class="admin-light-link" href="{{ url_for('admin_operations') }}">Отвори таблото</a>
         </div>
         {% if needs_assignment %}
           <div class="operator-list">
-            {% for item in needs_assignment %}
-              <a class="operator-row operator-row--compact" href="{{ item.href }}">
+            {% for item in needs_assignment[:5] %}
+              <a class="operator-row operator-row--compact" href="{{ item.href }}" title="{{ item.title|e }}">
                 <span>
                   <strong>{{ item.property|e }}</strong>
                   <small>{{ item.title|e }} · {{ item.time|e }}</small>
                 </span>
-                <em>Assign professional</em>
+                <em>Възложи</em>
               </a>
             {% endfor %}
           </div>
         {% else %}
-          <div class="admin-light-empty"><h3>Everything assigned.</h3><p>Unassigned operations will appear here.</p></div>
+          <div class="admin-light-empty"><h3>Всичко е възложено.</h3><p>Невъзложените операции ще се показват тук.</p></div>
         {% endif %}
       </article>
 
       <article class="admin-light-panel operator-console-panel">
         <div class="admin-light-panel__header">
           <div>
-            <p class="admin-light-kicker">Requests</p>
-            <h2>Owner requests</h2>
+            <p class="admin-light-kicker">Заявки</p>
+            <h2>Заявки от собственици</h2>
           </div>
-          <a class="admin-light-link" href="{{ url_for('admin_service_requests') }}">All requests</a>
+          <a class="admin-light-link" href="{{ url_for('admin_service_requests') }}">Виж всички</a>
         </div>
         {% if owner_requests %}
           <div class="operator-list">
-            {% for item in owner_requests %}
-              <a class="operator-row operator-row--compact" href="{{ item.href }}">
+            {% for item in owner_requests[:5] %}
+              <a class="operator-row operator-row--compact" href="{{ item.href }}" title="{{ item.title|e }}">
                 <span>
                   <strong>{{ item.property|e }}</strong>
                   <small>{{ item.title|e }} · {{ item.status|e }}</small>
                 </span>
-                <em>Open request</em>
+                <em>Отвори заявката</em>
               </a>
             {% endfor %}
           </div>
         {% else %}
-          <div class="admin-light-empty"><h3>No waiting owner requests.</h3><p>New owner and public requests will appear here.</p></div>
+          <div class="admin-light-empty"><h3>Няма чакащи заявки.</h3><p>Нови заявки от собственици и публичната форма ще се показват тук.</p></div>
         {% endif %}
       </article>
 
       <article class="admin-light-panel operator-console-panel operator-console-panel--wide">
         <div class="admin-light-panel__header">
           <div>
-            <p class="admin-light-kicker">Today</p>
-            <h2>Today timeline</h2>
+            <p class="admin-light-kicker">Днес</p>
+            <h2>Днешен график</h2>
           </div>
-          <a class="admin-light-link" href="{{ url_for('admin_calendar') }}">Open calendar</a>
+          <a class="admin-light-link" href="{{ url_for('admin_calendar') }}">Отвори календара</a>
         </div>
         {% if timeline %}
           <div class="operator-timeline">
@@ -147,22 +152,22 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="admin-light-empty"><h3>No timeline items for today.</h3><p>Arrivals, departures, operations, and calendar items will appear here.</p></div>
+          <div class="admin-light-empty"><h3>Няма събития за днес.</h3><p>Пристигания, заминавания, почиствания, проверки и поддръжка ще се показват тук.</p></div>
         {% endif %}
       </article>
 
       <article class="admin-light-panel operator-console-panel">
         <div class="admin-light-panel__header">
           <div>
-            <p class="admin-light-kicker">Shortcuts</p>
-            <h2>Quick actions</h2>
+            <p class="admin-light-kicker">Преки действия</p>
+            <h2>Бързи действия</h2>
           </div>
         </div>
         <div class="operator-quick-actions">
-          <a class="button button--primary" href="{{ url_for('admin_operations') }}">Create operation</a>
-          <a class="button button--secondary" href="{{ url_for('admin_reservation_import') }}">Import reservation</a>
-          <a class="button button--secondary" href="{{ url_for('admin_directory') }}">Open directory</a>
-          <a class="button button--secondary" href="{{ url_for('admin_recycle_bin') }}">Open recycle bin</a>
+          <a class="button button--primary" href="{{ url_for('admin_operations') }}">Създай операция</a>
+          <a class="button button--secondary" href="{{ url_for('admin_reservation_import') }}">Импортирай резервация</a>
+          <a class="button button--secondary" href="{{ url_for('admin_directory') }}">Потребители и роли</a>
+          <a class="button button--secondary" href="{{ url_for('admin_recycle_bin') }}">Кошче</a>
         </div>
       </article>
     </section>

@@ -575,11 +575,17 @@
           </select>
         </label>
         <label>
-          <span>Assign professional</span>
+          <span>{% if item.is_assigned %}Assigned professional{% else %}Assign professional{% endif %}</span>
           <select class="admin-request-detail-form__control" name="assigned_provider_id">
-            <option value="">No professional selected</option>
+            {% if item.is_assigned and item.assigned_provider_id %}
+              <option value="{{ item.assigned_provider_id|e }}" selected>{{ item.assigned_provider_company|default(item.assigned_provider_name, true)|e }} · Assigned</option>
+            {% else %}
+              <option value="">No professional selected</option>
+            {% endif %}
             {% for provider in matching_providers %}
-               <option value="{{ provider.id|e }}" {% if item.assigned_provider_id == provider.id %}selected{% endif %}>{{ provider.company_name|e }} · {{ provider.city|e }}</option>
+              {% if provider.id != item.assigned_provider_id %}
+                <option value="{{ provider.id|e }}">{{ provider.company_name|e }} · {{ provider.city|e }}</option>
+              {% endif %}
             {% endfor %}
           </select>
         </label>

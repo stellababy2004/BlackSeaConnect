@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Operations Task</title>
+  <title>BlackSea Connect | Оперативна задача</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .admin-operations-detail-page {
@@ -111,6 +111,10 @@
     .admin-operations-sla.is-overdue {
       border-left-color: #b45309;
       background: linear-gradient(180deg, rgba(255, 247, 237, 0.96) 0%, rgba(254, 242, 242, 0.96) 100%);
+    }
+    .admin-operations-sla.is-neutral {
+      border-left-color: #9ca3af;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(243, 244, 246, 0.88) 100%);
     }
     .admin-operations-sla__warning {
       display: inline-flex;
@@ -313,6 +317,80 @@
     .admin-operations-chip--status {
       background: rgba(31, 41, 55, 0.06);
       color: #1f2937;
+    }
+    .admin-operations-chip__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+      font-size: 11px;
+      line-height: 1;
+    }
+    .admin-operations-severity-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .admin-operations-severity-chip--green {
+      background: rgba(46, 125, 92, 0.14);
+      color: #2f6b4e;
+    }
+    .admin-operations-severity-chip--yellow {
+      background: rgba(214, 158, 46, 0.17);
+      color: #7a5a18;
+    }
+    .admin-operations-severity-chip--red {
+      background: rgba(185, 28, 28, 0.14);
+      color: #a82424;
+    }
+    .admin-operations-severity-chip--neutral {
+      background: rgba(107, 114, 128, 0.12);
+      color: #4b5563;
+    }
+    .admin-operations-sla-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: max-content;
+      max-width: 100%;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .01em;
+      box-shadow: 0 8px 18px rgba(21, 47, 39, .08);
+    }
+    .admin-operations-sla-badge--green {
+      background: linear-gradient(135deg, rgba(46, 125, 92, .16), rgba(85, 161, 126, .22));
+      color: #245d49;
+    }
+    .admin-operations-sla-badge--yellow {
+      background: linear-gradient(135deg, rgba(214, 158, 46, .18), rgba(250, 204, 21, .22));
+      color: #765715;
+    }
+    .admin-operations-sla-badge--red {
+      background: linear-gradient(135deg, rgba(185, 28, 28, .15), rgba(248, 113, 113, .2));
+      color: #9f2424;
+    }
+    .admin-operations-sla-badge--neutral {
+      background: linear-gradient(135deg, rgba(107, 114, 128, .12), rgba(156, 163, 175, .18));
+      color: #4b5563;
+    }
+    .admin-operations-sla-detail {
+      display: block;
+      margin-top: 6px;
+      color: #60736c;
+      font-size: .78rem;
+      line-height: 1.35;
     }
     .admin-operations-grid {
       display: grid;
@@ -701,6 +779,10 @@
       border-left-color: #c85b52;
       background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(254,242,242,.96));
     }
+    .admin-operations-sla.is-neutral {
+      border-left-color: #9ca3af;
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,245,247,.96));
+    }
     .admin-operations-dl {
       gap: 8px;
     }
@@ -728,6 +810,13 @@
     }
     .admin-operations-progress__bar span {
       background: linear-gradient(90deg, #55a17e 0%, #d3a041 100%);
+      background-size: 180% 100%;
+      animation: operations-progress-flow 2.4s ease-in-out infinite;
+    }
+    @keyframes operations-progress-flow {
+      0% { background-position: 0 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0 50%; }
     }
     .admin-operations-table {
       display: block;
@@ -738,6 +827,21 @@
     .admin-operations-table th {
       color: #4f7065;
       background: #f5f8f6;
+    }
+    .admin-operations-table__title {
+      display: inline-block;
+      max-width: 34rem;
+      vertical-align: top;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .admin-operations-contact-actions .is-disabled,
+    .admin-operations-contact-actions [disabled] {
+      opacity: .48;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: grayscale(.2);
     }
     .admin-operations-list-item,
     .admin-operations-comment {
@@ -912,8 +1016,9 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .admin-operations-recommendation-card {
-      background: #fff;
+      background: linear-gradient(145deg, #fff, #f7faf8);
       border-top: 3px solid #55a17e;
+      box-shadow: 0 12px 26px rgba(21, 47, 39, .06);
     }
     .admin-operations-recommendation-card:nth-child(2) {
       border-top-color: #d3a041;
@@ -1160,34 +1265,723 @@
         width: 100%;
       }
     }
+    body.admin-operations-detail-page {
+      overflow-x: hidden !important;
+      padding: 24px 0 34px !important;
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+    }
+    body.admin-operations-detail-page *,
+    body.admin-operations-detail-page *::before,
+    body.admin-operations-detail-page *::after {
+      box-sizing: border-box;
+    }
+    body.admin-operations-detail-page :is(
+      .admin-operations-detail-shell,
+      .admin-operations-sticky-bar,
+      .admin-operations-detail-hero,
+      .admin-operations-detail-panel,
+      .admin-operations-health-card,
+      .admin-operations-summary-header,
+      .admin-operations-workspace,
+      .admin-operations-stack,
+      .admin-operations-sidebar,
+      .admin-operations-dl,
+      .admin-operations-property-grid,
+      .admin-operations-recommendation-grid,
+      .admin-operations-control-grid,
+      .admin-operations-workflow__rail,
+      .admin-operations-checklist__item,
+      .admin-operations-table,
+      .admin-operations-table th,
+      .admin-operations-table td
+    ) {
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-shell {
+      width: min(100% - 32px, 1500px) !important;
+      max-width: 100% !important;
+      gap: 18px !important;
+      overflow-x: hidden !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-sticky-bar, .admin-operations-detail-hero, .admin-operations-detail-panel, .admin-operations-health-card, .admin-operations-summary-header) {
+      box-shadow: 0 10px 26px rgba(15, 23, 42, .06) !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar {
+      top: 8px !important;
+      padding: 8px 10px !important;
+      overflow: hidden !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+      grid-template-columns: repeat(4, minmax(118px, 1fr)) minmax(0, 1.4fr) !important;
+      gap: 8px !important;
+      align-items: center !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      justify-content: flex-end !important;
+      gap: 6px !important;
+      min-width: 0 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar__actions .button {
+      flex: 0 1 auto;
+      min-height: 30px !important;
+      padding: 6px 9px !important;
+      white-space: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-hero {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 14px !important;
+      padding: 18px 22px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+      max-width: 100% !important;
+      font-size: clamp(2rem, 2.35vw, 2.7rem) !important;
+      line-height: 1.08 !important;
+      overflow-wrap: anywhere !important;
+    }
+    body.admin-operations-detail-page .admin-operations-section-title {
+      font-size: clamp(1.15rem, 1.25vw, 1.45rem) !important;
+      line-height: 1.18 !important;
+      margin-bottom: 10px !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-detail-panel, .admin-operations-health-card) {
+      padding: 18px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-stack,
+    body.admin-operations-detail-page .admin-operations-sidebar {
+      gap: 18px !important;
+      align-content: start !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workspace {
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, .95fr) !important;
+      gap: 22px !important;
+      align-items: start !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workspace > * {
+      min-width: 0 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sidebar {
+      position: static !important;
+      top: auto !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+      align-items: stretch !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-card {
+      min-height: 0 !important;
+      gap: 5px !important;
+      overflow: hidden !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-card--primary {
+      grid-column: span 2 !important;
+      grid-row: auto !important;
+      min-height: 0 !important;
+      padding: 20px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-card--primary strong {
+      font-size: clamp(1.35rem, 2vw, 1.85rem) !important;
+      line-height: 1.1 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-card strong {
+      font-size: clamp(1.05rem, 1.1vw, 1.28rem) !important;
+      line-height: 1.18 !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-health-card span, .admin-operations-summary-header span, .admin-operations-property-tile span, .admin-operations-recommendation-card span, .admin-operations-control-card span, .admin-operations-dl dt, .eyebrow) {
+      font-size: .68rem !important;
+      letter-spacing: .045em !important;
+    }
+    body.admin-operations-detail-page .admin-operations-summary-header {
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+      border-radius: 10px !important;
+      overflow: hidden !important;
+    }
+    body.admin-operations-detail-page .admin-operations-summary-header > div {
+      padding: 10px 12px !important;
+      min-width: 0 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-summary-header strong {
+      font-size: .95rem !important;
+      line-height: 1.25 !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sla-badge {
+      width: fit-content !important;
+      max-width: 100% !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+      padding: 5px 8px !important;
+      font-size: .72rem !important;
+      line-height: 1.16 !important;
+      box-shadow: none !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workflow__rail {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 6px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workflow__step {
+      flex: 1 1 160px !important;
+      min-height: 38px !important;
+      padding: 8px 10px !important;
+      font-size: .88rem !important;
+      line-height: 1.2 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dl {
+      gap: 8px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dl > div {
+      padding: 10px 12px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dl dd,
+    body.admin-operations-detail-page :is(.admin-operations-comment-body, .admin-operations-empty, .admin-operations-attachment-empty, .admin-operations-detail-copy, .admin-operations-property-tile small, .admin-operations-recommendation-card small, .admin-operations-control-card small) {
+      font-size: .95rem !important;
+      line-height: 1.42 !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-property-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+      gap: 10px !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-property-tile, .admin-operations-recommendation-card, .admin-operations-control-card) {
+      padding: 11px 12px !important;
+      gap: 5px !important;
+      box-shadow: 0 5px 14px rgba(15, 23, 42, .035) !important;
+      overflow: hidden !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-property-tile strong, .admin-operations-recommendation-card strong, .admin-operations-control-card strong) {
+      font-size: 1rem !important;
+      line-height: 1.25 !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-recommendation-grid {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+      gap: 10px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-checklist {
+      padding: 0 !important;
+      gap: 8px !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-checklist__item {
+      min-height: 58px !important;
+      padding: 10px 12px !important;
+      border: 1px solid rgba(28, 82, 67, .12) !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .035) !important;
+      overflow: hidden !important;
+    }
+    body.admin-operations-detail-page .admin-operations-checklist__item label {
+      min-width: 0 !important;
+      line-height: 1.25 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-checklist__item label span {
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-checklist__item .admin-operations-severity-chip {
+      flex: 0 0 auto !important;
+      font-size: .72rem !important;
+      padding: 4px 8px !important;
+      white-space: nowrap !important;
+    }
+    body.admin-operations-detail-page .admin-operations-table {
+      display: table !important;
+      width: 100% !important;
+      table-layout: fixed !important;
+      overflow: visible !important;
+    }
+    body.admin-operations-detail-page .admin-operations-table th,
+    body.admin-operations-detail-page .admin-operations-table td {
+      padding: 9px 8px !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    body.admin-operations-detail-page .admin-operations-table__title {
+      display: block !important;
+      max-width: 100% !important;
+      white-space: normal !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.admin-operations-detail-page .admin-operations-contact-actions {
+      min-width: 0 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-contact-actions :is(a, button, span) {
+      max-width: 100% !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-two-up,
+    body.admin-operations-detail-page .admin-operations-control-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+      gap: 10px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dropzone {
+      min-height: 96px !important;
+      padding: 14px !important;
+    }
+    @media (max-width: 1320px) {
+      body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+      body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+      }
+    }
+    @media (max-width: 1180px) {
+      body.admin-operations-detail-page .admin-operations-workspace,
+      body.admin-operations-detail-page .admin-operations-detail-hero {
+        grid-template-columns: 1fr !important;
+      }
+      body.admin-operations-detail-page .admin-operations-health-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      body.admin-operations-detail-page .admin-operations-health-card--primary {
+        grid-column: 1 / -1 !important;
+      }
+    }
+    @media (max-width: 760px) {
+      body.admin-operations-detail-page {
+        padding: 12px 0 24px !important;
+      }
+      body.admin-operations-detail-page .admin-operations-detail-shell {
+        width: min(100% - 20px, 1500px) !important;
+        gap: 12px !important;
+      }
+      body.admin-operations-detail-page .admin-operations-sticky-bar__grid,
+      body.admin-operations-detail-page .admin-operations-health-grid,
+      body.admin-operations-detail-page .admin-operations-dl,
+      body.admin-operations-detail-page .admin-operations-detail-two-up,
+      body.admin-operations-detail-page .admin-operations-control-grid {
+        grid-template-columns: 1fr !important;
+      }
+      body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+        font-size: clamp(1.55rem, 7vw, 2.05rem) !important;
+      }
+      body.admin-operations-detail-page :is(.admin-operations-detail-panel, .admin-operations-detail-hero, .admin-operations-health-card) {
+        padding: 15px !important;
+      }
+    }
+
+    /* Align Operations Detail with the Service Request admin detail scale. */
+    body.admin-operations-detail-page {
+      padding: 24px 0 42px !important;
+      background: #f4f7fb !important;
+      background-image: linear-gradient(180deg, #f6f8fb 0%, #eef3f8 100%) !important;
+      color: #0f172a !important;
+      font-size: 15px !important;
+      line-height: 1.5 !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-shell {
+      width: min(1380px, calc(100% - 32px)) !important;
+      max-width: 1380px !important;
+      gap: 18px !important;
+      overflow: visible !important;
+    }
+    body.admin-operations-detail-page :is(
+      .admin-operations-sticky-bar,
+      .admin-operations-detail-hero,
+      .admin-operations-detail-panel,
+      .admin-operations-health-card,
+      .admin-operations-summary-header
+    ) {
+      border: 1px solid rgba(15, 23, 42, .10) !important;
+      border-radius: 22px !important;
+      background: rgba(255, 255, 255, .96) !important;
+      background-image: none !important;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, .12) !important;
+      backdrop-filter: blur(8px) !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-hero,
+    body.admin-operations-detail-page .admin-operations-detail-panel {
+      padding: 24px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar {
+      top: 10px !important;
+      padding: 12px 14px !important;
+      overflow: visible !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+      grid-template-columns: repeat(4, minmax(112px, 1fr)) minmax(0, 1.5fr) !important;
+      gap: 10px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+      gap: 8px !important;
+      justify-content: flex-end !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-hero {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 18px !important;
+      align-items: flex-start !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+      margin: 8px 0 8px !important;
+      color: #142334 !important;
+      font-size: clamp(1.85rem, 3vw, 2.55rem) !important;
+      font-weight: 850 !important;
+      line-height: 1.08 !important;
+      letter-spacing: -0.02em !important;
+    }
+    body.admin-operations-detail-page .admin-operations-section-title {
+      margin: 0 0 14px !important;
+      color: #142334 !important;
+      font-size: 1.15rem !important;
+      font-weight: 820 !important;
+      line-height: 1.2 !important;
+      letter-spacing: -0.01em !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workspace {
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, .75fr) !important;
+      gap: 18px !important;
+      align-items: start !important;
+    }
+    body.admin-operations-detail-page .admin-operations-stack,
+    body.admin-operations-detail-page .admin-operations-sidebar {
+      gap: 18px !important;
+    }
+    body.admin-operations-detail-page :is(.admin-operations-detail-copy, .admin-operations-comment-body, .admin-operations-empty, .admin-operations-attachment-empty) {
+      color: #334155 !important;
+      font-size: .95rem !important;
+      line-height: 1.55 !important;
+    }
+    body.admin-operations-detail-page :is(.eyebrow, .admin-operations-dl dt, .admin-operations-form label > span, .admin-operations-sticky-bar__meta span) {
+      color: #64748b !important;
+      font-size: .72rem !important;
+      font-weight: 800 !important;
+      letter-spacing: .09em !important;
+      text-transform: uppercase !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dl {
+      gap: 10px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dl > div,
+    body.admin-operations-detail-page :is(.admin-operations-checklist__item, .admin-operations-comment, .admin-operations-list-item, .admin-operations-property-tile, .admin-operations-recommendation-card, .admin-operations-control-card) {
+      padding: 14px 16px !important;
+      border: 1px solid rgba(20, 35, 52, .10) !important;
+      border-radius: 16px !important;
+      background: #fff !important;
+      box-shadow: 0 12px 30px rgba(20, 35, 52, .07) !important;
+    }
+    body.admin-operations-detail-page .admin-operations-form {
+      gap: 12px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-form input,
+    body.admin-operations-detail-page .admin-operations-form select,
+    body.admin-operations-detail-page .admin-operations-form textarea {
+      min-height: 48px !important;
+      padding: 13px 15px !important;
+      border-radius: 14px !important;
+      border-color: rgba(20, 35, 52, .16) !important;
+      box-shadow: none !important;
+    }
+    body.admin-operations-detail-page .admin-operations-form textarea {
+      min-height: 132px !important;
+    }
+    body.admin-operations-detail-page .button {
+      min-height: 38px !important;
+      padding: 8px 13px !important;
+      border-radius: 12px !important;
+      font-size: .84rem !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      box-shadow: 0 8px 20px rgba(16, 35, 63, .07) !important;
+    }
+    body.admin-operations-detail-page .admin-operations-detail-actions,
+    body.admin-operations-detail-page .admin-operations-contact-actions,
+    body.admin-operations-detail-page .admin-operations-inline-actions {
+      gap: 8px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-summary-header {
+      border-radius: 16px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-summary-header > div {
+      padding: 14px 16px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-health-grid {
+      gap: 14px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workflow__rail {
+      gap: 10px !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    body.admin-operations-detail-page .admin-operations-workflow__step {
+      min-height: 42px !important;
+      padding: 10px 12px !important;
+      border-radius: 14px !important;
+      font-size: .9rem !important;
+    }
+    body.admin-operations-detail-page .admin-operations-table th,
+    body.admin-operations-detail-page .admin-operations-table td {
+      padding: 12px 10px !important;
+    }
+    body.admin-operations-detail-page .admin-operations-dropzone {
+      min-height: 132px !important;
+      padding: 18px !important;
+      border-radius: 16px !important;
+    }
+    @media (max-width: 1180px) {
+      body.admin-operations-detail-page .admin-operations-workspace,
+      body.admin-operations-detail-page .admin-operations-detail-hero {
+        grid-template-columns: 1fr !important;
+      }
+      body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+      }
+    }
+    @media (max-width: 760px) {
+      body.admin-operations-detail-page {
+        padding: 16px 0 28px !important;
+      }
+      body.admin-operations-detail-page .admin-operations-detail-shell {
+        width: min(100% - 24px, 1380px) !important;
+        gap: 14px !important;
+      }
+      body.admin-operations-detail-page :is(.admin-operations-detail-hero, .admin-operations-detail-panel, .admin-operations-health-card) {
+        padding: 18px !important;
+      }
+      body.admin-operations-detail-page .admin-operations-sticky-bar__grid,
+      body.admin-operations-detail-page .admin-operations-dl {
+        grid-template-columns: 1fr !important;
+      }
+      body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+        font-size: clamp(1.55rem, 7vw, 2.05rem) !important;
+      }
+    }
   </style>
 </head>
 <body class="admin-operations-detail-page">
+  {% macro bg_datetime(value, fallback='Не е зададен') -%}
+    {%- set raw = (value|string)|trim -%}
+    {%- if raw and raw != 'None' and raw|length >= 10 -%}
+      {{ raw[8:10] }}.{{ raw[5:7] }}.{{ raw[0:4] }} {{ raw[11:16] if raw|length >= 16 else '00:00' }}
+    {%- else -%}
+      {{ fallback }}
+    {%- endif -%}
+  {%- endmacro %}
+  {% set status_labels = {
+    'NEW': 'Нова',
+    'ASSIGNED': 'Възложена',
+    'ACCEPTED': 'Приета',
+    'ON_THE_WAY': 'На път',
+    'ARRIVED': 'Пристигнал',
+    'IN_PROGRESS': 'В работа',
+    'PAUSED': 'Пауза',
+    'WAITING_OWNER': 'Изчаква собственик',
+    'WAITING_OPERATIONS': 'Изчаква операции',
+    'COMPLETED': 'Завършена',
+    'ARCHIVED': 'Архивирана'
+  } %}
+  {% set priority_labels = {
+    'LOW': 'Нисък',
+    'NORMAL': 'Нормален',
+    'HIGH': 'Висок',
+    'URGENT': 'Спешен'
+  } %}
+  {% set note_type_labels = {
+    'General': 'Обща бележка',
+    'Urgent': 'Спешно',
+    'Owner': 'Собственик',
+    'Professional': 'Професионалист',
+    'Completion': 'Завършване',
+    'operations': 'Операции',
+    'professional': 'Професионалист'
+  } %}
+  {% set event_labels = {
+    'assigned': 'Възложен е професионалист',
+    'task_created': 'Заявката е създадена',
+    'overdue_detected': 'Засечено е просрочване по SLA',
+    'note_added': 'Добавена е бележка',
+    'comment_added': 'Добавен е коментар',
+    'checklist_updated': 'Обновен е чеклистът',
+    'audit_logged': 'Записана е контролна проверка',
+    'status_changed': 'Променен е статусът на задачата',
+    'completed': 'Задачата е приключена',
+    'archived': 'Задачата е архивирана',
+    'workflow_transitioned': 'Променен е оперативният етап',
+    'professional_assigned': 'Възложен е професионалист',
+    'professional_accepted': 'Приета задача',
+    'professional_on_the_way': 'Професионалистът е на път',
+    'professional_arrived': 'Професионалистът пристигна',
+    'professional_started': 'Работата започна',
+    'professional_paused': 'Пауза',
+    'professional_resumed': 'Работата е подновена',
+    'professional_completed': 'Задачата е завършена',
+    'professional_comment_added': 'Коментар от професионалист',
+    'comment_added_internal': 'Вътрешна бележка',
+    'attachment_added': 'Добавено е доказателство',
+    'completion_report_updated': 'Обновен отчет'
+  } %}
+  {% set professional_status_labels = {
+    'APPROVED': 'Одобрен',
+    'ACTIVE': 'Активен'
+  } %}
+  {% set request_status_labels = {
+    'NEW': 'Нова',
+    'IN_REVIEW': 'В преглед',
+    'APPROVED': 'Одобрена',
+    'REJECTED': 'Отказана',
+    'ASSIGNED': 'Възложена',
+    'IN_PROGRESS': 'В работа',
+    'WAITING_OWNER': 'Изчаква собственик',
+    'WAITING_OPERATIONS': 'Изчаква операции',
+    'COMPLETED': 'Завършена',
+    'CANCELLED': 'Отменена',
+    'PENDING': 'В очакване',
+    'CONFIRMED': 'Потвърдена',
+    'CHECKED_IN': 'Настанен',
+    'CHECKED_OUT': 'Освободен',
+    'NO_SHOW': 'Неявяване'
+  } %}
+  {% set category_labels = {
+    'LEAD': 'Нов контакт',
+    'OWNER': 'Собственик',
+    'PROFESSIONAL': 'Професионалист',
+    'PARTNER': 'Партньор',
+    'CONCIERGE': 'Консиерж заявка',
+    'SERVICE': 'Сервизна заявка',
+    'CLEANING': 'Почистване',
+    'MAINTENANCE': 'Поддръжка',
+    'INSPECTION': 'Инспекция',
+    'KEYS': 'Ключове',
+    'WELCOME PACK': 'Пакет за посрещане',
+    'WELCOME_PACK': 'Пакет за посрещане',
+    'PHOTOS': 'Снимки',
+    'UTILITIES': 'Комунални услуги',
+    'WIFI': 'Wi-Fi',
+    'WI-FI': 'Wi-Fi',
+    'PARKING': 'Паркинг',
+    'INVENTORY': 'Инвентар',
+    'TRANSFERS': 'Трансфери',
+    'AIRPORT TRANSFER': 'Летищен трансфер',
+    'CONCIERGE SUPPORT': 'Консиерж поддръжка',
+    'GUEST ISSUE': 'Проблем с гост',
+    'SEASONAL PREPARATION': 'Сезонна подготовка',
+    'PROPERTY MAINTENANCE': 'Поддръжка на имот',
+    'PROPERTY MANAGEMENT': 'Управление на имот',
+    'PROPERTY MANAGER': 'Мениджър на имот',
+    'GUEST RELATIONS': 'Връзки с гости',
+    'HOSPITALITY': 'Хотелиерство',
+    'HOSPITALITY CONSULTANT': 'Консултант по гостоприемство',
+    'REAL ESTATE': 'Недвижими имоти',
+    'REAL ESTATE PROFESSIONAL': 'Специалист недвижими имоти',
+    'LAUNDRY': 'Пране',
+    'PLUMBING': 'ВиК',
+    'ELECTRICAL': 'Електро',
+    'PHOTOGRAPHY': 'Фотография',
+    'OTHER': 'Друга задача'
+  } %}
+  {% set checklist_labels = {
+    'cleaning': 'Почистване',
+    'inspection': 'Инспекция',
+    'keys': 'Ключове',
+    'welcome_pack': 'Пакет за посрещане',
+    'photos': 'Снимки',
+    'utilities': 'Комунални услуги',
+    'wifi': 'Wi-Fi',
+    'parking': 'Паркинг',
+    'inventory': 'Инвентар'
+  } %}
+  {% set attachment_slot_labels = {
+    'before': 'Преди',
+    'after': 'След',
+    'invoice': 'Фактура',
+    'receipt': 'Касова бележка',
+    'damage': 'Щета',
+    'inspection': 'Инспекция'
+  } %}
+  {% set task_status_label = status_labels.get(task.status, task.status_label) %}
+  {% set task_priority_label = priority_labels.get(task.priority, task.priority_label) %}
+  {% set task_assignee_label = task.assigned_professional_label or task.assigned_to or 'Не е възложена' %}
+  {% set task_owner_label = owner_account.full_name if owner_account else (task.owner_name or 'Не е зададен') %}
+  {% set task_last_activity = task.updated_at or task.created_at %}
+  {% set task_ref_seed = (task.request_id or task.id or '')|replace('-', '')|upper %}
+  {% set task_operational_ref = 'OP-' ~ (task_ref_seed[:8] if task_ref_seed else 'НОВА') %}
+  {% set task_category_label = category_labels.get(task.category|upper, 'Оперативна задача') %}
+  {% set task_property_label = property_record.name if property_record else (task.property_name or task.property_location or 'Без имот') %}
+  {% set task_operational_title = task_category_label ~ ' - ' ~ task_property_label %}
+  {% set customer_message = task.notes or task.title or 'Няма клиентско описание.' %}
+  {% set task_is_closed = task.status in ['COMPLETED', 'ARCHIVED'] %}
+  {% set task_sla_completed_at = task.completed_at or task.updated_at %}
+  {% set task_sla_has_due = task.due_date and task.due_date|string|trim %}
+  {% if task_is_closed and task_sla_has_due %}
+    {% if task.due_date|string|length == 10 %}
+      {% set task_sla_late = task_sla_completed_at[:10] > task.due_date[:10] %}
+    {% else %}
+      {% set task_sla_late = task_sla_completed_at > task.due_date %}
+    {% endif %}
+  {% else %}
+    {% set task_sla_late = false %}
+  {% endif %}
+  {% set task_open_overdue = task_sla_has_due and (not task_is_closed) and task.overdue %}
+  {% if task_is_closed and task_sla_has_due and task_sla_late %}
+    {% set sla_label = 'Завършена със закъснение' %}
+    {% set sla_tone = 'red' %}
+    {% set sla_detail = 'Закъснението се изчислява автоматично.' %}
+  {% elif task_is_closed %}
+    {% set sla_label = 'Завършена в срок' if task_sla_has_due else 'Завършена' %}
+    {% set sla_tone = 'green' %}
+    {% set sla_detail = 'Задачата е приключена.' %}
+  {% elif task_open_overdue %}
+    {% set sla_label = 'Просрочена' %}
+    {% set sla_tone = 'red' %}
+    {% set sla_detail = 'Срокът е преминал.' %}
+  {% elif task_sla_has_due %}
+    {% set sla_label = 'В срок' %}
+    {% set sla_tone = 'green' %}
+    {% set sla_detail = 'Оставащо време се изчислява автоматично.' %}
+  {% else %}
+    {% set sla_label = 'Без срок' %}
+    {% set sla_tone = 'neutral' %}
+    {% set sla_detail = 'Няма зададен краен срок.' %}
+  {% endif %}
+  {% set sla_overdue_label = 'Да' if task_open_overdue or task_sla_late else 'Не' %}
+  {% set severity_tone = 'neutral' if not task_sla_has_due else ('red' if task_open_overdue or task_sla_late or task.priority == 'URGENT' else ('yellow' if task.priority == 'HIGH' or task.status in ['WAITING_OWNER', 'WAITING_OPERATIONS', 'PAUSED'] or not task.is_assigned else 'green')) %}
+  {% set severity_label = 'Критично' if severity_tone == 'red' else ('За внимание' if severity_tone == 'yellow' else ('Неутрално' if severity_tone == 'neutral' else 'Стабилно')) %}
   <main class="admin-operations-detail-shell">
-    <section class="admin-operations-sticky-bar" aria-label="Task quick actions">
+    <section class="admin-operations-sticky-bar" aria-label="Бързи действия за задачата">
       <div class="admin-operations-sticky-bar__grid">
         <div class="admin-operations-sticky-bar__meta">
-          <span>Current status</span>
-          <strong>{{ task.status_label|e }}</strong>
+          <span>Текущ статус</span>
+          <strong>{{ task_status_label|e }}</strong>
         </div>
         <div class="admin-operations-sticky-bar__meta">
-          <span>Priority</span>
-          <strong>{{ task.priority_label|e }}</strong>
+          <span>Приоритет</span>
+          <strong>{{ task_priority_label|e }}</strong>
         </div>
         <div class="admin-operations-sticky-bar__meta">
-          <span>Assigned</span>
-          <strong>{{ task.assigned_professional_label|e or 'Unassigned' }}</strong>
+          <span>Възложена на</span>
+          <strong>{{ task_assignee_label|e }}</strong>
         </div>
         <div class="admin-operations-sticky-bar__meta">
-          <span>Due date</span>
-          <strong>{{ task.due_date|e or 'Not set' }}</strong>
+          <span>Краен срок</span>
+          <strong>{{ bg_datetime(task.due_date) }}</strong>
         </div>
         <div class="admin-operations-sticky-bar__actions">
-          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Save</button>
-          <a class="button button--secondary" href="/admin/operations">Back to Operations</a>
-          <a class="button button--ghost" href="/admin/calendar">Open Calendar</a>
-          <button class="button button--ghost" type="button" disabled title="Backend placeholder">Notify Owner</button>
-          <button class="button button--ghost" type="button" disabled title="Backend placeholder">Notify Professional</button>
+          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Запази</button>
+          <a class="button button--secondary" href="/admin/operations">Към операциите</a>
+          <a class="button button--ghost" href="/admin/calendar">Отвори календар</a>
+          <button class="button button--ghost" type="button" disabled title="Очаква бекенд свързване">Уведоми собственик</button>
+          <button class="button button--ghost" type="button" disabled title="Очаква бекенд свързване">Уведоми професионалист</button>
         </div>
       </div>
     </section>
@@ -1195,91 +1989,123 @@
     <section class="admin-operations-detail-hero">
       <div>
         <div class="admin-operations-detail-meta">
-          <span class="admin-operations-chip">Admin</span>
-          <span class="admin-operations-chip">Operations</span>
-          <span class="admin-operations-chip admin-operations-chip--status">{{ task.status_label|upper|e }}</span>
+          <span class="admin-operations-chip">Админ</span>
+          <span class="admin-operations-chip">Операции</span>
+          <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}"><span class="admin-operations-chip__icon">С</span>{{ severity_label }}</span>
+          <span class="admin-operations-chip admin-operations-chip--status"><span class="admin-operations-chip__icon">✓</span>{{ task_status_label|e }}</span>
         </div>
-        <h1>{{ task.title|e }}</h1>
-        <p class="admin-operations-detail-copy">Review the property context, keep the task moving through the board, and capture every decision in the task timeline.</p>
+        <h1>{{ task_operational_title|e }}</h1>
+        <p class="admin-operations-detail-copy">{{ task_operational_ref|e }} · {{ task_category_label|e }} · {{ task_owner_label|e }}</p>
       </div>
       <div class="admin-operations-detail-actions">
-        <a class="button button--secondary" href="/admin/operations">Back to board</a>
+        <a class="button button--secondary" href="/admin/operations">Към борда</a>
         {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
-          <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Open service request</a>
+          <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Отвори заявката</a>
         {% endif %}
       </div>
     </section>
 
-    <section class="admin-operations-health-grid" aria-label="Task health">
+    <section class="admin-operations-health-grid" aria-label="Здраве на задачата">
       <article class="admin-operations-health-card admin-operations-health-card--primary">
-        <span>Operational health</span>
-        <strong>{% if task.overdue %}At risk{% elif task.status in ['COMPLETED', 'ARCHIVED'] %}Closed{% elif checklist_percentage >= 75 %}Stable{% elif task.assigned_professional_label or task.assigned_to %}Moving{% else %}Needs owner{% endif %}</strong>
+        <span><span class="admin-operations-chip__icon">С</span>Оперативно състояние</span>
+        <strong>{% if not task_sla_has_due %}Без срок{% elif task_open_overdue or task_sla_late %}В риск{% elif task_is_closed %}Затворена{% elif checklist_percentage >= 75 %}Стабилна{% elif task.is_assigned %}В движение{% else %}Нуждае се от собственик{% endif %}</strong>
         <small>
-          {% if task.overdue %}
-            SLA is overdue. Prioritize assignment, owner communication, and timeline notes.
-          {% elif task.status in ['COMPLETED', 'ARCHIVED'] %}
-            Work is complete. Confirm closeout evidence and archive when ready.
-          {% elif task.assigned_professional_label or task.assigned_to %}
-            Professional ownership is visible. Keep checklist and deadline current.
+          {% if not task_sla_has_due %}
+            Няма зададен краен срок. Следете възлагането и напредъка без SLA ескалация.
+          {% elif task_open_overdue %}
+            SLA е просрочен. Дайте приоритет на възлагането, комуникацията със собственика и бележките в хронологията.
+          {% elif task_sla_late %}
+            Задачата е приключена след крайния срок. Прегледайте причината и доказателствата.
+          {% elif task_is_closed %}
+            Работата е приключена. Потвърдете доказателствата за завършване и архивирайте при готовност.
+          {% elif task.is_assigned %}
+            Отговорният професионалист е видим. Поддържайте чеклиста и срока актуални.
           {% else %}
-            No professional is assigned. Use the control panel below to dispatch.
+            Няма възложен професионалист. Използвайте контролния панел за диспечиране.
           {% endif %}
         </small>
-        <div class="admin-operations-health-meter" aria-label="Checklist completion">
+        <div class="admin-operations-health-meter" aria-label="Завършеност на чеклиста">
           <span style="width: {{ checklist_percentage }}%;"></span>
         </div>
-        <small>{{ checklist_completed_count }} of {{ checklist_total_count }} checklist items complete</small>
+        <small>{{ checklist_completed_count }} от {{ checklist_total_count }} точки в чеклиста са изпълнени</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Status</span>
-        <strong>{{ task.status_label|e }}</strong>
-        <small>{{ task.updated_at|e }}</small>
+        <span><span class="admin-operations-chip__icon">✓</span>Статус</span>
+        <strong>{{ task_status_label|e }}</strong>
+        <small>{{ bg_datetime(task.updated_at) }}</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Priority</span>
-        <strong>{{ task.priority_label|e }}</strong>
-        <small>{% if task.overdue %}Escalation candidate{% else %}Board priority{% endif %}</small>
+        <span>Приоритет</span>
+        <strong>{{ task_priority_label|e }}</strong>
+        <small>{% if task_open_overdue %}Кандидат за ескалация{% elif task_sla_late %}Приключена след срок{% else %}Приоритет в борда{% endif %}</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Professional</span>
-        <strong>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</strong>
-        <small>{% if assigned_professional_account %}Assigned account available{% else %}Dispatch needed{% endif %}</small>
+        <span>Професионалист</span>
+        <strong>{{ task_assignee_label|e }}</strong>
+        <small>{% if assigned_professional_account %}Свързан профил{% else %}Нужно е диспечиране{% endif %}</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>SLA</span>
-        <strong>{{ sla_time_remaining|e }}</strong>
-        <small>Due {{ task.due_date|e or 'not set' }}</small>
+        <span><span class="admin-operations-chip__icon">⏱</span>SLA</span>
+        <strong><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span></strong>
+        <small>Краен срок: {{ bg_datetime(task.due_date) }}</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Property</span>
-        <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</strong>
-        <small>{% if task.property_location %}{{ task.property_location|e }}{% elif property_record and property_record.location %}{{ property_record.location|e }}{% else %}Location pending{% endif %}</small>
+        <span>Имот</span>
+        <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Не е зададен' }}{% endif %}</strong>
+        <small>{% if task.property_location %}{{ task.property_location|e }}{% elif property_record and property_record.location %}{{ property_record.location|e }}{% else %}Локацията предстои{% endif %}</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Evidence</span>
+        <span><span class="admin-operations-chip__icon">□</span>Доказателства</span>
         <strong>{{ attachments|length if attachments else 0 }}</strong>
-        <small>Attachment records</small>
+        <small>Записа с файлове</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Activity</span>
+        <span>Активност</span>
         <strong>{{ timeline|length if timeline else 0 }}</strong>
-        <small>Timeline events</small>
+        <small>Събития в хронологията</small>
       </article>
       <article class="admin-operations-health-card">
-        <span>Owner</span>
-        <strong>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</strong>
-        <small>{% if owner_account %}Account linked{% else %}Task contact{% endif %}</small>
+        <span>Собственик</span>
+        <strong>{{ task_owner_label|e }}</strong>
+        <small>{% if owner_account %}Свързан профил{% else %}Контакт от задачата{% endif %}</small>
       </article>
     </section>
 
-    <section class="admin-operations-workflow">
-      <div class="admin-operations-workflow__rail" aria-label="Task workflow">
-        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Owner</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Operations</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'PAUSED', 'WAITING_OWNER', 'WAITING_OPERATIONS'] %}is-active{% endif %}">Professional</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['COMPLETED', 'ARCHIVED'] %}is-active{% endif %}">Completed</div>
+    <section class="admin-operations-summary-header" aria-label="Резюме на заявката">
+      <div>
+        <span>Оперативна референция</span>
+        <strong>{{ task_operational_ref|e }}</strong>
       </div>
-      <p class="sr-only">Owner -> Operations -> Professional -> Completed</p>
+      <div>
+        <span>Приоритет</span>
+        <strong>{{ task_priority_label|e }}</strong>
+      </div>
+      <div>
+        <span>SLA</span>
+        <strong><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span></strong>
+      </div>
+      <div>
+        <span>Собственик</span>
+        <strong>{{ task_owner_label|e }}</strong>
+      </div>
+      <div>
+        <span>Професионалист</span>
+        <strong>{{ task_assignee_label|e }}</strong>
+      </div>
+      <div>
+        <span>Последна активност</span>
+        <strong>{{ bg_datetime(task_last_activity, 'Няма данни') }}</strong>
+      </div>
+    </section>
+
+    <section class="admin-operations-workflow">
+      <div class="admin-operations-workflow__rail" aria-label="Процес на задачата">
+        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Собственик</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Операции</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'PAUSED', 'WAITING_OWNER', 'WAITING_OPERATIONS'] %}is-active{% endif %}">Професионалист</div>
+        <div class="admin-operations-workflow__step {% if task.status in ['COMPLETED', 'ARCHIVED'] %}is-active{% endif %}">Завършване</div>
+      </div>
+      <p class="sr-only">Собственик -> Операции -> Професионалист -> Завършване</p>
     </section>
 
     {% set assignment_recommendation = namespace(professional=none, available_count=0) %}
@@ -1295,107 +2121,119 @@
 
     <section class="admin-operations-workspace">
       <div class="admin-operations-stack">
-        <article class="admin-operations-detail-panel admin-operations-sla {% if task.overdue %}is-overdue{% endif %}">
-          <p class="eyebrow">SLA / Deadline</p>
-          <h2 class="admin-operations-section-title">Operational deadline</h2>
-          {% if task.overdue %}
-            <span class="admin-operations-sla__warning">Overdue</span>
-          {% endif %}
+        <article class="admin-operations-detail-panel admin-operations-sla {% if sla_tone == 'red' %}is-overdue{% elif sla_tone == 'neutral' %}is-neutral{% endif %}">
+          <p class="eyebrow">SLA / краен срок</p>
+          <h2 class="admin-operations-section-title">Оперативен срок</h2>
+          <span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span>
+          <small class="admin-operations-sla-detail" data-sla-detail data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_detail|e }}</small>
           <dl class="admin-operations-dl u-mt-14">
-            <div><dt>Created at</dt><dd>{{ task.created_at|e }}</dd></div>
-            <div><dt>Due date</dt><dd>{{ task.due_date|e or 'Not set' }}</dd></div>
-            <div><dt>Time remaining</dt><dd>{{ sla_time_remaining|e }}</dd></div>
-            <div><dt>Priority</dt><dd>{{ task.priority_label|e }}</dd></div>
-            <div><dt>Status</dt><dd>{{ task.status_label|e }}</dd></div>
-            <div><dt>Overdue</dt><dd>{% if task.overdue %}Yes{% else %}No{% endif %}</dd></div>
+            <div><dt>Създадена</dt><dd>{{ bg_datetime(task.created_at) }}</dd></div>
+            <div><dt>Краен срок</dt><dd>{{ bg_datetime(task.due_date) }}</dd></div>
+            <div><dt>SLA</dt><dd><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span><small class="admin-operations-sla-detail" data-sla-detail data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_detail|e }}</small></dd></div>
+            <div><dt>Приоритет</dt><dd>{{ task_priority_label|e }}</dd></div>
+            <div><dt>Статус</dt><dd>{{ task_status_label|e }}</dd></div>
+            <div><dt>Просрочена</dt><dd>{{ sla_overdue_label }}</dd></div>
           </dl>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Task overview</p>
-          <h2 class="admin-operations-section-title">Board details</h2>
+          <p class="eyebrow">Описание от клиента</p>
+          <h2 class="admin-operations-section-title">Оригинално клиентско съобщение</h2>
+          <p class="admin-operations-comment-body">{{ customer_message|e }}</p>
+        </article>
+
+        <article class="admin-operations-detail-panel">
+          <p class="eyebrow">Преглед на задачата</p>
+          <h2 class="admin-operations-section-title">Детайли от борда</h2>
           <dl class="admin-operations-dl">
-            <div><dt>Status</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.status_tone|e }}">{{ task.status_label|e }}</span></dd></div>
-            <div><dt>Priority</dt><dd><span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span></dd></div>
-            <div><dt>Category</dt><dd>{{ task.category|e }}</dd></div>
-            <div><dt>Assigned to</dt><dd>{{ task.assigned_professional_label|e or task.assigned_to|e or 'No professional assigned yet.' }}</dd></div>
-            <div><dt>Task ID</dt><dd>{{ task.request_id|e }}</dd></div>
-            <div><dt>Updated at</dt><dd>{{ task.updated_at|e }}</dd></div>
+            <div><dt>Статус</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}"><span class="admin-operations-chip__icon">✓</span>{{ task_status_label|e }}</span></dd></div>
+            <div><dt>Приоритет</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}green{% endif %}">{{ task_priority_label|e }}</span></dd></div>
+            <div><dt>Категория</dt><dd>{{ task_category_label|e }}</dd></div>
+            <div><dt>Възложена на</dt><dd>{{ task_assignee_label|e }}</dd></div>
+            <div><dt>Референция</dt><dd>{{ task_operational_ref|e }}</dd></div>
+            <div><dt>Обновена</dt><dd>{{ bg_datetime(task.updated_at) }}</dd></div>
           </dl>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Recommendations</p>
-          <h2 class="admin-operations-section-title">Next best operational moves</h2>
+          <p class="eyebrow">Препоръки</p>
+          <h2 class="admin-operations-section-title">Следващи оперативни действия</h2>
           <div class="admin-operations-recommendation-grid">
             <div class="admin-operations-recommendation-card">
-              <span>Dispatch</span>
-              {% if task.assigned_professional_label or task.assigned_to %}
-                <strong>Keep current assignee</strong>
-                <small>{{ task.assigned_professional_label|e or task.assigned_to|e }} is already accountable. Use the timeline for follow-up decisions.</small>
+              <span><span class="admin-operations-chip__icon">↗</span>Диспечиране</span>
+              {% if task.is_assigned %}
+                <strong>Запазете текущия изпълнител</strong>
+                <small>{{ task_assignee_label|e }} вече носи отговорност. Използвайте хронологията за последващи решения.</small>
               {% elif assignment_recommendation.professional %}
-                <strong>Assign {{ assignment_recommendation.professional.full_name|e }}</strong>
-                <small>Service category matches {{ task.category|e }} from the available professional list.</small>
+                <strong>Възложете на {{ assignment_recommendation.professional.full_name|e }}</strong>
+                <small>Категорията на услугата съвпада с {{ task_category_label|e }} в списъка с налични професионалисти.</small>
               {% else %}
-                <strong>Select manually</strong>
-                <small>No exact service-category match is visible. Use the control panel selector.</small>
+                <strong>Няма автоматично предложение</strong>
+                <small>Не е намерен подходящ професионалист по категория. Използвайте селектора в контролния панел.</small>
               {% endif %}
             </div>
+            {% if task_sla_has_due and (task_open_overdue or task_sla_late or task_is_closed) %}
+              <div class="admin-operations-recommendation-card">
+                <span><span class="admin-operations-chip__icon">⏱</span>SLA</span>
+                {% if task_open_overdue %}
+                  <strong>Ескалирайте срока</strong>
+                  <small>Задачата е просрочена. Дайте приоритет на комуникацията със собственика и професионалиста преди промяна на статуса.</small>
+                {% elif task_sla_late %}
+                  <strong>Прегледайте закъснението</strong>
+                  <small>Задачата е приключена след крайния срок. Добавете причина в хронологията.</small>
+                {% else %}
+                  <strong>Потвърдете приключването</strong>
+                  <small>Проверете доказателствата и архива при готовност.</small>
+                {% endif %}
+              </div>
+            {% endif %}
             <div class="admin-operations-recommendation-card">
-              <span>SLA</span>
-              {% if task.overdue %}
-                <strong>Escalate deadline</strong>
-                <small>Task is overdue. Prioritize owner/professional communication before changing the board state.</small>
-              {% elif task.due_date %}
-                <strong>Protect due date</strong>
-                <small>Due {{ task.due_date|e }} with {{ sla_time_remaining|e }} remaining.</small>
-              {% else %}
-                <strong>Add due date</strong>
-                <small>No deadline is set. Add one to make the operation measurable.</small>
-              {% endif %}
-            </div>
-            <div class="admin-operations-recommendation-card">
-              <span>Evidence</span>
+              <span><span class="admin-operations-chip__icon">□</span>Доказателства</span>
               {% if attachments %}
-                <strong>Review evidence</strong>
-                <small>{{ attachments|length }} attachment record{% if attachments|length != 1 %}s{% endif %} available for the task.</small>
+                <strong>Прегледайте доказателствата</strong>
+                <small>{{ attachments|length }} записа с файлове са налични към задачата.</small>
               {% elif checklist_percentage >= 75 %}
-                <strong>Request closeout proof</strong>
-                <small>Checklist is advanced but no attachment records are visible yet.</small>
+                <strong>Поискайте доказателство за приключване</strong>
+                <small>Чеклистът е напреднал, но още няма видими файлове.</small>
               {% else %}
-                <strong>Capture first proof</strong>
-                <small>Add photos, invoices, or inspection evidence as the task progresses.</small>
+                <strong>Добавете първо доказателство</strong>
+                <small>Добавяйте снимки, фактури или инспекционни доказателства с напредването на задачата.</small>
               {% endif %}
             </div>
           </div>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Workflow controls</p>
-          <h2 class="admin-operations-section-title">Assignment control panel</h2>
+          <p class="eyebrow">Оперативни контроли</p>
+          <h2 class="admin-operations-section-title">Панел за възлагане</h2>
           <div class="admin-operations-control-grid u-mb-14">
             <div class="admin-operations-control-card admin-operations-control-card--current">
-              <span>Current assignee</span>
-              <strong>{{ task.assigned_professional_label|e or task.assigned_to|e or 'Unassigned' }}</strong>
-              <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or assigned_professional_account.service_categories|e or 'Professional account linked' }}{% else %}No dispatch owner yet{% endif %}</small>
+              <span><span class="admin-operations-chip__icon">↗</span>Текущ изпълнител</span>
+              <strong>{{ task_assignee_label|e }}</strong>
+              <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') or 'Свързан професионален профил' }}{% elif task.is_assigned %}Текущото възлагане е записано{% else %}Още няма диспечерски отговорник{% endif %}</small>
             </div>
             <div class="admin-operations-control-card">
-              <span>Recommended</span>
-              {% if assignment_recommendation.professional %}
+              {% if task.is_assigned %}
+                <span>Текущо възлагане</span>
+                <strong>{{ task_assignee_label|e }}</strong>
+                <small>Операцията вече има възложен професионалист.</small>
+              {% elif assignment_recommendation.professional %}
+                <span>Препоръчан</span>
                 <strong>{{ assignment_recommendation.professional.full_name|e }}</strong>
-                <small>{{ assignment_recommendation.professional.company|e or assignment_recommendation.professional.service_categories|e or 'Approved professional' }}</small>
+                <small>{{ assignment_recommendation.professional.company|e or category_labels.get(assignment_recommendation.professional.service_categories|upper, 'Друга услуга') or 'Одобрен професионалист' }}</small>
               {% else %}
-                <strong>No exact match</strong>
-                <small>Use the available professionals list or manual selector.</small>
+                <span>Препоръчан</span>
+                <strong>Няма точно съвпадение</strong>
+                <small>Използвайте списъка с налични професионалисти или ръчния избор.</small>
               {% endif %}
             </div>
             <div class="admin-operations-control-card">
-              <span>Dispatch state</span>
-              <strong>{% if task.assigned_professional_label or task.assigned_to %}Assigned{% else %}Open{% endif %}</strong>
-              <small>{% if task.status == 'NEW' %}Assignment will move new tasks into assigned state.{% else %}Current workflow status is preserved on quick assign.{% endif %}</small>
+              <span>Състояние</span>
+              <strong>{% if task.is_assigned %}Възложена{% else %}Отворена{% endif %}</strong>
+              <small>{% if not task.is_assigned %}Възлагането ще премести новите задачи в статус възложена.{% else %}Текущият статус се запазва при бързо възлагане.{% endif %}</small>
             </div>
           </div>
-          {% if assignment_recommendation.professional %}
+          {% if not task.is_assigned and assignment_recommendation.professional %}
             <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.request_id|e }}">
               <input type="hidden" name="task_action" value="details">
               <input type="hidden" name="status" value="{{ task.status|e }}">
@@ -1403,13 +2241,13 @@
               <input type="hidden" name="priority" value="{{ task.priority|e }}">
               <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
               <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
-              <button class="button button--primary" type="submit">Assign recommended professional</button>
+              <button class="button button--primary" type="submit">Възложи на препоръчания професионалист</button>
             </form>
           {% endif %}
-          <p class="eyebrow">Nearby available professionals</p>
+          <p class="eyebrow">Налични професионалисти</p>
           <div class="admin-operations-pro-grid u-mb-14">
             {% if assignment_recommendation.available_count == 0 %}
-              <p class="admin-operations-empty">No approved or active professionals are available in the current account list.</p>
+              <p class="admin-operations-empty">Няма одобрени или активни професионалисти в текущия списък.</p>
             {% endif %}
             {% for professional in professional_accounts %}
               {% set professional_status = professional.status|default('')|upper %}
@@ -1418,21 +2256,25 @@
                   <div>
                     <strong>{{ professional.full_name|e }}</strong>
                     <div class="admin-operations-pro-row__meta">
-                      <span class="admin-operations-chip">{{ professional_status|e }}</span>
+                      <span class="admin-operations-chip">{{ professional_status_labels.get(professional_status, professional_status)|e }}</span>
                       {% if professional.company %}<span class="admin-operations-chip">{{ professional.company|e }}</span>{% endif %}
                       {% if professional.city %}<span class="admin-operations-chip">{{ professional.city|e }}</span>{% endif %}
-                      {% if professional.service_categories %}<span class="admin-operations-chip">{{ professional.service_categories|e }}</span>{% endif %}
+                      {% if professional.service_categories %}<span class="admin-operations-chip">{{ category_labels.get(professional.service_categories|upper, 'Друга услуга') }}</span>{% endif %}
                     </div>
                   </div>
-                  <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
-                    <input type="hidden" name="task_action" value="details">
-                    <input type="hidden" name="status" value="{{ task.status|e }}">
-                    <input type="hidden" name="assigned_professional_id" value="{{ professional.id|e }}">
-                    <input type="hidden" name="priority" value="{{ task.priority|e }}">
-                    <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
-                    <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
-                    <button class="button button--secondary" type="submit">Assign</button>
-                  </form>
+                  {% if task.is_assigned and task.assigned_professional_id == professional.id %}
+                    <span class="admin-operations-chip">Възложен</span>
+                  {% else %}
+                    <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+                      <input type="hidden" name="task_action" value="details">
+                      <input type="hidden" name="status" value="{{ task.status|e }}">
+                      <input type="hidden" name="assigned_professional_id" value="{{ professional.id|e }}">
+                      <input type="hidden" name="priority" value="{{ task.priority|e }}">
+                      <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
+                      <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
+                      <button class="button button--secondary" type="submit">{% if task.is_assigned %}Превъзложи{% else %}Възложи{% endif %}</button>
+                    </form>
+                  {% endif %}
                 </div>
               {% endif %}
             {% endfor %}
@@ -1440,47 +2282,47 @@
           <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="details">
             <label>
-              <span>Status</span>
+              <span>Статус</span>
               <select name="status" required>
                 {% for option in status_options %}
-                  <option value="{{ option.value|e }}" {% if task.status == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+                  <option value="{{ option.value|e }}" {% if task.status == option.value %}selected{% endif %}>{{ status_labels.get(option.value, option.label)|e }}</option>
                 {% endfor %}
               </select>
             </label>
             <label>
-              <span>Assigned professional</span>
+              <span>Възложен професионалист</span>
               <select name="assigned_professional_id">
-                <option value="">Unassigned</option>
+                <option value="">Не е възложена</option>
                 {% for professional in professional_accounts %}
                   <option value="{{ professional.id|e }}" {% if task.assigned_professional_id == professional.id %}selected{% endif %}>{{ professional.full_name|e }}{% if professional.company %} / {{ professional.company|e }}{% endif %}</option>
                 {% endfor %}
               </select>
             </label>
             <label>
-              <span>Priority</span>
+              <span>Приоритет</span>
               <select name="priority">
                 {% for option in ["LOW", "NORMAL", "HIGH", "URGENT"] %}
-                  <option value="{{ option|e }}" {% if task.priority == option %}selected{% endif %}>{{ option.title()|e }}</option>
+                  <option value="{{ option|e }}" {% if task.priority == option %}selected{% endif %}>{{ priority_labels.get(option, option)|e }}</option>
                 {% endfor %}
               </select>
             </label>
             <label>
-              <span>Due date</span>
+              <span>Краен срок</span>
               <input type="date" name="due_date" value="{{ task.due_date|e }}">
             </label>
             <label>
-              <span>Admin notes</span>
-              <textarea name="admin_notes" placeholder="Private notes for the admin team">{{ task.admin_notes|e }}</textarea>
+              <span>Админ бележки</span>
+              <textarea name="admin_notes" placeholder="Частни бележки за оперативния екип">{{ task.admin_notes|e }}</textarea>
             </label>
           </form>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Checklist</p>
-          <h2 class="admin-operations-section-title">Checklist progress</h2>
+          <p class="eyebrow">Чеклист</p>
+          <h2 class="admin-operations-section-title">Напредък по чеклиста</h2>
           <div class="admin-operations-progress">
-            <strong>Checklist: {{ checklist_completed_count }} / {{ checklist_total_count }} completed - {{ checklist_percentage }}%</strong>
-            <div class="admin-operations-progress__bar" aria-label="Checklist completion">
+            <strong>Чеклист: {{ checklist_completed_count }} / {{ checklist_total_count }} изпълнени - {{ checklist_percentage }}%</strong>
+            <div class="admin-operations-progress__bar" aria-label="Завършеност на чеклиста">
               <span style="width: {{ checklist_percentage }}%;"></span>
             </div>
           </div>
@@ -1491,26 +2333,26 @@
                 <div class="admin-operations-checklist__item">
                   <label>
                     <input type="checkbox" name="checklist_{{ item.key|e }}" {% if item.checked %}checked{% endif %}>
-                    <span>{{ item.label|e }}</span>
+                    <span>{{ checklist_labels.get(item.key, item.label)|e }}</span>
                   </label>
                   {% if item.checked %}
-                    <span class="admin-operations-badge admin-operations-badge--done">Done</span>
+                    <span class="admin-operations-severity-chip admin-operations-severity-chip--green">Готово</span>
                   {% else %}
-                    <span class="admin-operations-badge">Pending</span>
+                    <span class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Предстои</span>
                   {% endif %}
                 </div>
               {% endfor %}
             </div>
-            <button class="button button--primary" type="submit">Save checklist</button>
+            <button class="button button--primary" type="submit">Запази чеклиста</button>
           </form>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Attachments</p>
-          <h2 class="admin-operations-section-title">Upload placeholders</h2>
+          <p class="eyebrow">Файлове</p>
+          <h2 class="admin-operations-section-title">Подготовка за качвания</h2>
           <div class="admin-operations-dropzone">
-            <strong>Upload photos, invoices, receipts, or inspection evidence</strong>
-            <p>Prepare before photos, after photos, invoice, receipt, and damage photo references here. SQLite references only for now.</p>
+            <strong>Качвайте снимки, фактури, касови бележки или инспекционни доказателства</strong>
+            <p>Тук се подготвят снимки преди и след, фактури, бележки и доказателства за щети. Засега се пазят само локални референции.</p>
           </div>
           {% if attachments %}
             <div class="admin-operations-attachment-list u-mt-14">
@@ -1518,201 +2360,227 @@
                 <div class="admin-operations-list-item">
                   <div class="admin-operations-list-item__topline">
                     <strong>{{ attachment.name|e }}</strong>
-                    <time>{{ attachment.created_at|e }}</time>
+                    <time>{{ bg_datetime(attachment.created_at) }}</time>
                   </div>
                   <p>
-                    {% if attachment.slot %}Slot: {{ attachment.slot|replace('_', ' ')|title|e }}{% endif %}
-                    {% if attachment.category %}{% if attachment.slot %} · {% endif %}Category: {{ attachment.category|replace('_', ' ')|title|e }}{% endif %}
-                    {% if attachment.uploaded_by %} · Uploaded by {{ attachment.uploaded_by|e }}{% endif %}
+                    {% if attachment.slot %}Позиция: {{ attachment_slot_labels.get(attachment.slot, 'Друга') }}{% endif %}
+                    {% if attachment.category %}{% if attachment.slot %} · {% endif %}Категория: {{ category_labels.get(attachment.category|upper, 'Друга задача') }}{% endif %}
+                    {% if attachment.uploaded_by %} · Качено от {{ attachment.uploaded_by|e }}{% endif %}
                   </p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-operations-attachment-empty u-mt-14">No attachments yet. The task is ready for uploads later.</p>
+            <p class="admin-operations-attachment-empty u-mt-14">Още няма файлове. Задачата е подготвена за бъдещи качвания.</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel admin-operations-completion-highlight">
-          <p class="eyebrow">Completion report</p>
-          <h2 class="admin-operations-section-title">Professional closeout</h2>
-          {% if completion_report and (completion_report.completed_work or completion_report.materials_used or completion_report.recommendations or completion_report.follow_up_needed or completion_report.notes) %}
-            <dl class="admin-operations-dl">
-              <div><dt>Completed work</dt><dd>{{ completion_report.completed_work|e or 'Not recorded' }}</dd></div>
-              <div><dt>Materials used</dt><dd>{{ completion_report.materials_used|e or 'Not recorded' }}</dd></div>
-              <div><dt>Time spent</dt><dd>{{ completion_report.time_spent_minutes|e or 'Not recorded' }}</dd></div>
-              <div><dt>Recommendations</dt><dd>{{ completion_report.recommendations|e or 'Not recorded' }}</dd></div>
-              <div><dt>Follow-up needed</dt><dd>{{ completion_report.follow_up_needed|e or 'Not recorded' }}</dd></div>
-              <div><dt>Evidence</dt><dd>Attached evidence placeholder available in attachments.</dd></div>
-            </dl>
+          <p class="eyebrow">Отчет за завършване</p>
+          {% if task.is_assigned %}
+            <h2 class="admin-operations-section-title">Финално потвърждение от професионалиста</h2>
+            {% if completion_report and (completion_report.completed_work or completion_report.materials_used or completion_report.recommendations or completion_report.follow_up_needed or completion_report.notes) %}
+              <dl class="admin-operations-dl">
+                <div><dt>Извършена работа</dt><dd>{{ completion_report.completed_work|e or 'Не е записано' }}</dd></div>
+                <div><dt>Използвани материали</dt><dd>{{ completion_report.materials_used|e or 'Не е записано' }}</dd></div>
+                <div><dt>Отделено време</dt><dd>{{ completion_report.time_spent_minutes|e or 'Не е записано' }}</dd></div>
+                <div><dt>Препоръки</dt><dd>{{ completion_report.recommendations|e or 'Не е записано' }}</dd></div>
+                <div><dt>Нужни последващи действия</dt><dd>{{ completion_report.follow_up_needed|e or 'Не е записано' }}</dd></div>
+                <div><dt>Доказателства</dt><dd>Полето за доказателства е налично в секцията с файлове.</dd></div>
+              </dl>
+            {% else %}
+              <p class="admin-operations-empty">Още няма подаден отчет за завършване.</p>
+            {% endif %}
           {% else %}
-            <p class="admin-operations-empty">No completion report has been submitted yet.</p>
+            <h2 class="admin-operations-section-title">Все още няма възложен професионалист.</h2>
+            <p class="admin-operations-empty">След възлагане тук ще се появи отчетът за приключване.</p>
           {% endif %}
         </article>
       </div>
 
       <aside class="admin-operations-sidebar">
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Assignment card</p>
-          <h2 class="admin-operations-section-title">Assigned professional</h2>
+          <p class="eyebrow">Карта на възлагането</p>
+          <h2 class="admin-operations-section-title">Възложен професионалист</h2>
           {% if assigned_professional_account %}
             <dl class="admin-operations-dl">
-              <div><dt>Name</dt><dd>{{ assigned_professional_account.full_name|e }}</dd></div>
-              <div><dt>Company</dt><dd>{{ assigned_professional_account.company|e or 'Not set' }}</dd></div>
-              <div><dt>Phone</dt><dd>{{ assigned_professional_account.phone|e or 'Not set' }}</dd></div>
-              <div><dt>Email</dt><dd>{{ assigned_professional_account.email|e or 'Not set' }}</dd></div>
-              <div><dt>Service category</dt><dd>{{ assigned_professional_account.service_categories|e or 'Not set' }}</dd></div>
-              <div><dt>Status</dt><dd><span class="admin-operations-badge">{{ task.status_label|e }}</span></dd></div>
+              <div><dt>Име</dt><dd>{{ assigned_professional_account.full_name|e }}</dd></div>
+              <div><dt>Компания</dt><dd>{{ assigned_professional_account.company|e or 'Не е зададено' }}</dd></div>
+              <div><dt>Телефон</dt><dd>{{ assigned_professional_account.phone|e or 'Не е зададен' }}</dd></div>
+              <div><dt>Имейл</dt><dd>{{ assigned_professional_account.email|e or 'Не е зададен' }}</dd></div>
+              <div><dt>Категория услуга</dt><dd>{{ category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') if assigned_professional_account.service_categories else 'Не е зададена' }}</dd></div>
+              <div><dt>Статус</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ task_status_label|e }}</span></dd></div>
             </dl>
             <div class="admin-operations-contact-actions u-mt-14">
-              <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Mailto</a>
-              <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Tel</a>
-              <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">Copy email</button>
-              <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">Copy phone</button>
+              {% if assigned_professional_account.email %}
+                <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Имейл</a>
+                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">Копирай имейл</button>
+              {% else %}
+                <span class="button button--ghost is-disabled" aria-disabled="true">Имейл липсва</span>
+                <button class="button button--ghost" type="button" disabled>Копирай имейл</button>
+              {% endif %}
+              {% if assigned_professional_account.phone %}
+                <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Телефон</a>
+                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">Копирай телефон</button>
+              {% else %}
+                <span class="button button--ghost is-disabled" aria-disabled="true">Телефон липсва</span>
+                <button class="button button--ghost" type="button" disabled>Копирай телефон</button>
+              {% endif %}
             </div>
           {% else %}
-            <p class="admin-operations-empty">No professional assigned yet.</p>
+            <p class="admin-operations-empty">Още няма възложен професионалист.</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Linked reservation</p>
-          <h2 class="admin-operations-section-title">Reservation reference</h2>
+          <p class="eyebrow">Свързана резервация</p>
+          <h2 class="admin-operations-section-title">Референция към резервация</h2>
           {% if linked_reservation %}
             <dl class="admin-operations-dl">
-              <div><dt>Guest</dt><dd>{{ linked_reservation.guest_name|e }}</dd></div>
-              <div><dt>Property</dt><dd>{{ linked_reservation.property_name|e }}</dd></div>
-              <div><dt>Status</dt><dd>{{ linked_reservation.status.replace('_', ' ').title() }}</dd></div>
-              <div><dt>Stay</dt><dd>{{ linked_reservation.arrival_datetime|e }} - {{ linked_reservation.departure_datetime|e }}</dd></div>
+              <div><dt>Гост</dt><dd>{{ linked_reservation.guest_name|e }}</dd></div>
+              <div><dt>Имот</dt><dd>{{ linked_reservation.property_name|e }}</dd></div>
+              <div><dt>Статус</dt><dd>{{ request_status_labels.get(linked_reservation.status|upper, 'Друг статус') }}</dd></div>
+              <div><dt>Престой</dt><dd>{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}</dd></div>
             </dl>
             <div class="u-mt-14">
-              <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">Open reservation</a>
+              <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">Отвори резервацията</a>
             </div>
           {% else %}
-            <p class="admin-operations-empty">This task is not linked to a reservation source.</p>
+            <p class="admin-operations-empty">Тази задача не е свързана с резервация.</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Property context</p>
-          <h2 class="admin-operations-section-title">Operational property profile</h2>
+          <p class="eyebrow">Контекст на имота</p>
+          <h2 class="admin-operations-section-title">Оперативен профил на имота</h2>
           {% set owner_email = owner_account.email if owner_account else task.owner_email %}
           {% set owner_phone = owner_account.phone if owner_account else task.owner_phone %}
           <div class="admin-operations-property-grid">
             <div class="admin-operations-property-tile">
-              <span>Property</span>
-              <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Not set' }}{% endif %}</strong>
-              <small>{% if property_record and property_record.property_type %}{{ property_record.property_type|e }}{% else %}{{ task.category|e }} task{% endif %}</small>
+              <span>Имот</span>
+              <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Не е зададен' }}{% endif %}</strong>
+              <small>{% if property_record and property_record.property_type %}{{ property_record.property_type|e }}{% else %}Задача: {{ task_category_label|e }}{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Location</span>
-              <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Not set{% endif %}</strong>
-              <small>Used for dispatch context.</small>
+              <span>Локация</span>
+              <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Не е зададена{% endif %}</strong>
+              <small>Използва се за диспечерски контекст.</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Configuration</span>
-              <strong>{% if property_record %}{{ property_record.bedrooms|e or '0' }} bed / {{ property_record.bathrooms|e or '0' }} bath{% else %}Not linked{% endif %}</strong>
-              <small>{% if property_record and property_record.guest_capacity %}Capacity {{ property_record.guest_capacity|e }} guests{% else %}Capacity not recorded{% endif %}</small>
+              <span>Конфигурация</span>
+              <strong>{% if property_record %}{{ property_record.bedrooms|e or '0' }} спални / {{ property_record.bathrooms|e or '0' }} бани{% else %}Няма връзка{% endif %}</strong>
+              <small>{% if property_record and property_record.guest_capacity %}Капацитет {{ property_record.guest_capacity|e }} гости{% else %}Капацитетът не е записан{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Reservation</span>
-              <strong>{% if linked_reservation %}{{ linked_reservation.status.replace('_', ' ').title() }}{% else %}No linked stay{% endif %}</strong>
-              <small>{% if linked_reservation %}{{ linked_reservation.arrival_datetime|e }} - {{ linked_reservation.departure_datetime|e }}{% else %}Standalone operation{% endif %}</small>
+              <span>Резервация</span>
+              <strong>{% if linked_reservation %}{{ request_status_labels.get(linked_reservation.status|upper, 'Друг статус') }}{% else %}Няма свързан престой{% endif %}</strong>
+              <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}Самостоятелна операция{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Owner channel</span>
-              <strong>{% if owner_account %}{{ owner_account.full_name|e }}{% else %}{{ task.owner_name|e or 'Not set' }}{% endif %}</strong>
-              <small>{% if owner_email %}{{ owner_email|e }}{% elif owner_phone %}{{ owner_phone|e }}{% else %}No contact visible{% endif %}</small>
+              <span>Канал със собственика</span>
+              <strong>{{ task_owner_label|e }}</strong>
+              <small>{% if owner_email %}{{ owner_email|e }}{% elif owner_phone %}{{ owner_phone|e }}{% else %}Няма видим контакт{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Readiness</span>
-              <strong>{% if property_record and property_record.guest_guide_ready and property_record.access_instructions_ready and property_record.emergency_contact_ready %}Ready{% elif property_record %}Partial{% else %}Unknown{% endif %}</strong>
-              <small>{% if property_record %}Guide {{ 'yes' if property_record.guest_guide_ready else 'no' }} / Access {{ 'yes' if property_record.access_instructions_ready else 'no' }} / Emergency {{ 'yes' if property_record.emergency_contact_ready else 'no' }}{% else %}No property record linked{% endif %}</small>
+              <span>Готовност</span>
+              <strong>{% if property_record and property_record.guest_guide_ready and property_record.access_instructions_ready and property_record.emergency_contact_ready %}Готов{% elif property_record %}Частично{% else %}Неизвестно{% endif %}</strong>
+              <small>{% if property_record %}Наръчник {{ 'да' if property_record.guest_guide_ready else 'не' }} / Достъп {{ 'да' if property_record.access_instructions_ready else 'не' }} / Спешен контакт {{ 'да' if property_record.emergency_contact_ready else 'не' }}{% else %}Няма свързан имотен запис{% endif %}</small>
             </div>
           </div>
           <div class="admin-operations-contact-actions u-mt-14">
-            {% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">Mailto</a>{% endif %}
-            {% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">Tel</a>{% endif %}
-            {% if owner_email %}<button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">Copy email</button>{% endif %}
-            {% if owner_phone %}<button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">Copy phone</button>{% endif %}
+            {% if owner_email %}
+              <a class="button button--ghost" href="mailto:{{ owner_email|e }}">Имейл</a>
+              <button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">Копирай имейл</button>
+            {% else %}
+              <span class="button button--ghost is-disabled" aria-disabled="true">Имейл липсва</span>
+              <button class="button button--ghost" type="button" disabled>Копирай имейл</button>
+            {% endif %}
+            {% if owner_phone %}
+              <a class="button button--ghost" href="tel:{{ owner_phone|e }}">Телефон</a>
+              <button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">Копирай телефон</button>
+            {% else %}
+              <span class="button button--ghost is-disabled" aria-disabled="true">Телефон липсва</span>
+              <button class="button button--ghost" type="button" disabled>Копирай телефон</button>
+            {% endif %}
           </div>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Related requests</p>
-          <h2 class="admin-operations-section-title">Latest service requests for this property</h2>
+          <p class="eyebrow">Свързани заявки</p>
+          <h2 class="admin-operations-section-title">Последни сервизни заявки за този имот</h2>
           {% if related_requests %}
-            <table class="admin-operations-table" aria-label="Related service requests">
+            <table class="admin-operations-table" aria-label="Свързани сервизни заявки">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th>Created</th>
+                  <th>Заглавие</th>
+                  <th>Категория</th>
+                  <th>Статус</th>
+                  <th>Създадена</th>
                 </tr>
               </thead>
               <tbody>
                 {% for request in related_requests %}
                   {% set request_title = request.description or request.name or request.property %}
+                  {% set request_title_display = request_title[:57] ~ '...' if request_title|length > 60 else request_title %}
                   <tr>
-                    <td>{{ request_title|e }}</td>
-                    <td>{{ request.service_category|e }}</td>
-                    <td>{{ request.status|replace('_', ' ')|upper|e }}</td>
-                    <td>{{ request.created_at|e }}</td>
+                    <td><span class="admin-operations-table__title" title="{{ request_title|e }}">{{ request_title_display|e }}</span></td>
+                    <td>{{ category_labels.get(request.service_category|upper, 'Друга задача') }}</td>
+                    <td>{{ request_status_labels.get(request.status|upper, 'Друг статус') }}</td>
+                    <td>{{ bg_datetime(request.created_at) }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           {% else %}
-            <p class="admin-operations-empty">No linked service requests yet.</p>
+            <p class="admin-operations-empty">Още няма свързани сервизни заявки.</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Internal notes</p>
-          <h2 class="admin-operations-section-title">Admin-only notes</h2>
+          <p class="eyebrow">Вътрешни бележки</p>
+          <h2 class="admin-operations-section-title">Бележки само за админ екипа</h2>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
             <input type="hidden" name="task_action" value="comment">
             <label>
-              <span>Note type</span>
+              <span>Тип бележка</span>
               <select name="comment_type">
-                <option value="General">General</option>
-                <option value="Urgent">Urgent</option>
-                <option value="Owner">Owner</option>
-                <option value="Professional">Professional</option>
-                <option value="Completion">Completion</option>
+                <option value="General">Обща</option>
+                <option value="Urgent">Спешна</option>
+                <option value="Owner">Собственик</option>
+                <option value="Professional">Професионалист</option>
+                <option value="Completion">Завършване</option>
               </select>
             </label>
             <label>
-              <span>Add comment</span>
-              <textarea name="comment" placeholder="Add a private comment for the operations team"></textarea>
+              <span>Добави коментар</span>
+              <textarea name="comment" placeholder="Добавете частен коментар за оперативния екип"></textarea>
             </label>
-            <button class="button button--primary" type="submit">Add comment</button>
+            <button class="button button--primary" type="submit">Добави коментар</button>
           </form>
           <div class="admin-operations-comment-box u-mt-14">
             {% if comments %}
               {% for comment in comments %}
                 <div class="admin-operations-comment">
                   <div class="admin-operations-comment__meta">
-                    <strong>{{ comment.operator|e or 'Admin' }}</strong>
-                    <time>{{ comment.created_at|e }}</time>
+                    <strong>{{ comment.operator|e or 'Админ' }}</strong>
+                    <time>{{ bg_datetime(comment.created_at) }}</time>
                   </div>
                   <div class="admin-operations-comment-types">
-                    <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ comment.type|e }}</span>
-                    <span class="admin-operations-note-type admin-operations-note-type--general">{{ comment.author_role|e or 'Operations' }}</span>
+                    <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ note_type_labels.get(comment.type, 'Друга бележка') }}</span>
+                    <span class="admin-operations-note-type admin-operations-note-type--general">{{ note_type_labels.get(comment.author_role, 'Операции') }}</span>
                   </div>
                   <p class="admin-operations-comment-body">{{ comment.comment|e }}</p>
                 </div>
               {% endfor %}
             {% else %}
-              <p class="admin-operations-attachment-empty">No internal comments yet.</p>
+              <p class="admin-operations-attachment-empty">Още няма вътрешни коментари.</p>
             {% endif %}
           </div>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Timeline</p>
-          <h2 class="admin-operations-section-title">Operational activity</h2>
+          <p class="eyebrow">Хронология</p>
+          <h2 class="admin-operations-section-title">Оперативна активност</h2>
           {% if timeline or assignment_history %}
             <div class="admin-operations-timeline-rail">
               {% if assignment_history %}
@@ -1720,18 +2588,16 @@
                   <div class="admin-operations-list-item admin-operations-timeline-item">
                     <div class="admin-operations-timeline-item__header">
                       <div class="admin-operations-timeline-item__title">
-                        <span class="admin-operations-timeline-item__icon">A</span>
-                        <strong>{{ event.title|e }}</strong>
+                        <span class="admin-operations-timeline-item__icon">↗</span>
+                        <strong>{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</strong>
                       </div>
-                      <time>{{ event.created_at|e }}</time>
+                      <time>{{ bg_datetime(event.created_at) }}</time>
                     </div>
                     <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
-                      <span class="admin-operations-chip">Assignment</span>
-                      <span class="admin-operations-chip admin-operations-chip--status">{{ task.status_label|e }}</span>
+                      <span class="admin-operations-chip"><span class="admin-operations-chip__icon">↗</span>Възлагане</span>
+                      <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ task_status_label|e }}</span>
                     </div>
-                    {% if event.detail %}
-                      <p>{{ event.detail|e }}</p>
-                    {% endif %}
+                    <p>Записана е промяна по възлагането за {{ task_operational_ref|e }}.</p>
                   </div>
                 {% endfor %}
               {% endif %}
@@ -1740,24 +2606,46 @@
                   <div class="admin-operations-timeline-item__header">
                     <div class="admin-operations-timeline-item__title">
                       <span class="admin-operations-timeline-item__icon">
-                        {% if event.event_type == 'professional_completed' %}C{% elif event.event_type == 'professional_accepted' %}A{% elif event.event_type == 'professional_started' %}S{% elif event.event_type == 'professional_paused' %}P{% elif event.event_type == 'professional_resumed' %}R{% elif event.event_type == 'attachment_added' %}U{% elif event.event_type == 'comment_added_internal' %}N{% elif event.event_type in ['assigned', 'professional_assigned'] %}A{% elif event.event_type == 'status_changed' %}S{% else %}&bull;{% endif %}
+                        {% if event.event_type in ['completed', 'professional_completed'] %}✓{% elif event.event_type == 'task_created' %}+{% elif event.event_type == 'overdue_detected' %}!{% elif event.event_type == 'professional_accepted' %}П{% elif event.event_type == 'professional_started' %}▶{% elif event.event_type == 'professional_paused' %}Ⅱ{% elif event.event_type == 'professional_resumed' %}↻{% elif event.event_type == 'attachment_added' %}□{% elif event.event_type in ['comment_added_internal', 'note_added', 'comment_added'] %}Б{% elif event.event_type in ['assigned', 'professional_assigned'] %}↗{% elif event.event_type == 'status_changed' %}С{% elif event.status == 'ARCHIVED' %}А{% else %}•{% endif %}
                       </span>
-                      <strong>{{ event.title|e }}</strong>
+                      <strong>{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</strong>
                     </div>
-                    <time>{{ event.created_at|e }}</time>
+                    <time>{{ bg_datetime(event.created_at) }}</time>
                   </div>
                   <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
-                    <span class="admin-operations-chip">{{ event.event_type|replace('_', ' ')|title }}</span>
-                    <span class="admin-operations-chip admin-operations-chip--status">{{ event.status|e }}</span>
+                    <span class="admin-operations-chip">{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</span>
+                    <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ status_labels.get(event.status, task_status_label)|e }}</span>
                   </div>
-                  {% if event.detail %}
-                    <p>{{ event.detail|e }}</p>
-                  {% endif %}
+                  <p>
+                    {% if event.event_type == 'task_created' %}
+                      Заявката е създадена и е добавена към оперативния борд.
+                    {% elif event.event_type == 'overdue_detected' %}
+                      Засечено е просрочване по SLA и задачата изисква внимание.
+                    {% elif event.event_type == 'attachment_added' %}
+                      Добавено е доказателство към {{ task_operational_ref|e }}.
+                    {% elif event.event_type == 'comment_added_internal' %}
+                      Добавена е вътрешна оперативна бележка.
+                    {% elif event.event_type in ['note_added', 'comment_added'] %}
+                      Добавена е бележка към задачата.
+                    {% elif event.event_type == 'checklist_updated' %}
+                      Обновен е чеклистът за изпълнение.
+                    {% elif event.event_type in ['assigned', 'professional_assigned'] %}
+                      Възложен е професионалист.
+                    {% elif event.event_type == 'status_changed' %}
+                      Променен е статусът на задачата на {{ status_labels.get(event.status, task_status_label)|e }}.
+                    {% elif event.event_type in ['completed', 'professional_completed'] %}
+                      Задачата е приключена.
+                    {% elif event.event_type == 'archived' or event.status == 'ARCHIVED' %}
+                      Задачата е архивирана.
+                    {% else %}
+                      Обновена е задачата.
+                    {% endif %}
+                  </p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-operations-empty">No timeline entries yet.</p>
+            <p class="admin-operations-empty">Още няма записи в хронологията.</p>
           {% endif %}
         </article>
       </aside>
@@ -1765,18 +2653,72 @@
   </main>
   <script>
     (function () {
+      const closedStatuses = new Set(['COMPLETED', 'ARCHIVED']);
+      const parseDate = (value, endOfDay) => {
+        if (!value) return null;
+        const normalized = String(value).trim();
+        if (!normalized) return null;
+        const source = normalized.length === 10 && endOfDay ? `${normalized}T23:59:59` : normalized;
+        const parsed = new Date(source);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      };
+      const durationText = (milliseconds, mode) => {
+        const totalMinutes = Math.max(1, Math.round(Math.abs(milliseconds) / 60000));
+        const days = Math.floor(totalMinutes / 1440);
+        const hours = Math.max(1, Math.round(totalMinutes / 60));
+        if (days >= 1) {
+          return mode === 'late'
+            ? `${days} ${days === 1 ? 'ден' : 'дни'} закъснение`
+            : `Остават ${days} ${days === 1 ? 'ден' : 'дни'}`;
+        }
+        return mode === 'late'
+          ? `${hours} ${hours === 1 ? 'час' : 'часа'} закъснение`
+          : `Остават ${hours} ${hours === 1 ? 'час' : 'часа'}`;
+      };
+      const setSlaTone = (element, tone) => {
+        element.classList.remove('admin-operations-sla-badge--green', 'admin-operations-sla-badge--yellow', 'admin-operations-sla-badge--red', 'admin-operations-sla-badge--neutral');
+        element.classList.add(`admin-operations-sla-badge--${tone}`);
+      };
+      const resolveSla = (element) => {
+        const due = parseDate(element.dataset.due, true);
+        const completed = parseDate(element.dataset.completed, false);
+        const status = element.dataset.status || '';
+        const isClosed = closedStatuses.has(status);
+        const now = new Date();
+        if (!due) return { label: 'Без срок', detail: 'Няма зададен краен срок.', tone: 'neutral' };
+        if (isClosed) {
+          const finished = completed || now;
+          if (finished.getTime() <= due.getTime()) {
+            return { label: 'Завършена в срок', detail: 'Задачата е приключена преди крайния срок.', tone: 'green' };
+          }
+          return { label: 'Завършена със закъснение', detail: durationText(finished.getTime() - due.getTime(), 'late'), tone: 'red' };
+        }
+        if (now.getTime() > due.getTime()) {
+          return { label: 'Просрочена', detail: durationText(now.getTime() - due.getTime(), 'late'), tone: 'red' };
+        }
+        return { label: durationText(due.getTime() - now.getTime(), 'remaining'), detail: 'Крайният срок още не е достигнат.', tone: 'green' };
+      };
+      document.querySelectorAll('[data-sla-label]').forEach((label) => {
+        const state = resolveSla(label);
+        label.textContent = state.label;
+        setSlaTone(label, state.tone);
+      });
+      document.querySelectorAll('[data-sla-detail]').forEach((detail) => {
+        detail.textContent = resolveSla(detail).detail;
+      });
       const buttons = document.querySelectorAll('[data-copy]');
       buttons.forEach((button) => {
         button.addEventListener('click', async () => {
+          if (button.disabled || button.classList.contains('is-disabled')) return;
           const value = button.getAttribute('data-copy') || '';
           if (!value) return;
           try {
             await navigator.clipboard.writeText(value);
             const original = button.textContent;
-            button.textContent = 'Copied';
+            button.textContent = 'Копирано';
             window.setTimeout(() => { button.textContent = original; }, 1200);
           } catch (error) {
-            console.warn('Clipboard copy failed', error);
+            console.warn('Копирането в клипборда е неуспешно', error);
           }
         });
       });

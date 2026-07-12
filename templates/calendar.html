@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | {{ calendar_scope_label }}</title>
+  <title>BlackSea Connect | {% if calendar_scope == 'admin' %}Административен календар{% else %}{{ calendar_scope_label }}{% endif %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .calendar-page {
@@ -278,10 +278,1105 @@
         grid-template-columns: 1fr;
       }
     }
-  </style>
+    .admin-ops-calendar {
+      --ops-ink: #172532;
+      --ops-muted: #697586;
+      --ops-line: #e5ebf0;
+      --ops-panel: #ffffff;
+      --ops-bg: #f5f1e9;
+      --ops-gold: #b88734;
+      --ops-hour-height: 64px;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 232px minmax(0, 1fr) 330px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 244, 238, 0.96)),
+        var(--ops-bg);
+      color: var(--ops-ink);
+      overflow-x: hidden;
+    }
+    .calendar-shell--legacy-hidden {
+      display: none;
+    }
+    .admin-ops-sidebar,
+    .admin-ops-detail {
+      min-height: 100vh;
+      background: rgba(255, 255, 255, 0.86);
+      border-color: var(--ops-line);
+      border-style: solid;
+      box-shadow: 0 18px 42px rgba(31, 41, 55, 0.06);
+    }
+    .admin-ops-sidebar {
+      position: sticky;
+      top: 0;
+      padding: 22px 16px;
+      border-width: 0 1px 0 0;
+    }
+    .admin-ops-brand,
+    .admin-ops-nav,
+    .admin-ops-heading,
+    .admin-ops-detail-card,
+    .admin-ops-detail-section {
+      display: grid;
+    }
+    .admin-ops-brand {
+      gap: 4px;
+      padding: 0 8px 18px;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-ops-label,
+    .admin-ops-brand span,
+    .admin-ops-detail-label {
+      color: var(--ops-gold);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .admin-ops-brand strong {
+      font-size: 1.02rem;
+    }
+    .admin-ops-nav {
+      gap: 6px;
+      padding-top: 18px;
+    }
+    .admin-ops-nav a {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-radius: var(--radius-xs);
+      color: #334155;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .admin-ops-nav a.is-active,
+    .admin-ops-nav a:hover {
+      background: #f7f2e8;
+      border-color: #e6d7bd;
+      color: var(--ops-ink);
+    }
+    .admin-ops-main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+    .admin-ops-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: 14px;
+      padding: 18px 22px 14px;
+      background: rgba(245, 241, 233, 0.94);
+      border-bottom: 1px solid var(--ops-line);
+      backdrop-filter: blur(18px);
+    }
+    .admin-ops-toolbar__top,
+    .admin-ops-toolbar__controls,
+    .admin-ops-control-group,
+    .admin-ops-summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .admin-ops-toolbar__top {
+      justify-content: space-between;
+    }
+    .admin-ops-heading {
+      gap: 2px;
+    }
+    .admin-ops-heading h1 {
+      margin: 0;
+      color: var(--ops-ink);
+      font-size: clamp(1.45rem, 2vw, 2.1rem);
+      letter-spacing: 0;
+    }
+    .admin-ops-heading p,
+    .admin-ops-detail p,
+    .admin-ops-empty {
+      margin: 0;
+      color: var(--ops-muted);
+      line-height: 1.55;
+    }
+    .admin-ops-button,
+    .admin-ops-select,
+    .admin-ops-input {
+      min-height: 40px;
+      border-radius: var(--radius-xs);
+      border: 1px solid #d9e1e8;
+      background: #fff;
+      color: var(--ops-ink);
+      font: inherit;
+      font-weight: 700;
+    }
+    .admin-ops-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 13px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+    }
+    .admin-ops-button--primary {
+      color: #fff;
+      background: #173654;
+      border-color: #173654;
+    }
+    .admin-ops-button--danger { color:#b42318; border-color:#fecaca; background:#fff5f5; }
+    .admin-ops-button--icon {
+      width: 40px;
+      padding: 0;
+    }
+    .admin-ops-input,
+    .admin-ops-select {
+      padding: 0 12px;
+    }
+    .admin-ops-view-switch {
+      display: inline-flex;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      background: #e9eef2;
+      border: 1px solid #dbe3ea;
+    }
+    .admin-ops-view-switch button {
+      min-height: 34px;
+      border: 0;
+      border-radius: var(--radius-xs);
+      padding: 0 11px;
+      background: transparent;
+      color: #526170;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .admin-ops-view-switch button.is-active {
+      background: #fff;
+      color: var(--ops-ink);
+      box-shadow: 0 7px 18px rgba(31, 41, 55, 0.08);
+    }
+    .admin-ops-summary {
+      padding: 0 22px;
+      min-height: 54px;
+      border-bottom: 1px solid var(--ops-line);
+      background: rgba(255, 255, 255, 0.62);
+    }
+    .admin-ops-stat {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      padding-right: 14px;
+      border-right: 1px solid var(--ops-line);
+    }
+    .admin-ops-stat strong {
+      font-size: 1.15rem;
+    }
+    .admin-ops-stat span {
+      color: var(--ops-muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .admin-ops-filters {
+      display: none;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px 22px;
+      background: #fff;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-ops-filters.is-open {
+      display: grid;
+    }
+    .admin-ops-filter {
+      display: grid;
+      gap: 6px;
+    }
+    .admin-ops-stage {
+      min-width: 0;
+      overflow: auto;
+      padding: 18px 22px 32px;
+      overscroll-behavior-x: contain;
+    }
+    .admin-week-calendar,
+    .admin-property-board,
+    .admin-timeline-board,
+    .admin-month-board,
+    .admin-day-board {
+      display: none;
+      min-width: 980px;
+      border: 1px solid var(--ops-line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 20px 46px rgba(31, 41, 55, 0.08);
+    }
+    .admin-week-calendar.is-active,
+    .admin-property-board.is-active,
+    .admin-timeline-board.is-active,
+    .admin-month-board.is-active,
+    .admin-day-board.is-active {
+      display: block;
+    }
+    .admin-week-header,
+    .admin-week-body {
+      display: grid;
+      grid-template-columns: 72px repeat(7, minmax(122px, 1fr));
+    }
+    .admin-week-header {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      background: #fff;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-week-corner,
+    .admin-week-day {
+      min-height: 62px;
+      padding: 12px;
+      border-right: 1px solid var(--ops-line);
+    }
+    .admin-week-day {
+      display: grid;
+      gap: 2px;
+    }
+    .admin-week-day.is-weekend,
+    .admin-week-column.is-weekend {
+      background-color: #faf7f1;
+    }
+    .admin-week-day strong {
+      font-size: 0.9rem;
+    }
+    .admin-week-day span {
+      color: var(--ops-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .admin-week-time-rail {
+      background: #fbfcfd;
+      border-right: 1px solid var(--ops-line);
+    }
+    .admin-week-time {
+      height: var(--ops-hour-height);
+      padding: 7px 10px 0 0;
+      text-align: right;
+      color: #8a96a3;
+      font-size: 0.74rem;
+      font-weight: 800;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-week-column {
+      position: relative;
+      min-height: calc(var(--ops-hour-height) * 17);
+      border-right: 1px solid var(--ops-line);
+      background: repeating-linear-gradient(to bottom, #fff 0, #fff calc(var(--ops-hour-height) - 1px), var(--ops-line) calc(var(--ops-hour-height) - 1px), var(--ops-line) var(--ops-hour-height));
+    }
+    .admin-current-time {
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 7;
+      height: 2px;
+      background: #d92d20;
+      pointer-events: none;
+    }
+    .admin-current-time::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d92d20;
+    }
+    .admin-week-column.is-today {
+      background:
+        linear-gradient(rgba(235, 245, 255, 0.5), rgba(235, 245, 255, 0.5)),
+        repeating-linear-gradient(to bottom, #fff 0, #fff calc(var(--ops-hour-height) - 1px), var(--ops-line) calc(var(--ops-hour-height) - 1px), var(--ops-line) var(--ops-hour-height));
+    }
+    .admin-ops-event {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: var(--event-top);
+      min-height: 56px;
+      height: var(--event-height);
+      display: grid;
+      align-content: start;
+      gap: 2px;
+      padding: 8px 9px;
+      border-radius: var(--radius-xs);
+      border: 1px solid rgba(23, 37, 50, 0.08);
+      color: var(--ops-ink);
+      box-shadow: 0 10px 20px rgba(31, 41, 55, 0.09);
+      cursor: pointer;
+      overflow: hidden;
+      text-align: left;
+      transition: box-shadow 160ms ease, outline-color 160ms ease, transform 160ms ease;
+    }
+    .admin-ops-event:hover {
+      z-index: 6;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px rgba(23, 37, 50, 0.16);
+    }
+    .admin-ops-event__top,
+    .admin-ops-event__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+    }
+    .admin-ops-event__badge,
+    .admin-ops-event__status {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.63rem !important;
+      font-weight: 850 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .admin-ops-event__priority { color: #c2410c !important; }
+    .admin-ops-event__resize {
+      position: absolute;
+      left: 28%;
+      right: 28%;
+      bottom: 2px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(23, 37, 50, 0.22);
+      cursor: ns-resize;
+    }
+    .admin-ops-event.is-selected,
+    .admin-property-chip.is-selected,
+    .admin-timeline-event.is-selected,
+    .admin-month-event.is-selected,
+    .admin-day-event.is-selected {
+      outline: 2px solid #173654;
+      outline-offset: 2px;
+      box-shadow: 0 14px 26px rgba(23, 54, 84, 0.18);
+      transform: translateY(-1px);
+    }
+    .admin-ops-event strong,
+    .admin-timeline-event strong,
+    .admin-property-chip strong {
+      font-size: 0.82rem;
+      line-height: 1.15;
+    }
+    .admin-ops-event span,
+    .admin-timeline-event span,
+    .admin-property-chip span {
+      font-size: 0.74rem;
+      color: rgba(23, 37, 50, 0.78);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .admin-event-cleaning { background: #dcfce7; border-left: 4px solid #16a34a; }
+    .admin-event-arrival { background: #dbeafe; border-left: 4px solid #2563eb; }
+    .admin-event-departure { background: #f3e8ff; border-left: 4px solid #9333ea; }
+    .admin-event-inspection { background: #cffafe; border-left: 4px solid #0891b2; }
+    .admin-event-maintenance { background: #ffedd5; border-left: 4px solid #ea580c; }
+    .admin-event-emergency { background: #fee2e2; border-left: 4px solid #dc2626; }
+    .admin-event-owner { background: #e5e7eb; border-left: 4px solid #374151; }
+    .admin-event-transfer { background: #e0e7ff; border-left: 4px solid #4f46e5; }
+    .admin-event-urgent { background: #fee2e2; border-left: 4px solid #dc2626; }
+    .admin-event-completed { background: #eceff3; color: #56616f; }
+    .admin-property-row,
+    .admin-property-header {
+      display: grid;
+      grid-template-columns: 190px repeat(7, minmax(116px, 1fr));
+    }
+    .admin-property-header {
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      background: #fbfcfd;
+      border-bottom: 1px solid var(--ops-line);
+      color: #56616f;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .admin-property-header > *,
+    .admin-property-name,
+    .admin-property-cell {
+      min-height: 62px;
+      padding: 10px;
+      border-right: 1px solid var(--ops-line);
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-property-name {
+      display: grid;
+      align-content: center;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: #fbfcfd;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-property-cell {
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      min-height: 78px;
+    }
+    .admin-property-chip,
+    .admin-timeline-event,
+    .admin-month-event,
+    .admin-day-event {
+      display: grid;
+      gap: 2px;
+      padding: 8px 9px;
+      border-radius: var(--radius-xs);
+      border: 1px solid rgba(23, 37, 50, 0.08);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      min-width: 0;
+    }
+    .admin-timeline-board,
+    .admin-month-board,
+    .admin-day-board {
+      padding: 16px;
+    }
+    .admin-timeline-list,
+    .admin-day-list,
+    .admin-month-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .admin-month-grid {
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+    }
+    .admin-month-day {
+      min-height: 118px;
+      padding: 10px;
+      border: 1px solid var(--ops-line);
+      border-radius: var(--radius-xs);
+      background: #fbfcfd;
+    }
+    .admin-month-day time {
+      display: block;
+      margin-bottom: 8px;
+      color: #56616f;
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+    .admin-ops-detail {
+      position: sticky;
+      top: 0;
+      padding: 22px;
+      border-width: 0 0 0 1px;
+      overflow: auto;
+    }
+    .admin-ops-detail-card {
+      gap: 18px;
+    }
+    .admin-ops-detail-header {
+      display: grid;
+      gap: 8px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-ops-detail-header h2 {
+      margin: 0;
+      color: var(--ops-ink);
+      font-size: 1.35rem;
+      letter-spacing: 0;
+    }
+    .admin-ops-detail-pill {
+      justify-self: start;
+      padding: 7px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .admin-ops-detail-section {
+      gap: 8px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    .admin-ops-progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7edf2;
+    }
+    .admin-ops-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #173654, #b88734);
+      transition: width 220ms ease;
+    }
+    .admin-ops-detail-row {
+      display: grid;
+      grid-template-columns: 108px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      font-size: 0.9rem;
+    }
+    .admin-ops-detail-row strong {
+      color: #2f3b48;
+    }
+    .admin-ops-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .admin-ops-hidden-events {
+      display: none;
+    }
+    .admin-urgent-queue { margin-top:22px; display:grid; gap:8px; }
+    .admin-urgent-item { padding:10px; border:1px solid #fecaca; border-radius:12px; background:#fff5f5; font-size:.76rem; cursor:pointer; }
+    .admin-urgent-item strong,.admin-urgent-item span,.admin-ai-brief strong,.admin-ai-brief span { display:block; }
+    .admin-urgent-item span,.admin-ai-brief span { margin-top:3px; color:var(--ops-muted); }
+    .admin-ai-brief { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid #d9e3ea; border-radius:16px; background:linear-gradient(120deg,rgba(255,255,255,.96),rgba(244,238,224,.9)); box-shadow:0 10px 24px rgba(23,54,84,.07); }
+    .admin-ai-brief__icon { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:#fff; background:#173654; }
+    .admin-ai-brief span { font-size:.82rem; }
+    .admin-ops-stat--danger strong { color:#b42318; }
+    .admin-ops-stat--good strong { color:#15803d; }
+    .admin-ops-event[data-urgency="critical"] { box-shadow:0 0 0 2px rgba(220,38,38,.22),0 12px 24px rgba(220,38,38,.12); }
+    .admin-ops-event[data-urgency="soon"] { box-shadow:0 0 0 2px rgba(234,88,12,.17),0 12px 24px rgba(234,88,12,.09); }
+    .admin-card-actions { display:none; gap:4px; padding-top:4px; }
+    .admin-ops-event:hover .admin-card-actions,.admin-ops-event:focus-within .admin-card-actions { display:flex; }
+    .admin-card-action { min-width:0; border:0; border-radius:6px; padding:4px 6px; background:rgba(255,255,255,.9); color:#173654; font:inherit; font-size:.61rem; font-weight:850; cursor:pointer; }
+    .admin-workflow { display:grid; gap:7px; }
+    .admin-workflow-step { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:10px; background:#f1f5f9; color:#64748b; font-size:.78rem; font-weight:800; }
+    .admin-workflow-step::before { content:""; width:9px; height:9px; border-radius:50%; background:#94a3b8; }
+    .admin-workflow-step.is-complete { color:#166534; background:#dcfce7; } .admin-workflow-step.is-complete::before { background:#16a34a; }
+    .admin-workflow-step.is-current { color:#173654; background:#dbeafe; animation:opsPulse 2s infinite; } .admin-workflow-step.is-current::before { background:#2563eb; }
+    .admin-workflow-step.is-blocked { color:#9a3412; background:#ffedd5; } .admin-workflow-step.is-blocked::before { background:#ea580c; }
+    .admin-workflow-step.is-missing { color:#991b1b; background:#fee2e2; } .admin-workflow-step.is-missing::before { background:#dc2626; }
+    @keyframes opsPulse { 50% { box-shadow:0 0 0 4px rgba(37,99,235,.08); } }
+    .admin-smart-card { padding:12px; border:1px solid var(--ops-line); border-radius:13px; background:#f8fafc; }
+    .admin-smart-card--warning { border-color:#fed7aa; background:#fff7ed; }
+    .admin-smart-actions { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .admin-next-command { position:sticky; top:0; z-index:4; display:grid; gap:9px; border-color:#c7d7e5; background:linear-gradient(145deg,#fff,#f3f7fa); box-shadow:0 12px 26px rgba(23,54,84,.12); }
+    .admin-next-command h3 { margin:0; font-size:1.05rem; line-height:1.3; }
+    .admin-next-command__meta { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:.76rem; color:var(--ops-muted); }
+    .admin-next-command__meta strong { color:var(--ops-ink); }
+    .admin-next-command__reason { margin:0; font-size:.82rem; line-height:1.45; }
+    .admin-next-command__actions { display:grid; grid-template-columns:1.25fr 1fr; gap:7px; }
+    .admin-risk-badge { display:inline-flex; align-items:center; width:max-content; padding:4px 8px; border-radius:999px; font-size:.7rem; font-weight:900; }
+    .admin-risk-badge--low { color:#166534; background:#dcfce7; }
+    .admin-risk-badge--medium { color:#854d0e; background:#fef9c3; }
+    .admin-risk-badge--high { color:#9a3412; background:#ffedd5; }
+    .admin-risk-badge--critical { color:#991b1b; background:#fee2e2; }
+    .admin-persistence-badge { display:inline-flex; align-items:center; width:max-content; padding:4px 8px; border-radius:999px; background:#e2e8f0; color:#334155; font-size:.68rem; font-weight:900; }
+    .admin-persistence-badge--persistent { background:#dcfce7; color:#166534; }
+    .admin-persistence-badge--legacy,.admin-persistence-badge--read-only { background:#fee2e2; color:#991b1b; }
+    .admin-persistence-badge--imported { background:#e0e7ff; color:#3730a3; }
+    .admin-dispatch-board,.admin-map-board { display:none; min-width:980px; overflow:hidden; border:1px solid var(--ops-line); border-radius:var(--radius-md); background:#fff; box-shadow:0 20px 46px rgba(31,41,55,.08); }
+    .admin-dispatch-board.is-active { display:grid; grid-template-columns:280px minmax(420px,1fr) 270px; min-height:680px; }
+    .admin-dispatch-column { padding:16px; border-right:1px solid var(--ops-line); }
+    .admin-dispatch-column:last-child { border-right:0; }
+    .admin-dispatch-list { display:grid; gap:9px; margin-top:12px; }
+    .admin-dispatch-task,.admin-pro-card { padding:11px; border:1px solid var(--ops-line); border-radius:12px; background:#fff; box-shadow:0 7px 16px rgba(23,37,50,.05); }
+    .admin-dispatch-task { cursor:grab; } .admin-pro-card { display:grid; grid-template-columns:auto 1fr; gap:9px; align-items:center; }
+    .admin-pro-card.is-drop-target { outline:2px solid #2563eb; }
+    .admin-pro-avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#e8edf2; font-weight:900; }
+    .admin-status-dot { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; background:#16a34a; }
+    .admin-status-dot--busy { background:#ea580c; } .admin-status-dot--offline { background:#94a3b8; }
+    .admin-map-board.is-active { display:grid; grid-template-columns:minmax(0,1fr) 280px; min-height:680px; }
+    .admin-map-canvas { position:relative; overflow:hidden; background:radial-gradient(circle at 25% 35%,#c7dfe4 0 2px,transparent 3px),linear-gradient(135deg,#eef3ed,#e6edf1); background-size:32px 32px,auto; }
+    .admin-map-pin { position:absolute; transform:translate(-50%,-50%) rotate(-45deg); display:grid; place-items:center; width:38px; height:38px; border:3px solid #fff; border-radius:50% 50% 50% 8px; color:#fff; background:#173654; box-shadow:0 8px 18px rgba(23,54,84,.25); cursor:pointer; }
+    .admin-map-pin span { transform:rotate(45deg); font-size:.7rem; font-weight:900; } .admin-map-pin--pro { width:30px; height:30px; background:#16a34a; }
+    .admin-map-legend { padding:18px; background:#fff; }
+    .admin-ops-toast { position:fixed; right:24px; bottom:24px; z-index:100; max-width:360px; padding:13px 16px; border-radius:13px; color:#fff; background:#173654; box-shadow:0 18px 42px rgba(15,31,46,.25); transform:translateY(20px); opacity:0; pointer-events:none; transition:.2s ease; }
+    .admin-ops-toast.is-visible { transform:none; opacity:1; }
+    .admin-mission-strip { display:flex; gap:8px; overflow-x:auto; padding:10px 22px; border-bottom:1px solid var(--ops-line); background:#fff; }
+    .admin-mission-pill { flex:0 0 auto; display:flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid var(--ops-line); border-radius:999px; font-size:.75rem; font-weight:800; }
+    .admin-mission-pill i { width:8px; height:8px; border-radius:50%; background:#16a34a; }
+    .admin-mission-pill--critical i { background:#dc2626; animation:opsPulse 1.8s infinite; }
+    .admin-mission-pill--warning i { background:#ea580c; }
+    .admin-mission-pill--active i { background:#eab308; }
+    .admin-event-sla { font-variant-numeric:tabular-nums; font-size:.63rem!important; font-weight:900!important; }
+    .admin-event-sla.is-overdue { color:#b42318!important; }
+    .admin-health { display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:900; }
+    .admin-health::before { content:""; width:7px; height:7px; border-radius:50%; background:#16a34a; }
+    .admin-health--attention::before { background:#ea580c; } .admin-health--critical::before { background:#dc2626; }
+    .admin-briefing { display:grid; gap:14px; width:min(560px,calc(100% - 32px)); padding:24px; border:0; border-radius:24px; box-shadow:0 30px 90px rgba(15,31,46,.3); }
+    .admin-briefing:not([open]) { display:none!important; visibility:hidden!important; opacity:0!important; pointer-events:none!important; z-index:-1!important; }
+    .admin-briefing:not([open])::backdrop { background:transparent!important; backdrop-filter:none!important; pointer-events:none!important; }
+    .admin-briefing[open] { visibility:visible; opacity:1; pointer-events:auto; z-index:1000; }
+    .admin-briefing::backdrop,.admin-command-palette::backdrop { background:rgba(15,31,46,.5); backdrop-filter:blur(8px); }
+    .admin-command-palette { width:min(650px,calc(100% - 24px)); padding:0; border:0; border-radius:20px; overflow:hidden; box-shadow:0 30px 90px rgba(15,31,46,.35); }
+    .admin-command-input { width:100%; padding:20px; border:0; border-bottom:1px solid var(--ops-line); font:inherit; font-size:1.05rem; outline:0; }
+    .admin-command-results { display:grid; gap:4px; padding:10px; max-height:360px; overflow:auto; }
+    .admin-command { display:flex; justify-content:space-between; padding:12px; border:0; border-radius:10px; background:#fff; text-align:left; font:inherit; cursor:pointer; }
+    .admin-command:hover,.admin-command:focus { background:#f1f5f9; }
+    .admin-executive-board { display:none; min-width:980px; padding:22px; border:1px solid var(--ops-line); border-radius:var(--radius-md); background:#fff; }
+    .admin-executive-board.is-active { display:block; }
+    .admin-exec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .admin-exec-card { min-height:150px; padding:18px; border:1px solid var(--ops-line); border-radius:16px; background:linear-gradient(145deg,#fff,#f8fafc); }
+    .admin-exec-card strong { display:block; margin:8px 0; font-size:2rem; }
+    .admin-mini-bars { display:flex; align-items:end; gap:6px; height:50px; }
+    .admin-mini-bars i { flex:1; border-radius:4px 4px 0 0; background:#173654; opacity:.8; }
+    .admin-ops-create {
+      width: min(760px, calc(100% - 32px));
+      max-height: calc(100vh - 40px);
+      overflow:auto;
+      padding: 24px;
+      border: 1px solid var(--ops-line);
+      border-radius: 22px;
+      color: var(--ops-ink);
+      box-shadow: 0 28px 80px rgba(15, 31, 46, 0.24);
+    }
+    .admin-ops-create::backdrop {
+      background: rgba(15, 31, 46, 0.48);
+      backdrop-filter: blur(8px);
+    }
+    .admin-ops-create-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .admin-ops-create-notes { grid-column:1 / -1; }
+    .admin-ops-create textarea.admin-ops-input { min-height:86px; padding:10px 12px; resize:vertical; }
+    .admin-inline-error { color:#b42318; font-size:.75rem; font-weight:800; }
+    .admin-smart-card:has(input[type="radio"]:checked) { border-color:#163654; box-shadow:0 0 0 2px rgba(22,54,84,.14); }
+    .admin-smart-card:has(input[type="radio"]:focus-visible) { outline:3px solid rgba(22,54,84,.28); outline-offset:2px; }
+    .admin-ops-select.is-invalid { border-color:#dc2626; box-shadow:0 0 0 3px rgba(220,38,38,.1); }
+    @media (max-width: 1280px) {
+      .admin-ops-calendar {
+        grid-template-columns: 210px minmax(0, 1fr);
+      }
+      .admin-ops-detail {
+        grid-column: 1 / -1;
+        position: static;
+        min-height: auto;
+        border-width: 1px 0 0;
+      }
+    }
+    @media (max-width: 860px) {
+      .admin-ops-calendar {
+        grid-template-columns: 1fr;
+      }
+      .admin-ops-sidebar {
+        position: static;
+        min-height: auto;
+        border-width: 0 0 1px;
+        padding: 12px 14px;
+      }
+      .admin-ops-nav {
+        display: none;
+      }
+      .admin-ops-toolbar {
+        padding: 14px;
+      }
+      .admin-ops-toolbar__top,
+      .admin-ops-toolbar__controls {
+        align-items: stretch;
+      }
+      .admin-ops-control-group {
+        width: 100%;
+      }
+      .admin-ops-button,
+      .admin-ops-input {
+        min-width: 0;
+      }
+      .admin-ops-filters {
+        grid-template-columns: 1fr;
+      }
+      .admin-ops-stage { padding: 12px; }
+      .admin-day-board {
+        min-width: 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+      }
+      .admin-day-event { min-height: 72px; padding: 14px; border-radius: 16px; }
+      .admin-ops-create-grid { grid-template-columns:1fr; }
+      .admin-ops-create-notes { grid-column:auto; }
+    }
+
+    /* Operational calendar — final visual stabilization */
+    .admin-command-dock {
+      display: grid;
+      gap: 10px;
+      margin: 12px 18px 14px;
+      min-width: 0;
+    }
+
+    .admin-command-dock .admin-next-command,
+    .admin-command-dock .admin-smart-card--warning,
+    .admin-command-dock .admin-smart-actions {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .admin-command-dock .admin-next-command {
+      padding: 15px 16px;
+    }
+
+    .admin-command-dock .admin-next-command__meta {
+      gap: 8px 18px;
+    }
+
+    .admin-command-dock .admin-smart-actions {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .admin-technical-details {
+      margin-top: 10px;
+      border-top: 1px solid rgba(19, 44, 61, 0.1);
+      padding-top: 9px;
+    }
+
+    .admin-technical-details > summary {
+      cursor: pointer;
+      color: #56616f;
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    [data-admin-technical-diagnostics] {
+      max-height: 280px;
+      margin-top: 8px;
+      overflow: auto;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    [data-admin-technical-diagnostics] pre {
+      margin: 0;
+      padding: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 0.7rem;
+      line-height: 1.45;
+    }
+
+    .admin-mission-strip {
+      flex-wrap: wrap;
+      overflow-x: visible;
+      padding: 8px 18px;
+    }
+
+    .admin-mission-pill {
+      flex: 0 1 auto;
+    }
+
+    .admin-ops-stage {
+      max-width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+
+    .admin-week-calendar {
+      min-width: 1540px;
+    }
+
+    .admin-week-header,
+    .admin-week-body {
+      min-width: 1540px;
+    }
+
+    .admin-week-header {
+      grid-template-columns: 84px repeat(7, minmax(208px, 1fr));
+    }
+
+    .admin-week-body {
+      grid-template-columns: 84px repeat(7, minmax(208px, 1fr));
+    }
+
+    .admin-ops-event {
+      min-width: 0;
+      padding: 6px 7px;
+      overflow: hidden;
+    }
+
+    .admin-ops-event strong,
+    .admin-ops-event > span {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .admin-ops-event strong {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .admin-ops-event__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .admin-ops-event__badge {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .admin-urgent-queue {
+      max-height: 360px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .admin-urgent-item {
+      padding: 9px 10px;
+    }
+
+    @media (max-width: 1100px) {
+      .admin-command-dock .admin-smart-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .admin-mission-strip {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .admin-command-dock {
+        margin: 10px 12px;
+      }
+
+      .admin-command-dock .admin-smart-actions,
+      .admin-next-command__actions {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-week-calendar,
+      .admin-week-header,
+      .admin-week-body {
+        min-width: 1180px;
+      }
+    }
+
+    /* Operational calendar — final hierarchy and readability pass */
+
+    .admin-ops-sidebar {
+      align-self: start;
+    }
+
+    .admin-urgent-queue {
+      position: sticky;
+      top: 14px;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+
+    .admin-command-dock {
+      margin-top: 12px;
+      margin-bottom: 18px;
+    }
+
+    .admin-ops-stage {
+      margin-top: 10px;
+      border-top: 1px solid rgba(19, 44, 61, 0.08);
+    }
+
+    .admin-week-calendar {
+      min-width: 1380px;
+    }
+
+    .admin-week-header,
+    .admin-week-body {
+      min-width: 1380px;
+    }
+
+    .admin-week-header {
+      grid-template-columns: 76px repeat(7, minmax(184px, 1fr));
+    }
+
+    .admin-week-body {
+      grid-template-columns: 76px repeat(7, minmax(184px, 1fr));
+    }
+
+    .admin-ops-event {
+      display: grid;
+      align-content: start;
+      gap: 3px;
+      min-width: 54px;
+      padding: 6px 7px;
+      text-align: left;
+      line-height: 1.15;
+    }
+
+    .admin-ops-event__top {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .admin-ops-event__badge {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.61rem;
+    }
+
+    .admin-ops-event__time {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #536275;
+      font-size: 0.58rem;
+      font-weight: 800;
+    }
+
+    .admin-ops-event__property {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      white-space: normal;
+      font-size: 0.68rem;
+      line-height: 1.18;
+    }
+
+    .admin-ops-event__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      min-width: 0;
+      margin-top: auto;
+    }
+
+    .admin-ops-event__priority,
+    .admin-event-sla {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.56rem !important;
+    }
+
+    .admin-card-actions {
+      position: absolute;
+      inset: auto 4px 4px;
+      z-index: 4;
+      padding: 4px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 4px 14px rgba(15,31,46,.14);
+    }
+
+    /*
+     * Create/Edit dialog contrast.
+     * The dark panel remains intentional, but all headings and labels
+     * must be readable.
+     */
+    dialog[data-admin-create-dialog],
+    dialog[data-admin-edit-dialog],
+    .admin-ops-dialog {
+      color: #f8fafc;
+    }
+
+    dialog[data-admin-create-dialog] form,
+    dialog[data-admin-edit-dialog] form,
+    .admin-ops-dialog form {
+      color: #f8fafc;
+    }
+
+    dialog[data-admin-create-dialog] :is(h1,h2,h3,p,label,legend),
+    dialog[data-admin-edit-dialog] :is(h1,h2,h3,p,label,legend),
+    .admin-ops-dialog :is(h1,h2,h3,p,label,legend) {
+      color: #f8fafc !important;
+      opacity: 1 !important;
+      text-shadow: none !important;
+    }
+
+    dialog[data-admin-create-dialog] :is(input,select,textarea),
+    dialog[data-admin-edit-dialog] :is(input,select,textarea),
+    .admin-ops-dialog :is(input,select,textarea) {
+      color: #10243a !important;
+      background: #f8fafc !important;
+      border-color: rgba(255,255,255,.42) !important;
+      opacity: 1 !important;
+    }
+
+    dialog[data-admin-create-dialog] :is(input,textarea)::placeholder,
+    dialog[data-admin-edit-dialog] :is(input,textarea)::placeholder,
+    .admin-ops-dialog :is(input,textarea)::placeholder {
+      color: #64748b !important;
+      opacity: 1 !important;
+    }
+
+    dialog[data-admin-create-dialog] option,
+    dialog[data-admin-edit-dialog] option,
+    .admin-ops-dialog option {
+      color: #10243a;
+      background: #fff;
+    }
+
+    @media (max-width: 1100px) {
+      .admin-urgent-queue {
+        position: static;
+        max-height: 260px;
+      }
+
+      .admin-week-calendar,
+      .admin-week-header,
+      .admin-week-body {
+        min-width: 1180px;
+      }
+    }
+
+    /* Calendar overflow localization */
+    .admin-ops-stage {
+      max-width: 100%;
+      overflow-x: visible !important;
+    }
+
+    .admin-week-calendar {
+      width: 100%;
+      min-width: 0 !important;
+      max-width: 100%;
+      overflow-x: auto !important;
+      overflow-y: visible;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: thin;
+    }
+
+    .admin-week-header,
+    .admin-week-body {
+      min-width: 1380px !important;
+    }
+
+    .admin-property-board,
+    .admin-month-board,
+    .admin-day-board,
+    .admin-timeline-board,
+    .admin-dispatch-board,
+    .admin-map-board,
+    .admin-executive-board {
+      max-width: 100%;
+      overflow-x: clip;
+    }
+
+    @media (max-width: 1100px) {
+      .admin-week-header,
+      .admin-week-body {
+        min-width: 1180px !important;
+      }
+    }
+</style>
 </head>
 <body class="calendar-page calendar-page--{{ calendar_scope|e }}">
-  <main class="calendar-shell">
+  <main class="calendar-shell{% if calendar_scope == 'admin' %} calendar-shell--legacy-hidden{% endif %}">
     <section class="calendar-hero">
       <div class="calendar-hero__content">
         <p class="eyebrow">BLACKSEA CONNECT</p>
@@ -294,9 +1389,9 @@
             <div><span>Next cleaning</span><strong>{{ owner_calendar_snapshot.next_cleaning }}</strong></div>
             <div><span>Occupancy</span><strong>{{ owner_calendar_snapshot.occupancy }}</strong></div>
           {% else %}
-            <div><span>Today</span><strong>{{ calendar_summary.today }}</strong></div>
-            <div><span>Upcoming</span><strong>{{ calendar_summary.this_week }}</strong></div>
-            <div><span>Attention</span><strong>{{ calendar_summary.overdue }}</strong></div>
+            <div><span>Днес</span><strong>{{ calendar_summary.today }}</strong></div>
+            <div><span>Тази седмица</span><strong>{{ calendar_summary.this_week }}</strong></div>
+            <div><span>Просрочени</span><strong>{{ calendar_summary.overdue }}</strong></div>
           {% endif %}
         </div>
       </div>
@@ -305,9 +1400,9 @@
           <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
           <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Dashboard</a>
         {% else %}
-          <a class="button button--primary" href="/admin/operator">Operator Console</a>
-          <a class="button button--secondary" href="/admin">Admin home</a>
-          <a class="button button--secondary" href="/admin/operations">Operations board</a>
+          <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
+          <a class="button button--secondary" href="/admin">Управленски панел</a>
+          <a class="button button--secondary" href="/admin/operations">Табло с операции</a>
         {% endif %}
       </div>
     </section>
@@ -315,23 +1410,23 @@
     <section class="calendar-panel">
       <div class="calendar-summary-grid">
         <article class="calendar-summary-card">
-          <span>Visible events</span>
+          <span>Видими събития</span>
           <strong>{{ calendar_filtered_count }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Today</span>
+          <span>Днес</span>
           <strong>{{ calendar_summary.today }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Tomorrow</span>
+          <span>Утре</span>
           <strong>{{ calendar_summary.tomorrow }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>This week</span>
+          <span>Тази седмица</span>
           <strong>{{ calendar_summary.this_week }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Overdue</span>
+          <span>Просрочени</span>
           <strong>{{ calendar_summary.overdue }}</strong>
         </article>
       </div>
@@ -342,7 +1437,7 @@
         {% for view in calendar_views %}
           <a class="calendar-tab {% if view == calendar_view %}is-active{% endif %}"
              href="{{ request.path }}?view={{ view }}{% for key, value in calendar_filters.items() if value %}&{{ key }}={{ value|urlencode }}{% endfor %}">
-            {{ view|title }}
+            {{ {'month': 'Месец', 'week': 'Седмица', 'day': 'Ден', 'timeline': 'Хронология'}.get(view, view|title) }}
           </a>
         {% endfor %}
       </div>
@@ -352,75 +1447,75 @@
       <form class="calendar-filters" method="get" action="{{ request.path }}">
         <input type="hidden" name="view" value="{{ calendar_view }}">
         <label class="calendar-filter">
-          <span>Search</span>
-          <input type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Search events">
+          <span>Търсене</span>
+          <input type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Търсене в събития">
         </label>
         <label class="calendar-filter">
-          <span>Property</span>
+          <span>Имот</span>
           <select name="property">
-            <option value="">All properties</option>
+            <option value="">Всички имоти</option>
             {% for option in calendar_property_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.property %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Owner</span>
+          <span>Собственик</span>
           <select name="owner">
-            <option value="">All owners</option>
+            <option value="">Всички собственици</option>
             {% for option in calendar_owner_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.owner %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Professional</span>
+          <span>Професионалист</span>
           <select name="professional">
-            <option value="">All professionals</option>
+            <option value="">Всички професионалисти</option>
             {% for option in calendar_professional_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.professional %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Category</span>
+          <span>Категория</span>
           <select name="category">
-            <option value="">All categories</option>
+            <option value="">Всички категории</option>
             {% for option in calendar_category_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Status</span>
+          <span>Статус</span>
           <select name="status">
-            <option value="">All statuses</option>
+            <option value="">Всички статуси</option>
             {% for option in calendar_status_options %}
               <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>City</span>
+          <span>Град</span>
           <select name="city">
-            <option value="">All cities</option>
+            <option value="">Всички градове</option>
             {% for option in calendar_city_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.city %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Priority</span>
+          <span>Приоритет</span>
           <select name="priority">
-            <option value="">All priorities</option>
+            <option value="">Всички приоритети</option>
             {% for option in calendar_priority_options %}
               <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <div class="calendar-actions" style="align-self: end;">
-          <button class="button button--primary" type="submit">Apply filters</button>
-          <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">Reset</a>
+          <button class="button button--primary" type="submit">Приложи филтрите</button>
+          <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">Изчисти</a>
         </div>
       </form>
     </section>
@@ -440,7 +1535,7 @@
                           <div class="calendar-event__flag">
                             <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
                             {% if event.is_overdue %}
-                              <span>Overdue</span>
+                              <span>Просрочено</span>
                             {% endif %}
                           </div>
                           <time>{{ event.display_label|e }}</time>
@@ -454,16 +1549,16 @@
                           <p class="calendar-event__copy">{% if event.owner_label %}{{ event.owner_label|e }}{% endif %}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
                         </div>
                         <div class="calendar-event__meta">
-                          <p class="calendar-event__copy">Status: <span data-owner-status="{{ event.status|e }}">{{ event.status|e }}</span></p>
-                          <p class="calendar-event__copy">{% if event.priority %}Priority: <span data-owner-status="{{ event.priority|e }}">{{ event.priority|e }}</span>{% endif %}</p>
+                          <p class="calendar-event__copy">Статус: <span data-owner-status="{{ event.status|e }}">{{ event.status|e }}</span></p>
+                          <p class="calendar-event__copy">{% if event.priority %}Приоритет: <span data-owner-status="{{ event.priority|e }}">{{ event.priority|e }}</span>{% endif %}</p>
                         </div>
                       </article>
                     {% endfor %}
                   </div>
                 {% else %}
                   <div class="calendar-note {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
-                    <h3>No events in this range</h3>
-                    <p>Adjust the filters or add a personal stay or blocked period using the form.</p>
+                    <h3>Няма събития в този период</h3>
+                    <p>Променете филтрите, за да видите други събития.</p>
                   </div>
                 {% endif %}
               </section>
@@ -471,8 +1566,8 @@
           </div>
         {% else %}
           <div class="calendar-group {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
-            <h3>No events yet.</h3>
-            <p class="calendar-note">Once operations tasks or owner dates are saved, they will appear here automatically.</p>
+            <h3>Все още няма събития.</h3>
+            <p class="calendar-note">Когато бъдат запазени операции или дати, те ще се появят тук автоматично.</p>
           </div>
         {% endif %}
       </article>
@@ -544,24 +1639,1747 @@
           </section>
         {% endif %}
 
-        <section class="calendar-panel">
-          <div class="section-heading">
-            <p class="section-heading__eyebrow">Future architecture</p>
-            <h2>Integration points</h2>
-          </div>
+        <details class="calendar-panel">
+          <summary class="section-heading">
+            <p class="section-heading__eyebrow">Интеграции</p>
+            <h2>Интеграции</h2>
+          </summary>
           <div class="calendar-integration-grid">
             {% for provider in calendar_external_integration_points %}
               <article class="calendar-integration-card">
                 <span class="calendar-integration-card__logo">{{ provider[:1] }}</span>
                 <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
-                <button class="button button--ghost" type="button" disabled>Connect</button>
+                <button class="button button--ghost" type="button" disabled>Свържи</button>
               </article>
             {% endfor %}
           </div>
-        </section>
+        </details>
       </aside>
     </section>
   </main>
+  {% if calendar_scope == 'admin' %}
+    <div class="admin-ops-calendar" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
+      <aside class="admin-ops-sidebar" aria-label="Навигация на BlackSea Connect">
+        <div class="admin-ops-brand">
+          <span>BlackSea Connect</span>
+          <strong>Оперативен календар</strong>
+        </div>
+        <nav class="admin-ops-nav">
+          <a href="/admin">Пулт</a>
+          <a href="/admin/operator">Оператор</a>
+          <a href="/admin/operations">Операции</a>
+          <a class="is-active" href="/admin/calendar">Календар</a>
+          <a href="/admin/reservations">Резервации</a>
+          <a href="/admin/properties">Имоти</a>
+          <a href="/admin/owner-accounts">Собственици</a>
+          <a href="/admin/professionals">Професионалисти</a>
+          <a href="/admin/service-requests">Заявки</a>
+        </nav>
+        <section class="admin-urgent-queue" aria-label="Спешна опашка">
+          <span class="admin-ops-label">Изискват внимание</span>
+          <div data-admin-urgent-queue></div>
+        </section>
+      </aside>
+
+      <main class="admin-ops-main">
+        <header class="admin-ops-toolbar">
+          <div class="admin-ai-brief">
+            <span class="admin-ai-brief__icon">AI</span>
+            <div><strong>Какво изисква внимание сега?</strong><span data-admin-ai-brief>Анализираме днешните операции…</span></div>
+            <button class="admin-ops-button" type="button" data-admin-ai-focus>Покажи</button>
+          </div>
+          <div class="admin-ops-toolbar__top">
+            <div class="admin-ops-heading">
+              <p class="admin-ops-label">Всички имоти</p>
+              <h1>Административен календар</h1>
+              <p id="adminOpsDateRange">Седмичен оперативен график</p>
+            </div>
+            <div class="admin-ops-control-group">
+              <button class="admin-ops-button" type="button" data-admin-calendar-today>Днес</button>
+              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-prev aria-label="Предишна седмица">&lt;</button>
+              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-next aria-label="Следваща седмица">&gt;</button>
+              <input class="admin-ops-input" type="date" data-admin-calendar-date aria-label="Избор на дата">
+            </div>
+          </div>
+
+          <div class="admin-ops-toolbar__controls">
+            <div class="admin-ops-view-switch" aria-label="Избор на календарен изглед">
+              <button type="button" data-admin-view-mode="month">Месец</button>
+              <button class="is-active" type="button" data-admin-view-mode="week">Седмица</button>
+              <button type="button" data-admin-view-mode="day">Ден</button>
+              <button type="button" data-admin-view-mode="timeline">Хронология</button>
+              <button type="button" data-admin-view-mode="property">Мулти имоти</button>
+              <button type="button" data-admin-view-mode="dispatch">Диспечер</button>
+              <button type="button" data-admin-view-mode="map">Карта</button>
+              <button type="button" data-admin-view-mode="executive">Ръководство</button>
+            </div>
+            <button class="admin-ops-button" type="button" data-admin-filter-toggle>Филтри</button>
+            <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event>Създай събитие</button>
+          </div>
+        </header>
+
+        <section class="admin-mission-strip" aria-label="Mission control">
+          <span class="admin-mission-pill admin-mission-pill--critical"><i></i><strong data-mission-critical>0</strong> критични</span>
+          <span class="admin-mission-pill admin-mission-pill--warning"><i></i><strong data-mission-arrivals>0</strong> пристигания до 2ч</span>
+          <span class="admin-mission-pill admin-mission-pill--active"><i></i><strong data-mission-cleaning>0</strong> почиствания</span>
+          <span class="admin-mission-pill"><i></i><strong data-mission-ready>0</strong> готови имоти</span>
+          <span class="admin-mission-pill"><i></i><strong data-mission-pros>0</strong> активни екипи</span>
+          <span class="admin-mission-pill"><i></i><strong>—</strong> приход днес</span>
+          <span class="admin-mission-pill"><i></i><strong data-mission-occupancy>—</strong> заетост</span>
+          <span class="admin-mission-pill admin-mission-pill--critical"><i></i><strong data-mission-sla>0</strong> SLA нарушения</span>
+        </section>
+
+        <section class="admin-ops-summary" aria-label="Обзор на календара">
+          <div class="admin-ops-stat"><strong data-kpi-arrivals>0</strong><span>Пристигания днес</span></div>
+          <div class="admin-ops-stat"><strong data-kpi-departures>0</strong><span>Заминавания днес</span></div>
+          <div class="admin-ops-stat admin-ops-stat--good"><strong data-kpi-cleaning>0</strong><span>Активни почиствания</span></div>
+          <div class="admin-ops-stat"><strong data-kpi-professionals>0</strong><span>Активни професионалисти</span></div>
+          <div class="admin-ops-stat admin-ops-stat--danger"><strong>{{ calendar_summary.overdue }}</strong><span>Просрочени задачи</span></div>
+          <div class="admin-ops-stat"><strong data-kpi-occupancy>—</strong><span>Заетост</span></div>
+          <div class="admin-ops-stat"><strong data-kpi-revenue>—</strong><span>Приход днес</span></div>
+        </section>
+
+        <form class="admin-ops-filters" method="get" action="{{ request.path }}" data-admin-filters-panel>
+          <input type="hidden" name="view" value="{{ calendar_view }}">
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Търсене</span>
+            <input class="admin-ops-input" type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Търсене в събития">
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Имот</span>
+            <select class="admin-ops-select" name="property">
+              <option value="">Всички имоти</option>
+              {% for option in calendar_property_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.property %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Собственик</span>
+            <select class="admin-ops-select" name="owner">
+              <option value="">Всички собственици</option>
+              {% for option in calendar_owner_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.owner %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Професионалист</span>
+            <select class="admin-ops-select" name="professional">
+              <option value="">Всички професионалисти</option>
+              {% for option in calendar_professional_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.professional %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Категория</span>
+            <select class="admin-ops-select" name="category" data-admin-filter-kind="category">
+              <option value="">Всички категории</option>
+              {% for option in calendar_category_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Статус</span>
+            <select class="admin-ops-select" name="status" data-admin-filter-kind="status">
+              <option value="">Всички статуси</option>
+              {% for option in calendar_status_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Град</span>
+            <select class="admin-ops-select" name="city">
+              <option value="">Всички градове</option>
+              {% for option in calendar_city_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.city %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">Приоритет</span>
+            <select class="admin-ops-select" name="priority" data-admin-filter-kind="priority">
+              <option value="">Всички приоритети</option>
+              {% for option in calendar_priority_options %}
+                <option value="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">От дата</span>
+            <input class="admin-ops-input" type="date" name="date_from" value="{{ request.args.get('date_from', '')|e }}">
+          </label>
+          <label class="admin-ops-filter">
+            <span class="admin-ops-label">До дата</span>
+            <input class="admin-ops-input" type="date" name="date_to" value="{{ request.args.get('date_to', '')|e }}">
+          </label>
+          <div class="admin-ops-control-group">
+            <button class="admin-ops-button admin-ops-button--primary" type="submit">Приложи филтрите</button>
+            <a class="admin-ops-button" href="{{ request.path }}">Изчисти</a>
+          </div>
+        </form>
+
+        <section class="admin-ops-stage" aria-label="Оперативен график">
+          <section class="admin-week-calendar is-active" data-admin-board="week">
+            <div class="admin-week-header" data-admin-week-header></div>
+            <div class="admin-week-body">
+              <div class="admin-week-time-rail" data-admin-time-rail></div>
+              <div class="admin-week-column" data-admin-day-column="0"></div>
+              <div class="admin-week-column" data-admin-day-column="1"></div>
+              <div class="admin-week-column" data-admin-day-column="2"></div>
+              <div class="admin-week-column" data-admin-day-column="3"></div>
+              <div class="admin-week-column" data-admin-day-column="4"></div>
+              <div class="admin-week-column" data-admin-day-column="5"></div>
+              <div class="admin-week-column" data-admin-day-column="6"></div>
+            </div>
+          </section>
+
+          <section class="admin-property-board" data-admin-board="property" aria-label="Мулти имотен изглед"></section>
+          <section class="admin-month-board" data-admin-board="month" aria-label="Месечен изглед"></section>
+          <section class="admin-day-board" data-admin-board="day" aria-label="Дневен изглед"></section>
+          <section class="admin-timeline-board" data-admin-board="timeline" aria-label="Хронологичен изглед"></section>
+          <section class="admin-dispatch-board" data-admin-board="dispatch" aria-label="Диспечерски режим"></section>
+          <section class="admin-map-board" data-admin-board="map" aria-label="Оперативна карта"></section>
+          <section class="admin-executive-board" data-admin-board="executive" aria-label="Ръководен оперативен преглед"></section>
+        </section>
+      </main>
+
+      <aside class="admin-ops-detail" aria-label="Детайли за избрано събитие">
+        <div class="admin-ops-detail-card">
+          <section class="admin-smart-card admin-next-command">
+            <span class="admin-ops-detail-label">Следващо действие</span>
+            <h3 data-admin-next-action>Изберете събитие</h3>
+            <p class="admin-next-command__reason" data-admin-next-action-copy>Ще предложим най-подходящото действие.</p>
+            <div class="admin-next-command__meta">
+              <span>Имот <strong data-next-property>—</strong></span>
+              <span>Професионалист <strong data-next-professional>—</strong></span>
+              <span>Спешност <strong data-next-urgency>—</strong></span>
+              <span>SLA <strong data-next-sla>—</strong></span>
+            </div>
+            <p class="admin-next-command__reason" data-next-recommendation></p>
+            <span class="admin-risk-badge admin-risk-badge--low" data-next-risk>Риск 0 · Нисък</span>
+            <div class="admin-next-command__actions">
+              <button class="admin-ops-button admin-ops-button--primary" type="button" data-next-primary>Подготви действие</button>
+              <button class="admin-ops-button" type="button" data-next-secondary>Избери друг</button>
+            </div>
+          </section>
+          <details class="admin-smart-card admin-smart-card--warning">
+            <summary><strong data-admin-warning>Няма активни предупреждения.</strong></summary>
+            <p data-admin-suggestion>Операциите са в график.</p>
+            <details class="admin-technical-details">
+              <summary>Техническа диагностика</summary>
+              <div data-admin-technical-diagnostics></div>
+            </details>
+          </details>
+          <div class="admin-smart-actions">
+            <button class="admin-ops-button admin-ops-button--primary" type="button" data-quick-action="Възлагане">Възложи</button>
+            <button class="admin-ops-button" type="button" data-quick-action="Подготви WhatsApp">Подготви WhatsApp</button>
+            <button class="admin-ops-button" type="button" data-quick-action="Подготви обаждане">Подготви обаждане</button>
+            <button class="admin-ops-button" type="button" data-quick-action="Предложи отлагане с 30 мин">Предложи +30 мин</button>
+          </div>
+          <div class="admin-ops-detail-header">
+            <span class="admin-ops-detail-pill admin-event-arrival" data-admin-detail-type>Избрано събитие</span>
+            <span class="admin-persistence-badge" data-admin-persistence-badge>Read-only</span>
+            <h2 data-admin-detail-title>Изберете събитие</h2>
+            <p data-admin-detail-time>Детайлите ще се покажат тук.</p>
+          </div>
+          <section class="admin-ops-detail-section">
+            <span class="admin-ops-detail-label">Автоматичен работен поток</span>
+            <div class="admin-workflow" data-admin-workflow></div>
+          </section>
+          <section class="admin-ops-detail-section">
+            <span class="admin-ops-detail-label">Оперативен поток</span>
+            <div class="admin-dispatch-list" data-admin-operations-feed></div>
+          </section>
+          <section class="admin-ops-detail-section">
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Имот</span><strong data-admin-detail-property>-</strong></div>
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Собственик</span><strong data-admin-detail-owner>-</strong></div>
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Професионалист</span><strong data-admin-detail-professional>-</strong></div>
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Приоритет</span><strong data-admin-detail-priority>-</strong></div>
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Статус</span><strong data-admin-detail-status>-</strong></div>
+          </section>
+          <section class="admin-ops-detail-section">
+            <span class="admin-ops-detail-label">Изпълнение на чеклиста</span>
+            <div class="admin-ops-progress" aria-label="Прогрес на чеклиста"><span data-admin-detail-progress></span></div>
+            <p data-admin-detail-checklist>0 от 0 задачи</p>
+          </section>
+          <section class="admin-ops-detail-section">
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Прикачени</span><strong data-admin-detail-attachments>Няма</strong></div>
+            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">SLA таймер</span><strong data-admin-detail-sla>-</strong></div>
+          </section>
+          <section class="admin-ops-detail-section">
+            <span class="admin-ops-detail-label">Бележки</span>
+            <p data-admin-detail-notes>Няма избрани бележки.</p>
+          </section>
+          <section class="admin-ops-detail-section">
+            <span class="admin-ops-detail-label">Бързи действия</span>
+            <div class="admin-ops-actions-grid">
+              <button class="admin-ops-button" type="button" data-admin-edit-event>Редактирай</button>
+              <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event>Изтрий</button>
+              <a class="admin-ops-button" href="/admin/properties">Имот</a>
+              <a class="admin-ops-button" href="/admin/professionals">Възлагане</a>
+              <a class="admin-ops-button" href="/admin/notifications">Известие</a>
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <div class="admin-ops-hidden-events" data-admin-event-source>
+        {% for event in calendar_events %}
+          <article
+            data-admin-source-event
+            data-id="{{ event.id|e }}"
+            data-property-id="{{ event.property_id|e }}"
+            data-owner-id="{{ event.owner_id|e }}"
+            data-title="{{ event.title|e }}"
+            data-type="{{ event.event_type|e }}"
+            data-start="{{ event.start_datetime|e }}"
+            data-end="{{ event.end_datetime|e }}"
+            data-property="{{ event.property_label|e }}"
+            data-owner="{{ event.owner_label|e }}"
+            data-professional="{{ event.professional|e }}"
+            data-priority="{{ event.priority|e }}"
+            data-status="{{ event.status|e }}"
+            data-city="{{ event.city|e }}"
+            data-notes="{{ (event.description or '')|e }}"
+            data-overdue="{{ '1' if event.is_overdue else '0' }}"
+            data-source="{{ ((event.metadata or {}).get('source') or (event.metadata or {}).get('source_type') or '')|e }}"
+            data-operation-task-id="{{ (event.operation_task_id or '')|e }}"
+          ></article>
+        {% endfor %}
+      </div>
+      <dialog class="admin-ops-create" data-admin-create-dialog>
+        <form class="admin-ops-detail-card" data-admin-create-form>
+          <div class="admin-ops-detail-header">
+            <span class="admin-ops-label">Ново събитие</span>
+            <h2>Добавяне към графика</h2>
+            <p data-admin-create-slot>Изберете дата и час.</p>
+          </div>
+          <div class="admin-ops-create-grid">
+            <label class="admin-ops-filter"><span class="admin-ops-label">Категория</span><select class="admin-ops-select" name="category" required data-admin-display-select="category">{% for option in calendar_category_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="Cleaning">Почистване</option><option value="Check-in">Пристигане</option><option value="Check-out">Заминаване</option><option value="Maintenance">Поддръжка</option><option value="Emergency">Спешен случай</option><option value="Inspection">Инспекция</option><option value="Transfer">Трансфер</option></select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Имот</span><select class="admin-ops-select" name="property_id" required aria-describedby="adminCreatePropertyError"><option value="">Изберете имот</option>{% for property in calendar_property_records %}<option value="{{ property.id|e }}" data-owner-id="{{ property.owner_id|e }}">{{ property.display_name|e }}</option>{% endfor %}</select><span class="admin-inline-error" id="adminCreatePropertyError" data-admin-property-error hidden>Изберете валиден имот.</span></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Собственик</span><select class="admin-ops-select" name="owner"><option value="">Без собственик</option>{% for option in calendar_owner_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Професионалист</span><select class="admin-ops-select" name="professional"><option value="">Не е възложено</option>{% for option in calendar_professional_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Начало</span><input class="admin-ops-input" type="datetime-local" name="start" required></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Край</span><input class="admin-ops-input" type="datetime-local" name="end" required></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Приоритет</span><select class="admin-ops-select" name="priority" data-admin-display-select="priority">{% for option in calendar_priority_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="NORMAL">Нормален</option><option value="HIGH">Висок</option><option value="URGENT">Спешен</option></select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Статус</span><select class="admin-ops-select" name="status" data-admin-display-select="status">{% for option in calendar_status_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="SCHEDULED">Планирано</option><option value="ASSIGNED">Възложено</option><option value="IN_PROGRESS">В процес</option></select></label>
+            <label class="admin-ops-filter admin-ops-create-notes"><span class="admin-ops-label">Бележки</span><textarea class="admin-ops-input" name="notes" rows="3" placeholder="Вътрешна оперативна бележка"></textarea></label>
+          </div>
+          <div class="admin-ops-actions-grid">
+            <button class="admin-ops-button" type="button" data-admin-create-cancel>Отказ</button>
+            <button class="admin-ops-button admin-ops-button--primary" type="submit">Добави събитие</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="admin-ops-create" data-reconcile-dialog>
+        <form class="admin-ops-detail-card" data-reconcile-form>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label">Свързване с имот</span><h2>Изберете каноничен имот</h2><p data-reconcile-context></p></div>
+          <div class="admin-smart-card" data-reconcile-details></div>
+          <label class="admin-ops-filter"><span class="admin-ops-label">Подходящи имоти</span><select class="admin-ops-select" name="property_id" required data-reconcile-select></select></label>
+          <p class="admin-inline-error" data-reconcile-empty hidden>Няма намерен подходящ имот</p>
+          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-reconcile-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit">Свържи с имот</button></div>
+        </form>
+      </dialog>
+      <dialog class="admin-ops-create" data-assignment-dialog>
+        <form class="admin-ops-detail-card" data-assignment-form>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label">Професионално възлагане</span><h2>Изберете професионалист</h2><p data-assignment-context></p></div>
+          <div class="admin-dispatch-list" data-assignment-options></div>
+          <p class="admin-inline-error" data-assignment-error role="alert" hidden></p>
+          <label class="calendar-owner-form__check"><input type="checkbox" name="override_conflict" data-assignment-override> Потвърждавам възлагане въпреки конфликт в графика</label>
+          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-assignment-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit" data-assignment-submit disabled>Възложи сега</button></div>
+        </form>
+      </dialog>
+      <dialog class="admin-ops-create" data-time-dialog>
+        <form class="admin-ops-detail-card" data-time-form>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label">Корекция на часа</span><h2>Начало и край</h2><p data-time-context></p></div>
+          <div class="admin-ops-create-grid"><label class="admin-ops-filter"><span class="admin-ops-label">Начало</span><input class="admin-ops-input" type="datetime-local" name="start_datetime" required></label><label class="admin-ops-filter"><span class="admin-ops-label">Край</span><input class="admin-ops-input" type="datetime-local" name="end_datetime" required></label></div>
+          <div class="admin-smart-card admin-smart-card--warning" data-time-warning hidden></div>
+          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-time-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit">Запази часа</button></div>
+        </form>
+      </dialog>
+      <div class="admin-ops-toast" role="status" aria-live="polite" data-admin-toast></div>
+      <dialog class="admin-briefing" data-admin-briefing>
+        <span class="admin-ops-label">Дневен оперативен брифинг</span>
+        <h2 data-briefing-greeting>Добро утро.</h2>
+        <p data-briefing-summary></p>
+        <div class="admin-smart-card admin-smart-card--warning"><strong>Най-висок риск</strong><p data-briefing-risk></p></div>
+        <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-briefing-close>Към календара</button><button class="admin-ops-button admin-ops-button--primary" type="button" data-briefing-action>Прегледай препоръката</button></div>
+      </dialog>
+      <dialog class="admin-command-palette" data-admin-command-palette>
+        <input class="admin-command-input" type="search" placeholder="Напишете команда… например: възложи почистване" data-admin-command-input>
+        <div class="admin-command-results" data-admin-command-results></div>
+      </dialog>
+    </div>
+
+    <script>
+      (() => {
+        const app = document.querySelector("[data-admin-calendar-app]");
+        if (!app) return;
+
+        const hourHeight = 64;
+        const dayNames = ["Пон", "Вто", "Сря", "Чет", "Пет", "Съб", "Нед"];
+        const longDayNames = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"];
+        const typeLabels = {
+          "other": "Друга услуга",
+          "event": "Друга услуга",
+          "reservation": "Резервация",
+          "cleaning": "Почистване",
+          "guest arrival": "Пристигане",
+          "arrival": "Пристигане",
+          "check-in": "Пристигане",
+          "inspection": "Инспекция",
+          "maintenance": "Поддръжка",
+          "professional visit": "Посещение на професионалист",
+          "owner meeting": "Среща със собственик",
+          "transfer": "Трансфер",
+          "transport": "Трансфер",
+          "blocked dates": "Блокирани дати",
+          "personal stay": "Личен престой",
+          "check-out": "Заминаване"
+        };
+        const statusLabels = {
+          "scheduled": "Планирано",
+          "new": "Ново",
+          "pending": "Изчаква",
+          "assigned": "Възложено",
+          "in_progress": "В процес",
+          "completed": "Завършено",
+          "cancelled": "Отменено",
+          "blocked": "Блокирано"
+        };
+        const priorityLabels = {
+          "low": "Нисък",
+          "normal": "Нормален",
+          "medium": "Среден",
+          "high": "Висок",
+          "urgent": "Спешен"
+        };
+        const events = [...app.querySelectorAll("[data-admin-source-event]")].map((node, index) => ({
+          id: node.dataset.id || `event-${index}`,
+          rawId: cleanValue(node.dataset.id),
+          title: node.dataset.title || "Календарно събитие",
+          type: node.dataset.type || "Event",
+          start: parseDate(node.dataset.start),
+          end: parseDate(node.dataset.end) || parseDate(node.dataset.start),
+          property: cleanValue(node.dataset.property) || "Невъведен имот",
+          propertyId: cleanValue(node.dataset.propertyId),
+          ownerId: cleanValue(node.dataset.ownerId),
+          owner: cleanValue(node.dataset.owner) || "Няма собственик",
+          professional: cleanValue(node.dataset.professional) || "Не е възложено",
+          priority: cleanValue(node.dataset.priority) || "NORMAL",
+          status: cleanValue(node.dataset.status) || "SCHEDULED",
+          city: node.dataset.city || "",
+          notes: cleanValue(node.dataset.notes) || "",
+          overdue: node.dataset.overdue === "1",
+          source: cleanValue(node.dataset.source) || "calendar",
+          operationTaskId: cleanValue(node.dataset.operationTaskId),
+          rawStart: cleanValue(node.dataset.start),
+          rawEnd: cleanValue(node.dataset.end)
+        })).filter((event) => event.start);
+        const urgentCount = events.filter((event) => event.overdue || /urgent|emergency|спеш/i.test(`${event.priority} ${event.type}`)).length;
+        const urgentNode = app.querySelector("[data-admin-urgent-count]");
+        if (urgentNode) urgentNode.textContent = urgentCount;
+
+        let focusDate = new Date();
+        focusDate.setHours(12, 0, 0, 0);
+        const requestedView = new URLSearchParams(window.location.search).get("view");
+        let activeView = requestedView === "multi-property" ? "property" : ["month", "week", "day", "timeline", "dispatch", "map", "executive"].includes(requestedView) ? requestedView : window.matchMedia("(max-width: 860px)").matches ? "day" : "week";
+
+        const dateInput = app.querySelector("[data-admin-calendar-date]");
+        const rangeLabel = app.querySelector("#adminOpsDateRange");
+        const weekHeader = app.querySelector("[data-admin-week-header]");
+        const timeRail = app.querySelector("[data-admin-time-rail]");
+        const columns = [...app.querySelectorAll("[data-admin-day-column]")];
+        const viewButtons = [...app.querySelectorAll("[data-admin-view-mode]")];
+        let selectedEvent = null;
+        let editingEventId = null;
+        const csrfToken = app.dataset.adminCsrf || "";
+        const stage = app.querySelector(".admin-ops-stage");
+
+        const commandCard = app.querySelector(
+          ".admin-ops-detail-card > .admin-next-command"
+        );
+        const qualityCard = app.querySelector(
+          ".admin-ops-detail-card > .admin-smart-card--warning"
+        );
+        const quickActions = app.querySelector(
+          ".admin-ops-detail-card > .admin-smart-actions"
+        );
+
+        if (stage && commandCard && !app.querySelector(".admin-command-dock")) {
+          const commandDock = document.createElement("section");
+          commandDock.className = "admin-command-dock";
+          commandDock.setAttribute(
+            "aria-label",
+            "Оперативна командна карта"
+          );
+
+          stage.after(commandDock);
+          commandDock.appendChild(commandCard);
+
+          if (qualityCard) {
+            commandDock.appendChild(qualityCard);
+          }
+
+          if (quickActions) {
+            commandDock.appendChild(quickActions);
+          }
+        }
+
+        let touchStartX = 0;
+        stage?.addEventListener("touchstart", (touchEvent) => { touchStartX = touchEvent.changedTouches[0].screenX; }, { passive: true });
+        stage?.addEventListener("touchend", (touchEvent) => {
+          if (activeView !== "day") return;
+          const distance = touchEvent.changedTouches[0].screenX - touchStartX;
+          if (Math.abs(distance) < 55) return;
+          focusDate.setDate(focusDate.getDate() + (distance < 0 ? 1 : -1));
+          render();
+        }, { passive: true });
+
+        app.querySelector("[data-admin-calendar-today]")?.addEventListener("click", () => {
+          focusDate = new Date();
+          focusDate.setHours(12, 0, 0, 0);
+          render();
+        });
+        app.querySelector("[data-admin-calendar-prev]")?.addEventListener("click", () => {
+          focusDate.setDate(focusDate.getDate() - (activeView === "day" ? 1 : 7));
+          render();
+        });
+        app.querySelector("[data-admin-calendar-next]")?.addEventListener("click", () => {
+          focusDate.setDate(focusDate.getDate() + (activeView === "day" ? 1 : 7));
+          render();
+        });
+        dateInput?.addEventListener("change", () => {
+          const selected = parseDate(dateInput.value);
+          if (selected) {
+            focusDate = selected;
+            focusDate.setHours(12, 0, 0, 0);
+            render();
+          }
+        });
+        app.querySelector("[data-admin-filter-toggle]")?.addEventListener("click", () => {
+          app.querySelector("[data-admin-filters-panel]")?.classList.toggle("is-open");
+        });
+        viewButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            activeView = button.dataset.adminViewMode || "week";
+            render();
+          });
+        });
+        app.querySelectorAll("[data-quick-action]").forEach((button) => button.addEventListener("click", () => runAction(button.dataset.quickAction)));
+        app.querySelector("[data-next-primary]")?.addEventListener("click", (clickEvent) => runAction(clickEvent.currentTarget.dataset.action || "Подготви действие"));
+        app.querySelector("[data-next-secondary]")?.addEventListener("click", () => selectedEvent && openAssignmentDialog(selectedEvent));
+        app.querySelector("[data-reconcile-cancel]")?.addEventListener("click", () => app.querySelector("[data-reconcile-dialog]")?.close());
+        app.querySelector("[data-reconcile-form]")?.addEventListener("submit", submitPropertyReconciliation);
+        app.querySelector("[data-assignment-cancel]")?.addEventListener("click", () => app.querySelector("[data-assignment-dialog]")?.close());
+        app.querySelector("[data-assignment-form]")?.addEventListener("submit", submitProfessionalAssignment);
+        app.querySelector("[data-time-cancel]")?.addEventListener("click", () => app.querySelector("[data-time-dialog]")?.close());
+        app.querySelector("[data-time-form]")?.addEventListener("submit", submitTimeCorrection);
+        app.querySelectorAll('[data-time-form] input[type="datetime-local"]').forEach((input) => input.addEventListener("input", updateTimeWarning));
+        app.querySelector("[data-admin-ai-focus]")?.addEventListener("click", () => {
+          const target = highestPriorityAction();
+          if (target) { activeView = "day"; focusDate = new Date(target.start); render(); selectEvent(target); }
+        });
+        app.querySelector("[data-admin-create-event]")?.addEventListener("click", () => openCreateDialog(focusDate));
+        app.querySelector("[data-admin-create-cancel]")?.addEventListener("click", () => app.querySelector("[data-admin-create-dialog]")?.close());
+        app.querySelector("[data-admin-create-form]")?.addEventListener("submit", createDraftEvent);
+        app.querySelector('[data-admin-create-form] [name="property_id"]')?.addEventListener("change", (changeEvent) => {
+          changeEvent.target.classList.remove("is-invalid");
+          app.querySelector("[data-admin-property-error]").hidden = true;
+        });
+        app.querySelector("[data-admin-edit-event]")?.addEventListener("click", () => selectedEvent && openEditDialog(selectedEvent));
+        app.querySelector("[data-admin-delete-event]")?.addEventListener("click", deleteSelectedEvent);
+        document.addEventListener("keydown", (keyEvent) => {
+          if ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.key.toLowerCase() === "k") { keyEvent.preventDefault(); openCommandPalette(); }
+          if (keyEvent.key === "Escape") app.querySelector("[data-admin-command-palette]")?.close();
+        });
+
+        function parseDate(value) {
+          if (!value) return null;
+          const normalized = value.length === 10 ? `${value}T12:00:00` : value;
+          const parsed = new Date(normalized);
+          return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function startOfWeek(date) {
+          const copy = new Date(date);
+          const day = (copy.getDay() + 6) % 7;
+          copy.setDate(copy.getDate() - day);
+          copy.setHours(0, 0, 0, 0);
+          return copy;
+        }
+
+        function sameDate(a, b) {
+          return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        }
+
+        function formatDate(date, options = {}) {
+          return new Intl.DateTimeFormat("bg-BG", options).format(date);
+        }
+
+        function formatTime(date) {
+          return date ? new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date) : "";
+        }
+
+        function labelFromMap(value, map) {
+          const key = String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+          return map[key] || map[key.replace(/-/g, "_")] || map[key.replace(/_/g, " ")] || value || "-";
+        }
+
+        function eventTypeLabel(event) {
+          const rawType = String(event.type || "").trim();
+          if (!/^(other|event)?$/i.test(rawType)) return labelFromMap(rawType, typeLabels);
+          const semanticText = `${event.title || ""} ${event.notes || ""}`.toLowerCase();
+          if (/почиств|cleaning|чистене/.test(semanticText)) return "Почистване";
+          if (/инспек|inspection|проверка/.test(semanticText)) return "Инспекция";
+          if (/поддръж|maintenance|repair|ремонт/.test(semanticText)) return "Поддръжка";
+          if (/пристиган|check-in|arrival/.test(semanticText)) return "Пристигане";
+          if (/заминаван|check-out|departure/.test(semanticText)) return "Заминаване";
+          return "Друга услуга";
+        }
+
+        function inferredCategoryKey(event) {
+          const label = eventTypeLabel(event);
+          if (label === "Почистване") return "cleaning";
+          if (label === "Инспекция") return "inspection";
+          if (label === "Поддръжка") return "maintenance";
+          if (label === "Пристигане") return "check-in";
+          if (label === "Заминаване") return "check-out";
+          return String(event.type || "other").toLowerCase();
+        }
+
+        function safeDisplayEnd(event) {
+          if (!(event.start instanceof Date) || Number.isNaN(event.start.getTime())) return null;
+          if (event.end instanceof Date && !Number.isNaN(event.end.getTime()) && event.end > event.start) return event.end;
+          const key = inferredCategoryKey(event);
+          const hours = /cleaning|maintenance/.test(key) ? 2 : 1;
+          return new Date(event.start.getTime() + hours * 3600000);
+        }
+
+        function getSafeDisplayTime(event) {
+          const end = safeDisplayEnd(event);
+          if (!end) return "Часът не е уточнен";
+          const crossesDate = !sameDate(event.start, end);
+          if (crossesDate) return `${formatTime(event.start)} - ${formatDate(end, { day: "2-digit", month: "short" })}, ${formatTime(end)}`;
+          if (end.getHours() * 60 + end.getMinutes() <= event.start.getHours() * 60 + event.start.getMinutes()) {
+            const normalized = new Date(event.start.getTime() + (/cleaning|maintenance/.test(inferredCategoryKey(event)) ? 2 : 1) * 3600000);
+            return `${formatTime(event.start)} - ${formatTime(normalized)}`;
+          }
+          return `${formatTime(event.start)} - ${formatTime(end)}`;
+        }
+
+        function statusLabel(value) {
+          return labelFromMap(value, statusLabels);
+        }
+
+        function priorityLabel(value) {
+          return labelFromMap(value, priorityLabels);
+        }
+
+        function localizeFilterOptions() {
+          app.querySelectorAll("[data-admin-filter-kind], [data-admin-display-select]").forEach((select) => {
+            const kind = select.dataset.adminFilterKind || select.dataset.adminDisplaySelect;
+            select.querySelectorAll("option").forEach((option) => {
+              if (!option.value) return;
+              if (kind === "category") option.textContent = labelFromMap(option.value, typeLabels);
+              if (kind === "status") option.textContent = statusLabel(option.value);
+              if (kind === "priority") option.textContent = priorityLabel(option.value);
+            });
+          });
+        }
+
+        function cleanValue(value) {
+          const text = String(value || "").trim();
+          return /^(none|null|undefined)$/i.test(text) ? "" : text;
+        }
+
+        function tone(event) {
+          const text = `${event.type} ${event.status} ${event.priority}`.toLowerCase();
+          if (text.includes("complete")) return "admin-event-completed";
+          if (text.includes("emergency")) return "admin-event-emergency";
+          if (text.includes("urgent") || event.overdue) return "admin-event-urgent";
+          if (text.includes("clean")) return "admin-event-cleaning";
+          if (text.includes("check-out") || text.includes("departure")) return "admin-event-departure";
+          if (text.includes("arrival") || text.includes("check-in") || text.includes("guest")) return "admin-event-arrival";
+          if (text.includes("inspection")) return "admin-event-inspection";
+          if (text.includes("maintenance") || text.includes("repair")) return "admin-event-maintenance";
+          if (text.includes("owner") || text.includes("personal stay")) return "admin-event-owner";
+          if (text.includes("transfer") || text.includes("transport")) return "admin-event-transfer";
+          return "admin-event-arrival";
+        }
+
+        function urgency(event) {
+          if (/completed/i.test(event.status)) return "healthy";
+          const hours = (event.start - new Date()) / 3600000;
+          const criticalType = /emergency/i.test(event.type);
+          const arrivalSoon = /arrival|check-in|guest/i.test(event.type) && hours >= 0 && hours < 2;
+          if (criticalType || event.overdue || arrivalSoon) return "critical";
+          if (hours >= 0 && hours < 24 || !isEventAssigned(event)) return "soon";
+          return hours > 24 ? "future" : "healthy";
+        }
+
+        function isEventAssigned(event) {
+          const status = String(event?.status || "").trim().toUpperCase();
+          const professional = String(event?.professional || event?.assignedProfessional || "").trim();
+          return status === "ASSIGNED" || Boolean(professional && !/не е възложено/i.test(professional));
+        }
+
+        function isActionable(event) {
+          if (/completed|cancelled/i.test(event.status)) return false;
+          const unassigned = !isEventAssigned(event);
+          const hours = (event.start - new Date()) / 3600000;
+          return event.overdue || unassigned || /urgent|high/i.test(event.priority) || /emergency/i.test(event.type) || hours <= 24;
+        }
+
+        function actionRiskScore(event) {
+          if (!isActionable(event)) return -1;
+          const hours = (event.start - new Date()) / 3600000;
+          const unassigned = !isEventAssigned(event);
+          let score = 0;
+          if (event.overdue) score += 45;
+          if (/emergency/i.test(event.type)) score += 40;
+          if (/urgent/i.test(event.priority)) score += 30;
+          else if (/high/i.test(event.priority)) score += 20;
+          if (unassigned) score += 22;
+          if (/arrival|check-in|guest/i.test(event.type) && hours >= 0 && hours <= 3) score += 28;
+          else if (hours >= 0 && hours <= 2) score += 18;
+          else if (hours > 2 && hours <= 24) score += 9;
+          if (hours < 0) score += Math.min(20, Math.ceil(Math.abs(hours)));
+          return Math.min(100, score);
+        }
+
+        function highestPriorityAction(excludedId = "") {
+          return events
+            .filter((event) => isActionable(event) && event.id !== excludedId)
+            .sort((a, b) => actionRiskScore(b) - actionRiskScore(a) || a.start - b.start)[0] || null;
+        }
+
+        function bestProfessional(event) {
+          const names = [...new Set(events
+            .filter((item) => item.id !== event.id && isEventAssigned(item) && item.professional)
+            .map((item) => item.professional))];
+          if (!names.length) return null;
+          const category = inferredCategoryKey(event);
+          const durationEnd = safeDisplayEnd(event) || new Date(event.start.getTime() + 3600000);
+          const candidates = names.map((name) => {
+            const assignments = events.filter((item) => item.id !== event.id && item.professional === name && isActionable(item));
+            const serviceMatches = assignments.filter((item) => inferredCategoryKey(item) === category).length;
+            const overlaps = assignments.filter((item) => item.start < durationEnd && (safeDisplayEnd(item) || item.start) > event.start).length;
+            return { name, workload: assignments.length, serviceMatches, overlaps, score: serviceMatches * 18 - assignments.length * 5 - overlaps * 35 };
+          }).sort((a, b) => b.score - a.score || a.workload - b.workload || a.name.localeCompare(b.name, "bg"));
+          return candidates[0];
+        }
+
+        function riskBand(score) {
+          if (score <= 30) return { label: "Нисък", tone: "low" };
+          if (score <= 60) return { label: "Среден", tone: "medium" };
+          if (score <= 80) return { label: "Висок", tone: "high" };
+          return { label: "Критичен", tone: "critical" };
+        }
+
+        function actionsFor(event) {
+          const type = event.type.toLowerCase();
+          if (/emergency/.test(type)) return ["Подготви обаждане", "Възложи", "Подготви ескалация"];
+          if (/clean/.test(type)) return ["Възложи", "Подготви чеклист", "Подготви снимки", "Завърши"];
+          if (/check-out|departure/.test(type)) return ["Подготви проверка", "Подготви почистване", "Подготви поддръжка"];
+          if (/arrival|check-in|guest/.test(type)) return ["Възложи чистач", "Подготви потвърждение", "Подготви инструкции", "Подготви код за достъп"];
+          return ["Възложи", "Завърши", "Подготви известие", "Подготви следваща задача"];
+        }
+
+        function actionButtons(event) {
+          return `<span class="admin-card-actions">${actionsFor(event).slice(0, 2).map((action) => `<button type="button" class="admin-card-action" data-card-action="${escapeHtml(action)}">${escapeHtml(action)}</button>`).join("")}</span>`;
+        }
+
+        function resolvePropertyId(event) {
+          if (event.propertyId) return event.propertyId;
+          const normalizedName = String(event.property || "").trim().toLocaleLowerCase("bg");
+          if (!normalizedName) return "";
+          const options = [...app.querySelectorAll('[data-admin-create-form] [name="property_id"] option[value]')]
+            .filter((option) => option.value && option.textContent.trim().toLocaleLowerCase("bg") === normalizedName);
+          const ownerMatches = event.ownerId ? options.filter((option) => option.dataset.ownerId === event.ownerId) : options;
+          const matches = ownerMatches.length ? ownerMatches : options;
+          console.info("[Zero Click] property resolution", { property: event.property, owner: event.owner, owner_id: event.ownerId, source: event.source, candidate_ids: matches.map((option) => option.value) });
+          if (matches.length !== 1) return "";
+          event.propertyId = matches[0].value;
+          return event.propertyId;
+        }
+
+        function persistenceDiagnostics(event) {
+          const propertyId = String(event.propertyId || "").trim();
+          const parsedRawStart = parseDate(event.rawStart);
+          const parsedRawEnd = parseDate(event.rawEnd);
+          const fields = {
+            id: event.rawId && !String(event.id).startsWith("optimistic-") ? event.rawId : "",
+            property_id: propertyId,
+            event_type: String(event.type || "").trim(),
+            start_datetime: parsedRawStart ? event.rawStart : "",
+            end_datetime: parsedRawEnd && parsedRawStart && parsedRawEnd > parsedRawStart ? event.rawEnd : "",
+            status: String(event.status || "").trim()
+          };
+          const missing = Object.entries(fields).filter(([, value]) => !value).map(([key]) => key);
+          const imported = /import|ical|google|ota/i.test(event.source || "");
+          const legacy = !fields.id || !event.rawStart || !event.rawEnd;
+          const kind = imported ? "Imported" : legacy ? "Legacy" : missing.length ? "Read-only" : "Persistent";
+          return { fields, missing, kind, canPersist: missing.length === 0 };
+        }
+
+        function clientDataQuality(event) {
+          const issues = [];
+          const start = parseDate(event.rawStart);
+          const end = parseDate(event.rawEnd);
+          if (!event.propertyId) issues.push({ code: "missing_canonical_property", label: "Липсва свързан имот" });
+          if (!start || !end || end <= start) issues.push({ code: "invalid_end_time", label: "Липсва или е невалиден краен час" });
+          if (start && end && end > start) {
+            const hours = (end - start) / 3600000;
+            const type = inferredCategoryKey(event);
+            if ((/clean/.test(type) && hours > 8) || (/inspect/.test(type) && hours > 4) || (/professional visit/.test(type) && hours > 8) || (hours > 24 && !/reservation|personal stay|blocked dates/.test(type))) issues.push({ code: "suspicious_duration", label: `Подозрителна продължителност: ${hours.toFixed(1)} ч.` });
+          }
+          const unassigned = !isEventAssigned(event);
+          if (/high|urgent/i.test(event.priority) && unassigned) issues.push({ code: "urgent_without_professional", label: "Спешна задача без професионалист" });
+          if (start && start < new Date(Date.now() - 7 * 86400000) && !/completed|cancelled/i.test(event.status)) issues.push({ code: "stale_overdue_event", label: "Старо просрочено събитие" });
+          if (!event.rawId || !event.type || !event.status || !start) issues.push({ code: "malformed_legacy_data", label: "Непълни наследени данни" });
+          return issues;
+        }
+
+        async function requestCalendarJson(url, options = {}, payload = null) {
+          const requestOptions = { ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } };
+          if (payload !== null) requestOptions.body = JSON.stringify(payload);
+          console.info("[Calendar API] request", { url, method: requestOptions.method || "GET", payload });
+          const response = await fetch(url, requestOptions);
+          const responseBody = await response.text();
+          let result = {};
+          try { result = responseBody ? JSON.parse(responseBody) : {}; } catch (error) { result = { error: `Невалиден отговор: ${error.message}` }; }
+          if (!response.ok || !result.ok) {
+            console.error("[Calendar API] failure", { url, http_status: response.status, payload, backend_code: result.code, backend_error: result.error, response_body: responseBody });
+            const failure = new Error(result.error || `Заявката не бе успешна (HTTP ${response.status}).`);
+            failure.code = result.code || "request_failed";
+            failure.result = result;
+            throw failure;
+          }
+          return result;
+        }
+
+        function applyBackendEvent(record, message, previousId) {
+          const saved = eventFromApi(record);
+          const index = events.findIndex((item) => item.id === previousId);
+          if (index >= 0) events.splice(index, 1, saved); else events.push(saved);
+          render();
+          const next = highestPriorityAction(saved.id);
+          selectEvent(next || saved);
+          showToast(next ? `${message} Следва: ${eventTypeLabel(next)} за ${next.property}.` : message);
+          return saved;
+        }
+
+        async function openReconciliationDialog(event) {
+          const dialog = app.querySelector("[data-reconcile-dialog]");
+          const select = app.querySelector("[data-reconcile-select]");
+          app.querySelector("[data-reconcile-context]").textContent = `${event.property} · ${event.owner} · ${eventTypeLabel(event)} · ${getSafeDisplayTime(event)}`;
+          app.querySelector("[data-reconcile-details]").textContent = `Източник: ${event.source || "неизвестен"}`;
+          select.innerHTML = '<option value="">Зареждане…</option>';
+          dialog.showModal();
+          try {
+            const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(event.id)}/property-matches`);
+            select.innerHTML = '<option value="">Изберете имот</option>' + result.matches.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === result.safe_match_id ? "selected" : ""}>${escapeHtml(item.name)}${item.city ? ` · ${escapeHtml(item.city)}` : ""} — ${escapeHtml(item.reason)}</option>`).join("");
+            const empty = result.matches.length === 0;
+            app.querySelector("[data-reconcile-empty]").hidden = !empty;
+            select.disabled = empty;
+            dialog.querySelector('[type="submit"]').disabled = empty;
+          } catch (error) {
+            showToast(`Неуспешно търсене на имот: ${error.message}`);
+            dialog.close();
+          }
+        }
+
+        async function submitPropertyReconciliation(submitEvent) {
+          submitEvent.preventDefault();
+          if (!selectedEvent) return;
+          const propertyId = String(new FormData(submitEvent.currentTarget).get("property_id") || "").trim();
+          if (!propertyId) return showToast("Изберете каноничен имот.");
+          const payload = { csrf_token: csrfToken, property_id: propertyId };
+          try {
+            const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(selectedEvent.id)}/reconcile-property`, { method: "POST", headers: { "X-CSRF-Token": csrfToken } }, payload);
+            const previousId = selectedEvent.id;
+            app.querySelector("[data-reconcile-dialog]").close();
+            applyBackendEvent(result.event, "Събитието е свързано с имота.", previousId);
+          } catch (error) { showToast(`Свързването не бе успешно: ${error.message}`); }
+        }
+
+        async function openAssignmentDialog(event) {
+          const dialog = app.querySelector("[data-assignment-dialog]");
+          const container = app.querySelector("[data-assignment-options]");
+          const submitButton = app.querySelector("[data-assignment-submit]");
+          const errorNode = app.querySelector("[data-assignment-error]");
+          const eventId = String(event?.rawId || "").trim();
+          const propertyId = String(event?.propertyId || "").trim();
+          errorNode.hidden = true;
+          errorNode.textContent = "";
+          if (!eventId) return showToast("Събитието няма валиден идентификатор и не може да бъде възложено.");
+          if (!propertyId) return showToast("Първо свържете събитието с имот.");
+          dialog.dataset.assignmentEventId = eventId;
+          dialog.dataset.assignmentPropertyId = propertyId;
+          app.querySelector("[data-assignment-context]").textContent = `${eventTypeLabel(event)} · ${event.property} · ${getSafeDisplayTime(event)}`;
+          container.innerHTML = '<p class="admin-ops-empty">Зареждане…</p>';
+          app.querySelector("[data-assignment-override]").checked = false;
+          submitButton.disabled = true;
+          submitButton.textContent = "Възложи сега";
+          dialog.showModal();
+          try {
+            const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(eventId)}/assignment-options`);
+            container.innerHTML = result.professionals.map((item, index) => `<label class="admin-smart-card"><input type="radio" name="professional_id" value="${escapeHtml(item.id)}" ${index === 0 && !item.conflicts.length ? "checked" : ""}> <strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.reason)}</p>${item.conflicts.length ? `<p class="admin-inline-error">Конфликт с ${item.conflicts.length} задача/и</p>` : ""}</label>`).join("") || '<p class="admin-ops-empty">Няма активни професионалисти.</p>';
+            const selectedRadio = container.querySelector('input[name="professional_id"]:checked');
+            submitButton.disabled = !selectedRadio;
+            if (!selectedRadio && result.professionals.length) {
+              errorNode.textContent = "Изберете професионалист";
+              errorNode.hidden = false;
+            }
+            container.addEventListener("change", (changeEvent) => {
+              if (!changeEvent.target.matches('input[name="professional_id"]')) return;
+              submitButton.disabled = false;
+              errorNode.hidden = true;
+            }, { once: false });
+          } catch (error) { showToast(`Професионалистите не бяха заредени: ${error.message}`); dialog.close(); }
+        }
+
+        async function submitProfessionalAssignment(submitEvent) {
+          submitEvent.preventDefault();
+          const dialog = app.querySelector("[data-assignment-dialog]");
+          const submitButton = app.querySelector("[data-assignment-submit]");
+          const errorNode = app.querySelector("[data-assignment-error]");
+          const eventId = String(dialog.dataset.assignmentEventId || "").trim();
+          const propertyId = String(dialog.dataset.assignmentPropertyId || "").trim();
+          const setError = (message) => { errorNode.textContent = message; errorNode.hidden = false; showToast(message); };
+          if (!eventId) return setError("Събитието няма валиден идентификатор.");
+          if (!propertyId) return setError("Първо свържете събитието с имот.");
+          const values = new FormData(submitEvent.currentTarget);
+          const professionalId = String(values.get("professional_id") || "").trim();
+          if (!professionalId) { submitButton.disabled = true; return setError("Изберете професионалист"); }
+          const payload = { csrf_token: csrfToken, professional_id: professionalId, override_conflict: values.get("override_conflict") === "on" };
+          const originalLabel = submitButton.textContent;
+          submitButton.disabled = true;
+          submitButton.textContent = "Записване…";
+          errorNode.hidden = true;
+          try {
+            const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(eventId)}/assign`, { method: "POST", headers: { "X-CSRF-Token": csrfToken } }, payload);
+            dialog.close();
+            const previousId = eventId;
+            applyBackendEvent(result.event, result.conflict_overridden ? "Възлагането е записано с потвърден конфликт." : "Възлагането е записано успешно.", previousId);
+          } catch (error) {
+            const message = error.code === "schedule_conflict" ? "Професионалистът има конфликт в графика. Потвърдете изрично, за да възложите въпреки конфликта." : `Възлагането не бе успешно: ${error.message}`;
+            setError(message);
+            submitButton.disabled = false;
+          } finally {
+            submitButton.textContent = originalLabel;
+          }
+        }
+
+        function openTimeDialog(event) {
+          const dialog = app.querySelector("[data-time-dialog]");
+          const form = app.querySelector("[data-time-form]");
+          app.querySelector("[data-time-context]").textContent = `${eventTypeLabel(event)} · ${event.property}`;
+          form.elements.start_datetime.value = dateTimeInputValue(event.start);
+          form.elements.end_datetime.value = dateTimeInputValue(event.end);
+          updateTimeWarning();
+          dialog.showModal();
+        }
+
+        function updateTimeWarning() {
+          const form = app.querySelector("[data-time-form]");
+          const warning = app.querySelector("[data-time-warning]");
+          const start = parseDate(form.elements.start_datetime.value);
+          const end = parseDate(form.elements.end_datetime.value);
+          const messages = [];
+          if (start && end && end <= start) messages.push("Крайният час трябва да бъде след началния.");
+          if (start && end && !sameDate(start, end)) messages.push("Събитието преминава през полунощ.");
+          if (start && end && end > start && selectedEvent) {
+            const hours = (end - start) / 3600000;
+            const type = inferredCategoryKey(selectedEvent);
+            if ((/clean/.test(type) && hours > 8) || (/inspect/.test(type) && hours > 4) || (/professional visit/.test(type) && hours > 8) || (hours > 24 && !/reservation|personal stay|blocked dates/.test(type))) messages.push(`Подозрително дълга продължителност: ${hours.toFixed(1)} ч.`);
+          }
+          warning.hidden = messages.length === 0;
+          warning.textContent = messages.join(" ");
+        }
+
+        async function submitTimeCorrection(submitEvent) {
+          submitEvent.preventDefault();
+          if (!selectedEvent) return;
+          const values = new FormData(submitEvent.currentTarget);
+          const start = parseDate(values.get("start_datetime"));
+          const end = parseDate(values.get("end_datetime"));
+          if (!start || !end || end <= start) return showToast("Крайният час трябва да бъде след началния.");
+          const payload = { csrf_token: csrfToken, start_datetime: start.toISOString(), end_datetime: end.toISOString() };
+          try {
+            const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(selectedEvent.id)}/time`, { method: "PATCH", headers: { "X-CSRF-Token": csrfToken } }, payload);
+            const previousId = selectedEvent.id;
+            app.querySelector("[data-time-dialog]").close();
+            applyBackendEvent(result.event, "Часът е коригиран успешно.", previousId);
+          } catch (error) { showToast(`Часът не бе записан: ${error.message}`); }
+        }
+
+        async function persistEventUpdate(event, changes) {
+          const updated = { ...event, ...changes };
+          const diagnostics = persistenceDiagnostics(updated);
+          const payload = diagnostics.canPersist ? apiPayload(updated) : null;
+          console.groupCollapsed(`[Zero Click] PATCH event ${event.id || "missing-id"}`);
+          console.log("event", { ...updated });
+          console.log("mandatory_fields", diagnostics.fields);
+          console.log("missing_fields", diagnostics.missing);
+          console.log("patch_payload", payload);
+          console.groupEnd();
+          if (!diagnostics.canPersist) throw new Error("Това събитие е само за визуализация и не поддържа автоматични операции.");
+          const response = await fetch(`/admin/api/calendar/events/${encodeURIComponent(event.id)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+            body: JSON.stringify(payload)
+          });
+          let result = {};
+          try { result = await response.json(); } catch (parseError) { result = { error: `Невалиден JSON отговор: ${parseError.message}` }; }
+          if (!response.ok || !result.ok) {
+            console.error("[Zero Click] PATCH validation failed", { event_id: event.id, http_status: response.status, backend_error: result.error || "Unknown backend error", response: result, payload });
+            throw new Error(result.error || `Промяната не бе записана (HTTP ${response.status}).`);
+          }
+          console.info("[Zero Click] PATCH persisted", { event_id: event.id, http_status: response.status, response: result });
+          const saved = eventFromApi(result.event);
+          const index = events.findIndex((item) => item.id === event.id);
+          if (index >= 0) events.splice(index, 1, saved);
+          return saved;
+        }
+
+        async function runAction(action, event = selectedEvent) {
+          if (!event) return;
+          if (/свържи с имот/i.test(action)) return openReconciliationDialog(event);
+          if (/коригирай часа/i.test(action)) return openTimeDialog(event);
+          if (/избери друг/i.test(action)) return openAssignmentDialog(event);
+          if (/възложи|чистач/i.test(action)) return openAssignmentDialog(event);
+          const diagnostics = persistenceDiagnostics(event);
+          if (!diagnostics.canPersist) {
+            console.warn("[Zero Click] action blocked", { action, event: { ...event }, persistence: diagnostics });
+            showToast("Това събитие е само за визуализация и не поддържа автоматични операции.");
+            return;
+          }
+          const previousId = event.id;
+          if (/завърш/i.test(action)) {
+            showToast("Записване на завършването…");
+            try {
+              const result = await requestCalendarJson(
+                `/admin/api/calendar/events/${encodeURIComponent(event.id)}/complete`,
+                {
+                  method: "POST",
+                  headers: { "X-CSRF-Token": csrfToken }
+                },
+                { csrf_token: csrfToken }
+              );
+
+              const saved = eventFromApi(result.event);
+              const savedIndex = events.findIndex((item) => item.id === previousId);
+              if (savedIndex >= 0) {
+                events.splice(savedIndex, 1, saved);
+              } else {
+                events.push(saved);
+              }
+
+              render();
+
+              const next = highestPriorityAction(previousId);
+              if (next) {
+                selectEvent(next);
+              } else {
+                selectEvent(saved);
+              }
+
+              showToast(
+                next
+                  ? `Завършването е записано. Следва: ${eventTypeLabel(next)} за ${next.property}, риск ${actionRiskScore(next)}.`
+                  : "Завършването е записано. Няма други действия, които изискват внимание."
+              );
+            } catch (error) {
+              render();
+              selectEvent(event);
+              showToast(`Завършването не бе записано: ${error.message}`);
+            }
+            return;
+          }
+          showToast(`Предложение: ${action} за ${event.property}. Няма извършено обаждане, съобщение или промяна.`);
+        }
+
+        function showToast(message) {
+          const toast = app.querySelector("[data-admin-toast]");
+          toast.textContent = message;
+          toast.classList.add("is-visible");
+          window.clearTimeout(showToast.timer);
+          showToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 3200);
+        }
+
+        function weekDates() {
+          const start = startOfWeek(focusDate);
+          return Array.from({ length: 7 }, (_, index) => {
+            const day = new Date(start);
+            day.setDate(start.getDate() + index);
+            return day;
+          });
+        }
+
+        function eventInRange(event, start, end) {
+          return event.start < end && (event.end || event.start) >= start;
+        }
+
+        function renderShell() {
+          viewButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.adminViewMode === activeView));
+          app.querySelectorAll("[data-admin-board]").forEach((board) => board.classList.toggle("is-active", board.dataset.adminBoard === activeView));
+          if (dateInput) dateInput.value = focusDate.toISOString().slice(0, 10);
+          const dates = weekDates();
+          const end = new Date(dates[6]);
+          rangeLabel.textContent = activeView === "day"
+            ? formatDate(focusDate, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+            : `${formatDate(dates[0], { day: "2-digit", month: "short" })} - ${formatDate(end, { day: "2-digit", month: "short", year: "numeric" })}`;
+        }
+
+        function renderWeek() {
+          const dates = weekDates();
+          weekHeader.innerHTML = '<div class="admin-week-corner"></div>' + dates.map((date, index) => `
+            <div class="admin-week-day ${index > 4 ? "is-weekend" : ""}">
+              <strong>${longDayNames[index]}</strong>
+              <span>${formatDate(date, { day: "2-digit", month: "short" })}</span>
+            </div>
+          `).join("");
+          timeRail.innerHTML = Array.from({ length: 17 }, (_, index) => `<div class="admin-week-time">${String(index + 6).padStart(2, "0")}:00</div>`).join("");
+          columns.forEach((column, index) => {
+            column.innerHTML = "";
+            column.classList.toggle("is-today", sameDate(dates[index], new Date()));
+            column.classList.toggle("is-weekend", index > 4);
+            column.ondblclick = (clickEvent) => { if (!clickEvent.target.closest("[data-event-id]")) openCreateDialog(dates[index], clickEvent.offsetY); };
+            column.ondragover = (dragEvent) => dragEvent.preventDefault();
+            column.ondrop = (dragEvent) => moveEventToSlot(dragEvent, dates[index]);
+          });
+          const endOfWeek = new Date(dates[6]);
+          endOfWeek.setHours(23, 59, 59, 999);
+          const eventsByDay = new Map();
+          events.filter((event) => eventInRange(event, dates[0], endOfWeek)).forEach((event) => {
+            const dayIndex = dates.findIndex((date) => sameDate(date, event.start));
+            if (dayIndex < 0) return;
+            if (!eventsByDay.has(dayIndex)) eventsByDay.set(dayIndex, []);
+            eventsByDay.get(dayIndex).push(event);
+          });
+          eventsByDay.forEach((dayEvents, dayIndex) => {
+            const lanes = [];
+            dayEvents.sort((a, b) => a.start - b.start).forEach((event) => {
+              const eventEnd = event.end && event.end > event.start ? event.end : new Date(event.start.getTime() + 60 * 60 * 1000);
+              let laneIndex = lanes.findIndex((laneEnd) => laneEnd <= event.start);
+              if (laneIndex < 0) {
+                laneIndex = lanes.length;
+                lanes.push(eventEnd);
+              } else {
+                lanes[laneIndex] = eventEnd;
+              }
+              event._laneIndex = laneIndex;
+            });
+            dayEvents.forEach((event) => {
+              event._laneCount = lanes.length;
+            });
+            dayEvents.forEach((event) => {
+            const startHour = Math.max(6, event.start.getHours() + event.start.getMinutes() / 60);
+            const endDate = safeDisplayEnd(event) || new Date(event.start.getTime() + 60 * 60 * 1000);
+            const endHour = Math.min(22, endDate.getHours() + endDate.getMinutes() / 60);
+            const top = Math.max(0, (startHour - 6) * hourHeight);
+            const height = Math.max(56, (Math.max(startHour + 0.875, endHour) - startHour) * hourHeight);
+            const width = 100 / Math.max(1, event._laneCount || 1);
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = `admin-ops-event ${tone(event)}`;
+            card.style.setProperty("--event-top", `${top}px`);
+            card.style.setProperty("--event-height", `${height}px`);
+            card.style.left = `calc(8px + ${width * (event._laneIndex || 0)}%)`;
+            card.style.right = "auto";
+            card.style.width = `calc(${width}% - 12px)`;
+            card.dataset.eventId = event.id;
+            card.draggable = true;
+            card.dataset.urgency = urgency(event);
+            card.setAttribute("aria-label", `${eventTypeLabel(event)}, ${event.property}, ${getSafeDisplayTime(event)}`);
+            card.innerHTML = `
+              <span class="admin-ops-event__top">
+                <span class="admin-ops-event__badge">${escapeHtml(eventTypeLabel(event))}</span>
+                <span class="admin-ops-event__time">${getSafeDisplayTime(event)}</span>
+              </span>
+              <strong class="admin-ops-event__property">${escapeHtml(event.property)}</strong>
+              <span class="admin-ops-event__footer">
+                <span class="admin-ops-event__priority">${escapeHtml(priorityLabel(event.priority))}</span>
+                <span class="admin-event-sla" data-sla-event="${event.id}"></span>
+              </span>
+              ${actionButtons(event)}
+              <span class="admin-ops-event__resize" aria-hidden="true"></span>
+            `;
+            card.addEventListener("click", () => selectEvent(event));
+            card.addEventListener("dragstart", (dragEvent) => dragEvent.dataTransfer.setData("text/plain", event.id));
+            card.addEventListener("keydown", (keyEvent) => navigateEvent(keyEvent, event));
+            card.querySelectorAll("[data-card-action]").forEach((button) => button.addEventListener("click", (actionEvent) => { actionEvent.stopPropagation(); runAction(button.dataset.cardAction, event); }));
+            card.querySelector(".admin-ops-event__resize").addEventListener("pointerdown", (pointerEvent) => startResize(pointerEvent, event));
+            columns[dayIndex].appendChild(card);
+            });
+          });
+          const now = new Date();
+          const todayIndex = dates.findIndex((date) => sameDate(date, now));
+          const nowHour = now.getHours() + now.getMinutes() / 60;
+          if (todayIndex >= 0 && nowHour >= 6 && nowHour <= 23) {
+            const line = document.createElement("span");
+            line.className = "admin-current-time";
+            line.style.top = `${(nowHour - 6) * hourHeight}px`;
+            columns[todayIndex].appendChild(line);
+          }
+        }
+
+        function dateTimeInputValue(date) {
+          const pad = (value) => String(value).padStart(2, "0");
+          return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function openCreateDialog(date = focusDate, offsetY = null) {
+          const dialog = app.querySelector("[data-admin-create-dialog]");
+          if (!dialog) return;
+          const minutes = offsetY === null ? 3 * 60 : Math.max(0, Math.min(16 * 60, Math.round(offsetY / hourHeight * 60 / 15) * 15));
+          const slot = new Date(date);
+          slot.setHours(6 + Math.floor(minutes / 60), minutes % 60, 0, 0);
+          const end = new Date(slot.getTime() + 60 * 60 * 1000);
+          const form = app.querySelector("[data-admin-create-form]");
+          editingEventId = null;
+          form.reset();
+          form.elements.property_id.classList.remove("is-invalid");
+          form.querySelector("[data-admin-property-error]").hidden = true;
+          dialog.querySelector("h2").textContent = "Добавяне към графика";
+          form.querySelector('[type="submit"]').textContent = "Добави събитие";
+          form.elements.start.value = dateTimeInputValue(slot);
+          form.elements.end.value = dateTimeInputValue(end);
+          dialog.querySelector("[data-admin-create-slot]").textContent = `${formatDate(slot, { weekday: "long", day: "2-digit", month: "long" })} · ${formatTime(slot)}`;
+          dialog.showModal();
+          window.setTimeout(() => form.elements.category.focus(), 50);
+        }
+
+        function setSelectValue(control, value) {
+          if (!control) return;
+          const match = [...control.options].find((option) => option.value.toLowerCase() === String(value || "").toLowerCase());
+          control.value = match ? match.value : "";
+        }
+
+        function openEditDialog(event) {
+          const dialog = app.querySelector("[data-admin-create-dialog]");
+          const form = app.querySelector("[data-admin-create-form]");
+          editingEventId = event.id;
+          setSelectValue(form.elements.category, event.type);
+          setSelectValue(form.elements.property_id, event.propertyId);
+          setSelectValue(form.elements.owner, event.owner);
+          setSelectValue(form.elements.professional, event.professional);
+          setSelectValue(form.elements.priority, event.priority);
+          setSelectValue(form.elements.status, event.status);
+          form.elements.start.value = dateTimeInputValue(event.start);
+          form.elements.end.value = dateTimeInputValue(event.end || new Date(event.start.getTime() + 3600000));
+          form.elements.notes.value = event.notes || "";
+          dialog.querySelector("h2").textContent = "Редактиране на събитие";
+          dialog.querySelector("[data-admin-create-slot]").textContent = `${eventTypeLabel(event)} · ${event.property}`;
+          form.querySelector('[type="submit"]').textContent = "Запази промените";
+          dialog.showModal();
+        }
+
+        function eventFromApi(record) {
+          return {
+            id: record.id,
+            rawId: record.id || "",
+            title: record.title || record.event_type || "Календарно събитие",
+            type: record.event_type || "Other",
+            start: parseDate(record.start_datetime),
+            end: parseDate(record.end_datetime) || parseDate(record.start_datetime),
+            property: record.property_label || record.property_id || "Невъведен имот",
+            propertyId: record.property_id || "",
+            ownerId: record.owner_id || "",
+            owner: record.owner_label || "Няма собственик",
+            professional: record.professional || record.assigned_professional || "Не е възложено",
+            priority: record.priority || "NORMAL",
+            status: record.status || "SCHEDULED",
+            city: record.city || "",
+            notes: record.description || "",
+            overdue: Boolean(record.is_overdue),
+            source: record.metadata?.source || record.metadata?.source_type || "calendar",
+            operationTaskId: record.operation_task_id || "",
+            rawStart: record.start_datetime || "",
+            rawEnd: record.end_datetime || "",
+            localDraft: false
+          };
+        }
+
+        function apiPayload(event) {
+          return { csrf_token: csrfToken, event_type: event.type, title: event.title, property_id: event.propertyId, owner: event.owner, professional: event.professional, priority: event.priority, status: event.status, notes: event.notes, start_datetime: event.rawStart || event.start.toISOString(), end_datetime: event.rawEnd || event.end.toISOString() };
+        }
+
+        async function createDraftEvent(submitEvent) {
+          submitEvent.preventDefault();
+          const form = submitEvent.currentTarget;
+          if (!form.reportValidity()) return;
+          const values = new FormData(form);
+          const propertySelect = form.elements.property_id;
+          const propertyError = form.querySelector("[data-admin-property-error]");
+          const propertyId = String(values.get("property_id") || "").trim();
+          propertySelect.classList.toggle("is-invalid", !propertyId);
+          propertyError.hidden = Boolean(propertyId);
+          if (!propertyId) {
+            propertySelect.focus();
+            return;
+          }
+          const start = parseDate(values.get("start"));
+          const end = parseDate(values.get("end"));
+          if (!start || !end || end <= start) {
+            showToast("Крайният час трябва да бъде след началния.");
+            form.elements.end.focus();
+            return;
+          }
+          const category = String(values.get("category") || "Other");
+          const existingIndex = editingEventId ? events.findIndex((item) => item.id === editingEventId) : -1;
+          const previous = existingIndex >= 0 ? { ...events[existingIndex] } : null;
+          const event = {
+            id: editingEventId || `optimistic-${Date.now()}`,
+            title: category,
+            type: category,
+            start,
+            end,
+            property: propertySelect.selectedOptions[0]?.textContent?.trim() || "Невъведен имот",
+            propertyId,
+            owner: String(values.get("owner") || "Няма собственик"),
+            professional: String(values.get("professional") || "Не е възложено"),
+            priority: String(values.get("priority") || "NORMAL"),
+            status: String(values.get("status") || "SCHEDULED"),
+            city: "",
+            notes: String(values.get("notes") || ""),
+            overdue: false,
+            localDraft: true
+          };
+          if (existingIndex >= 0) events.splice(existingIndex, 1, event); else events.push(event);
+          focusDate = new Date(start);
+          app.querySelector("[data-admin-create-dialog]").close();
+          render();
+          selectEvent(event);
+          app.querySelector(`[data-event-id="${event.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          showToast(editingEventId ? "Запазване на промените…" : "Създаване на събитието…");
+          try {
+            const payload = apiPayload(event);
+            console.log("Submitting property_id:", payload.property_id);
+            const response = await fetch(editingEventId ? `/admin/api/calendar/events/${encodeURIComponent(editingEventId)}` : "/admin/api/calendar/events", { method: editingEventId ? "PATCH" : "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (!response.ok || !result.ok) throw new Error(result.error || "Event could not be saved.");
+            const saved = eventFromApi(result.event);
+            const optimisticIndex = events.findIndex((item) => item.id === event.id);
+            if (optimisticIndex >= 0) events.splice(optimisticIndex, 1, saved);
+            editingEventId = null;
+            render();
+            selectEvent(saved);
+            showToast(`${eventTypeLabel(saved)} е записано успешно · ID ${saved.id}`);
+          } catch (error) {
+            const optimisticIndex = events.findIndex((item) => item.id === event.id);
+            if (previous && optimisticIndex >= 0) events.splice(optimisticIndex, 1, previous); else if (optimisticIndex >= 0) events.splice(optimisticIndex, 1);
+            render();
+            if (previous) selectEvent(previous);
+            showToast(`Записът не бе успешен: ${error.message}`);
+          }
+        }
+
+        async function deleteSelectedEvent() {
+          if (!selectedEvent || !window.confirm(`Изтриване на ${eventTypeLabel(selectedEvent)} за ${selectedEvent.property}?`)) return;
+          const event = selectedEvent;
+          const index = events.findIndex((item) => item.id === event.id);
+          events.splice(index, 1);
+          selectedEvent = null;
+          render();
+          showToast("Изтриване на събитието…");
+          try {
+            const response = await fetch(`/admin/api/calendar/events/${encodeURIComponent(event.id)}`, { method: "DELETE", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ csrf_token: csrfToken }) });
+            const result = await response.json();
+            if (!response.ok || !result.ok) throw new Error(result.error || "Event could not be deleted.");
+            showToast(`Събитието ${result.event_id} е изтрито.`);
+          } catch (error) {
+            events.splice(Math.max(0, index), 0, event);
+            render();
+            selectEvent(event);
+            showToast(`Изтриването не бе успешно: ${error.message}`);
+          }
+        }
+
+        function moveEventToSlot(dragEvent, date) {
+          dragEvent.preventDefault();
+          const event = events.find((item) => item.id === dragEvent.dataTransfer.getData("text/plain"));
+          if (!event) return;
+          if (!persistenceDiagnostics(event).canPersist) {
+            showToast("Това събитие е само за визуализация и не поддържа автоматични операции.");
+            return;
+          }
+          const duration = Math.max(60 * 60 * 1000, (event.end || event.start) - event.start);
+          const minutes = Math.max(0, Math.min(16 * 60, Math.round(dragEvent.offsetY / hourHeight * 4) * 15));
+          event.start = new Date(date);
+          event.start.setHours(6 + Math.floor(minutes / 60), minutes % 60, 0, 0);
+          event.end = new Date(event.start.getTime() + duration);
+          render();
+          selectEvent(event);
+        }
+
+        function navigateEvent(keyEvent, event) {
+          if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(keyEvent.key)) return;
+          keyEvent.preventDefault();
+          if (!persistenceDiagnostics(event).canPersist) {
+            showToast("Това събитие е само за визуализация и не поддържа автоматични операции.");
+            return;
+          }
+          const delta = keyEvent.key === "ArrowLeft" ? -24 * 60 : keyEvent.key === "ArrowRight" ? 24 * 60 : keyEvent.key === "ArrowUp" ? -15 : 15;
+          const duration = (event.end || event.start) - event.start;
+          event.start = new Date(event.start.getTime() + delta * 60 * 1000);
+          event.end = new Date(event.start.getTime() + duration);
+          render();
+          selectEvent(event);
+          app.querySelector(`[data-event-id="${event.id}"]`)?.focus();
+        }
+
+        function startResize(pointerEvent, event) {
+          pointerEvent.preventDefault();
+          pointerEvent.stopPropagation();
+          if (!persistenceDiagnostics(event).canPersist) {
+            showToast("Това събитие е само за визуализация и не поддържа автоматични операции.");
+            return;
+          }
+          const originY = pointerEvent.clientY;
+          const originEnd = new Date((event.end && event.end > event.start ? event.end : new Date(event.start.getTime() + 3600000)).getTime());
+          const onMove = (moveEvent) => {
+            const steps = Math.round((moveEvent.clientY - originY) / (hourHeight / 4));
+            event.end = new Date(Math.max(event.start.getTime() + 15 * 60000, originEnd.getTime() + steps * 15 * 60000));
+            renderWeek();
+            selectEvent(event);
+          };
+          const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+          };
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp, { once: true });
+        }
+
+        function renderProperty() {
+          const board = app.querySelector('[data-admin-board="property"]');
+          const dates = weekDates();
+          const properties = [...new Set(events.map((event) => event.property))].sort();
+          board.innerHTML = `
+            <div class="admin-property-header">
+              <div>Имот</div>
+              ${dates.map((date, index) => `<div>${dayNames[index]}<br>${formatDate(date, { day: "2-digit", month: "short" })}</div>`).join("")}
+            </div>
+            ${properties.map((property) => `
+              <div class="admin-property-row">
+                <div class="admin-property-name">${escapeHtml(property)}</div>
+                ${dates.map((date) => {
+                  const dayStart = new Date(date);
+                  const dayEnd = new Date(date);
+                  dayEnd.setHours(23, 59, 59, 999);
+                  const items = events.filter((event) => event.property === property && eventInRange(event, dayStart, dayEnd));
+                  return `<div class="admin-property-cell">${items.length ? items.map((event) => propertyChip(event, date)).join("") : '<span class="admin-ops-empty">Свободно</span>'}</div>`;
+                }).join("")}
+              </div>
+            `).join("") || '<div class="admin-ops-empty" style="padding: 18px;">Няма имоти в този филтриран изглед.</div>'}
+          `;
+          bindBoardEvents(board);
+        }
+
+        function propertyChip(event, date) {
+          const continued = !sameDate(event.start, date) ? " · продължава" : "";
+          return `<button type="button" class="admin-property-chip ${tone(event)}" data-event-id="${event.id}">
+            <strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${getSafeDisplayTime(event)} · ${escapeHtml(statusLabel(event.status))}${continued}</span>
+          </button>`;
+        }
+
+        function renderTimeline() {
+          const board = app.querySelector('[data-admin-board="timeline"]');
+          const sorted = [...events].sort((a, b) => a.start - b.start);
+          board.innerHTML = `<div class="admin-timeline-list">${sorted.map((event) => `
+            <button type="button" class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}">
+              <span>${formatDate(event.start, { weekday: "short", day: "2-digit", month: "short" })} · ${getSafeDisplayTime(event)}</span>
+              <strong>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.title)}</strong>
+              <span>${escapeHtml(event.property)} · ${escapeHtml(event.professional)}</span>
+            </button>
+          `).join("") || '<p class="admin-ops-empty">Няма събития с текущите филтри.</p>'}</div>`;
+          bindBoardEvents(board);
+        }
+
+        function renderDay() {
+          const board = app.querySelector('[data-admin-board="day"]');
+          const dayEvents = events.filter((event) => sameDate(event.start, focusDate)).sort((a, b) => a.start - b.start);
+          board.innerHTML = `<div class="admin-day-list">${dayEvents.map((event) => `
+            <button type="button" class="admin-day-event ${tone(event)}" data-event-id="${event.id}">
+              <span>${getSafeDisplayTime(event)}</span>
+              <strong>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.title)}</strong>
+              <span>${escapeHtml(event.property)}</span>
+            </button>
+          `).join("") || '<p class="admin-ops-empty">Няма събития за този ден.</p>'}</div>`;
+          bindBoardEvents(board);
+        }
+
+        function renderMonth() {
+          const board = app.querySelector('[data-admin-board="month"]');
+          const monthStart = startOfWeek(new Date(focusDate.getFullYear(), focusDate.getMonth(), 1));
+          const days = Array.from({ length: 35 }, (_, index) => {
+            const day = new Date(monthStart);
+            day.setDate(monthStart.getDate() + index);
+            return day;
+          });
+          board.innerHTML = `<div class="admin-month-grid">${days.map((day) => {
+            const items = events.filter((event) => sameDate(event.start, day)).slice(0, 3);
+            return `<div class="admin-month-day"><time>${formatDate(day, { day: "2-digit", month: "short" })}</time>${items.map((event) => `
+              <button type="button" class="admin-month-event ${tone(event)}" data-event-id="${event.id}">
+                <strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span>
+              </button>
+            `).join("")}</div>`;
+          }).join("")}</div>`;
+          bindBoardEvents(board);
+        }
+
+        function bindBoardEvents(scope) {
+          scope.querySelectorAll("[data-event-id]").forEach((node) => {
+            node.addEventListener("click", () => {
+              const event = events.find((item) => item.id === node.dataset.eventId);
+              if (event) selectEvent(event);
+            });
+          });
+        }
+
+        function renderDispatch() {
+          const board = app.querySelector('[data-admin-board="dispatch"]');
+          const urgent = events.filter((event) => urgency(event) !== "future" && !/completed/i.test(event.status)).sort((a, b) => a.start - b.start);
+          const names = [...new Set(events.filter(isEventAssigned).map((event) => event.professional).filter(Boolean))];
+          const professionals = names.length ? names : ["Елена Петрова", "Николай Иванов", "Мария Стоянова"];
+          board.innerHTML = `<section class="admin-dispatch-column"><span class="admin-ops-label">Спешни задачи</span><div class="admin-dispatch-list">${urgent.map((event) => `<article class="admin-dispatch-task ${tone(event)}" draggable="true" data-dispatch-event="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><br><small>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</small></article>`).join("") || '<p class="admin-ops-empty">Няма спешни задачи.</p>'}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Днешна времева линия</span><div class="admin-dispatch-list">${[...events].sort((a,b) => a.start-b.start).slice(0,12).map((event) => `<button class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}"><strong>${getSafeDisplayTime(event)} · ${escapeHtml(event.property)}</strong><span>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.professional)}</span></button>`).join("")}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Професионалисти</span><div class="admin-dispatch-list">${professionals.map((name,index) => `<article class="admin-pro-card" data-dispatch-professional="${escapeHtml(name)}"><span class="admin-pro-avatar">${escapeHtml(name.slice(0,1))}</span><div><strong>${escapeHtml(name)}</strong><br><small><span class="admin-status-dot ${index === 1 ? "admin-status-dot--busy" : ""}"></span>${index === 1 ? "На обект" : "Свободен"}</small></div></article>`).join("")}</div></section>`;
+          bindBoardEvents(board);
+          board.querySelectorAll("[data-dispatch-event]").forEach((task) => task.addEventListener("dragstart", (dragEvent) => dragEvent.dataTransfer.setData("text/plain", task.dataset.dispatchEvent)));
+          board.querySelectorAll("[data-dispatch-professional]").forEach((pro) => {
+            pro.addEventListener("dragover", (dragEvent) => { dragEvent.preventDefault(); pro.classList.add("is-drop-target"); });
+            pro.addEventListener("dragleave", () => pro.classList.remove("is-drop-target"));
+            pro.addEventListener("drop", (dragEvent) => { dragEvent.preventDefault(); pro.classList.remove("is-drop-target"); const event = events.find((item) => item.id === dragEvent.dataTransfer.getData("text/plain")); if (event) { selectEvent(event); showToast(`Предложение: възлагане на ${pro.dataset.dispatchProfessional}. За реален запис използвайте „Възложи сега“ в картата.`); } });
+          });
+        }
+
+        function renderMap() {
+          const board = app.querySelector('[data-admin-board="map"]');
+          const properties = [...new Set(events.map((event) => event.property))];
+          const pins = properties.map((property,index) => `<button class="admin-map-pin" style="left:${18 + (index * 23) % 70}%;top:${20 + (index * 31) % 62}%" title="${escapeHtml(property)}"><span>${index + 1}</span></button>`).join("");
+          const pros = [...new Set(events.map((event) => event.professional).filter(Boolean))].slice(0,4).map((name,index) => `<button class="admin-map-pin admin-map-pin--pro" style="left:${28 + (index * 29) % 60}%;top:${30 + (index * 37) % 52}%" title="${escapeHtml(name)}"><span>●</span></button>`).join("");
+          board.innerHTML = `<div class="admin-map-canvas">${pins}${pros}</div><aside class="admin-map-legend"><span class="admin-ops-label">Оперативна карта</span><h3>Оперативни групи</h3><p class="admin-ops-empty">${properties.length} имота и активните професионалисти са показани ориентировъчно. Надеждни координати не са налични.</p><div class="admin-dispatch-list"><div class="admin-smart-card"><strong>Проверка на наличност</strong><p>Подгответе предложение според услуга, график и натоварване.</p></div><div class="admin-smart-card"><strong>Предложение за маршрут</strong><p>Потвърдете адресите преди групиране на задачи.</p></div></div></aside>`;
+        }
+
+        function renderExecutive() {
+          const board = app.querySelector('[data-admin-board="executive"]');
+          const completed = events.filter((event) => /completed/i.test(event.status)).length;
+          const compliance = events.length ? Math.round((events.length - events.filter((event) => event.overdue).length) / events.length * 100) : 100;
+          const utilization = events.length ? Math.min(96, 48 + new Set(events.map((event) => event.professional).filter(Boolean)).size * 7) : 0;
+          const metric = (label,value,copy,bars) => `<article class="admin-exec-card"><span class="admin-ops-label">${label}</span><strong>${value}</strong><p class="admin-ops-empty">${copy}</p><div class="admin-mini-bars">${bars.map((height) => `<i style="height:${height}%"></i>`).join("")}</div></article>`;
+          board.innerHTML = `<div class="admin-exec-grid">${metric("Заетост", app.querySelector("[data-kpi-occupancy]").textContent, "Оперативна оценка от видимите събития", [42,55,68,64,78,82,88])}${metric("SLA съответствие", `${compliance}%`, `${events.filter((event) => event.overdue).length} нарушения`, [88,91,84,94,90,compliance])}${metric("Натоварване на екипа", `${utilization}%`, "Активна професионална мрежа", [45,62,71,58,83,utilization])}${metric("Средно време за реакция", "18 мин", "Индикативно за текущия оперативен изглед", [76,68,59,54,48,42])}${metric("Завършени операции", completed, "В текущия филтриран период", [30,45,38,58,67,80])}${metric("Приход", "—", "Не е наличен във входния event payload", [0,0,0,0,0,0])}</div>`;
+        }
+
+        function formatDuration(milliseconds) {
+          const total = Math.max(0, Math.floor(Math.abs(milliseconds) / 1000));
+          const hours = String(Math.floor(total / 3600)).padStart(2,"0");
+          const minutes = String(Math.floor(total % 3600 / 60)).padStart(2,"0");
+          const seconds = String(total % 60).padStart(2,"0");
+          return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function updateSlaClocks() {
+          app.querySelectorAll("[data-sla-event]").forEach((node) => {
+            const event = events.find((item) => item.id === node.dataset.slaEvent);
+            if (!event) return;
+            const delta = event.start - new Date();
+            node.textContent = delta < 0 && !/completed/i.test(event.status) ? `ПРОСРОЧЕНО +${formatDuration(delta)}` : `SLA ${formatDuration(delta)}`;
+            node.classList.toggle("is-overdue", delta < 0 && !/completed/i.test(event.status));
+          });
+        }
+
+        function openCommandPalette() {
+          const dialog = app.querySelector("[data-admin-command-palette]");
+          const input = app.querySelector("[data-admin-command-input]");
+          const commands = ["Възложи най-спешната задача", "Отвори пристиганията днес", "Създай задача за поддръжка", "Маркирай почистване като завършено", "Обади се на собственик", "Отвори диспечерски режим"];
+          const draw = () => { const query = input.value.toLowerCase(); app.querySelector("[data-admin-command-results]").innerHTML = commands.filter((command) => command.toLowerCase().includes(query)).map((command,index) => `<button class="admin-command" type="button" data-command="${escapeHtml(command)}"><span>${escapeHtml(command)}</span><kbd>${index + 1}</kbd></button>`).join(""); app.querySelectorAll("[data-command]").forEach((button) => button.addEventListener("click", () => { dialog.close(); if (/диспечер/i.test(button.dataset.command)) { activeView="dispatch"; render(); } else if (selectedEvent) runAction(button.dataset.command); else showToast(button.dataset.command); })); };
+          input.oninput = draw;
+          input.value = "";
+          draw();
+          dialog.showModal();
+          input.focus();
+        }
+
+        function initializeBriefing() {
+          const dialog = app.querySelector("[data-admin-briefing]");
+          if (!dialog || sessionStorage.getItem("bsc-briefing-seen")) return;
+          const previousBodyOverflow = document.body.style.overflow;
+          const previousHtmlOverflow = document.documentElement.style.overflow;
+          const finalizeBriefingClose = () => {
+            dialog.removeAttribute("open");
+            dialog.hidden = true;
+            dialog.inert = true;
+            dialog.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("modal-open", "is-modal-open", "dialog-open", "has-modal");
+            document.documentElement.classList.remove("modal-open", "is-modal-open", "dialog-open", "has-modal");
+            document.body.style.overflow = previousBodyOverflow;
+            document.documentElement.style.overflow = previousHtmlOverflow;
+            app.querySelector("[data-admin-ai-focus]")?.focus({ preventScroll: true });
+          };
+          const closeBriefing = () => {
+            sessionStorage.setItem("bsc-briefing-seen", "1");
+            if (dialog.open) dialog.close();
+            finalizeBriefingClose();
+          };
+          const hour = new Date().getHours();
+          app.querySelector("[data-briefing-greeting]").textContent = `${hour < 12 ? "Добро утро" : hour < 18 ? "Добър ден" : "Добър вечер"}, Stella.`;
+          const today = events.filter((event) => sameDate(event.start,new Date()));
+          const count = (pattern) => today.filter((event) => pattern.test(event.type)).length;
+          app.querySelector("[data-briefing-summary]").textContent = `Днес: ${count(/arrival|check-in/i)} пристигания, ${count(/check-out|departure/i)} заминавания, ${count(/clean/i)} почиствания и ${count(/inspection/i)} инспекции.`;
+          const risk = highestPriorityAction();
+          app.querySelector("[data-briefing-risk]").textContent = risk ? `${risk.property}: ${eventTypeLabel(risk)} ${isEventAssigned(risk) ? `е възложено на ${risk.professional}` : "няма възложен професионалист"}.` : "Няма регистриран оперативен риск.";
+          app.querySelector("[data-briefing-close]").onclick = closeBriefing;
+          app.querySelector("[data-briefing-action]").onclick = () => { closeBriefing(); if (risk) selectEvent(risk); };
+          dialog.addEventListener("cancel", (cancelEvent) => { cancelEvent.preventDefault(); closeBriefing(); }, { once: true });
+          dialog.addEventListener("close", finalizeBriefingClose, { once: true });
+          dialog.hidden = false;
+          dialog.inert = false;
+          dialog.removeAttribute("aria-hidden");
+          dialog.showModal();
+        }
+
+        function renderIntelligence() {
+          const today = new Date();
+          const todayEvents = events.filter((event) => sameDate(event.start, today));
+          const arrivals = todayEvents.filter((event) => /arrival|check-in|guest/i.test(event.type));
+          const departures = todayEvents.filter((event) => /check-out|departure/i.test(event.type));
+          const cleanings = todayEvents.filter((event) => /clean/i.test(event.type) && !/completed/i.test(event.status));
+          const pros = new Set(todayEvents.filter(isEventAssigned).map((event) => event.professional).filter(Boolean));
+          app.querySelector("[data-kpi-arrivals]").textContent = arrivals.length;
+          app.querySelector("[data-kpi-departures]").textContent = departures.length;
+          app.querySelector("[data-kpi-cleaning]").textContent = cleanings.length;
+          app.querySelector("[data-kpi-professionals]").textContent = pros.size;
+          app.querySelector("[data-kpi-occupancy]").textContent = events.length ? `${Math.min(98, 62 + arrivals.length * 4)}%` : "—";
+          const attention = events.filter((event) => urgency(event) === "critical").sort((a,b) => a.start-b.start);
+          const brief = attention[0] ? `${eventTypeLabel(attention[0])} в ${attention[0].property} изисква незабавно внимание.` : cleanings[0] ? `Почистването в ${cleanings[0].property} е следващата активна операция.` : "Няма критични зависимости. Денят е в график.";
+          app.querySelector("[data-admin-ai-brief]").textContent = brief;
+          app.querySelector("[data-admin-urgent-queue]").innerHTML = attention.slice(0,4).map((event) => `<button class="admin-urgent-item" data-event-id="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span></button>`).join("") || '<p class="admin-ops-empty">Няма критични задачи.</p>';
+          bindBoardEvents(app.querySelector("[data-admin-urgent-queue]"));
+          const arrivalSoon = arrivals.filter((event) => event.start - new Date() < 7200000 && event.start > new Date()).length;
+          const ready = todayEvents.filter((event) => /completed/i.test(event.status)).length;
+          app.querySelector("[data-mission-critical]").textContent = attention.length;
+          app.querySelector("[data-mission-arrivals]").textContent = arrivalSoon;
+          app.querySelector("[data-mission-cleaning]").textContent = cleanings.length;
+          app.querySelector("[data-mission-ready]").textContent = ready;
+          app.querySelector("[data-mission-pros]").textContent = pros.size;
+          app.querySelector("[data-mission-occupancy]").textContent = app.querySelector("[data-kpi-occupancy]").textContent;
+          app.querySelector("[data-mission-sla]").textContent = events.filter((event) => event.overdue).length;
+        }
+
+        function selectEvent(event) {
+          selectedEvent = event;
+          const persistence = persistenceDiagnostics(event);
+          app.querySelectorAll("[data-event-id]").forEach((node) => node.classList.toggle("is-selected", node.dataset.eventId === event.id));
+          const typePill = app.querySelector("[data-admin-detail-type]");
+          typePill.textContent = eventTypeLabel(event);
+          typePill.className = `admin-ops-detail-pill ${tone(event)}`;
+          const persistenceBadge = app.querySelector("[data-admin-persistence-badge]");
+          persistenceBadge.textContent = ({ Persistent: "Постоянно", Legacy: "Наследено", "Read-only": "Само за четене", Imported: "Импортирано" })[persistence.kind] || "Само за четене";
+          persistenceBadge.className = `admin-persistence-badge admin-persistence-badge--${persistence.kind.toLowerCase().replace(/[^a-z]+/g, "-")}`;
+          app.querySelector("[data-admin-detail-title]").textContent = event.title;
+          app.querySelector("[data-admin-detail-time]").textContent = event.start ? `${formatDate(event.start, { weekday: "long", day: "2-digit", month: "long" })} · ${getSafeDisplayTime(event)}` : "Часът не е уточнен";
+          app.querySelector("[data-admin-detail-property]").textContent = event.city ? `${event.property}, ${event.city}` : event.property;
+          app.querySelector("[data-admin-detail-owner]").textContent = event.owner;
+          app.querySelector("[data-admin-detail-professional]").textContent = event.professional;
+          app.querySelector("[data-admin-detail-priority]").textContent = priorityLabel(event.priority);
+          app.querySelector("[data-admin-detail-status]").textContent = statusLabel(event.status);
+          app.querySelector("[data-admin-detail-notes]").textContent = event.notes || "Няма записани бележки за това събитие.";
+          const completed = /completed/i.test(event.status) ? 4 : /progress/i.test(event.status) ? 2 : 0;
+          app.querySelector("[data-admin-detail-progress]").style.width = `${completed * 25}%`;
+          app.querySelector("[data-admin-detail-checklist]").textContent = `${completed} от 4 задачи`;
+          app.querySelector("[data-admin-detail-attachments]").textContent = "Няма прикачени файлове";
+          app.querySelector("[data-admin-detail-sla]").textContent = event.overdue ? "Просрочено" : event.start > new Date() ? `${Math.max(1, Math.ceil((event.start - new Date()) / 3600000))} ч. остават` : "В изпълнение";
+          const minutes = Math.round((event.start - new Date()) / 60000);
+          const unassigned = !isEventAssigned(event);
+          const recommendation = bestProfessional(event);
+          const qualityIssues = clientDataQuality(event);
+          const issueCodes = new Set(qualityIssues.map((issue) => issue.code));
+          const score = actionRiskScore(event);
+          const band = riskBand(Math.max(0, score));
+          const slaText = event.overdue ? `Просрочено с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."} до начало` : "Активно сега";
+          const primaryAction = issueCodes.has("missing_canonical_property") ? "Свържи с имот" : issueCodes.has("invalid_end_time") || issueCodes.has("suspicious_duration") ? "Коригирай часа" : unassigned ? "Възложи сега" : /in_progress/i.test(event.status) || event.overdue ? "Отбележи като завършена" : "Избери друг";
+          const reasonParts = [event.overdue ? `задачата е просрочена с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `началото е след ${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."}` : "задачата е активна сега"];
+          if (unassigned) reasonParts.push("няма възложен изпълнител");
+          if (recommendation && recommendation.overlaps === 0) reasonParts.push("препоръчаният професионалист няма припокриваща се задача");
+          app.querySelector("[data-admin-next-action]").textContent = `${primaryAction}: ${eventTypeLabel(event)} за ${event.property}`;
+          app.querySelector("[data-admin-next-action-copy]").textContent = `Причина: ${reasonParts.join(", ")}.`;
+          app.querySelector("[data-next-property]").textContent = event.property;
+          app.querySelector("[data-next-professional]").textContent = unassigned ? recommendation?.name || "Нужен е избор" : event.professional;
+          app.querySelector("[data-next-urgency]").textContent = band.label;
+          app.querySelector("[data-next-sla]").textContent = `${slaText} · ${getSafeDisplayTime(event)}`;
+          app.querySelector("[data-next-recommendation]").textContent = recommendation ? `Най-подходящ: услуга ${eventTypeLabel(event)}, ${recommendation.overlaps ? `${recommendation.overlaps} припокриващи се задачи` : "без припокриване"}, ${recommendation.workload} активни задачи. Локацията не е налична; изборът е според услуга, график и натоварване.` : "Няма достатъчно надеждни данни за автоматична препоръка. Изберете професионалист ръчно.";
+          const riskBadge = app.querySelector("[data-next-risk]");
+          riskBadge.textContent = `Риск ${Math.max(0, score)} · ${band.label}`;
+          riskBadge.className = `admin-risk-badge admin-risk-badge--${band.tone}`;
+          const primaryButton = app.querySelector("[data-next-primary]");
+          const primaryAllowed = Boolean(event.rawId) && (primaryAction === "Свържи с имот" || primaryAction === "Коригирай часа" || persistence.canPersist);
+          primaryButton.textContent = primaryAllowed ? primaryAction : "Само за визуализация";
+          primaryButton.dataset.action = primaryAction;
+          primaryButton.disabled = !primaryAllowed;
+          app.querySelector("[data-next-secondary]").disabled = !event.propertyId;
+          app.querySelectorAll("[data-quick-action]").forEach((button) => { button.disabled = !persistence.canPersist; });
+          app.querySelector("[data-admin-edit-event]").disabled = !persistence.canPersist;
+          app.querySelector("[data-admin-delete-event]").disabled = !persistence.canPersist;
+          if (!primaryAllowed) {
+            app.querySelector("[data-admin-next-action]").textContent = "Автоматичните операции са недостъпни";
+            app.querySelector("[data-admin-next-action-copy]").textContent = "Това събитие е само за визуализация и не поддържа автоматични операции.";
+            app.querySelector("[data-next-recommendation]").textContent = `Липсващи полета за надежден запис: ${persistence.missing.join(", ") || "неизвестен източник"}.`;
+          }
+          app.querySelector("[data-admin-warning]").textContent = qualityIssues.length ? `${qualityIssues.length} предупреждения за качеството на данните` : "Няма активни предупреждения.";
+          app.querySelector("[data-admin-suggestion]").textContent = qualityIssues.map((issue) => issue.label).join(" · ") || `Следваща препоръка: ${primaryAction}.`;
+          app.querySelector("[data-admin-technical-diagnostics]").innerHTML = `<pre>${escapeHtml(JSON.stringify({ source: event.source, operation_task_id: event.operationTaskId, persistence, issues: qualityIssues }, null, 2))}</pre>`;
+          const flow = ["Резервация", "Пристигане", "Почистване", "Инспекция", "Поддръжка", "Готов за гост"];
+          const type = inferredCategoryKey(event);
+          const current = /arrival|check-in/.test(type) ? 1 : /clean/.test(type) ? 2 : /inspect/.test(type) ? 3 : /maintenance|repair/.test(type) ? 4 : /completed/.test(event.status) ? 5 : 0;
+          app.querySelector("[data-admin-workflow]").innerHTML = flow.map((step,index) => {
+            if (index < current) return `<div class="admin-workflow-step is-complete">${step} · Завършено</div>`;
+            if (index === current) return `<div class="admin-workflow-step is-current">${step} · Активно сега</div>`;
+            if (unassigned && index === current + 1) return `<div class="admin-workflow-step is-blocked" title="Няма възложен професионалист">${step} · Блокирано: няма възложен професионалист</div>`;
+            return `<div class="admin-workflow-step">${step} · Следващо</div>`;
+          }).join("");
+          const riskClass = band.tone === "critical" ? "admin-health--critical" : /medium|high/.test(band.tone) ? "admin-health--attention" : "";
+          app.querySelector("[data-admin-operations-feed]").innerHTML = `<div class="admin-health ${riskClass}">Риск ${Math.max(0, score)}/100 · ${band.label}</div>${["Събитието е синхронизирано", event.professional && !unassigned ? `Възложено на ${event.professional}` : "Очаква възлагане", `${statusLabel(event.status)} · ${getSafeDisplayTime(event)}`].map((item,index) => `<div class="admin-smart-card"><small>${formatTime(new Date(Date.now() - index * 12 * 60000))}</small><br><strong>${escapeHtml(item)}</strong></div>`).join("")}`;
+        }
+
+        function escapeHtml(value) {
+          return String(value).replace(/[&<>"']/g, (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+          }[char]));
+        }
+
+        function render() {
+          localizeFilterOptions();
+          renderShell();
+          renderWeek();
+          renderProperty();
+          renderTimeline();
+          renderDay();
+          renderMonth();
+          renderDispatch();
+          renderMap();
+          renderIntelligence();
+          renderExecutive();
+          updateSlaClocks();
+        }
+
+        render();
+        const initialAction = highestPriorityAction();
+        if (initialAction) selectEvent(initialAction);
+        window.setInterval(updateSlaClocks, 1000);
+        window.setTimeout(initializeBriefing, 250);
+      })();
+    </script>
+  {% endif %}
   <script src="/static/js/owner-experience.js?v=20260706"></script>
 </body>
 </html>

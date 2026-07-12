@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Service Requests</title>
+  <title>BlackSea Connect | Заявки за услуги</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .admin-request-list-actions {
@@ -277,20 +277,20 @@
   }
 </style>
 </head>
-<body class="admin-cockpit-page">
+<body class="admin-cockpit-page admin-service-requests-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">SERVICE REQUESTS</p>
-        <h1>Owner and public requests</h1>
-        <p>Service requests from the owner portal and the public intake flow are stored together and tracked through the same timeline.</p>
+        <p class="eyebrow">ЗАЯВКИ ЗА УСЛУГИ</p>
+        <h1>Заявки от собственици и публичната форма</h1>
+        <p>Заявките от портала за собственици и публичната форма се проследяват в общ оперативен поток.</p>
       </div>
-      <div class="admin-cockpit-actions">
-        <a class="button button--primary" href="/admin/operator">Operator Console</a>
-        <a class="button button--secondary" href="/admin" data-i18n="backToCockpit">Back to cockpit</a>
-        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
-        <a class="button button--ghost" href="/owners/register">Owner registration</a>
+      <div class="admin-compact-nav">
+        <a href="/admin/operator">Операторска конзола</a>
+        <a class="is-secondary" href="/admin">Управленски панел</a>
+        <a class="is-active" href="/admin/service-requests">Заявки</a>
+        <a href="/admin/recycle-bin">Кошче</a>
+        <a href="/request-service">Публична форма</a>
       </div>
     </section>
 
@@ -304,29 +304,29 @@
       {% endif %}
     {% endwith %}
 
-    <section class="admin-kpi-grid" aria-label="Service request metrics">
+    <section class="admin-kpi-grid" aria-label="Показатели за заявки">
       <article class="admin-kpi-card">
-        <span>Total requests</span>
+        <span>Общо заявки</span>
         <strong>{{ requests|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>New</span>
+        <span>Нови</span>
         <strong>{{ counts.new }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Assigned</span>
+        <span>Възложени</span>
         <strong>{{ counts.assigned }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>In progress</span>
+        <span>В процес</span>
         <strong>{{ counts.in_progress }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Completed</span>
+        <span>Приключени</span>
         <strong>{{ counts.completed }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Cancelled</span>
+        <span>Отказани</span>
         <strong>{{ counts.cancelled }}</strong>
       </article>
     </section>
@@ -334,53 +334,55 @@
     {% if requests %}
       <section class="admin-pilot-list">
         {% for item in requests %}
+          {% set request_status_labels = {'NEW': 'Нова', 'ASSIGNED': 'Възложена', 'IN_PROGRESS': 'В процес', 'COMPLETED': 'Приключена', 'CANCELLED': 'Отказана'} %}
+          {% set request_status_key = item.status|upper %}
           <article class="admin-pilot-card" style="background: rgba(255, 255, 255, 0.96) !important; background-image: none !important; border: 1px solid rgba(20, 35, 52, 0.12) !important; box-shadow: 0 18px 44px rgba(20, 35, 52, 0.1) !important; color: #142334 !important;" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ request_status_labels.get(request_status_key, item.status|replace('_', ' ')|title)|e }}</span>
             </div>
             <h2>{{ item.name|e }}</h2>
-            <p><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
-            <p><strong>City:</strong> {{ item.property_city|e }}</p>
-            <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
-            <p><strong>Property:</strong> {% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</p>
-            <p><strong>Category:</strong> {{ item.service_category|e }}</p>
-            <p><strong>Preferred date:</strong> {{ item.preferred_date|e }}</p>
-            <p><strong>Assigned professional:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</p>
+            <p><strong>Източник:</strong> {{ 'Портал за собственици' if item.request_source == 'owner' else 'Публична форма' }}</p>
+            <p><strong>Град:</strong> {{ item.property_city|e }}</p>
+            <p><strong>Тип имот:</strong> {{ item.property_type|e }}</p>
+            <p><strong>Имот:</strong> {% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</p>
+            <p><strong>Категория:</strong> {{ item.service_category|e }}</p>
+            <p><strong>Предпочитана дата:</strong> {{ item.preferred_date|e }}</p>
+            <p><strong>Възложен професионалист:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}няма{% endif %}</p>
             <div class="admin-request-list-actions">
-              <a class="admin-request-list-button" href="/admin/service-requests/{{ item.id|e }}">Open request</a>
+              <a class="admin-request-list-button" href="/admin/service-requests/{{ item.id|e }}">Отвори заявката</a>
               <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                 <input type="hidden" name="next" value="{{ request.full_path }}">
-                <button class="admin-request-list-button admin-request-list-button--danger" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Delete request</button>
+                <button class="admin-request-list-button admin-request-list-button--danger" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Изтрий заявката</button>
                 <dialog id="delete-request-{{ item.id|e }}" class="admin-request-list-delete-dialog">
                   <div class="admin-request-list-delete-dialog__body">
                     <div>
-                      <p class="eyebrow">Confirm deletion</p>
-                      <h2>Delete this request?</h2>
-                      <p>This request will be removed from active workflows and kept in the recycle bin for 30 days.</p>
+                      <p class="eyebrow">Потвърждение</p>
+                      <h2>Да се изтрие ли тази заявка?</h2>
+                      <p>Заявката ще бъде премахната от активните потоци и запазена в кошчето за 30 дни.</p>
                     </div>
                     <dl class="admin-request-list-delete-dialog__meta">
                       <div>
-                        <dt>Property</dt>
+                        <dt>Имот</dt>
                         <dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd>
                       </div>
                       <div>
-                        <dt>Guest</dt>
+                        <dt>Клиент</dt>
                         <dd>{{ item.name|e }}</dd>
                       </div>
                       <div>
-                        <dt>Request ID</dt>
+                        <dt>ID на заявка</dt>
                         <dd>{{ item.id|e }}</dd>
                       </div>
                       <div>
-                        <dt>Creation date</dt>
+                        <dt>Дата на създаване</dt>
                         <dd>{{ item.created_at|e }}</dd>
                       </div>
                     </dl>
                     <div class="admin-request-list-delete-dialog__actions">
-                      <button class="admin-request-list-button" type="button" data-close-delete-modal>Cancel</button>
-                      <button class="admin-request-list-button admin-request-list-button--danger" type="submit">Delete request</button>
+                      <button class="admin-request-list-button" type="button" data-close-delete-modal>Отказ</button>
+                      <button class="admin-request-list-button admin-request-list-button--danger" type="submit">Изтрий заявката</button>
                     </div>
                   </div>
                 </dialog>
@@ -391,8 +393,8 @@
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>No service requests yet.</h2>
-        <p>Once an owner or public visitor submits a request, it will appear here in reverse chronological order.</p>
+        <h2>Все още няма заявки за услуги.</h2>
+        <p>Когато собственик или публичен посетител изпрати заявка, тя ще се появи тук.</p>
       </section>
     {% endif %}
   </main>

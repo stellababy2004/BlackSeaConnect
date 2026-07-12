@@ -1,8 +1,8 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="utf-8">
-  <title>Admin Directory · BlackSea Connect</title>
+  <title>Потребители и роли · BlackSea Connect</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     body { margin:0; background:#f4f7fb; color:#0b1730; font-family: Inter, system-ui, sans-serif; }
@@ -33,39 +33,47 @@
   <main class="dir-shell">
     <section class="dir-hero">
       <div>
-        <div class="eyebrow">BlackSea Connect · Admin Directory</div>
-        <h1>Users, roles and access control</h1>
-        <p>Central view for administrators, operators, owners and professionals. This first version is a safe role blueprint before connecting it to real accounts and permissions.</p>
+        <div class="eyebrow">BlackSea Connect · Потребители и роли</div>
+        <h1>Потребители, роли и достъп</h1>
+        <p>Централизирано управление на администратори, оператори, собственици и професионалисти.</p>
       </div>
       <div class="dir-actions">
-        <a class="btn btn-primary" href="{{ url_for('admin_operator_console') }}">Operator Console</a>
-        <a class="btn" href="{{ url_for('admin_home') }}">Back to cockpit</a>
-        <a class="btn" href="{{ url_for('admin_owner_accounts') }}">Owner accounts</a>
-        <a class="btn" href="{{ url_for('admin_professionals') }}">Professionals</a>
-        <a class="btn btn-primary" href="#">Invite user</a>
+        <a class="btn btn-primary" href="{{ url_for('admin_operator_console') }}">Операторска конзола</a>
+        <a class="btn" href="{{ url_for('admin_home') }}">Управленски панел</a>
+        <a class="btn" href="{{ url_for('admin_owner_accounts') }}">Профили на собственици</a>
+        <a class="btn" href="{{ url_for('admin_professionals') }}">Професионалисти</a>
+        <a class="btn btn-primary" href="#">Покани потребител</a>
       </div>
     </section>
 
     <section class="dir-grid">
-      <div class="metric"><span class="eyebrow">Users</span><strong>{{ directory_users|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Active</span><strong>{{ directory_users|selectattr("status","equalto","Active")|list|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Roles</span><strong>{{ role_matrix|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Mode</span><strong>Blueprint</strong></div>
+      <div class="metric"><span class="eyebrow">Потребители</span><strong>{{ directory_users|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">Активни</span><strong>{{ directory_users|selectattr("status","equalto","Active")|list|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">Роли</span><strong>{{ role_matrix|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">Режим</span><strong>План</strong></div>
     </section>
 
     <section class="dir-panel">
-      <h2>Directory</h2>
+      <h2>Потребители и роли</h2>
       <table>
         <thead>
-          <tr><th>Name</th><th>Type</th><th>Role</th><th>Status</th><th>Scope</th></tr>
+          <tr><th>Име</th><th>Тип</th><th>Роля</th><th>Статус</th><th>Обхват</th></tr>
         </thead>
         <tbody>
           {% for user in directory_users %}
           <tr>
             <td><strong>{{ user.name }}</strong></td>
             <td>{{ user.type }}</td>
-            <td>{{ user.role }}</td>
-            <td><span class="pill {{ 'active' if user.status == 'Active' else 'planned' }}">{{ user.status }}</span></td>
+            <td>{{ {
+              'Super Admin': 'Главен администратор',
+              'Operations Manager': 'Мениджър операции',
+              'Dispatcher': 'Диспечер',
+              'Owner Success': 'Обслужване на собственици',
+              'Professional': 'Професионалист',
+              'Owner': 'Собственик',
+              'Auditor': 'Одитор'
+            }.get(user.role, user.role) }}</td>
+            <td><span class="pill {{ 'active' if user.status == 'Active' else 'planned' }}">{{ 'Активен' if user.status == 'Active' else 'Планиран' }}</span></td>
             <td>{{ user.scope }}</td>
           </tr>
           {% endfor %}
@@ -73,15 +81,23 @@
       </table>
 
       <div class="matrix">
-        <h2>Role matrix</h2>
+        <h2>Матрица на ролите</h2>
         <table>
           <thead>
-            <tr><th>Role</th><th>Access</th><th>Edit</th><th>Delete</th></tr>
+            <tr><th>Роля</th><th>Достъп</th><th>Редакция</th><th>Изтриване</th></tr>
           </thead>
           <tbody>
             {% for role in role_matrix %}
             <tr>
-              <td><strong>{{ role.role }}</strong></td>
+              <td><strong>{{ {
+                'Super Admin': 'Главен администратор',
+                'Operations Manager': 'Мениджър операции',
+                'Dispatcher': 'Диспечер',
+                'Owner Success': 'Обслужване на собственици',
+                'Professional': 'Професионалист',
+                'Owner': 'Собственик',
+                'Auditor': 'Одитор'
+              }.get(role.role, role.role) }}</strong></td>
               <td>{{ role.access }}</td>
               <td>{{ role.can_edit }}</td>
               <td>{{ role.can_delete }}</td>

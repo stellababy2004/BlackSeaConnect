@@ -3069,11 +3069,11 @@
   <main class="admin-cockpit-shell">
     {% set admin_lang = 'en' if page_lang == 'en' else 'bg' %}
     {% if admin_lang == 'bg' %}
-      {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
-      {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
-      {% set category_labels = {'overdue operations': 'Overdue operations', 'unassigned operations': 'Unassigned operations', 'operations without due dates': 'Operations without due dates', 'owner requests waiting': 'Owner requests waiting', 'properties without readiness': 'Properties without readiness', 'reservations arriving within 24h without completed preparation': 'Arrivals without completed preparation', 'reservations missing assigned cleaning': 'Reservations missing cleaning assignment', 'calendar conflicts': 'Calendar conflicts', 'overlapping reservations': 'Overlapping reservations', 'professionals overloaded': 'Professionals overloaded', 'operation': 'Operation', 'reservation': 'Reservation', 'professional': 'Professional', 'owner': 'Owner'} %}
-      {% set value_labels = {'Operation': 'Operation', 'Reservation': 'Reservation', 'Professional': 'Professional', 'Owner': 'Owner', 'Operations': 'Operations', 'Scheduled': 'Scheduled', 'Completed': 'Completed', 'Waiting': 'Waiting', 'Assigned': 'Assigned', 'In Progress': 'In Progress', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Checked In': 'Checked In', 'Checked Out': 'Checked Out', 'Available': 'Available', 'Occupied': 'Occupied', 'Preparing': 'Preparing', 'Cleaning': 'Cleaning', 'Maintenance': 'Maintenance', 'Blocked': 'Blocked', 'Ready': 'Ready', 'None': 'None'} %}
-      {% set detail_labels = {'operation is past due': 'Operation is past due.', 'operation has no assigned professional': 'Operation has no assigned professional.', 'open operation is missing a due date': 'Open operation is missing a due date.', 'owner request has been waiting longer than 48 hours': 'Owner request has been waiting longer than 48 hours.', 'upcoming arrival still needs preparation': 'Upcoming arrival still needs preparation.', 'reservation is approaching without an assigned cleaning task': 'Reservation is approaching without an assigned cleaning task.', 'calendar event overlaps with a reservation': 'Calendar event overlaps with a reservation.', 'reservations share overlapping occupancy windows': 'Reservations share overlapping occupancy windows.'} %}
+      {% set tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'info': 'ИНФО', 'neutral': 'ИНФО', 'primary': 'ОСНОВНО'} %}
+      {% set severity_labels = {'critical': 'Критично', 'high': 'Високо', 'medium': 'Средно', 'low': 'Ниско', 'info': 'Инфо'} %}
+      {% set category_labels = {'overdue operations': 'Просрочени операции', 'unassigned operations': 'Невъзложени операции', 'operations without due dates': 'Операции без срок', 'owner requests waiting': 'Чакащи заявки от собственици', 'properties without readiness': 'Имоти без готовност', 'reservations arriving within 24h without completed preparation': 'Пристигания без завършена подготовка', 'reservations missing assigned cleaning': 'Резервации без възложено почистване', 'calendar conflicts': 'Календарни конфликти', 'overlapping reservations': 'Застъпващи се резервации', 'professionals overloaded': 'Претоварени професионалисти', 'operation': 'Операция', 'reservation': 'Резервация', 'professional': 'Професионалист', 'owner': 'Собственик'} %}
+      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Scheduled': 'Планирани', 'Completed': 'Приключени', 'Waiting': 'Чакащи', 'Assigned': 'Възложени', 'In Progress': 'В процес', 'Pending': 'Чакащи', 'Confirmed': 'Потвърдени', 'Checked In': 'Настанени', 'Checked Out': 'Освободени', 'Available': 'Свободни', 'Occupied': 'Заети', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокирани', 'Ready': 'Готови', 'None': 'Няма'} %}
+      {% set detail_labels = {'operation is past due': 'Операцията е просрочена.', 'operation has no assigned professional': 'Операцията няма възложен професионалист.', 'open operation is missing a due date': 'Отворената операция няма краен срок.', 'owner request has been waiting longer than 48 hours': 'Заявката от собственик чака повече от 48 часа.', 'upcoming arrival still needs preparation': 'Предстоящо пристигане все още изисква подготовка.', 'reservation is approaching without an assigned cleaning task': 'Резервацията наближава без възложено почистване.', 'calendar event overlaps with a reservation': 'Календарно събитие се застъпва с резервация.', 'reservations share overlapping occupancy windows': 'Резервациите имат застъпващи се периоди.'} %}
     {% else %}
       {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
       {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
@@ -3081,7 +3081,7 @@
       {% set value_labels = {'Operation': 'Operation', 'Reservation': 'Reservation', 'Professional': 'Professional', 'Owner': 'Owner', 'Operations': 'Operations', 'Scheduled': 'Scheduled', 'Completed': 'Completed', 'Waiting': 'Waiting', 'Assigned': 'Assigned', 'In Progress': 'In progress', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Checked In': 'Checked in', 'Checked Out': 'Checked out', 'Available': 'Available', 'Occupied': 'Occupied', 'Preparing': 'Preparing', 'Cleaning': 'Cleaning', 'Maintenance': 'Maintenance', 'Blocked': 'Blocked', 'Ready': 'Ready', 'None': 'None'} %}
       {% set detail_labels = {} %}
     {% endif %}
-    {% set semantic_tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'neutral': 'HEALTHY', 'info': 'HEALTHY'} %}
+    {% set semantic_tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'neutral': 'ЗДРАВО', 'info': 'ЗДРАВО'} %}
     {% set actionable_alert_categories = ['overdue_operations', 'unassigned_operations', 'calendar_conflicts', 'overlapping_reservations', 'reservations_missing_assigned_cleaning', 'owner_requests_waiting'] %}
     {% set critical_alert_count = namespace(value=0) %}
     {% set snapshot_counts = namespace(unassigned=0, owner_waiting=0, calendar_conflicts=0) %}
@@ -3160,12 +3160,12 @@
           </div>
         </div>
         <div class="admin-cockpit-actions">
-          <a class="button button--primary" href="/admin/operator">Operator Console</a>
+          <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
           <a class="button button--primary" href="/admin/operations">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
           <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
           <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
           <a class="button button--secondary" href="/admin/properties">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
-          <a class="button button--secondary" href="/admin/directory">Directory</a>
+          <a class="button button--secondary" href="/admin/directory">Потребители и роли</a>
         </div>
       </div>
     </section>

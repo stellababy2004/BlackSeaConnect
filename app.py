@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, parseaddr
@@ -558,6 +558,7 @@ CALENDAR_EVENT_TYPE_ALIASES = {
 }
 CALENDAR_EVENT_STATUS_VALUES = (
     "SCHEDULED",
+    "ASSIGNED",
     "IN_PROGRESS",
     "COMPLETED",
     "CANCELLED",
@@ -2149,7 +2150,7 @@ def _normalize_calendar_event_status(status):
         return "SCHEDULED"
     aliases = {
         "NEW": "SCHEDULED",
-        "ASSIGNED": "SCHEDULED",
+        "ASSIGNED": "ASSIGNED",
         "WAITING_OWNER": "SCHEDULED",
         "WAITING_OPERATIONS": "IN_PROGRESS",
         "WAITING_PROVIDER": "IN_PROGRESS",
@@ -2165,6 +2166,28 @@ def _normalize_calendar_event_status(status):
     }
     normalized = aliases.get(normalized, normalized)
     return normalized if normalized in CALENDAR_EVENT_STATUS_VALUES else "SCHEDULED"
+
+
+def _record_is_assigned(record, related_record=None):
+    record = record or {}
+    related_record = related_record or {}
+    normalized_status = str(record.get("status", "")).strip().upper()
+    return bool(
+        normalized_status == "ASSIGNED"
+        or str(record.get("professional", "") or record.get("assigned_professional", "")).strip()
+        or str(record.get("assigned_professional_id", "") or record.get("assigned_provider_id", "")).strip()
+        or str(record.get("assigned_to", "") or record.get("assigned_provider_name", "") or record.get("assigned_provider_company", "")).strip()
+        or str(related_record.get("assigned_professional_id", "") or related_record.get("assigned_provider_id", "")).strip()
+        or str(related_record.get("assigned_to", "") or related_record.get("assigned_provider_name", "") or related_record.get("assigned_provider_company", "")).strip()
+    )
+
+
+def _calendar_event_is_assigned(event, task_record=None):
+    return _record_is_assigned(event, task_record)
+
+
+def _operations_task_is_assigned(task):
+    return _record_is_assigned(task)
 
 
 def _calendar_event_color(event_type, status):
@@ -2247,7 +2270,7 @@ def _calendar_task_status(task_record):
     status = _normalize_operations_task_status((task_record or {}).get("status", "NEW"))
     status_map = {
         "NEW": "SCHEDULED",
-        "ASSIGNED": "SCHEDULED",
+        "ASSIGNED": "ASSIGNED",
         "ACCEPTED": "IN_PROGRESS",
         "ON_THE_WAY": "IN_PROGRESS",
         "ARRIVED": "IN_PROGRESS",
@@ -11358,6 +11381,18 @@ def _build_calendar_page_context(scope, owner_account=None):
     groups = _calendar_group_events(filtered_events, calendar_view)
 
     property_options = sorted({event.get("property_label", "") for event in enriched_events if event.get("property_label", "")})
+    property_records = sorted(
+        [
+            {
+                "id": str(property_record.get("id", "")).strip(),
+                "display_name": str(property_record.get("name", "")).strip() or str(property_record.get("id", "")).strip(),
+                "owner_id": str(property_record.get("owner_id", "")).strip(),
+            }
+            for property_record in property_map.values()
+            if str(property_record.get("id", "")).strip()
+        ],
+        key=lambda item: item["display_name"].lower(),
+    )
     owner_options = sorted({event.get("owner_label", "") for event in enriched_events if event.get("owner_label", "")})
     professional_options = sorted({event.get("professional", "") for event in enriched_events if event.get("professional", "")})
     category_options = sorted({event.get("event_type", "") for event in enriched_events if event.get("event_type", "")})
@@ -11375,6 +11410,7 @@ def _build_calendar_page_context(scope, owner_account=None):
         "calendar_filtered_count": len(filtered_events),
         "calendar_summary": _calendar_widget_summary(filtered_events),
         "calendar_property_options": property_options,
+        "calendar_property_records": property_records,
         "calendar_owner_options": owner_options,
         "calendar_professional_options": professional_options,
         "calendar_category_options": category_options,
@@ -14505,6 +14541,7 @@ def _admin_operations_task_context(task_record):
     return {
         "task": {
             **task_record,
+            "is_assigned": _operations_task_is_assigned(task_record),
             "status_label": _operations_task_status_label(task_record.get("status", "NEW")),
             "status_tone": _operations_task_status_tone(task_record.get("status", "NEW")),
             "priority_label": _operations_task_priority_label(task_record.get("priority", "NORMAL")),
@@ -14542,6 +14579,7 @@ def _admin_operations_board_context():
         property_record = property_map.get(str(task_record.get("property_id", "")).strip()) or _find_owner_property(task_record.get("property_id", ""))
         tasks.append({
             **task_record,
+            "is_assigned": _operations_task_is_assigned(task_record),
             "owner_label": _admin_property_owner_label(owner_account),
             "owner_name": owner_account.get("full_name", "") if owner_account else task_record.get("owner_name", ""),
             "owner_email": owner_account.get("email", "") if owner_account else task_record.get("owner_email", ""),
@@ -14611,7 +14649,7 @@ def _admin_operations_board_context():
         columns[status].sort(key=lambda item: (item.get("overdue", False), item.get("updated_at", ""), item.get("created_at", "")), reverse=True)
 
     open_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) in {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"})
-    assigned_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "ASSIGNED")
+    assigned_tasks = sum(1 for task in tasks if _operations_task_is_assigned(task))
     in_progress_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "IN_PROGRESS")
     waiting_owner_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER")
     waiting_provider_tasks = sum(1 for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OPERATIONS")
@@ -14720,7 +14758,7 @@ def _operator_console_context():
     late_tasks = [task for task in open_tasks if _admin_operations_task_is_overdue(task)]
     unassigned_tasks = [
         task for task in open_tasks
-        if not str(task.get("assigned_to", "")).strip() and not str(task.get("assigned_professional_id", "")).strip()
+        if not _operations_task_is_assigned(task)
     ]
 
     service_requests = [
@@ -15808,6 +15846,652 @@ def admin_calendar():
         "calendar.html",
         **context,
     )
+
+
+def _admin_calendar_json_csrf_valid(payload):
+    expected = str(session.get("_admin_csrf_token", "")).strip()
+    submitted = str((payload or {}).get("csrf_token", "") or request.headers.get("X-CSRF-Token", "")).strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+def _admin_calendar_event_record(event_id):
+    normalized_id = str(event_id or "").strip()
+    return next((event for event in _load_calendar_events() if str(event.get("id", "")).strip() == normalized_id), None)
+
+
+def _admin_calendar_resolve_relations(payload):
+    properties = _load_owner_properties()
+    owners = _load_owner_accounts()
+    property_value = str((payload or {}).get("property_id", "") or (payload or {}).get("property", "")).strip()
+    owner_value = str((payload or {}).get("owner_id", "") or (payload or {}).get("owner", "")).strip()
+    property_record = next((item for item in properties if property_value in {str(item.get("id", "")).strip(), str(item.get("name", "")).strip()}), None)
+    owner_account = next((item for item in owners if owner_value in {str(item.get("id", "")).strip(), str(item.get("full_name", "")).strip(), str(item.get("email", "")).strip()}), None)
+    if property_record and owner_account is None:
+        owner_account = next((item for item in owners if str(item.get("id", "")).strip() == str(property_record.get("owner_id", "")).strip()), None)
+    return property_record, owner_account
+
+
+def _admin_calendar_event_payload(payload, existing=None):
+    payload = payload or {}
+    existing = existing or {}
+    start_dt, start_all_day = _calendar_parse_datetime(payload.get("start_datetime", payload.get("start", "")))
+    end_dt, end_all_day = _calendar_parse_datetime(payload.get("end_datetime", payload.get("end", "")))
+    if start_dt is None or end_dt is None or end_dt <= start_dt:
+        return None, "Start and end times are required, and end must be after start."
+
+    property_record, owner_account = _admin_calendar_resolve_relations(payload)
+    if property_record is None:
+        return None, "A valid property is required."
+
+    event_type = _normalize_calendar_event_type(payload.get("event_type", payload.get("category", "")))
+    status = _normalize_calendar_event_status(payload.get("status", existing.get("status", "SCHEDULED")))
+    metadata = dict(existing.get("metadata", {}) or {})
+    metadata.update({
+        "source": "admin_calendar",
+        "property_name": str(property_record.get("name", "")).strip(),
+        "property_location": str(property_record.get("location", "")).strip(),
+        "owner_name": str((owner_account or {}).get("full_name", "")).strip(),
+        "owner_email": str((owner_account or {}).get("email", "")).strip(),
+        "priority": _normalize_operations_task_priority(payload.get("priority", metadata.get("priority", "NORMAL"))),
+    })
+    now = _utc_now_iso()
+    record = {
+        "id": str(existing.get("id", "")).strip() or uuid4().hex,
+        "created_at": str(existing.get("created_at", "")).strip() or now,
+        "updated_at": now,
+        "property_id": str(property_record.get("id", "")).strip(),
+        "owner_id": str((owner_account or {}).get("id", "")).strip(),
+        "operation_task_id": str(existing.get("operation_task_id", "")).strip(),
+        "event_type": event_type,
+        "title": str(payload.get("title", "")).strip() or event_type,
+        "description": str(payload.get("description", payload.get("notes", ""))).strip(),
+        "start_datetime": start_dt.isoformat(),
+        "end_datetime": end_dt.isoformat(),
+        "all_day": bool(payload.get("all_day", start_all_day or end_all_day)),
+        "status": status,
+        "assigned_professional": str(payload.get("assigned_professional", payload.get("professional", ""))).strip(),
+        "created_by": str(existing.get("created_by", "")).strip() or "admin:calendar",
+        "color": _calendar_event_color(event_type, status),
+        "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+        "metadata": metadata,
+        "organization_id": str(property_record.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
+    }
+    return record, ""
+
+
+def _admin_calendar_event_response(record, status_code=200):
+    property_map = {str(item.get("id", "")).strip(): item for item in _load_owner_properties()}
+    owner_map = {str(item.get("id", "")).strip(): item for item in _load_owner_accounts()}
+    enriched = _calendar_enrich_event(record, property_map, owner_map, {})
+    enriched["data_quality"] = _admin_calendar_data_quality(enriched)
+    return jsonify({"ok": True, "event": enriched}), status_code
+
+
+def _admin_calendar_match_value(value):
+    return " ".join(str(value or "").strip().casefold().split())
+
+
+def _admin_calendar_data_quality(event):
+    event = event or {}
+    issues = []
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    event_type = str(event.get("event_type", "")).strip()
+    metadata = event.get("metadata", {}) or {}
+    priority = str(event.get("priority", "") or metadata.get("priority", "")).strip().upper()
+    professional = str(event.get("professional", "") or event.get("assigned_professional", "")).strip()
+    if not str(event.get("id", "")).strip() or not event_type or start_dt is None or not str(event.get("status", "")).strip():
+        issues.append({"code": "malformed_legacy_data", "severity": "critical", "label": "Непълни наследени данни"})
+    if not str(event.get("property_id", "")).strip():
+        issues.append({"code": "missing_canonical_property", "severity": "critical", "label": "Липсва свързан имот"})
+        property_matches = _admin_calendar_property_matches(event)
+        if property_matches["state"] == "ambiguous":
+            issues.append({"code": "ambiguous_property_match", "severity": "warning", "label": "Има няколко възможни имота"})
+        if len(property_matches["matches"]) > 1:
+            issues.append({"code": "duplicate_property_match", "severity": "warning", "label": "Открити са дублирани имена на имоти"})
+    if end_dt is None or start_dt is None or end_dt <= start_dt:
+        issues.append({"code": "invalid_end_time", "severity": "critical", "label": "Липсва или е невалиден краен час"})
+    elif start_dt:
+        duration_hours = (end_dt - start_dt).total_seconds() / 3600
+        normalized_type = event_type.casefold()
+        suspicious = (
+            ("clean" in normalized_type and duration_hours > 8)
+            or ("inspect" in normalized_type and duration_hours > 4)
+            or ("professional visit" in normalized_type and duration_hours > 8)
+            or (duration_hours > 24 and normalized_type not in {"reservation", "personal stay", "blocked dates"})
+        )
+        if suspicious:
+            issues.append({"code": "suspicious_duration", "severity": "warning", "label": "Подозрително дълга продължителност", "duration_hours": round(duration_hours, 2)})
+    if priority in {"HIGH", "URGENT"} and not _calendar_event_is_assigned(event):
+        issues.append({"code": "urgent_without_professional", "severity": "critical", "label": "Спешна задача без професионалист"})
+    if start_dt and start_dt < datetime.now(timezone.utc) - timedelta(days=7) and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"}:
+        issues.append({"code": "stale_overdue_event", "severity": "warning", "label": "Старо просрочено събитие"})
+    return {"issues": issues, "is_actionable": bool(issues), "issue_codes": [issue["code"] for issue in issues]}
+
+
+def _admin_calendar_property_matches(event):
+    metadata = event.get("metadata", {}) or {}
+    target_name = _admin_calendar_match_value(metadata.get("property_name", "") or event.get("property_label", ""))
+    target_owner_id = str(event.get("owner_id", "")).strip()
+    target_owner = _admin_calendar_match_value(metadata.get("owner_name", "") or event.get("owner_label", ""))
+    target_city = _admin_calendar_match_value(metadata.get("property_location", "") or event.get("city", ""))
+    organization_id = str(event.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    owners = {
+        str(item.get("id", "")).strip(): item
+        for item in _load_owner_accounts()
+        if str(item.get("organization_id", "")).strip() == organization_id
+    }
+    matches = []
+    for property_record in _workspace_filter_by_org(_load_owner_properties(), organization_id):
+        property_name = _admin_calendar_match_value(property_record.get("name", ""))
+        if not target_name or property_name != target_name:
+            continue
+        owner_record = owners.get(str(property_record.get("owner_id", "")).strip(), {})
+        owner_id_match = bool(target_owner_id and str(property_record.get("owner_id", "")).strip() == target_owner_id)
+        owner_name_match = bool(target_owner and _admin_calendar_match_value(owner_record.get("full_name", "")) == target_owner)
+        city_match = bool(target_city and _admin_calendar_match_value(property_record.get("location", "")) == target_city)
+        reasons = ["точно име на имота"]
+        if owner_id_match or owner_name_match:
+            reasons.append("съвпадащ собственик")
+        if city_match:
+            reasons.append("съвпадащ град")
+        matches.append({
+            "id": str(property_record.get("id", "")).strip(),
+            "name": str(property_record.get("name", "")).strip(),
+            "city": str(property_record.get("location", "")).strip(),
+            "owner_id": str(property_record.get("owner_id", "")).strip(),
+            "owner": str(owner_record.get("full_name", "")).strip(),
+            "reason": ", ".join(reasons),
+            "safe": bool(owner_id_match or owner_name_match) and (not target_city or city_match),
+        })
+    safe_matches = [item for item in matches if item["safe"]]
+    state = "exact" if len(safe_matches) == 1 else "ambiguous" if len(matches) > 1 or len(safe_matches) > 1 else "none" if not matches else "ambiguous"
+    return {"state": state, "matches": matches, "safe_match_id": safe_matches[0]["id"] if len(safe_matches) == 1 else ""}
+
+
+def _admin_calendar_backing_task(event):
+    task_id = str((event or {}).get("operation_task_id", "")).strip()
+    if not task_id:
+        return None
+
+    task = _find_operations_task(task_id)
+    if task is None:
+        return None
+
+    event_organization_id = str((event or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    task_organization_id = str(task.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    if task_organization_id != event_organization_id:
+        return None
+
+    return task
+
+
+def _admin_calendar_persist_record(record):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _persist_calendar_event(conn, record)
+
+
+@app.get("/admin/api/calendar/events/<event_id>/property-matches")
+@admin_required
+def admin_calendar_event_property_matches(event_id):
+    event = _admin_calendar_event_record(event_id)
+    if event is None:
+        return jsonify({"ok": False, "code": "event_not_found", "error": "Събитието не е намерено."}), 404
+    enriched = _calendar_enrich_event(event, {}, {}, {})
+    return jsonify({"ok": True, "event_id": str(event_id), "current_property": enriched.get("property_label", ""), **_admin_calendar_property_matches(enriched)})
+
+
+@app.post("/admin/api/calendar/events/<event_id>/reconcile-property")
+@admin_required
+def admin_calendar_event_reconcile_property(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "code": "invalid_csrf", "error": "Невалиден защитен токен."}), 400
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({"ok": False, "code": "event_not_found", "error": "Събитието не е намерено."}), 404
+    property_id = str(payload.get("property_id", "")).strip()
+    event_organization_id = str(existing.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    property_record = next(
+        (
+            item
+            for item in _workspace_filter_by_org(_load_owner_properties(), event_organization_id)
+            if str(item.get("id", "")).strip() == property_id
+        ),
+        None,
+    )
+    if property_record is None:
+        return jsonify({"ok": False, "code": "property_not_found", "error": "Избраният имот не съществува или не е достъпен."}), 404
+    if str(property_record.get("organization_id", "")).strip() != event_organization_id:
+        return jsonify({"ok": False, "code": "organization_mismatch", "error": "Имотът и събитието не принадлежат към една организация."}), 403
+    owner_record = next(
+        (
+            item
+            for item in _load_owner_accounts()
+            if str(item.get("id", "")).strip() == str(property_record.get("owner_id", "")).strip()
+            and str(item.get("organization_id", "")).strip() == event_organization_id
+        ),
+        {},
+    )
+    metadata = dict(existing.get("metadata", {}) or {})
+    metadata.update({"property_name": property_record.get("name", ""), "property_location": property_record.get("location", ""), "owner_name": owner_record.get("full_name", ""), "owner_email": owner_record.get("email", "")})
+    record = {**existing, "property_id": property_id, "owner_id": str(owner_record.get("id", "")).strip(), "metadata": metadata, "metadata_json": json.dumps(metadata, ensure_ascii=False, separators=(",", ":")), "updated_at": _utc_now_iso()}
+
+    backing_task = _admin_calendar_backing_task(existing)
+    if backing_task is not None:
+        updated_task = _upsert_operations_task({
+            **backing_task,
+            "property_id": property_id,
+            "property_name": str(property_record.get("name", "")).strip(),
+            "property_location": str(property_record.get("location", "")).strip(),
+            "owner_id": str(owner_record.get("id", "")).strip(),
+            "owner_name": str(owner_record.get("full_name", "")).strip(),
+            "owner_email": str(owner_record.get("email", "")).strip(),
+            "organization_id": event_organization_id,
+            "updated_at": _utc_now_iso(),
+        })
+        if updated_task is None:
+            return jsonify({"ok": False, "code": "task_update_failed", "error": "Свързването с имота не беше записано."}), 500
+
+        synced_event = _admin_calendar_event_record(event_id)
+        if synced_event is None:
+            return jsonify({"ok": False, "code": "calendar_sync_failed", "error": "Задачата беше обновена, но календарът не беше синхронизиран."}), 500
+
+        _append_operations_task_event(
+            backing_task.get("id", ""),
+            "property_reconciled",
+            "Property reconciled",
+            str(property_record.get("name", "")).strip(),
+            status=updated_task.get("status", "NEW"),
+        )
+        return _admin_calendar_event_response(synced_event)
+
+    _admin_calendar_persist_record(record)
+    return _admin_calendar_event_response(record)
+
+
+def _admin_calendar_professional_categories(professional):
+    raw_value = str(
+        professional.get("service_categories", "")
+        or professional.get("professional_category", "")
+        or professional.get("service_type", "")
+        or ""
+    ).strip()
+    if not raw_value:
+        return set()
+
+    normalized_value = raw_value
+    for delimiter in (";", "|", "/", "\n"):
+        normalized_value = normalized_value.replace(delimiter, ",")
+
+    return {
+        normalized
+        for item in normalized_value.split(",")
+        if (normalized := _admin_calendar_match_value(item))
+    }
+
+
+def _admin_calendar_professional_options(event):
+    start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    event_category = _admin_calendar_match_value(event.get("event_type", ""))
+    event_city = _admin_calendar_match_value((event.get("metadata", {}) or {}).get("property_location", "") or event.get("city", ""))
+    options = []
+    event_organization_id = str(event.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+    calendar_events = _workspace_filter_by_org(_load_calendar_events(), event_organization_id)
+    task_map = {
+        str(task.get("id", "")).strip(): task
+        for task in _workspace_filter_by_org(_load_operations_tasks(), event_organization_id)
+    }
+    for professional in _workspace_filter_by_org(_load_professional_accounts(), event_organization_id):
+        if _normalize_professional_account_status(professional.get("status", "")) not in {"APPROVED", "ACTIVE"}:
+            continue
+        professional_id = str(professional.get("id", "")).strip()
+        name = _professional_account_display_label(professional)
+        categories = _admin_calendar_professional_categories(professional)
+        category_match = bool(event_category and event_category in categories)
+        professional_city = _admin_calendar_match_value(professional.get("city", ""))
+        city_match = bool(event_city and professional_city and event_city == professional_city)
+        current_task_id = str(event.get("operation_task_id", "")).strip()
+        assigned = []
+        for item in calendar_events:
+            if str(item.get("id", "")).strip() == str(event.get("id", "")).strip():
+                continue
+            if _normalize_calendar_event_status(item.get("status", "")) in {"COMPLETED", "CANCELLED"}:
+                continue
+
+            item_task_id = str(item.get("operation_task_id", "")).strip()
+            item_task = task_map.get(item_task_id, {})
+            if not item_task:
+                continue
+            if item_task_id and item_task_id == current_task_id:
+                continue
+            if str(item_task.get("assigned_professional_id", "")).strip() != professional_id:
+                continue
+
+            assigned.append(item)
+        conflicts = []
+        if start_dt and end_dt:
+            for item in assigned:
+                item_start, _ = _calendar_parse_datetime(item.get("start_datetime", ""))
+                item_end, _ = _calendar_parse_datetime(item.get("end_datetime", ""))
+                if item_start and item_end and item_start < end_dt and item_end > start_dt:
+                    conflicts.append(str(item.get("id", "")).strip())
+        score = (35 if category_match else 0) + (15 if city_match else 0) - len(assigned) * 4 - len(conflicts) * 100
+        reasons = ["активен профил", f"{len(assigned)} активни задачи"]
+        reasons.append("съвпадаща услуга" if category_match else "услугата изисква потвърждение")
+        if city_match:
+            reasons.append("съвпадащ град")
+        elif not event_city or not professional_city:
+            reasons.append("липсват надеждни данни за близост")
+        options.append({"id": professional_id, "name": name, "score": score, "workload": len(assigned), "conflicts": conflicts, "category_match": category_match, "city_match": city_match, "reason": ", ".join(reasons)})
+    options.sort(key=lambda item: (-item["score"], item["workload"], item["name"].casefold()))
+    return options
+
+
+@app.get("/admin/api/calendar/events/<event_id>/assignment-options")
+@admin_required
+def admin_calendar_event_assignment_options(event_id):
+    event = _admin_calendar_event_record(event_id)
+    if event is None:
+        return jsonify({"ok": False, "code": "event_not_found", "error": "Събитието не е намерено."}), 404
+    if not str(event.get("property_id", "")).strip():
+        return jsonify({"ok": False, "code": "property_required", "error": "Първо свържете събитието с имот."}), 409
+    return jsonify({"ok": True, "event_id": str(event_id), "professionals": _admin_calendar_professional_options(event)})
+
+
+@app.post("/admin/api/calendar/events/<event_id>/assign")
+@admin_required
+def admin_calendar_event_assign(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "code": "invalid_csrf", "error": "Невалиден защитен токен."}), 400
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({"ok": False, "code": "event_not_found", "error": "Събитието не е намерено."}), 404
+    if not str(existing.get("property_id", "")).strip():
+        return jsonify({"ok": False, "code": "property_required", "error": "Първо свържете събитието с имот."}), 409
+    professional_id = str(payload.get("professional_id", "")).strip()
+    if not professional_id:
+        return jsonify({"ok": False, "code": "professional_required", "error": "Изберете професионалист."}), 400
+    option = next((item for item in _admin_calendar_professional_options(existing) if item["id"] == professional_id), None)
+    if option is None:
+        return jsonify({"ok": False, "code": "professional_invalid", "error": "Професионалистът не е активен или не съществува."}), 400
+    override_conflict = payload.get("override_conflict") is True
+    if option["conflicts"] and not override_conflict:
+        return jsonify({"ok": False, "code": "schedule_conflict", "error": "Професионалистът има припокриващо се назначение.", "conflicts": option["conflicts"]}), 409
+    backing_task = _admin_calendar_backing_task(existing)
+
+    if backing_task is not None:
+        updated_task = _update_operations_task_details(
+            backing_task.get("id", ""),
+            status="ASSIGNED",
+            assigned_to=option["name"],
+            assigned_professional_id=professional_id,
+            source="calendar",
+        )
+        if updated_task is None:
+            return jsonify({"ok": False, "code": "task_assignment_failed", "error": "Възлагането не беше записано."}), 500
+
+        synced_event = _admin_calendar_event_record(event_id)
+        if synced_event is None:
+            return jsonify({"ok": False, "code": "calendar_sync_failed", "error": "Задачата беше възложена, но календарът не беше синхронизиран."}), 500
+
+        _append_audit_log(
+            "operations_task",
+            backing_task.get("id", ""),
+            "assigned_from_calendar",
+            before={
+                "assigned_to": backing_task.get("assigned_to", ""),
+                "assigned_professional_id": backing_task.get("assigned_professional_id", ""),
+                "status": backing_task.get("status", ""),
+            },
+            after={
+                "assigned_to": updated_task.get("assigned_to", ""),
+                "assigned_professional_id": updated_task.get("assigned_professional_id", ""),
+                "status": updated_task.get("status", ""),
+            },
+            organization_id=updated_task.get("organization_id", GLOBAL_ORGANIZATION_ID),
+            user_id=_current_admin_operator_key(),
+            role_key=ROLE_PLATFORM_ADMIN,
+            metadata={
+                "source": "admin_calendar",
+                "conflict_overridden": bool(option["conflicts"] and override_conflict),
+            },
+        )
+
+        response, status_code = _admin_calendar_event_response(synced_event)
+        response_json = response.get_json()
+        response_json["conflict_overridden"] = bool(option["conflicts"] and override_conflict)
+        return jsonify(response_json), status_code
+
+    record = {**existing, "assigned_professional": option["name"], "status": "ASSIGNED", "updated_at": _utc_now_iso()}
+    _admin_calendar_persist_record(record)
+    _append_audit_log(
+        "calendar_event",
+        existing.get("id", ""),
+        "assigned_from_calendar",
+        before={
+            "assigned_professional": existing.get("assigned_professional", ""),
+            "status": existing.get("status", ""),
+        },
+        after={
+            "assigned_professional": option["name"],
+            "professional_id": professional_id,
+            "status": "ASSIGNED",
+        },
+        organization_id=existing.get("organization_id", GLOBAL_ORGANIZATION_ID),
+        user_id=_current_admin_operator_key(),
+        role_key=ROLE_PLATFORM_ADMIN,
+        metadata={
+            "source": "admin_calendar",
+            "conflict_overridden": bool(option["conflicts"] and override_conflict),
+        },
+    )
+    response, status_code = _admin_calendar_event_response(record)
+    response_json = response.get_json()
+    response_json["conflict_overridden"] = bool(option["conflicts"] and override_conflict)
+    return jsonify(response_json), status_code
+
+
+@app.post("/admin/api/calendar/events/<event_id>/complete")
+@admin_required
+def admin_calendar_event_complete(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({
+            "ok": False,
+            "code": "invalid_csrf",
+            "error": "Невалиден защитен токен.",
+        }), 400
+
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({
+            "ok": False,
+            "code": "event_not_found",
+            "error": "Събитието не е намерено.",
+        }), 404
+
+    if _normalize_calendar_event_status(existing.get("status", "")) == "COMPLETED":
+        return _admin_calendar_event_response(existing)
+
+    backing_task = _admin_calendar_backing_task(existing)
+
+    if backing_task is not None:
+        before = {
+            "status": backing_task.get("status", ""),
+            "completed_at": backing_task.get("completed_at", ""),
+            "assigned_to": backing_task.get("assigned_to", ""),
+            "assigned_professional_id": backing_task.get("assigned_professional_id", ""),
+        }
+
+        updated_task = _update_operations_task_details(
+            backing_task.get("id", ""),
+            status="COMPLETED",
+            assigned_to=backing_task.get("assigned_to", ""),
+            assigned_professional_id=backing_task.get("assigned_professional_id", ""),
+            source="calendar",
+        )
+
+        if updated_task is None:
+            return jsonify({
+                "ok": False,
+                "code": "task_completion_failed",
+                "error": "Завършването не беше записано.",
+            }), 500
+
+        synced_event = _admin_calendar_event_record(event_id)
+        if synced_event is None:
+            return jsonify({
+                "ok": False,
+                "code": "calendar_sync_failed",
+                "error": "Задачата беше завършена, но календарът не беше синхронизиран.",
+            }), 500
+
+        _append_audit_log(
+            "operations_task",
+            backing_task.get("id", ""),
+            "completed_from_calendar",
+            before=before,
+            after={
+                "status": updated_task.get("status", ""),
+                "completed_at": updated_task.get("completed_at", ""),
+                "assigned_to": updated_task.get("assigned_to", ""),
+                "assigned_professional_id": updated_task.get("assigned_professional_id", ""),
+            },
+            organization_id=updated_task.get("organization_id", GLOBAL_ORGANIZATION_ID),
+            user_id=_current_admin_operator_key(),
+            role_key=ROLE_PLATFORM_ADMIN,
+            metadata={"source": "admin_calendar"},
+        )
+
+        return _admin_calendar_event_response(synced_event)
+
+    record = {
+        **existing,
+        "status": "COMPLETED",
+        "updated_at": _utc_now_iso(),
+    }
+    _admin_calendar_persist_record(record)
+    return _admin_calendar_event_response(record)
+
+
+@app.patch("/admin/api/calendar/events/<event_id>/time")
+@admin_required
+def admin_calendar_event_update_time(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "code": "invalid_csrf", "error": "Невалиден защитен токен."}), 400
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({"ok": False, "code": "event_not_found", "error": "Събитието не е намерено."}), 404
+    start_dt, _ = _calendar_parse_datetime(payload.get("start_datetime", ""))
+    end_dt, _ = _calendar_parse_datetime(payload.get("end_datetime", ""))
+    if start_dt is None or end_dt is None or end_dt <= start_dt:
+        return jsonify({"ok": False, "code": "invalid_time_range", "error": "Крайният час трябва да бъде след началния."}), 400
+    backing_task = _admin_calendar_backing_task(existing)
+
+    if backing_task is not None:
+        updated_task = _update_operations_task_details(
+            backing_task.get("id", ""),
+            due_date=start_dt.isoformat(),
+            source="calendar",
+        )
+        if updated_task is None:
+            return jsonify({"ok": False, "code": "task_time_update_failed", "error": "Новият час не беше записан."}), 500
+
+        synced_event = _admin_calendar_event_record(event_id)
+        if synced_event is None:
+            return jsonify({"ok": False, "code": "calendar_sync_failed", "error": "Задачата беше обновена, но календарът не беше синхронизиран."}), 500
+
+        synced_record = {
+            **synced_event,
+            "start_datetime": start_dt.isoformat(),
+            "end_datetime": end_dt.isoformat(),
+            "all_day": False,
+            "updated_at": _utc_now_iso(),
+        }
+        _admin_calendar_persist_record(synced_record)
+
+        _append_audit_log(
+            "operations_task",
+            backing_task.get("id", ""),
+            "time_corrected_from_calendar",
+            before={
+                "due_date": backing_task.get("due_date", ""),
+                "calendar_start": existing.get("start_datetime", ""),
+                "calendar_end": existing.get("end_datetime", ""),
+            },
+            after={
+                "due_date": updated_task.get("due_date", ""),
+                "calendar_start": start_dt.isoformat(),
+                "calendar_end": end_dt.isoformat(),
+            },
+            organization_id=updated_task.get("organization_id", GLOBAL_ORGANIZATION_ID),
+            user_id=_current_admin_operator_key(),
+            role_key=ROLE_PLATFORM_ADMIN,
+            metadata={"source": "admin_calendar"},
+        )
+
+        return _admin_calendar_event_response(synced_record)
+
+    record = {**existing, "start_datetime": start_dt.isoformat(), "end_datetime": end_dt.isoformat(), "all_day": False, "updated_at": _utc_now_iso()}
+    _admin_calendar_persist_record(record)
+    return _admin_calendar_event_response(record)
+
+
+@app.post("/admin/api/calendar/events")
+@admin_required
+def admin_calendar_event_create():
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "error": "Invalid CSRF token."}), 400
+    record, error = _admin_calendar_event_payload(payload)
+    if error:
+        return jsonify({"ok": False, "error": error}), 400
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _persist_calendar_event(conn, record)
+    return _admin_calendar_event_response(record, 201)
+
+
+@app.patch("/admin/api/calendar/events/<event_id>")
+@admin_required
+def admin_calendar_event_update(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "error": "Invalid CSRF token."}), 400
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({"ok": False, "error": "Calendar event not found."}), 404
+    record, error = _admin_calendar_event_payload(payload, existing)
+    if error:
+        return jsonify({"ok": False, "error": error}), 400
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        _persist_calendar_event(conn, record)
+    return _admin_calendar_event_response(record)
+
+
+@app.delete("/admin/api/calendar/events/<event_id>")
+@admin_required
+def admin_calendar_event_delete(event_id):
+    payload = request.get_json(silent=True) or {}
+    if not _admin_calendar_json_csrf_valid(payload):
+        return jsonify({"ok": False, "error": "Invalid CSRF token."}), 400
+    existing = _admin_calendar_event_record(event_id)
+    if existing is None:
+        return jsonify({"ok": False, "error": "Calendar event not found."}), 404
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        _migrate_owner_jsonl_backups(conn)
+        conn.execute("DELETE FROM calendar_events WHERE id = ?", (str(event_id).strip(),))
+    return jsonify({"ok": True, "event_id": str(event_id).strip()})
 
 
 @app.post("/admin/seed-owner")
@@ -18985,7 +19669,7 @@ def _build_admin_dashboard():
     waiting_owner = [task for task in open_operations if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER"]
     waiting_professional = [
         task for task in open_operations
-        if _normalize_operations_task_status(task.get("status", "NEW")) in {"ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and str(task.get("assigned_professional_id", "")).strip()
+        if _normalize_operations_task_status(task.get("status", "NEW")) in {"ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS"} and _operations_task_is_assigned(task)
     ]
     waiting_operations = [task for task in open_operations if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OPERATIONS"]
     completed_today = [
@@ -19039,7 +19723,7 @@ def _build_admin_dashboard():
     available_professionals = [professional for professional in active_professionals if str(professional.get("id", "")).strip() not in busy_professional_ids]
     assigned_today_tasks = [
         task for task in operations_tasks
-        if str(task.get("assigned_professional_id", "")).strip()
+        if _operations_task_is_assigned(task)
         and str(task.get("created_at", "")).strip()[:10] == today.isoformat()
     ]
     completed_today_tasks = [
@@ -19353,7 +20037,7 @@ def _build_admin_dashboard():
         readiness_percent = int(round((readiness_completed / max(readiness_total, 1)) * 100)) if readiness_total else 0
         open_property_tasks = [task for task in property_tasks if _normalize_operations_task_status(task.get("status", "NEW")) in open_task_statuses]
         overdue_property_tasks = [task for task in open_property_tasks if _admin_operations_task_is_overdue(task)]
-        unassigned_property_tasks = [task for task in open_property_tasks if not str(task.get("assigned_professional_id", "")).strip() and not str(task.get("assigned_to", "")).strip()]
+        unassigned_property_tasks = [task for task in open_property_tasks if not _operations_task_is_assigned(task)]
         property_service_requests = [
             record for record in service_requests
             if str(record.get("property_id", "")).strip() == property_id
@@ -20559,10 +21243,17 @@ def admin_service_request_detail(request_id):
     if not record:
         return jsonify({"ok": False, "error": "not_found"}), 404
 
+    backing_task = _find_operations_task(request_id)
+    display_record = dict(record)
+    if backing_task:
+        display_record["assigned_provider_id"] = str(display_record.get("assigned_provider_id", "")).strip() or str(backing_task.get("assigned_professional_id", "")).strip()
+        display_record["assigned_provider_name"] = str(display_record.get("assigned_provider_name", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
+        display_record["assigned_provider_company"] = str(display_record.get("assigned_provider_company", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
+    display_record["is_assigned"] = _record_is_assigned(display_record, backing_task)
     matching_providers = _service_request_matching_providers(record.get("service_category"))
     return render_template(
         "admin_service_request_detail.html",
-        item=record,
+        item=display_record,
         matching_providers=matching_providers,
         status_options=[{"value": status, "label": status.upper()} for status in SERVICE_REQUEST_STATUS_VALUES],
         timeline=list(reversed(_service_request_timeline_events(record))),
@@ -22465,4 +23156,3 @@ def workspace_settings():
     return _render_workspace_page("settings", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
 if __name__ == "__main__":
     app.run(debug=True, port=5010)
-
