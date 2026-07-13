@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | {% if calendar_scope == 'admin' %}Административен календар{% else %}{{ calendar_scope_label }}{% endif %}</title>
+  <title{% if calendar_scope == 'admin' %} data-i18n="calendarPageTitle"{% endif %}>BlackSea Connect | {% if calendar_scope == 'admin' %}Административен календар{% else %}{{ calendar_scope_label }}{% endif %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .calendar-page {
@@ -286,14 +286,15 @@
       --ops-bg: #f5f1e9;
       --ops-gold: #b88734;
       --ops-hour-height: 64px;
-      min-height: 100vh;
+      min-height: 0;
+      height: calc(100vh - 68px);
       display: grid;
-      grid-template-columns: 232px minmax(0, 1fr) 330px;
+      grid-template-columns: minmax(0, 1fr) 330px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 244, 238, 0.96)),
         var(--ops-bg);
       color: var(--ops-ink);
-      overflow-x: hidden;
+      overflow: hidden;
     }
     .calendar-shell--legacy-hidden {
       display: none;
@@ -360,8 +361,10 @@
     }
     .admin-ops-main {
       min-width: 0;
+      min-height: 0;
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr);
+      overflow: hidden;
     }
     .admin-ops-toolbar {
       position: sticky;
@@ -774,6 +777,9 @@
     .admin-ops-detail {
       position: sticky;
       top: 0;
+      min-height: 0;
+      height: 100%;
+      box-sizing: border-box;
       padding: 22px;
       border-width: 0 0 0 1px;
       overflow: auto;
@@ -973,7 +979,8 @@
     .admin-ops-select.is-invalid { border-color:#dc2626; box-shadow:0 0 0 3px rgba(220,38,38,.1); }
     @media (max-width: 1280px) {
       .admin-ops-calendar {
-        grid-template-columns: 210px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
+        overflow-y: auto;
       }
       .admin-ops-detail {
         grid-column: 1 / -1;
@@ -985,6 +992,9 @@
     @media (max-width: 860px) {
       .admin-ops-calendar {
         grid-template-columns: 1fr;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
       }
       .admin-ops-sidebar {
         position: static;
@@ -1423,7 +1433,10 @@
     }
 </style>
 </head>
-<body class="calendar-page calendar-page--{{ calendar_scope|e }}">
+<body class="calendar-page calendar-page--{{ calendar_scope|e }}{% if calendar_scope == 'admin' %} bsc-admin-workspace{% endif %}">
+  {% if calendar_scope == 'admin' %}
+    {% include '_admin_sidebar.html' %}
+  {% endif %}
   <main class="calendar-shell{% if calendar_scope == 'admin' %} calendar-shell--legacy-hidden{% endif %}">
     <section class="calendar-hero">
       <div class="calendar-hero__content">
@@ -1707,28 +1720,6 @@
   </main>
   {% if calendar_scope == 'admin' %}
     <div class="admin-ops-calendar" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
-      <aside class="admin-ops-sidebar" aria-label="Навигация на BlackSea Connect">
-        <div class="admin-ops-brand">
-          <span>BlackSea Connect</span>
-          <strong>Оперативен календар</strong>
-        </div>
-        <nav class="admin-ops-nav">
-          <a href="/admin">Пулт</a>
-          <a href="/admin/operator">Оператор</a>
-          <a href="/admin/operations">Операции</a>
-          <a class="is-active" href="/admin/calendar">Календар</a>
-          <a href="/admin/reservations">Резервации</a>
-          <a href="/admin/properties">Имоти</a>
-          <a href="/admin/owner-accounts">Собственици</a>
-          <a href="/admin/professionals">Професионалисти</a>
-          <a href="/admin/service-requests">Заявки</a>
-        </nav>
-        <section class="admin-urgent-queue" aria-label="Спешна опашка">
-          <span class="admin-ops-label">Изискват внимание</span>
-          <div data-admin-urgent-queue></div>
-        </section>
-      </aside>
-
       <main class="admin-ops-main">
         <header class="admin-ops-toolbar">
           <div class="admin-ai-brief">
@@ -1739,30 +1730,30 @@
           <div class="admin-ops-toolbar__top">
             <div class="admin-ops-heading">
               <p class="admin-ops-label">Всички имоти</p>
-              <h1>Административен календар</h1>
+              <h1 data-i18n="calendarPageTitleShort">Административен календар</h1>
               <p id="adminOpsDateRange">Седмичен оперативен график</p>
             </div>
             <div class="admin-ops-control-group">
-              <button class="admin-ops-button" type="button" data-admin-calendar-today>Днес</button>
-              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-prev aria-label="Предишна седмица">&lt;</button>
-              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-next aria-label="Следваща седмица">&gt;</button>
-              <input class="admin-ops-input" type="date" data-admin-calendar-date aria-label="Избор на дата">
+              <button class="admin-ops-button" type="button" data-admin-calendar-today data-i18n="calendarToday">Днес</button>
+              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-prev aria-label="Предишна седмица" data-i18n-attr="aria-label:calendarPrevious">&lt;</button>
+              <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-next aria-label="Следваща седмица" data-i18n-attr="aria-label:calendarNext">&gt;</button>
+              <input class="admin-ops-input" type="date" data-admin-calendar-date aria-label="Избор на дата" data-i18n-attr="aria-label:calendarChooseDate">
             </div>
           </div>
 
           <div class="admin-ops-toolbar__controls">
             <div class="admin-ops-view-switch" aria-label="Избор на календарен изглед">
-              <button type="button" data-admin-view-mode="month">Месец</button>
-              <button class="is-active" type="button" data-admin-view-mode="week">Седмица</button>
-              <button type="button" data-admin-view-mode="day">Ден</button>
-              <button type="button" data-admin-view-mode="timeline">Хронология</button>
-              <button type="button" data-admin-view-mode="property">Мулти имоти</button>
-              <button type="button" data-admin-view-mode="dispatch">Диспечер</button>
-              <button type="button" data-admin-view-mode="map">Карта</button>
-              <button type="button" data-admin-view-mode="executive">Ръководство</button>
+              <button type="button" data-admin-view-mode="month" data-i18n="calendarMonth">Месец</button>
+              <button class="is-active" type="button" data-admin-view-mode="week" data-i18n="calendarWeek">Седмица</button>
+              <button type="button" data-admin-view-mode="day" data-i18n="calendarDay">Ден</button>
+              <button type="button" data-admin-view-mode="timeline" data-i18n="calendarTimeline">Хронология</button>
+              <button type="button" data-admin-view-mode="property" data-i18n="calendarProperties">Мулти имоти</button>
+              <button type="button" data-admin-view-mode="dispatch" data-i18n="calendarDispatcher">Диспечер</button>
+              <button type="button" data-admin-view-mode="map" data-i18n="calendarMap">Карта</button>
+              <button type="button" data-admin-view-mode="executive" data-i18n="calendarManagement">Ръководство</button>
             </div>
-            <button class="admin-ops-button" type="button" data-admin-filter-toggle>Филтри</button>
-            <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event>Създай събитие</button>
+            <button class="admin-ops-button" type="button" data-admin-filter-toggle data-i18n="calendarFilters">Филтри</button>
+            <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event data-i18n="calendarCreateEvent">Създай събитие</button>
           </div>
         </header>
 
@@ -1895,8 +1886,12 @@
         </section>
       </main>
 
-      <aside class="admin-ops-detail" aria-label="Детайли за избрано събитие">
+      <aside class="admin-ops-detail" aria-label="Детайли за избрано събитие" data-i18n-attr="aria-label:calendarSelectedEvent">
         <div class="admin-ops-detail-card">
+          <section class="admin-urgent-queue" aria-label="Спешна опашка">
+            <span class="admin-ops-label">Изискват внимание</span>
+            <div data-admin-urgent-queue></div>
+          </section>
           <section class="admin-smart-card admin-next-command">
             <span class="admin-ops-detail-label">Следващо действие</span>
             <h3 data-admin-next-action>Изберете събитие</h3>
