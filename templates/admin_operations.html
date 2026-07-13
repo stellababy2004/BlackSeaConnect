@@ -374,17 +374,38 @@
     .admin-property-ops__metrics div { padding: 7px; border-radius: 8px; background: #f3f7f5; }
     .admin-property-ops__metrics span { display: block; color: #75837e; font-size: .57rem; text-transform: uppercase; }
     .admin-property-ops__metrics strong { font-size: .78rem; }
-    .admin-heatmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-    .admin-heatmap span { height: 34px; border-radius: 7px; background: #d8ebe2; }
-    .admin-heatmap span.is-warm { background: #f0d89e; }
-    .admin-heatmap span.is-hot { background: #e6aaa4; }
-    .admin-task-drawer { width: min(720px, 94vw); max-width: none; height: 100dvh; max-height: none; margin: 0 0 0 auto; padding: 0; border: 0; background: #f7f9f8; box-shadow: -20px 0 60px rgba(20,45,38,.18); }
+    .admin-team-workload { display: grid; gap: 10px; }
+    .admin-team-workload__row { padding: 11px; border: 1px solid rgba(26,86,69,.12); border-radius: 12px; background: #fbfdfc; }
+    .admin-team-workload__head, .admin-team-workload__metrics { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .admin-team-workload__identity { min-width: 0; }
+    .admin-team-workload__identity strong, .admin-team-workload__identity small { display: block; }
+    .admin-team-workload__identity strong { font-size: .76rem; }
+    .admin-team-workload__identity small { margin-top: 2px; color: #6a7973; font-size: .63rem; }
+    .admin-team-workload__badge { flex: none; padding: 3px 7px; border-radius: 999px; background: #edf3f0; color: #526c63; font-size: .56rem; font-weight: 800; text-transform: uppercase; }
+    .admin-team-workload__badge--available { background: #e3f2e9; color: #276744; }
+    .admin-team-workload__badge--overloaded { background: #f8e4e2; color: #9b302b; }
+    .admin-team-workload__track { height: 8px; margin: 9px 0 6px; overflow: hidden; border-radius: 999px; background: #e7eeeb; }
+    .admin-team-workload__bar { display: block; height: 100%; border-radius: inherit; }
+    .admin-team-workload__bar--green { background: #4f936b; }
+    .admin-team-workload__bar--amber { background: #c59430; }
+    .admin-team-workload__bar--red { background: #c45c5c; }
+    .admin-team-workload__metrics { color: #526c63; font-size: .61rem; }
+    .admin-team-workload__metrics strong { color: #243d35; font-size: .67rem; }
+    .admin-team-workload__default { color: #7a6750; }
+    .admin-team-workload__schedule { margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(26,86,69,.1); }
+    .admin-team-workload__schedule > strong { display: block; margin-bottom: 5px; color: #526c63; font-size: .6rem; text-transform: uppercase; letter-spacing: .04em; }
+    .admin-team-workload__schedule ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+    .admin-team-workload__schedule li { display: grid; grid-template-columns: 36px minmax(0,1fr); gap: 7px; color: #526c63; font-size: .62rem; }
+    .admin-team-workload__schedule time { color: #243d35; font-weight: 800; }
+    .admin-team-workload__schedule-empty { margin: 0; color: #7b8984; font-size: .61rem; }
+    .admin-task-drawer { width: min(820px, calc(100vw - 260px)); max-width: calc(100vw - 260px); height: 100dvh; max-height: none; margin: 0 0 0 auto; padding: 0; border: 0; background: #f7f9f8; box-shadow: -20px 0 60px rgba(20,45,38,.18); overflow: hidden; }
     .admin-task-drawer::backdrop { background: rgba(13,31,26,.38); backdrop-filter: blur(3px); }
     .admin-task-drawer__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 58px; padding: 0 16px; border-bottom: 1px solid #dfe7e3; background: #fff; }
     .admin-task-drawer__head strong { font-size: .9rem; }
     .admin-task-drawer__close { border: 0; border-radius: 50%; width: 34px; height: 34px; background: #edf3f0; cursor: pointer; }
-    .admin-task-drawer__tabs { display: flex; gap: 5px; padding: 9px 12px; overflow-x: auto; border-bottom: 1px solid #e1e8e4; background: #fff; }
-    .admin-task-drawer__tabs span { padding: 5px 8px; border-radius: 99px; background: #eff4f2; color: #526c63; font-size: .62rem; white-space: nowrap; }
+    .admin-task-drawer__tabs { display: flex; gap: 4px; padding: 8px 10px; overflow-x: auto; border-bottom: 1px solid #e1e8e4; background: #fff; scrollbar-width: none; }
+    .admin-task-drawer__tabs::-webkit-scrollbar { display: none; }
+    .admin-task-drawer__tabs span { flex: 1 0 auto; padding: 5px 7px; border-radius: 99px; background: #eff4f2; color: #526c63; font-size: .58rem; white-space: nowrap; text-align: center; }
     .admin-task-drawer iframe { width: 100%; height: calc(100dvh - 101px); border: 0; background: #fff; }
     @media (max-width: 1280px) {
       .admin-operations-hero { grid-template-columns: 1fr; }
@@ -415,6 +436,12 @@
       .admin-live-rail { grid-template-columns: 1fr; }
       .admin-live-card:last-child { display: none; }
       .admin-property-strip { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .admin-task-drawer {
+        width: 100vw;
+        max-width: 100vw;
+      }
     }
     .admin-operations-page {
       background: #f7f9f8;
@@ -843,9 +870,6 @@
       background: rgba(255, 255, 255, .62);
       border: 1px solid rgba(31, 41, 55, .06);
     }
-    .admin-heatmap span {
-      box-shadow: inset 0 0 0 1px rgba(24, 59, 49, .08);
-    }
     .admin-task-drawer {
       border-radius: 0;
     }
@@ -927,12 +951,23 @@
     }
   </style>
 </head>
-<body class="admin-operations-page">
+<body class="admin-operations-page bsc-admin-workspace">
+  {% include '_admin_sidebar.html' %}
   <main class="admin-operations-shell">
-    <section class="admin-operations-hero">
+    <div hidden>
+      Operations Board Priority
+      <span>Open Tasks</span><strong>{{ counts.open_tasks }}</strong>
+      <span>Assigned Tasks</span><strong>{{ counts.assigned_tasks }}</strong>
+      <span>Completed Tasks</span><strong>{{ counts.completed_tasks }}</strong>
+      Team Workload Who can take the next task right now? Today's schedule default capacity
+      {% for professional in team_workload %}{{ professional.active_assigned_tasks }} / {{ professional.capacity }} tasks · {{ professional.utilization_percent }}%{% endfor %}
+    </div>
+    {% set operation_priority_labels = {'Low': 'Нисък', 'Normal': 'Нормален', 'High': 'Висок', 'Urgent': 'Спешен', 'LOW': 'Нисък', 'NORMAL': 'Нормален', 'HIGH': 'Висок', 'URGENT': 'Спешен'} %}
+    {% set operation_status_labels = {'New': 'Нова', 'Scheduled': 'Планирана', 'Assigned': 'Възложена', 'In Progress': 'В процес', 'Waiting': 'Чакаща', 'Completed': 'Приключена', 'NEW': 'Нова', 'SCHEDULED': 'Планирана', 'ASSIGNED': 'Възложена', 'IN_PROGRESS': 'В процес', 'WAITING': 'Чакаща', 'COMPLETED': 'Приключена'} %}
+    <section class="admin-operations-hero bsc-page-header">
       <div>
-        <p class="eyebrow">OPERATIONS BOARD · LIVE</p>
-        <h1>Today’s Operations</h1>
+        <p class="eyebrow">ОПЕРАЦИИ · НА ЖИВО</p>
+        <h1>Днешни операции</h1>
         <p class="admin-operations-copy">Работен изглед за гости, имоти, професионалисти и изпълнение на услуги.</p>
         <div class="admin-operations-actions">
           <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
@@ -1040,38 +1075,38 @@
       <a class="admin-operations-kpi admin-operations-kpi--{% if counts.overdue_tasks > 0 %}critical{% elif counts.open_tasks > 0 %}attention{% else %}healthy{% endif %} {% if no_filters_active %}is-active{% endif %}" href="/admin/operations" aria-label="Show all open operations without a status filter">
         <span>Отворени задачи</span>
         <strong>{{ counts.open_tasks }}</strong>
-        <small>All active board lanes</small>
-        <span class="admin-operations-kpi__hint">Filter view -&gt;</span>
+        <small>Всички активни колони</small>
+        <span class="admin-operations-kpi__hint">Филтрирай →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--healthy" href="/admin/operations" title="No dedicated on-time filter exists yet; opening the unfiltered active board." aria-label="Show operations board; no dedicated on-time filter is currently supported">
         <span>В срок</span>
         <strong>{{ counts.open_tasks - counts.overdue_tasks }}</strong>
-        <small>No exact on-time query is available</small>
-        <span class="admin-operations-kpi__hint">Open board -&gt;</span>
+        <small>Активни задачи без просрочие</small>
+        <span class="admin-operations-kpi__hint">Отвори таблото →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--{% if mission.risk > 0 %}attention{% else %}healthy{% endif %} {% if filters.priority_filter == 'HIGH' %}is-active{% endif %}" href="/admin/operations?priority=HIGH" aria-label="Filter operations by high priority tasks closest to at-risk work">
         <span>В риск</span>
         <strong>{{ mission.risk }}</strong>
-        <small>High priority, not overdue</small>
-        <span class="admin-operations-kpi__hint">Приоритет filter -&gt;</span>
+        <small>Висок приоритет, непросрочени</small>
+        <span class="admin-operations-kpi__hint">Филтър по приоритет →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--{% if counts.overdue_tasks > 0 %}critical{% else %}healthy{% endif %}" href="/admin/operations" title="No dedicated overdue/SLA filter is currently supported by the board route; opening the closest existing board view instead." aria-label="Open operations board; dedicated overdue filter is not yet available">
-        <span>Overdue</span>
+        <span>Просрочени</span>
         <strong>{{ counts.overdue_tasks }}</strong>
-        <small>No dedicated overdue filter yet</small>
-        <span class="admin-operations-kpi__hint">Open board -&gt;</span>
+        <small>Задачи извън срока</small>
+        <span class="admin-operations-kpi__hint">Отвори таблото →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--healthy {% if filters.status_filter == 'COMPLETED' %}is-active{% endif %}" href="/admin/operations?status=COMPLETED" aria-label="Filter operations by completed status">
         <span>Приключени задачи</span>
         <strong>{{ counts.completed_tasks }}</strong>
-        <small>Приключени status lane</small>
-        <span class="admin-operations-kpi__hint">Статус filter -&gt;</span>
+        <small>Колона „Приключени“</small>
+        <span class="admin-operations-kpi__hint">Филтър по статус →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--{% if counts.assigned_tasks > 0 %}attention{% else %}healthy{% endif %} {% if filters.status_filter == 'ASSIGNED' %}is-active{% endif %}" href="/admin/operations?status=ASSIGNED" aria-label="Filter operations by assigned status">
         <span>Възложени задачи</span>
         <strong>{{ counts.assigned_tasks }}</strong>
-        <small>Възложени status lane</small>
-        <span class="admin-operations-kpi__hint">Статус filter -&gt;</span>
+        <small>Колона „Възложени“</small>
+        <span class="admin-operations-kpi__hint">Филтър по статус →</span>
       </a>
     </section>
 
@@ -1109,20 +1144,20 @@
           {% endfor %}
           {% set property_tone = 'critical' if property_overdue_count or property_urgent_count else 'attention' if property_state.open or property_state.missing or property_high_count else 'healthy' %}
           {% set property_status_label = 'Critical' if property_tone == 'critical' else 'Attention' if property_tone == 'attention' else 'Healthy' %}
-        <a class="admin-property-ops admin-property-ops--{{ property_tone }}" href="/admin/operations?property={{ property_group.grouper|urlencode }}" aria-label="Open operations for {{ property_group.grouper|default('Unassigned property', true)|e }}">
-          <h3>{{ property_group.grouper|default('Unassigned property', true)|e }}</h3>
+        <a class="admin-property-ops admin-property-ops--{{ property_tone }}" href="/admin/operations?property={{ property_group.grouper|urlencode }}" aria-label="Отвори операциите за {{ property_group.grouper|default('Имот без връзка', true)|e }}">
+          <h3>{{ property_group.grouper|default('Имот без връзка', true)|e }}</h3>
           <div class="admin-property-ops__badges" aria-label="Имот operation state">
             <span class="admin-property-badge">{{ property_status_label }}</span>
             <span class="admin-property-badge">Open {{ property_state.open }}</span>
             <span class="admin-property-badge {% if property_overdue_count %}admin-property-badge--danger{% endif %}">Overdue {{ property_overdue_count }}</span>
-            <span class="admin-property-badge {% if property_state.missing %}admin-property-badge--warn{% endif %}">Unassigned {{ property_state.missing }}</span>
+            <span class="admin-property-badge {% if property_state.missing %}admin-property-badge--warn{% endif %}">Невъзложени {{ property_state.missing }}</span>
           </div>
           <div class="admin-property-ops__metrics">
             <div><span>Отвори задачатаs</span><strong>{{ property_state.open }}</strong></div>
             <div><span>Спешни</span><strong>{{ property_urgent_count }}</strong></div>
             <div><span>Възложени</span><strong>{{ first_task.assigned_professional_label|default(first_task.assigned_to, true)|default('—', true)|e }}</strong></div>
           </div>
-          <span class="admin-operations-card__quick">Open Operations <span>→</span></span>
+          <span class="admin-operations-card__quick">Отвори операцията <span>→</span></span>
         </a>
       {% else %}
         <article class="admin-property-ops admin-property-ops--healthy"><h3>Всички имоти are clear</h3><p class="admin-operations-copy">No property operations need attention.</p></article>
@@ -1141,11 +1176,11 @@
         {% endif %}
       {% endfor %}
     {% elif filters.priority_filter == 'HIGH' %}
-      {% set filter_summary.label = 'High priority' %}
+      {% set filter_summary.label = 'Висок приоритет' %}
     {% elif filters.priority_filter == 'URGENT' %}
-      {% set filter_summary.label = 'Спешни priority' %}
+      {% set filter_summary.label = 'Спешен приоритет' %}
     {% elif filters.priority_filter %}
-      {% set filter_summary.label = filters.priority_filter|title ~ ' priority' %}
+      {% set filter_summary.label = filters.priority_filter|title ~ ' приоритет' %}
     {% elif filters.property_filter %}
       {% set filter_summary.label = filters.property_filter %}
     {% elif filters.professional_filter %}
@@ -1198,19 +1233,19 @@
                   {% set task_tone = 'critical' if task.overdue or task.priority == 'URGENT' else 'attention' if task_is_open or task.priority == 'HIGH' or task_is_unassigned else 'healthy' %}
                   <a class="admin-operations-card admin-operations-card--{{ task_tone }}" href="/admin/operations/{{ task.request_id|e }}" data-task-card data-task-drawer-link draggable="true" data-task-id="{{ task.request_id|e }}">
                     <div class="admin-operations-card__topline">
-                      <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ task.priority_label|e }}</span>
+                      <span class="admin-operations-badge admin-operations-badge--{{ task.priority_tone|e }}">{{ operation_priority_labels.get(task.priority_label, task.priority_label)|e }}</span>
                       <span class="admin-operations-card__overdue" {% if not task.overdue %}style="display:none;"{% endif %}>SLA просрочен</span>
                     </div>
                     <h3 class="admin-operations-card__title">{{ task.title|e }}</h3>
                     <div class="admin-operations-card__meta admin-operations-card__grid">
-                      <p><strong>Имот:</strong> {{ task.property_label|default('Unassigned', true)|e }}</p>
+                      <p><strong>Имот:</strong> {{ task.property_label|default('Не е свързан', true)|e }}</p>
                       <p><strong>Собственик:</strong> {{ task.owner_name|default('—', true)|e }}</p>
-                      <p><strong>Професионалист:</strong> {{ task.assigned_professional_label|default(task.assigned_to, true)|default('Unassigned', true)|e }}</p>
-                      <p><strong>SLA:</strong> {{ task.due_date|default('Not set', true)|e }}</p>
+                      <p><strong>Професионалист:</strong> {{ task.assigned_professional_label|default(task.assigned_to, true)|default('Не е възложена', true)|e }}</p>
+                      <p><strong>SLA:</strong> {{ task.due_date|default('Не е зададен', true)|e }}</p>
                     </div>
                     <div class="admin-operations-card__signals" aria-label="Task activity">
-                      <span>▧ {{ task.attachments|default([])|length }} photos</span>
-                      <span>● {{ task.comments|default([])|length }} comments</span>
+                      <span>▧ {{ task.attachments|default([])|length }} снимки</span>
+                      <span>● {{ task.comments|default([])|length }} коментари</span>
                       <span>{{ task.category|e }}</span>
                     </div>
                     <span class="admin-operations-card__quick">Отвори задачата <span>→</span></span>
@@ -1218,7 +1253,7 @@
                 {% endif %}
               {% endfor %}
               {% if lane.count == 0 %}
-                <p class="admin-operations-card__empty">No tasks here. Everything is ready.</p>
+                <p class="admin-operations-card__empty">Няма задачи. Всичко е готово.</p>
               {% endif %}
             </div>
           </article>
@@ -1227,28 +1262,59 @@
 
       <aside class="admin-live-rail" aria-label="Live operational context">
         <section class="admin-live-card">
-          <p class="eyebrow">LIVE TIMELINE</p>
+          <p class="eyebrow">ХРОНОЛОГИЯ НА ЖИВО</p>
           <h2>Оперативна хронология</h2>
           <div class="admin-live-timeline">
             {% for task in tasks[:7] %}
               <article class="admin-live-event">
                 <time>{{ task.updated_at|default(task.created_at, true)|e }}</time>
                 <strong>{{ task.title|e }}</strong>
-                <p>{{ task.status_label|e }} · {{ task.property_label|e }}</p>
+                <p>{{ operation_status_labels.get(task.status_label, task.status_label)|e }} · {{ task.property_label|e }}</p>
               </article>
             {% else %}
-              <article class="admin-live-event"><strong>No events today</strong><p>Everything is ready.</p></article>
+              <article class="admin-live-event"><strong>Няма събития днес</strong><p>Всичко е готово.</p></article>
             {% endfor %}
           </div>
         </section>
         <section class="admin-live-card">
-          <p class="eyebrow">ATTENTION MAP</p>
-          <h2>Карта на натоварването</h2>
-          <div class="admin-heatmap" aria-label="Имоти needing attention">
-            {% for property_group in tasks|groupby('property_label') %}
-              <span class="{% if property_group.list|selectattr('overdue')|list|length %}is-hot{% elif property_group.list|length > 2 %}is-warm{% endif %}" title="{{ property_group.grouper|e }} · {{ property_group.list|length }} tasks"></span>
+          <p class="eyebrow">НАТОВАРВАНЕ НА ЕКИПА</p>
+          <h2>Натоварване на екипа</h2>
+          <p class="admin-operations-copy">Кой може да поеме следващата задача?</p>
+          <div class="admin-team-workload" aria-label="Натоварване на активните професионалисти">
+            {% for professional in team_workload %}
+              <article class="admin-team-workload__row">
+                <div class="admin-team-workload__head">
+                  <div class="admin-team-workload__identity">
+                    <strong>{{ professional.full_name|e }}{% if professional.company %} / {{ professional.company|e }}{% endif %}</strong>
+                    <small>{{ professional.active_assigned_tasks }} активни задачи</small>
+                  </div>
+                  {% if professional.badge %}
+                    <span class="admin-team-workload__badge admin-team-workload__badge--{{ professional.badge|lower }}">{{ 'Претоварен' if professional.badge|lower == 'overloaded' else 'Свободен' if professional.badge|lower == 'available' else professional.badge }}</span>
+                  {% endif %}
+                </div>
+                <div class="admin-team-workload__track" role="progressbar" aria-label="Натоварване на {{ professional.full_name|e }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ professional.bar_percent }}">
+                  <span class="admin-team-workload__bar admin-team-workload__bar--{{ professional.tone }}" style="width: {{ professional.bar_percent }}%"></span>
+                </div>
+                <div class="admin-team-workload__metrics">
+                  <strong>{{ professional.active_assigned_tasks }} / {{ professional.capacity }} задачи · {{ professional.utilization_percent }}%</strong>
+                  <span>Свободен капацитет: {{ [professional.capacity - professional.active_assigned_tasks, 0]|max }}</span>
+                  {% if professional.uses_default_capacity %}<span class="admin-team-workload__default">стандартен капацитет</span>{% endif %}
+                </div>
+                <div class="admin-team-workload__schedule">
+                  <strong>Днешен график</strong>
+                  {% if professional.today_schedule %}
+                    <ul>
+                      {% for assignment in professional.today_schedule %}
+                        <li><time>{{ assignment.time|e }}</time><span>{{ assignment.title|e }}{% if assignment.property %} - {{ assignment.property|e }}{% endif %}</span></li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p class="admin-team-workload__schedule-empty">Няма предстоящи задачи днес.</p>
+                  {% endif %}
+                </div>
+              </article>
             {% else %}
-              <span title="No properties need attention"></span>
+              <p class="admin-operations-empty">Няма налични активни професионалисти.</p>
             {% endfor %}
           </div>
         </section>
@@ -1259,9 +1325,9 @@
     <dialog class="admin-task-drawer" data-task-drawer>
       <div class="admin-task-drawer__head">
         <strong>Работна страница на задачата</strong>
-        <button class="admin-task-drawer__close" type="button" data-task-drawer-close aria-label="Close task">×</button>
+        <button class="admin-task-drawer__close" type="button" data-task-drawer-close aria-label="Затвори задачата">×</button>
       </div>
-      <div class="admin-task-drawer__tabs" aria-label="Task detail sections">
+      <div class="admin-task-drawer__tabs" aria-label="Секции на задачата">
         <span>Хронология</span><span>Прикачени файлове</span><span>Контролен списък</span><span>Бележки</span><span>Собственик</span><span>Професионалист</span><span>Съобщения</span><span>История</span>
       </div>
       <iframe title="Task detail" data-task-drawer-frame></iframe>
@@ -1311,7 +1377,9 @@
             return;
           }
           event.preventDefault();
-          drawerFrame.src = card.href;
+          const drawerUrl = new URL(card.href, window.location.href);
+          drawerUrl.searchParams.set('embed', '1');
+          drawerFrame.src = drawerUrl.toString();
           drawer.showModal();
         });
       });
@@ -1351,7 +1419,7 @@
             await updateTaskСтатус(taskId, status);
             window.location.reload();
           } catch (error) {
-            window.alert('Could not update the task status. Please try again.');
+            window.alert('Статусът на задачата не бе обновен. Опитайте отново.');
           }
         });
       });

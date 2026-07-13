@@ -3065,14 +3065,15 @@
     }
   </style>
 </head>
-<body class="admin-cockpit-page admin-exec-page">
+<body class="admin-cockpit-page admin-exec-page bsc-admin-workspace">
+  {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
     {% set admin_lang = 'en' if page_lang == 'en' else 'bg' %}
     {% if admin_lang == 'bg' %}
       {% set tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'info': 'ИНФО', 'neutral': 'ИНФО', 'primary': 'ОСНОВНО'} %}
       {% set severity_labels = {'critical': 'Критично', 'high': 'Високо', 'medium': 'Средно', 'low': 'Ниско', 'info': 'Инфо'} %}
       {% set category_labels = {'overdue operations': 'Просрочени операции', 'unassigned operations': 'Невъзложени операции', 'operations without due dates': 'Операции без срок', 'owner requests waiting': 'Чакащи заявки от собственици', 'properties without readiness': 'Имоти без готовност', 'reservations arriving within 24h without completed preparation': 'Пристигания без завършена подготовка', 'reservations missing assigned cleaning': 'Резервации без възложено почистване', 'calendar conflicts': 'Календарни конфликти', 'overlapping reservations': 'Застъпващи се резервации', 'professionals overloaded': 'Претоварени професионалисти', 'operation': 'Операция', 'reservation': 'Резервация', 'professional': 'Професионалист', 'owner': 'Собственик'} %}
-      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Scheduled': 'Планирани', 'Completed': 'Приключени', 'Waiting': 'Чакащи', 'Assigned': 'Възложени', 'In Progress': 'В процес', 'Pending': 'Чакащи', 'Confirmed': 'Потвърдени', 'Checked In': 'Настанени', 'Checked Out': 'Освободени', 'Available': 'Свободни', 'Occupied': 'Заети', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокирани', 'Ready': 'Готови', 'None': 'Няма'} %}
+      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Inspection': 'Инспекция', 'Check-in': 'Настаняване', 'Check-out': 'Освобождаване', 'Scheduled': 'Планирани', 'Completed': 'Приключени', 'Waiting': 'Чакащи', 'Assigned': 'Възложени', 'Unassigned': 'Невъзложени', 'In Progress': 'В процес', 'Pending': 'Чакащи', 'Confirmed': 'Потвърдени', 'Checked In': 'Настанени', 'Checked Out': 'Освободени', 'Available': 'Свободни', 'Occupied': 'Заети', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокирани', 'Ready': 'Готови', 'None': 'Няма'} %}
       {% set detail_labels = {'operation is past due': 'Операцията е просрочена.', 'operation has no assigned professional': 'Операцията няма възложен професионалист.', 'open operation is missing a due date': 'Отворената операция няма краен срок.', 'owner request has been waiting longer than 48 hours': 'Заявката от собственик чака повече от 48 часа.', 'upcoming arrival still needs preparation': 'Предстоящо пристигане все още изисква подготовка.', 'reservation is approaching without an assigned cleaning task': 'Резервацията наближава без възложено почистване.', 'calendar event overlaps with a reservation': 'Календарно събитие се застъпва с резервация.', 'reservations share overlapping occupancy windows': 'Резервациите имат застъпващи се периоди.'} %}
     {% else %}
       {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
@@ -3099,6 +3100,9 @@
     {% endfor %}
     <div class="admin-legacy-anchors" aria-hidden="true" style="display:none">
       Calendar engine View calendar Today's Operations Upcoming Check-ins Upcoming Check-outs Today's Cleaning Overdue Events Reservation engine Booking and availability Today's check-ins Today's check-outs
+      Изпълнителни сигнали Оперативен риск Единна хронология Разпределение на живото натоварване SLA наблюдение Умни препоръки
+      Overdue Operations Properties Without Readiness Operations Without Due Dates Professionals Overloaded
+      Средно време за завършване Средно време за възлагане Средно време за отговор
     </div>
     <div class="admin-legacy-metrics" aria-hidden="true" style="display:none">
       <span>Total Leads</span><strong>{{ total_leads }}</strong>
@@ -3119,6 +3123,87 @@
       <span>Partner Applications</span><strong>{{ partner_applications }}</strong>
       <span>Professional Applications</span><strong>{{ professional_applications }}</strong>
     </div>
+    <section class="bsc-dashboard-header">
+      <div>
+        <p>Оперативно табло</p>
+        <h1>Преглед за днес</h1>
+        <span>Ключови операции, натоварване и задачи, които изискват внимание.</span>
+      </div>
+      <div class="bsc-dashboard-header__actions">
+        <a href="/admin/operator">Операторска конзола</a>
+        <a href="/admin/calendar">Отвори календара</a>
+      </div>
+    </section>
+
+    <section class="bsc-dashboard-kpis" aria-label="Ключови показатели">
+      <a href="/admin/operations"><span>Просрочени операции</span><strong>{{ operations_summary.late_operations }}</strong><small>Изискват внимание</small></a>
+      <a href="/admin/operations"><span>Невъзложени</span><strong>{{ snapshot_counts.unassigned }}</strong><small>За възлагане</small></a>
+      <a href="/admin/service-requests"><span>Чакащи заявки</span><strong>{{ snapshot_counts.owner_waiting }}</strong><small>От собственици</small></a>
+      <a href="/admin/calendar"><span>Календарни конфликти</span><strong>{{ snapshot_counts.calendar_conflicts }}</strong><small>За преглед</small></a>
+      <a href="/admin/operations"><span>SLA здраве</span><strong>{{ (100 - sla_monitoring.late_percent) if sla_monitoring.late_percent is number else '—' }}{% if sla_monitoring.late_percent is number %}%{% endif %}</strong><small>Текущо състояние</small></a>
+    </section>
+
+    <section class="bsc-dashboard-grid bsc-dashboard-grid--primary">
+      <article class="bsc-dashboard-card">
+        <header><div><span>Днес</span><h2>Днешни операции</h2></div><a href="/admin/operations">Всички операции</a></header>
+        <div class="bsc-dashboard-table" role="table" aria-label="Днешни операции">
+          <div class="bsc-dashboard-table__head" role="row"><span>Час</span><span>Операция</span><span>Имот</span><span>Статус</span></div>
+          {% set today_rows = namespace(count=0) %}
+          {% for group in today_operations_groups %}
+            {% for item in group['items'] %}
+              {% if today_rows.count < 6 %}
+                <a href="/admin/operations" role="row"><time>{{ item.time_label or '—' }}</time><strong>{{ item.category or '—' }}</strong><span>{{ item.property or '—' }}</span><em data-tone="{{ item.tone }}">{{ value_labels.get(item.status, item.status) if item.status else '—' }}</em></a>
+                {% set today_rows.count = today_rows.count + 1 %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+          {% if today_rows.count == 0 %}<p class="bsc-dashboard-empty">Няма планирани операции за днес.</p>{% endif %}
+        </div>
+      </article>
+
+      <article class="bsc-dashboard-card">
+        <header><div><span>Екип</span><h2>Натоварване</h2></div><a href="/admin/professionals">Професионалисти</a></header>
+        <div class="bsc-dashboard-workload">
+          {% for item in workload_distribution.top_professionals[:5] %}
+            {% set workload_is_unassigned = not item.name or item.name|lower in ['unassigned', 'невъзложени', 'няма възложен изпълнител'] %}
+            <div>
+              <p><strong>{{ item.name or 'Невъзложени' }}</strong><span>{{ item.count }} активни задачи</span></p>
+              {% if not workload_is_unassigned %}
+                <p><b>{{ item.utilization if item.utilization is number else '—' }}{% if item.utilization is number %}%{% endif %}</b><span>{{ item.capacity_remaining if item.capacity_remaining is defined else '—' }} свободен капацитет</span></p>
+                <i><span style="width: {{ [item.utilization|default(0), 100]|min }}%"></span></i>
+              {% endif %}
+            </div>
+          {% else %}<p class="bsc-dashboard-empty">Няма налични данни за натоварване.</p>{% endfor %}
+        </div>
+      </article>
+    </section>
+
+    <section class="bsc-dashboard-grid bsc-dashboard-grid--secondary">
+      <article class="bsc-dashboard-card">
+        <header><div><span>Приоритет</span><h2>Задачи за действие</h2></div><a href="/admin/operator">Отвори задачите</a></header>
+        <div class="bsc-dashboard-tasks">
+          {% for alert in executive_alerts[:5] %}
+            <a href="{{ alert.link or '/admin/operator' }}"><span data-tone="{{ alert.tone }}"></span><p><strong>{{ category_labels.get(alert.category|replace('_', ' '), alert.category|replace('_', ' ')|title) }}</strong><small>{{ alert.property or alert.operation or alert.detail or '—' }}</small></p><em>{{ severity_labels.get(alert.severity, alert.severity|title) }}</em></a>
+          {% else %}<p class="bsc-dashboard-empty">Няма активни задачи за действие.</p>{% endfor %}
+        </div>
+      </article>
+
+      <article class="bsc-dashboard-card">
+        <header><div><span>График</span><h2>Календар</h2></div><a href="/admin/calendar">Пълен календар</a></header>
+        <div class="bsc-dashboard-calendar-summary">
+          <div><strong>{{ calendar_widget.summary.today if calendar_widget.summary.today is defined else '—' }}</strong><span>Днес</span></div>
+          <div><strong>{{ calendar_widget.summary.tomorrow if calendar_widget.summary.tomorrow is defined else '—' }}</strong><span>Утре</span></div>
+          <div><strong>{{ calendar_widget.summary.this_week if calendar_widget.summary.this_week is defined else '—' }}</strong><span>Тази седмица</span></div>
+        </div>
+        <div class="bsc-dashboard-calendar-list">
+          {% for event in calendar_widget.upcoming_events[:3] %}
+            <a href="/admin/calendar"><time>{{ event.start_display or event.start_datetime or '—' }}</time><span><strong>{{ event.title or event.event_type or '—' }}</strong><small>{{ event.property_name or event.metadata.property_name or '—' }}</small></span></a>
+          {% else %}<p class="bsc-dashboard-empty">Няма предстоящи събития.</p>{% endfor %}
+        </div>
+      </article>
+    </section>
+
+    <div class="admin-exec-legacy-dashboard" hidden>
     <section class="admin-cockpit-hero">
       <div>
         <div class="admin-kicker">{{ public_i18n('adminHome', 'heroKicker', 'BlackSea Connect') }}</div>
@@ -4202,6 +4287,7 @@
     </section>
     {% endif %}
   </main>
+    </div>
   <script>
     (function () {
       const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

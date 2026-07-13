@@ -7,9 +7,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <title>Операторска конзола · BlackSea Connect</title>
 </head>
-<body class="admin-operator-page admin-light-page">
+<body class="admin-operator-page admin-light-page bsc-admin-workspace">
+  {% include '_admin_sidebar.html' %}
   <main class="admin-light-shell operator-console-shell">
-    <section class="admin-light-hero operator-console-hero">
+    <section class="admin-light-hero operator-console-hero bsc-page-header">
       <div>
         <p class="admin-light-kicker">BlackSea Connect</p>
         <h1>Операторска конзола</h1>

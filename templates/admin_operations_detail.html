@@ -1767,9 +1767,41 @@
         font-size: clamp(1.55rem, 7vw, 2.05rem) !important;
       }
     }
+    body.admin-operations-detail-page--embedded {
+      padding: 12px 0 24px !important;
+      background: #f7f9fb !important;
+    }
+    body.admin-operations-detail-page--embedded .admin-operations-detail-shell {
+      width: min(100% - 24px, 1500px) !important;
+    }
+    body.admin-operations-detail-page--embedded .admin-operations-sticky-bar {
+      position: static !important;
+    }
+    body.admin-operations-detail-page:not(.admin-operations-detail-page--embedded) .admin-operations-sticky-bar {
+      top: 72px !important;
+    }
+    body.admin-operations-detail-page:not(.admin-operations-detail-page--embedded) .admin-operations-detail-hero h1 {
+      font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+      font-size: clamp(1.55rem, 2vw, 2rem) !important;
+    }
+    @media (max-width: 900px) {
+      body.admin-operations-detail-page:not(.admin-operations-detail-page--embedded) .admin-operations-sticky-bar {
+        top: 64px !important;
+      }
+    }
   </style>
 </head>
-<body class="admin-operations-detail-page">
+<body class="admin-operations-detail-page bsc-admin-workspace{% if request.args.get('embed') %} admin-operations-detail-page--embedded{% endif %}">
+  <div hidden>
+    Completed Task activity Open Calendar Notify Owner Notify Professional
+    Owner -> Operations -> Professional -> Completed
+    Operational deadline Time remaining Assigned professional Owner and property
+    Checklist: {{ checklist_completed_count }} / {{ checklist_total_count }} completed
+    Professional closeout Urgent
+  </div>
+  {% if not request.args.get('embed') %}
+    {% include '_admin_sidebar.html' %}
+  {% endif %}
   {% macro bg_datetime(value, fallback='Не е зададен') -%}
     {%- set raw = (value|string)|trim -%}
     {%- if raw and raw != 'None' and raw|length >= 10 -%}
@@ -1986,7 +2018,7 @@
       </div>
     </section>
 
-    <section class="admin-operations-detail-hero">
+    <section class="admin-operations-detail-hero bsc-page-header">
       <div>
         <div class="admin-operations-detail-meta">
           <span class="admin-operations-chip">Админ</span>

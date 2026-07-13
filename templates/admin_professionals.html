@@ -1,55 +1,57 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Professional Applications</title>
+  <title>BlackSea Connect | Професионалисти</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="admin-cockpit-page admin-professionals-page">
+<body class="admin-cockpit-page admin-professionals-page bsc-admin-workspace">
+  {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
-    <section class="admin-cockpit-hero admin-cockpit-hero--compact">
+    <section class="admin-cockpit-hero admin-cockpit-hero--compact bsc-page-header">
       <div>
-        <p class="eyebrow">Professional pipeline</p>
-        <h1>Professional applications</h1>
-        <p>Review specialist applications, assign ownership and move records through the CRM pipeline.</p>
+        <p class="eyebrow">Професионалисти</p>
+        <h1>Кандидатури на професионалисти</h1>
+        <p>Преглед, квалифициране и управление на кандидатурите.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin">Back to cockpit</a>
-        <a class="button button--ghost" href="/admin/professionals/export">Export CSV</a>
+        <a class="button button--secondary" href="/admin">Към таблото</a>
+        <a class="button button--ghost" href="/admin/professionals/export">Експорт CSV</a>
       </div>
     </section>
 
-    <section class="admin-kpi-grid" aria-label="Professional application metrics">
-      <article class="admin-kpi-card"><span>Total applications</span><strong>{{ applications|length }}</strong></article>
-      <article class="admin-kpi-card"><span>New</span><strong>{{ counts.new }}</strong></article>
-      <article class="admin-kpi-card"><span>Contacted</span><strong>{{ counts.contacted }}</strong></article>
-      <article class="admin-kpi-card"><span>Qualified</span><strong>{{ counts.qualified }}</strong></article>
-      <article class="admin-kpi-card"><span>Converted</span><strong>{{ counts.converted }}</strong></article>
-      <article class="admin-kpi-card"><span>Lost</span><strong>{{ counts.lost }}</strong></article>
+    <section class="admin-kpi-grid bsc-compact-kpis" aria-label="Показатели за кандидатурите">
+      <article class="admin-kpi-card"><span>Общо кандидатури</span><strong>{{ applications|length }}</strong></article>
+      <article class="admin-kpi-card"><span>Нови</span><strong>{{ counts.new }}</strong></article>
+      <article class="admin-kpi-card"><span>Свързани</span><strong>{{ counts.contacted }}</strong></article>
+      <article class="admin-kpi-card"><span>Квалифицирани</span><strong>{{ counts.qualified }}</strong></article>
+      <article class="admin-kpi-card"><span>Конвертирани</span><strong>{{ counts.converted }}</strong></article>
+      <article class="admin-kpi-card"><span>Отпаднали</span><strong>{{ counts.lost }}</strong></article>
     </section>
 
     {% if applications %}
       <section class="admin-pilot-list">
         {% for item in applications %}
+          {% set professional_status_labels = {'NEW': 'НОВА', 'CONTACTED': 'СВЪРЗАНА', 'QUALIFIED': 'КВАЛИФИЦИРАНА', 'CONVERTED': 'КОНВЕРТИРАНА', 'LOST': 'ОТПАДНАЛА'} %}
           <a class="admin-pilot-card admin-pilot-card--link" href="/admin/professionals/{{ item.id|e }}" data-search="{{ (item.full_name ~ ' ' ~ item.email ~ ' ' ~ item.professional_category ~ ' ' ~ item.city ~ ' ' ~ item.country ~ ' ' ~ item.languages ~ ' ' ~ item.status ~ ' ' ~ item.owner)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
-              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+              <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ professional_status_labels.get(item.status|upper, item.status|upper)|e }}</span>
             </div>
             <h2>{{ item.full_name|e }}</h2>
-            <p><strong>Email:</strong> {{ item.email|e }}</p>
-            <p><strong>Category:</strong> {{ item.professional_category|e }}</p>
-            <p><strong>Location:</strong> {{ item.city|e }}, {{ item.country|e }}</p>
-            <p><strong>Languages:</strong> {{ item.languages|e }}</p>
-            {% if item.owner %}<p><strong>Owner:</strong> {{ item.owner|e }}</p>{% endif %}
+            <p><strong>Имейл:</strong> {{ item.email|e }}</p>
+            <p><strong>Категория:</strong> {{ item.professional_category|e }}</p>
+            <p><strong>Местоположение:</strong> {{ item.city|e }}, {{ item.country|e }}</p>
+            <p><strong>Езици:</strong> {{ item.languages|e }}</p>
+            {% if item.owner %}<p><strong>Отговорник:</strong> {{ item.owner|e }}</p>{% endif %}
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>No professional applications yet.</h2>
-        <p>Submitted professional applications will appear here as soon as they are saved.</p>
+        <h2>Все още няма кандидатури.</h2>
+        <p>Новите кандидатури ще се покажат тук веднага след записването им.</p>
       </section>
     {% endif %}
   </main>

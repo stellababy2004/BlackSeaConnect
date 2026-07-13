@@ -13,7 +13,8 @@
       padding: 32px 20px 48px;
     }
     .admin-owner-accounts-shell {
-      max-width: 1120px;
+      width: 100%;
+      max-width: 1440px;
       margin: 0 auto;
     }
     .admin-owner-accounts-card {
@@ -118,12 +119,13 @@
     }
     .admin-owner-accounts-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
       gap: 16px;
       margin-top: 20px;
     }
     .admin-owner-account-card {
       display: grid;
+      min-width: 0;
       gap: 14px;
       border: 1px solid rgba(31, 41, 55, 0.08);
       border-radius: 24px;
@@ -145,6 +147,10 @@
       justify-content: space-between;
       gap: 12px;
     }
+    .admin-owner-account-card__topline > div {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
     .admin-owner-account-card__name {
       margin: 0;
       font-size: 1.08rem;
@@ -152,9 +158,11 @@
     }
     .admin-owner-account-card__meta {
       display: grid;
+      min-width: 0;
       gap: 4px;
       color: #6b7280;
       font-size: 14px;
+      overflow-wrap: anywhere;
     }
     .admin-owner-account-card__details {
       display: grid;
@@ -192,6 +200,7 @@
       letter-spacing: 0.02em;
     }
     .admin-owner-accounts-chip--status {
+      flex: 0 0 auto;
       background: rgba(31, 41, 55, 0.06);
       color: #1f2937;
     }
@@ -220,9 +229,21 @@
       color: #6b7280;
       padding: 18px 0 4px;
     }
+    @media (max-width: 1240px) {
+      .admin-owner-accounts-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 720px) {
+      .admin-owner-accounts-grid,
+      .admin-owner-account-card__details {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body class="admin-owner-accounts-page">
+  {% include '_admin_sidebar.html' %}
   <main class="admin-owner-accounts-shell">
     <section class="admin-owner-accounts-card">
       <div class="admin-owner-accounts-hero">
