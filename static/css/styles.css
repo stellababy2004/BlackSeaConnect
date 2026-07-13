@@ -37412,6 +37412,15 @@ body:is(
   --bsc-admin-muted: #687a91;
   --bsc-admin-primary: #102f50;
   --bsc-admin-primary-hover: #0b2745;
+  --bsc-admin-primary-soft: #e9f1f9;
+  --bsc-admin-success: #237149;
+  --bsc-admin-success-soft: #e8f6ee;
+  --bsc-admin-warning: #8b6414;
+  --bsc-admin-warning-soft: #fff3d9;
+  --bsc-admin-danger: #a33c3c;
+  --bsc-admin-danger-soft: #fde9e9;
+  --bsc-admin-neutral: #526579;
+  --bsc-admin-neutral-soft: #eef2f6;
   --bsc-admin-gold: #b88734;
   --bsc-admin-radius: 20px;
   --bsc-admin-shadow: 0 10px 30px rgba(16, 37, 68, 0.055);
@@ -37709,16 +37718,16 @@ body.bsc-admin-workspace :is(
 }
 
 body.bsc-admin-workspace :is([class*="--success"],[class*="--completed"],[class*="--active"],[class*="--healthy"]) {
-  --bsc-status-bg: #e8f6ee;
-  --bsc-status-fg: #237149;
+  --bsc-status-bg: var(--bsc-admin-success-soft);
+  --bsc-status-fg: var(--bsc-admin-success);
 }
 body.bsc-admin-workspace :is([class*="--warning"],[class*="--attention"],[class*="--seasonal"],[class*="--high"]) {
-  --bsc-status-bg: #fff3d9;
-  --bsc-status-fg: #8b6414;
+  --bsc-status-bg: var(--bsc-admin-warning-soft);
+  --bsc-status-fg: var(--bsc-admin-warning);
 }
 body.bsc-admin-workspace :is([class*="--danger"],[class*="--critical"],[class*="--urgent"],[class*="--overdue"]) {
-  --bsc-status-bg: #fde9e9;
-  --bsc-status-fg: #a33c3c;
+  --bsc-status-bg: var(--bsc-admin-danger-soft);
+  --bsc-status-fg: var(--bsc-admin-danger);
 }
 body.bsc-admin-workspace :is([class*="--scheduled"],[class*="--info"],[class*="--new"]) {
   --bsc-status-bg: #e9f2ff;
@@ -37727,6 +37736,10 @@ body.bsc-admin-workspace :is([class*="--scheduled"],[class*="--info"],[class*="-
 body.bsc-admin-workspace :is([class*="--assigned"],[class*="--status"]) {
   --bsc-status-bg: #e8eef5;
   --bsc-status-fg: #173b61;
+}
+body.bsc-admin-workspace :is([class*="--unassigned"],[class*="--pending"],[class*="--neutral"]) {
+  --bsc-status-bg: var(--bsc-admin-neutral-soft);
+  --bsc-status-fg: var(--bsc-admin-neutral);
 }
 body.bsc-admin-workspace :is(
   .admin-badge,
@@ -37740,6 +37753,46 @@ body.bsc-admin-workspace :is(
   color: var(--bsc-status-fg, #43566e) !important;
   -webkit-text-fill-color: var(--bsc-status-fg, #43566e) !important;
   background: var(--bsc-status-bg, #eef2f6) !important;
+}
+
+/* Shared semantic states: primary/navy, success/green, warning/amber, danger/red, neutral/slate. */
+body.bsc-admin-workspace :is(.button--primary,.btn-primary,button[data-tone="primary"]) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: var(--bsc-admin-primary) !important;
+  border-color: var(--bsc-admin-primary) !important;
+}
+body.bsc-admin-workspace :is(.button--secondary,.button--ghost,.btn-secondary) {
+  color: var(--bsc-admin-primary) !important;
+  -webkit-text-fill-color: var(--bsc-admin-primary) !important;
+  background: #fff !important;
+  border-color: var(--bsc-admin-border-strong) !important;
+}
+body.bsc-admin-workspace :is(button,.button,input[type="submit"]):disabled,
+body.bsc-admin-workspace :is(button,.button,input[type="submit"])[aria-disabled="true"] {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+  filter: saturate(.45) !important;
+  box-shadow: none !important;
+}
+body.bsc-admin-workspace :is([data-tone="success"],[data-status-tone="success"]) { --bsc-semantic: var(--bsc-admin-success); --bsc-semantic-soft: var(--bsc-admin-success-soft); }
+body.bsc-admin-workspace :is([data-tone="warning"],[data-status-tone="warning"]) { --bsc-semantic: var(--bsc-admin-warning); --bsc-semantic-soft: var(--bsc-admin-warning-soft); }
+body.bsc-admin-workspace :is([data-tone="danger"],[data-status-tone="danger"]) { --bsc-semantic: var(--bsc-admin-danger); --bsc-semantic-soft: var(--bsc-admin-danger-soft); }
+body.bsc-admin-workspace :is([data-tone="neutral"],[data-status-tone="neutral"]) { --bsc-semantic: var(--bsc-admin-neutral); --bsc-semantic-soft: var(--bsc-admin-neutral-soft); }
+body.bsc-admin-workspace :is(.admin-kpi-card,.admin-light-kpi,.admin-operations-kpi,.admin-alert-card,.admin-risk-card)[data-tone] {
+  border-color: color-mix(in srgb, var(--bsc-semantic, var(--bsc-admin-primary)) 34%, var(--bsc-admin-border)) !important;
+}
+body.bsc-admin-workspace :is(.admin-kpi-progress__fill,.admin-sla-progress__fill,.admin-workload-bar__fill,.admin-property-progress__fill) {
+  background: var(--bsc-semantic, var(--bsc-admin-primary)) !important;
+}
+body.bsc-admin-workspace :is(.admin-team-workload__bar--green,.bsc-workload--available) { background: var(--bsc-admin-success) !important; }
+body.bsc-admin-workspace :is(.admin-team-workload__bar--amber,.bsc-workload--warning) { background: var(--bsc-admin-warning) !important; }
+body.bsc-admin-workspace :is(.admin-team-workload__bar--red,.bsc-workload--overloaded) { background: var(--bsc-admin-danger) !important; }
+body.bsc-admin-workspace :is(.admin-timeline-marker,.admin-operations-timeline__marker) { background: var(--bsc-semantic, var(--bsc-admin-neutral)) !important; }
+body.bsc-admin-workspace :is(.admin-ops-toast,.admin-toast) { color: #fff !important; background: var(--bsc-semantic, var(--bsc-admin-primary)) !important; }
+body.bsc-admin-workspace :is(.is-selected,[aria-selected="true"]):not(.bsc-admin-nav a) {
+  border-color: var(--bsc-admin-primary) !important;
+  box-shadow: 0 0 0 2px var(--bsc-admin-primary-soft) !important;
 }
 
 @media (max-width: 760px) {
