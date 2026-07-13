@@ -1,44 +1,52 @@
-<aside class="bsc-admin-sidebar" aria-label="Основна админ навигация">
+<aside class="bsc-admin-sidebar" aria-label="Основна админ навигация" data-i18n-attr="aria-label:shellNavLabel">
   <a class="bsc-admin-brand" href="/admin" aria-label="BlackSea Connect">
     <span class="bsc-admin-brand-mark">B</span>
     <span><strong>BlackSea</strong><small>CONNECT</small></span>
   </a>
   <nav class="bsc-admin-nav">
-    <a href="/admin"{% if request.path == '/admin' %} aria-current="page"{% endif %}><span aria-hidden="true">⌂</span>Табло</a>
-    <a href="/admin/properties"{% if request.path.startswith('/admin/properties') %} aria-current="page"{% endif %}><span aria-hidden="true">◇</span>Имоти</a>
-    <a href="/admin/operations"{% if request.path.startswith('/admin/operations') %} aria-current="page"{% endif %}><span aria-hidden="true">▤</span>Операции</a>
-    <a href="/admin/operator"{% if request.path == '/admin/operator' %} aria-current="page"{% endif %}><span aria-hidden="true">✓</span>Задачи</a>
-    <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span>Професионалисти</a>
-    <a href="/admin/service-requests"{% if request.path.startswith('/admin/service-requests') %} aria-current="page"{% endif %}><span aria-hidden="true">≡</span>Заявки</a>
-    <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span>Собственици</a>
-    <a href="/admin/calendar"{% if request.path.startswith('/admin/calendar') %} aria-current="page"{% endif %}><span aria-hidden="true">□</span>Календар</a>
+    <a href="/admin"{% if request.path == '/admin' %} aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span data-i18n="shellDashboard">Табло</span></a>
+    <a href="/admin/properties"{% if request.path.startswith('/admin/properties') %} aria-current="page"{% endif %}><span aria-hidden="true">◇</span><span data-i18n="shellProperties">Имоти</span></a>
+    <a href="/admin/operations"{% if request.path.startswith('/admin/operations') %} aria-current="page"{% endif %}><span aria-hidden="true">▤</span><span data-i18n="shellOperationsList">Операции</span></a>
+    <a href="/admin/operator"{% if request.path == '/admin/operator' %} aria-current="page"{% endif %}><span aria-hidden="true">✓</span><span data-i18n="shellTasks">Задачи</span></a>
+    <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span><span data-i18n="shellProfessionals">Професионалисти</span></a>
+    <a href="/admin/service-requests"{% if request.path.startswith('/admin/service-requests') %} aria-current="page"{% endif %}><span aria-hidden="true">≡</span><span data-i18n="shellApplications">Заявки</span></a>
+    <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span data-i18n="shellOwnerAccounts">Собственици</span></a>
+    <a href="/admin/calendar"{% if request.path.startswith('/admin/calendar') %} aria-current="page"{% endif %}><span aria-hidden="true">□</span><span data-i18n="shellCalendar">Календар</span></a>
   </nav>
   <div class="bsc-admin-quick-actions" aria-label="Бързи действия">
-    <span>Бързи действия</span>
-    <a href="/admin/operations">+ Операция</a>
-    <a href="/admin/calendar">+ Събитие</a>
+    <span data-i18n="shellQuickActions">Бързи действия</span>
+    <a href="/admin/operations" data-i18n="shellCreateOperation">+ Операция</a>
+    <a href="/admin/calendar" data-i18n="shellCreateEvent">+ Събитие</a>
   </div>
   <div class="bsc-admin-nav-secondary">
-    <a href="/admin/notifications"{% if request.path.startswith('/admin/notifications') %} aria-current="page"{% endif %}>Известия</a>
-    <a href="/admin/directory"{% if request.path.startswith('/admin/directory') %} aria-current="page"{% endif %}>Указател</a>
+    <a href="/admin/notifications"{% if request.path.startswith('/admin/notifications') %} aria-current="page"{% endif %} data-i18n="shellNotifications">Известия</a>
+    <a href="/admin/directory"{% if request.path.startswith('/admin/directory') %} aria-current="page"{% endif %} data-i18n="shellDirectory">Указател</a>
   </div>
 </aside>
 <header class="bsc-admin-topbar">
   <form class="bsc-admin-search" method="get" action="{{ request.path }}" role="search">
     <span aria-hidden="true">⌕</span>
-    <input type="search" name="q" value="{{ request.args.get('q', '')|e }}" placeholder="Търсене" aria-label="Търсене в текущата страница">
+    <input type="search" name="q" value="{{ request.args.get('q', '')|e }}" placeholder="Търсене" aria-label="Търсене в текущата страница" data-i18n-attr="placeholder:shellSearchPlaceholder,aria-label:shellSearchLabel">
   </form>
-  <nav class="bsc-admin-topbar-actions" aria-label="Инструменти">
+  <nav class="bsc-admin-topbar-actions" aria-label="Инструменти" data-i18n-attr="aria-label:shellToolsLabel">
+    <div class="bsc-admin-language-switcher" role="group" aria-label="Език на администрацията" data-i18n-attr="aria-label:languageSwitcherLabel">
+      <a href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
+      <a href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
+      <a href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+    </div>
     <a class="bsc-admin-icon-button" href="/admin/notifications" aria-label="Известия">
       <span aria-hidden="true">♢</span><b>{{ recent_alerts|length if recent_alerts is defined else '—' }}</b>
     </a>
-    <a class="bsc-admin-icon-button" href="/admin/directory" aria-label="Помощ">?</a>
+    <a class="bsc-admin-icon-button" href="/admin/directory" aria-label="Помощ" data-i18n-attr="aria-label:shellHelp">?</a>
     <details class="bsc-admin-profile">
-      <summary><span class="bsc-admin-avatar">{{ (admin_shell_operator or 'A')[:1]|upper|e }}</span><span><strong>{{ admin_shell_operator|e }}</strong><small>Администратор</small></span></summary>
+      <summary><span class="bsc-admin-avatar">{{ (admin_shell_operator or 'A')[:1]|upper|e }}</span><span><strong>{{ admin_shell_operator|e }}</strong><small data-i18n="shellAdministrator">Администратор</small></span></summary>
       <div>
-        <a href="/admin/directory">Профил и роли</a>
-        <a href="/admin/notifications">Настройки за известия</a>
+        <a href="/admin/directory" data-i18n="shellProfileRoles">Профил и роли</a>
+        <a href="/admin/notifications" data-i18n="shellNotificationSettings">Настройки за известия</a>
       </div>
     </details>
   </nav>
 </header>
+<script src="/static/js/i18n/admin-shell.js"></script>
+<script src="/static/js/i18n/index.js"></script>
+<script src="/static/js/i18n.js"></script>

@@ -37865,6 +37865,10 @@ body.bsc-admin-workspace :is(
 body:has(> .bsc-admin-sidebar) > .bsc-admin-topbar .bsc-admin-search { width: 360px !important; max-width: 40vw !important; height: 38px !important; min-height: 38px !important; flex: 0 0 360px !important; box-sizing: border-box; display: flex; align-items: center; gap: 8px; margin: 0 !important; padding: 0 12px !important; border: 1px solid #dce4ea !important; border-radius: 9px !important; background: #f7f9fb !important; box-shadow: none !important; }
 body:has(> .bsc-admin-sidebar) > .bsc-admin-topbar .bsc-admin-search input { width: 100%; height: auto; min-width: 0; min-height: 0; margin: 0; padding: 0 !important; border: 0 !important; border-radius: 0; outline: 0; color: #10243a; background: transparent !important; box-shadow: none !important; font: 500 13px/1.2 Arial, sans-serif; }
 .bsc-admin-topbar-actions { display: flex; align-items: center; gap: 8px; }
+.bsc-admin-language-switcher { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid #dce4ea; border-radius: 9px; background: #f7f9fb; }
+.bsc-admin-language-switcher a { min-width: 30px; padding: 6px 7px; border-radius: 6px; color: #526579; font: 700 10px/1 Arial, sans-serif; text-align: center; text-decoration: none; }
+.bsc-admin-language-switcher a:hover { color: #163654; background: #fff; }
+.bsc-admin-language-switcher a.is-active { color: #fff; background: #163654; box-shadow: 0 3px 8px rgba(22, 54, 84, .2); }
 .bsc-admin-icon-button { position: relative; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #dce4ea; border-radius: 9px; color: #163654; background: #fff; font: 700 16px/1 Arial, sans-serif; text-decoration: none; }
 .bsc-admin-icon-button b { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; box-sizing: border-box; padding: 0 4px; border: 2px solid #fff; border-radius: 99px; color: #fff; background: #c84949; font: 700 9px/13px Arial, sans-serif; text-align: center; }
 .bsc-admin-profile { position: relative; }
