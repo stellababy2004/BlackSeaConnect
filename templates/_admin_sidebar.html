@@ -1,4 +1,4 @@
-<aside class="bsc-admin-sidebar" aria-label="Основна админ навигация" data-i18n-attr="aria-label:shellNavLabel">
+<aside class="bsc-admin-sidebar" aria-label="Основна админ навигация" data-i18n-attr="aria-label:shellNavLabel" data-page-lang="{{ page_lang|default('bg')|e }}">
   <a class="bsc-admin-brand" href="/admin" aria-label="BlackSea Connect">
     <span class="bsc-admin-brand-mark">B</span>
     <span><strong>BlackSea</strong><small>CONNECT</small></span>
@@ -62,5 +62,6 @@
   </nav>
 </header>
 <script src="/static/js/i18n/admin-shell.js"></script>
+<script src="/static/js/i18n/admin-runtime.js"></script>
 <script src="/static/js/i18n/index.js"></script>
 <script src="/static/js/i18n.js"></script>

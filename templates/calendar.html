@@ -2064,8 +2064,13 @@
         if (!app) return;
 
         const hourHeight = 64;
-        const dayNames = ["Пон", "Вто", "Сря", "Чет", "Пет", "Съб", "Нед"];
-        const longDayNames = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"];
+        const localeByLanguage = { bg: "bg-BG", en: "en-GB", fr: "fr-FR" };
+        function activeLocale() {
+          return localeByLanguage[String(document.documentElement.lang || "bg").toLowerCase()] || localeByLanguage.en;
+        }
+        function weekdayName(date, width) {
+          return new Intl.DateTimeFormat(activeLocale(), { weekday: width }).format(date);
+        }
         const typeLabels = {
           "other": "Друга услуга",
           "event": "Друга услуга",
@@ -2261,7 +2266,7 @@
         }
 
         function formatDate(date, options = {}) {
-          return new Intl.DateTimeFormat("bg-BG", options).format(date);
+          return new Intl.DateTimeFormat(activeLocale(), options).format(date);
         }
 
         function formatTime(date) {
@@ -2804,7 +2809,7 @@
           const dates = weekDates();
           weekHeader.innerHTML = '<div class="admin-week-corner"></div>' + dates.map((date, index) => `
             <div class="admin-week-day ${index > 4 ? "is-weekend" : ""}">
-              <strong>${longDayNames[index]}</strong>
+              <strong>${weekdayName(dates[index], "long")}</strong>
               <span>${formatDate(date, { day: "2-digit", month: "short" })}</span>
             </div>
           `).join("");
@@ -3147,7 +3152,7 @@
           board.innerHTML = `
             <div class="admin-property-header">
               <div>Имот</div>
-              ${dates.map((date, index) => `<div>${dayNames[index]}<br>${formatDate(date, { day: "2-digit", month: "short" })}</div>`).join("")}
+              ${dates.map((date) => `<div>${weekdayName(date, "short")}<br>${formatDate(date, { day: "2-digit", month: "short" })}</div>`).join("")}
             </div>
             ${properties.map((property) => `
               <div class="admin-property-row">
@@ -3462,6 +3467,10 @@
           updateSlaClocks();
         }
 
+        window.addEventListener("blacksea:languagechange", () => {
+          render();
+          if (selectedEvent) selectEvent(selectedEvent);
+        });
         render();
         const initialAction = highestPriorityAction();
         if (initialAction) selectEvent(initialAction);

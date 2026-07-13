@@ -45,8 +45,10 @@
 
   function getInitialLanguage() {
     const fromUrl = getLanguageFromUrl();
+    const pageLanguageNode = document.querySelector("[data-page-lang]");
+    const fromPage = normalizeLanguage(pageLanguageNode && pageLanguageNode.getAttribute("data-page-lang"));
     const fromDocument = normalizeLanguage(document.documentElement.lang);
-    return fromUrl || (SUPPORTED_LANGS.has(fromDocument) ? fromDocument : "") || DEFAULT_LANG;
+    return fromUrl || (SUPPORTED_LANGS.has(fromPage) ? fromPage : "") || (SUPPORTED_LANGS.has(fromDocument) ? fromDocument : "") || DEFAULT_LANG;
   }
 
   function setLanguageInUrl(lang) {
