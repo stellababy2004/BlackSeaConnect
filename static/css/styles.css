@@ -37819,6 +37819,10 @@ body.bsc-admin-workspace :is(
 
 .bsc-admin-nav,
 .bsc-admin-nav-secondary { display: grid; gap: 6px; }
+.bsc-admin-nav { min-height: 0; flex: 1 1 auto; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+.bsc-admin-nav-group { display: grid; gap: 3px; }
+.bsc-admin-nav-group + .bsc-admin-nav-group { margin-top: 8px; }
+.bsc-admin-nav-group h2 { margin: 0; padding: 0 10px 3px; color: #8795a7; font: 800 9px/1.2 Inter, "Segoe UI", Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
 .bsc-admin-nav-secondary { padding-top: 12px; border-top: 1px solid #e7edf5; }
 .bsc-admin-nav-secondary::before { content: "Система"; padding: 0 10px 4px; color: #8795a7; font: 800 9px/1.2 Inter, "Segoe UI", Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
 
@@ -37845,7 +37849,8 @@ body.bsc-admin-workspace :is(
   transform: translateX(2px);
 }
 
-.bsc-admin-nav a > span { display: grid; width: 18px; height: 18px; flex: 0 0 18px; place-items: center; font-size: 14px; }
+.bsc-admin-nav a > span:first-child { display: grid; width: 18px; height: 18px; flex: 0 0 18px; place-items: center; font-size: 14px; }
+.bsc-admin-nav a > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .bsc-admin-nav a[aria-current="page"],
 .bsc-admin-nav-secondary a[aria-current="page"] {
@@ -38054,6 +38059,8 @@ html body.admin-operations-detail-page .admin-operations-sticky-bar__actions .bu
   }
   .bsc-admin-brand { margin: 0 0 12px; }
   .bsc-admin-nav { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px; }
+  .bsc-admin-nav-group { display: contents; }
+  .bsc-admin-nav-group h2 { display: none; }
   .bsc-admin-nav a { min-height: 38px; white-space: nowrap; }
   .bsc-admin-nav-secondary { display: none; }
   .bsc-admin-quick-actions { display: none; }

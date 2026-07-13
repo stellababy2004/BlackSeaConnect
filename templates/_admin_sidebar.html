@@ -4,23 +4,37 @@
     <span><strong>BlackSea</strong><small>CONNECT</small></span>
   </a>
   <nav class="bsc-admin-nav">
-    <a href="/admin"{% if request.path == '/admin' %} aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span data-i18n="shellDashboard">Табло</span></a>
-    <a href="/admin/properties"{% if request.path.startswith('/admin/properties') %} aria-current="page"{% endif %}><span aria-hidden="true">◇</span><span data-i18n="shellProperties">Имоти</span></a>
-    <a href="/admin/operations"{% if request.path.startswith('/admin/operations') %} aria-current="page"{% endif %}><span aria-hidden="true">▤</span><span data-i18n="shellOperationsList">Операции</span></a>
-    <a href="/admin/operator"{% if request.path == '/admin/operator' %} aria-current="page"{% endif %}><span aria-hidden="true">✓</span><span data-i18n="shellTasks">Задачи</span></a>
-    <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span><span data-i18n="shellProfessionals">Професионалисти</span></a>
-    <a href="/admin/service-requests"{% if request.path.startswith('/admin/service-requests') %} aria-current="page"{% endif %}><span aria-hidden="true">≡</span><span data-i18n="shellApplications">Заявки</span></a>
-    <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span data-i18n="shellOwnerAccounts">Собственици</span></a>
-    <a href="/admin/calendar"{% if request.path.startswith('/admin/calendar') %} aria-current="page"{% endif %}><span aria-hidden="true">□</span><span data-i18n="shellCalendar">Календар</span></a>
+    <section class="bsc-admin-nav-group">
+      <h2 data-i18n="shellOperations">Операции</h2>
+      <a href="/admin"{% if request.path == '/admin' %} aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span data-i18n="shellDashboard">Табло</span></a>
+      <a href="/admin/calendar"{% if request.path.startswith('/admin/calendar') %} aria-current="page"{% endif %}><span aria-hidden="true">□</span><span data-i18n="shellCalendar">Календар</span></a>
+      <a href="/admin/operator"{% if request.path == '/admin/operator' or request.path.startswith('/admin/operations') %} aria-current="page"{% endif %}><span aria-hidden="true">✓</span><span data-i18n="shellTasks">Задачи</span></a>
+    </section>
+    <section class="bsc-admin-nav-group">
+      <h2 data-i18n="shellAssets">Активи</h2>
+      <a href="/admin/properties"{% if request.path.startswith('/admin/properties') %} aria-current="page"{% endif %}><span aria-hidden="true">◇</span><span data-i18n="shellProperties">Имоти</span></a>
+      <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span data-i18n="shellOwners">Собственици</span></a>
+    </section>
+    <section class="bsc-admin-nav-group">
+      <h2 data-i18n="shellNetwork">Мрежа</h2>
+      <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span><span data-i18n="shellProfessionals">Професионалисти</span></a>
+      <a href="/admin/pilot-requests"{% if request.path.startswith('/admin/pilot-requests') %} aria-current="page"{% endif %}><span aria-hidden="true">≡</span><span data-i18n="shellApplications">Кандидатури</span></a>
+    </section>
+    <section class="bsc-admin-nav-group">
+      <h2 data-i18n="shellAccounts">Акаунти</h2>
+      <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span data-i18n="shellOwnerAccounts">Акаунти на собственици</span></a>
+    </section>
+    <section class="bsc-admin-nav-group">
+      <h2 data-i18n="shellSystem">Система</h2>
+      <a href="/admin/notifications"{% if request.path.startswith('/admin/notifications') %} aria-current="page"{% endif %}><span aria-hidden="true">♢</span><span data-i18n="shellNotifications">Известия</span></a>
+      <a href="/admin/directory"{% if request.path.startswith('/admin/directory') %} aria-current="page"{% endif %}><span aria-hidden="true">☷</span><span data-i18n="shellDirectory">Потребители и роли</span></a>
+      <a href="/admin/recycle-bin"{% if request.path.startswith('/admin/recycle-bin') %} aria-current="page"{% endif %}><span aria-hidden="true">♲</span><span data-i18n="shellRecycleBin">Кошче</span></a>
+    </section>
   </nav>
   <div class="bsc-admin-quick-actions" aria-label="Бързи действия">
     <span data-i18n="shellQuickActions">Бързи действия</span>
     <a href="/admin/operations" data-i18n="shellCreateOperation">+ Операция</a>
     <a href="/admin/calendar" data-i18n="shellCreateEvent">+ Събитие</a>
-  </div>
-  <div class="bsc-admin-nav-secondary">
-    <a href="/admin/notifications"{% if request.path.startswith('/admin/notifications') %} aria-current="page"{% endif %} data-i18n="shellNotifications">Известия</a>
-    <a href="/admin/directory"{% if request.path.startswith('/admin/directory') %} aria-current="page"{% endif %} data-i18n="shellDirectory">Указател</a>
   </div>
 </aside>
 <header class="bsc-admin-topbar">
