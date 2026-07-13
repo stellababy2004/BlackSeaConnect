@@ -677,6 +677,26 @@ class CalendarEngineTests(unittest.TestCase):
             self.assertIn("Възложен", detail_html)
             self.assertIn("Превъзложи", detail_html)
             self.assertNotIn("Няма точно съвпадение", detail_html)
+            class FixedDateTime(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    fixed = cls(2026, 7, 12, 9, 0, tzinfo=timezone.utc)
+                    return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+
+            with patch("app.datetime", FixedDateTime):
+                board_html = self.client.get("/admin/operations", headers=self._auth_headers()).get_data(as_text=True)
+            self.assertIn("Team Workload", board_html)
+            self.assertIn("Who can take the next task right now?", board_html)
+            self.assertIn("Stella Test Pro", board_html)
+            self.assertIn("Free Cleaner", board_html)
+            self.assertIn("2 / 5 tasks · 40%", board_html)
+            self.assertIn("default capacity", board_html)
+            self.assertIn("Today's schedule", board_html)
+            self.assertIn("10:00", board_html)
+            self.assertIn("10:30", board_html)
+            self.assertLess(board_html.index("Stella Test Pro"), board_html.index("Free Cleaner"))
+            self.assertNotIn("ATTENTION MAP", board_html)
+            self.assertNotIn("admin-heatmap", board_html)
 
     def test_assignment_validation_and_standalone_persistence(self):
         with patch.dict(os.environ, self.env, clear=True):
@@ -745,6 +765,48 @@ class CalendarEngineTests(unittest.TestCase):
         self.assertTrue(app_module._operations_task_is_assigned({"status": "NEW", "assigned_professional_id": "", "assigned_to": "Legacy Team"}))
         self.assertTrue(app_module._operations_task_is_assigned({"status": "NEW", "assigned_professional_id": "legacy-pro", "assigned_to": ""}))
         self.assertFalse(app_module._operations_task_is_assigned({"status": "NEW", "assigned_professional_id": "", "assigned_to": ""}))
+        self.assertFalse(app_module._calendar_event_tracks_operations({"event_type": "Blocked Dates"}))
+        self.assertFalse(app_module._calendar_event_tracks_operations({"event_type": "Reservation"}))
+        self.assertTrue(app_module._calendar_event_tracks_operations({"event_type": "Cleaning"}))
+        blocked_quality = app_module._admin_calendar_data_quality({
+            "id": "blocked-passive",
+            "property_id": "property-1",
+            "event_type": "Blocked Dates",
+            "start_datetime": "2026-07-01T10:00:00+00:00",
+            "end_datetime": "2026-07-08T10:00:00+00:00",
+            "status": "BLOCKED",
+            "priority": "URGENT",
+            "assigned_professional": "",
+            "metadata": {},
+        })
+        self.assertNotIn("urgent_without_professional", blocked_quality["issue_codes"])
+        blocked_enriched = app_module._calendar_enrich_event({
+            "id": "blocked-passive",
+            "event_type": "Blocked Dates",
+            "start_datetime": "2026-07-01T10:00:00+00:00",
+            "end_datetime": "2026-07-08T10:00:00+00:00",
+            "status": "BLOCKED",
+            "metadata": {},
+        })
+        self.assertFalse(blocked_enriched["is_overdue"])
+
+    def test_admin_calendar_dialogs_share_readable_visual_contract(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            html = self.client.get("/admin/calendar?lang=bg", headers=self._auth_headers()).get_data(as_text=True)
+            for dialog_attribute in (
+                "data-admin-create-dialog",
+                "data-reconcile-dialog",
+                "data-assignment-dialog",
+                "data-time-dialog",
+            ):
+                self.assertIn(f'<dialog class="admin-ops-create" {dialog_attribute}>', html)
+            self.assertIn(":is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) { background:#fff !important; color:#10243a !important; }", html)
+            self.assertIn(".admin-inline-error { color:#b42318 !important; }", html)
+            self.assertIn('class="admin-assignment-card__content"', html)
+            self.assertIn('data-assignment-submit disabled', html)
+            self.assertIn("grid-template-columns: 150px minmax(0, 1fr);", html)
+            self.assertIn(".admin-ops-toast :is(strong,span,p) { color:#fff !important; -webkit-text-fill-color:#fff !important; }", html)
+            self.assertIn("return Math.max(184, maximumLanes * 160);", html)
 
     def test_persistent_time_correction_and_data_quality_rules(self):
         with patch.dict(os.environ, self.env, clear=True):

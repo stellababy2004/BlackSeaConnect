@@ -823,13 +823,14 @@
     }
     .admin-ops-detail-row {
       display: grid;
-      grid-template-columns: 108px minmax(0, 1fr);
-      gap: 10px;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 18px;
       align-items: start;
       font-size: 0.9rem;
     }
     .admin-ops-detail-row strong {
       color: #2f3b48;
+      overflow-wrap: anywhere;
     }
     .admin-ops-actions-grid {
       display: grid;
@@ -896,6 +897,8 @@
     .admin-map-pin span { transform:rotate(45deg); font-size:.7rem; font-weight:900; } .admin-map-pin--pro { width:30px; height:30px; background:#16a34a; }
     .admin-map-legend { padding:18px; background:#fff; }
     .admin-ops-toast { position:fixed; right:24px; bottom:24px; z-index:100; max-width:360px; padding:13px 16px; border-radius:13px; color:#fff; background:#173654; box-shadow:0 18px 42px rgba(15,31,46,.25); transform:translateY(20px); opacity:0; pointer-events:none; transition:.2s ease; }
+    .admin-ops-toast,
+    .admin-ops-toast :is(strong,span,p) { color:#fff !important; -webkit-text-fill-color:#fff !important; }
     .admin-ops-toast.is-visible { transform:none; opacity:1; }
     .admin-mission-strip { display:flex; gap:8px; overflow-x:auto; padding:10px 22px; border-bottom:1px solid var(--ops-line); background:#fff; }
     .admin-mission-pill { flex:0 0 auto; display:flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid var(--ops-line); border-radius:999px; font-size:.75rem; font-weight:800; }
@@ -945,6 +948,28 @@
     .admin-inline-error { color:#b42318; font-size:.75rem; font-weight:800; }
     .admin-smart-card:has(input[type="radio"]:checked) { border-color:#163654; box-shadow:0 0 0 2px rgba(22,54,84,.14); }
     .admin-smart-card:has(input[type="radio"]:focus-visible) { outline:3px solid rgba(22,54,84,.28); outline-offset:2px; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) { background:#fff !important; color:#10243a !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) > form { gap:16px; padding:0; background:#fff !important; color:#10243a !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) :is(h2,p,label,strong,span) { color:#10243a !important; text-shadow:none !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-detail-header { gap:5px; padding-bottom:14px; border-bottom:1px solid #d9e3ea; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-detail-header h2 { margin:0; font-family:inherit; font-size:1.25rem; line-height:1.25; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-detail-header p { margin:0; color:#526275 !important; font-size:.82rem; line-height:1.45; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-label { color:#765d24 !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) :is(.admin-ops-input,.admin-ops-select) { width:100%; min-height:44px; padding:10px 12px; border:1px solid #cbd5df !important; border-radius:10px; background:#fff !important; color:#10243a !important; box-shadow:none; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) :is(.admin-ops-input,.admin-ops-select):focus { border-color:#275c84 !important; outline:3px solid rgba(39,92,132,.14); }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-smart-card { border-color:#d9e3ea; background:#f8fafc !important; color:#10243a !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-inline-error { color:#b42318 !important; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-actions-grid { padding-top:4px; }
+    :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-button { min-height:46px; }
+    dialog[data-assignment-dialog] [data-assignment-options] { gap:10px; margin-top:0; }
+    dialog[data-assignment-dialog] [data-assignment-options] .admin-smart-card { display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px; align-items:start; padding:14px 16px; cursor:pointer; background:#f8fafc !important; }
+    dialog[data-assignment-dialog] [data-assignment-options] input[type="radio"] { width:18px !important; height:18px !important; margin:2px 0 0 !important; padding:0 !important; accent-color:#163654; }
+    dialog[data-assignment-dialog] .admin-assignment-card__content { display:grid; gap:5px; min-width:0; }
+    dialog[data-assignment-dialog] .admin-assignment-card__content strong { font-size:.86rem; line-height:1.3; }
+    dialog[data-assignment-dialog] .admin-assignment-card__content p { margin:0; color:#526275 !important; font-size:.74rem; line-height:1.45; }
+    dialog[data-assignment-dialog] .calendar-owner-form__check { padding:12px 14px; border:1px solid #d9e3ea; border-radius:12px; background:#f8fafc; color:#10243a !important; font-size:.78rem; line-height:1.35; }
+    dialog[data-assignment-dialog] .calendar-owner-form__check input[type="checkbox"] { flex:0 0 18px; width:18px !important; height:18px !important; margin:0 !important; accent-color:#9b7b2f; }
+    dialog[data-assignment-dialog] [data-assignment-error] { color:#b42318 !important; }
     .admin-ops-select.is-invalid { border-color:#dc2626; box-shadow:0 0 0 3px rgba(220,38,38,.1); }
     @media (max-width: 1280px) {
       .admin-ops-calendar {
@@ -1206,7 +1231,8 @@
       display: grid;
       align-content: start;
       gap: 3px;
-      min-width: 54px;
+      min-width: 118px;
+      min-height: 72px;
       padding: 6px 7px;
       text-align: left;
       line-height: 1.15;
@@ -1214,6 +1240,8 @@
 
     .admin-ops-event__top {
       display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
       gap: 2px;
       min-width: 0;
     }
@@ -1235,6 +1263,14 @@
       color: #536275;
       font-size: 0.58rem;
       font-weight: 800;
+    }
+
+    .admin-ops-event__type {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: .69rem;
+      line-height: 1.15;
     }
 
     .admin-ops-event__property {
@@ -1264,6 +1300,14 @@
       font-size: 0.56rem !important;
     }
 
+    .admin-ops-event__status {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: .56rem !important;
+    }
+
     .admin-card-actions {
       position: absolute;
       inset: auto 4px 4px;
@@ -1272,6 +1316,10 @@
       border-radius: 7px;
       background: rgba(255,255,255,.96);
       box-shadow: 0 4px 14px rgba(15,31,46,.14);
+    }
+
+    .admin-ops-event .admin-card-actions {
+      display: none !important;
     }
 
     /*
@@ -2080,7 +2128,7 @@
           rawStart: cleanValue(node.dataset.start),
           rawEnd: cleanValue(node.dataset.end)
         })).filter((event) => event.start);
-        const urgentCount = events.filter((event) => event.overdue || /urgent|emergency|спеш/i.test(`${event.priority} ${event.type}`)).length;
+        const urgentCount = events.filter((event) => tracksOperations(event) && (event.overdue || /urgent|emergency|спеш/i.test(`${event.priority} ${event.type}`))).length;
         const urgentNode = app.querySelector("[data-admin-urgent-count]");
         if (urgentNode) urgentNode.textContent = urgentCount;
 
@@ -2272,6 +2320,18 @@
           return `${formatTime(event.start)} - ${formatTime(end)}`;
         }
 
+        function compactWeekTime(event) {
+          const end = safeDisplayEnd(event);
+          if (!end) return formatTime(event.start);
+          const multiDayType = /reservation|blocked dates|personal stay/i.test(`${event.type || ""} ${event.title || ""}`);
+          if (!sameDate(event.start, end)) {
+            if (multiDayType) return "Многодневно";
+            const fallbackHours = /cleaning|maintenance/.test(inferredCategoryKey(event)) ? 2 : 1;
+            return `${formatTime(event.start)}–${formatTime(new Date(event.start.getTime() + fallbackHours * 3600000))}`;
+          }
+          return `${formatTime(event.start)}–${formatTime(end)}`;
+        }
+
         function statusLabel(value) {
           return labelFromMap(value, statusLabels);
         }
@@ -2313,6 +2373,7 @@
         }
 
         function urgency(event) {
+          if (!tracksOperations(event)) return "healthy";
           if (/completed/i.test(event.status)) return "healthy";
           const hours = (event.start - new Date()) / 3600000;
           const criticalType = /emergency/i.test(event.type);
@@ -2328,7 +2389,12 @@
           return status === "ASSIGNED" || Boolean(professional && !/не е възложено/i.test(professional));
         }
 
+        function tracksOperations(event) {
+          return !/reservation|blocked dates|блокирани дати|personal stay|owner meeting/i.test(`${event?.type || ""} ${event?.title || ""}`);
+        }
+
         function isActionable(event) {
+          if (!tracksOperations(event)) return false;
           if (/completed|cancelled/i.test(event.status)) return false;
           const unassigned = !isEventAssigned(event);
           const hours = (event.start - new Date()) / 3600000;
@@ -2382,6 +2448,7 @@
         }
 
         function actionsFor(event) {
+          if (!tracksOperations(event)) return ["Редактирай събитието"];
           const type = event.type.toLowerCase();
           if (/emergency/.test(type)) return ["Подготви обаждане", "Възложи", "Подготви ескалация"];
           if (/clean/.test(type)) return ["Възложи", "Подготви чеклист", "Подготви снимки", "Завърши"];
@@ -2439,7 +2506,7 @@
             if ((/clean/.test(type) && hours > 8) || (/inspect/.test(type) && hours > 4) || (/professional visit/.test(type) && hours > 8) || (hours > 24 && !/reservation|personal stay|blocked dates/.test(type))) issues.push({ code: "suspicious_duration", label: `Подозрителна продължителност: ${hours.toFixed(1)} ч.` });
           }
           const unassigned = !isEventAssigned(event);
-          if (/high|urgent/i.test(event.priority) && unassigned) issues.push({ code: "urgent_without_professional", label: "Спешна задача без професионалист" });
+          if (tracksOperations(event) && /high|urgent/i.test(event.priority) && unassigned) issues.push({ code: "urgent_without_professional", label: "Спешна задача без професионалист" });
           if (start && start < new Date(Date.now() - 7 * 86400000) && !/completed|cancelled/i.test(event.status)) issues.push({ code: "stale_overdue_event", label: "Старо просрочено събитие" });
           if (!event.rawId || !event.type || !event.status || !start) issues.push({ code: "malformed_legacy_data", label: "Непълни наследени данни" });
           return issues;
@@ -2529,7 +2596,7 @@
           dialog.showModal();
           try {
             const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(eventId)}/assignment-options`);
-            container.innerHTML = result.professionals.map((item, index) => `<label class="admin-smart-card"><input type="radio" name="professional_id" value="${escapeHtml(item.id)}" ${index === 0 && !item.conflicts.length ? "checked" : ""}> <strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.reason)}</p>${item.conflicts.length ? `<p class="admin-inline-error">Конфликт с ${item.conflicts.length} задача/и</p>` : ""}</label>`).join("") || '<p class="admin-ops-empty">Няма активни професионалисти.</p>';
+            container.innerHTML = result.professionals.map((item, index) => `<label class="admin-smart-card"><input type="radio" name="professional_id" value="${escapeHtml(item.id)}" ${index === 0 && !item.conflicts.length ? "checked" : ""}><span class="admin-assignment-card__content"><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.reason)}</p>${item.conflicts.length ? `<p class="admin-inline-error">Конфликт с ${item.conflicts.length} задача/и</p>` : ""}</span></label>`).join("") || '<p class="admin-ops-empty">Няма активни професионалисти.</p>';
             const selectedRadio = container.querySelector('input[name="professional_id"]:checked');
             submitButton.disabled = !selectedRadio;
             if (!selectedRadio && result.professionals.length) {
@@ -2650,6 +2717,7 @@
 
         async function runAction(action, event = selectedEvent) {
           if (!event) return;
+          if (/редактирай събитието/i.test(action)) return openEditDialog(event);
           if (/свържи с имот/i.test(action)) return openReconciliationDialog(event);
           if (/коригирай часа/i.test(action)) return openTimeDialog(event);
           if (/избери друг/i.test(action)) return openAssignmentDialog(event);
@@ -2763,28 +2831,50 @@
             if (!eventsByDay.has(dayIndex)) eventsByDay.set(dayIndex, []);
             eventsByDay.get(dayIndex).push(event);
           });
-          eventsByDay.forEach((dayEvents, dayIndex) => {
-            const lanes = [];
-            dayEvents.sort((a, b) => a.start - b.start).forEach((event) => {
+          eventsByDay.forEach((dayEvents) => {
+            const sortedEvents = dayEvents.sort((a, b) => a.start - b.start);
+            let cluster = [];
+            let clusterEnd = null;
+            const layoutCluster = () => {
+              if (!cluster.length) return;
+              const laneEnds = [];
+              cluster.forEach((event) => {
+                const eventEnd = event.end && event.end > event.start ? event.end : new Date(event.start.getTime() + 60 * 60 * 1000);
+                let laneIndex = laneEnds.findIndex((laneEnd) => laneEnd <= event.start);
+                if (laneIndex < 0) {
+                  laneIndex = laneEnds.length;
+                  laneEnds.push(eventEnd);
+                } else {
+                  laneEnds[laneIndex] = eventEnd;
+                }
+                event._laneIndex = laneIndex;
+              });
+              cluster.forEach((event) => { event._laneCount = laneEnds.length; });
+              cluster = [];
+              clusterEnd = null;
+            };
+            sortedEvents.forEach((event) => {
               const eventEnd = event.end && event.end > event.start ? event.end : new Date(event.start.getTime() + 60 * 60 * 1000);
-              let laneIndex = lanes.findIndex((laneEnd) => laneEnd <= event.start);
-              if (laneIndex < 0) {
-                laneIndex = lanes.length;
-                lanes.push(eventEnd);
-              } else {
-                lanes[laneIndex] = eventEnd;
-              }
-              event._laneIndex = laneIndex;
+              if (cluster.length && event.start >= clusterEnd) layoutCluster();
+              cluster.push(event);
+              clusterEnd = clusterEnd && clusterEnd > eventEnd ? clusterEnd : eventEnd;
             });
-            dayEvents.forEach((event) => {
-              event._laneCount = lanes.length;
-            });
+            layoutCluster();
+          });
+          const dayWidths = dates.map((_, dayIndex) => {
+            const maximumLanes = Math.max(1, ...(eventsByDay.get(dayIndex) || []).map((event) => event._laneCount || 1));
+            return Math.max(184, maximumLanes * 160);
+          });
+          const weekGridColumns = `76px ${dayWidths.map((width) => `${width}px`).join(" ")}`;
+          weekHeader.style.gridTemplateColumns = weekGridColumns;
+          app.querySelector(".admin-week-body").style.gridTemplateColumns = weekGridColumns;
+          eventsByDay.forEach((dayEvents, dayIndex) => {
             dayEvents.forEach((event) => {
             const startHour = Math.max(6, event.start.getHours() + event.start.getMinutes() / 60);
             const endDate = safeDisplayEnd(event) || new Date(event.start.getTime() + 60 * 60 * 1000);
             const endHour = Math.min(22, endDate.getHours() + endDate.getMinutes() / 60);
             const top = Math.max(0, (startHour - 6) * hourHeight);
-            const height = Math.max(56, (Math.max(startHour + 0.875, endHour) - startHour) * hourHeight);
+            const height = Math.max(72, (Math.max(startHour + 0.875, endHour) - startHour) * hourHeight);
             const width = 100 / Math.max(1, event._laneCount || 1);
             const card = document.createElement("button");
             card.type = "button";
@@ -2799,16 +2889,13 @@
             card.dataset.urgency = urgency(event);
             card.setAttribute("aria-label", `${eventTypeLabel(event)}, ${event.property}, ${getSafeDisplayTime(event)}`);
             card.innerHTML = `
-              <span class="admin-ops-event__top">
-                <span class="admin-ops-event__badge">${escapeHtml(eventTypeLabel(event))}</span>
-                <span class="admin-ops-event__time">${getSafeDisplayTime(event)}</span>
-              </span>
+              <span class="admin-ops-event__time">${compactWeekTime(event)}</span>
+              <strong class="admin-ops-event__type">${escapeHtml(eventTypeLabel(event))}</strong>
               <strong class="admin-ops-event__property">${escapeHtml(event.property)}</strong>
               <span class="admin-ops-event__footer">
-                <span class="admin-ops-event__priority">${escapeHtml(priorityLabel(event.priority))}</span>
-                <span class="admin-event-sla" data-sla-event="${event.id}"></span>
+                <span class="admin-ops-event__status">${escapeHtml(tracksOperations(event) && event.overdue ? "Просрочено" : statusLabel(event.status))}</span>
+                <span class="admin-event-sla" data-sla-event="${event.id}" data-sla-compact></span>
               </span>
-              ${actionButtons(event)}
               <span class="admin-ops-event__resize" aria-hidden="true"></span>
             `;
             card.addEventListener("click", () => selectEvent(event));
@@ -3170,10 +3257,11 @@
         function renderExecutive() {
           const board = app.querySelector('[data-admin-board="executive"]');
           const completed = events.filter((event) => /completed/i.test(event.status)).length;
-          const compliance = events.length ? Math.round((events.length - events.filter((event) => event.overdue).length) / events.length * 100) : 100;
+          const slaEvents = events.filter(tracksOperations);
+          const compliance = slaEvents.length ? Math.round((slaEvents.length - slaEvents.filter((event) => event.overdue).length) / slaEvents.length * 100) : 100;
           const utilization = events.length ? Math.min(96, 48 + new Set(events.map((event) => event.professional).filter(Boolean)).size * 7) : 0;
           const metric = (label,value,copy,bars) => `<article class="admin-exec-card"><span class="admin-ops-label">${label}</span><strong>${value}</strong><p class="admin-ops-empty">${copy}</p><div class="admin-mini-bars">${bars.map((height) => `<i style="height:${height}%"></i>`).join("")}</div></article>`;
-          board.innerHTML = `<div class="admin-exec-grid">${metric("Заетост", app.querySelector("[data-kpi-occupancy]").textContent, "Оперативна оценка от видимите събития", [42,55,68,64,78,82,88])}${metric("SLA съответствие", `${compliance}%`, `${events.filter((event) => event.overdue).length} нарушения`, [88,91,84,94,90,compliance])}${metric("Натоварване на екипа", `${utilization}%`, "Активна професионална мрежа", [45,62,71,58,83,utilization])}${metric("Средно време за реакция", "18 мин", "Индикативно за текущия оперативен изглед", [76,68,59,54,48,42])}${metric("Завършени операции", completed, "В текущия филтриран период", [30,45,38,58,67,80])}${metric("Приход", "—", "Не е наличен във входния event payload", [0,0,0,0,0,0])}</div>`;
+          board.innerHTML = `<div class="admin-exec-grid">${metric("Заетост", app.querySelector("[data-kpi-occupancy]").textContent, "Оперативна оценка от видимите събития", [42,55,68,64,78,82,88])}${metric("SLA съответствие", `${compliance}%`, `${slaEvents.filter((event) => event.overdue).length} нарушения`, [88,91,84,94,90,compliance])}${metric("Натоварване на екипа", `${utilization}%`, "Активна професионална мрежа", [45,62,71,58,83,utilization])}${metric("Средно време за реакция", "18 мин", "Индикативно за текущия оперативен изглед", [76,68,59,54,48,42])}${metric("Завършени операции", completed, "В текущия филтриран период", [30,45,38,58,67,80])}${metric("Приход", "—", "Не е наличен във входния event payload", [0,0,0,0,0,0])}</div>`;
         }
 
         function formatDuration(milliseconds) {
@@ -3189,7 +3277,12 @@
             const event = events.find((item) => item.id === node.dataset.slaEvent);
             if (!event) return;
             const delta = event.start - new Date();
-            node.textContent = delta < 0 && !/completed/i.test(event.status) ? `ПРОСРОЧЕНО +${formatDuration(delta)}` : `SLA ${formatDuration(delta)}`;
+            if (node.hasAttribute("data-sla-compact")) {
+              const hours = Math.max(1, Math.ceil(Math.abs(delta) / 3600000));
+              node.textContent = delta < 0 && !/completed/i.test(event.status) ? `+${hours}ч` : `SLA ${hours}ч`;
+            } else {
+              node.textContent = delta < 0 && !/completed/i.test(event.status) ? `ПРОСРОЧЕНО +${formatDuration(delta)}` : `SLA ${formatDuration(delta)}`;
+            }
             node.classList.toggle("is-overdue", delta < 0 && !/completed/i.test(event.status));
           });
         }
@@ -3269,12 +3362,13 @@
           app.querySelector("[data-mission-ready]").textContent = ready;
           app.querySelector("[data-mission-pros]").textContent = pros.size;
           app.querySelector("[data-mission-occupancy]").textContent = app.querySelector("[data-kpi-occupancy]").textContent;
-          app.querySelector("[data-mission-sla]").textContent = events.filter((event) => event.overdue).length;
+          app.querySelector("[data-mission-sla]").textContent = events.filter((event) => tracksOperations(event) && event.overdue).length;
         }
 
         function selectEvent(event) {
           selectedEvent = event;
           const persistence = persistenceDiagnostics(event);
+          const operational = tracksOperations(event);
           app.querySelectorAll("[data-event-id]").forEach((node) => node.classList.toggle("is-selected", node.dataset.eventId === event.id));
           const typePill = app.querySelector("[data-admin-detail-type]");
           typePill.textContent = eventTypeLabel(event);
@@ -3286,7 +3380,7 @@
           app.querySelector("[data-admin-detail-time]").textContent = event.start ? `${formatDate(event.start, { weekday: "long", day: "2-digit", month: "long" })} · ${getSafeDisplayTime(event)}` : "Часът не е уточнен";
           app.querySelector("[data-admin-detail-property]").textContent = event.city ? `${event.property}, ${event.city}` : event.property;
           app.querySelector("[data-admin-detail-owner]").textContent = event.owner;
-          app.querySelector("[data-admin-detail-professional]").textContent = event.professional;
+          app.querySelector("[data-admin-detail-professional]").textContent = operational ? event.professional : "Не се изисква";
           app.querySelector("[data-admin-detail-priority]").textContent = priorityLabel(event.priority);
           app.querySelector("[data-admin-detail-status]").textContent = statusLabel(event.status);
           app.querySelector("[data-admin-detail-notes]").textContent = event.notes || "Няма записани бележки за това събитие.";
@@ -3294,23 +3388,24 @@
           app.querySelector("[data-admin-detail-progress]").style.width = `${completed * 25}%`;
           app.querySelector("[data-admin-detail-checklist]").textContent = `${completed} от 4 задачи`;
           app.querySelector("[data-admin-detail-attachments]").textContent = "Няма прикачени файлове";
-          app.querySelector("[data-admin-detail-sla]").textContent = event.overdue ? "Просрочено" : event.start > new Date() ? `${Math.max(1, Math.ceil((event.start - new Date()) / 3600000))} ч. остават` : "В изпълнение";
+          const operationalOverdue = operational && event.overdue;
+          app.querySelector("[data-admin-detail-sla]").textContent = !operational ? "Не се следи SLA" : operationalOverdue ? "Просрочено" : event.start > new Date() ? `${Math.max(1, Math.ceil((event.start - new Date()) / 3600000))} ч. остават` : "В изпълнение";
           const minutes = Math.round((event.start - new Date()) / 60000);
-          const unassigned = !isEventAssigned(event);
-          const recommendation = bestProfessional(event);
+          const unassigned = operational && !isEventAssigned(event);
+          const recommendation = operational ? bestProfessional(event) : null;
           const qualityIssues = clientDataQuality(event);
           const issueCodes = new Set(qualityIssues.map((issue) => issue.code));
-          const score = actionRiskScore(event);
+          const score = operational ? actionRiskScore(event) : 0;
           const band = riskBand(Math.max(0, score));
-          const slaText = event.overdue ? `Просрочено с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."} до начало` : "Активно сега";
-          const primaryAction = issueCodes.has("missing_canonical_property") ? "Свържи с имот" : issueCodes.has("invalid_end_time") || issueCodes.has("suspicious_duration") ? "Коригирай часа" : unassigned ? "Възложи сега" : /in_progress/i.test(event.status) || event.overdue ? "Отбележи като завършена" : "Избери друг";
-          const reasonParts = [event.overdue ? `задачата е просрочена с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `началото е след ${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."}` : "задачата е активна сега"];
+          const slaText = !operational ? "Не се следи SLA" : operationalOverdue ? `Просрочено с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."} до начало` : "Активно сега";
+          const primaryAction = !operational ? "Редактирай събитието" : issueCodes.has("missing_canonical_property") ? "Свържи с имот" : issueCodes.has("invalid_end_time") || issueCodes.has("suspicious_duration") ? "Коригирай часа" : unassigned ? "Възложи сега" : /in_progress/i.test(event.status) || operationalOverdue ? "Отбележи като завършена" : "Избери друг";
+          const reasonParts = [!operational ? "календарно блокиране без оперативно възлагане" : operationalOverdue ? `задачата е просрочена с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `началото е след ${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."}` : "задачата е активна сега"];
           if (unassigned) reasonParts.push("няма възложен изпълнител");
           if (recommendation && recommendation.overlaps === 0) reasonParts.push("препоръчаният професионалист няма припокриваща се задача");
           app.querySelector("[data-admin-next-action]").textContent = `${primaryAction}: ${eventTypeLabel(event)} за ${event.property}`;
           app.querySelector("[data-admin-next-action-copy]").textContent = `Причина: ${reasonParts.join(", ")}.`;
           app.querySelector("[data-next-property]").textContent = event.property;
-          app.querySelector("[data-next-professional]").textContent = unassigned ? recommendation?.name || "Нужен е избор" : event.professional;
+          app.querySelector("[data-next-professional]").textContent = !operational ? "Не се изисква" : unassigned ? recommendation?.name || "Нужен е избор" : event.professional;
           app.querySelector("[data-next-urgency]").textContent = band.label;
           app.querySelector("[data-next-sla]").textContent = `${slaText} · ${getSafeDisplayTime(event)}`;
           app.querySelector("[data-next-recommendation]").textContent = recommendation ? `Най-подходящ: услуга ${eventTypeLabel(event)}, ${recommendation.overlaps ? `${recommendation.overlaps} припокриващи се задачи` : "без припокриване"}, ${recommendation.workload} активни задачи. Локацията не е налична; изборът е според услуга, график и натоварване.` : "Няма достатъчно надеждни данни за автоматична препоръка. Изберете професионалист ръчно.";
@@ -3323,7 +3418,7 @@
           primaryButton.dataset.action = primaryAction;
           primaryButton.disabled = !primaryAllowed;
           app.querySelector("[data-next-secondary]").disabled = !event.propertyId;
-          app.querySelectorAll("[data-quick-action]").forEach((button) => { button.disabled = !persistence.canPersist; });
+          app.querySelectorAll("[data-quick-action]").forEach((button) => { button.disabled = !operational || !persistence.canPersist; });
           app.querySelector("[data-admin-edit-event]").disabled = !persistence.canPersist;
           app.querySelector("[data-admin-delete-event]").disabled = !persistence.canPersist;
           if (!primaryAllowed) {

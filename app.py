@@ -2186,6 +2186,12 @@ def _calendar_event_is_assigned(event, task_record=None):
     return _record_is_assigned(event, task_record)
 
 
+def _calendar_event_tracks_operations(event):
+    event = event or {}
+    event_type = _normalize_calendar_event_type(event.get("event_type", event.get("type", "Other")))
+    return event_type not in {"Reservation", "Blocked Dates", "Personal Stay", "Owner Meeting"}
+
+
 def _operations_task_is_assigned(task):
     return _record_is_assigned(task)
 
@@ -11146,7 +11152,7 @@ def _calendar_enrich_event(event, property_map=None, owner_map=None, task_map=No
     if end_dt is None:
         end_dt = start_dt
     today = datetime.now(timezone.utc).date()
-    overdue = bool(start_dt.date() < today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"})
+    overdue = bool(_calendar_event_tracks_operations(event) and start_dt.date() < today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"})
 
     priority = str(metadata.get("priority", "")).strip().upper() or _normalize_operations_task_priority((task_record or {}).get("priority", "NORMAL")) if task_record else ""
     city = str(metadata.get("property_location", "")).strip() or str((property_record or {}).get("location", "")).strip()
@@ -14662,6 +14668,74 @@ def _admin_operations_board_context():
     professional_options = sorted({task.get("assigned_to", "") for task in tasks if task.get("assigned_to", "")})
     category_options = sorted({task.get("category", "") for task in tasks if task.get("category", "")})
     priority_options = [("LOW", "Low"), ("NORMAL", "Normal"), ("HIGH", "High"), ("URGENT", "Urgent")]
+    active_task_statuses = {"NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS"}
+    active_task_counts = {}
+    for task in tasks:
+        professional_id = str(task.get("assigned_professional_id", "")).strip()
+        if professional_id and _operations_task_is_assigned(task) and _normalize_operations_task_status(task.get("status", "NEW")) in active_task_statuses:
+            active_task_counts[professional_id] = active_task_counts.get(professional_id, 0) + 1
+
+    task_map = {str(task.get("id", "")).strip(): task for task in tasks if str(task.get("id", "")).strip()}
+    upcoming_schedule = {}
+    now = datetime.now(timezone.utc)
+    for event in _load_calendar_events():
+        if _normalize_calendar_event_status(event.get("status", "SCHEDULED")) in {"COMPLETED", "CANCELLED"}:
+            continue
+        start_dt = _parse_iso_datetime(event.get("start_datetime", ""))
+        if start_dt is None:
+            continue
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=timezone.utc)
+        local_now = now.astimezone(start_dt.tzinfo)
+        if start_dt < local_now or start_dt.date() != local_now.date():
+            continue
+        backing_task = task_map.get(str(event.get("operation_task_id", "")).strip())
+        if not backing_task:
+            continue
+        professional_id = str(backing_task.get("assigned_professional_id", "")).strip()
+        if not professional_id:
+            continue
+        metadata = event.get("metadata", {}) or {}
+        upcoming_schedule.setdefault(professional_id, []).append({
+            "start": start_dt,
+            "time": start_dt.strftime("%H:%M"),
+            "title": str(event.get("event_type", "") or event.get("title", "") or backing_task.get("category", "") or backing_task.get("title", "")).strip(),
+            "property": str(metadata.get("property_name", "") or backing_task.get("property_label", "") or backing_task.get("property_name", "") or event.get("property_id", "")).strip(),
+        })
+    for professional_schedule in upcoming_schedule.values():
+        professional_schedule.sort(key=lambda item: item["start"])
+
+    team_workload = []
+    for professional in _load_professional_accounts():
+        if _normalize_professional_account_status(professional.get("status", "PENDING")) not in {"APPROVED", "ACTIVE"}:
+            continue
+        professional_id = str(professional.get("id", "")).strip()
+        if not professional_id:
+            continue
+        capacity_value = professional.get("professional_capacity", professional.get("capacity", professional.get("max_active_tasks", "")))
+        try:
+            capacity = int(str(capacity_value).strip())
+        except (TypeError, ValueError):
+            capacity = 0
+        uses_default_capacity = capacity <= 0
+        if uses_default_capacity:
+            capacity = 5
+        active_assigned_tasks = active_task_counts.get(professional_id, 0)
+        utilization_percent = int(round((active_assigned_tasks / capacity) * 100))
+        team_workload.append({
+            "id": professional_id,
+            "full_name": str(professional.get("full_name", "")).strip(),
+            "company": str(professional.get("company", "")).strip(),
+            "active_assigned_tasks": active_assigned_tasks,
+            "capacity": capacity,
+            "uses_default_capacity": uses_default_capacity,
+            "utilization_percent": utilization_percent,
+            "bar_percent": min(100, max(0, utilization_percent)),
+            "tone": "red" if utilization_percent >= 80 else "amber" if utilization_percent >= 50 else "green",
+            "badge": "Overloaded" if utilization_percent >= 100 else "Available" if utilization_percent < 50 else "",
+            "today_schedule": upcoming_schedule.get(professional_id, [])[:2],
+        })
+    team_workload.sort(key=lambda item: (-item["utilization_percent"], item["full_name"].casefold(), item["id"]))
 
     return {
         "tasks": filtered_tasks,
@@ -14692,6 +14766,7 @@ def _admin_operations_board_context():
         "professional_options": professional_options,
         "category_options": category_options,
         "priority_options": priority_options,
+        "team_workload": team_workload,
         "status_options": [{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
         "overdue_monitor": overdue_monitor,
     }
@@ -15171,8 +15246,10 @@ def _admin_csrf_error_response():
 
 @app.context_processor
 def _admin_template_context():
+    operator = _current_admin_operator_key() if request.path.startswith("/admin") else ""
     return {
         "admin_csrf_token": _admin_csrf_token,
+        "admin_shell_operator": operator or "admin",
     }
 
 
@@ -15962,7 +16039,7 @@ def _admin_calendar_data_quality(event):
         )
         if suspicious:
             issues.append({"code": "suspicious_duration", "severity": "warning", "label": "Подозрително дълга продължителност", "duration_hours": round(duration_hours, 2)})
-    if priority in {"HIGH", "URGENT"} and not _calendar_event_is_assigned(event):
+    if _calendar_event_tracks_operations(event) and priority in {"HIGH", "URGENT"} and not _calendar_event_is_assigned(event):
         issues.append({"code": "urgent_without_professional", "severity": "critical", "label": "Спешна задача без професионалист"})
     if start_dt and start_dt < datetime.now(timezone.utc) - timedelta(days=7) and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"}:
         issues.append({"code": "stale_overdue_event", "severity": "warning", "label": "Старо просрочено събитие"})
