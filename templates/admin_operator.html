@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang|default('bg')|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <title>Операторска конзола · BlackSea Connect</title>
+  <title data-i18n="operatorPageTitle">Операторска конзола · BlackSea Connect</title>
 </head>
 <body class="admin-operator-page admin-light-page bsc-admin-workspace">
   {% include '_admin_sidebar.html' %}

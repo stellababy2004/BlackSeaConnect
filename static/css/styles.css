@@ -19903,22 +19903,18 @@ body.operations-demo-page .operations-floating-cta {
   }
 }
 
-/* Admin pilot requests readability pass: dark glass, warm readable text. */
+/* Admin pilot requests readability pass: light cards with strong contrast. */
 .admin-cockpit-page .admin-pilot-list {
   display: grid;
   gap: 14px;
 }
 
 .admin-cockpit-page .admin-pilot-card {
-  background:
-    linear-gradient(180deg, rgba(12, 28, 41, 0.86), rgba(8, 22, 33, 0.72)),
-    rgba(8, 28, 43, 0.76) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 18px 42px rgba(2, 10, 18, 0.20) !important;
-  border-radius: 28px !important;
-  padding: 22px 24px !important;
+  background: #fff !important;
+  border: 1px solid #dce5f0 !important;
+  box-shadow: 0 4px 16px rgba(16, 37, 68, 0.06) !important;
+  border-radius: 12px !important;
+  padding: 18px 20px !important;
 }
 
 .admin-cockpit-page .admin-pilot-card--link {
@@ -19929,9 +19925,7 @@ body.operations-demo-page .operations-floating-cta {
 .admin-cockpit-page .admin-pilot-card--link:hover,
 .admin-cockpit-page .admin-pilot-card--link:focus-visible {
   transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 22px 50px rgba(2, 10, 18, 0.24) !important;
+  box-shadow: 0 8px 24px rgba(16, 37, 68, 0.10) !important;
 }
 
 .admin-cockpit-page .admin-pilot-card__topline {
@@ -19947,19 +19941,19 @@ body.operations-demo-page .operations-floating-cta {
 .admin-cockpit-page .admin-pilot-card a,
 .admin-cockpit-page .admin-pilot-card li,
 .admin-cockpit-page .admin-pilot-card span {
-  color: rgba(248, 246, 242, 0.78) !important;
+  color: #52677f !important;
 }
 
 .admin-cockpit-page .admin-pilot-card h2 {
-  color: #F8F6F2 !important;
+  color: #102544 !important;
 }
 
 .admin-cockpit-page .admin-pilot-card p {
-  color: rgba(248, 246, 242, 0.82) !important;
+  color: #52677f !important;
 }
 
 .admin-cockpit-page .admin-pilot-card p strong {
-  color: rgba(248, 246, 242, 0.62) !important;
+  color: #1b395b !important;
 }
 
 .admin-cockpit-page .admin-pilot-card .admin-pilot-status {
@@ -21847,7 +21841,6 @@ body.admin-exec-page .admin-empty-state,
 body.admin-exec-page .admin-pilot-card,
 body.admin-cockpit-page .admin-pipeline-card,
 body.admin-exec-page .admin-activity-item,
-body.admin-cockpit-page:not(.admin-professionals-page) .admin-pilot-list .admin-pilot-card,
 body.admin-pilot-detail-page .glass-card,
 body.admin-pilot-detail-page .hero-card,
 body.admin-pilot-detail-page .empty-state,
@@ -37721,6 +37714,152 @@ body.bsc-admin-workspace :is([class*="--success"],[class*="--completed"],[class*
   --bsc-status-bg: var(--bsc-admin-success-soft);
   --bsc-status-fg: var(--bsc-admin-success);
 }
+
+/* 2026 admin dashboard reference-aligned refinement */
+html body.bsc-admin-workspace.admin-exec-page {
+  min-height: 100vh;
+  color: #102544 !important;
+  background: #f4f7fb !important;
+}
+
+body.bsc-admin-workspace.admin-exec-page::before,
+body.bsc-admin-workspace.admin-exec-page::after { display: none !important; }
+
+@media (min-width: 901px) {
+  .bsc-admin-sidebar { width: 232px; padding: 20px 14px 16px; }
+  .bsc-admin-topbar { left: 232px; height: 64px; padding: 10px 24px; }
+  html body:has(> .bsc-admin-sidebar) { padding-top: 64px !important; padding-left: 232px !important; }
+}
+
+.bsc-admin-brand { margin: 0 8px 20px; }
+.bsc-admin-nav-group + .bsc-admin-nav-group { margin-top: 6px; }
+.bsc-admin-nav a,
+.bsc-admin-nav-secondary a { min-height: 38px; padding: 8px 10px; border-radius: 9px; font-size: 12px; }
+.bsc-admin-nav a[aria-current="page"],
+.bsc-admin-nav-secondary a[aria-current="page"] { background: #0b376f; border-color: #0b376f; box-shadow: 0 5px 14px rgba(11,55,111,.18); }
+
+body.bsc-admin-workspace.admin-exec-page > .admin-cockpit-shell {
+  width: auto !important;
+  max-width: 1680px;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+  margin: 0 auto !important;
+  padding: 20px 22px 32px !important;
+}
+
+html body.bsc-admin-workspace :is(.bsc-dashboard-header,.bsc-dashboard-card>header) :is(h1,h2) {
+  font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+}
+
+.bsc-dashboard-header { margin-bottom: 14px; }
+.bsc-dashboard-header p { margin-bottom: 4px; color: #53708f; letter-spacing: .04em; text-transform: none; }
+.bsc-dashboard-header h1 { color: #0b2f62; font-size: 22px !important; line-height: 1.15; }
+.bsc-dashboard-header > div > span { display: block; margin-top: 4px; color: #667b93; font-size: 12px; }
+.bsc-dashboard-header__actions a { padding: 8px 11px; border-color: #d9e3ef; border-radius: 8px; color: #0b376f; box-shadow: 0 2px 7px rgba(20,51,91,.035); }
+.bsc-dashboard-header__actions a:first-child { background: #0b376f; border-color: #0b376f; }
+
+.bsc-dashboard-kpis { gap: 12px !important; margin-bottom: 14px; }
+.bsc-dashboard-kpis a {
+  position: relative;
+  min-height: 100px;
+  padding: 15px 13px 13px 62px;
+  border-color: #dce5f0;
+  border-radius: 11px;
+  box-shadow: 0 3px 12px rgba(22,54,84,.045);
+}
+.bsc-dashboard-kpis a:hover { border-color: #bed0e3; box-shadow: 0 7px 20px rgba(22,54,84,.08); transform: translateY(-1px); }
+.bsc-dashboard-kpis a > i {
+  position: absolute;
+  top: 15px;
+  left: 14px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  color: #1761b4;
+  background: #eaf2fd;
+  font: 800 15px/1 Inter, sans-serif;
+  text-decoration: none;
+}
+.bsc-dashboard-kpis a[data-tone="danger"] > i { color: #c23f45; background: #fff0f1; }
+.bsc-dashboard-kpis a[data-tone="warning"] > i { color: #b66a05; background: #fff4e3; }
+.bsc-dashboard-kpis a[data-tone="success"] > i { color: #168044; background: #eaf7ee; }
+.bsc-dashboard-kpis span,
+.bsc-dashboard-kpis small { white-space: normal; }
+.bsc-dashboard-kpis span { min-height: 28px; color: #3b5879; font-size: 11px; }
+.bsc-dashboard-kpis strong { margin: 2px 0 4px; color: #0b2f62; font-size: 22px; }
+.bsc-dashboard-kpis small { color: #71849a; font-size: 9px; }
+
+.bsc-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.bsc-dashboard-layout > .bsc-dashboard-grid { display: contents; }
+.bsc-dashboard-grid--primary > .bsc-dashboard-card:first-child { grid-column: 1; grid-row: 1; }
+.bsc-dashboard-grid--primary > .bsc-dashboard-card:last-child { grid-column: 2; grid-row: 1; }
+.bsc-dashboard-grid--secondary > .bsc-dashboard-card:first-child { grid-column: 1; grid-row: 2; }
+.bsc-dashboard-grid--secondary > .bsc-dashboard-card:last-child { grid-column: 2; grid-row: 2; }
+
+.bsc-dashboard-card {
+  padding: 0;
+  overflow: visible;
+  border-color: #dce5f0;
+  border-radius: 11px;
+  box-shadow: 0 3px 12px rgba(22,54,84,.045);
+}
+.bsc-dashboard-card > header { min-height: 52px; box-sizing: border-box; margin: 0; padding: 11px 14px; border-bottom: 1px solid #e5ebf3; }
+.bsc-dashboard-card > header span { margin-bottom: 2px; color: #607995; letter-spacing: .04em; }
+.bsc-dashboard-card > header h2 { color: #0b2f62; font-size: 14px !important; }
+.bsc-dashboard-card > header > a { padding: 7px 10px; border: 1px solid #dce5f0; border-radius: 7px; color: #174c88; background: #fff; }
+
+.bsc-dashboard-table__head,
+.bsc-dashboard-table > a { grid-template-columns: 62px minmax(110px,.8fr) minmax(140px,1.15fr) 92px 18px; gap: 9px; }
+.bsc-dashboard-table__head { padding: 8px 14px; border-radius: 0; background: #f7f9fc; }
+.bsc-dashboard-table > a { min-height: 44px; padding: 5px 14px; }
+.bsc-dashboard-table > a:hover { background: #f8fbff; }
+.bsc-dashboard-table > a em { padding: 4px 7px; color: #315476; background: #edf3fa; font-size: 9px; }
+.bsc-dashboard-table > a em[data-tone="success"] { color: #16723d; background: #e9f7ee; }
+.bsc-dashboard-table > a em[data-tone="warning"] { color: #a35f05; background: #fff2dc; }
+.bsc-dashboard-table > a em[data-tone="danger"] { color: #b73840; background: #ffedef; }
+.bsc-dashboard-table > a > b { color: #54708f; font-size: 15px; text-align: right; }
+
+.bsc-dashboard-workload,
+.bsc-dashboard-tasks,
+.bsc-dashboard-calendar-list { padding: 4px 14px 8px; }
+.bsc-dashboard-workload > div { padding: 9px 0; }
+.bsc-dashboard-workload > div > p { margin-bottom: 6px; }
+.bsc-dashboard-workload i { height: 5px; }
+.bsc-dashboard-workload i span { background: #0d4f91; }
+.bsc-dashboard-tasks > a { grid-template-columns: 13px minmax(0,1fr) auto 16px; min-height: 45px; }
+.bsc-dashboard-tasks > a > span { width: 11px; height: 11px; box-sizing: border-box; border: 1px solid #b7c6d7; border-radius: 3px; background: #fff; }
+.bsc-dashboard-tasks > a > b { color: #54708f; font-size: 15px; }
+.bsc-dashboard-calendar-summary { gap: 8px; margin: 12px 14px 6px; }
+.bsc-dashboard-calendar-summary > div { padding: 10px; border: 1px solid #e6edf5; background: #f7f9fc; text-align: center; }
+.bsc-dashboard-calendar-summary strong { color: #0b376f; }
+.bsc-dashboard-empty { padding: 24px 12px; }
+
+@media (max-width: 1220px) {
+  .bsc-dashboard-kpis { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .bsc-dashboard-layout { grid-template-columns: 1fr; }
+  .bsc-dashboard-grid--primary > .bsc-dashboard-card:first-child,
+  .bsc-dashboard-grid--primary > .bsc-dashboard-card:last-child,
+  .bsc-dashboard-grid--secondary > .bsc-dashboard-card:first-child,
+  .bsc-dashboard-grid--secondary > .bsc-dashboard-card:last-child { grid-column: 1; grid-row: auto; }
+}
+
+@media (max-width: 760px) {
+  body.bsc-admin-workspace.admin-exec-page > .admin-cockpit-shell { padding: 14px 10px 24px !important; }
+  .bsc-dashboard-header__actions { flex-wrap: wrap; }
+  .bsc-dashboard-kpis { grid-template-columns: 1fr; }
+  .bsc-dashboard-kpis a { min-height: 88px; }
+  .bsc-dashboard-table__head,
+  .bsc-dashboard-table > a { min-width: 610px; }
+  .bsc-dashboard-card > header { align-items: flex-start; }
+  .bsc-dashboard-card > header > a { flex: 0 0 auto; }
+}
 body.bsc-admin-workspace :is([class*="--warning"],[class*="--attention"],[class*="--seasonal"],[class*="--high"]) {
   --bsc-status-bg: var(--bsc-admin-warning-soft);
   --bsc-status-fg: var(--bsc-admin-warning);
@@ -38125,4 +38264,216 @@ html body.admin-operations-detail-page .admin-operations-sticky-bar__actions .bu
   html body.admin-operations-detail-page .admin-operations-sticky-bar__grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   html body.admin-operations-detail-page .admin-operations-sticky-bar__actions { grid-column: 1 / -1; flex-wrap: wrap !important; justify-content: flex-start !important; }
   html body.admin-operations-detail-page:not(.admin-operations-detail-page--embedded) .admin-operations-sticky-bar { top: 64px !important; }
+}
+
+/* Dashboard cascade finalization: keep this after the shared admin theme. */
+html body.bsc-admin-workspace.admin-exec-page { overflow-x: hidden; color: #102544 !important; background: #f4f7fb !important; }
+html body.bsc-admin-workspace.admin-exec-page::before,
+html body.bsc-admin-workspace.admin-exec-page::after { display: none !important; }
+html body.bsc-admin-workspace.admin-exec-page > .admin-cockpit-shell { display: block !important; width: auto !important; max-width: 1680px; min-height: calc(100vh - 64px); box-sizing: border-box; margin: 0 auto !important; padding: 20px 22px 32px !important; }
+html body.admin-exec-page .bsc-admin-nav-group h2 { margin: 0 !important; padding: 0 10px 3px !important; color: #8795a7 !important; font: 800 9px/1.2 Inter,"Segoe UI",Arial,sans-serif !important; letter-spacing: .12em !important; text-transform: uppercase !important; }
+html body.admin-exec-page .bsc-dashboard-header { margin-bottom: 14px; }
+html body.admin-exec-page .bsc-dashboard-header p { margin-bottom: 4px; color: #53708f; letter-spacing: .04em; text-transform: none; }
+html body.admin-exec-page .bsc-dashboard-header h1 { color: #0b2f62; font: 750 22px/1.15 Inter,"Segoe UI",Arial,sans-serif !important; }
+html body.admin-exec-page .bsc-dashboard-header > div > span { display: block; margin-top: 4px; color: #667b93; font-size: 12px; }
+html body.admin-exec-page .bsc-dashboard-kpis { gap: 12px !important; margin-bottom: 14px; }
+html body.admin-exec-page .bsc-dashboard-kpis a { position: relative; min-height: 100px; padding: 15px 13px 13px 62px; border-color: #dce5f0; border-radius: 11px; box-shadow: 0 3px 12px rgba(22,54,84,.045); }
+html body.admin-exec-page .bsc-dashboard-kpis a > i { position: absolute; top: 15px; left: 14px; display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #1761b4; background: #eaf2fd; font: 800 15px/1 Inter,sans-serif; text-decoration: none; }
+html body.admin-exec-page .bsc-dashboard-kpis a[data-tone="danger"] > i { color: #c23f45; background: #fff0f1; }
+html body.admin-exec-page .bsc-dashboard-kpis a[data-tone="warning"] > i { color: #b66a05; background: #fff4e3; }
+html body.admin-exec-page .bsc-dashboard-kpis a[data-tone="success"] > i { color: #168044; background: #eaf7ee; }
+html body.admin-exec-page .bsc-dashboard-kpis span,
+html body.admin-exec-page .bsc-dashboard-kpis small { white-space: normal; }
+html body.admin-exec-page .bsc-dashboard-kpis span { min-height: 28px; color: #3b5879; }
+html body.admin-exec-page .bsc-dashboard-kpis strong { margin: 2px 0 4px; color: #0b2f62; font-size: 22px; }
+html body.admin-exec-page .bsc-dashboard-layout { display: grid; width: 100%; min-width: 0; grid-template-columns: minmax(0,1.45fr) minmax(360px,1fr); gap: 12px; align-items: start; }
+html body.admin-exec-page .bsc-dashboard-layout > .bsc-dashboard-grid { display: contents; }
+html body.admin-exec-page .bsc-dashboard-grid--primary > .bsc-dashboard-card:first-child { grid-column: 1; grid-row: 1; }
+html body.admin-exec-page .bsc-dashboard-grid--primary > .bsc-dashboard-card:last-child { grid-column: 2; grid-row: 1; }
+html body.admin-exec-page .bsc-dashboard-grid--secondary > .bsc-dashboard-card:first-child { grid-column: 1; grid-row: 2; }
+html body.admin-exec-page .bsc-dashboard-grid--secondary > .bsc-dashboard-card:last-child { grid-column: 2; grid-row: 2; }
+html body.admin-exec-page .bsc-dashboard-card { padding: 0; overflow: visible; border-color: #dce5f0; border-radius: 11px; box-shadow: 0 3px 12px rgba(22,54,84,.045); }
+html body.admin-exec-page .bsc-dashboard-card > header { min-height: 52px; box-sizing: border-box; margin: 0; padding: 11px 14px; border-bottom: 1px solid #e5ebf3; }
+html body.admin-exec-page .bsc-dashboard-card > header h2 { color: #0b2f62; font: 700 14px/1.25 Inter,"Segoe UI",Arial,sans-serif !important; }
+html body.admin-exec-page .bsc-dashboard-card > header > a { padding: 7px 10px; border: 1px solid #dce5f0; border-radius: 7px; }
+html body.admin-exec-page .bsc-dashboard-table__head,
+html body.admin-exec-page .bsc-dashboard-table > a { grid-template-columns: 62px minmax(110px,.8fr) minmax(140px,1.15fr) 92px 18px; gap: 9px; }
+html body.admin-exec-page .bsc-dashboard-table__head { padding: 8px 14px; border-radius: 0; }
+html body.admin-exec-page .bsc-dashboard-table > a { min-height: 44px; padding: 5px 14px; }
+html body.admin-exec-page .bsc-dashboard-table > a > b,
+html body.admin-exec-page .bsc-dashboard-tasks > a > b { color: #54708f; font-size: 15px; text-align: right; }
+html body.admin-exec-page .bsc-dashboard-workload,
+html body.admin-exec-page .bsc-dashboard-tasks,
+html body.admin-exec-page .bsc-dashboard-calendar-list { padding: 4px 14px 8px; }
+html body.admin-exec-page .bsc-dashboard-tasks > a { grid-template-columns: 13px minmax(0,1fr) auto 16px; }
+html body.admin-exec-page .bsc-dashboard-tasks > a > span { width: 11px; height: 11px; box-sizing: border-box; border: 1px solid #b7c6d7; border-radius: 3px; background: #fff; }
+html body.admin-exec-page .bsc-dashboard-calendar-summary { margin: 12px 14px 6px; }
+
+@media (min-width: 901px) {
+  html body > .bsc-admin-sidebar { width: 232px; padding: 20px 14px 16px; }
+  html body > .bsc-admin-topbar { left: 232px; height: 64px; padding: 10px 24px; }
+  html body.bsc-admin-workspace:has(> .bsc-admin-sidebar) { padding-top: 64px !important; padding-left: 232px !important; }
+}
+
+@media (max-width: 1220px) {
+  html body.admin-exec-page .bsc-dashboard-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  html body.admin-exec-page .bsc-dashboard-layout { grid-template-columns: 1fr; }
+  html body.admin-exec-page .bsc-dashboard-layout .bsc-dashboard-card { grid-column: 1; grid-row: auto; }
+}
+
+@media (max-width: 760px) {
+  html body.bsc-admin-workspace.admin-exec-page > .admin-cockpit-shell { padding: 14px 10px 24px !important; }
+  html body.admin-exec-page > .bsc-admin-topbar { max-width: 100%; overflow-x: auto; }
+  html body.admin-exec-page .bsc-dashboard-kpis { grid-template-columns: 1fr; }
+  html body.admin-exec-page .bsc-dashboard-kpis a { min-height: 88px; }
+  html body.admin-exec-page .bsc-dashboard-card { max-width: 100%; }
+}
+
+/* Pilot request list: readable light cards inside the light admin workspace. */
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card {
+  padding: 18px 20px !important;
+  border: 1px solid #dce5f0 !important;
+  border-radius: 12px !important;
+  color: #243f60 !important;
+  background: #fff !important;
+  box-shadow: 0 4px 16px rgba(16, 37, 68, .06) !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card--link:hover,
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card--link:focus-visible {
+  border-color: #bfcfe0 !important;
+  background: #fbfdff !important;
+  box-shadow: 0 8px 24px rgba(16, 37, 68, .10) !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card__topline {
+  margin: -2px 0 14px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #e7edf5;
+  background: transparent !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card h2 {
+  color: #102544 !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card p,
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card li,
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card a,
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card__topline .eyebrow {
+  color: #52677f !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card p strong {
+  color: #1b395b !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-status {
+  border-color: #d8e2ed !important;
+  color: #173a60 !important;
+  background: #eef3f8 !important;
+  box-shadow: none !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-status--new {
+  color: #8a5700 !important;
+  background: #fff3d9 !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-status--qualified,
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-status--converted {
+  color: #176b3a !important;
+  background: #e9f7ee !important;
+}
+
+html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-status--rejected {
+  color: #a5323a !important;
+  background: #ffedef !important;
+}
+
+/* Operations board: contain the kanban width inside the admin workspace. */
+html body.admin-operations-page {
+  overflow-x: hidden !important;
+}
+
+html body.admin-operations-page .admin-operations-shell,
+html body.admin-operations-page .admin-operations-workspace,
+html body.admin-operations-page .admin-operations-board {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+html body.admin-operations-page .admin-operations-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 280px) !important;
+}
+
+html body.admin-operations-page .admin-operations-board {
+  width: 100% !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overscroll-behavior-x: contain;
+}
+
+html body.admin-operations-page .admin-operations-column,
+html body.admin-operations-page .admin-operations-card,
+html body.admin-operations-page .admin-operations-card__meta {
+  min-width: 0 !important;
+}
+
+html body.admin-operations-page .admin-operations-column__header {
+  padding: 10px !important;
+}
+
+html body.admin-operations-page .admin-operations-column__header h2 {
+  min-width: 0;
+  font-size: .68rem !important;
+  overflow-wrap: anywhere;
+}
+
+html body.admin-operations-page .admin-operations-column__body {
+  padding: 7px !important;
+}
+
+html body.admin-operations-page .admin-operations-card {
+  padding: 10px !important;
+}
+
+html body.admin-operations-page .admin-operations-card__title,
+html body.admin-operations-page .admin-operations-card__meta p,
+html body.admin-operations-page .admin-operations-card__signals span {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 1500px) {
+  html body.admin-operations-page .admin-operations-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body.admin-operations-page .admin-operations-board {
+    grid-template-columns: repeat(5, minmax(200px, 1fr)) !important;
+  }
+
+  html body.admin-operations-page .admin-operations-column {
+    min-width: 200px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body.admin-operations-page .admin-operations-board {
+    grid-template-columns: 1fr !important;
+    overflow-x: visible !important;
+  }
+
+  html body.admin-operations-page .admin-operations-column {
+    min-width: 0 !important;
+  }
+}
+/* Keep the operation summary in document flow so it cannot cover the hero. */
+html body.admin-operations-detail-page:not(.admin-operations-detail-page--embedded) .admin-operations-sticky-bar {
+  position: relative !important;
+  top: auto !important;
+  z-index: 1 !important;
 }
