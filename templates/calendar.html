@@ -286,15 +286,15 @@
       --ops-bg: #f5f1e9;
       --ops-gold: #b88734;
       --ops-hour-height: 64px;
-      min-height: 0;
-      height: calc(100vh - 68px);
+      min-height: calc(100vh - 68px);
+      height: auto;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 330px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 244, 238, 0.96)),
         var(--ops-bg);
       color: var(--ops-ink);
-      overflow: hidden;
+      overflow: visible;
     }
     .calendar-shell--legacy-hidden {
       display: none;
@@ -363,12 +363,12 @@
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
-      overflow: hidden;
+      grid-template-rows: none;
+      overflow: visible;
     }
     .admin-ops-toolbar {
       position: sticky;
-      top: 0;
+      top: 68px;
       z-index: 20;
       display: grid;
       gap: 14px;
@@ -776,9 +776,10 @@
     }
     .admin-ops-detail {
       position: sticky;
-      top: 0;
+      top: 68px;
       min-height: 0;
-      height: 100%;
+      height: auto;
+      align-self: start;
       box-sizing: border-box;
       padding: 22px;
       border-width: 0 0 0 1px;
@@ -967,6 +968,12 @@
     :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-inline-error { color:#b42318 !important; }
     :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-actions-grid { padding-top:4px; }
     :is(dialog[data-admin-create-dialog],dialog[data-reconcile-dialog],dialog[data-assignment-dialog],dialog[data-time-dialog]) .admin-ops-button { min-height:46px; }
+    dialog[data-reconcile-dialog] .admin-reconcile-empty { display:grid; gap:6px; }
+    dialog[data-reconcile-dialog] .admin-reconcile-empty[hidden] { display:none; }
+    dialog[data-reconcile-dialog] [data-reconcile-selection][hidden],
+    dialog[data-reconcile-dialog] .admin-ops-actions-grid > [hidden] { display:none; }
+    dialog[data-reconcile-dialog] .admin-reconcile-empty p { margin:0; color:#526275 !important; font-size:.82rem; line-height:1.5; }
+    dialog[data-reconcile-dialog] .admin-ops-actions-grid.is-empty { grid-template-columns:repeat(3,minmax(0,1fr)); }
     dialog[data-assignment-dialog] [data-assignment-options] { gap:10px; margin-top:0; }
     dialog[data-assignment-dialog] [data-assignment-options] .admin-smart-card { display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px; align-items:start; padding:14px 16px; cursor:pointer; background:#f8fafc !important; }
     dialog[data-assignment-dialog] [data-assignment-options] input[type="radio"] { width:18px !important; height:18px !important; margin:2px 0 0 !important; padding:0 !important; accent-color:#163654; }
@@ -1006,6 +1013,7 @@
         display: none;
       }
       .admin-ops-toolbar {
+        top: 56px;
         padding: 14px;
       }
       .admin-ops-toolbar__top,
@@ -1032,6 +1040,7 @@
       .admin-day-event { min-height: 72px; padding: 14px; border-radius: 16px; }
       .admin-ops-create-grid { grid-template-columns:1fr; }
       .admin-ops-create-notes { grid-column:auto; }
+      dialog[data-reconcile-dialog] .admin-ops-actions-grid.is-empty { grid-template-columns:1fr; }
     }
 
     /* Operational calendar — final visual stabilization */
@@ -2020,11 +2029,11 @@
       </dialog>
       <dialog class="admin-ops-create" data-reconcile-dialog>
         <form class="admin-ops-detail-card" data-reconcile-form>
-          <div class="admin-ops-detail-header"><span class="admin-ops-label">Свързване с имот</span><h2>Изберете каноничен имот</h2><p data-reconcile-context></p></div>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label" data-i18n="calendarLinkProperty">Свързване с имот</span><h2 data-i18n="calendarChooseCanonicalProperty">Изберете каноничен имот</h2><p data-i18n="calendarUnlinkedPropertyCopy">Календарният запис няма свързан каноничен имот.</p><p data-reconcile-context></p></div>
           <div class="admin-smart-card" data-reconcile-details></div>
-          <label class="admin-ops-filter"><span class="admin-ops-label">Подходящи имоти</span><select class="admin-ops-select" name="property_id" required data-reconcile-select></select></label>
-          <p class="admin-inline-error" data-reconcile-empty hidden>Няма намерен подходящ имот</p>
-          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-reconcile-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit">Свържи с имот</button></div>
+          <label class="admin-ops-filter" data-reconcile-selection><span class="admin-ops-label" data-i18n="calendarMatchingProperties">Подходящи имоти</span><select class="admin-ops-select" name="property_id" required data-reconcile-select></select></label>
+          <div class="admin-smart-card admin-reconcile-empty" data-reconcile-empty hidden><strong data-i18n="calendarNoMatchingProperty">Няма намерен подходящ имот</strong><p data-i18n="calendarPropertyRequiredBeforeLink">Преди събитието да бъде свързано, имотът трябва първо да съществува.</p></div>
+          <div class="admin-ops-actions-grid" data-reconcile-actions><button class="admin-ops-button" type="button" data-reconcile-cancel data-i18n="calendarCancel">Отказ</button><a class="admin-ops-button" href="/admin/properties" data-reconcile-properties hidden data-i18n="calendarOpenProperties">Отвори списъка с имоти</a><a class="admin-ops-button admin-ops-button--primary" href="/owners/property/new" data-reconcile-create hidden data-i18n="calendarCreateProperty">Създай нов имот</a><button class="admin-ops-button admin-ops-button--primary" type="submit" data-reconcile-submit disabled data-i18n="calendarLinkToProperty">Свържи с имот</button></div>
         </form>
       </dialog>
       <dialog class="admin-ops-create" data-assignment-dialog>
@@ -2071,40 +2080,45 @@
         function weekdayName(date, width) {
           return new Intl.DateTimeFormat(activeLocale(), { weekday: width }).format(date);
         }
+        function adminLabel(key, fallback) {
+          const lang = String(document.documentElement.lang || "bg").toLowerCase();
+          return window.BlackSeaI18N?.[lang]?.admin?.[key] || fallback;
+        }
         const typeLabels = {
-          "other": "Друга услуга",
-          "event": "Друга услуга",
-          "reservation": "Резервация",
-          "cleaning": "Почистване",
-          "guest arrival": "Пристигане",
-          "arrival": "Пристигане",
-          "check-in": "Пристигане",
-          "inspection": "Инспекция",
-          "maintenance": "Поддръжка",
-          "professional visit": "Посещение на професионалист",
-          "owner meeting": "Среща със собственик",
-          "transfer": "Трансфер",
-          "transport": "Трансфер",
-          "blocked dates": "Блокирани дати",
-          "personal stay": "Личен престой",
-          "check-out": "Заминаване"
+          "other": ["eventOther", "Друга услуга"],
+          "event": ["eventOther", "Друга услуга"],
+          "reservation": ["eventReservation", "Резервация"],
+          "cleaning": ["eventCleaning", "Почистване"],
+          "guest arrival": ["eventArrival", "Пристигане"],
+          "arrival": ["eventArrival", "Пристигане"],
+          "check-in": ["eventArrival", "Пристигане"],
+          "inspection": ["eventInspection", "Инспекция"],
+          "maintenance": ["eventMaintenance", "Поддръжка"],
+          "emergency": ["eventEmergency", "Спешен случай"],
+          "professional visit": ["eventProfessionalVisit", "Посещение на професионалист"],
+          "owner meeting": ["eventOwnerMeeting", "Среща със собственик"],
+          "transfer": ["eventTransfer", "Трансфер"],
+          "transport": ["eventTransfer", "Трансфер"],
+          "blocked dates": ["eventBlockedDates", "Блокирани дати"],
+          "personal stay": ["eventPersonalStay", "Личен престой"],
+          "check-out": ["eventDeparture", "Заминаване"]
         };
         const statusLabels = {
-          "scheduled": "Планирано",
-          "new": "Ново",
-          "pending": "Изчаква",
-          "assigned": "Възложено",
-          "in_progress": "В процес",
-          "completed": "Завършено",
-          "cancelled": "Отменено",
-          "blocked": "Блокирано"
+          "scheduled": ["scheduled", "Планирано"],
+          "new": ["statusNew", "Ново"],
+          "pending": ["statusPending", "Изчаква"],
+          "assigned": ["assigned", "Възложено"],
+          "in_progress": ["inProgress", "В процес"],
+          "completed": ["completed", "Завършено"],
+          "cancelled": ["statusCancelled", "Отменено"],
+          "blocked": ["statusBlocked", "Блокирано"]
         };
         const priorityLabels = {
-          "low": "Нисък",
-          "normal": "Нормален",
-          "medium": "Среден",
-          "high": "Висок",
-          "urgent": "Спешен"
+          "low": ["priorityLow", "Нисък"],
+          "normal": ["priorityNormal", "Нормален"],
+          "medium": ["priorityMedium", "Среден"],
+          "high": ["priorityHigh", "Висок"],
+          "urgent": ["priorityUrgent", "Спешен"]
         };
         const events = [...app.querySelectorAll("[data-admin-source-event]")].map((node, index) => ({
           id: node.dataset.id || `event-${index}`,
@@ -2223,6 +2237,9 @@
         app.querySelector("[data-next-secondary]")?.addEventListener("click", () => selectedEvent && openAssignmentDialog(selectedEvent));
         app.querySelector("[data-reconcile-cancel]")?.addEventListener("click", () => app.querySelector("[data-reconcile-dialog]")?.close());
         app.querySelector("[data-reconcile-form]")?.addEventListener("submit", submitPropertyReconciliation);
+        app.querySelector("[data-reconcile-select]")?.addEventListener("change", (changeEvent) => {
+          app.querySelector("[data-reconcile-submit]").disabled = !String(changeEvent.target.value || "").trim();
+        });
         app.querySelector("[data-assignment-cancel]")?.addEventListener("click", () => app.querySelector("[data-assignment-dialog]")?.close());
         app.querySelector("[data-assignment-form]")?.addEventListener("submit", submitProfessionalAssignment);
         app.querySelector("[data-time-cancel]")?.addEventListener("click", () => app.querySelector("[data-time-dialog]")?.close());
@@ -2275,28 +2292,29 @@
 
         function labelFromMap(value, map) {
           const key = String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-          return map[key] || map[key.replace(/-/g, "_")] || map[key.replace(/_/g, " ")] || value || "-";
+          const label = map[key] || map[key.replace(/-/g, "_")] || map[key.replace(/_/g, " ")];
+          return label ? adminLabel(label[0], label[1]) : value || "-";
         }
 
         function eventTypeLabel(event) {
           const rawType = String(event.type || "").trim();
           if (!/^(other|event)?$/i.test(rawType)) return labelFromMap(rawType, typeLabels);
           const semanticText = `${event.title || ""} ${event.notes || ""}`.toLowerCase();
-          if (/почиств|cleaning|чистене/.test(semanticText)) return "Почистване";
-          if (/инспек|inspection|проверка/.test(semanticText)) return "Инспекция";
-          if (/поддръж|maintenance|repair|ремонт/.test(semanticText)) return "Поддръжка";
-          if (/пристиган|check-in|arrival/.test(semanticText)) return "Пристигане";
-          if (/заминаван|check-out|departure/.test(semanticText)) return "Заминаване";
-          return "Друга услуга";
+          if (/почиств|cleaning|чистене/.test(semanticText)) return labelFromMap("cleaning", typeLabels);
+          if (/инспек|inspection|проверка/.test(semanticText)) return labelFromMap("inspection", typeLabels);
+          if (/поддръж|maintenance|repair|ремонт/.test(semanticText)) return labelFromMap("maintenance", typeLabels);
+          if (/пристиган|check-in|arrival/.test(semanticText)) return labelFromMap("check-in", typeLabels);
+          if (/заминаван|check-out|departure/.test(semanticText)) return labelFromMap("check-out", typeLabels);
+          return labelFromMap("other", typeLabels);
         }
 
         function inferredCategoryKey(event) {
           const label = eventTypeLabel(event);
-          if (label === "Почистване") return "cleaning";
-          if (label === "Инспекция") return "inspection";
-          if (label === "Поддръжка") return "maintenance";
-          if (label === "Пристигане") return "check-in";
-          if (label === "Заминаване") return "check-out";
+          if (label === labelFromMap("cleaning", typeLabels)) return "cleaning";
+          if (label === labelFromMap("inspection", typeLabels)) return "inspection";
+          if (label === labelFromMap("maintenance", typeLabels)) return "maintenance";
+          if (label === labelFromMap("check-in", typeLabels)) return "check-in";
+          if (label === labelFromMap("check-out", typeLabels)) return "check-out";
           return String(event.type || "other").toLowerCase();
         }
 
@@ -2541,20 +2559,56 @@
           return saved;
         }
 
+        function propertyMatchReason(reason) {
+          const labels = {
+            "точно име на имота": ["calendarExactPropertyName", "точно име на имота"],
+            "съвпадащ собственик": ["calendarMatchingOwner", "съвпадащ собственик"],
+            "съвпадащ град": ["calendarMatchingCity", "съвпадащ град"]
+          };
+          return String(reason || "").split(",").map((part) => {
+            const value = part.trim();
+            const label = labels[value];
+            return label ? adminLabel(label[0], label[1]) : value;
+          }).filter(Boolean).join(", ");
+        }
+
         async function openReconciliationDialog(event) {
           const dialog = app.querySelector("[data-reconcile-dialog]");
           const select = app.querySelector("[data-reconcile-select]");
+          const selection = app.querySelector("[data-reconcile-selection]");
+          const emptyState = app.querySelector("[data-reconcile-empty]");
+          const actions = app.querySelector("[data-reconcile-actions]");
+          const submitButton = app.querySelector("[data-reconcile-submit]");
+          const propertiesLink = app.querySelector("[data-reconcile-properties]");
+          const createLink = app.querySelector("[data-reconcile-create]");
           app.querySelector("[data-reconcile-context]").textContent = `${event.property} · ${event.owner} · ${eventTypeLabel(event)} · ${getSafeDisplayTime(event)}`;
-          app.querySelector("[data-reconcile-details]").textContent = `Източник: ${event.source || "неизвестен"}`;
-          select.innerHTML = '<option value="">Зареждане…</option>';
+          app.querySelector("[data-reconcile-details]").textContent = `${adminLabel("calendarSource", "Източник")}: ${event.source || adminLabel("calendarUnknownSource", "неизвестен")}`;
+          select.innerHTML = `<option value="">${escapeHtml(adminLabel("loading", "Зареждане…"))}</option>`;
+          selection.hidden = false;
+          emptyState.hidden = true;
+          actions.classList.remove("is-empty");
+          submitButton.hidden = false;
+          submitButton.disabled = true;
+          propertiesLink.hidden = true;
+          createLink.hidden = true;
           dialog.showModal();
           try {
             const result = await requestCalendarJson(`/admin/api/calendar/events/${encodeURIComponent(event.id)}/property-matches`);
-            select.innerHTML = '<option value="">Изберете имот</option>' + result.matches.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === result.safe_match_id ? "selected" : ""}>${escapeHtml(item.name)}${item.city ? ` · ${escapeHtml(item.city)}` : ""} — ${escapeHtml(item.reason)}</option>`).join("");
+            select.innerHTML = `<option value="">${escapeHtml(adminLabel("calendarSelectProperty", "Изберете имот"))}</option>` + result.matches.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === result.safe_match_id ? "selected" : ""}>${escapeHtml(item.name)}${item.city ? ` · ${escapeHtml(item.city)}` : ""} — ${escapeHtml(propertyMatchReason(item.reason))}</option>`).join("");
             const empty = result.matches.length === 0;
-            app.querySelector("[data-reconcile-empty]").hidden = !empty;
-            select.disabled = empty;
-            dialog.querySelector('[type="submit"]').disabled = empty;
+            selection.hidden = empty;
+            emptyState.hidden = !empty;
+            actions.classList.toggle("is-empty", empty);
+            submitButton.hidden = empty;
+            submitButton.disabled = empty || !select.value;
+            propertiesLink.hidden = !empty;
+            createLink.hidden = !empty;
+            if (empty) {
+              const params = new URLSearchParams({ name: String(event.property || "").trim() });
+              const lang = String(document.documentElement.lang || "").trim();
+              if (lang) params.set("lang", lang);
+              createLink.href = `/owners/property/new?${params.toString()}`;
+            }
           } catch (error) {
             showToast(`Неуспешно търсене на имот: ${error.message}`);
             dialog.close();
@@ -2934,8 +2988,8 @@
           form.reset();
           form.elements.property_id.classList.remove("is-invalid");
           form.querySelector("[data-admin-property-error]").hidden = true;
-          dialog.querySelector("h2").textContent = "Добавяне към графика";
-          form.querySelector('[type="submit"]').textContent = "Добави събитие";
+          dialog.querySelector("h2").textContent = adminLabel("calendarAddSchedule", "Добавяне към графика");
+          form.querySelector('[type="submit"]').textContent = adminLabel("calendarAddEvent", "Добави събитие");
           form.elements.start.value = dateTimeInputValue(slot);
           form.elements.end.value = dateTimeInputValue(end);
           dialog.querySelector("[data-admin-create-slot]").textContent = `${formatDate(slot, { weekday: "long", day: "2-digit", month: "long" })} · ${formatTime(slot)}`;
@@ -2962,9 +3016,9 @@
           form.elements.start.value = dateTimeInputValue(event.start);
           form.elements.end.value = dateTimeInputValue(event.end || new Date(event.start.getTime() + 3600000));
           form.elements.notes.value = event.notes || "";
-          dialog.querySelector("h2").textContent = "Редактиране на събитие";
+          dialog.querySelector("h2").textContent = adminLabel("calendarEditEvent", "Редактиране на събитие");
           dialog.querySelector("[data-admin-create-slot]").textContent = `${eventTypeLabel(event)} · ${event.property}`;
-          form.querySelector('[type="submit"]').textContent = "Запази промените";
+          form.querySelector('[type="submit"]').textContent = adminLabel("calendarSaveChanges", "Запази промените");
           dialog.showModal();
         }
 
