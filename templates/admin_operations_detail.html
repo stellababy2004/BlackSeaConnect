@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1789,6 +1789,37 @@
         top: 64px !important;
       }
     }
+    .admin-evidence__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .admin-evidence__heading p { margin:4px 0 0; color:#62716c; }
+    .admin-evidence__form { margin-top:18px; }
+    .admin-evidence__dropzone { display:grid; gap:10px; min-width:0; transition:border-color .18s ease, background .18s ease; }
+    .admin-evidence__dropzone.is-dragging { border-color:#2d7a60; background:#edf7f2; }
+    .admin-evidence__upload-actions, .admin-evidence-card__actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .admin-evidence__upload-actions .button { max-width:100%; white-space:normal; text-align:center; cursor:pointer; }
+    .admin-evidence__pending { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; }
+    .admin-evidence__pending:empty { display:none; }
+    .admin-evidence__pending-item { min-width:0; padding:9px 11px; border:1px solid rgba(28,82,67,.12); border-radius:8px; background:#f7faf8; overflow-wrap:anywhere; }
+    .admin-evidence__message { margin:14px 0 0; padding:10px 12px; border-radius:8px; }
+    .admin-evidence__message--success { color:#205f49; background:#e9f6ef; }
+    .admin-evidence__message--error { color:#8f302b; background:#fceceb; }
+    .admin-evidence__grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:12px; }
+    .admin-evidence-card { min-width:0; overflow:hidden; border:1px solid rgba(28,82,67,.1); border-radius:12px; background:#fff; }
+    .admin-evidence-card__preview { display:grid; place-items:center; width:100%; aspect-ratio:16/10; overflow:hidden; background:#edf3f0; color:#315f50; text-decoration:none; }
+    .admin-evidence-card__preview img { display:block; width:100%; height:100%; object-fit:cover; }
+    .admin-evidence-card__file-icon { display:grid; place-items:center; width:64px; height:76px; border:2px solid currentColor; border-radius:7px; font-weight:800; font-size:.8rem; }
+    .admin-evidence-card__body { display:grid; gap:9px; min-width:0; padding:13px; }
+    .admin-evidence-card__body > strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .admin-evidence-card__body p { margin:0; color:#62716c; font-size:.78rem; line-height:1.5; overflow-wrap:anywhere; }
+    .admin-evidence-card__actions form { margin:0; }
+    .admin-evidence-card__actions .button { padding:7px 9px; white-space:normal; }
+    .admin-evidence-card__delete { color:#9b3430; }
+    @media (max-width: 640px) {
+      .admin-evidence__heading { display:grid; }
+      .admin-evidence__upload-actions { display:grid; grid-template-columns:1fr; }
+      .admin-evidence__upload-actions .button { width:100%; }
+      .admin-evidence-card__actions { display:grid; grid-template-columns:1fr 1fr; }
+      .admin-evidence-card__actions .button, .admin-evidence-card__actions form, .admin-evidence-card__actions form button { width:100%; }
+    }
   </style>
 </head>
 <body class="admin-operations-detail-page bsc-admin-workspace{% if request.args.get('embed') %} admin-operations-detail-page--embedded{% endif %}">
@@ -2379,31 +2410,78 @@
           </form>
         </article>
 
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Файлове</p>
-          <h2 class="admin-operations-section-title">Подготовка за качвания</h2>
-          <div class="admin-operations-dropzone">
-            <strong>Качвайте снимки, фактури, касови бележки или инспекционни доказателства</strong>
-            <p>Тук се подготвят снимки преди и след, фактури, бележки и доказателства за щети. Засега се пазят само локални референции.</p>
+        <article class="admin-operations-detail-panel admin-evidence" id="evidence" data-evidence-section>
+          <p class="eyebrow">{{ evidence_copy.eyebrow }}</p>
+          <div class="admin-evidence__heading">
+            <div>
+              <h2 class="admin-operations-section-title">{{ evidence_copy.title }}</h2>
+              <p>{{ evidence_copy.intro }}</p>
+            </div>
+            <span class="admin-operations-chip">{{ attachments|length }} {{ evidence_copy.eyebrow }}</span>
           </div>
+          {% if evidence_notice %}<p class="admin-evidence__message admin-evidence__message--success" role="status">{{ evidence_notice }}</p>{% endif %}
+          {% if evidence_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ evidence_error }}</p>{% endif %}
+          <form class="admin-operations-form admin-evidence__form" method="post" action="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
+            <input type="hidden" name="task_action" value="attachment">
+            <label>
+              <span>{{ evidence_copy.category }}</span>
+              <select name="attachment_category" required>
+                <option value="">{{ evidence_copy.choose_category }}</option>
+                {% for category_key, category_label in evidence_copy.categories.items() %}
+                  <option value="{{ category_key|e }}">{{ category_label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <div class="admin-operations-dropzone admin-evidence__dropzone" data-evidence-dropzone tabindex="0">
+              <strong>{{ evidence_copy.drop }}</strong>
+              <p>{{ evidence_copy.requirements }}</p>
+              <div class="admin-evidence__upload-actions">
+                <label class="button button--secondary">
+                  {{ evidence_copy.add_photos }}
+                  <input type="file" name="evidence_photos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic" multiple data-evidence-input hidden>
+                </label>
+                <label class="button button--secondary">
+                  {{ evidence_copy.add_documents }}
+                  <input type="file" name="evidence_documents" accept="application/pdf,.pdf" multiple data-evidence-input hidden>
+                </label>
+              </div>
+            </div>
+            <div class="admin-evidence__pending" data-evidence-pending aria-live="polite"></div>
+            <button class="button button--primary" type="submit">{{ evidence_copy.upload }}</button>
+          </form>
           {% if attachments %}
-            <div class="admin-operations-attachment-list u-mt-14">
+            <div class="admin-evidence__grid u-mt-14">
               {% for attachment in attachments %}
-                <div class="admin-operations-list-item">
-                  <div class="admin-operations-list-item__topline">
-                    <strong>{{ attachment.name|e }}</strong>
-                    <time>{{ bg_datetime(attachment.created_at) }}</time>
+                {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
+                {% set previewable_image = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] %}
+                <article class="admin-evidence-card">
+                  <a class="admin-evidence-card__preview" href="{{ attachment.url|e }}" target="_blank" rel="noopener" aria-label="{{ evidence_copy.preview }}: {{ attachment.name|e }}">
+                    {% if previewable_image %}
+                      <img src="{{ attachment.url|e }}" alt="{{ attachment.name|e }}" loading="lazy">
+                    {% else %}
+                      <span class="admin-evidence-card__file-icon" aria-hidden="true">{% if attachment_mime == 'application/pdf' %}PDF{% else %}FILE{% endif %}</span>
+                    {% endif %}
+                  </a>
+                  <div class="admin-evidence-card__body">
+                    <strong title="{{ attachment.original_filename|e }}">{{ attachment.name|e }}</strong>
+                    <span class="admin-operations-chip">{{ evidence_copy.categories.get(attachment.category, attachment.category|replace('_', ' ')|title) }}</span>
+                    <p>{{ evidence_copy.uploaded_by }} {{ attachment.uploaded_by|e }}<br>{{ bg_datetime(attachment.upload_timestamp or attachment.created_at) }} · {{ format_evidence_file_size(attachment.file_size) }}</p>
+                    <div class="admin-evidence-card__actions">
+                      <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ evidence_copy.preview }}</a>
+                      <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ evidence_copy.download }}</a>
+                      {% if attachment.id %}
+                        <form method="post" action="{{ localized_url('/admin/operations/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ evidence_copy.delete }}?');">
+                          <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+                          <button class="button button--ghost admin-evidence-card__delete" type="submit">{{ evidence_copy.delete }}</button>
+                        </form>
+                      {% endif %}
+                    </div>
                   </div>
-                  <p>
-                    {% if attachment.slot %}Позиция: {{ attachment_slot_labels.get(attachment.slot, 'Друга') }}{% endif %}
-                    {% if attachment.category %}{% if attachment.slot %} · {% endif %}Категория: {{ category_labels.get(attachment.category|upper, 'Друга задача') }}{% endif %}
-                    {% if attachment.uploaded_by %} · Качено от {{ attachment.uploaded_by|e }}{% endif %}
-                  </p>
-                </div>
+                </article>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-operations-attachment-empty u-mt-14">Още няма файлове. Задачата е подготвена за бъдещи качвания.</p>
+            <p class="admin-operations-attachment-empty u-mt-14">{{ evidence_copy.empty }}</p>
           {% endif %}
         </article>
 
@@ -2638,9 +2716,9 @@
                   <div class="admin-operations-timeline-item__header">
                     <div class="admin-operations-timeline-item__title">
                       <span class="admin-operations-timeline-item__icon">
-                        {% if event.event_type in ['completed', 'professional_completed'] %}✓{% elif event.event_type == 'task_created' %}+{% elif event.event_type == 'overdue_detected' %}!{% elif event.event_type == 'professional_accepted' %}П{% elif event.event_type == 'professional_started' %}▶{% elif event.event_type == 'professional_paused' %}Ⅱ{% elif event.event_type == 'professional_resumed' %}↻{% elif event.event_type == 'attachment_added' %}□{% elif event.event_type in ['comment_added_internal', 'note_added', 'comment_added'] %}Б{% elif event.event_type in ['assigned', 'professional_assigned'] %}↗{% elif event.event_type == 'status_changed' %}С{% elif event.status == 'ARCHIVED' %}А{% else %}•{% endif %}
+                        {% if event.event_type in ['completed', 'professional_completed'] %}✓{% elif event.event_type == 'task_created' %}+{% elif event.event_type == 'overdue_detected' %}!{% elif event.event_type == 'professional_accepted' %}П{% elif event.event_type == 'professional_started' %}▶{% elif event.event_type == 'professional_paused' %}Ⅱ{% elif event.event_type == 'professional_resumed' %}↻{% elif event.event_type in ['attachment_added', 'attachment_deleted'] %}□{% elif event.event_type in ['comment_added_internal', 'note_added', 'comment_added'] %}Б{% elif event.event_type in ['assigned', 'professional_assigned'] %}↗{% elif event.event_type == 'status_changed' %}С{% elif event.status == 'ARCHIVED' %}А{% else %}•{% endif %}
                       </span>
-                      <strong>{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</strong>
+                      <strong>{% if event.event_type in ['attachment_added', 'attachment_deleted'] %}{{ event.title|e }}{% else %}{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}{% endif %}</strong>
                     </div>
                     <time>{{ bg_datetime(event.created_at) }}</time>
                   </div>
@@ -2654,7 +2732,9 @@
                     {% elif event.event_type == 'overdue_detected' %}
                       Засечено е просрочване по SLA и задачата изисква внимание.
                     {% elif event.event_type == 'attachment_added' %}
-                      Добавено е доказателство към {{ task_operational_ref|e }}.
+                      {{ event.title|e }} · {{ event.detail|e }}
+                    {% elif event.event_type == 'attachment_deleted' %}
+                      {{ event.title|e }} · {{ event.detail|e }}
                     {% elif event.event_type == 'comment_added_internal' %}
                       Добавена е вътрешна оперативна бележка.
                     {% elif event.event_type in ['note_added', 'comment_added'] %}
@@ -2754,6 +2834,46 @@
           }
         });
       });
+      const evidenceForm = document.querySelector('[data-evidence-form]');
+      if (evidenceForm) {
+        const evidenceInputs = Array.from(evidenceForm.querySelectorAll('[data-evidence-input]'));
+        const dropzone = evidenceForm.querySelector('[data-evidence-dropzone]');
+        const pending = evidenceForm.querySelector('[data-evidence-pending]');
+        const renderPending = () => {
+          pending.replaceChildren();
+          evidenceInputs.flatMap((input) => Array.from(input.files || [])).forEach((file) => {
+            const item = document.createElement('div');
+            item.className = 'admin-evidence__pending-item';
+            item.textContent = `${file.name} · ${Math.max(1, Math.round(file.size / 1024))} KB`;
+            pending.append(item);
+          });
+        };
+        evidenceInputs.forEach((input) => input.addEventListener('change', renderPending));
+        if (dropzone && typeof DataTransfer !== 'undefined') {
+          ['dragenter', 'dragover'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            dropzone.classList.add('is-dragging');
+          }));
+          ['dragleave', 'drop'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            dropzone.classList.remove('is-dragging');
+          }));
+          dropzone.addEventListener('drop', (event) => {
+            const transfer = new DataTransfer();
+            Array.from(event.dataTransfer.files || []).forEach((file) => transfer.items.add(file));
+            evidenceInputs[0].files = transfer.files;
+            renderPending();
+          });
+        }
+        evidenceForm.addEventListener('submit', (event) => {
+          const hasFiles = evidenceInputs.some((input) => input.files && input.files.length);
+          if (!hasFiles) {
+            event.preventDefault();
+            pending.textContent = {{ evidence_copy.error_required|tojson }};
+            dropzone.focus();
+          }
+        });
+      }
     }());
   </script>
 </body>

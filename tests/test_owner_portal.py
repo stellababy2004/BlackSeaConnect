@@ -821,6 +821,15 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('href="/owners/dashboard?lang=fr"', html)
         self.assertIn('href="/owners/logout?lang=fr"', html)
 
+    def test_owner_property_new_prefills_name_without_creating_property(self):
+        self._login_owner_via_magic(seed_property=False)
+
+        response = self.client.get("/owners/property/new?name=Missing+Villa&lang=en")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('name="name" value="Missing Villa"', response.get_data(as_text=True))
+        self.assertEqual(self._read_jsonl("owner_properties.jsonl"), [])
+
     def test_owner_property_creation_preserves_language_on_redirect(self):
         self._login_owner_via_magic(seed_property=False)
 
@@ -1848,7 +1857,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         completed_board_html = completed_board.get_data(as_text=True)
         self.assertRegex(completed_board_html, r"Open Tasks</span>\s*<strong>1</strong>")
-        self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>0</strong>")
+        self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>1</strong>")
         self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
 
     def test_admin_executive_dashboard_computed_layers_surface_alerts_risk_workload_and_recommendations(self):
@@ -2808,3 +2817,4 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(any(event["type"] == "SERVICE_REQUEST_STATUS_UPDATED" for event in updated["timeline"]))
         self.assertGreaterEqual(len(FakeSMTP.sent_messages), 1)
         self.assertTrue(any("Professional assigned" in message["Subject"] or "status updated" in message["Subject"] for message in FakeSMTP.sent_messages))
+

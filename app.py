@@ -153,6 +153,19 @@ PROFESSIONAL_TASK_EVIDENCE_TYPES = {
     "image/jpeg": {".jpg", ".jpeg"},
     "image/png": {".png"},
     "image/webp": {".webp"},
+    "image/heic": {".heic"},
+    "image/heif": {".heic"},
+    "application/pdf": {".pdf"},
+}
+OPERATIONS_TASK_EVIDENCE_CATEGORIES = {
+    "before_photos",
+    "after_photos",
+    "invoice",
+    "receipt",
+    "inspection_report",
+    "damage_evidence",
+    "completion_report_attachment",
+    "other",
 }
 OWNER_PROPERTY_MEDIA_LIMIT = 20
 OWNER_PROPERTY_DOCUMENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
@@ -844,14 +857,32 @@ def _operations_task_attachments(attachments_value):
     for item in attachments_value:
         if not isinstance(item, dict):
             continue
+        created_at = str(item.get("upload_timestamp", item.get("created_at", ""))).strip()
+        original_filename = str(item.get("original_filename", item.get("name", ""))).strip()
+        stored_filename = str(item.get("filename", "")).strip()
+        try:
+            file_size = max(0, int(item.get("file_size", 0) or 0))
+        except (TypeError, ValueError):
+            file_size = 0
         attachments.append({
-            "created_at": str(item.get("created_at", "")).strip(),
-            "name": str(item.get("name", "")).strip(),
+            "id": str(item.get("id", "")).strip(),
+            "task_id": str(item.get("task_id", "")).strip(),
+            "operation_id": str(item.get("operation_id", "")).strip(),
+            "property_id": str(item.get("property_id", "")).strip(),
+            "uploader_id": str(item.get("uploader_id", "")).strip(),
+            "uploader_role": str(item.get("uploader_role", "")).strip(),
+            "created_at": created_at,
+            "upload_timestamp": created_at,
+            "name": str(item.get("name", original_filename)).strip(),
+            "filename": stored_filename,
+            "original_filename": original_filename,
             "url": str(item.get("url", "")).strip(),
+            "download_url": str(item.get("download_url", "")).strip(),
             "uploaded_by": str(item.get("uploaded_by", "")).strip(),
             "category": str(item.get("category", "")).strip(),
             "slot": str(item.get("slot", "")).strip(),
             "mime_type": str(item.get("mime_type", "")).strip(),
+            "file_size": file_size,
         })
     attachments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return attachments
@@ -5502,20 +5533,51 @@ def _edit_latest_operations_task_comment(task_id, operator, comment, *, author_r
     return edited_comment
 
 
-def _append_operations_task_attachment(task_id, *, name, uploaded_by="", category="", slot="", mime_type="", url=""):
+def _append_operations_task_attachment(
+    task_id,
+    *,
+    name,
+    uploaded_by="",
+    category="",
+    slot="",
+    mime_type="",
+    url="",
+    attachment_id="",
+    operation_id="",
+    property_id="",
+    uploader_id="",
+    uploader_role="",
+    filename="",
+    original_filename="",
+    file_size=0,
+    append_event=True,
+):
     target_task_id = str(task_id or "").strip()
     normalized_name = str(name or "").strip()
     if not target_task_id or not normalized_name:
         return None
 
+    upload_timestamp = _utc_now_iso()
+    attachment_url = str(url or "").strip()
     attachment_entry = {
-        "created_at": _utc_now_iso(),
+        "id": str(attachment_id or "").strip() or uuid4().hex,
+        "task_id": target_task_id,
+        "operation_id": str(operation_id or "").strip(),
+        "property_id": str(property_id or "").strip(),
+        "uploader_id": str(uploader_id or "").strip(),
+        "uploader_role": str(uploader_role or "").strip(),
+        "created_at": upload_timestamp,
+        "upload_timestamp": upload_timestamp,
         "name": normalized_name,
-        "url": str(url or "").strip(),
+        "filename": str(filename or "").strip(),
+        "original_filename": str(original_filename or normalized_name).strip(),
+        "url": attachment_url,
+        "download_url": f"{attachment_url}?download=1" if attachment_url else "",
         "uploaded_by": str(uploaded_by or "").strip() or _current_admin_operator_key(),
         "category": str(category or "").strip(),
         "slot": str(slot or "").strip(),
         "mime_type": str(mime_type or "").strip(),
+        "file_size": max(0, int(file_size or 0)),
     }
 
     task = _find_operations_task(target_task_id)
@@ -5528,14 +5590,39 @@ def _append_operations_task_attachment(task_id, *, name, uploaded_by="", categor
     if not updated_task:
         return None
 
-    _append_operations_task_event(
-        target_task_id,
-        "attachment_added",
-        "Attachment added",
-        f"{attachment_entry['slot'] or attachment_entry['category'] or 'Attachment'} · {normalized_name}",
-        status=updated_task.get("status", "NEW"),
-    )
+    if append_event:
+        _append_operations_task_event(
+            target_task_id,
+            "attachment_added",
+            "Attachment added",
+            f"{attachment_entry['slot'] or attachment_entry['category'] or 'Attachment'} · {normalized_name}",
+            status=updated_task.get("status", "NEW"),
+        )
     return attachment_entry
+
+
+def _append_operations_evidence_timeline_event(task_id, attachments):
+    entries = [item for item in (attachments or []) if isinstance(item, dict)]
+    if not entries:
+        return None
+    categories = {str(item.get("category", "")).strip() for item in entries}
+    image_count = sum(1 for item in entries if str(item.get("mime_type", "")).startswith("image/"))
+    if len(entries) == image_count:
+        title = "1 photo uploaded" if image_count == 1 else f"{image_count} photos uploaded"
+    elif len(entries) == 1 and "invoice" in categories:
+        title = "Invoice attached"
+    elif len(entries) == 1 and "completion_report_attachment" in categories:
+        title = "Completion report uploaded"
+    else:
+        title = "1 file uploaded" if len(entries) == 1 else f"{len(entries)} files uploaded"
+    task = _find_operations_task(task_id) or {}
+    return _append_operations_task_event(
+        task_id,
+        "attachment_added",
+        title,
+        f"Attachment count: {len(task.get('attachments', []))}",
+        status=task.get("status", "NEW"),
+    )
 
 
 def _update_operations_task_completion_report(task_id, report_data):
@@ -12128,10 +12215,11 @@ def owners_property_new():
     property_record = _find_owner_property(requested_property_id) if requested_property_id else None
     if property_record and str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
         property_record = None
+    prefill_name = str(request.args.get("name", "")).strip()[:200] if request.method == "GET" and not property_record else ""
     property_assets = property_record.get("assets", _owner_property_default_assets()) if property_record else _owner_property_default_assets()
     property_profile = property_assets.get("profile", {}) if isinstance(property_assets.get("profile", {}), dict) else {}
     form_values = {
-        "name": str(property_record.get("name", "")).strip() if property_record else "",
+        "name": str(property_record.get("name", "")).strip() if property_record else prefill_name,
         "property_type": str(property_record.get("property_type", "")).strip() if property_record else "",
         "address": str(property_profile.get("address", "")).strip(),
         "city": str(property_profile.get("city", "")).strip() or (str(property_record.get("location", "")).strip() if property_record else ""),
@@ -13780,16 +13868,40 @@ def _professional_evidence_signature_valid(mime_type, content):
         return content.startswith(b"\x89PNG\r\n\x1a\n")
     if mime_type == "image/webp":
         return len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+    if mime_type in {"image/heic", "image/heif"}:
+        return len(content) >= 12 and content[4:8] == b"ftyp" and any(
+            brand in content[8:32]
+            for brand in (b"heic", b"heix", b"hevc", b"hevx", b"mif1", b"msf1")
+        )
+    if mime_type == "application/pdf":
+        return content.startswith(b"%PDF-")
     return False
 
 
 def _validate_professional_task_evidence(uploaded_file):
-    original_name = secure_filename(str(getattr(uploaded_file, "filename", "") or "").strip())
-    mime_type = str(getattr(uploaded_file, "mimetype", "") or "").strip().lower()
-    suffix = Path(original_name).suffix.lower()
-    if not original_name:
+    raw_name = str(getattr(uploaded_file, "filename", "") or "").strip().replace("\\", "/")
+    original_name = raw_name.rsplit("/", 1)[-1][:255]
+    safe_original_name = secure_filename(original_name)
+    suffix = Path(safe_original_name).suffix.lower()
+    mime_by_suffix = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".heic": "image/heic",
+        ".pdf": "application/pdf",
+    }
+    mime_type = mime_by_suffix.get(suffix, "")
+    declared_mime_type = str(getattr(uploaded_file, "mimetype", "") or "").strip().lower()
+    if not original_name or not safe_original_name:
         return None, "evidence_required"
-    if mime_type not in PROFESSIONAL_TASK_EVIDENCE_TYPES or suffix not in PROFESSIONAL_TASK_EVIDENCE_TYPES[mime_type]:
+    if not mime_type or suffix not in PROFESSIONAL_TASK_EVIDENCE_TYPES.get(mime_type, set()):
+        return None, "evidence_invalid_type"
+    if declared_mime_type and declared_mime_type not in {
+        mime_type,
+        "application/octet-stream",
+        "image/heif" if mime_type == "image/heic" else mime_type,
+    }:
         return None, "evidence_invalid_type"
 
     content = uploaded_file.stream.read(PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES + 1)
@@ -13801,12 +13913,24 @@ def _validate_professional_task_evidence(uploaded_file):
         return None, "evidence_invalid_type"
     return {
         "original_name": original_name,
+        "safe_original_name": safe_original_name,
         "mime_type": mime_type,
         "content": content,
     }, ""
 
 
-def _save_professional_task_evidence(task, professional_account, uploaded_file, *, category="", display_name="", validated=None):
+def _save_operations_task_evidence(
+    task,
+    uploaded_file,
+    *,
+    category="",
+    display_name="",
+    uploader_id="",
+    uploader_role="",
+    uploaded_by="",
+    validated=None,
+    append_event=False,
+):
     validated_file = validated
     if validated_file is None:
         validated_file, validation_error = _validate_professional_task_evidence(uploaded_file)
@@ -13820,18 +13944,29 @@ def _save_professional_task_evidence(task, professional_account, uploaded_file, 
     upload_dir = PROFESSIONAL_TASK_EVIDENCE_DIR / safe_task_id
     upload_dir.mkdir(parents=True, exist_ok=True)
     original_name = validated_file["original_name"]
+    safe_original_name = validated_file["safe_original_name"]
     mime_type = validated_file["mime_type"]
-    stored_name = f"{uuid4().hex}_{original_name}"
+    attachment_id = uuid4().hex
+    stored_name = f"{attachment_id}_{safe_original_name}"
     stored_path = upload_dir / stored_name
     try:
         stored_path.write_bytes(validated_file["content"])
         attachment_entry = _append_operations_task_attachment(
             task_id,
             name=str(display_name or "").strip() or original_name,
-            uploaded_by=_professional_account_display_label(professional_account),
+            uploaded_by=str(uploaded_by or "").strip(),
             category=str(category or "").strip(),
             mime_type=mime_type,
-            url=url_for("professional_task_evidence", task_id=task_id, filename=stored_name),
+            url=url_for("operations_task_attachment_file", task_id=task_id, attachment_id=attachment_id),
+            attachment_id=attachment_id,
+            operation_id=str((task or {}).get("request_id", "")).strip() or str((task or {}).get("source_id", "")).strip(),
+            property_id=str((task or {}).get("property_id", "")).strip(),
+            uploader_id=str(uploader_id or "").strip(),
+            uploader_role=str(uploader_role or "").strip(),
+            filename=stored_name,
+            original_filename=original_name,
+            file_size=len(validated_file["content"]),
+            append_event=append_event,
         )
         if not attachment_entry:
             stored_path.unlink(missing_ok=True)
@@ -13840,6 +13975,134 @@ def _save_professional_task_evidence(task, professional_account, uploaded_file, 
         stored_path.unlink(missing_ok=True)
         return None, "evidence_save_failed"
     return attachment_entry, ""
+
+
+def _save_professional_task_evidence(task, professional_account, uploaded_file, *, category="", display_name="", validated=None, append_event=False):
+    return _save_operations_task_evidence(
+        task,
+        uploaded_file,
+        category=category,
+        display_name=display_name,
+        uploader_id=str((professional_account or {}).get("id", "")).strip(),
+        uploader_role="professional",
+        uploaded_by=_professional_account_display_label(professional_account),
+        validated=validated,
+        append_event=append_event,
+    )
+
+
+def _find_operations_task_attachment(task, attachment_id):
+    target_id = str(attachment_id or "").strip()
+    return next(
+        (
+            item
+            for item in (task or {}).get("attachments", [])
+            if str(item.get("id", "")).strip() == target_id
+        ),
+        None,
+    )
+
+
+def _owner_can_view_operations_task(task, owner_account):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
+    if not owner_id and not owner_email:
+        return False
+    if owner_id and str((task or {}).get("owner_id", "")).strip() == owner_id:
+        return True
+    if owner_email and str((task or {}).get("owner_email", "")).strip().lower() == owner_email:
+        return True
+    property_record = _find_owner_property((task or {}).get("property_id", ""))
+    return bool(property_record and str(property_record.get("owner_id", "")).strip() == owner_id)
+
+
+def _operations_attachment_viewer_role(task):
+    auth = getattr(request, "authorization", None)
+    if auth:
+        admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+        super_username, super_password = _admin_super_credentials()
+        if (
+            _admin_credentials_match(auth.username, auth.password, admin_username, admin_password)
+            or _admin_credentials_match(auth.username, auth.password, super_username, super_password)
+        ):
+            return "admin"
+
+    enterprise_user, enterprise_organization, _membership, enterprise_role = _enterprise_user_identity()
+    if enterprise_user and enterprise_role in {
+        ROLE_PLATFORM_ADMIN,
+        ROLE_COMPANY_ADMIN,
+        ROLE_OPERATIONS_MANAGER,
+        ROLE_OPERATIONS_COORDINATOR,
+    }:
+        task_organization_id = str((task or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+        viewer_organization_id = str((enterprise_organization or {}).get("id", "")).strip()
+        if enterprise_role == ROLE_PLATFORM_ADMIN or viewer_organization_id == task_organization_id:
+            return "operations"
+
+    if session.get(PROFESSIONAL_SESSION_LOGGED_IN_KEY):
+        professional_account = _current_professional_account()
+        if professional_account and _professional_task_matches_account(task, professional_account):
+            return "professional"
+
+    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        owner_account = _current_owner_account()
+        if _owner_can_view_operations_task(task, owner_account):
+            return "owner"
+    return ""
+
+
+def _delete_operations_task_attachment(task, attachment):
+    attachment_id = str((attachment or {}).get("id", "")).strip()
+    task_id = str((task or {}).get("id", "")).strip()
+    if not attachment_id or not task_id:
+        return False
+    remaining = [
+        item
+        for item in (task or {}).get("attachments", [])
+        if str(item.get("id", "")).strip() != attachment_id
+    ]
+    updated_task = _operations_task_update_json_fields(
+        task_id,
+        attachments_json=_operations_task_json_dumps(remaining),
+    )
+    if not updated_task:
+        return False
+    stored_name = str((attachment or {}).get("filename", "")).strip()
+    if stored_name and secure_filename(stored_name) == stored_name:
+        stored_path = PROFESSIONAL_TASK_EVIDENCE_DIR / secure_filename(task_id) / stored_name
+        try:
+            stored_path.unlink(missing_ok=True)
+        except OSError:
+            app.logger.warning("Task evidence cleanup failed for %s", attachment_id)
+    _append_operations_task_event(
+        task_id,
+        "attachment_deleted",
+        "Attachment deleted",
+        str((attachment or {}).get("original_filename", (attachment or {}).get("name", ""))).strip(),
+        status=updated_task.get("status", "NEW"),
+    )
+    return True
+
+
+@app.get("/operations/tasks/<task_id>/attachments/<attachment_id>")
+def operations_task_attachment_file(task_id, attachment_id):
+    task_record = _find_operations_task(task_id)
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not task_record or not attachment or not _operations_attachment_viewer_role(task_record):
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    stored_name = str(attachment.get("filename", "")).strip()
+    if not stored_name or secure_filename(stored_name) != stored_name:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    evidence_path = PROFESSIONAL_TASK_EVIDENCE_DIR / secure_filename(str(task_record.get("id", "")).strip()) / stored_name
+    if not evidence_path.is_file():
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    return send_file(
+        evidence_path.resolve(),
+        mimetype=str(attachment.get("mime_type", "")).strip() or None,
+        as_attachment=str(request.args.get("download", "")).strip().lower() in {"1", "true", "yes"},
+        download_name=str(attachment.get("original_filename", attachment.get("name", "evidence"))).strip() or "evidence",
+    )
 
 
 @app.get("/professionals/tasks/<task_id>/evidence/<filename>")
@@ -13873,6 +14136,26 @@ def professional_task_evidence(task_id, filename):
     if not evidence_path.is_file():
         return Response("Evidence not found.", status=404, mimetype="text/plain")
     return send_file(evidence_path.resolve())
+
+
+@app.post("/professionals/tasks/<task_id>/attachments/<attachment_id>/delete")
+@professional_required
+def professional_task_attachment_delete(task_id, attachment_id):
+    professional_account = _current_professional_account()
+    task_record = _find_operations_task(task_id)
+    if not task_record or not _professional_task_matches_account(task_record, professional_account):
+        return Response("Task not found.", status=404, mimetype="text/plain")
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not attachment:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    if (
+        str(attachment.get("uploader_role", "")).strip() != "professional"
+        or str(attachment.get("uploader_id", "")).strip() != str(professional_account.get("id", "")).strip()
+    ):
+        return Response("Forbidden.", status=403, mimetype="text/plain")
+    if not _delete_operations_task_attachment(task_record, attachment):
+        return _professional_task_redirect(task_id, error="evidence_delete_failed")
+    return _professional_task_redirect(task_id, notice="evidence_deleted")
 
 
 @app.route("/professionals/tasks/<task_id>", methods=["GET", "POST"])
@@ -14019,6 +14302,8 @@ def professionals_task_detail(task_id):
         elif action == "attachment":
             if not attachment_files:
                 return _professional_task_redirect(task_id, error="evidence_required")
+            if attachment_category not in OPERATIONS_TASK_EVIDENCE_CATEGORIES:
+                return _professional_task_redirect(task_id, error="evidence_category_invalid")
             validated_files = []
             for uploaded_file in attachment_files:
                 validated_file, upload_error = _validate_professional_task_evidence(uploaded_file)
@@ -14038,10 +14323,11 @@ def professionals_task_detail(task_id):
                 if upload_error:
                     return _professional_task_redirect(task_id, error=upload_error)
                 attachment_entries.append(attachment_entry)
+            timeline_event = _append_operations_evidence_timeline_event(task_id, attachment_entries) or {}
             _append_operations_notification(
                 "attachment_added",
-                "Professional evidence uploaded",
-                f"{len(attachment_entries)} evidence image(s) uploaded",
+                str(timeline_event.get("title", "Professional evidence uploaded")),
+                str(timeline_event.get("detail", f"{len(attachment_entries)} evidence file(s) uploaded")),
                 task_id=task_id,
                 source_type=task_record.get("source_type", ""),
                 source_id=task_record.get("source_id", ""),
@@ -14100,6 +14386,7 @@ def professionals_task_detail(task_id):
                     issue_photo,
                     category="issue_photo",
                     validated=validated_file,
+                    append_event=True,
                 )
                 if upload_error:
                     return _professional_task_redirect(task_id, error=upload_error)
@@ -14161,7 +14448,7 @@ def professionals_task_detail(task_id):
     timeline_events = [
         event
         for event in _load_operations_task_events(refreshed_task.get("request_id", ""))
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "checklist_updated", "comment_added", "comment_added_internal", "attachment_added", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "professional_comment_edited", "professional_issue_reported"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "checklist_updated", "comment_added", "comment_added_internal", "attachment_added", "attachment_deleted", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "professional_comment_edited", "professional_issue_reported"}
     ]
     return render_template(
         "professionals_task_detail.html",
@@ -14509,6 +14796,61 @@ def _format_task_deadline_remaining(task_record):
     return " ".join(parts) + " remaining"
 
 
+def _operations_evidence_copy(language):
+    bundles = {
+        "bg": {
+            "eyebrow": "Файлове / Доказателства", "title": "Доказателства за извършената работа",
+            "intro": "Качете снимки и подкрепящи документи директно към задачата.", "category": "Категория",
+            "choose_category": "Изберете категория", "add_photos": "Добави снимки", "add_documents": "Добави документи",
+            "drop": "Пуснете файловете тук или използвайте бутоните", "requirements": "JPG, JPEG, PNG, WebP, HEIC или PDF до 10 MB на файл.",
+            "upload": "Качи доказателства", "empty": "Все още няма качени доказателства.", "preview": "Преглед",
+            "download": "Изтегли", "delete": "Изтрий", "uploaded_by": "Качено от", "uploaded": "Доказателствата са качени.",
+            "deleted": "Доказателството е изтрито.", "error_required": "Изберете поне един файл.",
+            "error_category": "Изберете валидна категория.", "error_type": "Този формат не се поддържа. Използвайте JPG, JPEG, PNG, WebP, HEIC или PDF.",
+            "error_empty": "Избраният файл е празен.", "error_large": "Всеки файл трябва да бъде до 10 MB.",
+            "error_save": "Доказателството не можа да бъде запазено.", "error_delete": "Доказателството не можа да бъде изтрито.",
+            "categories": {"before_photos": "Снимки преди", "after_photos": "Снимки след", "invoice": "Фактура", "receipt": "Касова бележка", "inspection_report": "Доклад от инспекция", "damage_evidence": "Доказателства за щети", "completion_report_attachment": "Приложение към отчета за завършване", "other": "Друго"},
+        },
+        "en": {
+            "eyebrow": "Files / Evidence", "title": "Evidence of completed work", "intro": "Upload photos and supporting documents directly to this task.",
+            "category": "Category", "choose_category": "Select a category", "add_photos": "Add photos", "add_documents": "Add documents",
+            "drop": "Drop files here or use the buttons", "requirements": "JPG, JPEG, PNG, WebP, HEIC, or PDF up to 10 MB per file.",
+            "upload": "Upload evidence", "empty": "No evidence uploaded yet.", "preview": "Preview", "download": "Download", "delete": "Delete",
+            "uploaded_by": "Uploaded by", "uploaded": "Evidence uploaded.", "deleted": "Evidence deleted.", "error_required": "Choose at least one file.",
+            "error_category": "Select a valid category.", "error_type": "That format is not supported. Use JPG, JPEG, PNG, WebP, HEIC, or PDF.",
+            "error_empty": "The selected file is empty.", "error_large": "Each file must be 10 MB or smaller.",
+            "error_save": "The evidence could not be saved.", "error_delete": "The evidence could not be deleted.",
+            "categories": {"before_photos": "Before photos", "after_photos": "After photos", "invoice": "Invoice", "receipt": "Receipt", "inspection_report": "Inspection report", "damage_evidence": "Damage evidence", "completion_report_attachment": "Completion report attachment", "other": "Other"},
+        },
+        "fr": {
+            "eyebrow": "Fichiers / Preuves", "title": "Preuves du travail réalisé",
+            "intro": "Téléversez des photos et des documents justificatifs directement dans cette tâche.", "category": "Catégorie",
+            "choose_category": "Sélectionnez une catégorie", "add_photos": "Ajouter des photos", "add_documents": "Ajouter des documents",
+            "drop": "Déposez les fichiers ici ou utilisez les boutons", "requirements": "JPG, JPEG, PNG, WebP, HEIC ou PDF, 10 Mo maximum par fichier.",
+            "upload": "Téléverser les preuves", "empty": "Aucune preuve téléversée pour le moment.", "preview": "Aperçu",
+            "download": "Télécharger", "delete": "Supprimer", "uploaded_by": "Téléversé par", "uploaded": "Preuves téléversées.",
+            "deleted": "Preuve supprimée.", "error_required": "Sélectionnez au moins un fichier.", "error_category": "Sélectionnez une catégorie valide.",
+            "error_type": "Ce format n’est pas pris en charge. Utilisez JPG, JPEG, PNG, WebP, HEIC ou PDF.",
+            "error_empty": "Le fichier sélectionné est vide.", "error_large": "Chaque fichier doit avoir une taille maximale de 10 Mo.",
+            "error_save": "La preuve n’a pas pu être enregistrée.", "error_delete": "La preuve n’a pas pu être supprimée.",
+            "categories": {"before_photos": "Photos avant intervention", "after_photos": "Photos après intervention", "invoice": "Facture", "receipt": "Reçu", "inspection_report": "Rapport d’inspection", "damage_evidence": "Preuves des dommages", "completion_report_attachment": "Pièce jointe au rapport de clôture", "other": "Autre"},
+        },
+    }
+    return bundles.get(str(language or "").strip().lower(), bundles["en"])
+
+
+def _format_evidence_file_size(file_size):
+    try:
+        size = max(0, int(file_size or 0))
+    except (TypeError, ValueError):
+        size = 0
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KB"
+    return f"{size / (1024 * 1024):.1f} MB"
+
+
 def _admin_operations_task_context(task_record):
     owner_account = _find_owner_account(task_record.get("owner_id", ""))
     property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
@@ -14544,6 +14886,16 @@ def _admin_operations_task_context(task_record):
         for account in _load_professional_accounts()
         if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
     ]
+    evidence_copy = _operations_evidence_copy(_resolve_current_language())
+    evidence_errors = {
+        "evidence_required": evidence_copy["error_required"],
+        "evidence_category_invalid": evidence_copy["error_category"],
+        "evidence_invalid_type": evidence_copy["error_type"],
+        "evidence_empty": evidence_copy["error_empty"],
+        "evidence_too_large": evidence_copy["error_large"],
+        "evidence_save_failed": evidence_copy["error_save"],
+        "evidence_delete_failed": evidence_copy["error_delete"],
+    }
     return {
         "task": {
             **task_record,
@@ -14570,6 +14922,10 @@ def _admin_operations_task_context(task_record):
         "checklist_total_count": checklist_total_count,
         "checklist_percentage": checklist_percentage,
         "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
+        "evidence_copy": evidence_copy,
+        "evidence_error": evidence_errors.get(str(request.args.get("evidence_error", "")).strip(), ""),
+        "evidence_notice": evidence_copy.get(str(request.args.get("evidence_notice", "")).strip(), ""),
+        "format_evidence_file_size": _format_evidence_file_size,
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
         "completion_report": task_record.get("completion_report", _operations_task_completion_report(task_record.get("completion_report_json", ""))),
     }
@@ -15257,8 +15613,14 @@ def _admin_credentials_match(username, password, expected_username, expected_pas
     return bool(
         expected_username
         and expected_password
-        and hmac.compare_digest(str(username or ""), expected_username)
-        and hmac.compare_digest(str(password or ""), expected_password)
+        and hmac.compare_digest(
+            str(username or "").encode("utf-8"),
+            str(expected_username).encode("utf-8"),
+        )
+        and hmac.compare_digest(
+            str(password or "").encode("utf-8"),
+            str(expected_password).encode("utf-8"),
+        )
     )
 
 
@@ -21749,6 +22111,7 @@ def admin_operations_detail(task_id):
 
     if request.method == "POST":
         task_action = str(request.form.get("task_action", "details")).strip().lower()
+        redirect_args = {"task_id": task_id}
         if task_action == "checklist":
             checklist_selection = {
                 key: request.form.get(f"checklist_{key}") == "on"
@@ -21759,6 +22122,48 @@ def admin_operations_detail(task_id):
             comment_text = str(request.form.get("comment", "")).strip()
             comment_type = str(request.form.get("comment_type", "General")).strip() or "General"
             _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text, comment_type=comment_type)
+        elif task_action == "attachment":
+            category = str(request.form.get("attachment_category", "")).strip()
+            uploaded_files = [
+                item
+                for item in [
+                    *request.files.getlist("evidence_photos"),
+                    *request.files.getlist("evidence_documents"),
+                ]
+                if item and item.filename
+            ]
+            if category not in OPERATIONS_TASK_EVIDENCE_CATEGORIES:
+                redirect_args["evidence_error"] = "evidence_category_invalid"
+            elif not uploaded_files:
+                redirect_args["evidence_error"] = "evidence_required"
+            else:
+                validated_files = []
+                for uploaded_file in uploaded_files:
+                    validated_file, upload_error = _validate_professional_task_evidence(uploaded_file)
+                    if upload_error:
+                        redirect_args["evidence_error"] = upload_error
+                        break
+                    validated_files.append((uploaded_file, validated_file))
+                if "evidence_error" not in redirect_args:
+                    attachment_entries = []
+                    for uploaded_file, validated_file in validated_files:
+                        attachment_entry, upload_error = _save_operations_task_evidence(
+                            task_record,
+                            uploaded_file,
+                            category=category,
+                            uploader_id=_current_admin_operator_key(),
+                            uploader_role="admin",
+                            uploaded_by=_current_admin_operator_key(),
+                            validated=validated_file,
+                        )
+                        if upload_error:
+                            redirect_args["evidence_error"] = upload_error
+                            break
+                        attachment_entries.append(attachment_entry)
+                    if attachment_entries:
+                        _append_operations_evidence_timeline_event(task_id, attachment_entries)
+                    if "evidence_error" not in redirect_args:
+                        redirect_args["evidence_notice"] = "uploaded"
         else:
             status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
             assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
@@ -21776,7 +22181,7 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
-        return redirect(url_for("admin_operations_detail", task_id=task_id))
+        return redirect(url_for("admin_operations_detail", **redirect_args, _anchor="evidence" if task_action == "attachment" else None))
 
     context = _admin_operations_task_context(task_record)
     return render_template(
@@ -21784,6 +22189,20 @@ def admin_operations_detail(task_id):
         **context,
         status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
     )
+
+
+@app.post("/admin/operations/<task_id>/attachments/<attachment_id>/delete")
+@admin_required
+def admin_operations_attachment_delete(task_id, attachment_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    task_record = _find_operations_task(task_id)
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not task_record or not attachment:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    if not _delete_operations_task_attachment(task_record, attachment):
+        return redirect(url_for("admin_operations_detail", task_id=task_id, evidence_error="evidence_delete_failed", _anchor="evidence"))
+    return redirect(url_for("admin_operations_detail", task_id=task_id, evidence_notice="deleted", _anchor="evidence"))
 
 
 @app.post("/admin/operations/<task_id>/status")
