@@ -4403,3 +4403,72 @@
 </script>
 </body>
 </html>
+
+<style>
+/* Mobile stabilization for the executive admin dashboard */
+@media (max-width: 768px) {
+  body.admin-cockpit-page {
+    overflow-x: clip;
+  }
+
+  .admin-cockpit-page .admin-cockpit-shell {
+    width: calc(100% - 16px) !important;
+    max-width: none !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding-top: 8px !important;
+    margin-inline: auto !important;
+  }
+
+  .admin-cockpit-page .admin-cockpit-shell > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .admin-cockpit-page .admin-cockpit-hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+
+  .admin-cockpit-page .admin-cockpit-hero > *,
+  .admin-cockpit-page .admin-hero-side,
+  .admin-cockpit-page .admin-hero-summary {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-cockpit-page .admin-exec-kpis .admin-kpi-grid,
+  .admin-cockpit-page .admin-alert-grid,
+  .admin-cockpit-page .admin-command-center__grid,
+  .admin-cockpit-page .admin-cockpit-actions,
+  .admin-cockpit-page .admin-snapshot-grid,
+  .admin-cockpit-page .admin-risk-grid,
+  .admin-cockpit-page .admin-exec-action-row,
+  .admin-cockpit-page .admin-hero-stat-row,
+  .admin-cockpit-page .admin-two-up,
+  .admin-cockpit-page .admin-three-up,
+  .admin-cockpit-page .admin-four-up {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-cockpit-page .admin-kpi-card,
+  .admin-cockpit-page .admin-alert-card,
+  .admin-cockpit-page .admin-command-card,
+  .admin-cockpit-page .admin-risk-card,
+  .admin-cockpit-page .admin-property-card,
+  .admin-cockpit-page .admin-dashboard-section,
+  .admin-cockpit-page .admin-cockpit-panel {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .admin-cockpit-page img,
+  .admin-cockpit-page svg,
+  .admin-cockpit-page video,
+  .admin-cockpit-page canvas {
+    max-width: 100% !important;
+    height: auto;
+  }
+}
+</style>
