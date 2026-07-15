@@ -4,6 +4,7 @@
   window.BlackSeaI18NModules["demo"] = {
   "bg": {
     "demo": {
+      "pageTitle": "BlackSea Connect | Оперативен демо портал",
       "arrivalEyebrow": "Поток на пристиганията",
       "arrivalTitle": "Всяко пристигане минава през прост и проследим оперативен поток.",
       "arrivalStatus": "Проследени 5 стъпки",
@@ -296,6 +297,7 @@
   },
   "en": {
     "demo": {
+      "pageTitle": "BlackSea Connect | Coastal Operations Demo",
       "topStatusChip": "Demo operations live",
       "topUpdatedChip": "Updated 2 min ago",
       "topPilotCta": "Request pilot access",
@@ -423,6 +425,7 @@
   },
   "fr": {
     "demo": {
+      "pageTitle": "BlackSea Connect | Démo des opérations",
       "topStatusChip": "Les opérations de démonstration sont en direct",
       "topUpdatedChip": "Mis à jour il y a 2 min",
       "topPilotCta": "Demander un accès pilote",
@@ -568,6 +571,7 @@
   },
   "ru": {
     "demo": {
+      "pageTitle": "BlackSea Connect | Демонстрация операций",
       "topStatusChip": "Демо-операции в прямом эфире",
       "topUpdatedChip": "Обновлено 2 мин назад",
       "topPilotCta": "Запросить пилотный доступ",

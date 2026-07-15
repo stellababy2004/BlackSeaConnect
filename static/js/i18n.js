@@ -22,7 +22,7 @@
   };
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
   const warnedKeys = new Set();
-  const DEBUG_I18N = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+  const DEBUG_I18N = false;
 
   function normalizeLanguage(lang) {
     if (!lang) {
