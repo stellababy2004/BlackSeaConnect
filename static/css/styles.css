@@ -34082,7 +34082,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34108,7 +34108,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34126,7 +34126,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34142,7 +34142,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34156,7 +34156,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34171,7 +34171,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .professional-dashboard-page, .professional-tasks-page, .professional-task-page
 ) .topbar {
   border-bottom: 1px solid var(--app-border) !important;
@@ -34183,7 +34183,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .professional-dashboard-page, .professional-tasks-page, .professional-task-page
 ) :is(.brand, .site-nav__link, .language-switcher__button, .owner-profile-dropdown__summary) {
   color: var(--app-text) !important;
@@ -34194,7 +34194,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34203,7 +34203,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 ) :is(
   .owner-dashboard-main, .owner-properties-shell, .owner-property-detail-shell,
   .owner-portal-dashboard, .owner-portal-auth-layout, .calendar-shell,
-  .reservations-shell, .reservation-detail-shell, .operations-demo-shell,
+  .reservations-shell, .reservation-detail-shell,
   .admin-cockpit-shell, .admin-operations-shell, .admin-operations-detail-shell,
   .admin-properties-shell, .admin-property-detail-shell, .admin-owner-accounts-shell,
   .admin-owner-detail-shell, .admin-notifications-shell, .admin-events-shell,
@@ -34217,7 +34217,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34226,7 +34226,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 ) :is(
   .owner-portal-card, .owner-properties-panel, .owner-property-detail-panel,
   .owner-dashboard-disclosure, .owner-ai-center, .calendar-panel,
-  .reservations-panel, .reservation-detail-panel, .operations-demo-panel,
+  .reservations-panel, .reservation-detail-panel,
   .form-card, .section-card, .request-card, .timeline-card,
   .admin-cockpit-panel, .admin-operations-panel, .admin-operations-detail-panel,
   .admin-properties-panel, .admin-property-detail-panel, .admin-owner-accounts-panel,
@@ -34243,7 +34243,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34266,7 +34266,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34295,7 +34295,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
     .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
     .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34311,7 +34311,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
     .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
     .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34329,7 +34329,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34350,7 +34350,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
     .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
     .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34366,7 +34366,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34382,7 +34382,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34402,7 +34402,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .professional-dashboard-page, .professional-tasks-page, .professional-task-page
 ) > .hero > :is(.hero__content, .hero__content--home) {
   min-height: 0 !important;
@@ -34467,7 +34467,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .professional-dashboard-page, .professional-tasks-page, .professional-task-page
   ) > .hero > :is(.hero__content, .hero__content--home) {
     padding-top: 18px !important;
@@ -34480,7 +34480,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
 body:is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34499,7 +34499,7 @@ body:is(
 body:is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34514,7 +34514,7 @@ body:is(
 body:is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34531,7 +34531,7 @@ body:is(
 body:is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34546,7 +34546,7 @@ body:is(
 body:is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34565,7 +34565,7 @@ body:is(
   body:is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
     .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
     .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34581,7 +34581,7 @@ body:is(
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34594,7 +34594,7 @@ body:is(
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34620,7 +34620,7 @@ body:is(
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34646,7 +34646,7 @@ body:is(
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
-  .reservations-page, .reservation-detail-page, .operations-demo-page,
+  .reservations-page, .reservation-detail-page,
   .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
   .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
   .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -34662,7 +34662,7 @@ body:is(
   :is(
     .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
     .owner-request-service-page, .owner-property-new-page, .calendar-page,
-    .reservations-page, .reservation-detail-page, .operations-demo-page,
+    .reservations-page, .reservation-detail-page,
     .admin-cockpit-page, .admin-operations-page, .admin-operations-detail-page,
     .admin-properties-page, .admin-property-detail-page, .admin-owner-accounts-page,
     .admin-owner-detail-page, .admin-notifications-page, .admin-events-page,
@@ -38477,3 +38477,249 @@ html body.admin-operations-detail-page:not(.admin-operations-detail-page--embedd
   top: auto !important;
   z-index: 1 !important;
 }
+
+/* Operations demo mobile isolation */
+@media (max-width: 700px) {
+  body.operations-demo-page {
+    overflow-x: hidden !important;
+  }
+
+  body.operations-demo-page .operations-topbar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 12px auto 0 !important;
+    padding: 12px !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  body.operations-demo-page .operations-topbar > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.operations-demo-page .operations-topbar :is(
+    ul,
+    .site-nav,
+    .site-nav__links,
+    .operations-topbar__links,
+    .language-switcher
+  ) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 6px !important;
+    position: static !important;
+  }
+
+  body.operations-demo-page .operations-topbar :is(
+    li,
+    a,
+    button,
+    .site-nav__link,
+    .language-switcher__button
+  ) {
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 8px 10px !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    line-height: 1.2 !important;
+  }
+
+  body.operations-demo-page .operations-hero {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 16px 12px 24px !important;
+    box-sizing: border-box !important;
+  }
+
+  body.operations-demo-page .operations-hero > *,
+  body.operations-demo-page .operations-hero__copy,
+  body.operations-demo-page .operations-hero__preview {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.operations-demo-page .operations-hero__copy {
+    padding: 20px !important;
+  }
+
+  body.operations-demo-page .operations-hero__preview {
+    margin-top: 16px !important;
+  }
+
+  body.operations-demo-page :is(
+    .operations-panel,
+    .operations-panel--wide,
+    .operations-preview-card,
+    .operations-feed__item,
+    .operations-property-card,
+    .operations-team-card,
+    .operations-network-card
+  ) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Operations demo narrow mobile repair */
+@media (max-width: 700px) {
+  body.operations-demo-page .operations-topbar__actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 8px !important;
+    position: static !important;
+  }
+
+  body.operations-demo-page .operations-topbar__actions > * {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+  }
+
+  body.operations-demo-page .operations-topbar .site-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    height: auto !important;
+    gap: 6px !important;
+  }
+
+  body.operations-demo-page .operations-topbar .site-nav__link {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    white-space: normal !important;
+  }
+
+  body.operations-demo-page .operations-hero__grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 16px !important;
+    margin: 0 !important;
+  }
+
+  body.operations-demo-page .operations-hero__copy,
+  body.operations-demo-page .operations-hero__preview {
+    grid-column: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body.operations-demo-page .operations-hero__text {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  body.operations-demo-page .operations-preview-card {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 16px !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 10px !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+  }
+
+  body.operations-demo-page .operations-preview-card__notes :is(
+    strong,
+    span,
+    p,
+    small
+  ) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    writing-mode: horizontal-tb !important;
+  }
+}
+
