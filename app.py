@@ -7220,6 +7220,102 @@ def _transition_operations_task_quote(task_id, action):
     return _find_operations_task(task_id), None
 
 
+def _transition_operations_task_payment(task_id, action):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    normalized_action = str(action or "").strip().lower()
+    quote_status = str(task.get("quote_status", "NONE") or "NONE").strip().upper()
+    owner_approval_status = str(task.get("owner_approval_status", "PENDING") or "PENDING").strip().upper()
+    payment_status = str(task.get("payment_status", "PENDING") or "PENDING").strip().upper()
+    payout_status = str(task.get("payout_status", "NOT_READY") or "NOT_READY").strip().upper()
+    updated_at = _utc_now_iso()
+
+    if normalized_action == "payment":
+        if payment_status == "PAID" and quote_status in {"FUNDED", "PAID_OUT"}:
+            return task, "already_processed"
+        if quote_status != "APPROVED" or owner_approval_status != "APPROVED" or payment_status != "PENDING":
+            return None, "invalid_payment_state"
+
+        payment_reference = f"MANUAL-{uuid4().hex[:12].upper()}"
+        sql = """
+            UPDATE operations_tasks
+            SET quote_status = 'FUNDED',
+                payment_status = 'PAID',
+                payout_status = 'READY',
+                payment_provider = 'MANUAL',
+                payment_reference = ?,
+                paid_at = ?,
+                quote_locked = 1,
+                updated_at = ?
+            WHERE (id = ? OR request_id = ? OR source_id = ?)
+              AND quote_status = 'APPROVED'
+              AND owner_approval_status = 'APPROVED'
+              AND payment_status = 'PENDING'
+        """
+        params = (payment_reference, updated_at, updated_at, task_id, task_id, task_id)
+        event_type = "finance_payment_recorded"
+        event_title = "Owner payment recorded"
+        event_detail = f"Manual payment reference: {payment_reference}"
+    elif normalized_action == "release":
+        if payout_status == "PAID" and quote_status == "PAID_OUT":
+            return task, "already_processed"
+        if quote_status != "FUNDED" or payment_status != "PAID" or payout_status != "READY":
+            return None, "invalid_payout_state"
+
+        sql = """
+            UPDATE operations_tasks
+            SET quote_status = 'PAID_OUT',
+                payout_status = 'PAID',
+                released_at = ?,
+                updated_at = ?
+            WHERE (id = ? OR request_id = ? OR source_id = ?)
+              AND quote_status = 'FUNDED'
+              AND payment_status = 'PAID'
+              AND payout_status = 'READY'
+        """
+        params = (updated_at, updated_at, task_id, task_id, task_id)
+        event_type = "finance_payout_released"
+        event_title = "Professional payout released"
+        event_detail = f"Professional payout: {float(task.get('professional_quote_amount', 0) or 0):.2f} {task.get('currency', 'EUR')}"
+    else:
+        return None, "invalid_action"
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute(sql, params)
+            if cursor.rowcount <= 0:
+                refreshed = _find_operations_task(task_id)
+                if refreshed:
+                    refreshed_quote = str(refreshed.get("quote_status", "NONE")).strip().upper()
+                    refreshed_payment = str(refreshed.get("payment_status", "PENDING")).strip().upper()
+                    refreshed_payout = str(refreshed.get("payout_status", "NOT_READY")).strip().upper()
+                    if normalized_action == "payment" and refreshed_payment == "PAID" and refreshed_quote in {"FUNDED", "PAID_OUT"}:
+                        return refreshed, "already_processed"
+                    if normalized_action == "release" and refreshed_payout == "PAID" and refreshed_quote == "PAID_OUT":
+                        return refreshed, "already_processed"
+                return None, "state_changed"
+    except Exception as exc:
+        app.logger.warning(
+            "Operations payment transition failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    _append_operations_task_event(
+        task_id,
+        event_type,
+        event_title,
+        event_detail,
+        status=task.get("status", "NEW"),
+    )
+    return _find_operations_task(task_id), None
+
+
 def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
     task = _find_operations_task(task_id)
     if not task:
@@ -11772,6 +11868,20 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
     owner_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "") for property_record in owner_properties])
+    owner_finance_quotes = [
+        task
+        for task in _load_operations_tasks()
+        if (
+            _owner_can_view_operations_task(task, owner_account)
+            and str(task.get("quote_status", "NONE")).strip().upper() == "SENT"
+            and str(task.get("owner_approval_status", "PENDING")).strip().upper() == "PENDING"
+            and float(task.get("owner_total_amount", 0) or 0) > 0
+        )
+    ]
+    owner_finance_quotes.sort(
+        key=lambda item: str(item.get("updated_at", item.get("created_at", ""))),
+        reverse=True,
+    )
     owner_calendar_context = _build_calendar_page_context("owner", owner_account)
     calendar_widget = _calendar_dashboard_widget(owner_calendar_context["calendar_events"], scope="owner")
     reservation_widget = _reservation_dashboard_widgets(owner_reservations, scope="owner")
@@ -11958,6 +12068,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             {"label": dashboard_copy["guest_requests_handled_label"], "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": dashboard_copy["resolved"], "support_key": "ownerDashboardResolved"},
             {"label": dashboard_copy["average_response_time_label"], "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else dashboard_copy["ready"], "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": dashboard_copy["from_request_to_first_action"], "support_key": "ownerDashboardFromRequestToFirstAction"},
         ],
+        "pending_finance_quotes": owner_finance_quotes,
+        "pending_finance_count": len(owner_finance_quotes),
         "quick_actions": [
             {"label": dashboard_copy["request_cleaning"], "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": dashboard_copy["fast_turnover_support"], "support_key": "ownerDashboardFastTurnoverSupport"},
             {"label": dashboard_copy["request_inspection"], "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": dashboard_copy["check_readiness"], "support_key": "ownerDashboardCheckReadiness"},
@@ -12068,7 +12180,7 @@ def _owner_property_management_context(owner_account):
             "cover_photo_url": str(property_record.get("cover_photo_url", "")).strip(),
             "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
             "last_updated_display": _format_owner_portal_timestamp(str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip()) or str(property_record.get("created_at", "")).strip(),
-            "quick_actions": [
+        "quick_actions": [
                 {"label": "Open", "href": f"/owners/properties/{property_record.get('id', '')}"},
                 {"label": "Request service", "href": f"/owners/request-service?property_id={property_record.get('id', '')}"},
             ],
@@ -12875,6 +12987,7 @@ def owners_dashboard():
         owner_requests=owner_requests,
         owner_portal=owner_portal,
         current_lang=current_lang,
+        owner_finance_csrf_token=_owner_finance_csrf_token(),
     )
 
 
@@ -13301,6 +13414,129 @@ def owners_request_service():
         service_categories=_owner_service_category_items(),
         current_lang=current_lang,
     ), (400 if errors else 200)
+
+
+def _owner_finance_csrf_token():
+    token = str(session.get("_owner_finance_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_owner_finance_csrf_token"] = token
+    return token
+
+
+def _owner_finance_csrf_valid(submitted_token):
+    expected = str(session.get("_owner_finance_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+@app.post("/owners/finance/<task_id>/<action>")
+@owner_required
+def owner_finance_quote_action(task_id, action):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+
+    if not _owner_finance_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid or expired request token.", status=403, mimetype="text/plain")
+
+    task = _find_operations_task(task_id)
+    if not task:
+        return Response("Quote not found.", status=404, mimetype="text/plain")
+
+    owner_id_matches = (
+        str(task.get("owner_id", "")).strip()
+        and str(task.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
+    )
+    owner_email_matches = (
+        str(task.get("owner_email", "")).strip().lower()
+        and str(task.get("owner_email", "")).strip().lower()
+        == str(owner_account.get("email", "")).strip().lower()
+    )
+
+    if not (owner_id_matches or owner_email_matches):
+        return Response("You do not have access to this quote.", status=403, mimetype="text/plain")
+
+    current_quote_status = str(task.get("quote_status", "NONE")).strip().upper()
+    current_approval_status = str(task.get("owner_approval_status", "PENDING")).strip().upper()
+
+    if current_quote_status != "SENT" or current_approval_status != "PENDING":
+        return redirect(url_for("owners_dashboard", finance_notice="already_processed", lang=current_lang))
+
+    normalized_action = str(action or "").strip().lower()
+    now = _utc_now_iso()
+
+    if normalized_action == "approve":
+        quote_status = "APPROVED"
+        approval_status = "APPROVED"
+        payment_status = "PENDING"
+        quote_locked = 1
+        event_type = "owner_quote_approved"
+        event_title = "Owner approved the quote"
+        notice = "approved"
+    elif normalized_action == "request-changes":
+        quote_status = "DRAFT"
+        approval_status = "CHANGES_REQUESTED"
+        payment_status = "UNPAID"
+        quote_locked = 0
+        event_type = "owner_quote_changes_requested"
+        event_title = "Owner requested changes to the quote"
+        notice = "changes_requested"
+    elif normalized_action == "reject":
+        quote_status = "REJECTED"
+        approval_status = "REJECTED"
+        payment_status = "UNPAID"
+        quote_locked = 1
+        event_type = "owner_quote_rejected"
+        event_title = "Owner rejected the quote"
+        notice = "rejected"
+    else:
+        return Response("Unsupported quote action.", status=400, mimetype="text/plain")
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE operations_tasks
+            SET quote_status = ?,
+                owner_approval_status = ?,
+                payment_status = ?,
+                quote_locked = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                quote_status,
+                approval_status,
+                payment_status,
+                quote_locked,
+                now,
+                str(task.get("id", task_id)).strip(),
+            ),
+        )
+
+    detail = (
+        f"{float(task.get('owner_total_amount', 0) or 0):.2f} "
+        f"{str(task.get('currency', 'EUR') or 'EUR').strip()}"
+    )
+
+    _append_operations_task_event(
+        str(task.get("id", task_id)).strip(),
+        event_type,
+        event_title,
+        detail=detail,
+        status=task.get("status", "NEW"),
+    )
+
+    session["_owner_finance_csrf_token"] = uuid4().hex
+
+    return redirect(
+        url_for(
+            "owners_dashboard",
+            finance_notice=notice,
+            lang=current_lang,
+        )
+        + "#owner-finance-approvals"
+    )
 
 
 @app.route("/owners/logout")
@@ -15084,6 +15320,69 @@ def _operations_evidence_copy(language):
     return bundles.get(str(language or "").strip().lower(), bundles["en"])
 
 
+def _operations_finance_copy(language):
+    bundles = {
+        "bg": {
+            "notice_saved": "Финансовата оферта е запазена.",
+            "notice_payment_recorded": "Плащането от собственика е отчетено.",
+            "notice_payout_released": "Плащането към професионалиста е освободено.",
+            "notice_already_processed": "Финансовото действие вече е било обработено безопасно.",
+            "error": "Финансовото действие не можа да бъде изпълнено.",
+            "quote_draft": "Чернова", "quote_sent": "Изпратена", "quote_approved": "Одобрена",
+            "quote_funded": "Финансирана", "quote_paid_out": "Изплатена",
+            "approval_pending": "Очаква", "approval_approved": "Одобрено",
+            "approval_changes": "Искана корекция", "approval_rejected": "Отказано",
+            "payment_pending": "Не е платено", "payment_paid": "Платено",
+            "payout_not_ready": "Не е готово", "payout_ready": "Готово за изплащане", "payout_paid": "Изплатено",
+            "confirm_payment": "Потвърди плащането от собственика",
+            "payment_help": "Ще бъде отчетено плащане от собственика.",
+            "release_payout": "Освободи плащането към професионалиста",
+            "release_confirm": "Да освободя ли плащането към професионалиста?",
+            "professional_amount": "Сума за професионалиста:",
+            "complete": "Финансовият цикъл е приключен успешно.",
+        },
+        "en": {
+            "notice_saved": "The financial quote was saved.",
+            "notice_payment_recorded": "The owner's payment was recorded.",
+            "notice_payout_released": "The professional payout was released.",
+            "notice_already_processed": "The financial action had already been processed safely.",
+            "error": "The financial action could not be completed.",
+            "quote_draft": "Draft", "quote_sent": "Sent", "quote_approved": "Approved",
+            "quote_funded": "Funded", "quote_paid_out": "Paid out",
+            "approval_pending": "Pending", "approval_approved": "Approved",
+            "approval_changes": "Changes requested", "approval_rejected": "Rejected",
+            "payment_pending": "Not paid", "payment_paid": "Paid",
+            "payout_not_ready": "Not ready", "payout_ready": "Ready for payout", "payout_paid": "Paid out",
+            "confirm_payment": "Confirm owner payment",
+            "payment_help": "The owner's payment will be recorded.",
+            "release_payout": "Release payment to the professional",
+            "release_confirm": "Release the payment to the professional?",
+            "professional_amount": "Professional amount:",
+            "complete": "The financial cycle has been completed successfully.",
+        },
+        "fr": {
+            "notice_saved": "Le devis financier a été enregistré.",
+            "notice_payment_recorded": "Le paiement du propriétaire a été enregistré.",
+            "notice_payout_released": "Le paiement au professionnel a été débloqué.",
+            "notice_already_processed": "L’action financière avait déjà été traitée en toute sécurité.",
+            "error": "L’action financière n’a pas pu être effectuée.",
+            "quote_draft": "Brouillon", "quote_sent": "Envoyée", "quote_approved": "Approuvée",
+            "quote_funded": "Financée", "quote_paid_out": "Versée",
+            "approval_pending": "En attente", "approval_approved": "Approuvée",
+            "approval_changes": "Modifications demandées", "approval_rejected": "Refusée",
+            "payment_pending": "Non payé", "payment_paid": "Payé",
+            "payout_not_ready": "Non disponible", "payout_ready": "Prêt au versement", "payout_paid": "Versé",
+            "confirm_payment": "Confirmer le paiement du propriétaire",
+            "payment_help": "Le paiement du propriétaire sera enregistré.",
+            "release_payout": "Débloquer le paiement au professionnel",
+            "release_confirm": "Débloquer le paiement au professionnel ?",
+            "professional_amount": "Montant pour le professionnel :",
+            "complete": "Le cycle financier s’est terminé avec succès.",
+        },
+    }
+    return bundles.get(str(language or "").strip().lower(), bundles["en"])
+
+
 def _format_evidence_file_size(file_size):
     try:
         size = max(0, int(file_size or 0))
@@ -15131,7 +15430,9 @@ def _admin_operations_task_context(task_record):
         for account in _load_professional_accounts()
         if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
     ]
-    evidence_copy = _operations_evidence_copy(_resolve_current_language())
+    current_language = _resolve_current_language()
+    evidence_copy = _operations_evidence_copy(current_language)
+    finance_copy = _operations_finance_copy(current_language)
     evidence_errors = {
         "evidence_required": evidence_copy["error_required"],
         "evidence_category_invalid": evidence_copy["error_category"],
@@ -15168,6 +15469,7 @@ def _admin_operations_task_context(task_record):
         "checklist_percentage": checklist_percentage,
         "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
         "evidence_copy": evidence_copy,
+        "finance_copy": finance_copy,
         "evidence_error": evidence_errors.get(str(request.args.get("evidence_error", "")).strip(), ""),
         "evidence_notice": evidence_copy.get(str(request.args.get("evidence_notice", "")).strip(), ""),
         "format_evidence_file_size": _format_evidence_file_size,
@@ -22357,6 +22659,8 @@ def admin_operations_detail(task_id):
     if request.method == "POST":
         task_action = str(request.form.get("task_action", "details")).strip().lower()
         redirect_args = {"task_id": task_id}
+        if task_action in {"finance_payment", "finance_release"} and not _validate_admin_csrf():
+            return _admin_csrf_error_response()
         if task_action == "checklist":
             checklist_selection = {
                 key: request.form.get(f"checklist_{key}") == "on"
@@ -22390,6 +22694,20 @@ def admin_operations_detail(task_id):
             else:
                 redirect_args["finance_notice"] = (
                     "sent" if transition_action == "send" else "reopened"
+                )
+        elif task_action in {"finance_payment", "finance_release"}:
+            transition_action = "payment" if task_action == "finance_payment" else "release"
+            updated_finance, finance_error = _transition_operations_task_payment(
+                task_id,
+                transition_action,
+            )
+            if finance_error == "already_processed":
+                redirect_args["finance_notice"] = "already_processed"
+            elif finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = (
+                    "payment_recorded" if transition_action == "payment" else "payout_released"
                 )
         elif task_action == "attachment":
             category = str(request.form.get("attachment_category", "")).strip()
@@ -22450,7 +22768,7 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
-        redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen"} else ("evidence" if task_action == "attachment" else None)
+        redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen", "finance_payment", "finance_release"} else ("evidence" if task_action == "attachment" else None)
         return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
     context = _admin_operations_task_context(task_record)

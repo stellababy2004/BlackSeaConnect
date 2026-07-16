@@ -1821,7 +1821,29 @@
       .admin-evidence-card__actions { display:grid; grid-template-columns:1fr 1fr; }
       .admin-evidence-card__actions .button, .admin-evidence-card__actions form, .admin-evidence-card__actions form button { width:100%; }
     }
-  </style>
+
+  .bsc-finance-actions--payment,
+  .bsc-finance-actions--payout {
+    margin-top: 16px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #edf7f2;
+  }
+
+  .bsc-finance-actions--payout {
+    background: #fff8e7;
+  }
+
+  .bsc-finance-complete {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(5, 150, 105, .22);
+    border-radius: 16px;
+    background: #ecfdf5;
+    color: #065f46;
+    font-weight: 800;
+  }
+</style>
 </head>
 <body class="admin-operations-detail-page bsc-admin-workspace{% if request.args.get('embed') %} admin-operations-detail-page--embedded{% endif %}">
   <div hidden>
@@ -2298,7 +2320,7 @@
             </div>
           </div>
           {% if not task.is_assigned and assignment_recommendation.professional %}
-            <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="details">
               <input type="hidden" name="status" value="{{ task.status|e }}">
               <input type="hidden" name="assigned_professional_id" value="{{ assignment_recommendation.professional.id|e }}">
@@ -2329,7 +2351,7 @@
                   {% if task.is_assigned and task.assigned_professional_id == professional.id %}
                     <span class="admin-operations-chip">Възложен</span>
                   {% else %}
-                    <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+                    <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.id|e }}">
                       <input type="hidden" name="task_action" value="details">
                       <input type="hidden" name="status" value="{{ task.status|e }}">
                       <input type="hidden" name="assigned_professional_id" value="{{ professional.id|e }}">
@@ -2343,7 +2365,7 @@
               {% endif %}
             {% endfor %}
           </div>
-          <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+          <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="details">
             <label>
               <span>Статус</span>
@@ -2390,7 +2412,7 @@
               <span style="width: {{ checklist_percentage }}%;"></span>
             </div>
           </div>
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="checklist">
             <div class="admin-operations-checklist">
               {% for item in checklist_items %}
@@ -2496,15 +2518,14 @@
             <span>Сумите ще бъдат заключени след одобрение и плащане от собственика.</span>
           </div>
 
-          {% if request.args.get("finance_notice") == "saved" %}
-            <div class="admin-evidence__message admin-evidence__message--success">Финансовата оферта е запазена.</div>
+          {% if request.args.get("finance_notice") in ["saved", "payment_recorded", "payout_released", "already_processed"] %}
+            {% set finance_notice_key = "notice_" ~ request.args.get("finance_notice") %}
+            <div class="admin-evidence__message admin-evidence__message--success" role="status">{{ finance_copy[finance_notice_key] }}</div>
           {% elif request.args.get("finance_error") %}
-            <div class="admin-evidence__message admin-evidence__message--error">
-              Офертата не можа да бъде запазена.
-            </div>
+            <div class="admin-evidence__message admin-evidence__message--error" role="alert">{{ finance_copy.error }}</div>
           {% endif %}
 
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="finance">
 
           <div class="bsc-finance-form-grid">
@@ -2556,28 +2577,71 @@
               <span>Оферта</span>
               <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
   {% if task.quote_status == 'SENT' %}
-    Изпратена
+    {{ finance_copy.quote_sent }}
   {% elif task.quote_status == 'APPROVED' %}
-    Одобрена
+    {{ finance_copy.quote_approved }}
   {% elif task.quote_status == 'FUNDED' %}
-    Платена
+    {{ finance_copy.quote_funded }}
+  {% elif task.quote_status == 'PAID_OUT' %}
+    {{ finance_copy.quote_paid_out }}
   {% else %}
-    Чернова
+    {{ finance_copy.quote_draft }}
   {% endif %}
 </strong>
             </div>
             <div>
-              <span>Одобрение от собственик</span>
-              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Очаква</strong>
-            </div>
-            <div>
-              <span>Плащане</span>
-              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Не е платено</strong>
-            </div>
-            <div>
-              <span>Изплащане</span>
-              <strong class="admin-operations-severity-chip admin-operations-severity-chip--neutral">Не е готово</strong>
-            </div>
+  <span>Одобрение от собственик</span>
+
+  {% if task.owner_approval_status == 'APPROVED' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
+      {{ finance_copy.approval_approved }}
+    </strong>
+  {% elif task.owner_approval_status == 'CHANGES_REQUESTED' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
+      {{ finance_copy.approval_changes }}
+    </strong>
+  {% elif task.owner_approval_status == 'REJECTED' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--red">
+      {{ finance_copy.approval_rejected }}
+    </strong>
+  {% else %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
+      {{ finance_copy.approval_pending }}
+    </strong>
+  {% endif %}
+</div>
+
+<div>
+  <span>Плащане</span>
+
+  {% if task.payment_status == 'PAID' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
+      {{ finance_copy.payment_paid }}
+    </strong>
+  {% else %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
+      {{ finance_copy.payment_pending }}
+    </strong>
+  {% endif %}
+</div>
+
+<div>
+  <span>Изплащане</span>
+
+  {% if task.payout_status == 'PAID' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
+      {{ finance_copy.payout_paid }}
+    </strong>
+  {% elif task.payout_status == 'READY' %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
+      {{ finance_copy.payout_ready }}
+    </strong>
+  {% else %}
+    <strong class="admin-operations-severity-chip admin-operations-severity-chip--neutral">
+      {{ finance_copy.payout_not_ready }}
+    </strong>
+  {% endif %}
+</div>
           </div>
 
           <div class="bsc-finance-actions">
@@ -2591,7 +2655,7 @@
           </div>
           </form>
           {% if (task.quote_status or 'NONE') in ['DRAFT', 'NONE'] and (task.owner_total_amount or 0) > 0 %}
-            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_send">
               <button class="button button--primary" type="submit">
                 Изпрати офертата към собственика
@@ -2599,7 +2663,7 @@
               <small>След изпращане цената ще бъде заключена.</small>
             </form>
           {% elif task.quote_status == 'SENT' %}
-            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_reopen">
               <button class="button" type="submit">
                 Върни в чернова
@@ -2608,7 +2672,66 @@
             </form>
           {% endif %}
 
-        </article>
+
+          {% if task.owner_approval_status == 'APPROVED'
+                and task.payment_status != 'PAID' %}
+            <form
+              id="owner-payment-confirm-form"
+              class="bsc-finance-actions bsc-finance-actions--payment"
+              method="post"
+              action="{{ localized_url('/admin/operations/' ~ task.id) }}"
+            >
+              <input type="hidden" name="task_action" value="finance_payment">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+
+              <button
+                class="button button--primary"
+                type="submit"
+              >
+                {{ finance_copy.confirm_payment }}
+              </button>
+
+              <small>
+                {{ finance_copy.payment_help }}
+                {{ '%.2f'|format(task.owner_total_amount or 0) }}
+                {{ task.currency or 'EUR' }}.
+              </small>
+            </form>
+          {% endif %}
+
+          {% if task.payment_status == 'PAID'
+                and task.payout_status == 'READY' %}
+            <form
+              id="professional-payout-release-form"
+              class="bsc-finance-actions bsc-finance-actions--payout"
+              method="post"
+              action="{{ localized_url('/admin/operations/' ~ task.id) }}"
+              onsubmit="return confirm('{{ finance_copy.release_confirm|e }}');"
+            >
+              <input type="hidden" name="task_action" value="finance_release">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+
+              <button
+                class="button button--primary"
+                type="submit"
+              >
+                {{ finance_copy.release_payout }}
+              </button>
+
+              <small>
+                {{ finance_copy.professional_amount }}
+                {{ '%.2f'|format(task.professional_quote_amount or 0) }}
+                {{ task.currency or 'EUR' }}.
+              </small>
+            </form>
+          {% endif %}
+
+          {% if task.payout_status == 'PAID' %}
+            <div class="bsc-finance-complete">
+              {{ finance_copy.complete }}
+            </div>
+          {% endif %}
+</article>
 <article class="admin-operations-detail-panel admin-operations-completion-highlight">
           <p class="eyebrow">Отчет за завършване</p>
           {% if task.is_assigned %}
@@ -2773,7 +2896,7 @@
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Вътрешни бележки</p>
           <h2 class="admin-operations-section-title">Бележки само за админ екипа</h2>
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="comment">
             <label>
               <span>Тип бележка</span>

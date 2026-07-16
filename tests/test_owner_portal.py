@@ -1,6 +1,7 @@
 ﻿import base64
 import io
 import html as html_lib
+from html.parser import HTMLParser
 import json
 import os
 import re
@@ -1859,6 +1860,206 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertRegex(completed_board_html, r"Open Tasks</span>\s*<strong>1</strong>")
         self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>1</strong>")
         self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
+
+    def test_admin_owner_finance_payment_and_payout_persist_with_valid_forms(self):
+        class FormAuditParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.form_stack = []
+                self.forms = []
+                self.has_nested_form = False
+
+            def handle_starttag(self, tag, attrs):
+                attributes = dict(attrs)
+                if tag == "form":
+                    self.has_nested_form = self.has_nested_form or bool(self.form_stack)
+                    form = {"attributes": attributes, "fields": {}}
+                    self.form_stack.append(form)
+                    self.forms.append(form)
+                elif tag == "input" and self.form_stack and attributes.get("name"):
+                    self.form_stack[-1]["fields"][attributes["name"]] = attributes.get("value", "")
+
+            def handle_endtag(self, tag):
+                if tag == "form" and self.form_stack:
+                    self.form_stack.pop()
+
+        task_id = "owner-finance-demo-92d261da3feb"
+        admin_env = {**self.ADMIN_ENV, **self.SMTP_ENV}
+
+        with patch.dict(os.environ, admin_env, clear=True):
+            app_module._upsert_operations_task_from_source(
+                {
+                    "id": task_id,
+                    "request_id": task_id,
+                    "source_type": "OWNER_SERVICE_REQUEST",
+                    "source_id": task_id,
+                    "title": "Owner finance integration test",
+                    "owner_name": "Finance Owner",
+                    "owner_email": "finance-owner@example.com",
+                    "status": "NEW",
+                },
+                force_create=True,
+                notify=False,
+            )
+            with app_module._owner_db_connection() as conn:
+                conn.execute(
+                    """
+                    UPDATE operations_tasks
+                    SET professional_quote_amount = 100,
+                        platform_fee_type = 'FIXED',
+                        platform_fee_value = 20,
+                        owner_total_amount = 120,
+                        currency = 'EUR',
+                        quote_status = 'APPROVED',
+                        owner_approval_status = 'APPROVED',
+                        payment_status = 'PENDING',
+                        payout_status = 'NOT_READY',
+                        quote_locked = 1
+                    WHERE id = ?
+                    """,
+                    (task_id,),
+                )
+
+            with self.client.session_transaction() as session_data:
+                session_data["_admin_csrf_token"] = "finance-csrf"
+
+            initial = self.client.get(
+                f"/admin/operations/{task_id}?lang=bg",
+                headers=self._auth_headers(),
+            )
+            initial_html = initial.get_data(as_text=True)
+            self.assertEqual(initial.status_code, 200)
+            self.assertIn('id="owner-payment-confirm-form"', initial_html)
+            self.assertIn('name="task_action" value="finance_payment"', initial_html)
+            self.assertIn('name="csrf_token" value="finance-csrf"', initial_html)
+            form_audit = FormAuditParser()
+            form_audit.feed(initial_html)
+            self.assertFalse(form_audit.has_nested_form)
+            payment_forms = [
+                form for form in form_audit.forms
+                if form["attributes"].get("id") == "owner-payment-confirm-form"
+            ]
+            self.assertEqual(len(payment_forms), 1)
+            self.assertEqual(
+                payment_forms[0]["fields"],
+                {"task_action": "finance_payment", "csrf_token": "finance-csrf"},
+            )
+
+            missing_csrf = self.client.post(
+                f"/admin/operations/{task_id}",
+                data={"task_action": "finance_payment"},
+                headers=self._auth_headers(),
+            )
+            self.assertEqual(missing_csrf.status_code, 400)
+            self.assertEqual(app_module._find_operations_task(task_id)["payment_status"], "PENDING")
+
+            received_payloads = []
+            payment_transition = app_module._transition_operations_task_payment
+
+            def capture_payload(captured_task_id, action):
+                received_payloads.append(app_module.request.form.to_dict(flat=False))
+                return payment_transition(captured_task_id, action)
+
+            with patch("app._transition_operations_task_payment", side_effect=capture_payload):
+                payment = self.client.post(
+                    f"/admin/operations/{task_id}",
+                    data={"task_action": "finance_payment", "csrf_token": "finance-csrf"},
+                    headers=self._auth_headers(),
+                )
+
+            self.assertEqual(
+                received_payloads,
+                [{"task_action": ["finance_payment"], "csrf_token": ["finance-csrf"]}],
+            )
+            self.assertEqual(payment.status_code, 302)
+            self.assertIn("finance_notice=payment_recorded", payment.headers["Location"])
+            self.assertTrue(payment.headers["Location"].endswith("#operations-finance"))
+
+            funded = app_module._find_operations_task(task_id)
+            self.assertEqual(funded["quote_status"], "FUNDED")
+            self.assertEqual(funded["payment_status"], "PAID")
+            self.assertEqual(funded["payout_status"], "READY")
+            self.assertEqual(funded["payment_provider"], "MANUAL")
+            self.assertTrue(funded["payment_reference"].startswith("MANUAL-"))
+            self.assertTrue(funded["paid_at"])
+            self.assertTrue(funded["quote_locked"])
+
+            funded_refresh = self.client.get(
+                f"/admin/operations/{task_id}?lang=bg",
+                headers=self._auth_headers(),
+            ).get_data(as_text=True)
+            self.assertIn("Платено", funded_refresh)
+            self.assertIn("Готово за изплащане", funded_refresh)
+            self.assertIn("Освободи плащането към професионалиста", funded_refresh)
+            funded_form_audit = FormAuditParser()
+            funded_form_audit.feed(funded_refresh)
+            self.assertFalse(funded_form_audit.has_nested_form)
+            payout_forms = [
+                form for form in funded_form_audit.forms
+                if form["attributes"].get("id") == "professional-payout-release-form"
+            ]
+            self.assertEqual(len(payout_forms), 1)
+            self.assertEqual(
+                payout_forms[0]["fields"],
+                {"task_action": "finance_release", "csrf_token": "finance-csrf"},
+            )
+
+            repeated_payment = self.client.post(
+                f"/admin/operations/{task_id}",
+                data={"task_action": "finance_payment", "csrf_token": "finance-csrf"},
+                headers=self._auth_headers(),
+            )
+            self.assertIn("finance_notice=already_processed", repeated_payment.headers["Location"])
+
+            payout = self.client.post(
+                f"/admin/operations/{task_id}",
+                data={"task_action": "finance_release", "csrf_token": "finance-csrf"},
+                headers=self._auth_headers(),
+            )
+            self.assertEqual(payout.status_code, 302)
+            self.assertIn("finance_notice=payout_released", payout.headers["Location"])
+            self.assertTrue(payout.headers["Location"].endswith("#operations-finance"))
+
+            paid_out = app_module._find_operations_task(task_id)
+            self.assertEqual(paid_out["quote_status"], "PAID_OUT")
+            self.assertEqual(paid_out["payment_status"], "PAID")
+            self.assertEqual(paid_out["payout_status"], "PAID")
+            self.assertTrue(paid_out["released_at"])
+
+            repeated_payout = self.client.post(
+                f"/admin/operations/{task_id}",
+                data={"task_action": "finance_release", "csrf_token": "finance-csrf"},
+                headers=self._auth_headers(),
+            )
+            self.assertIn("finance_notice=already_processed", repeated_payout.headers["Location"])
+
+            final_refresh = self.client.get(
+                f"/admin/operations/{task_id}?lang=bg",
+                headers=self._auth_headers(),
+            ).get_data(as_text=True)
+            self.assertIn("Изплатено", final_refresh)
+            self.assertIn("Финансовият цикъл е приключен успешно.", final_refresh)
+            self.assertNotIn('id="owner-payment-confirm-form"', final_refresh)
+            self.assertNotIn('id="professional-payout-release-form"', final_refresh)
+
+            english_refresh = self.client.get(
+                f"/admin/operations/{task_id}?lang=en",
+                headers=self._auth_headers(),
+            ).get_data(as_text=True)
+            french_refresh = self.client.get(
+                f"/admin/operations/{task_id}?lang=fr",
+                headers=self._auth_headers(),
+            ).get_data(as_text=True)
+            self.assertIn("The financial cycle has been completed successfully.", english_refresh)
+            self.assertIn("Le cycle financier s’est terminé avec succès.", french_refresh)
+
+            events = [
+                row["event_type"]
+                for row in self._read_owner_db_rows("operations_task_events")
+                if row["task_id"] == task_id
+            ]
+            self.assertEqual(events.count("finance_payment_recorded"), 1)
+            self.assertEqual(events.count("finance_payout_released"), 1)
 
     def test_admin_executive_dashboard_computed_layers_surface_alerts_risk_workload_and_recommendations(self):
         self._seed_owner_account(email="owner@example.com")
