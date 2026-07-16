@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const sections = new Map([
     ["Чеклист", ["operations-checklist", "Чеклист"]],
     ["Отчет за завършване", ["completion-report", "Отчет"]],
@@ -96,4 +96,39 @@
 
   window.addEventListener("hashchange", openTarget);
   openTarget();
+
+  // BSC_SMART_EMPTY_STATES_V1
+  const reservationPanel = document.getElementById("linked-reservation");
+
+  if (reservationPanel) {
+    const reservationEmpty = reservationPanel.querySelector(".admin-operations-empty");
+
+    if (reservationEmpty && !reservationPanel.querySelector(".bsc-empty-state-actions")) {
+      const actions = document.createElement("div");
+      actions.className = "bsc-empty-state-actions";
+
+      const calendarLink = document.createElement("a");
+      calendarLink.className = "bsc-empty-state-action";
+      calendarLink.href = "/admin/calendar";
+      calendarLink.textContent = "Отвори календара";
+
+      actions.append(calendarLink);
+      reservationEmpty.insertAdjacentElement("afterend", actions);
+    }
+  }
+
+  const relatedRequestsPanel = document.getElementById("related-requests");
+
+  if (relatedRequestsPanel) {
+    const hasRequestsTable = Boolean(
+      relatedRequestsPanel.querySelector(".admin-operations-table")
+    );
+    const hasEmptyMessage = Boolean(
+      relatedRequestsPanel.querySelector(".admin-operations-empty")
+    );
+
+    if (!hasRequestsTable && hasEmptyMessage) {
+      relatedRequestsPanel.classList.add("bsc-smart-hidden");
+    }
+  }
 })();

@@ -143,3 +143,33 @@ body.admin-operations-detail-page .admin-operations-sidebar .admin-operations-co
   max-width: none !important;
   margin-right: 0 !important;
 }
+
+/* BSC_SMART_EMPTY_STATES_V1 */
+.bsc-empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.bsc-empty-state-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid rgba(20, 35, 52, .14);
+  border-radius: 12px;
+  background: #173f5f;
+  color: #fff !important;
+  font-weight: 800;
+  text-decoration: none !important;
+}
+
+.bsc-empty-state-action:hover {
+  background: #20577d;
+}
+
+.bsc-smart-hidden {
+  display: none !important;
+}
