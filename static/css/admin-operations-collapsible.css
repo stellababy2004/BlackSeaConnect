@@ -173,3 +173,129 @@ body.admin-operations-detail-page .admin-operations-sidebar .admin-operations-co
 .bsc-smart-hidden {
   display: none !important;
 }
+
+/* BSC_FINANCE_UI_V1 */
+.bsc-finance-notice {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(45, 122, 96, .18);
+  border-radius: 14px;
+  background: #edf5f1;
+  color: #173d32;
+}
+
+.bsc-finance-notice span {
+  color: #536c63;
+  font-size: .86rem;
+}
+
+.bsc-finance-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.bsc-finance-form-grid label {
+  display: grid;
+  gap: 7px;
+}
+
+.bsc-finance-form-grid label > span {
+  font-weight: 800;
+}
+
+.bsc-finance-form-grid input,
+.bsc-finance-form-grid select {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 11px;
+  border: 1px solid rgba(15, 23, 42, .14);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.bsc-finance-form-grid small {
+  color: #64748b;
+}
+
+.bsc-finance-money-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  gap: 8px;
+}
+
+.bsc-finance-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.bsc-finance-summary > div {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+  border: 1px solid rgba(15, 23, 42, .1);
+  border-radius: 14px;
+  background: #f8faf9;
+}
+
+.bsc-finance-summary span,
+.bsc-finance-status-grid span {
+  color: #64748b;
+  font-size: .76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bsc-finance-summary strong {
+  font-size: 1.18rem;
+}
+
+.bsc-finance-summary__owner {
+  border-color: rgba(45, 122, 96, .28) !important;
+  background: #eaf4ef !important;
+}
+
+.bsc-finance-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.bsc-finance-status-grid > div {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid rgba(15, 23, 42, .09);
+  border-radius: 12px;
+}
+
+.bsc-finance-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.bsc-finance-actions small {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .bsc-finance-form-grid,
+  .bsc-finance-summary,
+  .bsc-finance-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bsc-finance-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

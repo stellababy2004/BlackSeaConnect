@@ -2486,7 +2486,85 @@
           {% endif %}
         </article>
 
-        <article class="admin-operations-detail-panel admin-operations-completion-highlight">
+                <!-- BSC_FINANCE_UI_V1 -->
+        <article class="admin-operations-detail-panel bsc-finance-panel" id="operations-finance">
+          <p class="eyebrow">Финанси</p>
+          <h2 class="admin-operations-section-title">Оферта и плащане през платформата</h2>
+
+          <div class="bsc-finance-notice">
+            <strong>Плащането минава само през BlackSea Connect</strong>
+            <span>Сумите ще бъдат заключени след одобрение и плащане от собственика.</span>
+          </div>
+
+          <div class="bsc-finance-form-grid">
+            <label>
+              <span>Оферта на професионалиста</span>
+              <div class="bsc-finance-money-input">
+                <input type="number" min="0" step="0.01" value="100.00" data-finance-quote>
+                <select data-finance-currency aria-label="Валута">
+                  <option value="EUR" selected>EUR</option>
+                  <option value="BGN">BGN</option>
+                </select>
+              </div>
+              <small>Цената, която професионалистът иска да получи.</small>
+            </label>
+
+            <label>
+              <span>Тип комисиона</span>
+              <select data-finance-fee-type>
+                <option value="FIXED" selected>Фиксирана сума</option>
+                <option value="PERCENT">Процент</option>
+              </select>
+              <small>Определя се само от администрацията.</small>
+            </label>
+
+            <label>
+              <span>Стойност на комисионата</span>
+              <input type="number" min="0" step="0.01" value="20.00" data-finance-fee>
+              <small data-finance-fee-hint>Фиксирана комисиона към офертата.</small>
+            </label>
+          </div>
+
+          <div class="bsc-finance-summary">
+            <div>
+              <span>Професионалистът получава</span>
+              <strong data-finance-professional-total>100.00 EUR</strong>
+            </div>
+            <div>
+              <span>Комисиона BlackSea Connect</span>
+              <strong data-finance-platform-fee>20.00 EUR</strong>
+            </div>
+            <div class="bsc-finance-summary__owner">
+              <span>Цена към собственика</span>
+              <strong data-finance-owner-total>120.00 EUR</strong>
+            </div>
+          </div>
+
+          <div class="bsc-finance-status-grid">
+            <div>
+              <span>Оферта</span>
+              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Чернова</strong>
+            </div>
+            <div>
+              <span>Одобрение от собственик</span>
+              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Очаква</strong>
+            </div>
+            <div>
+              <span>Плащане</span>
+              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Не е платено</strong>
+            </div>
+            <div>
+              <span>Изплащане</span>
+              <strong class="admin-operations-severity-chip admin-operations-severity-chip--neutral">Не е готово</strong>
+            </div>
+          </div>
+
+          <div class="bsc-finance-actions">
+            <button class="button button--primary" type="button" disabled>Запази офертата</button>
+            <small>Записването ще бъде активирано след свързване с базата.</small>
+          </div>
+        </article>
+<article class="admin-operations-detail-panel admin-operations-completion-highlight">
           <p class="eyebrow">Отчет за завършване</p>
           {% if task.is_assigned %}
             <h2 class="admin-operations-section-title">Финално потвърждение от професионалиста</h2>

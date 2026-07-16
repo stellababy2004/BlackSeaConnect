@@ -1,6 +1,7 @@
 (() => {
   const sections = new Map([
     ["Чеклист", ["operations-checklist", "Чеклист"]],
+    ["Финанси", ["operations-finance", "Финанси"]],
     ["Отчет за завършване", ["completion-report", "Отчет"]],
     ["Карта на възлагането", ["assigned-professional", "Професионалист"]],
     ["Свързана резервация", ["linked-reservation", "Резервация"]],
@@ -130,5 +131,47 @@
     if (!hasRequestsTable && hasEmptyMessage) {
       relatedRequestsPanel.classList.add("bsc-smart-hidden");
     }
+  }
+
+  // BSC_FINANCE_CALCULATOR_V1
+  const financePanel = document.getElementById("operations-finance");
+
+  if (financePanel) {
+    const quoteInput = financePanel.querySelector("[data-finance-quote]");
+    const feeTypeInput = financePanel.querySelector("[data-finance-fee-type]");
+    const feeInput = financePanel.querySelector("[data-finance-fee]");
+    const currencyInput = financePanel.querySelector("[data-finance-currency]");
+    const professionalOutput = financePanel.querySelector("[data-finance-professional-total]");
+    const platformOutput = financePanel.querySelector("[data-finance-platform-fee]");
+    const ownerOutput = financePanel.querySelector("[data-finance-owner-total]");
+    const feeHint = financePanel.querySelector("[data-finance-fee-hint]");
+
+    const numberValue = input => {
+      const parsed = Number.parseFloat(input?.value || "0");
+      return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    };
+
+    const refreshFinance = () => {
+      const quote = numberValue(quoteInput);
+      const feeValue = numberValue(feeInput);
+      const feeType = feeTypeInput?.value || "FIXED";
+      const currency = currencyInput?.value || "EUR";
+      const fee = feeType === "PERCENT" ? quote * feeValue / 100 : feeValue;
+      const ownerTotal = quote + fee;
+
+      professionalOutput.textContent = `${quote.toFixed(2)} ${currency}`;
+      platformOutput.textContent = `${fee.toFixed(2)} ${currency}`;
+      ownerOutput.textContent = `${ownerTotal.toFixed(2)} ${currency}`;
+      feeHint.textContent = feeType === "PERCENT"
+        ? `Комисиона ${feeValue.toFixed(2)}% върху офертата.`
+        : "Фиксирана комисиона към офертата.";
+    };
+
+    [quoteInput, feeTypeInput, feeInput, currencyInput].forEach(input => {
+      input?.addEventListener("input", refreshFinance);
+      input?.addEventListener("change", refreshFinance);
+    });
+
+    refreshFinance();
   }
 })();
