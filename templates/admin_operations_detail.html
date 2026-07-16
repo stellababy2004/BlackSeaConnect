@@ -2554,7 +2554,17 @@
           <div class="bsc-finance-status-grid">
             <div>
               <span>Оферта</span>
-              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Чернова</strong>
+              <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
+  {% if task.quote_status == 'SENT' %}
+    Изпратена
+  {% elif task.quote_status == 'APPROVED' %}
+    Одобрена
+  {% elif task.quote_status == 'FUNDED' %}
+    Платена
+  {% else %}
+    Чернова
+  {% endif %}
+</strong>
             </div>
             <div>
               <span>Одобрение от собственик</span>
@@ -2580,6 +2590,24 @@
             {% endif %}
           </div>
           </form>
+          {% if (task.quote_status or 'NONE') in ['DRAFT', 'NONE'] and (task.owner_total_amount or 0) > 0 %}
+            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.request_id|e }}">
+              <input type="hidden" name="task_action" value="finance_send">
+              <button class="button button--primary" type="submit">
+                Изпрати офертата към собственика
+              </button>
+              <small>След изпращане цената ще бъде заключена.</small>
+            </form>
+          {% elif task.quote_status == 'SENT' %}
+            <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.request_id|e }}">
+              <input type="hidden" name="task_action" value="finance_reopen">
+              <button class="button" type="submit">
+                Върни в чернова
+              </button>
+              <small>Използвайте само когато офертата трябва да бъде коригирана.</small>
+            </form>
+          {% endif %}
+
         </article>
 <article class="admin-operations-detail-panel admin-operations-completion-highlight">
           <p class="eyebrow">Отчет за завършване</p>

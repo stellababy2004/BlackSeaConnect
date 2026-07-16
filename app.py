@@ -7136,6 +7136,90 @@ def _update_operations_task_finance(
     return _find_operations_task(task_id), None
 
 
+def _transition_operations_task_quote(task_id, action):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    normalized_action = str(action or "").strip().lower()
+    current_status = str(task.get("quote_status", "NONE") or "NONE").strip().upper()
+    quote_amount = round(float(task.get("professional_quote_amount", 0) or 0), 2)
+    owner_total = round(float(task.get("owner_total_amount", 0) or 0), 2)
+    currency = str(task.get("currency", "EUR") or "EUR").strip().upper()
+
+    if normalized_action == "send":
+        if current_status not in {"DRAFT", "NONE"}:
+            return None, "invalid_quote_status"
+        if quote_amount <= 0 or owner_total <= 0:
+            return None, "quote_required"
+
+        new_status = "SENT"
+        quote_locked = 1
+        owner_approval_status = "PENDING"
+        event_type = "finance_quote_sent"
+        event_title = "Financial quote sent to owner"
+        event_detail = f"Owner total: {owner_total:.2f} {currency}"
+
+    elif normalized_action == "reopen":
+        if current_status != "SENT":
+            return None, "invalid_quote_status"
+
+        new_status = "DRAFT"
+        quote_locked = 0
+        owner_approval_status = "PENDING"
+        event_type = "finance_quote_reopened"
+        event_title = "Financial quote returned to draft"
+        event_detail = "The administrator reopened the quote for editing."
+
+    else:
+        return None, "invalid_action"
+
+    updated_at = _utc_now_iso()
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute(
+                """
+                UPDATE operations_tasks
+                SET quote_status = ?,
+                    quote_locked = ?,
+                    owner_approval_status = ?,
+                    updated_at = ?
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                (
+                    new_status,
+                    quote_locked,
+                    owner_approval_status,
+                    updated_at,
+                    task_id,
+                    task_id,
+                    task_id,
+                ),
+            )
+            if cursor.rowcount <= 0:
+                return None, "not_found"
+    except Exception as exc:
+        app.logger.warning(
+            "Operations finance transition failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    _append_operations_task_event(
+        task_id,
+        event_type,
+        event_title,
+        event_detail,
+        status=task.get("status", "NEW"),
+    )
+
+    return _find_operations_task(task_id), None
+
+
 def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
     task = _find_operations_task(task_id)
     if not task:
@@ -22295,6 +22379,18 @@ def admin_operations_detail(task_id):
                 redirect_args["finance_error"] = finance_error
             else:
                 redirect_args["finance_notice"] = "saved"
+        elif task_action in {"finance_send", "finance_reopen"}:
+            transition_action = "send" if task_action == "finance_send" else "reopen"
+            updated_finance, finance_error = _transition_operations_task_quote(
+                task_id,
+                transition_action,
+            )
+            if finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = (
+                    "sent" if transition_action == "send" else "reopened"
+                )
         elif task_action == "attachment":
             category = str(request.form.get("attachment_category", "")).strip()
             uploaded_files = [
@@ -22354,7 +22450,7 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
-        redirect_anchor = "operations-finance" if task_action == "finance" else ("evidence" if task_action == "attachment" else None)
+        redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen"} else ("evidence" if task_action == "attachment" else None)
         return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
     context = _admin_operations_task_context(task_record)
