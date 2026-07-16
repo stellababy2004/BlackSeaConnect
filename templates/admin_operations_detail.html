@@ -2496,14 +2496,25 @@
             <span>Сумите ще бъдат заключени след одобрение и плащане от собственика.</span>
           </div>
 
+          {% if request.args.get("finance_notice") == "saved" %}
+            <div class="admin-evidence__message admin-evidence__message--success">Финансовата оферта е запазена.</div>
+          {% elif request.args.get("finance_error") %}
+            <div class="admin-evidence__message admin-evidence__message--error">
+              Офертата не можа да бъде запазена.
+            </div>
+          {% endif %}
+
+          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.request_id|e }}">
+            <input type="hidden" name="task_action" value="finance">
+
           <div class="bsc-finance-form-grid">
             <label>
               <span>Оферта на професионалиста</span>
               <div class="bsc-finance-money-input">
-                <input type="number" min="0" step="0.01" value="100.00" data-finance-quote>
-                <select data-finance-currency aria-label="Валута">
-                  <option value="EUR" selected>EUR</option>
-                  <option value="BGN">BGN</option>
+                <input type="number" name="professional_quote_amount" min="0" step="0.01" value="{{ '%.2f'|format(task.professional_quote_amount or 0) }}" data-finance-quote {% if task.quote_locked %}disabled{% endif %}>
+                <select name="currency" data-finance-currency aria-label="Валута" {% if task.quote_locked %}disabled{% endif %}>
+                  <option value="EUR" {% if task.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                  <option value="BGN" {% if task.currency == 'BGN' %}selected{% endif %}>BGN</option>
                 </select>
               </div>
               <small>Цената, която професионалистът иска да получи.</small>
@@ -2511,16 +2522,16 @@
 
             <label>
               <span>Тип комисиона</span>
-              <select data-finance-fee-type>
-                <option value="FIXED" selected>Фиксирана сума</option>
-                <option value="PERCENT">Процент</option>
+              <select name="platform_fee_type" data-finance-fee-type {% if task.quote_locked %}disabled{% endif %}>
+                <option value="FIXED" {% if task.platform_fee_type == 'FIXED' %}selected{% endif %}>Фиксирана сума</option>
+                <option value="PERCENT" {% if task.platform_fee_type == 'PERCENT' %}selected{% endif %}>Процент</option>
               </select>
               <small>Определя се само от администрацията.</small>
             </label>
 
             <label>
               <span>Стойност на комисионата</span>
-              <input type="number" min="0" step="0.01" value="20.00" data-finance-fee>
+              <input type="number" name="platform_fee_value" min="0" step="0.01" value="{{ '%.2f'|format(task.platform_fee_value or 0) }}" data-finance-fee {% if task.quote_locked %}disabled{% endif %}>
               <small data-finance-fee-hint>Фиксирана комисиона към офертата.</small>
             </label>
           </div>
@@ -2528,15 +2539,15 @@
           <div class="bsc-finance-summary">
             <div>
               <span>Професионалистът получава</span>
-              <strong data-finance-professional-total>100.00 EUR</strong>
+              <strong data-finance-professional-total>{{ '%.2f'|format(task.professional_quote_amount or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
             <div>
               <span>Комисиона BlackSea Connect</span>
-              <strong data-finance-platform-fee>20.00 EUR</strong>
+              <strong data-finance-platform-fee>{{ '%.2f'|format(task.platform_fee_value or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
             <div class="bsc-finance-summary__owner">
               <span>Цена към собственика</span>
-              <strong data-finance-owner-total>120.00 EUR</strong>
+              <strong data-finance-owner-total>{{ '%.2f'|format(task.owner_total_amount or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
           </div>
 
@@ -2560,9 +2571,15 @@
           </div>
 
           <div class="bsc-finance-actions">
-            <button class="button button--primary" type="button" disabled>Запази офертата</button>
-            <small>Записването ще бъде активирано след свързване с базата.</small>
+            {% if task.quote_locked %}
+              <button class="button button--primary" type="button" disabled>Офертата е заключена</button>
+              <small>След плащане стойностите не могат да се редактират.</small>
+            {% else %}
+              <button class="button button--primary" type="submit">Запази офертата</button>
+              <small>Крайната цена се изчислява автоматично от системата.</small>
+            {% endif %}
           </div>
+          </form>
         </article>
 <article class="admin-operations-detail-panel admin-operations-completion-highlight">
           <p class="eyebrow">Отчет за завършване</p>

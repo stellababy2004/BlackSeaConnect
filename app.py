@@ -7023,6 +7023,119 @@ def _upsert_operations_task_from_service_request(request_record, status_override
     return updated_task
 
 
+def _update_operations_task_finance(
+    task_id,
+    *,
+    professional_quote_amount,
+    platform_fee_type,
+    platform_fee_value,
+    currency,
+):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    if bool(task.get("quote_locked", False)):
+        return None, "quote_locked"
+
+    try:
+        quote_amount = round(float(professional_quote_amount), 2)
+        fee_value = round(float(platform_fee_value), 2)
+    except (TypeError, ValueError):
+        return None, "invalid_amount"
+
+    if quote_amount < 0 or fee_value < 0:
+        return None, "invalid_amount"
+
+    normalized_fee_type = str(platform_fee_type or "FIXED").strip().upper()
+    if normalized_fee_type not in {"FIXED", "PERCENT"}:
+        return None, "invalid_fee_type"
+
+    normalized_currency = str(currency or "EUR").strip().upper()
+    if normalized_currency not in {"EUR", "BGN"}:
+        return None, "invalid_currency"
+
+    if normalized_fee_type == "PERCENT":
+        calculated_fee = round(quote_amount * fee_value / 100, 2)
+    else:
+        calculated_fee = fee_value
+
+    owner_total = round(quote_amount + calculated_fee, 2)
+
+    current_quote = round(float(task.get("professional_quote_amount", 0) or 0), 2)
+    current_fee_type = str(task.get("platform_fee_type", "FIXED") or "FIXED").strip().upper()
+    current_fee_value = round(float(task.get("platform_fee_value", 0) or 0), 2)
+    current_currency = str(task.get("currency", "EUR") or "EUR").strip().upper()
+
+    if (
+        quote_amount == current_quote
+        and normalized_fee_type == current_fee_type
+        and fee_value == current_fee_value
+        and normalized_currency == current_currency
+        and str(task.get("quote_status", "NONE")).strip().upper() == "DRAFT"
+    ):
+        return task, None
+
+    updated_at = _utc_now_iso()
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks
+                SET professional_quote_amount = ?,
+                    platform_fee_type = ?,
+                    platform_fee_value = ?,
+                    owner_total_amount = ?,
+                    currency = ?,
+                    quote_status = 'DRAFT',
+                    owner_approval_status = 'PENDING',
+                    updated_at = ?
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                (
+                    quote_amount,
+                    normalized_fee_type,
+                    fee_value,
+                    owner_total,
+                    normalized_currency,
+                    updated_at,
+                    task_id,
+                    task_id,
+                    task_id,
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning(
+            "Operations finance update failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    fee_label = (
+        f"{fee_value:.2f}%"
+        if normalized_fee_type == "PERCENT"
+        else f"{calculated_fee:.2f} {normalized_currency}"
+    )
+
+    _append_operations_task_event(
+        task_id,
+        "finance_quote_updated",
+        "Financial quote updated",
+        (
+            f"Professional quote: {quote_amount:.2f} {normalized_currency}; "
+            f"Platform fee: {fee_label}; "
+            f"Owner total: {owner_total:.2f} {normalized_currency}"
+        ),
+        status=task.get("status", "NEW"),
+    )
+
+    return _find_operations_task(task_id), None
+
+
 def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
     task = _find_operations_task(task_id)
     if not task:
@@ -22170,6 +22283,18 @@ def admin_operations_detail(task_id):
             comment_text = str(request.form.get("comment", "")).strip()
             comment_type = str(request.form.get("comment_type", "General")).strip() or "General"
             _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text, comment_type=comment_type)
+        elif task_action == "finance":
+            updated_finance, finance_error = _update_operations_task_finance(
+                task_id,
+                professional_quote_amount=request.form.get("professional_quote_amount", "0"),
+                platform_fee_type=request.form.get("platform_fee_type", "FIXED"),
+                platform_fee_value=request.form.get("platform_fee_value", "0"),
+                currency=request.form.get("currency", "EUR"),
+            )
+            if finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = "saved"
         elif task_action == "attachment":
             category = str(request.form.get("attachment_category", "")).strip()
             uploaded_files = [
@@ -22229,7 +22354,8 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
-        return redirect(url_for("admin_operations_detail", **redirect_args, _anchor="evidence" if task_action == "attachment" else None))
+        redirect_anchor = "operations-finance" if task_action == "finance" else ("evidence" if task_action == "attachment" else None)
+        return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
     context = _admin_operations_task_context(task_record)
     return render_template(
