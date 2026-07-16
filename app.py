@@ -2044,7 +2044,21 @@ def _ensure_operations_task_schema(conn):
             request_status TEXT NOT NULL DEFAULT 'new',
             checklist_json TEXT NOT NULL DEFAULT '',
             attachments_json TEXT NOT NULL DEFAULT '',
-            comments_json TEXT NOT NULL DEFAULT ''
+            comments_json TEXT NOT NULL DEFAULT '',
+            professional_quote_amount REAL NOT NULL DEFAULT 0,
+            platform_fee_type TEXT NOT NULL DEFAULT 'FIXED',
+            platform_fee_value REAL NOT NULL DEFAULT 0,
+            owner_total_amount REAL NOT NULL DEFAULT 0,
+            currency TEXT NOT NULL DEFAULT 'EUR',
+            quote_status TEXT NOT NULL DEFAULT 'NONE',
+            quote_locked INTEGER NOT NULL DEFAULT 0,
+            owner_approval_status TEXT NOT NULL DEFAULT 'PENDING',
+            payment_status TEXT NOT NULL DEFAULT 'PENDING',
+            payout_status TEXT NOT NULL DEFAULT 'NOT_READY',
+            payment_provider TEXT NOT NULL DEFAULT '',
+            payment_reference TEXT NOT NULL DEFAULT '',
+            paid_at TEXT NOT NULL DEFAULT '',
+            released_at TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -2062,6 +2076,20 @@ def _ensure_operations_task_schema(conn):
         "property_id": "TEXT NOT NULL DEFAULT ''",
         "property_name": "TEXT NOT NULL DEFAULT ''",
         "assigned_to": "TEXT NOT NULL DEFAULT ''",
+        "professional_quote_amount": "REAL NOT NULL DEFAULT 0",
+        "platform_fee_type": "TEXT NOT NULL DEFAULT 'FIXED'",
+        "platform_fee_value": "REAL NOT NULL DEFAULT 0",
+        "owner_total_amount": "REAL NOT NULL DEFAULT 0",
+        "currency": "TEXT NOT NULL DEFAULT 'EUR'",
+        "quote_status": "TEXT NOT NULL DEFAULT 'NONE'",
+        "quote_locked": "INTEGER NOT NULL DEFAULT 0",
+        "owner_approval_status": "TEXT NOT NULL DEFAULT 'PENDING'",
+        "payment_status": "TEXT NOT NULL DEFAULT 'PENDING'",
+        "payout_status": "TEXT NOT NULL DEFAULT 'NOT_READY'",
+        "payment_provider": "TEXT NOT NULL DEFAULT ''",
+        "payment_reference": "TEXT NOT NULL DEFAULT ''",
+        "paid_at": "TEXT NOT NULL DEFAULT ''",
+        "released_at": "TEXT NOT NULL DEFAULT ''",
         "assigned_professional_id": "TEXT NOT NULL DEFAULT ''",
         "priority": "TEXT NOT NULL DEFAULT 'NORMAL'",
         "status": "TEXT NOT NULL DEFAULT 'NEW'",
@@ -5791,6 +5819,20 @@ def _operations_task_from_row(row):
         "id": task_id,
         "request_id": request_id,
         "source_type": source_type,
+        "professional_quote_amount": float(row["professional_quote_amount"] or 0) if "professional_quote_amount" in row.keys() else 0.0,
+        "platform_fee_type": str(row["platform_fee_type"] or "FIXED").strip().upper() if "platform_fee_type" in row.keys() else "FIXED",
+        "platform_fee_value": float(row["platform_fee_value"] or 0) if "platform_fee_value" in row.keys() else 0.0,
+        "owner_total_amount": float(row["owner_total_amount"] or 0) if "owner_total_amount" in row.keys() else 0.0,
+        "currency": str(row["currency"] or "EUR").strip().upper() if "currency" in row.keys() else "EUR",
+        "quote_status": str(row["quote_status"] or "NONE").strip().upper() if "quote_status" in row.keys() else "NONE",
+        "quote_locked": bool(int(row["quote_locked"] or 0)) if "quote_locked" in row.keys() else False,
+        "owner_approval_status": str(row["owner_approval_status"] or "PENDING").strip().upper() if "owner_approval_status" in row.keys() else "PENDING",
+        "payment_status": str(row["payment_status"] or "PENDING").strip().upper() if "payment_status" in row.keys() else "PENDING",
+        "payout_status": str(row["payout_status"] or "NOT_READY").strip().upper() if "payout_status" in row.keys() else "NOT_READY",
+        "payment_provider": str(row["payment_provider"] or "").strip() if "payment_provider" in row.keys() else "",
+        "payment_reference": str(row["payment_reference"] or "").strip() if "payment_reference" in row.keys() else "",
+        "paid_at": str(row["paid_at"] or "") if "paid_at" in row.keys() else "",
+        "released_at": str(row["released_at"] or "") if "released_at" in row.keys() else "",
         "source_id": source_id,
         "owner_id": str(row["owner_id"]) if "owner_id" in row.keys() else "",
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
@@ -5831,7 +5873,10 @@ def _load_operations_tasks():
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
+                   professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
+                   quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
+                   payment_provider, payment_reference, paid_at, released_at
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
             """
@@ -5855,7 +5900,10 @@ def _find_operations_task(task_id):
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
+                   professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
+                   quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
+                   payment_provider, payment_reference, paid_at, released_at
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
