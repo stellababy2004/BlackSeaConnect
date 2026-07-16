@@ -2518,6 +2518,17 @@
             <span>Сумите ще бъдат заключени след одобрение и плащане от собственика.</span>
           </div>
 
+          <dl class="admin-operations-dl">
+            <div><dt>Provider</dt><dd>{{ task.payment_provider or '—' }}</dd></div>
+            <div><dt>Checkout</dt><dd>{{ task.stripe_payment_status or '—' }}</dd></div>
+            <div><dt>PaymentIntent</dt><dd>{% if task.stripe_payment_intent_id %}…{{ task.stripe_payment_intent_id[-8:] }}{% else %}—{% endif %}</dd></div>
+            <div><dt>Transfer</dt><dd>{{ task.stripe_transfer_status or '—' }}</dd></div>
+            <div><dt>Professional Stripe</dt><dd>{{ assigned_professional_stripe_status_label }}</dd></div>
+          </dl>
+          {% if task.payout_status in ['PAYOUT_FROZEN', 'REQUIRES_REVIEW'] or task.payment_status in ['REFUND_PENDING', 'REFUNDED', 'DISPUTED'] %}
+            <div class="admin-evidence__message admin-evidence__message--error" role="alert">Stripe finance exception: {{ task.payment_status }} / {{ task.payout_status }}. Manual review is required.</div>
+          {% endif %}
+
           {% if request.args.get("finance_notice") in ["saved", "payment_recorded", "payout_released", "already_processed"] %}
             {% set finance_notice_key = "notice_" ~ request.args.get("finance_notice") %}
             <div class="admin-evidence__message admin-evidence__message--success" role="status">{{ finance_copy[finance_notice_key] }}</div>
@@ -2673,8 +2684,8 @@
           {% endif %}
 
 
-          {% if task.owner_approval_status == 'APPROVED'
-                and task.payment_status != 'PAID' %}
+          {% if manual_finance_enabled and task.quote_status == 'APPROVED' and task.owner_approval_status == 'APPROVED'
+                and task.payment_status in ['PENDING', 'UNPAID'] %}
             <form
               id="owner-payment-confirm-form"
               class="bsc-finance-actions bsc-finance-actions--payment"
@@ -2719,7 +2730,7 @@
               </button>
 
               <small>
-                {{ finance_copy.professional_amount }}
+                {% if task.payment_provider == 'STRIPE' %}{{ stripe_ui.transferred }}{% else %}{{ finance_copy.professional_amount }}{% endif %}
                 {{ '%.2f'|format(task.professional_quote_amount or 0) }}
                 {{ task.currency or 'EUR' }}.
               </small>

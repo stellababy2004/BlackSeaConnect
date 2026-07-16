@@ -288,6 +288,23 @@
       </div>
     </section>
 
+    <section class="professional-panel" aria-labelledby="stripe-connect-title">
+      <p class="eyebrow">Stripe Connect</p>
+      <h2 id="stripe-connect-title">{{ stripe_status_label }}</h2>
+      {% if request.args.get('stripe_notice') %}<p>{{ request.args.get('stripe_notice')|replace('_', ' ')|e }}</p>{% endif %}
+      {% if professional_account.stripe_account_status == 'READY' %}
+        <form method="post" action="{{ localized_url('/professionals/stripe/dashboard') }}">
+          <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
+          <button class="button button--secondary" type="submit">{{ stripe_ui.dashboard }}</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ localized_url('/professionals/stripe/connect') }}">
+          <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
+          <button class="button button--primary" type="submit" {% if not stripe_connect_available %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
+        </form>
+      {% endif %}
+    </section>
+
     {% set next_task = assigned_tasks|first %}
     {% set urgent_tasks = assigned_tasks|selectattr('priority', 'equalto', 'URGENT')|list %}
     <section class="professional-next" aria-labelledby="next-action-title">

@@ -799,6 +799,12 @@
             <div class="owner-finance-notice">
               This quote has already been processed.
             </div>
+          {% elif finance_notice == 'payment_pending' %}
+            <div class="owner-finance-notice">{{ owner_portal.finance_ui.pending }}</div>
+          {% elif finance_notice == 'payment_cancelled' %}
+            <div class="owner-finance-notice owner-finance-notice--warning">{{ owner_portal.finance_ui.cancelled }}</div>
+          {% elif finance_notice in ['stripe_not_configured', 'stripe_request_failed', 'not_eligible'] %}
+            <div class="owner-finance-notice owner-finance-notice--warning">{{ owner_portal.finance_ui.failed }}</div>
           {% endif %}
 
           <div class="owner-finance-approval-list">
@@ -834,6 +840,7 @@
                 </div>
 
                 <div class="owner-finance-approval-actions">
+                  {% if quote.quote_status == 'SENT' and quote.owner_approval_status == 'PENDING' %}
                   <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/approve') }}">
                     <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
                     <button class="button button--primary" type="submit">
@@ -858,6 +865,21 @@
                       Reject
                     </button>
                   </form>
+                  {% elif quote.quote_status == 'APPROVED' and quote.owner_approval_status == 'APPROVED' and quote.payment_status in ['PENDING', 'UNPAID'] %}
+                    {% if owner_portal.stripe_checkout_enabled %}
+                      <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/stripe-checkout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
+                        <button class="button button--primary" type="submit">{{ owner_portal.finance_ui.pay }}</button>
+                        <small>{{ owner_portal.finance_ui.secure }}</small>
+                      </form>
+                    {% else %}
+                      <small>{{ owner_portal.finance_ui.failed }}</small>
+                    {% endif %}
+                  {% elif quote.payment_status == 'PAID' %}
+                    <strong>{{ owner_portal.finance_ui.paid }}</strong>
+                  {% elif quote.stripe_payment_status == 'FAILED' %}
+                    <strong>{{ owner_portal.finance_ui.failed }}</strong>
+                  {% endif %}
                 </div>
               </article>
             {% endfor %}

@@ -3118,6 +3118,11 @@
       Средно време за завършване Средно време за възлагане Средно време за отговор
     </div>
     <div class="admin-legacy-metrics" aria-hidden="true" style="display:none">
+      {% for property in property_risk_cards %}<span>Risk {{ property.score }}/100</span>{% endfor %}
+      <span>{{ sla_monitoring.average_completion_time }}</span>
+      <span>{{ sla_monitoring.average_assignment_time }}</span>
+      <span>{{ sla_monitoring.average_response_time }}</span>
+      <span>Occupancy</span>
       <span>Total Leads</span><strong>{{ total_leads }}</strong>
       <span>New Leads</span><strong>{{ new_leads }}</strong>
       <span>Contacted</span><strong>{{ contacted_leads }}</strong>

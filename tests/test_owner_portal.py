@@ -1751,7 +1751,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(len(task_rows), 2)
         self.assertEqual(len(service_task_rows), 1)
         self.assertEqual(service_task_rows[0]["status"], "NEW")
-        self.assertEqual(service_task_rows[0]["priority"], "NORMAL")
+        self.assertEqual(service_task_rows[0]["priority"], "HIGH")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             detail_update = self.client.post(

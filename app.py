@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from email.message import EmailMessage
 from email.utils import formataddr, parseaddr
 import hashlib
@@ -22,6 +23,10 @@ from threading import Thread
 from uuid import uuid4
 
 import click
+try:
+    import stripe
+except ImportError:  # Production diagnostics handle a missing optional dependency safely.
+    stripe = None
 from flask import Flask, Response, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
 from werkzeug.utils import secure_filename
 
@@ -52,10 +57,86 @@ PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
 _OWNER_DB_SCHEMA_INITIALIZING = False
 _OWNER_DB_BACKFILL_SUPPRESSED = False
+STRIPE_ZERO_DECIMAL_CURRENCIES = {"BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"}
 DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
 DEMO_SCENARIO = "BlackSea Connect Pilot"
 DEMO_SEASON = "Summer 2026"
 DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
+
+
+def _env_flag(name, default=False):
+    value = str(os.getenv(name, "1" if default else "0") or "").strip().lower()
+    return value in {"1", "true", "yes", "on", "enabled"}
+
+
+def _stripe_settings():
+    return {
+        "enabled": _env_flag("STRIPE_CONNECT_ENABLED"),
+        "mode": str(os.getenv("STRIPE_MODE", "test") or "test").strip().lower(),
+        "secret_key": str(os.getenv("STRIPE_SECRET_KEY", "") or "").strip(),
+        "publishable_key": str(os.getenv("STRIPE_PUBLISHABLE_KEY", "") or "").strip(),
+        "webhook_secret": str(os.getenv("STRIPE_WEBHOOK_SECRET", "") or "").strip(),
+        "sdk_available": stripe is not None,
+    }
+
+
+def _stripe_configured(*, webhook=False):
+    settings = _stripe_settings()
+    return bool(settings["enabled"] and settings["sdk_available"] and settings["secret_key"] and (settings["webhook_secret"] if webhook else True))
+
+
+def _manual_finance_enabled():
+    environment = str(os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development").strip().lower()
+    return _env_flag("MANUAL_FINANCE_ENABLED", default=environment not in {"production", "prod"})
+
+
+def _stripe_admin_diagnostics():
+    settings = _stripe_settings()
+    return {
+        "enabled": settings["enabled"],
+        "mode": settings["mode"] if settings["mode"] in {"test", "live"} else "invalid",
+        "sdk_available": settings["sdk_available"],
+        "secret_key_configured": bool(settings["secret_key"]),
+        "publishable_key_configured": bool(settings["publishable_key"]),
+        "webhook_secret_configured": bool(settings["webhook_secret"]),
+        "checkout_ready": _stripe_configured(),
+        "webhook_ready": _stripe_configured(webhook=True),
+    }
+
+
+def _stripe_api_ready(*, webhook=False):
+    if not _stripe_configured(webhook=webhook):
+        return False
+    stripe.api_key = _stripe_settings()["secret_key"]
+    return True
+
+
+def _stripe_minor_units(amount, currency):
+    normalized_currency = str(currency or "").strip().upper()
+    if not normalized_currency:
+        raise ValueError("currency_required")
+    try:
+        decimal_amount = Decimal(str(amount))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ValueError("invalid_amount") from exc
+    if decimal_amount <= 0:
+        raise ValueError("invalid_amount")
+    exponent = Decimal("1") if normalized_currency in STRIPE_ZERO_DECIMAL_CURRENCIES else Decimal("100")
+    return int((decimal_amount * exponent).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _stripe_ui_copy(language):
+    copy = {
+        "bg": {"pay": "Плати сигурно със Stripe", "secure": "Сигурно плащане в Stripe", "pending": "Плащането се потвърждава от Stripe.", "paid": "Платено сигурно със Stripe.", "failed": "Плащането не беше успешно. Опитайте отново.", "cancelled": "Плащането беше отказано.", "connect": "Свържи Stripe акаунт", "dashboard": "Отвори Stripe Dashboard", "not_connected": "Не е свързан", "incomplete": "Onboarding не е завършен", "under_review": "В процес на проверка", "ready": "Готов за изплащания", "restricted": "Ограничен", "transferred": "Прехвърлено към Stripe баланса на професионалиста"},
+        "en": {"pay": "Pay securely with Stripe", "secure": "Secure Stripe-hosted payment", "pending": "Stripe is confirming the payment.", "paid": "Paid securely with Stripe.", "failed": "The payment failed. Please try again.", "cancelled": "The payment was cancelled.", "connect": "Connect Stripe account", "dashboard": "Open Stripe Dashboard", "not_connected": "Not connected", "incomplete": "Onboarding incomplete", "under_review": "Under review", "ready": "Ready for payouts", "restricted": "Restricted", "transferred": "Transferred to the professional’s Stripe balance"},
+        "fr": {"pay": "Payer en toute sécurité avec Stripe", "secure": "Paiement sécurisé hébergé par Stripe", "pending": "Stripe confirme le paiement.", "paid": "Payé en toute sécurité avec Stripe.", "failed": "Le paiement a échoué. Veuillez réessayer.", "cancelled": "Le paiement a été annulé.", "connect": "Connecter le compte Stripe", "dashboard": "Ouvrir le tableau de bord Stripe", "not_connected": "Non connecté", "incomplete": "Inscription incomplète", "under_review": "En cours de vérification", "ready": "Prêt pour les versements", "restricted": "Restreint", "transferred": "Transféré vers le solde Stripe du professionnel"},
+    }
+    return copy.get(str(language or "").lower(), copy["en"])
+
+
+def _stripe_account_status_label(account, language):
+    key = {"NOT_CONNECTED": "not_connected", "INCOMPLETE": "incomplete", "UNDER_REVIEW": "under_review", "READY": "ready", "RESTRICTED": "restricted"}.get(str((account or {}).get("stripe_account_status", "NOT_CONNECTED")).upper(), "not_connected")
+    return _stripe_ui_copy(language)[key]
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -2058,7 +2139,22 @@ def _ensure_operations_task_schema(conn):
             payment_provider TEXT NOT NULL DEFAULT '',
             payment_reference TEXT NOT NULL DEFAULT '',
             paid_at TEXT NOT NULL DEFAULT '',
-            released_at TEXT NOT NULL DEFAULT ''
+            released_at TEXT NOT NULL DEFAULT '',
+            finance_reference TEXT NOT NULL DEFAULT '',
+            stripe_checkout_session_id TEXT NOT NULL DEFAULT '',
+            stripe_payment_intent_id TEXT NOT NULL DEFAULT '',
+            stripe_payment_status TEXT NOT NULL DEFAULT '',
+            stripe_payment_error TEXT NOT NULL DEFAULT '',
+            stripe_checkout_created_at TEXT NOT NULL DEFAULT '',
+            stripe_paid_at TEXT NOT NULL DEFAULT '',
+            stripe_currency TEXT NOT NULL DEFAULT '',
+            stripe_amount_total INTEGER NOT NULL DEFAULT 0,
+            stripe_transfer_id TEXT NOT NULL DEFAULT '',
+            stripe_transfer_status TEXT NOT NULL DEFAULT '',
+            stripe_transfer_amount INTEGER NOT NULL DEFAULT 0,
+            stripe_transfer_created_at TEXT NOT NULL DEFAULT '',
+            stripe_transfer_error TEXT NOT NULL DEFAULT '',
+            stripe_risk_status TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -2090,6 +2186,21 @@ def _ensure_operations_task_schema(conn):
         "payment_reference": "TEXT NOT NULL DEFAULT ''",
         "paid_at": "TEXT NOT NULL DEFAULT ''",
         "released_at": "TEXT NOT NULL DEFAULT ''",
+        "finance_reference": "TEXT NOT NULL DEFAULT ''",
+        "stripe_checkout_session_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_intent_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_status": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_error": "TEXT NOT NULL DEFAULT ''",
+        "stripe_checkout_created_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_paid_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_currency": "TEXT NOT NULL DEFAULT ''",
+        "stripe_amount_total": "INTEGER NOT NULL DEFAULT 0",
+        "stripe_transfer_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_status": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_amount": "INTEGER NOT NULL DEFAULT 0",
+        "stripe_transfer_created_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_error": "TEXT NOT NULL DEFAULT ''",
+        "stripe_risk_status": "TEXT NOT NULL DEFAULT ''",
         "assigned_professional_id": "TEXT NOT NULL DEFAULT ''",
         "priority": "TEXT NOT NULL DEFAULT 'NORMAL'",
         "status": "TEXT NOT NULL DEFAULT 'NEW'",
@@ -2119,6 +2230,18 @@ def _ensure_operations_task_schema(conn):
             title TEXT NOT NULL,
             detail TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'NEW'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS stripe_event_ledger (
+            event_id TEXT PRIMARY KEY,
+            event_type TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            processed_at TEXT NOT NULL DEFAULT '',
+            processing_status TEXT NOT NULL DEFAULT 'PROCESSING',
+            error_message TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -4980,10 +5103,29 @@ def _ensure_owner_db_schema(conn):
                 company TEXT NOT NULL DEFAULT '',
                 service_categories TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'PENDING',
-                last_login_at TEXT NOT NULL DEFAULT ''
+                last_login_at TEXT NOT NULL DEFAULT '',
+                stripe_account_id TEXT NOT NULL DEFAULT '',
+                stripe_account_status TEXT NOT NULL DEFAULT 'NOT_CONNECTED',
+                stripe_details_submitted INTEGER NOT NULL DEFAULT 0,
+                stripe_charges_enabled INTEGER NOT NULL DEFAULT 0,
+                stripe_payouts_enabled INTEGER NOT NULL DEFAULT 0,
+                stripe_onboarding_started_at TEXT NOT NULL DEFAULT '',
+                stripe_onboarding_completed_at TEXT NOT NULL DEFAULT '',
+                stripe_last_synced_at TEXT NOT NULL DEFAULT ''
             )
             """
         )
+        for column_name, column_sql in {
+            "stripe_account_id": "TEXT NOT NULL DEFAULT ''",
+            "stripe_account_status": "TEXT NOT NULL DEFAULT 'NOT_CONNECTED'",
+            "stripe_details_submitted": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_charges_enabled": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_payouts_enabled": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_onboarding_started_at": "TEXT NOT NULL DEFAULT ''",
+            "stripe_onboarding_completed_at": "TEXT NOT NULL DEFAULT ''",
+            "stripe_last_synced_at": "TEXT NOT NULL DEFAULT ''",
+        }.items():
+            _ensure_table_column(conn, "professional_accounts", column_name, column_sql)
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS professional_magic_tokens (
@@ -5833,6 +5975,21 @@ def _operations_task_from_row(row):
         "payment_reference": str(row["payment_reference"] or "").strip() if "payment_reference" in row.keys() else "",
         "paid_at": str(row["paid_at"] or "") if "paid_at" in row.keys() else "",
         "released_at": str(row["released_at"] or "") if "released_at" in row.keys() else "",
+        "finance_reference": str(row["finance_reference"] or "") if "finance_reference" in row.keys() else "",
+        "stripe_checkout_session_id": str(row["stripe_checkout_session_id"] or "") if "stripe_checkout_session_id" in row.keys() else "",
+        "stripe_payment_intent_id": str(row["stripe_payment_intent_id"] or "") if "stripe_payment_intent_id" in row.keys() else "",
+        "stripe_payment_status": str(row["stripe_payment_status"] or "").strip().upper() if "stripe_payment_status" in row.keys() else "",
+        "stripe_payment_error": str(row["stripe_payment_error"] or "") if "stripe_payment_error" in row.keys() else "",
+        "stripe_checkout_created_at": str(row["stripe_checkout_created_at"] or "") if "stripe_checkout_created_at" in row.keys() else "",
+        "stripe_paid_at": str(row["stripe_paid_at"] or "") if "stripe_paid_at" in row.keys() else "",
+        "stripe_currency": str(row["stripe_currency"] or "").upper() if "stripe_currency" in row.keys() else "",
+        "stripe_amount_total": int(row["stripe_amount_total"] or 0) if "stripe_amount_total" in row.keys() else 0,
+        "stripe_transfer_id": str(row["stripe_transfer_id"] or "") if "stripe_transfer_id" in row.keys() else "",
+        "stripe_transfer_status": str(row["stripe_transfer_status"] or "").strip().upper() if "stripe_transfer_status" in row.keys() else "",
+        "stripe_transfer_amount": int(row["stripe_transfer_amount"] or 0) if "stripe_transfer_amount" in row.keys() else 0,
+        "stripe_transfer_created_at": str(row["stripe_transfer_created_at"] or "") if "stripe_transfer_created_at" in row.keys() else "",
+        "stripe_transfer_error": str(row["stripe_transfer_error"] or "") if "stripe_transfer_error" in row.keys() else "",
+        "stripe_risk_status": str(row["stripe_risk_status"] or "").strip().upper() if "stripe_risk_status" in row.keys() else "",
         "source_id": source_id,
         "owner_id": str(row["owner_id"]) if "owner_id" in row.keys() else "",
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
@@ -5876,7 +6033,11 @@ def _load_operations_tasks():
                    due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
                    professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
                    quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
-                   payment_provider, payment_reference, paid_at, released_at
+                   payment_provider, payment_reference, paid_at, released_at,
+                   finance_reference, stripe_checkout_session_id, stripe_payment_intent_id, stripe_payment_status,
+                   stripe_payment_error, stripe_checkout_created_at, stripe_paid_at, stripe_currency, stripe_amount_total,
+                   stripe_transfer_id, stripe_transfer_status, stripe_transfer_amount, stripe_transfer_created_at,
+                   stripe_transfer_error, stripe_risk_status
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
             """
@@ -5903,7 +6064,11 @@ def _find_operations_task(task_id):
                    due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
                    professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
                    quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
-                   payment_provider, payment_reference, paid_at, released_at
+                   payment_provider, payment_reference, paid_at, released_at,
+                   finance_reference, stripe_checkout_session_id, stripe_payment_intent_id, stripe_payment_status,
+                   stripe_payment_error, stripe_checkout_created_at, stripe_paid_at, stripe_currency, stripe_amount_total,
+                   stripe_transfer_id, stripe_transfer_status, stripe_transfer_amount, stripe_transfer_created_at,
+                   stripe_transfer_error, stripe_risk_status
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
@@ -7314,6 +7479,285 @@ def _transition_operations_task_payment(task_id, action):
         status=task.get("status", "NEW"),
     )
     return _find_operations_task(task_id), None
+
+
+def _stripe_value(obj, key, default=None):
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _stripe_account_state(account):
+    details = bool(_stripe_value(account, "details_submitted", False))
+    charges = bool(_stripe_value(account, "charges_enabled", False))
+    payouts = bool(_stripe_value(account, "payouts_enabled", False))
+    requirements = _stripe_value(account, "requirements", {}) or {}
+    disabled_reason = str(_stripe_value(requirements, "disabled_reason", "") or "")
+    if charges and payouts:
+        status = "READY"
+    elif disabled_reason:
+        status = "RESTRICTED"
+    elif details:
+        status = "UNDER_REVIEW"
+    else:
+        status = "INCOMPLETE"
+    return status, details, charges, payouts
+
+
+def _sync_professional_stripe_account(professional, account):
+    account_id = str(_stripe_value(account, "id", "") or "").strip()
+    if not professional or not account_id or (professional.get("stripe_account_id") and professional.get("stripe_account_id") != account_id):
+        return None
+    status, details, charges, payouts = _stripe_account_state(account)
+    now = _utc_now_iso()
+    completed_at = now if status == "READY" and not professional.get("stripe_onboarding_completed_at") else professional.get("stripe_onboarding_completed_at", "")
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE professional_accounts
+            SET stripe_account_status = ?, stripe_details_submitted = ?, stripe_charges_enabled = ?,
+                stripe_payouts_enabled = ?, stripe_onboarding_completed_at = ?, stripe_last_synced_at = ?
+            WHERE id = ? AND stripe_account_id = ?
+            """,
+            (status, int(details), int(charges), int(payouts), completed_at, now, professional["id"], account_id),
+        )
+    return _find_professional_account(professional["id"])
+
+
+def _create_stripe_onboarding_link(professional, *, refresh_url=None, return_url=None):
+    if not professional or not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    account_id = str(professional.get("stripe_account_id", "")).strip()
+    try:
+        if not account_id:
+            account = stripe.Account.create(
+                type="express",
+                email=professional.get("email", ""),
+                capabilities={"transfers": {"requested": True}},
+                metadata={"professional_id": professional.get("id", "")},
+                idempotency_key=f"connect-account-{professional.get('id', '')}",
+            )
+            account_id = str(_stripe_value(account, "id", "") or "").strip()
+            if not account_id:
+                return None, "account_create_failed"
+            with _owner_db_connection() as conn:
+                _ensure_owner_db_schema(conn)
+                cursor = conn.execute(
+                    """
+                    UPDATE professional_accounts
+                    SET stripe_account_id = ?, stripe_account_status = 'INCOMPLETE', stripe_onboarding_started_at = ?, stripe_last_synced_at = ?
+                    WHERE id = ? AND stripe_account_id = ''
+                    """,
+                    (account_id, _utc_now_iso(), _utc_now_iso(), professional["id"]),
+                )
+                if cursor.rowcount <= 0:
+                    account_id = str((_find_professional_account(professional["id"]) or {}).get("stripe_account_id", ""))
+        refresh_url = refresh_url or f"{SITE_URL}{url_for('professional_stripe_onboarding_refresh', _external=False)}"
+        return_url = return_url or f"{SITE_URL}{url_for('professional_stripe_onboarding_return', _external=False)}"
+        link = stripe.AccountLink.create(account=account_id, refresh_url=refresh_url, return_url=return_url, type="account_onboarding")
+        return str(_stripe_value(link, "url", "") or ""), None
+    except Exception as exc:
+        app.logger.warning("Stripe onboarding failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+        return None, "stripe_request_failed"
+
+
+def _stripe_checkout_eligible(task, owner_account):
+    return bool(
+        task and _owner_can_view_operations_task(task, owner_account)
+        and str(task.get("quote_status", "")).upper() == "APPROVED"
+        and str(task.get("owner_approval_status", "")).upper() == "APPROVED"
+        and str(task.get("payment_status", "")).upper() in {"PENDING", "UNPAID"}
+        and float(task.get("owner_total_amount", 0) or 0) > 0
+        and bool(task.get("quote_locked"))
+    )
+
+
+def _create_stripe_checkout_session(task, owner_account):
+    if not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    if not _stripe_checkout_eligible(task, owner_account):
+        return None, "not_eligible"
+    amount = _stripe_minor_units(task["owner_total_amount"], task["currency"])
+    currency = str(task["currency"]).lower()
+    finance_reference = str(task.get("finance_reference", "")).strip() or f"FIN-{task['id']}-{uuid4().hex[:12]}"
+    metadata = {
+        "task_id": task["id"], "owner_id": str(task.get("owner_id", "")),
+        "property_id": str(task.get("property_id", "")),
+        "professional_id": str(task.get("assigned_professional_id", "")),
+        "finance_reference": finance_reference,
+    }
+    try:
+        checkout = stripe.checkout.Session.create(
+            mode="payment", client_reference_id=task["id"], metadata=metadata,
+            line_items=[{"price_data": {"currency": currency, "unit_amount": amount, "product_data": {"name": f"BlackSea Connect · {task.get('title', 'Service')}"}}, "quantity": 1}],
+            payment_intent_data={"transfer_group": f"TASK-{task['id']}", "metadata": metadata},
+            success_url=f"{SITE_URL}{url_for('owners_dashboard')}?finance_notice=payment_pending&lang={_resolve_current_language()}#owner-finance-approvals",
+            cancel_url=f"{SITE_URL}{url_for('owners_dashboard')}?finance_notice=payment_cancelled&lang={_resolve_current_language()}#owner-finance-approvals",
+        )
+        session_id = str(_stripe_value(checkout, "id", "") or "")
+        checkout_url = str(_stripe_value(checkout, "url", "") or "")
+        if not session_id or not checkout_url:
+            return None, "checkout_create_failed"
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks SET finance_reference = ?, stripe_checkout_session_id = ?,
+                    stripe_payment_status = 'CHECKOUT_OPEN', stripe_payment_error = '', stripe_checkout_created_at = ?,
+                    stripe_currency = ?, stripe_amount_total = ?, updated_at = ? WHERE id = ?
+                """,
+                (finance_reference, session_id, _utc_now_iso(), task["currency"].upper(), amount, _utc_now_iso(), task["id"]),
+            )
+        return checkout_url, None
+    except Exception as exc:
+        app.logger.warning("Stripe Checkout creation failed for task %s: %s", task.get("id", ""), type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE operations_tasks SET stripe_payment_status = 'ERROR', stripe_payment_error = 'checkout_create_failed', updated_at = ? WHERE id = ?", (_utc_now_iso(), task["id"]))
+        return None, "stripe_request_failed"
+
+
+def _find_task_by_stripe_reference(*, session_id="", payment_intent_id=""):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            "SELECT id FROM operations_tasks WHERE (? != '' AND stripe_checkout_session_id = ?) OR (? != '' AND stripe_payment_intent_id = ?) LIMIT 1",
+            (session_id, session_id, payment_intent_id, payment_intent_id),
+        ).fetchone()
+    return _find_operations_task(row["id"]) if row else None
+
+
+def _stripe_record_payment(task, stripe_object, event_type):
+    metadata = _stripe_value(stripe_object, "metadata", {}) or {}
+    task_id = str(_stripe_value(stripe_object, "client_reference_id", "") or _stripe_value(metadata, "task_id", "")).strip()
+    if not task or task_id != task.get("id") or str(_stripe_value(metadata, "finance_reference", "")) != str(task.get("finance_reference", "")):
+        return False, "reference_mismatch"
+    if event_type == "checkout.session.completed" and str(_stripe_value(stripe_object, "payment_status", "") or "").lower() != "paid":
+        return False, "payment_not_confirmed"
+    amount = int(_stripe_value(stripe_object, "amount_total", 0) or 0)
+    currency = str(_stripe_value(stripe_object, "currency", "") or "").upper()
+    expected_amount = _stripe_minor_units(task["owner_total_amount"], task["currency"])
+    owner_id = str(_stripe_value(metadata, "owner_id", "") or "")
+    property_id = str(_stripe_value(metadata, "property_id", "") or "")
+    professional_id = str(_stripe_value(metadata, "professional_id", "") or "")
+    if (amount != expected_amount or currency != str(task["currency"]).upper()
+            or owner_id != str(task.get("owner_id", ""))
+            or property_id != str(task.get("property_id", ""))
+            or professional_id != str(task.get("assigned_professional_id", ""))):
+        _append_operations_task_event(task["id"], "stripe_payment_rejected", "Stripe payment reconciliation rejected", "Amount, currency, or owner mismatch.", status=task.get("status", "NEW"))
+        return False, "reconciliation_mismatch"
+    payment_intent = str(_stripe_value(stripe_object, "payment_intent", "") or "")
+    session_id = str(_stripe_value(stripe_object, "id", "") or "")
+    now = _utc_now_iso()
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        cursor = conn.execute(
+            """
+            UPDATE operations_tasks SET quote_status = 'FUNDED', payment_status = 'PAID', payout_status = 'READY',
+                payment_provider = 'STRIPE', paid_at = ?, stripe_paid_at = ?, stripe_checkout_session_id = ?,
+                stripe_payment_intent_id = ?, stripe_payment_status = 'PAID', stripe_payment_error = '',
+                stripe_currency = ?, stripe_amount_total = ?, quote_locked = 1, updated_at = ?
+            WHERE id = ? AND quote_status = 'APPROVED' AND owner_approval_status = 'APPROVED'
+              AND payment_status IN ('PENDING', 'UNPAID')
+            """,
+            (now, now, session_id, payment_intent, currency, amount, now, task["id"]),
+        )
+    if cursor.rowcount:
+        _append_operations_task_event(task["id"], "stripe_payment_confirmed", "Stripe payment confirmed", f"{event_type} · {amount} {currency} minor units", status=task.get("status", "NEW"))
+    return True, None
+
+
+def _stripe_freeze_task(task, risk_status, event_type):
+    if not task:
+        return False, "task_not_found"
+    transferred = bool(task.get("stripe_transfer_id"))
+    payout_status = "REQUIRES_REVIEW" if transferred else "PAYOUT_FROZEN"
+    payment_status = "DISPUTED" if risk_status == "DISPUTED" else risk_status
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            "UPDATE operations_tasks SET payment_status = ?, payout_status = ?, stripe_risk_status = ?, updated_at = ? WHERE id = ?",
+            (payment_status, payout_status, risk_status, _utc_now_iso(), task["id"]),
+        )
+    _append_operations_task_event(task["id"], event_type, "Stripe payout frozen" if not transferred else "Stripe finance exception requires review", risk_status, status=task.get("status", "NEW"))
+    return True, None
+
+
+def _process_stripe_event(event):
+    event_type = str(_stripe_value(event, "type", "") or "")
+    data = _stripe_value(event, "data", {}) or {}
+    obj = _stripe_value(data, "object", {}) or {}
+    if event_type in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
+        task_id = str(_stripe_value(_stripe_value(obj, "metadata", {}) or {}, "task_id", "") or _stripe_value(obj, "client_reference_id", ""))
+        return _stripe_record_payment(_find_operations_task(task_id), obj, event_type)
+    if event_type in {"checkout.session.async_payment_failed", "payment_intent.payment_failed"}:
+        task = _find_task_by_stripe_reference(
+            session_id=str(_stripe_value(obj, "id", "")) if event_type.startswith("checkout") else "",
+            payment_intent_id=str(_stripe_value(obj, "id", "")) if event_type.startswith("payment_intent") else str(_stripe_value(obj, "payment_intent", "") or ""),
+        )
+        if not task:
+            metadata = _stripe_value(obj, "metadata", {}) or {}
+            candidate = _find_operations_task(str(_stripe_value(metadata, "task_id", "") or ""))
+            if candidate and str(_stripe_value(metadata, "finance_reference", "") or "") == str(candidate.get("finance_reference", "")):
+                task = candidate
+        if task:
+            with _owner_db_connection() as conn:
+                conn.execute("UPDATE operations_tasks SET stripe_payment_status = 'FAILED', stripe_payment_error = 'payment_failed', updated_at = ? WHERE id = ?", (_utc_now_iso(), task["id"]))
+            _append_operations_task_event(task["id"], "stripe_payment_failed", "Stripe payment failed", event_type, status=task.get("status", "NEW"))
+        return True, None
+    if event_type in {"charge.refunded", "charge.dispute.created"}:
+        task = _find_task_by_stripe_reference(payment_intent_id=str(_stripe_value(obj, "payment_intent", "") or ""))
+        risk = "DISPUTED" if event_type.endswith("dispute.created") else ("REFUNDED" if bool(_stripe_value(obj, "refunded", False)) else "REFUND_PENDING")
+        return _stripe_freeze_task(task, risk, "stripe_dispute_created" if risk == "DISPUTED" else "stripe_refund_recorded")
+    if event_type == "account.updated":
+        account_id = str(_stripe_value(obj, "id", "") or "")
+        with _owner_db_connection() as conn:
+            row = conn.execute("SELECT id FROM professional_accounts WHERE stripe_account_id = ? LIMIT 1", (account_id,)).fetchone()
+        if row:
+            _sync_professional_stripe_account(_find_professional_account(row["id"]), obj)
+        return True, None
+    return True, None
+
+
+def _stripe_transfer_for_task(task):
+    if not task or not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    if task.get("payment_provider") != "STRIPE" or task.get("payment_status") != "PAID" or task.get("payout_status") != "READY" or task.get("stripe_risk_status"):
+        return None, "invalid_payout_state"
+    professional = _find_professional_account(task.get("assigned_professional_id", ""))
+    if not professional or not professional.get("stripe_account_id") or not professional.get("stripe_charges_enabled") or not professional.get("stripe_payouts_enabled"):
+        return None, "professional_not_ready"
+    amount = _stripe_minor_units(task["professional_quote_amount"], task["currency"])
+    finance_reference = str(task.get("finance_reference", "")).strip()
+    if not finance_reference:
+        return None, "finance_reference_missing"
+    try:
+        transfer = stripe.Transfer.create(
+            amount=amount, currency=str(task["currency"]).lower(), destination=professional["stripe_account_id"],
+            transfer_group=f"TASK-{task['id']}",
+            metadata={"task_id": task["id"], "professional_id": professional["id"], "property_id": str(task.get("property_id", "")), "finance_reference": finance_reference},
+            idempotency_key=f"transfer-{task['id']}-{finance_reference}",
+        )
+        transfer_id = str(_stripe_value(transfer, "id", "") or "")
+        if not transfer_id:
+            return None, "transfer_failed"
+        now = _utc_now_iso()
+        with _owner_db_connection() as conn:
+            cursor = conn.execute(
+                """UPDATE operations_tasks SET stripe_transfer_id = ?, stripe_transfer_status = 'TRANSFERRED',
+                    stripe_transfer_amount = ?, stripe_transfer_created_at = ?, stripe_transfer_error = '',
+                    quote_status = 'PAID_OUT', payout_status = 'PAID', released_at = ?, updated_at = ?
+                    WHERE id = ? AND payout_status = 'READY' AND stripe_transfer_id = ''""",
+                (transfer_id, amount, now, now, now, task["id"]),
+            )
+        if cursor.rowcount:
+            _append_operations_task_event(task["id"], "stripe_transfer_created", "Funds transferred to professional Stripe balance", f"{amount} {task['currency']} minor units", status=task.get("status", "NEW"))
+        return _find_operations_task(task["id"]), None
+    except Exception as exc:
+        app.logger.warning("Stripe transfer failed for task %s: %s", task.get("id", ""), type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE operations_tasks SET stripe_transfer_status = 'FAILED', stripe_transfer_error = 'transfer_failed' WHERE id = ?", (task["id"],))
+        return None, "transfer_failed"
 
 
 def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
@@ -11873,8 +12317,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         for task in _load_operations_tasks()
         if (
             _owner_can_view_operations_task(task, owner_account)
-            and str(task.get("quote_status", "NONE")).strip().upper() == "SENT"
-            and str(task.get("owner_approval_status", "PENDING")).strip().upper() == "PENDING"
+            and str(task.get("quote_status", "NONE")).strip().upper() in {"SENT", "APPROVED", "FUNDED", "PAID_OUT"}
+            and str(task.get("owner_approval_status", "PENDING")).strip().upper() in {"PENDING", "APPROVED"}
             and float(task.get("owner_total_amount", 0) or 0) > 0
         )
     ]
@@ -12069,7 +12513,9 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             {"label": dashboard_copy["average_response_time_label"], "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else dashboard_copy["ready"], "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": dashboard_copy["from_request_to_first_action"], "support_key": "ownerDashboardFromRequestToFirstAction"},
         ],
         "pending_finance_quotes": owner_finance_quotes,
-        "pending_finance_count": len(owner_finance_quotes),
+        "pending_finance_count": sum(1 for task in owner_finance_quotes if str(task.get("payment_status", "PENDING")).upper() in {"PENDING", "UNPAID"}),
+        "stripe_checkout_enabled": _stripe_configured(),
+        "finance_ui": _stripe_ui_copy(current_lang),
         "quick_actions": [
             {"label": dashboard_copy["request_cleaning"], "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": dashboard_copy["fast_turnover_support"], "support_key": "ownerDashboardFastTurnoverSupport"},
             {"label": dashboard_copy["request_inspection"], "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": dashboard_copy["check_readiness"], "support_key": "ownerDashboardCheckReadiness"},
@@ -13430,6 +13876,20 @@ def _owner_finance_csrf_valid(submitted_token):
     return bool(expected and submitted and hmac.compare_digest(expected, submitted))
 
 
+def _professional_stripe_csrf_token():
+    token = str(session.get("_professional_stripe_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_professional_stripe_csrf_token"] = token
+    return token
+
+
+def _professional_stripe_csrf_valid(submitted_token):
+    expected = str(session.get("_professional_stripe_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
 @app.post("/owners/finance/<task_id>/<action>")
 @owner_required
 def owner_finance_quote_action(task_id, action):
@@ -13537,6 +13997,114 @@ def owner_finance_quote_action(task_id, action):
         )
         + "#owner-finance-approvals"
     )
+
+
+@app.post("/owners/finance/<task_id>/stripe-checkout")
+@owner_required
+def owner_stripe_checkout(task_id):
+    current_lang = _resolve_current_language()
+    if not _owner_finance_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid or expired request token.", status=403, mimetype="text/plain")
+    owner_account = _current_owner_account()
+    task = _find_operations_task(task_id)
+    if not task or not _owner_can_view_operations_task(task, owner_account):
+        return Response("Quote not found.", status=404, mimetype="text/plain")
+    checkout_url, checkout_error = _create_stripe_checkout_session(task, owner_account)
+    if checkout_error:
+        return redirect(url_for("owners_dashboard", finance_notice=checkout_error, lang=current_lang) + "#owner-finance-approvals")
+    return redirect(checkout_url, code=303)
+
+
+@app.post("/professionals/stripe/connect")
+@professional_required
+def professional_stripe_connect():
+    if not _professional_stripe_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+    onboarding_url, error = _create_stripe_onboarding_link(_current_professional_account())
+    if error:
+        return redirect(url_for("professionals_dashboard", stripe_notice=error, lang=_resolve_current_language()))
+    return redirect(onboarding_url, code=303)
+
+
+@app.get("/professionals/stripe/refresh")
+@professional_required
+def professional_stripe_onboarding_refresh():
+    onboarding_url, error = _create_stripe_onboarding_link(_current_professional_account())
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("professionals_dashboard", stripe_notice=error, lang=_resolve_current_language()))
+
+
+@app.get("/professionals/stripe/return")
+@professional_required
+def professional_stripe_onboarding_return():
+    professional = _current_professional_account()
+    if _stripe_api_ready() and professional.get("stripe_account_id"):
+        try:
+            _sync_professional_stripe_account(professional, stripe.Account.retrieve(professional["stripe_account_id"]))
+        except Exception as exc:
+            app.logger.warning("Stripe account return sync failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+    return redirect(url_for("professionals_dashboard", stripe_notice="onboarding_returned", lang=_resolve_current_language()))
+
+
+@app.post("/professionals/stripe/dashboard")
+@professional_required
+def professional_stripe_dashboard():
+    if not _professional_stripe_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+    professional = _current_professional_account()
+    if not _stripe_api_ready() or professional.get("stripe_account_status") != "READY" or not professional.get("stripe_account_id"):
+        return redirect(url_for("professionals_dashboard", stripe_notice="dashboard_unavailable", lang=_resolve_current_language()))
+    try:
+        link = stripe.Account.create_login_link(professional["stripe_account_id"])
+        return redirect(str(_stripe_value(link, "url", "")), code=303)
+    except Exception as exc:
+        app.logger.warning("Stripe dashboard link failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+        return redirect(url_for("professionals_dashboard", stripe_notice="stripe_request_failed", lang=_resolve_current_language()))
+
+
+@app.post("/webhooks/stripe")
+def stripe_webhook():
+    if not _stripe_api_ready(webhook=True):
+        return Response("Stripe webhook is not configured.", status=503, mimetype="text/plain")
+    payload = request.get_data(cache=False)
+    signature = request.headers.get("Stripe-Signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, signature, _stripe_settings()["webhook_secret"])
+    except Exception:
+        return Response("Invalid Stripe webhook.", status=400, mimetype="text/plain")
+    event_id = str(_stripe_value(event, "id", "") or "").strip()
+    event_type = str(_stripe_value(event, "type", "") or "").strip()
+    if not event_id or not event_type:
+        return Response("Invalid Stripe event.", status=400, mimetype="text/plain")
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO stripe_event_ledger (event_id, event_type, created_at, processing_status) VALUES (?, ?, ?, 'PROCESSING')",
+            (event_id, event_type, _utc_now_iso()),
+        )
+    if cursor.rowcount <= 0:
+        with _owner_db_connection() as conn:
+            ledger = conn.execute("SELECT created_at, processing_status FROM stripe_event_ledger WHERE event_id = ?", (event_id,)).fetchone()
+            status = str(ledger["processing_status"] if ledger else "")
+            stale_before = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat(timespec="seconds").replace("+00:00", "Z")
+            if status in {"PROCESSED", "REJECTED"}:
+                return jsonify({"received": True, "duplicate": True})
+            if status == "FAILED" or (status == "PROCESSING" and str(ledger["created_at"]) < stale_before):
+                conn.execute("UPDATE stripe_event_ledger SET created_at = ?, processed_at = '', processing_status = 'PROCESSING', error_message = '' WHERE event_id = ?", (_utc_now_iso(), event_id))
+            else:
+                return Response("Stripe event is already processing.", status=409, mimetype="text/plain")
+    try:
+        accepted, error = _process_stripe_event(event)
+    except Exception as exc:
+        app.logger.warning("Stripe webhook processing failed for event %s: %s", event_id, type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE stripe_event_ledger SET processed_at = ?, processing_status = 'FAILED', error_message = 'processing_failed' WHERE event_id = ?", (_utc_now_iso(), event_id))
+        return Response("Webhook processing failed.", status=500, mimetype="text/plain")
+    with _owner_db_connection() as conn:
+        conn.execute(
+            "UPDATE stripe_event_ledger SET processed_at = ?, processing_status = ?, error_message = ? WHERE event_id = ?",
+            (_utc_now_iso(), "PROCESSED" if accepted else "REJECTED", str(error or ""), event_id),
+        )
+    return jsonify({"received": True})
 
 
 @app.route("/owners/logout")
@@ -15457,6 +16025,10 @@ def _admin_operations_task_context(task_record):
         "property_record": property_record,
         "property_readiness_percent": property_readiness_percent,
         "assigned_professional_account": professional_account,
+        "stripe_diagnostics": _stripe_admin_diagnostics(),
+        "manual_finance_enabled": _manual_finance_enabled(),
+        "assigned_professional_stripe_status_label": _stripe_account_status_label(professional_account, _resolve_current_language()),
+        "stripe_ui": _stripe_ui_copy(_resolve_current_language()),
         "linked_reservation": linked_reservation,
         "sla_time_remaining": _format_task_deadline_remaining(task_record),
         "related_requests": related_requests,
@@ -19392,6 +19964,14 @@ def _professional_account_from_row(row):
         "status": _normalize_professional_account_status(row["status"] if "status" in row.keys() else "PENDING"),
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
         "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
+        "stripe_account_id": str(row["stripe_account_id"] or "") if "stripe_account_id" in row.keys() else "",
+        "stripe_account_status": str(row["stripe_account_status"] or "NOT_CONNECTED").strip().upper() if "stripe_account_status" in row.keys() else "NOT_CONNECTED",
+        "stripe_details_submitted": bool(int(row["stripe_details_submitted"] or 0)) if "stripe_details_submitted" in row.keys() else False,
+        "stripe_charges_enabled": bool(int(row["stripe_charges_enabled"] or 0)) if "stripe_charges_enabled" in row.keys() else False,
+        "stripe_payouts_enabled": bool(int(row["stripe_payouts_enabled"] or 0)) if "stripe_payouts_enabled" in row.keys() else False,
+        "stripe_onboarding_started_at": str(row["stripe_onboarding_started_at"] or "") if "stripe_onboarding_started_at" in row.keys() else "",
+        "stripe_onboarding_completed_at": str(row["stripe_onboarding_completed_at"] or "") if "stripe_onboarding_completed_at" in row.keys() else "",
+        "stripe_last_synced_at": str(row["stripe_last_synced_at"] or "") if "stripe_last_synced_at" in row.keys() else "",
     }
 
 
@@ -19452,7 +20032,9 @@ def _load_professional_accounts():
         _sync_professional_accounts_from_applications(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             ORDER BY created_at DESC, full_name ASC, email ASC
             """
@@ -19475,7 +20057,9 @@ def _find_professional_account_by_email(email):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             WHERE email = ?
             LIMIT 1
@@ -19499,7 +20083,9 @@ def _find_professional_account(professional_id):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             WHERE id = ?
             LIMIT 1
@@ -19906,6 +20492,10 @@ def _professional_dashboard_context(professional_account):
         "average_completion_minutes": average_completion_minutes,
         "recent_notifications": recent_notifications,
         "display_name": _professional_account_display_label(professional_account),
+        "stripe_connect_available": _stripe_configured(),
+        "professional_stripe_csrf_token": _professional_stripe_csrf_token() if has_request_context() else "",
+        "stripe_ui": _stripe_ui_copy(_resolve_current_language()) if has_request_context() else _stripe_ui_copy("en"),
+        "stripe_status_label": _stripe_account_status_label(professional_account, _resolve_current_language()) if has_request_context() else "",
     }
 
 
@@ -22176,9 +22766,14 @@ def admin_professional_detail(application_id):
     if not record:
         return jsonify({"ok": False, "error": "not_found"}), 404
 
+    professional_account = _find_professional_account(application_id) or _find_professional_account_by_email(record.get("email", ""))
     return render_template(
         "admin_professional_detail.html",
         item=record,
+        professional_account=professional_account,
+        stripe_diagnostics=_stripe_admin_diagnostics(),
+        stripe_ui=_stripe_ui_copy(_resolve_current_language()),
+        stripe_status_label=_stripe_account_status_label(professional_account, _resolve_current_language()),
         status_options=[{"value": status, "label": _application_status_label(status)} for status in CRM_PIPELINE_STATUS_VALUES],
         timeline=list(reversed(_professional_application_timeline_events(record))),
     )
@@ -22207,6 +22802,47 @@ def admin_professional_update(application_id):
             "last_login_at": "",
         })
     return redirect(url_for("admin_professional_detail", application_id=application_id))
+
+
+def _admin_professional_stripe_account(application_id):
+    record = _find_professional_application(application_id)
+    return (_find_professional_account(application_id) or _find_professional_account_by_email((record or {}).get("email", ""))) if record else None
+
+
+@app.post("/admin/professionals/<application_id>/stripe/connect")
+@admin_required
+def admin_professional_stripe_connect(application_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    professional = _admin_professional_stripe_account(application_id)
+    if not professional:
+        return Response("Professional not found.", status=404, mimetype="text/plain")
+    refresh_url = f"{SITE_URL}{url_for('admin_professional_stripe_refresh', application_id=application_id)}"
+    return_url = f"{SITE_URL}{url_for('admin_professional_stripe_return', application_id=application_id)}"
+    onboarding_url, error = _create_stripe_onboarding_link(professional, refresh_url=refresh_url, return_url=return_url)
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice=error))
+
+
+@app.get("/admin/professionals/<application_id>/stripe/refresh")
+@admin_required
+def admin_professional_stripe_refresh(application_id):
+    professional = _admin_professional_stripe_account(application_id)
+    refresh_url = f"{SITE_URL}{url_for('admin_professional_stripe_refresh', application_id=application_id)}"
+    return_url = f"{SITE_URL}{url_for('admin_professional_stripe_return', application_id=application_id)}"
+    onboarding_url, error = _create_stripe_onboarding_link(professional, refresh_url=refresh_url, return_url=return_url)
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice=error))
+
+
+@app.get("/admin/professionals/<application_id>/stripe/return")
+@admin_required
+def admin_professional_stripe_return(application_id):
+    professional = _admin_professional_stripe_account(application_id)
+    if professional and professional.get("stripe_account_id") and _stripe_api_ready():
+        try:
+            _sync_professional_stripe_account(professional, stripe.Account.retrieve(professional["stripe_account_id"]))
+        except Exception as exc:
+            app.logger.warning("Admin Stripe account sync failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+    return redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice="onboarding_returned"))
 
 
 @app.get("/admin/service-requests")
@@ -22697,10 +23333,12 @@ def admin_operations_detail(task_id):
                 )
         elif task_action in {"finance_payment", "finance_release"}:
             transition_action = "payment" if task_action == "finance_payment" else "release"
-            updated_finance, finance_error = _transition_operations_task_payment(
-                task_id,
-                transition_action,
-            )
+            if transition_action == "release" and str(task_record.get("payment_provider", "")).upper() == "STRIPE":
+                updated_finance, finance_error = _stripe_transfer_for_task(task_record)
+            elif not _manual_finance_enabled():
+                updated_finance, finance_error = None, "manual_finance_disabled"
+            else:
+                updated_finance, finance_error = _transition_operations_task_payment(task_id, transition_action)
             if finance_error == "already_processed":
                 redirect_args["finance_notice"] = "already_processed"
             elif finance_error:
