@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
@@ -478,7 +478,145 @@
       .owner-ai-event { grid-template-columns: 26px 1fr; }
       .owner-ai-event time { grid-column: 2; }
     }
-  </style>
+      .owner-finance-approval-center {
+      display: grid;
+      gap: 18px;
+      margin: 24px 0;
+      padding: 22px;
+      border: 1px solid rgba(181, 137, 56, .22);
+      border-radius: 24px;
+      background: linear-gradient(135deg, #fffaf0, #ffffff);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, .07);
+    }
+
+    .owner-finance-approval-center__header,
+    .owner-finance-approval-card__heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .owner-finance-approval-center__header h2,
+    .owner-finance-approval-card h3 {
+      margin: 4px 0 0;
+    }
+
+    .owner-finance-approval-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .owner-finance-approval-card {
+      display: grid;
+      gap: 18px;
+      padding: 20px;
+      border: 1px solid rgba(15, 23, 42, .09);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .owner-finance-approval-card__heading > strong {
+      font-size: 1.35rem;
+      white-space: nowrap;
+    }
+
+    .owner-finance-approval-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .owner-finance-approval-grid > div {
+      display: grid;
+      gap: 6px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .owner-finance-approval-grid span {
+      color: #64748b;
+      font-size: .76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .owner-finance-approval-grid__total {
+      background: #edf7f2 !important;
+    }
+
+    .owner-finance-approval-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .owner-finance-approval-actions small {
+      color: #64748b;
+    }
+
+    @media (max-width: 760px) {
+      .owner-finance-approval-center__header,
+      .owner-finance-approval-card__heading {
+        flex-direction: column;
+      }
+
+      .owner-finance-approval-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .owner-finance-approval-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .owner-finance-approval-actions .button {
+        width: 100%;
+      }
+    }
+    .owner-finance-approval-actions form {
+      margin: 0;
+    }
+
+    .owner-finance-reject-button {
+      border-color: rgba(190, 24, 93, .28);
+      color: #9f1239;
+      background: #fff;
+    }
+
+    .owner-finance-reject-button:hover {
+      background: #fff1f2;
+    }
+
+    .owner-finance-notice {
+      padding: 14px 16px;
+      border: 1px solid rgba(15, 23, 42, .10);
+      border-radius: 14px;
+      background: #f8fafc;
+      font-weight: 700;
+    }
+
+    .owner-finance-notice--success {
+      border-color: rgba(5, 150, 105, .20);
+      background: #ecfdf5;
+      color: #065f46;
+    }
+
+    .owner-finance-notice--warning {
+      border-color: rgba(217, 119, 6, .22);
+      background: #fffbeb;
+      color: #92400e;
+    }
+
+    @media (max-width: 760px) {
+      .owner-finance-approval-actions form,
+      .owner-finance-approval-actions form .button {
+        width: 100%;
+      }
+    }
+</style>
 </head>
 <body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page">
   {% set ui = owner_portal.ui %}
@@ -632,6 +770,122 @@
         </div>
       </section>
       </details>
+
+      {% if owner_portal.pending_finance_quotes %}
+        <section id="owner-finance-approvals" class="owner-finance-approval-center" aria-labelledby="owner-finance-approval-title">
+          <div class="owner-finance-approval-center__header">
+            <div>
+              <p class="owner-portal-card__eyebrow">Action required</p>
+              <h2 id="owner-finance-approval-title">Quotes awaiting approval</h2>
+              <p>Review the service price before work proceeds.</p>
+            </div>
+            <span class="owner-ai-live">{{ owner_portal.pending_finance_count }} pending</span>
+          </div>
+
+          {% set finance_notice = request.args.get('finance_notice', '') %}
+          {% if finance_notice == 'approved' %}
+            <div class="owner-finance-notice owner-finance-notice--success">
+              Quote approved. Payment is now pending.
+            </div>
+          {% elif finance_notice == 'changes_requested' %}
+            <div class="owner-finance-notice owner-finance-notice--warning">
+              Your change request was sent to the operations team.
+            </div>
+          {% elif finance_notice == 'rejected' %}
+            <div class="owner-finance-notice owner-finance-notice--warning">
+              The quote was rejected.
+            </div>
+          {% elif finance_notice == 'already_processed' %}
+            <div class="owner-finance-notice">
+              This quote has already been processed.
+            </div>
+          {% elif finance_notice == 'payment_pending' %}
+            <div class="owner-finance-notice">{{ owner_portal.finance_ui.pending }}</div>
+          {% elif finance_notice == 'payment_cancelled' %}
+            <div class="owner-finance-notice owner-finance-notice--warning">{{ owner_portal.finance_ui.cancelled }}</div>
+          {% elif finance_notice in ['stripe_not_configured', 'stripe_request_failed', 'not_eligible'] %}
+            <div class="owner-finance-notice owner-finance-notice--warning">{{ owner_portal.finance_ui.failed }}</div>
+          {% endif %}
+
+          <div class="owner-finance-approval-list">
+            {% for quote in owner_portal.pending_finance_quotes %}
+              <article class="owner-finance-approval-card">
+                <div class="owner-finance-approval-card__heading">
+                  <div>
+                    <small>{{ quote.property_name|e }}</small>
+                    <h3>{{ quote.title|e }}</h3>
+                  </div>
+                  <strong>{{ "%.2f"|format(quote.owner_total_amount or 0) }} {{ quote.currency or "EUR" }}</strong>
+                </div>
+
+                <div class="owner-finance-approval-grid">
+                  <div>
+                    <span>Professional service</span>
+                    <strong>{{ "%.2f"|format(quote.professional_quote_amount or 0) }} {{ quote.currency or "EUR" }}</strong>
+                  </div>
+                  <div>
+                    <span>BlackSea Connect fee</span>
+                    <strong>
+                      {% if quote.platform_fee_type == "PERCENT" %}
+                        {{ "%.2f"|format(quote.platform_fee_value or 0) }}%
+                      {% else %}
+                        {{ "%.2f"|format(quote.platform_fee_value or 0) }} {{ quote.currency or "EUR" }}
+                      {% endif %}
+                    </strong>
+                  </div>
+                  <div class="owner-finance-approval-grid__total">
+                    <span>Total due</span>
+                    <strong>{{ "%.2f"|format(quote.owner_total_amount or 0) }} {{ quote.currency or "EUR" }}</strong>
+                  </div>
+                </div>
+
+                <div class="owner-finance-approval-actions">
+                  {% if quote.quote_status == 'SENT' and quote.owner_approval_status == 'PENDING' %}
+                  <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/approve') }}">
+                    <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
+                    <button class="button button--primary" type="submit">
+                      Approve quote
+                    </button>
+                  </form>
+
+                  <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/request-changes') }}">
+                    <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
+                    <button class="button" type="submit">
+                      Request changes
+                    </button>
+                  </form>
+
+                  <form
+                    method="post"
+                    action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/reject') }}"
+                    onsubmit="return confirm('Reject this quote?');"
+                  >
+                    <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
+                    <button class="button owner-finance-reject-button" type="submit">
+                      Reject
+                    </button>
+                  </form>
+                  {% elif quote.quote_status == 'APPROVED' and quote.owner_approval_status == 'APPROVED' and quote.payment_status in ['PENDING', 'UNPAID'] %}
+                    {% if owner_portal.stripe_checkout_enabled %}
+                      <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/stripe-checkout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
+                        <button class="button button--primary" type="submit">{{ owner_portal.finance_ui.pay }}</button>
+                        <small>{{ owner_portal.finance_ui.secure }}</small>
+                      </form>
+                    {% else %}
+                      <small>{{ owner_portal.finance_ui.failed }}</small>
+                    {% endif %}
+                  {% elif quote.payment_status == 'PAID' %}
+                    <strong>{{ owner_portal.finance_ui.paid }}</strong>
+                  {% elif quote.stripe_payment_status == 'FAILED' %}
+                    <strong>{{ owner_portal.finance_ui.failed }}</strong>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
 
       <section class="owner-ai-center" aria-labelledby="owner-ai-operations-title">
         <div class="owner-ai-center__main">

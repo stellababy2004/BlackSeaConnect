@@ -41,8 +41,10 @@
   "evidence_file": public_i18n("professionals", "detailEvidenceFile", "Evidence file"),
   "evidence_note": public_i18n("professionals", "detailEvidenceNote", "Evidence note"),
   "upload_evidence": public_i18n("professionals", "detailUploadEvidence", "Upload evidence"),
-  "evidence_requirements": public_i18n("professionals", "detailEvidenceRequirements", "JPEG, PNG, or WebP image, up to 10 MB."),
+  "evidence_requirements": public_i18n("professionals", "detailEvidenceRequirements", "JPG, JPEG, PNG, WebP, HEIC, or PDF up to 10 MB."),
   "view_evidence": public_i18n("professionals", "detailViewEvidence", "View evidence"),
+  "download_evidence": public_i18n("professionals", "detailDownloadEvidence", "Download"),
+  "delete_evidence": public_i18n("professionals", "detailDeleteEvidence", "Delete"),
   "drop_evidence": public_i18n("professionals", "detailDropEvidence", "Drop images here or browse"),
   "remove_image": public_i18n("professionals", "detailRemoveImage", "Remove"),
   "upload_progress": public_i18n("professionals", "detailUploadProgress", "Upload progress"),
@@ -145,6 +147,7 @@
   "notice_comment_saved": public_i18n("professionals", "detailNoticeCommentSaved", "Comment added."),
   "notice_comment_edited": public_i18n("professionals", "detailNoticeCommentEdited", "Comment updated."),
   "notice_evidence_uploaded": public_i18n("professionals", "detailNoticeEvidenceUploaded", "Evidence uploaded."),
+  "notice_evidence_deleted": public_i18n("professionals", "detailNoticeEvidenceDeleted", "Evidence deleted."),
   "notice_issue_reported": public_i18n("professionals", "detailNoticeIssueReported", "Issue reported to Operations."),
   "notice_task_completed": public_i18n("professionals", "detailNoticeTaskCompleted", "Task completed."),
   "error_transition_invalid": public_i18n("professionals", "detailErrorTransitionInvalid", "That workflow transition is not allowed."),
@@ -157,6 +160,8 @@
   "error_evidence_empty": public_i18n("professionals", "detailErrorEvidenceEmpty", "The selected image is empty."),
   "error_evidence_large": public_i18n("professionals", "detailErrorEvidenceLarge", "The image must be 10 MB or smaller."),
   "error_evidence_save": public_i18n("professionals", "detailErrorEvidenceSave", "The evidence could not be saved."),
+  "error_evidence_category": public_i18n("professionals", "detailErrorEvidenceCategory", "Select a valid evidence category."),
+  "error_evidence_delete": public_i18n("professionals", "detailErrorEvidenceDelete", "The evidence could not be deleted."),
   "error_issue_category": public_i18n("professionals", "detailErrorIssueCategory", "Select an issue category."),
   "error_issue_severity": public_i18n("professionals", "detailErrorIssueSeverity", "Select an issue severity."),
   "error_issue_description": public_i18n("professionals", "detailErrorIssueDescription", "Enter an issue description."),
@@ -201,9 +206,12 @@
 {% set attachment_labels = {
   "before_photos": public_i18n("professionals", "detailBeforePhotos", "Before photos"),
   "after_photos": public_i18n("professionals", "detailAfterPhotos", "After photos"),
-  "damage_photos": public_i18n("professionals", "detailDamagePhotos", "Damage photos"),
-  "invoice_photos": public_i18n("professionals", "detailInvoicePhotos", "Invoice photos"),
-  "receipt_photos": public_i18n("professionals", "detailReceiptPhotos", "Receipt photos")
+  "invoice": public_i18n("professionals", "detailEvidenceInvoice", "Invoice"),
+  "receipt": public_i18n("professionals", "detailEvidenceReceipt", "Receipt"),
+  "inspection_report": public_i18n("professionals", "detailEvidenceInspectionReport", "Inspection report"),
+  "damage_evidence": public_i18n("professionals", "detailEvidenceDamage", "Damage evidence"),
+  "completion_report_attachment": public_i18n("professionals", "detailEvidenceCompletionAttachment", "Completion report attachment"),
+  "other": public_i18n("professionals", "detailEvidenceOther", "Other")
 } %}
 {% set timeline_labels = {
   "task_created": labels.task_event_task_created,
@@ -247,6 +255,7 @@
   "comment_saved": labels.notice_comment_saved,
   "comment_edited": labels.notice_comment_edited,
   "evidence_uploaded": labels.notice_evidence_uploaded,
+  "evidence_deleted": labels.notice_evidence_deleted,
   "issue_reported": labels.notice_issue_reported,
   "task_completed": labels.notice_task_completed
 } %}
@@ -269,6 +278,8 @@
   "evidence_empty": labels.error_evidence_empty,
   "evidence_too_large": labels.error_evidence_large,
   "evidence_save_failed": labels.error_evidence_save,
+  "evidence_category_invalid": labels.error_evidence_category,
+  "evidence_delete_failed": labels.error_evidence_delete,
   "issue_category_required": labels.error_issue_category,
   "issue_severity_required": labels.error_issue_severity,
   "issue_description_required": labels.error_issue_description,
@@ -566,7 +577,7 @@
             </label>
             <label class="professional-dropzone" data-dropzone>
               <span><strong>{{ labels.drop_evidence }}</strong><br><small>{{ labels.evidence_requirements }}</small></span>
-              <input type="file" name="attachment_files" accept="image/jpeg,image/png,image/webp" multiple required style="position:absolute;inline-size:1px;block-size:1px;opacity:0;">
+              <input type="file" name="attachment_files" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,.heic,.pdf" multiple required style="position:absolute;inline-size:1px;block-size:1px;opacity:0;">
             </label>
             <div class="professional-preview-list" data-preview-list></div>
             <label><span>{{ labels.evidence_note }}</span><input type="text" name="attachment_name" placeholder="{{ public_i18n('professionals', 'detailEvidenceNotePlaceholder', 'Optional evidence label') }}"></label>
@@ -674,7 +685,7 @@
                   {% if attachment.slot %}
                     {{ attachment_labels.get(attachment.slot|default('', true)|trim, attachment.slot|default('', true)|replace('_', ' ')|title) }}
                   {% elif attachment.category %}
-                    {{ task_category_labels.get(attachment.category|replace('_', ' ')|title, attachment.category|replace('_', ' ')|title) }}
+                    {{ attachment_labels.get(attachment.category, attachment.category|replace('_', ' ')|title) }}
                   {% else %}
                     {{ labels.attachment }}
                   {% endif %}
@@ -682,9 +693,20 @@
                 </p>
                 {% set attachment_name = attachment.name|default('', true)|lower %}
                 {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
-                {% set is_image_attachment = attachment_mime.startswith('image/') or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
+                {% set is_image_attachment = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
                 {% if attachment.url and is_image_attachment %}
                   <a href="{{ attachment.url|e }}" target="_blank" rel="noopener" aria-label="{{ labels.view_evidence }}: {{ attachment.name|e }}"><img class="professional-evidence-image" src="{{ attachment.url|e }}" alt="{{ attachment.name|e }}" loading="lazy"></a>
+                {% endif %}
+                {% if attachment.url %}
+                  <div class="professional-actions" style="margin-top:10px;">
+                    <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
+                    <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ labels.download_evidence }}</a>
+                    {% if attachment.id and attachment.uploader_role == 'professional' and attachment.uploader_id == professional_account.id %}
+                      <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ labels.delete_evidence }}?');">
+                        <button class="button button--ghost" type="submit">{{ labels.delete_evidence }}</button>
+                      </form>
+                    {% endif %}
+                  </div>
                 {% endif %}
               </div>
             {% else %}
@@ -875,10 +897,16 @@
           selectedFiles.forEach((file, index) => {
             const item = document.createElement("div");
             item.className = "professional-preview";
-            const image = document.createElement("img");
-            image.alt = file.name;
-            image.src = URL.createObjectURL(file);
-            image.addEventListener("load", () => URL.revokeObjectURL(image.src), { once: true });
+            const preview = document.createElement(file.type.startsWith("image/") && !/hei[cf]/i.test(file.type) ? "img" : "span");
+            if (preview instanceof HTMLImageElement) {
+              preview.alt = file.name;
+              preview.src = URL.createObjectURL(file);
+              preview.addEventListener("load", () => URL.revokeObjectURL(preview.src), { once: true });
+            } else {
+              preview.textContent = file.name;
+              preview.style.overflowWrap = "anywhere";
+              preview.style.padding = "12px";
+            }
             const remove = document.createElement("button");
             remove.type = "button";
             remove.textContent = messages.remove;
@@ -888,7 +916,7 @@
               syncInput();
               renderPreviews();
             });
-            item.append(image, remove);
+            item.append(preview, remove);
             previewList.append(item);
           });
         };

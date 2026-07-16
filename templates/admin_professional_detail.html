@@ -42,6 +42,20 @@
         <div><dt>Short Bio</dt><dd>{{ item.short_bio|e }}</dd></div>
       </dl>
 
+      <section class="admin-pilot-card" aria-labelledby="stripe-connect-title">
+        <p class="eyebrow">Stripe Connect · {{ stripe_diagnostics.mode|upper }}</p>
+        <h3 id="stripe-connect-title">{{ stripe_status_label }}</h3>
+        <p>Configuration: {% if stripe_diagnostics.checkout_ready %}ready{% else %}incomplete{% endif %}; webhook: {% if stripe_diagnostics.webhook_ready %}ready{% else %}incomplete{% endif %}. No secret values are displayed.</p>
+        {% if professional_account and professional_account.stripe_account_status != 'READY' %}
+          <form method="post" action="/admin/professionals/{{ item.id|e }}/stripe/connect">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <button class="button button--primary" type="submit" {% if not stripe_diagnostics.checkout_ready %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
+          </form>
+        {% elif professional_account %}
+          <strong>{{ stripe_ui.ready }}</strong>
+        {% endif %}
+      </section>
+
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
         <label>
           <span>Update status</span>

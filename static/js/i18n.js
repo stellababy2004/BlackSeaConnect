@@ -22,7 +22,7 @@
   };
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
   const warnedKeys = new Set();
-  const DEBUG_I18N = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+  const DEBUG_I18N = false;
 
   function normalizeLanguage(lang) {
     if (!lang) {
@@ -45,7 +45,10 @@
 
   function getInitialLanguage() {
     const fromUrl = getLanguageFromUrl();
-    return fromUrl || DEFAULT_LANG;
+    const pageLanguageNode = document.querySelector("[data-page-lang]");
+    const fromPage = normalizeLanguage(pageLanguageNode && pageLanguageNode.getAttribute("data-page-lang"));
+    const fromDocument = normalizeLanguage(document.documentElement.lang);
+    return fromUrl || (SUPPORTED_LANGS.has(fromPage) ? fromPage : "") || (SUPPORTED_LANGS.has(fromDocument) ? fromDocument : "") || DEFAULT_LANG;
   }
 
   function setLanguageInUrl(lang) {
@@ -116,6 +119,9 @@
   }
 
   function getPageNamespace() {
+    if (window.location.pathname === "/admin" || window.location.pathname.startsWith("/admin/")) {
+      return "admin";
+    }
     if (window.location.pathname.startsWith("/network/")) {
       return "network";
     }
@@ -332,9 +338,15 @@
         const value = getTranslation(activeLang, key, pageNamespace);
         if (value !== undefined && value !== null) {
           node.textContent = value;
+          if (typeof node.removeAttribute === "function") {
+            node.removeAttribute("data-i18n-missing");
+          }
           if (node.tagName === "OPTION") {
             node.label = value;
           }
+        } else if (DEBUG_I18N) {
+          node.textContent = `[i18n:${key}]`;
+          node.setAttribute("data-i18n-missing", key);
         }
       });
 
@@ -382,6 +394,21 @@
       window.dispatchEvent(new CustomEvent("blacksea:languagechange", {
         detail: { lang: activeLang }
       }));
+
+      return activeLang;
+    }
+
+    function persistLanguage(lang) {
+      if (typeof window.fetch !== "function") {
+        return;
+      }
+      window.fetch(buildLanguageUrl(lang), {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "X-BlackSea-Language-Sync": "1" }
+      }).catch(function () {
+        /* The lang query remains in the URL, so the next request still persists it. */
+      });
     }
 
     function handleLanguageControlClick(event) {
@@ -395,19 +422,14 @@
         return;
       }
 
-      if (window.console && typeof window.console.log === "function") {
-        window.console.log("language click", selectedLanguage);
-      }
-
       if (normalizeLanguage(document.documentElement.lang) === selectedLanguage) {
+        event.preventDefault();
         return;
       }
 
-      if (control.tagName === "A") {
-        event.preventDefault();
-      }
-
-      window.location.assign(buildLanguageUrl(selectedLanguage));
+      event.preventDefault();
+      applyLanguage(selectedLanguage);
+      persistLanguage(selectedLanguage);
     }
 
     function bindLanguageControls() {
@@ -452,7 +474,8 @@
     }
   }
 
-  window.BlackSeaI18n = window.BlackSeaI18n || { init };
+  window.BlackSeaI18n = window.BlackSeaI18n || {};
+  window.BlackSeaI18n.init = init;
 
   if (window.BlackSeaI18N) {
     init(window.BlackSeaI18N);

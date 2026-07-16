@@ -1277,3 +1277,147 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("data-evidence-form", detail_html)
         self.assertIn("new DataTransfer()", detail_html)
         self.assertIn('xhr.upload.addEventListener("progress"', detail_html)
+
+    def test_operations_task_evidence_admin_upload_metadata_timeline_and_delete(self):
+        self._seed_operations_task("task-admin-evidence")
+        png_bytes = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
+        pdf_bytes = b"%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF"
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            upload = self.client.post(
+                "/admin/operations/task-admin-evidence",
+                data={
+                    "task_action": "attachment",
+                    "attachment_category": "inspection_report",
+                    "evidence_photos": [(io.BytesIO(png_bytes), "before.png"), (io.BytesIO(png_bytes), "after.png")],
+                    "evidence_documents": [(io.BytesIO(pdf_bytes), "inspection.pdf")],
+                },
+                headers=self._auth_headers(),
+                content_type="multipart/form-data",
+            )
+            self.assertEqual(upload.status_code, 302)
+            self.assertIn("evidence_notice=uploaded", upload.headers["Location"])
+
+            task = app_module._find_operations_task("task-admin-evidence")
+            self.assertEqual(len(task["attachments"]), 3)
+            required_fields = {
+                "task_id", "operation_id", "property_id", "uploader_id", "uploader_role",
+                "category", "filename", "original_filename", "mime_type", "file_size", "upload_timestamp",
+            }
+            for attachment in task["attachments"]:
+                self.assertTrue(required_fields.issubset(attachment))
+                self.assertEqual(attachment["task_id"], "task-admin-evidence")
+                self.assertEqual(attachment["operation_id"], "task-admin-evidence")
+                self.assertEqual(attachment["property_id"], "property-1")
+                self.assertEqual(attachment["uploader_role"], "admin")
+                self.assertGreater(attachment["file_size"], 0)
+
+            events = [event for event in app_module._load_operations_task_events("task-admin-evidence") if event["event_type"] == "attachment_added"]
+            self.assertEqual(events[0]["title"], "3 files uploaded")
+            self.assertEqual(events[0]["detail"], "Attachment count: 3")
+
+            image_attachment = next(item for item in task["attachments"] if item["mime_type"] == "image/png")
+            pdf_attachment = next(item for item in task["attachments"] if item["mime_type"] == "application/pdf")
+            image_preview = self.client.get(image_attachment["url"], headers=self._auth_headers())
+            self.assertEqual(image_preview.status_code, 200)
+            self.assertEqual(image_preview.mimetype, "image/png")
+            image_preview.close()
+            pdf_download = self.client.get(pdf_attachment["download_url"], headers=self._auth_headers())
+            self.assertEqual(pdf_download.status_code, 200)
+            self.assertEqual(pdf_download.mimetype, "application/pdf")
+            self.assertIn("attachment", pdf_download.headers.get("Content-Disposition", ""))
+            pdf_download.close()
+
+            invalid = self.client.post(
+                "/admin/operations/task-admin-evidence",
+                data={"task_action": "attachment", "attachment_category": "other", "evidence_documents": (io.BytesIO(b"plain text"), "notes.txt")},
+                headers=self._auth_headers(),
+                content_type="multipart/form-data",
+            )
+            self.assertIn("evidence_error=evidence_invalid_type", invalid.headers["Location"])
+
+            french_detail = self.client.get("/admin/operations/task-admin-evidence?lang=fr", headers=self._auth_headers()).get_data(as_text=True)
+            self.assertIn("Pièce jointe au rapport de clôture", french_detail)
+            self.assertIn("inspection.pdf", french_detail)
+
+            with self.client.session_transaction() as session_data:
+                session_data["_admin_csrf_token"] = "evidence-csrf"
+            deleted = self.client.post(
+                f"/admin/operations/task-admin-evidence/attachments/{pdf_attachment['id']}/delete",
+                data={"csrf_token": "evidence-csrf"},
+                headers=self._auth_headers(),
+            )
+            self.assertEqual(deleted.status_code, 302)
+            self.assertEqual(len(app_module._find_operations_task("task-admin-evidence")["attachments"]), 2)
+
+            heic_bytes = b"\x00\x00\x00\x18ftypheic\x00\x00\x00\x00heicmif1"
+            heic_upload = self.client.post(
+                "/admin/operations/task-admin-evidence",
+                data={
+                    "task_action": "attachment",
+                    "attachment_category": "damage_evidence",
+                    "evidence_photos": (io.BytesIO(heic_bytes), "mobile-camera.heic", "image/heic"),
+                },
+                headers=self._auth_headers(),
+                content_type="multipart/form-data",
+            )
+            self.assertIn("evidence_notice=uploaded", heic_upload.headers["Location"])
+            self.assertTrue(any(item["mime_type"] == "image/heic" for item in app_module._find_operations_task("task-admin-evidence")["attachments"]))
+
+    def test_operations_task_evidence_professional_ownership_and_owner_read_only(self):
+        professional = self._seed_professional_account(
+            full_name="Evidence Professional",
+            email="evidence-pro@example.com",
+            account_id="professional-evidence",
+        )
+        self._seed_operations_task(
+            "task-evidence-permissions",
+            assigned_professional_id=professional["id"],
+            assigned_to="Evidence Professional",
+        )
+        png_bytes = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            self.client.post(
+                "/admin/operations/task-evidence-permissions",
+                data={"task_action": "attachment", "attachment_category": "invoice", "evidence_photos": (io.BytesIO(png_bytes), "admin.png")},
+                headers=self._auth_headers(),
+                content_type="multipart/form-data",
+            )
+        admin_attachment = app_module._find_operations_task("task-evidence-permissions")["attachments"][0]
+
+        with app.app_context():
+            owner = app_module._upsert_owner_account({
+                "id": "owner-1", "email": "owner@example.com", "full_name": "Owner One", "phone": "+359888111111",
+                "property_type": "Apartment", "city": "Varna", "property_name": "Sea View Villa", "number_of_units": 1,
+                "notes": "", "status": "ACTIVE", "language": "en",
+            })
+        with self.client.session_transaction() as session_data:
+            session_data[app_module.OWNER_SESSION_LOGGED_IN_KEY] = True
+            session_data[app_module.OWNER_SESSION_ID_KEY] = owner["id"]
+            session_data[app_module.OWNER_SESSION_EMAIL_KEY] = owner["email"]
+        owner_preview = self.client.get(admin_attachment["url"])
+        self.assertEqual(owner_preview.status_code, 200)
+        owner_preview.close()
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            self.assertEqual(self.client.post(f"/admin/operations/task-evidence-permissions/attachments/{admin_attachment['id']}/delete").status_code, 401)
+
+        with self.client.session_transaction() as session_data:
+            session_data.clear()
+            session_data[app_module.PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
+            session_data[app_module.PROFESSIONAL_SESSION_ID_KEY] = professional["id"]
+            session_data[app_module.PROFESSIONAL_SESSION_EMAIL_KEY] = professional["email"]
+        forbidden = self.client.post(f"/professionals/tasks/task-evidence-permissions/attachments/{admin_attachment['id']}/delete")
+        self.assertEqual(forbidden.status_code, 403)
+
+        own_upload = self.client.post(
+            "/professionals/tasks/task-evidence-permissions",
+            data={"task_action": "attachment", "attachment_category": "after_photos", "attachment_file": (io.BytesIO(png_bytes), "professional.png")},
+            content_type="multipart/form-data",
+        )
+        self.assertIn("notice=evidence_uploaded", own_upload.headers["Location"])
+        task = app_module._find_operations_task("task-evidence-permissions")
+        own_attachment = next(item for item in task["attachments"] if item["uploader_id"] == professional["id"])
+        own_delete = self.client.post(f"/professionals/tasks/task-evidence-permissions/attachments/{own_attachment['id']}/delete")
+        self.assertIn("notice=evidence_deleted", own_delete.headers["Location"])
+        remaining_ids = {item["id"] for item in app_module._find_operations_task("task-evidence-permissions")["attachments"]}
+        self.assertNotIn(own_attachment["id"], remaining_ids)
+        self.assertIn(admin_attachment["id"], remaining_ids)

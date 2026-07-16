@@ -551,20 +551,26 @@ class CalendarEngineTests(unittest.TestCase):
         with patch.dict(os.environ, self.env, clear=True):
             self._seed_owner(owner_id="owner-1", email="owner@example.com", full_name="Elena Petrova", city="Varna")
             self._seed_property(property_id="property-1", owner_id="owner-1", name="Sea View Villa", location="Varna")
+            self._seed_calendar_event(event_id="already-linked", property_id="property-1")
             self._seed_calendar_event(event_id="legacy-exact")
             self._seed_calendar_event(event_id="legacy-none", property_name="Missing Villa")
             csrf = self._admin_csrf()
 
+            linked = self.client.get("/admin/api/calendar/events/already-linked/property-matches", headers=self._auth_headers())
             exact = self.client.get("/admin/api/calendar/events/legacy-exact/property-matches", headers=self._auth_headers())
             none = self.client.get("/admin/api/calendar/events/legacy-none/property-matches", headers=self._auth_headers())
+            self.assertEqual(linked.status_code, 200)
+            self.assertEqual(linked.get_json()["safe_match_id"], "property-1")
             self.assertEqual(exact.status_code, 200)
             self.assertEqual(exact.get_json()["state"], "exact")
             self.assertEqual(exact.get_json()["safe_match_id"], "property-1")
             self.assertEqual(none.get_json()["state"], "none")
+            self.assertEqual(none.get_json()["matches"], [])
 
             self._seed_property(property_id="property-duplicate", owner_id="owner-1", name="Sea View Villa", location="Varna")
             ambiguous = self.client.get("/admin/api/calendar/events/legacy-exact/property-matches", headers=self._auth_headers())
             self.assertEqual(ambiguous.get_json()["state"], "ambiguous")
+            self.assertEqual(len(ambiguous.get_json()["matches"]), 2)
 
             reconcile = self.client.post(
                 "/admin/api/calendar/events/legacy-exact/reconcile-property",
@@ -577,6 +583,39 @@ class CalendarEngineTests(unittest.TestCase):
             self.assertEqual(persisted["property_id"], "property-1")
             html = self.client.get("/admin/calendar?lang=bg", headers=self._auth_headers()).get_data(as_text=True)
             self.assertIn('data-property-id="property-1"', html)
+
+    def test_property_reconciliation_modal_has_localized_empty_state_actions(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            html_by_language = {
+                language: self.client.get(f"/admin/calendar?lang={language}", headers=self._auth_headers()).get_data(as_text=True)
+                for language in ("bg", "en", "fr")
+            }
+
+        for html in html_by_language.values():
+            self.assertIn('<html lang="', html)
+            self.assertIn('data-reconcile-selection', html)
+            self.assertIn('data-reconcile-empty hidden', html)
+            self.assertIn('data-reconcile-create hidden', html)
+            self.assertIn('data-reconcile-properties hidden', html)
+            self.assertIn('data-reconcile-submit disabled', html)
+            self.assertIn('href="/owners/property/new"', html)
+            self.assertIn('href="/admin/properties"', html)
+
+        template_source = (Path(self._cwd) / "templates" / "calendar.html").read_text(encoding="utf-8")
+        self.assertIn('submitButton.disabled = empty || !select.value;', template_source)
+        self.assertIn('selection.hidden = empty;', template_source)
+        self.assertIn('dialog[data-reconcile-dialog] .admin-ops-actions-grid.is-empty { grid-template-columns:1fr; }', template_source)
+
+        translations = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
+        for text in (
+            "Календарният запис няма свързан каноничен имот.",
+            "This calendar record has no linked canonical property.",
+            "Cet enregistrement du calendrier n’est associé à aucun bien de référence.",
+            "Създай нов имот",
+            "Create a new property",
+            "Créer un nouveau bien",
+        ):
+            self.assertIn(text, translations)
 
     def test_persistent_assignment_conflict_and_override(self):
         with patch.dict(os.environ, self.env, clear=True):

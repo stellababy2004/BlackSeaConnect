@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from email.message import EmailMessage
 from email.utils import formataddr, parseaddr
 import hashlib
@@ -22,6 +23,10 @@ from threading import Thread
 from uuid import uuid4
 
 import click
+try:
+    import stripe
+except ImportError:  # Production diagnostics handle a missing optional dependency safely.
+    stripe = None
 from flask import Flask, Response, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
 from werkzeug.utils import secure_filename
 
@@ -52,10 +57,86 @@ PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
 _OWNER_DB_SCHEMA_INITIALIZING = False
 _OWNER_DB_BACKFILL_SUPPRESSED = False
+STRIPE_ZERO_DECIMAL_CURRENCIES = {"BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"}
 DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
 DEMO_SCENARIO = "BlackSea Connect Pilot"
 DEMO_SEASON = "Summer 2026"
 DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
+
+
+def _env_flag(name, default=False):
+    value = str(os.getenv(name, "1" if default else "0") or "").strip().lower()
+    return value in {"1", "true", "yes", "on", "enabled"}
+
+
+def _stripe_settings():
+    return {
+        "enabled": _env_flag("STRIPE_CONNECT_ENABLED"),
+        "mode": str(os.getenv("STRIPE_MODE", "test") or "test").strip().lower(),
+        "secret_key": str(os.getenv("STRIPE_SECRET_KEY", "") or "").strip(),
+        "publishable_key": str(os.getenv("STRIPE_PUBLISHABLE_KEY", "") or "").strip(),
+        "webhook_secret": str(os.getenv("STRIPE_WEBHOOK_SECRET", "") or "").strip(),
+        "sdk_available": stripe is not None,
+    }
+
+
+def _stripe_configured(*, webhook=False):
+    settings = _stripe_settings()
+    return bool(settings["enabled"] and settings["sdk_available"] and settings["secret_key"] and (settings["webhook_secret"] if webhook else True))
+
+
+def _manual_finance_enabled():
+    environment = str(os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development").strip().lower()
+    return _env_flag("MANUAL_FINANCE_ENABLED", default=environment not in {"production", "prod"})
+
+
+def _stripe_admin_diagnostics():
+    settings = _stripe_settings()
+    return {
+        "enabled": settings["enabled"],
+        "mode": settings["mode"] if settings["mode"] in {"test", "live"} else "invalid",
+        "sdk_available": settings["sdk_available"],
+        "secret_key_configured": bool(settings["secret_key"]),
+        "publishable_key_configured": bool(settings["publishable_key"]),
+        "webhook_secret_configured": bool(settings["webhook_secret"]),
+        "checkout_ready": _stripe_configured(),
+        "webhook_ready": _stripe_configured(webhook=True),
+    }
+
+
+def _stripe_api_ready(*, webhook=False):
+    if not _stripe_configured(webhook=webhook):
+        return False
+    stripe.api_key = _stripe_settings()["secret_key"]
+    return True
+
+
+def _stripe_minor_units(amount, currency):
+    normalized_currency = str(currency or "").strip().upper()
+    if not normalized_currency:
+        raise ValueError("currency_required")
+    try:
+        decimal_amount = Decimal(str(amount))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ValueError("invalid_amount") from exc
+    if decimal_amount <= 0:
+        raise ValueError("invalid_amount")
+    exponent = Decimal("1") if normalized_currency in STRIPE_ZERO_DECIMAL_CURRENCIES else Decimal("100")
+    return int((decimal_amount * exponent).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _stripe_ui_copy(language):
+    copy = {
+        "bg": {"pay": "Плати сигурно със Stripe", "secure": "Сигурно плащане в Stripe", "pending": "Плащането се потвърждава от Stripe.", "paid": "Платено сигурно със Stripe.", "failed": "Плащането не беше успешно. Опитайте отново.", "cancelled": "Плащането беше отказано.", "connect": "Свържи Stripe акаунт", "dashboard": "Отвори Stripe Dashboard", "not_connected": "Не е свързан", "incomplete": "Onboarding не е завършен", "under_review": "В процес на проверка", "ready": "Готов за изплащания", "restricted": "Ограничен", "transferred": "Прехвърлено към Stripe баланса на професионалиста"},
+        "en": {"pay": "Pay securely with Stripe", "secure": "Secure Stripe-hosted payment", "pending": "Stripe is confirming the payment.", "paid": "Paid securely with Stripe.", "failed": "The payment failed. Please try again.", "cancelled": "The payment was cancelled.", "connect": "Connect Stripe account", "dashboard": "Open Stripe Dashboard", "not_connected": "Not connected", "incomplete": "Onboarding incomplete", "under_review": "Under review", "ready": "Ready for payouts", "restricted": "Restricted", "transferred": "Transferred to the professional’s Stripe balance"},
+        "fr": {"pay": "Payer en toute sécurité avec Stripe", "secure": "Paiement sécurisé hébergé par Stripe", "pending": "Stripe confirme le paiement.", "paid": "Payé en toute sécurité avec Stripe.", "failed": "Le paiement a échoué. Veuillez réessayer.", "cancelled": "Le paiement a été annulé.", "connect": "Connecter le compte Stripe", "dashboard": "Ouvrir le tableau de bord Stripe", "not_connected": "Non connecté", "incomplete": "Inscription incomplète", "under_review": "En cours de vérification", "ready": "Prêt pour les versements", "restricted": "Restreint", "transferred": "Transféré vers le solde Stripe du professionnel"},
+    }
+    return copy.get(str(language or "").lower(), copy["en"])
+
+
+def _stripe_account_status_label(account, language):
+    key = {"NOT_CONNECTED": "not_connected", "INCOMPLETE": "incomplete", "UNDER_REVIEW": "under_review", "READY": "ready", "RESTRICTED": "restricted"}.get(str((account or {}).get("stripe_account_status", "NOT_CONNECTED")).upper(), "not_connected")
+    return _stripe_ui_copy(language)[key]
 
 CRM_PIPELINE_STATUS_VALUES = ("new", "contacted", "qualified", "converted", "lost")
 CRM_PIPELINE_STATUS_ALIASES = {
@@ -153,6 +234,19 @@ PROFESSIONAL_TASK_EVIDENCE_TYPES = {
     "image/jpeg": {".jpg", ".jpeg"},
     "image/png": {".png"},
     "image/webp": {".webp"},
+    "image/heic": {".heic"},
+    "image/heif": {".heic"},
+    "application/pdf": {".pdf"},
+}
+OPERATIONS_TASK_EVIDENCE_CATEGORIES = {
+    "before_photos",
+    "after_photos",
+    "invoice",
+    "receipt",
+    "inspection_report",
+    "damage_evidence",
+    "completion_report_attachment",
+    "other",
 }
 OWNER_PROPERTY_MEDIA_LIMIT = 20
 OWNER_PROPERTY_DOCUMENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
@@ -844,14 +938,32 @@ def _operations_task_attachments(attachments_value):
     for item in attachments_value:
         if not isinstance(item, dict):
             continue
+        created_at = str(item.get("upload_timestamp", item.get("created_at", ""))).strip()
+        original_filename = str(item.get("original_filename", item.get("name", ""))).strip()
+        stored_filename = str(item.get("filename", "")).strip()
+        try:
+            file_size = max(0, int(item.get("file_size", 0) or 0))
+        except (TypeError, ValueError):
+            file_size = 0
         attachments.append({
-            "created_at": str(item.get("created_at", "")).strip(),
-            "name": str(item.get("name", "")).strip(),
+            "id": str(item.get("id", "")).strip(),
+            "task_id": str(item.get("task_id", "")).strip(),
+            "operation_id": str(item.get("operation_id", "")).strip(),
+            "property_id": str(item.get("property_id", "")).strip(),
+            "uploader_id": str(item.get("uploader_id", "")).strip(),
+            "uploader_role": str(item.get("uploader_role", "")).strip(),
+            "created_at": created_at,
+            "upload_timestamp": created_at,
+            "name": str(item.get("name", original_filename)).strip(),
+            "filename": stored_filename,
+            "original_filename": original_filename,
             "url": str(item.get("url", "")).strip(),
+            "download_url": str(item.get("download_url", "")).strip(),
             "uploaded_by": str(item.get("uploaded_by", "")).strip(),
             "category": str(item.get("category", "")).strip(),
             "slot": str(item.get("slot", "")).strip(),
             "mime_type": str(item.get("mime_type", "")).strip(),
+            "file_size": file_size,
         })
     attachments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return attachments
@@ -2013,7 +2125,36 @@ def _ensure_operations_task_schema(conn):
             request_status TEXT NOT NULL DEFAULT 'new',
             checklist_json TEXT NOT NULL DEFAULT '',
             attachments_json TEXT NOT NULL DEFAULT '',
-            comments_json TEXT NOT NULL DEFAULT ''
+            comments_json TEXT NOT NULL DEFAULT '',
+            professional_quote_amount REAL NOT NULL DEFAULT 0,
+            platform_fee_type TEXT NOT NULL DEFAULT 'FIXED',
+            platform_fee_value REAL NOT NULL DEFAULT 0,
+            owner_total_amount REAL NOT NULL DEFAULT 0,
+            currency TEXT NOT NULL DEFAULT 'EUR',
+            quote_status TEXT NOT NULL DEFAULT 'NONE',
+            quote_locked INTEGER NOT NULL DEFAULT 0,
+            owner_approval_status TEXT NOT NULL DEFAULT 'PENDING',
+            payment_status TEXT NOT NULL DEFAULT 'PENDING',
+            payout_status TEXT NOT NULL DEFAULT 'NOT_READY',
+            payment_provider TEXT NOT NULL DEFAULT '',
+            payment_reference TEXT NOT NULL DEFAULT '',
+            paid_at TEXT NOT NULL DEFAULT '',
+            released_at TEXT NOT NULL DEFAULT '',
+            finance_reference TEXT NOT NULL DEFAULT '',
+            stripe_checkout_session_id TEXT NOT NULL DEFAULT '',
+            stripe_payment_intent_id TEXT NOT NULL DEFAULT '',
+            stripe_payment_status TEXT NOT NULL DEFAULT '',
+            stripe_payment_error TEXT NOT NULL DEFAULT '',
+            stripe_checkout_created_at TEXT NOT NULL DEFAULT '',
+            stripe_paid_at TEXT NOT NULL DEFAULT '',
+            stripe_currency TEXT NOT NULL DEFAULT '',
+            stripe_amount_total INTEGER NOT NULL DEFAULT 0,
+            stripe_transfer_id TEXT NOT NULL DEFAULT '',
+            stripe_transfer_status TEXT NOT NULL DEFAULT '',
+            stripe_transfer_amount INTEGER NOT NULL DEFAULT 0,
+            stripe_transfer_created_at TEXT NOT NULL DEFAULT '',
+            stripe_transfer_error TEXT NOT NULL DEFAULT '',
+            stripe_risk_status TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -2031,6 +2172,35 @@ def _ensure_operations_task_schema(conn):
         "property_id": "TEXT NOT NULL DEFAULT ''",
         "property_name": "TEXT NOT NULL DEFAULT ''",
         "assigned_to": "TEXT NOT NULL DEFAULT ''",
+        "professional_quote_amount": "REAL NOT NULL DEFAULT 0",
+        "platform_fee_type": "TEXT NOT NULL DEFAULT 'FIXED'",
+        "platform_fee_value": "REAL NOT NULL DEFAULT 0",
+        "owner_total_amount": "REAL NOT NULL DEFAULT 0",
+        "currency": "TEXT NOT NULL DEFAULT 'EUR'",
+        "quote_status": "TEXT NOT NULL DEFAULT 'NONE'",
+        "quote_locked": "INTEGER NOT NULL DEFAULT 0",
+        "owner_approval_status": "TEXT NOT NULL DEFAULT 'PENDING'",
+        "payment_status": "TEXT NOT NULL DEFAULT 'PENDING'",
+        "payout_status": "TEXT NOT NULL DEFAULT 'NOT_READY'",
+        "payment_provider": "TEXT NOT NULL DEFAULT ''",
+        "payment_reference": "TEXT NOT NULL DEFAULT ''",
+        "paid_at": "TEXT NOT NULL DEFAULT ''",
+        "released_at": "TEXT NOT NULL DEFAULT ''",
+        "finance_reference": "TEXT NOT NULL DEFAULT ''",
+        "stripe_checkout_session_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_intent_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_status": "TEXT NOT NULL DEFAULT ''",
+        "stripe_payment_error": "TEXT NOT NULL DEFAULT ''",
+        "stripe_checkout_created_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_paid_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_currency": "TEXT NOT NULL DEFAULT ''",
+        "stripe_amount_total": "INTEGER NOT NULL DEFAULT 0",
+        "stripe_transfer_id": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_status": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_amount": "INTEGER NOT NULL DEFAULT 0",
+        "stripe_transfer_created_at": "TEXT NOT NULL DEFAULT ''",
+        "stripe_transfer_error": "TEXT NOT NULL DEFAULT ''",
+        "stripe_risk_status": "TEXT NOT NULL DEFAULT ''",
         "assigned_professional_id": "TEXT NOT NULL DEFAULT ''",
         "priority": "TEXT NOT NULL DEFAULT 'NORMAL'",
         "status": "TEXT NOT NULL DEFAULT 'NEW'",
@@ -2060,6 +2230,18 @@ def _ensure_operations_task_schema(conn):
             title TEXT NOT NULL,
             detail TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'NEW'
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS stripe_event_ledger (
+            event_id TEXT PRIMARY KEY,
+            event_type TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            processed_at TEXT NOT NULL DEFAULT '',
+            processing_status TEXT NOT NULL DEFAULT 'PROCESSING',
+            error_message TEXT NOT NULL DEFAULT ''
         )
         """
     )
@@ -4921,10 +5103,29 @@ def _ensure_owner_db_schema(conn):
                 company TEXT NOT NULL DEFAULT '',
                 service_categories TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'PENDING',
-                last_login_at TEXT NOT NULL DEFAULT ''
+                last_login_at TEXT NOT NULL DEFAULT '',
+                stripe_account_id TEXT NOT NULL DEFAULT '',
+                stripe_account_status TEXT NOT NULL DEFAULT 'NOT_CONNECTED',
+                stripe_details_submitted INTEGER NOT NULL DEFAULT 0,
+                stripe_charges_enabled INTEGER NOT NULL DEFAULT 0,
+                stripe_payouts_enabled INTEGER NOT NULL DEFAULT 0,
+                stripe_onboarding_started_at TEXT NOT NULL DEFAULT '',
+                stripe_onboarding_completed_at TEXT NOT NULL DEFAULT '',
+                stripe_last_synced_at TEXT NOT NULL DEFAULT ''
             )
             """
         )
+        for column_name, column_sql in {
+            "stripe_account_id": "TEXT NOT NULL DEFAULT ''",
+            "stripe_account_status": "TEXT NOT NULL DEFAULT 'NOT_CONNECTED'",
+            "stripe_details_submitted": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_charges_enabled": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_payouts_enabled": "INTEGER NOT NULL DEFAULT 0",
+            "stripe_onboarding_started_at": "TEXT NOT NULL DEFAULT ''",
+            "stripe_onboarding_completed_at": "TEXT NOT NULL DEFAULT ''",
+            "stripe_last_synced_at": "TEXT NOT NULL DEFAULT ''",
+        }.items():
+            _ensure_table_column(conn, "professional_accounts", column_name, column_sql)
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS professional_magic_tokens (
@@ -5502,20 +5703,51 @@ def _edit_latest_operations_task_comment(task_id, operator, comment, *, author_r
     return edited_comment
 
 
-def _append_operations_task_attachment(task_id, *, name, uploaded_by="", category="", slot="", mime_type="", url=""):
+def _append_operations_task_attachment(
+    task_id,
+    *,
+    name,
+    uploaded_by="",
+    category="",
+    slot="",
+    mime_type="",
+    url="",
+    attachment_id="",
+    operation_id="",
+    property_id="",
+    uploader_id="",
+    uploader_role="",
+    filename="",
+    original_filename="",
+    file_size=0,
+    append_event=True,
+):
     target_task_id = str(task_id or "").strip()
     normalized_name = str(name or "").strip()
     if not target_task_id or not normalized_name:
         return None
 
+    upload_timestamp = _utc_now_iso()
+    attachment_url = str(url or "").strip()
     attachment_entry = {
-        "created_at": _utc_now_iso(),
+        "id": str(attachment_id or "").strip() or uuid4().hex,
+        "task_id": target_task_id,
+        "operation_id": str(operation_id or "").strip(),
+        "property_id": str(property_id or "").strip(),
+        "uploader_id": str(uploader_id or "").strip(),
+        "uploader_role": str(uploader_role or "").strip(),
+        "created_at": upload_timestamp,
+        "upload_timestamp": upload_timestamp,
         "name": normalized_name,
-        "url": str(url or "").strip(),
+        "filename": str(filename or "").strip(),
+        "original_filename": str(original_filename or normalized_name).strip(),
+        "url": attachment_url,
+        "download_url": f"{attachment_url}?download=1" if attachment_url else "",
         "uploaded_by": str(uploaded_by or "").strip() or _current_admin_operator_key(),
         "category": str(category or "").strip(),
         "slot": str(slot or "").strip(),
         "mime_type": str(mime_type or "").strip(),
+        "file_size": max(0, int(file_size or 0)),
     }
 
     task = _find_operations_task(target_task_id)
@@ -5528,14 +5760,39 @@ def _append_operations_task_attachment(task_id, *, name, uploaded_by="", categor
     if not updated_task:
         return None
 
-    _append_operations_task_event(
-        target_task_id,
-        "attachment_added",
-        "Attachment added",
-        f"{attachment_entry['slot'] or attachment_entry['category'] or 'Attachment'} · {normalized_name}",
-        status=updated_task.get("status", "NEW"),
-    )
+    if append_event:
+        _append_operations_task_event(
+            target_task_id,
+            "attachment_added",
+            "Attachment added",
+            f"{attachment_entry['slot'] or attachment_entry['category'] or 'Attachment'} · {normalized_name}",
+            status=updated_task.get("status", "NEW"),
+        )
     return attachment_entry
+
+
+def _append_operations_evidence_timeline_event(task_id, attachments):
+    entries = [item for item in (attachments or []) if isinstance(item, dict)]
+    if not entries:
+        return None
+    categories = {str(item.get("category", "")).strip() for item in entries}
+    image_count = sum(1 for item in entries if str(item.get("mime_type", "")).startswith("image/"))
+    if len(entries) == image_count:
+        title = "1 photo uploaded" if image_count == 1 else f"{image_count} photos uploaded"
+    elif len(entries) == 1 and "invoice" in categories:
+        title = "Invoice attached"
+    elif len(entries) == 1 and "completion_report_attachment" in categories:
+        title = "Completion report uploaded"
+    else:
+        title = "1 file uploaded" if len(entries) == 1 else f"{len(entries)} files uploaded"
+    task = _find_operations_task(task_id) or {}
+    return _append_operations_task_event(
+        task_id,
+        "attachment_added",
+        title,
+        f"Attachment count: {len(task.get('attachments', []))}",
+        status=task.get("status", "NEW"),
+    )
 
 
 def _update_operations_task_completion_report(task_id, report_data):
@@ -5704,6 +5961,35 @@ def _operations_task_from_row(row):
         "id": task_id,
         "request_id": request_id,
         "source_type": source_type,
+        "professional_quote_amount": float(row["professional_quote_amount"] or 0) if "professional_quote_amount" in row.keys() else 0.0,
+        "platform_fee_type": str(row["platform_fee_type"] or "FIXED").strip().upper() if "platform_fee_type" in row.keys() else "FIXED",
+        "platform_fee_value": float(row["platform_fee_value"] or 0) if "platform_fee_value" in row.keys() else 0.0,
+        "owner_total_amount": float(row["owner_total_amount"] or 0) if "owner_total_amount" in row.keys() else 0.0,
+        "currency": str(row["currency"] or "EUR").strip().upper() if "currency" in row.keys() else "EUR",
+        "quote_status": str(row["quote_status"] or "NONE").strip().upper() if "quote_status" in row.keys() else "NONE",
+        "quote_locked": bool(int(row["quote_locked"] or 0)) if "quote_locked" in row.keys() else False,
+        "owner_approval_status": str(row["owner_approval_status"] or "PENDING").strip().upper() if "owner_approval_status" in row.keys() else "PENDING",
+        "payment_status": str(row["payment_status"] or "PENDING").strip().upper() if "payment_status" in row.keys() else "PENDING",
+        "payout_status": str(row["payout_status"] or "NOT_READY").strip().upper() if "payout_status" in row.keys() else "NOT_READY",
+        "payment_provider": str(row["payment_provider"] or "").strip() if "payment_provider" in row.keys() else "",
+        "payment_reference": str(row["payment_reference"] or "").strip() if "payment_reference" in row.keys() else "",
+        "paid_at": str(row["paid_at"] or "") if "paid_at" in row.keys() else "",
+        "released_at": str(row["released_at"] or "") if "released_at" in row.keys() else "",
+        "finance_reference": str(row["finance_reference"] or "") if "finance_reference" in row.keys() else "",
+        "stripe_checkout_session_id": str(row["stripe_checkout_session_id"] or "") if "stripe_checkout_session_id" in row.keys() else "",
+        "stripe_payment_intent_id": str(row["stripe_payment_intent_id"] or "") if "stripe_payment_intent_id" in row.keys() else "",
+        "stripe_payment_status": str(row["stripe_payment_status"] or "").strip().upper() if "stripe_payment_status" in row.keys() else "",
+        "stripe_payment_error": str(row["stripe_payment_error"] or "") if "stripe_payment_error" in row.keys() else "",
+        "stripe_checkout_created_at": str(row["stripe_checkout_created_at"] or "") if "stripe_checkout_created_at" in row.keys() else "",
+        "stripe_paid_at": str(row["stripe_paid_at"] or "") if "stripe_paid_at" in row.keys() else "",
+        "stripe_currency": str(row["stripe_currency"] or "").upper() if "stripe_currency" in row.keys() else "",
+        "stripe_amount_total": int(row["stripe_amount_total"] or 0) if "stripe_amount_total" in row.keys() else 0,
+        "stripe_transfer_id": str(row["stripe_transfer_id"] or "") if "stripe_transfer_id" in row.keys() else "",
+        "stripe_transfer_status": str(row["stripe_transfer_status"] or "").strip().upper() if "stripe_transfer_status" in row.keys() else "",
+        "stripe_transfer_amount": int(row["stripe_transfer_amount"] or 0) if "stripe_transfer_amount" in row.keys() else 0,
+        "stripe_transfer_created_at": str(row["stripe_transfer_created_at"] or "") if "stripe_transfer_created_at" in row.keys() else "",
+        "stripe_transfer_error": str(row["stripe_transfer_error"] or "") if "stripe_transfer_error" in row.keys() else "",
+        "stripe_risk_status": str(row["stripe_risk_status"] or "").strip().upper() if "stripe_risk_status" in row.keys() else "",
         "source_id": source_id,
         "owner_id": str(row["owner_id"]) if "owner_id" in row.keys() else "",
         "property_id": str(row["property_id"]) if "property_id" in row.keys() else "",
@@ -5744,7 +6030,14 @@ def _load_operations_tasks():
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
+                   professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
+                   quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
+                   payment_provider, payment_reference, paid_at, released_at,
+                   finance_reference, stripe_checkout_session_id, stripe_payment_intent_id, stripe_payment_status,
+                   stripe_payment_error, stripe_checkout_created_at, stripe_paid_at, stripe_currency, stripe_amount_total,
+                   stripe_transfer_id, stripe_transfer_status, stripe_transfer_amount, stripe_transfer_created_at,
+                   stripe_transfer_error, stripe_risk_status
             FROM operations_tasks
             ORDER BY updated_at DESC, created_at DESC, id DESC
             """
@@ -5768,7 +6061,14 @@ def _find_operations_task(task_id):
             """
             SELECT id, request_id, source_type, source_id, owner_id, property_id, organization_id, created_at, updated_at, title,
                    category, property_name, property_location, owner_name, owner_email, assigned_to, assigned_professional_id, priority, status,
-                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json
+                   due_date, notes, completed_at, completion_report_json, admin_notes, request_status, checklist_json, attachments_json, comments_json,
+                   professional_quote_amount, platform_fee_type, platform_fee_value, owner_total_amount, currency,
+                   quote_status, quote_locked, owner_approval_status, payment_status, payout_status,
+                   payment_provider, payment_reference, paid_at, released_at,
+                   finance_reference, stripe_checkout_session_id, stripe_payment_intent_id, stripe_payment_status,
+                   stripe_payment_error, stripe_checkout_created_at, stripe_paid_at, stripe_currency, stripe_amount_total,
+                   stripe_transfer_id, stripe_transfer_status, stripe_transfer_amount, stripe_transfer_created_at,
+                   stripe_transfer_error, stripe_risk_status
             FROM operations_tasks
             WHERE id = ? OR request_id = ? OR source_id = ?
             LIMIT 1
@@ -6886,6 +7186,578 @@ def _upsert_operations_task_from_service_request(request_record, status_override
             status=source_payload["status"],
         )
     return updated_task
+
+
+def _update_operations_task_finance(
+    task_id,
+    *,
+    professional_quote_amount,
+    platform_fee_type,
+    platform_fee_value,
+    currency,
+):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    if bool(task.get("quote_locked", False)):
+        return None, "quote_locked"
+
+    try:
+        quote_amount = round(float(professional_quote_amount), 2)
+        fee_value = round(float(platform_fee_value), 2)
+    except (TypeError, ValueError):
+        return None, "invalid_amount"
+
+    if quote_amount < 0 or fee_value < 0:
+        return None, "invalid_amount"
+
+    normalized_fee_type = str(platform_fee_type or "FIXED").strip().upper()
+    if normalized_fee_type not in {"FIXED", "PERCENT"}:
+        return None, "invalid_fee_type"
+
+    normalized_currency = str(currency or "EUR").strip().upper()
+    if normalized_currency not in {"EUR", "BGN"}:
+        return None, "invalid_currency"
+
+    if normalized_fee_type == "PERCENT":
+        calculated_fee = round(quote_amount * fee_value / 100, 2)
+    else:
+        calculated_fee = fee_value
+
+    owner_total = round(quote_amount + calculated_fee, 2)
+
+    current_quote = round(float(task.get("professional_quote_amount", 0) or 0), 2)
+    current_fee_type = str(task.get("platform_fee_type", "FIXED") or "FIXED").strip().upper()
+    current_fee_value = round(float(task.get("platform_fee_value", 0) or 0), 2)
+    current_currency = str(task.get("currency", "EUR") or "EUR").strip().upper()
+
+    if (
+        quote_amount == current_quote
+        and normalized_fee_type == current_fee_type
+        and fee_value == current_fee_value
+        and normalized_currency == current_currency
+        and str(task.get("quote_status", "NONE")).strip().upper() == "DRAFT"
+    ):
+        return task, None
+
+    updated_at = _utc_now_iso()
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks
+                SET professional_quote_amount = ?,
+                    platform_fee_type = ?,
+                    platform_fee_value = ?,
+                    owner_total_amount = ?,
+                    currency = ?,
+                    quote_status = 'DRAFT',
+                    owner_approval_status = 'PENDING',
+                    updated_at = ?
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                (
+                    quote_amount,
+                    normalized_fee_type,
+                    fee_value,
+                    owner_total,
+                    normalized_currency,
+                    updated_at,
+                    task_id,
+                    task_id,
+                    task_id,
+                ),
+            )
+    except Exception as exc:
+        app.logger.warning(
+            "Operations finance update failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    fee_label = (
+        f"{fee_value:.2f}%"
+        if normalized_fee_type == "PERCENT"
+        else f"{calculated_fee:.2f} {normalized_currency}"
+    )
+
+    _append_operations_task_event(
+        task_id,
+        "finance_quote_updated",
+        "Financial quote updated",
+        (
+            f"Professional quote: {quote_amount:.2f} {normalized_currency}; "
+            f"Platform fee: {fee_label}; "
+            f"Owner total: {owner_total:.2f} {normalized_currency}"
+        ),
+        status=task.get("status", "NEW"),
+    )
+
+    return _find_operations_task(task_id), None
+
+
+def _transition_operations_task_quote(task_id, action):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    normalized_action = str(action or "").strip().lower()
+    current_status = str(task.get("quote_status", "NONE") or "NONE").strip().upper()
+    quote_amount = round(float(task.get("professional_quote_amount", 0) or 0), 2)
+    owner_total = round(float(task.get("owner_total_amount", 0) or 0), 2)
+    currency = str(task.get("currency", "EUR") or "EUR").strip().upper()
+
+    if normalized_action == "send":
+        if current_status not in {"DRAFT", "NONE"}:
+            return None, "invalid_quote_status"
+        if quote_amount <= 0 or owner_total <= 0:
+            return None, "quote_required"
+
+        new_status = "SENT"
+        quote_locked = 1
+        owner_approval_status = "PENDING"
+        event_type = "finance_quote_sent"
+        event_title = "Financial quote sent to owner"
+        event_detail = f"Owner total: {owner_total:.2f} {currency}"
+
+    elif normalized_action == "reopen":
+        if current_status != "SENT":
+            return None, "invalid_quote_status"
+
+        new_status = "DRAFT"
+        quote_locked = 0
+        owner_approval_status = "PENDING"
+        event_type = "finance_quote_reopened"
+        event_title = "Financial quote returned to draft"
+        event_detail = "The administrator reopened the quote for editing."
+
+    else:
+        return None, "invalid_action"
+
+    updated_at = _utc_now_iso()
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute(
+                """
+                UPDATE operations_tasks
+                SET quote_status = ?,
+                    quote_locked = ?,
+                    owner_approval_status = ?,
+                    updated_at = ?
+                WHERE id = ? OR request_id = ? OR source_id = ?
+                """,
+                (
+                    new_status,
+                    quote_locked,
+                    owner_approval_status,
+                    updated_at,
+                    task_id,
+                    task_id,
+                    task_id,
+                ),
+            )
+            if cursor.rowcount <= 0:
+                return None, "not_found"
+    except Exception as exc:
+        app.logger.warning(
+            "Operations finance transition failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    _append_operations_task_event(
+        task_id,
+        event_type,
+        event_title,
+        event_detail,
+        status=task.get("status", "NEW"),
+    )
+
+    return _find_operations_task(task_id), None
+
+
+def _transition_operations_task_payment(task_id, action):
+    task = _find_operations_task(task_id)
+    if not task:
+        return None, "not_found"
+
+    normalized_action = str(action or "").strip().lower()
+    quote_status = str(task.get("quote_status", "NONE") or "NONE").strip().upper()
+    owner_approval_status = str(task.get("owner_approval_status", "PENDING") or "PENDING").strip().upper()
+    payment_status = str(task.get("payment_status", "PENDING") or "PENDING").strip().upper()
+    payout_status = str(task.get("payout_status", "NOT_READY") or "NOT_READY").strip().upper()
+    updated_at = _utc_now_iso()
+
+    if normalized_action == "payment":
+        if payment_status == "PAID" and quote_status in {"FUNDED", "PAID_OUT"}:
+            return task, "already_processed"
+        if quote_status != "APPROVED" or owner_approval_status != "APPROVED" or payment_status != "PENDING":
+            return None, "invalid_payment_state"
+
+        payment_reference = f"MANUAL-{uuid4().hex[:12].upper()}"
+        sql = """
+            UPDATE operations_tasks
+            SET quote_status = 'FUNDED',
+                payment_status = 'PAID',
+                payout_status = 'READY',
+                payment_provider = 'MANUAL',
+                payment_reference = ?,
+                paid_at = ?,
+                quote_locked = 1,
+                updated_at = ?
+            WHERE (id = ? OR request_id = ? OR source_id = ?)
+              AND quote_status = 'APPROVED'
+              AND owner_approval_status = 'APPROVED'
+              AND payment_status = 'PENDING'
+        """
+        params = (payment_reference, updated_at, updated_at, task_id, task_id, task_id)
+        event_type = "finance_payment_recorded"
+        event_title = "Owner payment recorded"
+        event_detail = f"Manual payment reference: {payment_reference}"
+    elif normalized_action == "release":
+        if payout_status == "PAID" and quote_status == "PAID_OUT":
+            return task, "already_processed"
+        if quote_status != "FUNDED" or payment_status != "PAID" or payout_status != "READY":
+            return None, "invalid_payout_state"
+
+        sql = """
+            UPDATE operations_tasks
+            SET quote_status = 'PAID_OUT',
+                payout_status = 'PAID',
+                released_at = ?,
+                updated_at = ?
+            WHERE (id = ? OR request_id = ? OR source_id = ?)
+              AND quote_status = 'FUNDED'
+              AND payment_status = 'PAID'
+              AND payout_status = 'READY'
+        """
+        params = (updated_at, updated_at, task_id, task_id, task_id)
+        event_type = "finance_payout_released"
+        event_title = "Professional payout released"
+        event_detail = f"Professional payout: {float(task.get('professional_quote_amount', 0) or 0):.2f} {task.get('currency', 'EUR')}"
+    else:
+        return None, "invalid_action"
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute(sql, params)
+            if cursor.rowcount <= 0:
+                refreshed = _find_operations_task(task_id)
+                if refreshed:
+                    refreshed_quote = str(refreshed.get("quote_status", "NONE")).strip().upper()
+                    refreshed_payment = str(refreshed.get("payment_status", "PENDING")).strip().upper()
+                    refreshed_payout = str(refreshed.get("payout_status", "NOT_READY")).strip().upper()
+                    if normalized_action == "payment" and refreshed_payment == "PAID" and refreshed_quote in {"FUNDED", "PAID_OUT"}:
+                        return refreshed, "already_processed"
+                    if normalized_action == "release" and refreshed_payout == "PAID" and refreshed_quote == "PAID_OUT":
+                        return refreshed, "already_processed"
+                return None, "state_changed"
+    except Exception as exc:
+        app.logger.warning(
+            "Operations payment transition failed for %s: %s",
+            task_id,
+            type(exc).__name__,
+        )
+        return None, "save_failed"
+
+    _append_operations_task_event(
+        task_id,
+        event_type,
+        event_title,
+        event_detail,
+        status=task.get("status", "NEW"),
+    )
+    return _find_operations_task(task_id), None
+
+
+def _stripe_value(obj, key, default=None):
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _stripe_account_state(account):
+    details = bool(_stripe_value(account, "details_submitted", False))
+    charges = bool(_stripe_value(account, "charges_enabled", False))
+    payouts = bool(_stripe_value(account, "payouts_enabled", False))
+    requirements = _stripe_value(account, "requirements", {}) or {}
+    disabled_reason = str(_stripe_value(requirements, "disabled_reason", "") or "")
+    if charges and payouts:
+        status = "READY"
+    elif disabled_reason:
+        status = "RESTRICTED"
+    elif details:
+        status = "UNDER_REVIEW"
+    else:
+        status = "INCOMPLETE"
+    return status, details, charges, payouts
+
+
+def _sync_professional_stripe_account(professional, account):
+    account_id = str(_stripe_value(account, "id", "") or "").strip()
+    if not professional or not account_id or (professional.get("stripe_account_id") and professional.get("stripe_account_id") != account_id):
+        return None
+    status, details, charges, payouts = _stripe_account_state(account)
+    now = _utc_now_iso()
+    completed_at = now if status == "READY" and not professional.get("stripe_onboarding_completed_at") else professional.get("stripe_onboarding_completed_at", "")
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE professional_accounts
+            SET stripe_account_status = ?, stripe_details_submitted = ?, stripe_charges_enabled = ?,
+                stripe_payouts_enabled = ?, stripe_onboarding_completed_at = ?, stripe_last_synced_at = ?
+            WHERE id = ? AND stripe_account_id = ?
+            """,
+            (status, int(details), int(charges), int(payouts), completed_at, now, professional["id"], account_id),
+        )
+    return _find_professional_account(professional["id"])
+
+
+def _create_stripe_onboarding_link(professional, *, refresh_url=None, return_url=None):
+    if not professional or not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    account_id = str(professional.get("stripe_account_id", "")).strip()
+    try:
+        if not account_id:
+            account = stripe.Account.create(
+                type="express",
+                email=professional.get("email", ""),
+                capabilities={"transfers": {"requested": True}},
+                metadata={"professional_id": professional.get("id", "")},
+                idempotency_key=f"connect-account-{professional.get('id', '')}",
+            )
+            account_id = str(_stripe_value(account, "id", "") or "").strip()
+            if not account_id:
+                return None, "account_create_failed"
+            with _owner_db_connection() as conn:
+                _ensure_owner_db_schema(conn)
+                cursor = conn.execute(
+                    """
+                    UPDATE professional_accounts
+                    SET stripe_account_id = ?, stripe_account_status = 'INCOMPLETE', stripe_onboarding_started_at = ?, stripe_last_synced_at = ?
+                    WHERE id = ? AND stripe_account_id = ''
+                    """,
+                    (account_id, _utc_now_iso(), _utc_now_iso(), professional["id"]),
+                )
+                if cursor.rowcount <= 0:
+                    account_id = str((_find_professional_account(professional["id"]) or {}).get("stripe_account_id", ""))
+        refresh_url = refresh_url or f"{SITE_URL}{url_for('professional_stripe_onboarding_refresh', _external=False)}"
+        return_url = return_url or f"{SITE_URL}{url_for('professional_stripe_onboarding_return', _external=False)}"
+        link = stripe.AccountLink.create(account=account_id, refresh_url=refresh_url, return_url=return_url, type="account_onboarding")
+        return str(_stripe_value(link, "url", "") or ""), None
+    except Exception as exc:
+        app.logger.warning("Stripe onboarding failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+        return None, "stripe_request_failed"
+
+
+def _stripe_checkout_eligible(task, owner_account):
+    return bool(
+        task and _owner_can_view_operations_task(task, owner_account)
+        and str(task.get("quote_status", "")).upper() == "APPROVED"
+        and str(task.get("owner_approval_status", "")).upper() == "APPROVED"
+        and str(task.get("payment_status", "")).upper() in {"PENDING", "UNPAID"}
+        and float(task.get("owner_total_amount", 0) or 0) > 0
+        and bool(task.get("quote_locked"))
+    )
+
+
+def _create_stripe_checkout_session(task, owner_account):
+    if not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    if not _stripe_checkout_eligible(task, owner_account):
+        return None, "not_eligible"
+    amount = _stripe_minor_units(task["owner_total_amount"], task["currency"])
+    currency = str(task["currency"]).lower()
+    finance_reference = str(task.get("finance_reference", "")).strip() or f"FIN-{task['id']}-{uuid4().hex[:12]}"
+    metadata = {
+        "task_id": task["id"], "owner_id": str(task.get("owner_id", "")),
+        "property_id": str(task.get("property_id", "")),
+        "professional_id": str(task.get("assigned_professional_id", "")),
+        "finance_reference": finance_reference,
+    }
+    try:
+        checkout = stripe.checkout.Session.create(
+            mode="payment", client_reference_id=task["id"], metadata=metadata,
+            line_items=[{"price_data": {"currency": currency, "unit_amount": amount, "product_data": {"name": f"BlackSea Connect · {task.get('title', 'Service')}"}}, "quantity": 1}],
+            payment_intent_data={"transfer_group": f"TASK-{task['id']}", "metadata": metadata},
+            success_url=f"{SITE_URL}{url_for('owners_dashboard')}?finance_notice=payment_pending&lang={_resolve_current_language()}#owner-finance-approvals",
+            cancel_url=f"{SITE_URL}{url_for('owners_dashboard')}?finance_notice=payment_cancelled&lang={_resolve_current_language()}#owner-finance-approvals",
+        )
+        session_id = str(_stripe_value(checkout, "id", "") or "")
+        checkout_url = str(_stripe_value(checkout, "url", "") or "")
+        if not session_id or not checkout_url:
+            return None, "checkout_create_failed"
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            conn.execute(
+                """
+                UPDATE operations_tasks SET finance_reference = ?, stripe_checkout_session_id = ?,
+                    stripe_payment_status = 'CHECKOUT_OPEN', stripe_payment_error = '', stripe_checkout_created_at = ?,
+                    stripe_currency = ?, stripe_amount_total = ?, updated_at = ? WHERE id = ?
+                """,
+                (finance_reference, session_id, _utc_now_iso(), task["currency"].upper(), amount, _utc_now_iso(), task["id"]),
+            )
+        return checkout_url, None
+    except Exception as exc:
+        app.logger.warning("Stripe Checkout creation failed for task %s: %s", task.get("id", ""), type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE operations_tasks SET stripe_payment_status = 'ERROR', stripe_payment_error = 'checkout_create_failed', updated_at = ? WHERE id = ?", (_utc_now_iso(), task["id"]))
+        return None, "stripe_request_failed"
+
+
+def _find_task_by_stripe_reference(*, session_id="", payment_intent_id=""):
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        row = conn.execute(
+            "SELECT id FROM operations_tasks WHERE (? != '' AND stripe_checkout_session_id = ?) OR (? != '' AND stripe_payment_intent_id = ?) LIMIT 1",
+            (session_id, session_id, payment_intent_id, payment_intent_id),
+        ).fetchone()
+    return _find_operations_task(row["id"]) if row else None
+
+
+def _stripe_record_payment(task, stripe_object, event_type):
+    metadata = _stripe_value(stripe_object, "metadata", {}) or {}
+    task_id = str(_stripe_value(stripe_object, "client_reference_id", "") or _stripe_value(metadata, "task_id", "")).strip()
+    if not task or task_id != task.get("id") or str(_stripe_value(metadata, "finance_reference", "")) != str(task.get("finance_reference", "")):
+        return False, "reference_mismatch"
+    if event_type == "checkout.session.completed" and str(_stripe_value(stripe_object, "payment_status", "") or "").lower() != "paid":
+        return False, "payment_not_confirmed"
+    amount = int(_stripe_value(stripe_object, "amount_total", 0) or 0)
+    currency = str(_stripe_value(stripe_object, "currency", "") or "").upper()
+    expected_amount = _stripe_minor_units(task["owner_total_amount"], task["currency"])
+    owner_id = str(_stripe_value(metadata, "owner_id", "") or "")
+    property_id = str(_stripe_value(metadata, "property_id", "") or "")
+    professional_id = str(_stripe_value(metadata, "professional_id", "") or "")
+    if (amount != expected_amount or currency != str(task["currency"]).upper()
+            or owner_id != str(task.get("owner_id", ""))
+            or property_id != str(task.get("property_id", ""))
+            or professional_id != str(task.get("assigned_professional_id", ""))):
+        _append_operations_task_event(task["id"], "stripe_payment_rejected", "Stripe payment reconciliation rejected", "Amount, currency, or owner mismatch.", status=task.get("status", "NEW"))
+        return False, "reconciliation_mismatch"
+    payment_intent = str(_stripe_value(stripe_object, "payment_intent", "") or "")
+    session_id = str(_stripe_value(stripe_object, "id", "") or "")
+    now = _utc_now_iso()
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        cursor = conn.execute(
+            """
+            UPDATE operations_tasks SET quote_status = 'FUNDED', payment_status = 'PAID', payout_status = 'READY',
+                payment_provider = 'STRIPE', paid_at = ?, stripe_paid_at = ?, stripe_checkout_session_id = ?,
+                stripe_payment_intent_id = ?, stripe_payment_status = 'PAID', stripe_payment_error = '',
+                stripe_currency = ?, stripe_amount_total = ?, quote_locked = 1, updated_at = ?
+            WHERE id = ? AND quote_status = 'APPROVED' AND owner_approval_status = 'APPROVED'
+              AND payment_status IN ('PENDING', 'UNPAID')
+            """,
+            (now, now, session_id, payment_intent, currency, amount, now, task["id"]),
+        )
+    if cursor.rowcount:
+        _append_operations_task_event(task["id"], "stripe_payment_confirmed", "Stripe payment confirmed", f"{event_type} · {amount} {currency} minor units", status=task.get("status", "NEW"))
+    return True, None
+
+
+def _stripe_freeze_task(task, risk_status, event_type):
+    if not task:
+        return False, "task_not_found"
+    transferred = bool(task.get("stripe_transfer_id"))
+    payout_status = "REQUIRES_REVIEW" if transferred else "PAYOUT_FROZEN"
+    payment_status = "DISPUTED" if risk_status == "DISPUTED" else risk_status
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            "UPDATE operations_tasks SET payment_status = ?, payout_status = ?, stripe_risk_status = ?, updated_at = ? WHERE id = ?",
+            (payment_status, payout_status, risk_status, _utc_now_iso(), task["id"]),
+        )
+    _append_operations_task_event(task["id"], event_type, "Stripe payout frozen" if not transferred else "Stripe finance exception requires review", risk_status, status=task.get("status", "NEW"))
+    return True, None
+
+
+def _process_stripe_event(event):
+    event_type = str(_stripe_value(event, "type", "") or "")
+    data = _stripe_value(event, "data", {}) or {}
+    obj = _stripe_value(data, "object", {}) or {}
+    if event_type in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
+        task_id = str(_stripe_value(_stripe_value(obj, "metadata", {}) or {}, "task_id", "") or _stripe_value(obj, "client_reference_id", ""))
+        return _stripe_record_payment(_find_operations_task(task_id), obj, event_type)
+    if event_type in {"checkout.session.async_payment_failed", "payment_intent.payment_failed"}:
+        task = _find_task_by_stripe_reference(
+            session_id=str(_stripe_value(obj, "id", "")) if event_type.startswith("checkout") else "",
+            payment_intent_id=str(_stripe_value(obj, "id", "")) if event_type.startswith("payment_intent") else str(_stripe_value(obj, "payment_intent", "") or ""),
+        )
+        if not task:
+            metadata = _stripe_value(obj, "metadata", {}) or {}
+            candidate = _find_operations_task(str(_stripe_value(metadata, "task_id", "") or ""))
+            if candidate and str(_stripe_value(metadata, "finance_reference", "") or "") == str(candidate.get("finance_reference", "")):
+                task = candidate
+        if task:
+            with _owner_db_connection() as conn:
+                conn.execute("UPDATE operations_tasks SET stripe_payment_status = 'FAILED', stripe_payment_error = 'payment_failed', updated_at = ? WHERE id = ?", (_utc_now_iso(), task["id"]))
+            _append_operations_task_event(task["id"], "stripe_payment_failed", "Stripe payment failed", event_type, status=task.get("status", "NEW"))
+        return True, None
+    if event_type in {"charge.refunded", "charge.dispute.created"}:
+        task = _find_task_by_stripe_reference(payment_intent_id=str(_stripe_value(obj, "payment_intent", "") or ""))
+        risk = "DISPUTED" if event_type.endswith("dispute.created") else ("REFUNDED" if bool(_stripe_value(obj, "refunded", False)) else "REFUND_PENDING")
+        return _stripe_freeze_task(task, risk, "stripe_dispute_created" if risk == "DISPUTED" else "stripe_refund_recorded")
+    if event_type == "account.updated":
+        account_id = str(_stripe_value(obj, "id", "") or "")
+        with _owner_db_connection() as conn:
+            row = conn.execute("SELECT id FROM professional_accounts WHERE stripe_account_id = ? LIMIT 1", (account_id,)).fetchone()
+        if row:
+            _sync_professional_stripe_account(_find_professional_account(row["id"]), obj)
+        return True, None
+    return True, None
+
+
+def _stripe_transfer_for_task(task):
+    if not task or not _stripe_api_ready():
+        return None, "stripe_not_configured"
+    if task.get("payment_provider") != "STRIPE" or task.get("payment_status") != "PAID" or task.get("payout_status") != "READY" or task.get("stripe_risk_status"):
+        return None, "invalid_payout_state"
+    professional = _find_professional_account(task.get("assigned_professional_id", ""))
+    if not professional or not professional.get("stripe_account_id") or not professional.get("stripe_charges_enabled") or not professional.get("stripe_payouts_enabled"):
+        return None, "professional_not_ready"
+    amount = _stripe_minor_units(task["professional_quote_amount"], task["currency"])
+    finance_reference = str(task.get("finance_reference", "")).strip()
+    if not finance_reference:
+        return None, "finance_reference_missing"
+    try:
+        transfer = stripe.Transfer.create(
+            amount=amount, currency=str(task["currency"]).lower(), destination=professional["stripe_account_id"],
+            transfer_group=f"TASK-{task['id']}",
+            metadata={"task_id": task["id"], "professional_id": professional["id"], "property_id": str(task.get("property_id", "")), "finance_reference": finance_reference},
+            idempotency_key=f"transfer-{task['id']}-{finance_reference}",
+        )
+        transfer_id = str(_stripe_value(transfer, "id", "") or "")
+        if not transfer_id:
+            return None, "transfer_failed"
+        now = _utc_now_iso()
+        with _owner_db_connection() as conn:
+            cursor = conn.execute(
+                """UPDATE operations_tasks SET stripe_transfer_id = ?, stripe_transfer_status = 'TRANSFERRED',
+                    stripe_transfer_amount = ?, stripe_transfer_created_at = ?, stripe_transfer_error = '',
+                    quote_status = 'PAID_OUT', payout_status = 'PAID', released_at = ?, updated_at = ?
+                    WHERE id = ? AND payout_status = 'READY' AND stripe_transfer_id = ''""",
+                (transfer_id, amount, now, now, now, task["id"]),
+            )
+        if cursor.rowcount:
+            _append_operations_task_event(task["id"], "stripe_transfer_created", "Funds transferred to professional Stripe balance", f"{amount} {task['currency']} minor units", status=task.get("status", "NEW"))
+        return _find_operations_task(task["id"]), None
+    except Exception as exc:
+        app.logger.warning("Stripe transfer failed for task %s: %s", task.get("id", ""), type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE operations_tasks SET stripe_transfer_status = 'FAILED', stripe_transfer_error = 'transfer_failed' WHERE id = ?", (task["id"],))
+        return None, "transfer_failed"
 
 
 def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
@@ -11440,6 +12312,20 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
     owner_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "") for property_record in owner_properties])
+    owner_finance_quotes = [
+        task
+        for task in _load_operations_tasks()
+        if (
+            _owner_can_view_operations_task(task, owner_account)
+            and str(task.get("quote_status", "NONE")).strip().upper() in {"SENT", "APPROVED", "FUNDED", "PAID_OUT"}
+            and str(task.get("owner_approval_status", "PENDING")).strip().upper() in {"PENDING", "APPROVED"}
+            and float(task.get("owner_total_amount", 0) or 0) > 0
+        )
+    ]
+    owner_finance_quotes.sort(
+        key=lambda item: str(item.get("updated_at", item.get("created_at", ""))),
+        reverse=True,
+    )
     owner_calendar_context = _build_calendar_page_context("owner", owner_account)
     calendar_widget = _calendar_dashboard_widget(owner_calendar_context["calendar_events"], scope="owner")
     reservation_widget = _reservation_dashboard_widgets(owner_reservations, scope="owner")
@@ -11626,6 +12512,10 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             {"label": dashboard_copy["guest_requests_handled_label"], "label_key": "ownerDashboardGuestRequestsHandledLabel", "value": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[0], "value_key": _owner_portal_metric_value_with_key(guest_requests_handled, "Building", "ownerMetricBuilding")[1], "support": dashboard_copy["resolved"], "support_key": "ownerDashboardResolved"},
             {"label": dashboard_copy["average_response_time_label"], "label_key": "ownerDashboardAverageResponseTimeLabel", "value": _format_owner_portal_duration(average_response_minutes) if average_response_minutes is not None else dashboard_copy["ready"], "value_key": "" if average_response_minutes is not None else "ownerMetricReady", "support": dashboard_copy["from_request_to_first_action"], "support_key": "ownerDashboardFromRequestToFirstAction"},
         ],
+        "pending_finance_quotes": owner_finance_quotes,
+        "pending_finance_count": sum(1 for task in owner_finance_quotes if str(task.get("payment_status", "PENDING")).upper() in {"PENDING", "UNPAID"}),
+        "stripe_checkout_enabled": _stripe_configured(),
+        "finance_ui": _stripe_ui_copy(current_lang),
         "quick_actions": [
             {"label": dashboard_copy["request_cleaning"], "label_key": "ownerDashboardRequestCleaning", "href": "/owners/request-service?category=cleaning", "support": dashboard_copy["fast_turnover_support"], "support_key": "ownerDashboardFastTurnoverSupport"},
             {"label": dashboard_copy["request_inspection"], "label_key": "ownerDashboardRequestInspection", "href": "/owners/request-service?category=inspection", "support": dashboard_copy["check_readiness"], "support_key": "ownerDashboardCheckReadiness"},
@@ -11736,7 +12626,7 @@ def _owner_property_management_context(owner_account):
             "cover_photo_url": str(property_record.get("cover_photo_url", "")).strip(),
             "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
             "last_updated_display": _format_owner_portal_timestamp(str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip()) or str(property_record.get("created_at", "")).strip(),
-            "quick_actions": [
+        "quick_actions": [
                 {"label": "Open", "href": f"/owners/properties/{property_record.get('id', '')}"},
                 {"label": "Request service", "href": f"/owners/request-service?property_id={property_record.get('id', '')}"},
             ],
@@ -12128,10 +13018,11 @@ def owners_property_new():
     property_record = _find_owner_property(requested_property_id) if requested_property_id else None
     if property_record and str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
         property_record = None
+    prefill_name = str(request.args.get("name", "")).strip()[:200] if request.method == "GET" and not property_record else ""
     property_assets = property_record.get("assets", _owner_property_default_assets()) if property_record else _owner_property_default_assets()
     property_profile = property_assets.get("profile", {}) if isinstance(property_assets.get("profile", {}), dict) else {}
     form_values = {
-        "name": str(property_record.get("name", "")).strip() if property_record else "",
+        "name": str(property_record.get("name", "")).strip() if property_record else prefill_name,
         "property_type": str(property_record.get("property_type", "")).strip() if property_record else "",
         "address": str(property_profile.get("address", "")).strip(),
         "city": str(property_profile.get("city", "")).strip() or (str(property_record.get("location", "")).strip() if property_record else ""),
@@ -12542,6 +13433,7 @@ def owners_dashboard():
         owner_requests=owner_requests,
         owner_portal=owner_portal,
         current_lang=current_lang,
+        owner_finance_csrf_token=_owner_finance_csrf_token(),
     )
 
 
@@ -12968,6 +13860,251 @@ def owners_request_service():
         service_categories=_owner_service_category_items(),
         current_lang=current_lang,
     ), (400 if errors else 200)
+
+
+def _owner_finance_csrf_token():
+    token = str(session.get("_owner_finance_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_owner_finance_csrf_token"] = token
+    return token
+
+
+def _owner_finance_csrf_valid(submitted_token):
+    expected = str(session.get("_owner_finance_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+def _professional_stripe_csrf_token():
+    token = str(session.get("_professional_stripe_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_professional_stripe_csrf_token"] = token
+    return token
+
+
+def _professional_stripe_csrf_valid(submitted_token):
+    expected = str(session.get("_professional_stripe_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+@app.post("/owners/finance/<task_id>/<action>")
+@owner_required
+def owner_finance_quote_action(task_id, action):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+
+    if not _owner_finance_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid or expired request token.", status=403, mimetype="text/plain")
+
+    task = _find_operations_task(task_id)
+    if not task:
+        return Response("Quote not found.", status=404, mimetype="text/plain")
+
+    owner_id_matches = (
+        str(task.get("owner_id", "")).strip()
+        and str(task.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
+    )
+    owner_email_matches = (
+        str(task.get("owner_email", "")).strip().lower()
+        and str(task.get("owner_email", "")).strip().lower()
+        == str(owner_account.get("email", "")).strip().lower()
+    )
+
+    if not (owner_id_matches or owner_email_matches):
+        return Response("You do not have access to this quote.", status=403, mimetype="text/plain")
+
+    current_quote_status = str(task.get("quote_status", "NONE")).strip().upper()
+    current_approval_status = str(task.get("owner_approval_status", "PENDING")).strip().upper()
+
+    if current_quote_status != "SENT" or current_approval_status != "PENDING":
+        return redirect(url_for("owners_dashboard", finance_notice="already_processed", lang=current_lang))
+
+    normalized_action = str(action or "").strip().lower()
+    now = _utc_now_iso()
+
+    if normalized_action == "approve":
+        quote_status = "APPROVED"
+        approval_status = "APPROVED"
+        payment_status = "PENDING"
+        quote_locked = 1
+        event_type = "owner_quote_approved"
+        event_title = "Owner approved the quote"
+        notice = "approved"
+    elif normalized_action == "request-changes":
+        quote_status = "DRAFT"
+        approval_status = "CHANGES_REQUESTED"
+        payment_status = "UNPAID"
+        quote_locked = 0
+        event_type = "owner_quote_changes_requested"
+        event_title = "Owner requested changes to the quote"
+        notice = "changes_requested"
+    elif normalized_action == "reject":
+        quote_status = "REJECTED"
+        approval_status = "REJECTED"
+        payment_status = "UNPAID"
+        quote_locked = 1
+        event_type = "owner_quote_rejected"
+        event_title = "Owner rejected the quote"
+        notice = "rejected"
+    else:
+        return Response("Unsupported quote action.", status=400, mimetype="text/plain")
+
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        conn.execute(
+            """
+            UPDATE operations_tasks
+            SET quote_status = ?,
+                owner_approval_status = ?,
+                payment_status = ?,
+                quote_locked = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                quote_status,
+                approval_status,
+                payment_status,
+                quote_locked,
+                now,
+                str(task.get("id", task_id)).strip(),
+            ),
+        )
+
+    detail = (
+        f"{float(task.get('owner_total_amount', 0) or 0):.2f} "
+        f"{str(task.get('currency', 'EUR') or 'EUR').strip()}"
+    )
+
+    _append_operations_task_event(
+        str(task.get("id", task_id)).strip(),
+        event_type,
+        event_title,
+        detail=detail,
+        status=task.get("status", "NEW"),
+    )
+
+    session["_owner_finance_csrf_token"] = uuid4().hex
+
+    return redirect(
+        url_for(
+            "owners_dashboard",
+            finance_notice=notice,
+            lang=current_lang,
+        )
+        + "#owner-finance-approvals"
+    )
+
+
+@app.post("/owners/finance/<task_id>/stripe-checkout")
+@owner_required
+def owner_stripe_checkout(task_id):
+    current_lang = _resolve_current_language()
+    if not _owner_finance_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid or expired request token.", status=403, mimetype="text/plain")
+    owner_account = _current_owner_account()
+    task = _find_operations_task(task_id)
+    if not task or not _owner_can_view_operations_task(task, owner_account):
+        return Response("Quote not found.", status=404, mimetype="text/plain")
+    checkout_url, checkout_error = _create_stripe_checkout_session(task, owner_account)
+    if checkout_error:
+        return redirect(url_for("owners_dashboard", finance_notice=checkout_error, lang=current_lang) + "#owner-finance-approvals")
+    return redirect(checkout_url, code=303)
+
+
+@app.post("/professionals/stripe/connect")
+@professional_required
+def professional_stripe_connect():
+    if not _professional_stripe_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+    onboarding_url, error = _create_stripe_onboarding_link(_current_professional_account())
+    if error:
+        return redirect(url_for("professionals_dashboard", stripe_notice=error, lang=_resolve_current_language()))
+    return redirect(onboarding_url, code=303)
+
+
+@app.get("/professionals/stripe/refresh")
+@professional_required
+def professional_stripe_onboarding_refresh():
+    onboarding_url, error = _create_stripe_onboarding_link(_current_professional_account())
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("professionals_dashboard", stripe_notice=error, lang=_resolve_current_language()))
+
+
+@app.get("/professionals/stripe/return")
+@professional_required
+def professional_stripe_onboarding_return():
+    professional = _current_professional_account()
+    if _stripe_api_ready() and professional.get("stripe_account_id"):
+        try:
+            _sync_professional_stripe_account(professional, stripe.Account.retrieve(professional["stripe_account_id"]))
+        except Exception as exc:
+            app.logger.warning("Stripe account return sync failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+    return redirect(url_for("professionals_dashboard", stripe_notice="onboarding_returned", lang=_resolve_current_language()))
+
+
+@app.post("/professionals/stripe/dashboard")
+@professional_required
+def professional_stripe_dashboard():
+    if not _professional_stripe_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+    professional = _current_professional_account()
+    if not _stripe_api_ready() or professional.get("stripe_account_status") != "READY" or not professional.get("stripe_account_id"):
+        return redirect(url_for("professionals_dashboard", stripe_notice="dashboard_unavailable", lang=_resolve_current_language()))
+    try:
+        link = stripe.Account.create_login_link(professional["stripe_account_id"])
+        return redirect(str(_stripe_value(link, "url", "")), code=303)
+    except Exception as exc:
+        app.logger.warning("Stripe dashboard link failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+        return redirect(url_for("professionals_dashboard", stripe_notice="stripe_request_failed", lang=_resolve_current_language()))
+
+
+@app.post("/webhooks/stripe")
+def stripe_webhook():
+    if not _stripe_api_ready(webhook=True):
+        return Response("Stripe webhook is not configured.", status=503, mimetype="text/plain")
+    payload = request.get_data(cache=False)
+    signature = request.headers.get("Stripe-Signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, signature, _stripe_settings()["webhook_secret"])
+    except Exception:
+        return Response("Invalid Stripe webhook.", status=400, mimetype="text/plain")
+    event_id = str(_stripe_value(event, "id", "") or "").strip()
+    event_type = str(_stripe_value(event, "type", "") or "").strip()
+    if not event_id or not event_type:
+        return Response("Invalid Stripe event.", status=400, mimetype="text/plain")
+    with _owner_db_connection() as conn:
+        _ensure_owner_db_schema(conn)
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO stripe_event_ledger (event_id, event_type, created_at, processing_status) VALUES (?, ?, ?, 'PROCESSING')",
+            (event_id, event_type, _utc_now_iso()),
+        )
+    if cursor.rowcount <= 0:
+        with _owner_db_connection() as conn:
+            ledger = conn.execute("SELECT created_at, processing_status FROM stripe_event_ledger WHERE event_id = ?", (event_id,)).fetchone()
+            status = str(ledger["processing_status"] if ledger else "")
+            stale_before = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat(timespec="seconds").replace("+00:00", "Z")
+            if status in {"PROCESSED", "REJECTED"}:
+                return jsonify({"received": True, "duplicate": True})
+            if status == "FAILED" or (status == "PROCESSING" and str(ledger["created_at"]) < stale_before):
+                conn.execute("UPDATE stripe_event_ledger SET created_at = ?, processed_at = '', processing_status = 'PROCESSING', error_message = '' WHERE event_id = ?", (_utc_now_iso(), event_id))
+            else:
+                return Response("Stripe event is already processing.", status=409, mimetype="text/plain")
+    try:
+        accepted, error = _process_stripe_event(event)
+    except Exception as exc:
+        app.logger.warning("Stripe webhook processing failed for event %s: %s", event_id, type(exc).__name__)
+        with _owner_db_connection() as conn:
+            conn.execute("UPDATE stripe_event_ledger SET processed_at = ?, processing_status = 'FAILED', error_message = 'processing_failed' WHERE event_id = ?", (_utc_now_iso(), event_id))
+        return Response("Webhook processing failed.", status=500, mimetype="text/plain")
+    with _owner_db_connection() as conn:
+        conn.execute(
+            "UPDATE stripe_event_ledger SET processed_at = ?, processing_status = ?, error_message = ? WHERE event_id = ?",
+            (_utc_now_iso(), "PROCESSED" if accepted else "REJECTED", str(error or ""), event_id),
+        )
+    return jsonify({"received": True})
 
 
 @app.route("/owners/logout")
@@ -13780,16 +14917,40 @@ def _professional_evidence_signature_valid(mime_type, content):
         return content.startswith(b"\x89PNG\r\n\x1a\n")
     if mime_type == "image/webp":
         return len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+    if mime_type in {"image/heic", "image/heif"}:
+        return len(content) >= 12 and content[4:8] == b"ftyp" and any(
+            brand in content[8:32]
+            for brand in (b"heic", b"heix", b"hevc", b"hevx", b"mif1", b"msf1")
+        )
+    if mime_type == "application/pdf":
+        return content.startswith(b"%PDF-")
     return False
 
 
 def _validate_professional_task_evidence(uploaded_file):
-    original_name = secure_filename(str(getattr(uploaded_file, "filename", "") or "").strip())
-    mime_type = str(getattr(uploaded_file, "mimetype", "") or "").strip().lower()
-    suffix = Path(original_name).suffix.lower()
-    if not original_name:
+    raw_name = str(getattr(uploaded_file, "filename", "") or "").strip().replace("\\", "/")
+    original_name = raw_name.rsplit("/", 1)[-1][:255]
+    safe_original_name = secure_filename(original_name)
+    suffix = Path(safe_original_name).suffix.lower()
+    mime_by_suffix = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".heic": "image/heic",
+        ".pdf": "application/pdf",
+    }
+    mime_type = mime_by_suffix.get(suffix, "")
+    declared_mime_type = str(getattr(uploaded_file, "mimetype", "") or "").strip().lower()
+    if not original_name or not safe_original_name:
         return None, "evidence_required"
-    if mime_type not in PROFESSIONAL_TASK_EVIDENCE_TYPES or suffix not in PROFESSIONAL_TASK_EVIDENCE_TYPES[mime_type]:
+    if not mime_type or suffix not in PROFESSIONAL_TASK_EVIDENCE_TYPES.get(mime_type, set()):
+        return None, "evidence_invalid_type"
+    if declared_mime_type and declared_mime_type not in {
+        mime_type,
+        "application/octet-stream",
+        "image/heif" if mime_type == "image/heic" else mime_type,
+    }:
         return None, "evidence_invalid_type"
 
     content = uploaded_file.stream.read(PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES + 1)
@@ -13801,12 +14962,24 @@ def _validate_professional_task_evidence(uploaded_file):
         return None, "evidence_invalid_type"
     return {
         "original_name": original_name,
+        "safe_original_name": safe_original_name,
         "mime_type": mime_type,
         "content": content,
     }, ""
 
 
-def _save_professional_task_evidence(task, professional_account, uploaded_file, *, category="", display_name="", validated=None):
+def _save_operations_task_evidence(
+    task,
+    uploaded_file,
+    *,
+    category="",
+    display_name="",
+    uploader_id="",
+    uploader_role="",
+    uploaded_by="",
+    validated=None,
+    append_event=False,
+):
     validated_file = validated
     if validated_file is None:
         validated_file, validation_error = _validate_professional_task_evidence(uploaded_file)
@@ -13820,18 +14993,29 @@ def _save_professional_task_evidence(task, professional_account, uploaded_file, 
     upload_dir = PROFESSIONAL_TASK_EVIDENCE_DIR / safe_task_id
     upload_dir.mkdir(parents=True, exist_ok=True)
     original_name = validated_file["original_name"]
+    safe_original_name = validated_file["safe_original_name"]
     mime_type = validated_file["mime_type"]
-    stored_name = f"{uuid4().hex}_{original_name}"
+    attachment_id = uuid4().hex
+    stored_name = f"{attachment_id}_{safe_original_name}"
     stored_path = upload_dir / stored_name
     try:
         stored_path.write_bytes(validated_file["content"])
         attachment_entry = _append_operations_task_attachment(
             task_id,
             name=str(display_name or "").strip() or original_name,
-            uploaded_by=_professional_account_display_label(professional_account),
+            uploaded_by=str(uploaded_by or "").strip(),
             category=str(category or "").strip(),
             mime_type=mime_type,
-            url=url_for("professional_task_evidence", task_id=task_id, filename=stored_name),
+            url=url_for("operations_task_attachment_file", task_id=task_id, attachment_id=attachment_id),
+            attachment_id=attachment_id,
+            operation_id=str((task or {}).get("request_id", "")).strip() or str((task or {}).get("source_id", "")).strip(),
+            property_id=str((task or {}).get("property_id", "")).strip(),
+            uploader_id=str(uploader_id or "").strip(),
+            uploader_role=str(uploader_role or "").strip(),
+            filename=stored_name,
+            original_filename=original_name,
+            file_size=len(validated_file["content"]),
+            append_event=append_event,
         )
         if not attachment_entry:
             stored_path.unlink(missing_ok=True)
@@ -13840,6 +15024,134 @@ def _save_professional_task_evidence(task, professional_account, uploaded_file, 
         stored_path.unlink(missing_ok=True)
         return None, "evidence_save_failed"
     return attachment_entry, ""
+
+
+def _save_professional_task_evidence(task, professional_account, uploaded_file, *, category="", display_name="", validated=None, append_event=False):
+    return _save_operations_task_evidence(
+        task,
+        uploaded_file,
+        category=category,
+        display_name=display_name,
+        uploader_id=str((professional_account or {}).get("id", "")).strip(),
+        uploader_role="professional",
+        uploaded_by=_professional_account_display_label(professional_account),
+        validated=validated,
+        append_event=append_event,
+    )
+
+
+def _find_operations_task_attachment(task, attachment_id):
+    target_id = str(attachment_id or "").strip()
+    return next(
+        (
+            item
+            for item in (task or {}).get("attachments", [])
+            if str(item.get("id", "")).strip() == target_id
+        ),
+        None,
+    )
+
+
+def _owner_can_view_operations_task(task, owner_account):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
+    if not owner_id and not owner_email:
+        return False
+    if owner_id and str((task or {}).get("owner_id", "")).strip() == owner_id:
+        return True
+    if owner_email and str((task or {}).get("owner_email", "")).strip().lower() == owner_email:
+        return True
+    property_record = _find_owner_property((task or {}).get("property_id", ""))
+    return bool(property_record and str(property_record.get("owner_id", "")).strip() == owner_id)
+
+
+def _operations_attachment_viewer_role(task):
+    auth = getattr(request, "authorization", None)
+    if auth:
+        admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+        super_username, super_password = _admin_super_credentials()
+        if (
+            _admin_credentials_match(auth.username, auth.password, admin_username, admin_password)
+            or _admin_credentials_match(auth.username, auth.password, super_username, super_password)
+        ):
+            return "admin"
+
+    enterprise_user, enterprise_organization, _membership, enterprise_role = _enterprise_user_identity()
+    if enterprise_user and enterprise_role in {
+        ROLE_PLATFORM_ADMIN,
+        ROLE_COMPANY_ADMIN,
+        ROLE_OPERATIONS_MANAGER,
+        ROLE_OPERATIONS_COORDINATOR,
+    }:
+        task_organization_id = str((task or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID
+        viewer_organization_id = str((enterprise_organization or {}).get("id", "")).strip()
+        if enterprise_role == ROLE_PLATFORM_ADMIN or viewer_organization_id == task_organization_id:
+            return "operations"
+
+    if session.get(PROFESSIONAL_SESSION_LOGGED_IN_KEY):
+        professional_account = _current_professional_account()
+        if professional_account and _professional_task_matches_account(task, professional_account):
+            return "professional"
+
+    if session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        owner_account = _current_owner_account()
+        if _owner_can_view_operations_task(task, owner_account):
+            return "owner"
+    return ""
+
+
+def _delete_operations_task_attachment(task, attachment):
+    attachment_id = str((attachment or {}).get("id", "")).strip()
+    task_id = str((task or {}).get("id", "")).strip()
+    if not attachment_id or not task_id:
+        return False
+    remaining = [
+        item
+        for item in (task or {}).get("attachments", [])
+        if str(item.get("id", "")).strip() != attachment_id
+    ]
+    updated_task = _operations_task_update_json_fields(
+        task_id,
+        attachments_json=_operations_task_json_dumps(remaining),
+    )
+    if not updated_task:
+        return False
+    stored_name = str((attachment or {}).get("filename", "")).strip()
+    if stored_name and secure_filename(stored_name) == stored_name:
+        stored_path = PROFESSIONAL_TASK_EVIDENCE_DIR / secure_filename(task_id) / stored_name
+        try:
+            stored_path.unlink(missing_ok=True)
+        except OSError:
+            app.logger.warning("Task evidence cleanup failed for %s", attachment_id)
+    _append_operations_task_event(
+        task_id,
+        "attachment_deleted",
+        "Attachment deleted",
+        str((attachment or {}).get("original_filename", (attachment or {}).get("name", ""))).strip(),
+        status=updated_task.get("status", "NEW"),
+    )
+    return True
+
+
+@app.get("/operations/tasks/<task_id>/attachments/<attachment_id>")
+def operations_task_attachment_file(task_id, attachment_id):
+    task_record = _find_operations_task(task_id)
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not task_record or not attachment or not _operations_attachment_viewer_role(task_record):
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    stored_name = str(attachment.get("filename", "")).strip()
+    if not stored_name or secure_filename(stored_name) != stored_name:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    evidence_path = PROFESSIONAL_TASK_EVIDENCE_DIR / secure_filename(str(task_record.get("id", "")).strip()) / stored_name
+    if not evidence_path.is_file():
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    return send_file(
+        evidence_path.resolve(),
+        mimetype=str(attachment.get("mime_type", "")).strip() or None,
+        as_attachment=str(request.args.get("download", "")).strip().lower() in {"1", "true", "yes"},
+        download_name=str(attachment.get("original_filename", attachment.get("name", "evidence"))).strip() or "evidence",
+    )
 
 
 @app.get("/professionals/tasks/<task_id>/evidence/<filename>")
@@ -13873,6 +15185,26 @@ def professional_task_evidence(task_id, filename):
     if not evidence_path.is_file():
         return Response("Evidence not found.", status=404, mimetype="text/plain")
     return send_file(evidence_path.resolve())
+
+
+@app.post("/professionals/tasks/<task_id>/attachments/<attachment_id>/delete")
+@professional_required
+def professional_task_attachment_delete(task_id, attachment_id):
+    professional_account = _current_professional_account()
+    task_record = _find_operations_task(task_id)
+    if not task_record or not _professional_task_matches_account(task_record, professional_account):
+        return Response("Task not found.", status=404, mimetype="text/plain")
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not attachment:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    if (
+        str(attachment.get("uploader_role", "")).strip() != "professional"
+        or str(attachment.get("uploader_id", "")).strip() != str(professional_account.get("id", "")).strip()
+    ):
+        return Response("Forbidden.", status=403, mimetype="text/plain")
+    if not _delete_operations_task_attachment(task_record, attachment):
+        return _professional_task_redirect(task_id, error="evidence_delete_failed")
+    return _professional_task_redirect(task_id, notice="evidence_deleted")
 
 
 @app.route("/professionals/tasks/<task_id>", methods=["GET", "POST"])
@@ -14019,6 +15351,8 @@ def professionals_task_detail(task_id):
         elif action == "attachment":
             if not attachment_files:
                 return _professional_task_redirect(task_id, error="evidence_required")
+            if attachment_category not in OPERATIONS_TASK_EVIDENCE_CATEGORIES:
+                return _professional_task_redirect(task_id, error="evidence_category_invalid")
             validated_files = []
             for uploaded_file in attachment_files:
                 validated_file, upload_error = _validate_professional_task_evidence(uploaded_file)
@@ -14038,10 +15372,11 @@ def professionals_task_detail(task_id):
                 if upload_error:
                     return _professional_task_redirect(task_id, error=upload_error)
                 attachment_entries.append(attachment_entry)
+            timeline_event = _append_operations_evidence_timeline_event(task_id, attachment_entries) or {}
             _append_operations_notification(
                 "attachment_added",
-                "Professional evidence uploaded",
-                f"{len(attachment_entries)} evidence image(s) uploaded",
+                str(timeline_event.get("title", "Professional evidence uploaded")),
+                str(timeline_event.get("detail", f"{len(attachment_entries)} evidence file(s) uploaded")),
                 task_id=task_id,
                 source_type=task_record.get("source_type", ""),
                 source_id=task_record.get("source_id", ""),
@@ -14100,6 +15435,7 @@ def professionals_task_detail(task_id):
                     issue_photo,
                     category="issue_photo",
                     validated=validated_file,
+                    append_event=True,
                 )
                 if upload_error:
                     return _professional_task_redirect(task_id, error=upload_error)
@@ -14161,7 +15497,7 @@ def professionals_task_detail(task_id):
     timeline_events = [
         event
         for event in _load_operations_task_events(refreshed_task.get("request_id", ""))
-        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "checklist_updated", "comment_added", "comment_added_internal", "attachment_added", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "professional_comment_edited", "professional_issue_reported"}
+        if str(event.get("event_type", "")).strip() in {"assigned", "status_changed", "completed", "workflow_transitioned", "note_added", "checklist_updated", "comment_added", "comment_added_internal", "attachment_added", "attachment_deleted", "completion_report_updated", "professional_assigned", "professional_accepted", "professional_on_the_way", "professional_arrived", "professional_started", "professional_paused", "professional_resumed", "professional_completed", "professional_comment_added", "professional_comment_edited", "professional_issue_reported"}
     ]
     return render_template(
         "professionals_task_detail.html",
@@ -14509,6 +15845,124 @@ def _format_task_deadline_remaining(task_record):
     return " ".join(parts) + " remaining"
 
 
+def _operations_evidence_copy(language):
+    bundles = {
+        "bg": {
+            "eyebrow": "Файлове / Доказателства", "title": "Доказателства за извършената работа",
+            "intro": "Качете снимки и подкрепящи документи директно към задачата.", "category": "Категория",
+            "choose_category": "Изберете категория", "add_photos": "Добави снимки", "add_documents": "Добави документи",
+            "drop": "Пуснете файловете тук или използвайте бутоните", "requirements": "JPG, JPEG, PNG, WebP, HEIC или PDF до 10 MB на файл.",
+            "upload": "Качи доказателства", "empty": "Все още няма качени доказателства.", "preview": "Преглед",
+            "download": "Изтегли", "delete": "Изтрий", "uploaded_by": "Качено от", "uploaded": "Доказателствата са качени.",
+            "deleted": "Доказателството е изтрито.", "error_required": "Изберете поне един файл.",
+            "error_category": "Изберете валидна категория.", "error_type": "Този формат не се поддържа. Използвайте JPG, JPEG, PNG, WebP, HEIC или PDF.",
+            "error_empty": "Избраният файл е празен.", "error_large": "Всеки файл трябва да бъде до 10 MB.",
+            "error_save": "Доказателството не можа да бъде запазено.", "error_delete": "Доказателството не можа да бъде изтрито.",
+            "categories": {"before_photos": "Снимки преди", "after_photos": "Снимки след", "invoice": "Фактура", "receipt": "Касова бележка", "inspection_report": "Доклад от инспекция", "damage_evidence": "Доказателства за щети", "completion_report_attachment": "Приложение към отчета за завършване", "other": "Друго"},
+        },
+        "en": {
+            "eyebrow": "Files / Evidence", "title": "Evidence of completed work", "intro": "Upload photos and supporting documents directly to this task.",
+            "category": "Category", "choose_category": "Select a category", "add_photos": "Add photos", "add_documents": "Add documents",
+            "drop": "Drop files here or use the buttons", "requirements": "JPG, JPEG, PNG, WebP, HEIC, or PDF up to 10 MB per file.",
+            "upload": "Upload evidence", "empty": "No evidence uploaded yet.", "preview": "Preview", "download": "Download", "delete": "Delete",
+            "uploaded_by": "Uploaded by", "uploaded": "Evidence uploaded.", "deleted": "Evidence deleted.", "error_required": "Choose at least one file.",
+            "error_category": "Select a valid category.", "error_type": "That format is not supported. Use JPG, JPEG, PNG, WebP, HEIC, or PDF.",
+            "error_empty": "The selected file is empty.", "error_large": "Each file must be 10 MB or smaller.",
+            "error_save": "The evidence could not be saved.", "error_delete": "The evidence could not be deleted.",
+            "categories": {"before_photos": "Before photos", "after_photos": "After photos", "invoice": "Invoice", "receipt": "Receipt", "inspection_report": "Inspection report", "damage_evidence": "Damage evidence", "completion_report_attachment": "Completion report attachment", "other": "Other"},
+        },
+        "fr": {
+            "eyebrow": "Fichiers / Preuves", "title": "Preuves du travail réalisé",
+            "intro": "Téléversez des photos et des documents justificatifs directement dans cette tâche.", "category": "Catégorie",
+            "choose_category": "Sélectionnez une catégorie", "add_photos": "Ajouter des photos", "add_documents": "Ajouter des documents",
+            "drop": "Déposez les fichiers ici ou utilisez les boutons", "requirements": "JPG, JPEG, PNG, WebP, HEIC ou PDF, 10 Mo maximum par fichier.",
+            "upload": "Téléverser les preuves", "empty": "Aucune preuve téléversée pour le moment.", "preview": "Aperçu",
+            "download": "Télécharger", "delete": "Supprimer", "uploaded_by": "Téléversé par", "uploaded": "Preuves téléversées.",
+            "deleted": "Preuve supprimée.", "error_required": "Sélectionnez au moins un fichier.", "error_category": "Sélectionnez une catégorie valide.",
+            "error_type": "Ce format n’est pas pris en charge. Utilisez JPG, JPEG, PNG, WebP, HEIC ou PDF.",
+            "error_empty": "Le fichier sélectionné est vide.", "error_large": "Chaque fichier doit avoir une taille maximale de 10 Mo.",
+            "error_save": "La preuve n’a pas pu être enregistrée.", "error_delete": "La preuve n’a pas pu être supprimée.",
+            "categories": {"before_photos": "Photos avant intervention", "after_photos": "Photos après intervention", "invoice": "Facture", "receipt": "Reçu", "inspection_report": "Rapport d’inspection", "damage_evidence": "Preuves des dommages", "completion_report_attachment": "Pièce jointe au rapport de clôture", "other": "Autre"},
+        },
+    }
+    return bundles.get(str(language or "").strip().lower(), bundles["en"])
+
+
+def _operations_finance_copy(language):
+    bundles = {
+        "bg": {
+            "notice_saved": "Финансовата оферта е запазена.",
+            "notice_payment_recorded": "Плащането от собственика е отчетено.",
+            "notice_payout_released": "Плащането към професионалиста е освободено.",
+            "notice_already_processed": "Финансовото действие вече е било обработено безопасно.",
+            "error": "Финансовото действие не можа да бъде изпълнено.",
+            "quote_draft": "Чернова", "quote_sent": "Изпратена", "quote_approved": "Одобрена",
+            "quote_funded": "Финансирана", "quote_paid_out": "Изплатена",
+            "approval_pending": "Очаква", "approval_approved": "Одобрено",
+            "approval_changes": "Искана корекция", "approval_rejected": "Отказано",
+            "payment_pending": "Не е платено", "payment_paid": "Платено",
+            "payout_not_ready": "Не е готово", "payout_ready": "Готово за изплащане", "payout_paid": "Изплатено",
+            "confirm_payment": "Потвърди плащането от собственика",
+            "payment_help": "Ще бъде отчетено плащане от собственика.",
+            "release_payout": "Освободи плащането към професионалиста",
+            "release_confirm": "Да освободя ли плащането към професионалиста?",
+            "professional_amount": "Сума за професионалиста:",
+            "complete": "Финансовият цикъл е приключен успешно.",
+        },
+        "en": {
+            "notice_saved": "The financial quote was saved.",
+            "notice_payment_recorded": "The owner's payment was recorded.",
+            "notice_payout_released": "The professional payout was released.",
+            "notice_already_processed": "The financial action had already been processed safely.",
+            "error": "The financial action could not be completed.",
+            "quote_draft": "Draft", "quote_sent": "Sent", "quote_approved": "Approved",
+            "quote_funded": "Funded", "quote_paid_out": "Paid out",
+            "approval_pending": "Pending", "approval_approved": "Approved",
+            "approval_changes": "Changes requested", "approval_rejected": "Rejected",
+            "payment_pending": "Not paid", "payment_paid": "Paid",
+            "payout_not_ready": "Not ready", "payout_ready": "Ready for payout", "payout_paid": "Paid out",
+            "confirm_payment": "Confirm owner payment",
+            "payment_help": "The owner's payment will be recorded.",
+            "release_payout": "Release payment to the professional",
+            "release_confirm": "Release the payment to the professional?",
+            "professional_amount": "Professional amount:",
+            "complete": "The financial cycle has been completed successfully.",
+        },
+        "fr": {
+            "notice_saved": "Le devis financier a été enregistré.",
+            "notice_payment_recorded": "Le paiement du propriétaire a été enregistré.",
+            "notice_payout_released": "Le paiement au professionnel a été débloqué.",
+            "notice_already_processed": "L’action financière avait déjà été traitée en toute sécurité.",
+            "error": "L’action financière n’a pas pu être effectuée.",
+            "quote_draft": "Brouillon", "quote_sent": "Envoyée", "quote_approved": "Approuvée",
+            "quote_funded": "Financée", "quote_paid_out": "Versée",
+            "approval_pending": "En attente", "approval_approved": "Approuvée",
+            "approval_changes": "Modifications demandées", "approval_rejected": "Refusée",
+            "payment_pending": "Non payé", "payment_paid": "Payé",
+            "payout_not_ready": "Non disponible", "payout_ready": "Prêt au versement", "payout_paid": "Versé",
+            "confirm_payment": "Confirmer le paiement du propriétaire",
+            "payment_help": "Le paiement du propriétaire sera enregistré.",
+            "release_payout": "Débloquer le paiement au professionnel",
+            "release_confirm": "Débloquer le paiement au professionnel ?",
+            "professional_amount": "Montant pour le professionnel :",
+            "complete": "Le cycle financier s’est terminé avec succès.",
+        },
+    }
+    return bundles.get(str(language or "").strip().lower(), bundles["en"])
+
+
+def _format_evidence_file_size(file_size):
+    try:
+        size = max(0, int(file_size or 0))
+    except (TypeError, ValueError):
+        size = 0
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KB"
+    return f"{size / (1024 * 1024):.1f} MB"
+
+
 def _admin_operations_task_context(task_record):
     owner_account = _find_owner_account(task_record.get("owner_id", ""))
     property_record = _find_owner_property(task_record.get("property_id", "")) if task_record.get("property_id") else None
@@ -14544,6 +15998,18 @@ def _admin_operations_task_context(task_record):
         for account in _load_professional_accounts()
         if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
     ]
+    current_language = _resolve_current_language()
+    evidence_copy = _operations_evidence_copy(current_language)
+    finance_copy = _operations_finance_copy(current_language)
+    evidence_errors = {
+        "evidence_required": evidence_copy["error_required"],
+        "evidence_category_invalid": evidence_copy["error_category"],
+        "evidence_invalid_type": evidence_copy["error_type"],
+        "evidence_empty": evidence_copy["error_empty"],
+        "evidence_too_large": evidence_copy["error_large"],
+        "evidence_save_failed": evidence_copy["error_save"],
+        "evidence_delete_failed": evidence_copy["error_delete"],
+    }
     return {
         "task": {
             **task_record,
@@ -14559,6 +16025,10 @@ def _admin_operations_task_context(task_record):
         "property_record": property_record,
         "property_readiness_percent": property_readiness_percent,
         "assigned_professional_account": professional_account,
+        "stripe_diagnostics": _stripe_admin_diagnostics(),
+        "manual_finance_enabled": _manual_finance_enabled(),
+        "assigned_professional_stripe_status_label": _stripe_account_status_label(professional_account, _resolve_current_language()),
+        "stripe_ui": _stripe_ui_copy(_resolve_current_language()),
         "linked_reservation": linked_reservation,
         "sla_time_remaining": _format_task_deadline_remaining(task_record),
         "related_requests": related_requests,
@@ -14570,6 +16040,11 @@ def _admin_operations_task_context(task_record):
         "checklist_total_count": checklist_total_count,
         "checklist_percentage": checklist_percentage,
         "attachments": task_record.get("attachments", _operations_task_attachments(task_record.get("attachments_json", ""))),
+        "evidence_copy": evidence_copy,
+        "finance_copy": finance_copy,
+        "evidence_error": evidence_errors.get(str(request.args.get("evidence_error", "")).strip(), ""),
+        "evidence_notice": evidence_copy.get(str(request.args.get("evidence_notice", "")).strip(), ""),
+        "format_evidence_file_size": _format_evidence_file_size,
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
         "completion_report": task_record.get("completion_report", _operations_task_completion_report(task_record.get("completion_report_json", ""))),
     }
@@ -15257,8 +16732,14 @@ def _admin_credentials_match(username, password, expected_username, expected_pas
     return bool(
         expected_username
         and expected_password
-        and hmac.compare_digest(str(username or ""), expected_username)
-        and hmac.compare_digest(str(password or ""), expected_password)
+        and hmac.compare_digest(
+            str(username or "").encode("utf-8"),
+            str(expected_username).encode("utf-8"),
+        )
+        and hmac.compare_digest(
+            str(password or "").encode("utf-8"),
+            str(expected_password).encode("utf-8"),
+        )
     )
 
 
@@ -18483,6 +19964,14 @@ def _professional_account_from_row(row):
         "status": _normalize_professional_account_status(row["status"] if "status" in row.keys() else "PENDING"),
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
         "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
+        "stripe_account_id": str(row["stripe_account_id"] or "") if "stripe_account_id" in row.keys() else "",
+        "stripe_account_status": str(row["stripe_account_status"] or "NOT_CONNECTED").strip().upper() if "stripe_account_status" in row.keys() else "NOT_CONNECTED",
+        "stripe_details_submitted": bool(int(row["stripe_details_submitted"] or 0)) if "stripe_details_submitted" in row.keys() else False,
+        "stripe_charges_enabled": bool(int(row["stripe_charges_enabled"] or 0)) if "stripe_charges_enabled" in row.keys() else False,
+        "stripe_payouts_enabled": bool(int(row["stripe_payouts_enabled"] or 0)) if "stripe_payouts_enabled" in row.keys() else False,
+        "stripe_onboarding_started_at": str(row["stripe_onboarding_started_at"] or "") if "stripe_onboarding_started_at" in row.keys() else "",
+        "stripe_onboarding_completed_at": str(row["stripe_onboarding_completed_at"] or "") if "stripe_onboarding_completed_at" in row.keys() else "",
+        "stripe_last_synced_at": str(row["stripe_last_synced_at"] or "") if "stripe_last_synced_at" in row.keys() else "",
     }
 
 
@@ -18543,7 +20032,9 @@ def _load_professional_accounts():
         _sync_professional_accounts_from_applications(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             ORDER BY created_at DESC, full_name ASC, email ASC
             """
@@ -18566,7 +20057,9 @@ def _find_professional_account_by_email(email):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             WHERE email = ?
             LIMIT 1
@@ -18590,7 +20083,9 @@ def _find_professional_account(professional_id):
         _sync_professional_accounts_from_applications(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id
+            SELECT email, id, created_at, full_name, phone, company, service_categories, status, last_login_at, organization_id,
+                   stripe_account_id, stripe_account_status, stripe_details_submitted, stripe_charges_enabled,
+                   stripe_payouts_enabled, stripe_onboarding_started_at, stripe_onboarding_completed_at, stripe_last_synced_at
             FROM professional_accounts
             WHERE id = ?
             LIMIT 1
@@ -18997,6 +20492,10 @@ def _professional_dashboard_context(professional_account):
         "average_completion_minutes": average_completion_minutes,
         "recent_notifications": recent_notifications,
         "display_name": _professional_account_display_label(professional_account),
+        "stripe_connect_available": _stripe_configured(),
+        "professional_stripe_csrf_token": _professional_stripe_csrf_token() if has_request_context() else "",
+        "stripe_ui": _stripe_ui_copy(_resolve_current_language()) if has_request_context() else _stripe_ui_copy("en"),
+        "stripe_status_label": _stripe_account_status_label(professional_account, _resolve_current_language()) if has_request_context() else "",
     }
 
 
@@ -21267,9 +22766,14 @@ def admin_professional_detail(application_id):
     if not record:
         return jsonify({"ok": False, "error": "not_found"}), 404
 
+    professional_account = _find_professional_account(application_id) or _find_professional_account_by_email(record.get("email", ""))
     return render_template(
         "admin_professional_detail.html",
         item=record,
+        professional_account=professional_account,
+        stripe_diagnostics=_stripe_admin_diagnostics(),
+        stripe_ui=_stripe_ui_copy(_resolve_current_language()),
+        stripe_status_label=_stripe_account_status_label(professional_account, _resolve_current_language()),
         status_options=[{"value": status, "label": _application_status_label(status)} for status in CRM_PIPELINE_STATUS_VALUES],
         timeline=list(reversed(_professional_application_timeline_events(record))),
     )
@@ -21298,6 +22802,47 @@ def admin_professional_update(application_id):
             "last_login_at": "",
         })
     return redirect(url_for("admin_professional_detail", application_id=application_id))
+
+
+def _admin_professional_stripe_account(application_id):
+    record = _find_professional_application(application_id)
+    return (_find_professional_account(application_id) or _find_professional_account_by_email((record or {}).get("email", ""))) if record else None
+
+
+@app.post("/admin/professionals/<application_id>/stripe/connect")
+@admin_required
+def admin_professional_stripe_connect(application_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    professional = _admin_professional_stripe_account(application_id)
+    if not professional:
+        return Response("Professional not found.", status=404, mimetype="text/plain")
+    refresh_url = f"{SITE_URL}{url_for('admin_professional_stripe_refresh', application_id=application_id)}"
+    return_url = f"{SITE_URL}{url_for('admin_professional_stripe_return', application_id=application_id)}"
+    onboarding_url, error = _create_stripe_onboarding_link(professional, refresh_url=refresh_url, return_url=return_url)
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice=error))
+
+
+@app.get("/admin/professionals/<application_id>/stripe/refresh")
+@admin_required
+def admin_professional_stripe_refresh(application_id):
+    professional = _admin_professional_stripe_account(application_id)
+    refresh_url = f"{SITE_URL}{url_for('admin_professional_stripe_refresh', application_id=application_id)}"
+    return_url = f"{SITE_URL}{url_for('admin_professional_stripe_return', application_id=application_id)}"
+    onboarding_url, error = _create_stripe_onboarding_link(professional, refresh_url=refresh_url, return_url=return_url)
+    return redirect(onboarding_url, code=303) if onboarding_url else redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice=error))
+
+
+@app.get("/admin/professionals/<application_id>/stripe/return")
+@admin_required
+def admin_professional_stripe_return(application_id):
+    professional = _admin_professional_stripe_account(application_id)
+    if professional and professional.get("stripe_account_id") and _stripe_api_ready():
+        try:
+            _sync_professional_stripe_account(professional, stripe.Account.retrieve(professional["stripe_account_id"]))
+        except Exception as exc:
+            app.logger.warning("Admin Stripe account sync failed for professional %s: %s", professional.get("id", ""), type(exc).__name__)
+    return redirect(url_for("admin_professional_detail", application_id=application_id, stripe_notice="onboarding_returned"))
 
 
 @app.get("/admin/service-requests")
@@ -21749,6 +23294,9 @@ def admin_operations_detail(task_id):
 
     if request.method == "POST":
         task_action = str(request.form.get("task_action", "details")).strip().lower()
+        redirect_args = {"task_id": task_id}
+        if task_action in {"finance_payment", "finance_release"} and not _validate_admin_csrf():
+            return _admin_csrf_error_response()
         if task_action == "checklist":
             checklist_selection = {
                 key: request.form.get(f"checklist_{key}") == "on"
@@ -21759,6 +23307,88 @@ def admin_operations_detail(task_id):
             comment_text = str(request.form.get("comment", "")).strip()
             comment_type = str(request.form.get("comment_type", "General")).strip() or "General"
             _append_operations_task_comment(task_id, _current_admin_operator_key(), comment_text, comment_type=comment_type)
+        elif task_action == "finance":
+            updated_finance, finance_error = _update_operations_task_finance(
+                task_id,
+                professional_quote_amount=request.form.get("professional_quote_amount", "0"),
+                platform_fee_type=request.form.get("platform_fee_type", "FIXED"),
+                platform_fee_value=request.form.get("platform_fee_value", "0"),
+                currency=request.form.get("currency", "EUR"),
+            )
+            if finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = "saved"
+        elif task_action in {"finance_send", "finance_reopen"}:
+            transition_action = "send" if task_action == "finance_send" else "reopen"
+            updated_finance, finance_error = _transition_operations_task_quote(
+                task_id,
+                transition_action,
+            )
+            if finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = (
+                    "sent" if transition_action == "send" else "reopened"
+                )
+        elif task_action in {"finance_payment", "finance_release"}:
+            transition_action = "payment" if task_action == "finance_payment" else "release"
+            if transition_action == "release" and str(task_record.get("payment_provider", "")).upper() == "STRIPE":
+                updated_finance, finance_error = _stripe_transfer_for_task(task_record)
+            elif not _manual_finance_enabled():
+                updated_finance, finance_error = None, "manual_finance_disabled"
+            else:
+                updated_finance, finance_error = _transition_operations_task_payment(task_id, transition_action)
+            if finance_error == "already_processed":
+                redirect_args["finance_notice"] = "already_processed"
+            elif finance_error:
+                redirect_args["finance_error"] = finance_error
+            else:
+                redirect_args["finance_notice"] = (
+                    "payment_recorded" if transition_action == "payment" else "payout_released"
+                )
+        elif task_action == "attachment":
+            category = str(request.form.get("attachment_category", "")).strip()
+            uploaded_files = [
+                item
+                for item in [
+                    *request.files.getlist("evidence_photos"),
+                    *request.files.getlist("evidence_documents"),
+                ]
+                if item and item.filename
+            ]
+            if category not in OPERATIONS_TASK_EVIDENCE_CATEGORIES:
+                redirect_args["evidence_error"] = "evidence_category_invalid"
+            elif not uploaded_files:
+                redirect_args["evidence_error"] = "evidence_required"
+            else:
+                validated_files = []
+                for uploaded_file in uploaded_files:
+                    validated_file, upload_error = _validate_professional_task_evidence(uploaded_file)
+                    if upload_error:
+                        redirect_args["evidence_error"] = upload_error
+                        break
+                    validated_files.append((uploaded_file, validated_file))
+                if "evidence_error" not in redirect_args:
+                    attachment_entries = []
+                    for uploaded_file, validated_file in validated_files:
+                        attachment_entry, upload_error = _save_operations_task_evidence(
+                            task_record,
+                            uploaded_file,
+                            category=category,
+                            uploader_id=_current_admin_operator_key(),
+                            uploader_role="admin",
+                            uploaded_by=_current_admin_operator_key(),
+                            validated=validated_file,
+                        )
+                        if upload_error:
+                            redirect_args["evidence_error"] = upload_error
+                            break
+                        attachment_entries.append(attachment_entry)
+                    if attachment_entries:
+                        _append_operations_evidence_timeline_event(task_id, attachment_entries)
+                    if "evidence_error" not in redirect_args:
+                        redirect_args["evidence_notice"] = "uploaded"
         else:
             status_value = str(request.form.get("status", task_record.get("status", "NEW"))).strip() or task_record.get("status", "NEW")
             assigned_to_value = str(request.form.get("assigned_to", task_record.get("assigned_to", ""))).strip()
@@ -21776,7 +23406,8 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
-        return redirect(url_for("admin_operations_detail", task_id=task_id))
+        redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen", "finance_payment", "finance_release"} else ("evidence" if task_action == "attachment" else None)
+        return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
     context = _admin_operations_task_context(task_record)
     return render_template(
@@ -21784,6 +23415,20 @@ def admin_operations_detail(task_id):
         **context,
         status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
     )
+
+
+@app.post("/admin/operations/<task_id>/attachments/<attachment_id>/delete")
+@admin_required
+def admin_operations_attachment_delete(task_id, attachment_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+    task_record = _find_operations_task(task_id)
+    attachment = _find_operations_task_attachment(task_record, attachment_id)
+    if not task_record or not attachment:
+        return Response("Evidence not found.", status=404, mimetype="text/plain")
+    if not _delete_operations_task_attachment(task_record, attachment):
+        return redirect(url_for("admin_operations_detail", task_id=task_id, evidence_error="evidence_delete_failed", _anchor="evidence"))
+    return redirect(url_for("admin_operations_detail", task_id=task_id, evidence_notice="deleted", _anchor="evidence"))
 
 
 @app.post("/admin/operations/<task_id>/status")

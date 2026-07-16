@@ -66,6 +66,7 @@
     'network.js',
     'request-service.js',
     'admin.js',
+    'admin-shell.js',
     'professionals-apply.js',
     'index.js'
   ];

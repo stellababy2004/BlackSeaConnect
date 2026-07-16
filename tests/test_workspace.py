@@ -1,3 +1,4 @@
+﻿from datetime import datetime, timedelta, timezone
 import os
 import shutil
 import sqlite3
@@ -167,8 +168,8 @@ class WorkspaceTests(unittest.TestCase):
                     "Other",
                     title,
                     "",
-                    "2026-07-03T10:00:00+00:00",
-                    "2026-07-03T11:00:00+00:00",
+                    (datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
+                    (datetime.now(timezone.utc) + timedelta(days=1, hours=1)).isoformat(),
                     0,
                     "SCHEDULED",
                     "",
@@ -341,3 +342,5 @@ class WorkspaceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
