@@ -23,6 +23,7 @@ jobs:
     timeout-minutes: 45
     env:
       APP_ENV: test
+      SITE_URL: https://blackseaconnect.com
       STRIPE_MODE: test
       STRIPE_CONNECT_ENABLED: "0"
       MANUAL_FINANCE_ENABLED: "0"
@@ -53,6 +54,27 @@ jobs:
       - name: Check whitespace errors
         run: git diff --check
 
+      - name: Validate staging-safe configuration
+        env:
+          APP_ENV: staging
+          SITE_URL: https://staging.example.com
+          SECRET_KEY: ci-only-random-looking-value-40-characters-long
+          DATABASE_PATH: ${{ runner.temp }}/blackseaconnect-staging.db
+          STRIPE_MODE: test
+          STRIPE_CONNECT_ENABLED: "1"
+          STRIPE_SECRET_KEY: sk_test_ci_only_not_a_real_key
+          STRIPE_PUBLISHABLE_KEY: pk_test_ci_only_not_a_real_key
+          STRIPE_WEBHOOK_SECRET: whsec_ci_only_not_a_real_secret
+          MANUAL_FINANCE_ENABLED: "0"
+          TRUST_PROXY_HEADERS: "1"
+          SESSION_COOKIE_SECURE: "1"
+          SESSION_COOKIE_SAMESITE: Lax
+          LOG_LEVEL: INFO
+        run: python config.py
+
+      - name: Run staging readiness tests
+        run: python -m pytest -ra tests/test_staging_readiness.py
+
       - name: Run focused critical tests
         run: >-
           python -m pytest -ra
@@ -68,3 +90,16 @@ jobs:
           --ignore=tests/test_owner_portal.py
           --ignore=tests/test_professionals.py
           --ignore=tests/test_reservations.py
+          --ignore=tests/test_staging_readiness.py
+
+  container:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build staging image without secrets
+        run: docker build --tag blackseaconnect:ci .

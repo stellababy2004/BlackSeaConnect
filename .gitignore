@@ -2,6 +2,13 @@ __pycache__/
 **/__pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+.tmp*/
+pytest-cache-files-*/
+runtime-validation-*/
+.coverage
+htmlcov/
+*.log
 data/
 
 .env
