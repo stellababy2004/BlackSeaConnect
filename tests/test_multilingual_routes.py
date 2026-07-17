@@ -44,10 +44,16 @@ class MultilingualRouteTests(unittest.TestCase):
         self._tmpdir.mkdir(exist_ok=True)
         os.chdir(self._tmpdir)
         self.owner_db_path = self._tmpdir / "data" / "blacksea_owner.db"
+        self._env_patcher = patch.dict(
+            os.environ,
+            {"OWNER_DB_PATH": str(self.owner_db_path)},
+        )
+        self._env_patcher.start()
         app.config["TESTING"] = True
         self.client = app.test_client()
 
     def tearDown(self):
+        self._env_patcher.stop()
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
 

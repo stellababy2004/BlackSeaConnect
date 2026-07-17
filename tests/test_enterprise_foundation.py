@@ -61,11 +61,17 @@ class EnterpriseFoundationTests(unittest.TestCase):
         self.owner_db_path = self._tmpdir / "data" / "blacksea_owner.db"
         self.ADMIN_ENV = {**self.ADMIN_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
         self.SMTP_ENV = {**self.SMTP_ENV, "OWNER_DB_PATH": str(self.owner_db_path)}
+        self._env_patcher = patch.dict(
+            os.environ,
+            {"OWNER_DB_PATH": str(self.owner_db_path)},
+        )
+        self._env_patcher.start()
         app.config["TESTING"] = True
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
+        self._env_patcher.stop()
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
         FakeSMTP.sent_messages.clear()

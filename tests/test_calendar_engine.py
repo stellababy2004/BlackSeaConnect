@@ -76,11 +76,14 @@ class CalendarEngineTests(unittest.TestCase):
             **self.SMTP_ENV,
             "OWNER_DB_PATH": str(self.owner_db_path),
         }
+        self._env_patcher = patch.dict(os.environ, self.env, clear=True)
+        self._env_patcher.start()
         app.config["TESTING"] = True
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
+        self._env_patcher.stop()
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
         FakeSMTP.sent_messages.clear()
