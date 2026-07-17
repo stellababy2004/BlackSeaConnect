@@ -21,10 +21,10 @@
       color: #1f2937;
     }
     .reservation-detail-shell {
-      max-width: 1540px;
+      max-width: 1320px;
       margin: 0 auto;
       display: grid;
-      gap: 18px;
+      gap: 14px;
     }
     .reservation-detail-hero,
     .reservation-detail-panel {
@@ -35,7 +35,7 @@
       backdrop-filter: blur(18px);
     }
     .reservation-detail-hero {
-      padding: 26px;
+      padding: 20px 22px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
@@ -60,24 +60,24 @@
     }
     .reservation-detail-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-      gap: 18px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 14px;
       align-items: start;
     }
     .reservation-detail-stack {
       display: grid;
-      gap: 18px;
+      gap: 14px;
     }
     .reservation-detail-panel {
-      padding: 22px;
+      padding: 18px;
     }
     .reservation-detail-dl {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
     .reservation-detail-dl > div {
-      padding: 14px;
+      padding: 12px;
       border-radius: 16px;
       background: rgba(251, 247, 238, 0.88);
       border: 1px solid rgba(31, 41, 55, 0.06);
@@ -103,6 +103,34 @@
       gap: 10px;
       align-items: center;
     }
+    .reservation-detail-statusline {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+    }
+    .reservation-detail-status-cluster {
+      display: flex;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .reservation-detail-window {
+      display: grid;
+      justify-items: end;
+      gap: 5px;
+      min-width: 0;
+    }
+    .reservation-detail-window > span:first-child {
+      color: #8b6d2b;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
     .reservation-detail-badge,
     .reservation-detail-chip {
       display: inline-flex;
@@ -126,7 +154,7 @@
       gap: 12px;
     }
     .reservation-detail-item {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.76);
       border: 1px solid rgba(31, 41, 55, 0.08);
@@ -186,9 +214,12 @@
     }
     .reservation-detail-side {
       display: grid;
-      gap: 18px;
+      gap: 14px;
       position: sticky;
-      top: 20px;
+      top: 14px;
+    }
+    .reservation-detail-panel .section-heading {
+      margin-bottom: 14px;
     }
     .reservation-detail-list {
       display: grid;
@@ -218,6 +249,21 @@
         top: auto;
       }
     }
+    @media (max-width: 767px) {
+      .reservation-detail-page {
+        padding: 12px 12px 32px;
+      }
+      .reservation-detail-statusline {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .reservation-detail-window {
+        justify-items: start;
+      }
+      .reservation-detail-hero,
+      .reservation-detail-panel {
+        padding: 16px;
+      }
+    }
   </style>
 </head>
 <body class="reservation-detail-page reservation-detail-page--{{ scope|e }}">
@@ -245,11 +291,16 @@
     <section class="reservation-detail-grid">
       <div class="reservation-detail-stack">
         <article class="reservation-detail-panel">
-          <div class="reservation-detail-badges">
-            <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
-            <span class="reservation-detail-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
-            <span class="reservation-detail-chip">{{ reservation.reservation_source|e }}</span>
-            <span class="reservation-detail-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
+          <div class="reservation-detail-statusline">
+            <div class="reservation-detail-status-cluster">
+              <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
+              <span class="reservation-detail-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
+              <span class="reservation-detail-chip">{{ reservation.reservation_source|e }}</span>
+            </div>
+            <div class="reservation-detail-window">
+              <span>Stay window</span>
+              <span class="reservation-detail-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
+            </div>
           </div>
           <div class="reservation-detail-dl u-mt-16">
             <div><dt>Guest</dt><dd>{{ reservation.guest_name|e }}<br>{{ reservation.guest_email|e }}{% if reservation.guest_phone %}<br>{{ reservation.guest_phone|e }}{% endif %}</dd></div>
