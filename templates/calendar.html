@@ -1440,6 +1440,427 @@
         min-width: 1180px !important;
       }
     }
+
+    /* Production readiness: owner calendar density and intentional empty state. */
+    body.calendar-page--owner {
+      padding: 18px 16px 40px;
+    }
+
+    body.calendar-page--owner .calendar-shell {
+      max-width: 1320px;
+      gap: 12px;
+    }
+
+    body.calendar-page--owner .calendar-hero {
+      min-height: 0 !important;
+      align-items: center;
+      padding: 18px 20px !important;
+    }
+
+    body.calendar-page--owner .calendar-hero__content {
+      min-width: 0;
+      flex: 1 1 760px;
+    }
+
+    body.calendar-page--owner .calendar-hero h1 {
+      margin-block: 6px 4px;
+    }
+
+    body.calendar-page--owner .calendar-hero__stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px !important;
+      max-width: 920px;
+      margin-top: 12px !important;
+    }
+
+    body.calendar-page--owner .calendar-hero__stats > div {
+      min-width: 0;
+      padding: 9px 11px !important;
+    }
+
+    body.calendar-page--owner .calendar-hero__stats strong {
+      overflow-wrap: anywhere;
+    }
+
+    body.calendar-page--owner .calendar-panel {
+      padding: 14px;
+    }
+
+    body.calendar-page--owner .calendar-summary-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    body.calendar-page--owner .calendar-summary-card {
+      min-height: 0;
+      padding: 10px 12px;
+    }
+
+    body.calendar-page--owner .calendar-tabs {
+      gap: 7px;
+    }
+
+    body.calendar-page--owner .calendar-tab {
+      padding: 8px 12px;
+    }
+
+    body.calendar-page--owner .calendar-filters {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    body.calendar-page--owner .calendar-grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr);
+      gap: 12px;
+    }
+
+    body.calendar-page--owner .calendar-grid--empty {
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      order: 1;
+    }
+
+    body.calendar-page--owner .calendar-filters-panel--after-empty {
+      order: 2;
+    }
+
+    body.calendar-page--owner .calendar-group {
+      gap: 8px;
+      padding: 14px;
+    }
+
+    body.calendar-page--owner .calendar-grid--empty > .calendar-panel {
+      align-self: start;
+    }
+
+    body.calendar-page--owner .calendar-empty-state {
+      min-height: 0;
+      align-content: center;
+      padding: 24px;
+    }
+
+    body.calendar-page--owner .calendar-side {
+      gap: 12px;
+    }
+
+    /* Production readiness: admin shell, toolbar and calendar workspace. */
+    body.calendar-page--admin > .bsc-admin-sidebar,
+    body.calendar-page--admin > .bsc-admin-topbar,
+    body.calendar-page--admin .admin-ops-calendar,
+    body.calendar-page--admin .admin-ops-main,
+    body.calendar-page--admin .admin-ops-stage,
+    body.calendar-page--admin .admin-ops-detail {
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar {
+      width: 232px;
+      padding: 18px 12px 14px;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav {
+      min-width: 0;
+      padding-right: 2px;
+      overflow-x: visible;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav a {
+      width: 100%;
+      min-width: 0;
+      min-height: 38px;
+      padding: 7px 9px;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav a > span:last-child {
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-quick-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 10px 2px 0;
+    }
+
+    body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-quick-actions a {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    body.calendar-page--admin > .bsc-admin-topbar {
+      left: 232px;
+      height: 64px;
+      gap: 12px;
+      padding: 10px 18px;
+    }
+
+    body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-search {
+      width: auto !important;
+      min-width: 180px;
+      max-width: 420px !important;
+      flex: 1 1 280px !important;
+    }
+
+    body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-topbar-actions {
+      min-width: 0;
+      flex: 0 1 auto;
+      justify-content: flex-end;
+    }
+
+    body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-profile summary {
+      min-width: 0;
+      max-width: 150px;
+    }
+
+    html body.calendar-page--admin:has(> .bsc-admin-sidebar) {
+      padding-top: 64px !important;
+      padding-left: 232px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-calendar {
+      --ops-hour-height: 46px;
+      grid-template-columns: minmax(0, 1fr);
+      min-height: calc(100vh - 64px);
+    }
+
+    body.calendar-page--admin .admin-ops-toolbar {
+      top: 64px;
+      gap: 8px;
+      padding: 10px 14px;
+    }
+
+    body.calendar-page--admin .admin-ai-brief {
+      gap: 9px;
+      padding: 8px 10px;
+    }
+
+    body.calendar-page--admin .admin-ai-brief__icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    body.calendar-page--admin .admin-ops-toolbar__top,
+    body.calendar-page--admin .admin-ops-toolbar__controls,
+    body.calendar-page--admin .admin-ops-control-group {
+      min-width: 0;
+      gap: 7px;
+    }
+
+    body.calendar-page--admin .admin-ops-view-switch {
+      min-width: 0;
+      flex: 1 1 520px;
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+
+    body.calendar-page--admin .admin-ops-view-switch button {
+      flex: 0 0 auto;
+      padding-inline: 10px;
+    }
+
+    body.calendar-page--admin .admin-mission-strip {
+      gap: 6px;
+      padding: 7px 12px;
+    }
+
+    body.calendar-page--admin .admin-mission-pill {
+      padding: 6px 9px;
+    }
+
+    body.calendar-page--admin .admin-ops-summary {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      padding: 8px 12px;
+    }
+
+    body.calendar-page--admin .admin-ops-stat {
+      min-width: 0;
+      padding: 7px 8px;
+    }
+
+    body.calendar-page--admin .admin-ops-stat span {
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    body.calendar-page--admin .admin-ops-filters {
+      gap: 9px;
+      padding: 12px 14px;
+    }
+
+    body.calendar-page--admin .admin-ops-stage {
+      max-width: 100%;
+      margin-top: 0;
+      padding: 10px 12px 20px;
+      overflow-x: auto !important;
+      overflow-y: visible;
+    }
+
+    body.calendar-page--admin .admin-week-calendar {
+      width: 100%;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    body.calendar-page--admin .admin-week-header,
+    body.calendar-page--admin .admin-week-body {
+      min-width: 798px !important;
+      grid-template-columns: 56px repeat(7, minmax(106px, 1fr));
+    }
+
+    body.calendar-page--admin .admin-week-corner,
+    body.calendar-page--admin .admin-week-day {
+      min-height: 48px;
+      padding: 8px;
+    }
+
+    body.calendar-page--admin .admin-week-time {
+      padding-right: 7px;
+    }
+
+    body.calendar-page--admin .admin-ops-event {
+      min-width: 0;
+      min-height: 44px;
+      padding: 5px 6px;
+    }
+
+    body.calendar-page--admin .admin-month-grid {
+      grid-template-columns: repeat(7, minmax(96px, 1fr));
+    }
+
+    body.calendar-page--admin .admin-month-day {
+      min-height: 92px;
+    }
+
+    body.calendar-page--admin .admin-ops-detail {
+      top: 64px;
+      max-height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+
+    @media (min-width: 1181px) {
+      body.calendar-page--admin .admin-ops-calendar {
+        grid-template-columns: minmax(0, 1fr) 288px;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      body.calendar-page--owner .calendar-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-profile summary > span:nth-child(2) {
+        display: none;
+      }
+
+      body.calendar-page--admin .admin-ops-detail {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body.calendar-page--owner .calendar-grid,
+      body.calendar-page--owner .calendar-grid--empty,
+      body.calendar-page--owner .calendar-filters {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.calendar-page--admin > .bsc-admin-sidebar {
+        position: relative;
+        width: 100%;
+        padding: 12px;
+      }
+
+      body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        overflow: visible;
+      }
+
+      body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-quick-actions {
+        display: grid;
+      }
+
+      body.calendar-page--admin > .bsc-admin-topbar {
+        position: sticky;
+        left: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        height: auto;
+        padding: 8px 12px;
+      }
+
+      body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-search {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      html body.calendar-page--admin:has(> .bsc-admin-sidebar) {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+      }
+
+      body.calendar-page--admin .admin-ops-toolbar {
+        top: 0;
+      }
+
+      body.calendar-page--admin .admin-ops-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      body.calendar-page--admin .admin-week-header,
+      body.calendar-page--admin .admin-week-body {
+        min-width: 720px !important;
+        grid-template-columns: 50px repeat(7, minmax(95px, 1fr));
+      }
+    }
+
+    @media (max-width: 767px) {
+      body.calendar-page--owner {
+        padding: 12px 12px 30px;
+      }
+
+      body.calendar-page--owner .calendar-hero__stats,
+      body.calendar-page--owner .calendar-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      body.calendar-page--owner .calendar-hero,
+      body.calendar-page--owner .calendar-panel {
+        padding: 14px !important;
+      }
+
+      body.calendar-page--admin .admin-ai-brief {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      body.calendar-page--admin .admin-ai-brief .admin-ops-button {
+        grid-column: 1 / -1;
+      }
+
+      body.calendar-page--admin .admin-ops-toolbar__top,
+      body.calendar-page--admin .admin-ops-toolbar__controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.calendar-page--admin .admin-ops-control-group {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+    }
 </style>
 </head>
 <body class="calendar-page calendar-page--{{ calendar_scope|e }}{% if calendar_scope == 'admin' %} bsc-admin-workspace{% endif %}">
@@ -1513,7 +1934,7 @@
       </div>
     </section>
 
-    <section class="calendar-panel">
+    <section class="calendar-panel{% if calendar_scope == 'owner' and not calendar_groups %} calendar-filters-panel--after-empty{% endif %}">
       <form class="calendar-filters" method="get" action="{{ request.path }}">
         <input type="hidden" name="view" value="{{ calendar_view }}">
         <label class="calendar-filter">
@@ -1590,7 +2011,7 @@
       </form>
     </section>
 
-    <section class="calendar-grid">
+    <section class="calendar-grid{% if not calendar_groups %} calendar-grid--empty{% endif %}">
       <article class="calendar-panel">
         {% if calendar_groups %}
           <div class="calendar-group-list">
@@ -1635,9 +2056,9 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="calendar-group {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
-            <h3>Все още няма събития.</h3>
-            <p class="calendar-note">Когато бъдат запазени операции или дати, те ще се появят тук автоматично.</p>
+          <div class="calendar-group calendar-empty-state {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}" role="status">
+            <h3>No calendar items yet</h3>
+            <p class="calendar-note">Reservations, blocked dates, personal stays, and scheduled operations will appear here automatically.</p>
           </div>
         {% endif %}
       </article>
@@ -2915,11 +3336,7 @@
             });
             layoutCluster();
           });
-          const dayWidths = dates.map((_, dayIndex) => {
-            const maximumLanes = Math.max(1, ...(eventsByDay.get(dayIndex) || []).map((event) => event._laneCount || 1));
-            return Math.max(184, maximumLanes * 160);
-          });
-          const weekGridColumns = `76px ${dayWidths.map((width) => `${width}px`).join(" ")}`;
+          const weekGridColumns = "56px repeat(7, minmax(106px, 1fr))";
           weekHeader.style.gridTemplateColumns = weekGridColumns;
           app.querySelector(".admin-week-body").style.gridTemplateColumns = weekGridColumns;
           eventsByDay.forEach((dayEvents, dayIndex) => {

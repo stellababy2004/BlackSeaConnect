@@ -76,11 +76,14 @@ class CalendarEngineTests(unittest.TestCase):
             **self.SMTP_ENV,
             "OWNER_DB_PATH": str(self.owner_db_path),
         }
+        self._env_patcher = patch.dict(os.environ, self.env, clear=True)
+        self._env_patcher.start()
         app.config["TESTING"] = True
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
     def tearDown(self):
+        self._env_patcher.stop()
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
         FakeSMTP.sent_messages.clear()
@@ -845,7 +848,7 @@ class CalendarEngineTests(unittest.TestCase):
             self.assertIn('data-assignment-submit disabled', html)
             self.assertIn("grid-template-columns: 150px minmax(0, 1fr);", html)
             self.assertIn(".admin-ops-toast :is(strong,span,p) { color:#fff !important; -webkit-text-fill-color:#fff !important; }", html)
-            self.assertIn("return Math.max(184, maximumLanes * 160);", html)
+            self.assertIn('const weekGridColumns = "56px repeat(7, minmax(106px, 1fr))";', html)
 
     def test_persistent_time_correction_and_data_quality_rules(self):
         with patch.dict(os.environ, self.env, clear=True):

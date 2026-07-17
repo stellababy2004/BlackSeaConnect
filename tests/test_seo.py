@@ -1,13 +1,20 @@
 import unittest
 
-from app import app
+import app as app_module
+
+app = app_module.app
 from seo_pages import SEO_LANDING_PAGES
 
 
 class SeoRoutesTests(unittest.TestCase):
     def setUp(self):
+        self.original_site_url = app_module.SITE_URL
+        app_module.SITE_URL = "https://blackseaconnect.com"
         app.config["TESTING"] = True
         self.client = app.test_client()
+
+    def tearDown(self):
+        app_module.SITE_URL = self.original_site_url
 
     def test_robots_txt_exposes_sitemap(self):
         response = self.client.get("/robots.txt")
@@ -114,7 +121,7 @@ class SeoRoutesTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.get_data(as_text=True)
         self.assertNotIn("Should remove friction", body)
-        self.assertIn("Консиерж услуги в България", body)
+        self.assertIn('Консиерж услуги в България', body)
 
     def test_concierge_bulgaria_fr_contains_french_text(self):
         response = self.client.get("/concierge-bulgaria?lang=fr")
@@ -128,7 +135,7 @@ class SeoRoutesTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.get_data(as_text=True)
-        self.assertIn("Консьерж-услуги в Болгарии", body)
+        self.assertIn('Консьерж-услуги в Болгарии', body)
 
     def test_seo_pages_render_distinct_localized_bodies(self):
         for path in [
@@ -152,3 +159,5 @@ class SeoRoutesTests(unittest.TestCase):
                 self.assertNotEqual(localized_bodies["bg"], localized_bodies["fr"])
                 self.assertNotEqual(localized_bodies["bg"], localized_bodies["ru"])
                 self.assertNotEqual(localized_bodies["fr"], localized_bodies["ru"])
+
+

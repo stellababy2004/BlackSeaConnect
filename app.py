@@ -13,9 +13,11 @@ from functools import wraps
 from contextlib import contextmanager
 from pathlib import Path
 import json
+import logging
 import os
 import sqlite3
 import smtplib
+import time
 import urllib.error
 import urllib.request
 import urllib.parse
@@ -28,14 +30,20 @@ try:
 except ImportError:  # Production diagnostics handle a missing optional dependency safely.
     stripe = None
 from flask import Flask, Response, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
+from werkzeug.exceptions import HTTPException
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
+from config import ConfigurationError, load_settings, validate_settings
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
 
+SETTINGS = load_settings()
 app = Flask(__name__)
 app.json.ensure_ascii = False
-app.secret_key = os.getenv("SECRET_KEY", "blacksea-connect-dev-secret")
-SITE_URL = os.environ.get("SITE_URL", "https://blackseaconnect.com").rstrip("/")
+app.config.from_mapping(SETTINGS.flask_mapping())
+if SETTINGS.trust_proxy_headers:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+SITE_URL = SETTINGS.site_url
 PUBLIC_SITEMAP_PATHS = (
     "/",
     "/services",
@@ -62,6 +70,188 @@ DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
 DEMO_SCENARIO = "BlackSea Connect Pilot"
 DEMO_SEASON = "Summer 2026"
 DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
+REQUIRED_READINESS_TABLES = {
+    "owner_db_meta",
+    "owner_accounts",
+    "owner_properties",
+    "reservations",
+    "professional_accounts",
+    "operations_tasks",
+    "stripe_event_ledger",
+}
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+
+
+class _JsonLogFormatter(logging.Formatter):
+    def format(self, record):
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "event": getattr(record, "event", "application_log"),
+        }
+        for field in ("request_id", "route", "method", "status", "duration_ms", "error_type", "detail"):
+            value = getattr(record, field, None)
+            if value is not None:
+                payload[field] = value
+        if record.getMessage() and record.getMessage() != payload["event"]:
+            payload["message"] = record.getMessage()
+        return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+
+def _configure_logging():
+    handler = logging.StreamHandler()
+    handler.setFormatter(_JsonLogFormatter())
+    app.logger.handlers.clear()
+    app.logger.addHandler(handler)
+    app.logger.setLevel(getattr(logging, SETTINGS.log_level, logging.INFO))
+    app.logger.propagate = False
+
+
+def _redact_log_text(value):
+    text = str(value or "")
+    for secret in (SETTINGS.secret_key, SETTINGS.stripe_secret_key, SETTINGS.stripe_publishable_key, SETTINGS.stripe_webhook_secret):
+        if secret:
+            text = text.replace(secret, "[REDACTED]")
+    text = re.sub(r"\b(?:sk|pk)_(?:test|live)_[A-Za-z0-9_-]+", "[REDACTED]", text)
+    text = re.sub(r"\bwhsec_[A-Za-z0-9_-]+", "[REDACTED]", text)
+    text = re.sub(r"(?i)\b(authorization|cookie|stripe-signature|api[_-]?key|password|token)\b\s*[:=]\s*\S+", r"\1=[REDACTED]", text)
+    return text
+
+
+def _log_event(event, level=logging.INFO, **fields):
+    safe_fields = {key: _redact_log_text(value) if isinstance(value, str) else value for key, value in fields.items()}
+    app.logger.log(level, event, extra={"event": event, **safe_fields})
+
+
+_configure_logging()
+
+
+@app.before_request
+def _start_request_observability():
+    incoming_request_id = str(request.headers.get("X-Request-ID", "") or "").strip()
+    contains_sensitive_marker = re.search(r"(?i)(?:^|[._:-])(secret|password|token|bearer|sk_test|sk_live|pk_test|pk_live|whsec)(?:$|[._:-])", incoming_request_id)
+    g.request_id = incoming_request_id if REQUEST_ID_PATTERN.fullmatch(incoming_request_id) and not contains_sensitive_marker else uuid4().hex
+    g.request_started_at = time.perf_counter()
+
+
+@app.after_request
+def _finish_request_observability(response):
+    request_id = getattr(g, "request_id", uuid4().hex)
+    started_at = getattr(g, "request_started_at", time.perf_counter())
+    duration_ms = round((time.perf_counter() - started_at) * 1000, 2)
+    response.headers["X-Request-ID"] = request_id
+    _log_event(
+        "request_complete",
+        level=logging.ERROR if response.status_code >= 500 else logging.INFO,
+        request_id=request_id,
+        route=request.url_rule.rule if request.url_rule else request.path,
+        method=request.method,
+        status=response.status_code,
+        duration_ms=duration_ms,
+    )
+    return response
+
+
+def _wants_json_error():
+    return request.path.startswith(("/health/", "/api/")) or request.accept_mimetypes.best == "application/json"
+
+
+def _safe_error_response(status_code):
+    labels = {
+        400: "Bad request",
+        401: "Authentication required",
+        403: "Forbidden",
+        404: "Not found",
+        429: "Too many requests",
+        500: "Internal server error",
+        503: "Service unavailable",
+    }
+    message = labels[status_code]
+    request_id = getattr(g, "request_id", "")
+    if _wants_json_error():
+        return jsonify({"ok": False, "error": message, "request_id": request_id}), status_code
+    return render_template_string(
+        "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>{{ status }} {{ message }}</title></head>"
+        "<body><main><h1>{{ message }}</h1><p>Request ID: {{ request_id }}</p></main></body></html>",
+        status=status_code,
+        message=message,
+        request_id=request_id,
+    ), status_code
+
+
+for _status_code in (400, 401, 403, 404, 429, 503):
+    app.register_error_handler(_status_code, lambda error, status_code=_status_code: _safe_error_response(status_code))
+
+
+@app.errorhandler(500)
+def _internal_server_error(error):
+    original = error.original_exception if isinstance(error, HTTPException) else error
+    _log_event(
+        "unhandled_exception",
+        level=logging.ERROR,
+        request_id=getattr(g, "request_id", ""),
+        route=request.url_rule.rule if request.url_rule else request.path,
+        method=request.method,
+        status=500,
+        error_type=type(original).__name__,
+        detail=_redact_log_text(original),
+    )
+    return _safe_error_response(500)
+
+
+@app.get("/health/live")
+def health_live():
+    return jsonify({"status": "live"})
+
+
+def _readiness_checks():
+    checks = {"configuration": False, "database": False, "schema": False, "stripe": False}
+    try:
+        validate_settings(SETTINGS, check_database=False)
+        checks["configuration"] = True
+        checks["stripe"] = True
+    except ConfigurationError:
+        return checks
+
+    database_path = Path(str(app.config.get("DATABASE_PATH", "") or ""))
+    try:
+        connection = sqlite3.connect(str(database_path), timeout=2)
+        connection.row_factory = sqlite3.Row
+        connection.execute("SELECT name FROM sqlite_master LIMIT 1").fetchall()
+        connection.execute("BEGIN IMMEDIATE")
+        connection.rollback()
+        checks["database"] = True
+        tables = {
+            str(row["name"])
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
+        }
+        checks["schema"] = REQUIRED_READINESS_TABLES.issubset(tables)
+        connection.close()
+    except (OSError, sqlite3.Error):
+        checks["database"] = False
+    return checks
+
+
+@app.get("/health/ready")
+def health_ready():
+    checks = _readiness_checks()
+    ready = all(checks.values())
+    return jsonify({"status": "ready" if ready else "not_ready", "checks": checks}), 200 if ready else 503
+
+
+@app.cli.command("validate-config")
+def validate_config_command():
+    """Validate process configuration without printing sensitive values."""
+    validate_settings(SETTINGS, check_database=True)
+    click.echo(f"configuration valid for {SETTINGS.environment}")
+
+
+@app.cli.command("init-db")
+def init_db_command():
+    """Create the existing SQLite schema on a newly provisioned volume."""
+    with _owner_db_connection() as connection:
+        _ensure_owner_db_schema(connection)
+    click.echo("database schema ready")
 
 
 def _env_flag(name, default=False):
@@ -1323,7 +1513,9 @@ def _normalize_owner_property_checklist_value(value):
 
 
 def _owner_db_path():
-    return Path(os.getenv("OWNER_DB_PATH", str(Path("data") / "blacksea_owner.db")))
+    # OWNER_DB_PATH remains a compatibility override for the existing test and
+    # maintenance tooling; deployments use the centralized DATABASE_PATH.
+    return Path(os.getenv("OWNER_DB_PATH", str(app.config["DATABASE_PATH"])))
 
 
 @contextmanager
