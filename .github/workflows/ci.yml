@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python 3.12 tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: test
+      STRIPE_MODE: test
+      STRIPE_CONNECT_ENABLED: "0"
+      MANUAL_FINANCE_ENABLED: "0"
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Compile application entry point
+        run: python -m py_compile app.py
+
+      - name: Check whitespace errors
+        run: git diff --check
+
+      - name: Run focused critical tests
+        run: >-
+          python -m pytest -ra
+          tests/test_stripe_connect.py
+          tests/test_owner_portal.py
+          tests/test_professionals.py
+          tests/test_reservations.py
+
+      - name: Run remaining test suite
+        run: >-
+          python -m pytest -ra tests
+          --ignore=tests/test_stripe_connect.py
+          --ignore=tests/test_owner_portal.py
+          --ignore=tests/test_professionals.py
+          --ignore=tests/test_reservations.py
