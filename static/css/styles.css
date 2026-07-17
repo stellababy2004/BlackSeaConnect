@@ -39390,3 +39390,73 @@ body.operations-demo-page .operations-preview-card__notes :is(
       0 6px 14px rgba(15, 35, 69, 0.10) !important;
   }
 }
+/* HOME DASHBOARD PREVIEW MOBILE HEIGHT FIX */
+@media (max-width: 760px) {
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-top: 42px !important;
+    padding-bottom: 42px !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] > .ds-shell {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 20px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-bottom: 24px !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header > div,
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header > .ds-lead {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header .ds-title {
+    margin-bottom: 0 !important;
+    font-size: clamp(2rem, 10vw, 2.85rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header .ds-lead {
+    margin: 0 !important;
+    font-size: 1.08rem !important;
+    line-height: 1.55 !important;
+  }
+
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] > .ds-shell > .ds-card,
+  body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] > .ds-shell > .ds-card > .ds-grid {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width:760px){
+
+body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-card{
+    transform:scale(1.08);
+    transform-origin:top center;
+}
+
+body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-shell{
+    gap:18px!important;
+}
+
+body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-section__header{
+    margin-bottom:18px!important;
+}
+
+}
