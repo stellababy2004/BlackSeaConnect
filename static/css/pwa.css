@@ -1,0 +1,70 @@
+:root {
+  --pwa-safe-top: env(safe-area-inset-top, 0px);
+  --pwa-safe-right: env(safe-area-inset-right, 0px);
+  --pwa-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pwa-safe-left: env(safe-area-inset-left, 0px);
+}
+
+.pwa-status {
+  position: fixed;
+  right: max(12px, var(--pwa-safe-right));
+  bottom: max(12px, var(--pwa-safe-bottom));
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(15, 35, 69, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .96);
+  color: #0f2345;
+  box-shadow: 0 10px 28px rgba(15, 35, 69, .16);
+  font: 700 12px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.pwa-status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #318064; }
+.pwa-status[data-state="offline"]::before { background: #b33a3a; }
+.pwa-status[data-state="reconnecting"]::before { background: #96772e; animation: pwa-pulse 1s ease-in-out infinite; }
+.pwa-status[data-state="back-online"]::before { background: #318064; box-shadow: 0 0 0 4px rgba(49, 128, 100, .16); }
+
+.pwa-update {
+  position: fixed;
+  top: max(12px, var(--pwa-safe-top));
+  left: 50%;
+  z-index: 10001;
+  display: flex;
+  width: min(92vw, 440px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 35, 69, .14);
+  border-radius: 16px;
+  background: #fff;
+  color: #0f2345;
+  box-shadow: 0 16px 36px rgba(15, 35, 69, .2);
+  transform: translateX(-50%);
+  font: 700 14px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.pwa-update[hidden] { display: none; }
+.pwa-update button { min-height: 44px; padding: 8px 14px; border: 0; border-radius: 12px; background: #0f2345; color: #fff; font: inherit; cursor: pointer; }
+.pwa-offline form button[type="submit"], .pwa-offline form input[type="submit"] { cursor: not-allowed; opacity: .52; }
+
+@keyframes pwa-pulse { 50% { opacity: .4; } }
+
+@media (display-mode: standalone) {
+  html { min-height: 100%; background: #f5f7f6; }
+  body { min-height: 100dvh; }
+  .professional-dashboard-page, .professional-tasks-page, .professional-task-page { padding-bottom: calc(96px + var(--pwa-safe-bottom)); }
+}
+
+@media (max-width: 360px) {
+  .pwa-update { align-items: stretch; flex-direction: column; }
+  .pwa-update button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-status[data-state="reconnecting"]::before { animation: none; }
+}

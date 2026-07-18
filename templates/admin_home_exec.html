@@ -2,12 +2,12 @@
 <html lang="{{ page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' }}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  {% include 'partials/pwa_head.html' %}
   <title>{{ public_i18n('adminHome', 'pageTitle', 'Executive Operations Cockpit - BlackSea Connect') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
@@ -4406,6 +4406,7 @@
       window.setInterval(updateRelativeTimes, 60000);
     })();
 </script>
+  {% include 'partials/pwa_runtime.html' %}
 </body>
 </html>
 
