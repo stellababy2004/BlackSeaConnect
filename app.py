@@ -75,6 +75,7 @@ ROBOTS_DISALLOW_PATHS = (
 )
 NOINDEX_EXACT_PATHS = {
     "/guest/a-302",
+    "/offline",
     "/partners/apply",
     "/professionals/apply",
     "/request-service",
@@ -240,6 +241,21 @@ def _internal_server_error(error):
 @app.get("/health/live")
 def health_live():
     return jsonify({"status": "live"})
+
+
+@app.get("/service-worker.js")
+def service_worker():
+    response = send_file(Path(app.static_folder) / "service-worker.js", mimetype="application/javascript")
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Service-Worker-Allowed"] = "/"
+    return response
+
+
+@app.get("/offline")
+def offline_page():
+    response = app.make_response(render_template("offline.html"))
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return response
 
 
 def _readiness_checks():

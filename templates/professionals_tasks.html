@@ -70,7 +70,8 @@
 <html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {% include 'partials/pwa_head.html' %}
   <title>{{ labels.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
@@ -215,5 +216,6 @@
       });
     })();
   </script>
+  {% include 'partials/pwa_runtime.html' %}
 </body>
 </html>
