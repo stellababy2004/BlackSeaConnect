@@ -2292,6 +2292,7 @@
         <article class="admin-operations-detail-panel">
           <p class="eyebrow">Оперативни контроли</p>
           <h2 class="admin-operations-section-title">Панел за възлагане</h2>
+          {% if status_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ status_error|e }}</p>{% endif %}
           <div class="admin-operations-control-grid u-mb-14">
             <div class="admin-operations-control-card admin-operations-control-card--current">
               <span><span class="admin-operations-chip__icon">↗</span>Текущ изпълнител</span>

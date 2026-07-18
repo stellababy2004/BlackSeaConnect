@@ -1355,7 +1355,8 @@
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update task status (${response.status})`);
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message || `Failed to update task status (${response.status})`);
         }
       };
 
@@ -1419,7 +1420,7 @@
             await updateTaskСтатус(taskId, status);
             window.location.reload();
           } catch (error) {
-            window.alert('Статусът на задачата не бе обновен. Опитайте отново.');
+            window.alert(error.message || 'Статусът на задачата не бе обновен. Опитайте отново.');
           }
         });
       });

@@ -705,6 +705,19 @@ OPERATIONS_TASK_STATUS_ALIASES = {
     "cancelled": "ARCHIVED",
     "canceled": "ARCHIVED",
 }
+OPERATIONS_TASK_CANONICAL_TRANSITIONS = {
+    "NEW": {"ASSIGNED"},
+    "ASSIGNED": {"ACCEPTED"},
+    "ACCEPTED": {"ON_THE_WAY"},
+    "ON_THE_WAY": {"ARRIVED"},
+    "ARRIVED": {"IN_PROGRESS"},
+    "IN_PROGRESS": {"PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS", "COMPLETED"},
+    "PAUSED": {"IN_PROGRESS", "WAITING_OWNER", "WAITING_OPERATIONS"},
+    "WAITING_OWNER": {"IN_PROGRESS", "PAUSED"},
+    "WAITING_OPERATIONS": {"IN_PROGRESS", "PAUSED"},
+    "COMPLETED": {"ARCHIVED"},
+    "ARCHIVED": set(),
+}
 OPERATIONS_TASK_PRIORITY_VALUES = ("LOW", "NORMAL", "HIGH", "URGENT")
 ADMIN_OPERATION_CATEGORY_CHOICES = (
     ("CLEANING", "operationTypeCleaning", "Почистване"),
@@ -1045,6 +1058,105 @@ def _normalize_operations_task_status(status):
     normalized = str(status or "").strip().lower()
     normalized = OPERATIONS_TASK_STATUS_ALIASES.get(normalized, normalized.upper())
     return normalized if normalized in OPERATIONS_TASK_STATUS_VALUES else "NEW"
+
+
+def _operations_task_status_input_valid(status):
+    raw_status = str(status or "").strip()
+    return bool(
+        raw_status
+        and (
+            raw_status.upper() in OPERATIONS_TASK_STATUS_VALUES
+            or raw_status.lower() in OPERATIONS_TASK_STATUS_ALIASES
+        )
+    )
+
+
+def _operations_task_uses_strict_admin_lifecycle(task):
+    return str((task or {}).get("source_type", "")).strip().upper() == "ADMIN_OPERATION"
+
+
+def _operations_task_transition_allowed(task, target_status, *, source="detail", reassignment=False):
+    current_status = _normalize_operations_task_status((task or {}).get("status", "NEW"))
+    normalized_target = _normalize_operations_task_status(target_status)
+    if normalized_target == current_status:
+        return True
+    if reassignment and normalized_target in {"NEW", "ASSIGNED"} and current_status not in {"COMPLETED", "ARCHIVED"}:
+        return True
+    if source == "professional" or _operations_task_uses_strict_admin_lifecycle(task):
+        return normalized_target in OPERATIONS_TASK_CANONICAL_TRANSITIONS.get(current_status, set())
+    # Imported/service/calendar records predate the canonical lifecycle and keep
+    # their established admin override behavior for backwards compatibility.
+    return True
+
+
+def _operations_task_completion_validation_error(task, *, report_data=None):
+    current_status = _normalize_operations_task_status((task or {}).get("status", "NEW"))
+    if current_status == "COMPLETED":
+        return ""
+    if current_status != "IN_PROGRESS":
+        return "completion_invalid_state"
+    checklist_items = list((task or {}).get("checklist_items") or [])
+    if not checklist_items or not all(item.get("checked") for item in checklist_items):
+        return "completion_checklist_required"
+    if not any(str(item.get("url", "")).strip() for item in (task or {}).get("attachments", [])):
+        return "completion_evidence_required"
+    completion_report = report_data if report_data is not None else ((task or {}).get("completion_report") or {})
+    if not str(completion_report.get("completed_work", "")).strip():
+        return "completion_summary_required"
+    if not str(completion_report.get("notes", "")).strip():
+        return "completion_note_required"
+    return ""
+
+
+def _operations_task_admin_status_options(task):
+    if not _operations_task_uses_strict_admin_lifecycle(task):
+        return list(OPERATIONS_TASK_BOARD_STATUSES)
+    current_status = _normalize_operations_task_status((task or {}).get("status", "NEW"))
+    allowed = {current_status, *OPERATIONS_TASK_CANONICAL_TRANSITIONS.get(current_status, set())}
+    if current_status == "NEW" and not _operations_task_is_assigned(task):
+        allowed.discard("ASSIGNED")
+    if "COMPLETED" in allowed and _operations_task_completion_validation_error(task):
+        allowed.discard("COMPLETED")
+    return [status for status in OPERATIONS_TASK_BOARD_STATUSES if status in allowed]
+
+
+def _operations_task_transition_error_copy(error_code, language=None):
+    messages = {
+        "bg": {
+            "transition_invalid": "Тази промяна на статуса не е разрешена от текущото състояние.",
+            "completion_invalid_state": "Операцията трябва да е в процес на изпълнение преди завършване.",
+            "completion_checklist_required": "Попълнете всички елементи от контролния списък преди завършване.",
+            "completion_evidence_required": "Качете поне едно доказателство преди завършване.",
+            "completion_summary_required": "Добавете описание на извършената работа преди завършване.",
+            "completion_note_required": "Добавете бележка за завършване.",
+        },
+        "en": {
+            "transition_invalid": "That status change is not allowed from the current state.",
+            "completion_invalid_state": "The operation must be in progress before completion.",
+            "completion_checklist_required": "Complete every checklist item before completion.",
+            "completion_evidence_required": "Upload at least one evidence file before completion.",
+            "completion_summary_required": "Add a completed-work summary before completion.",
+            "completion_note_required": "Add a completion note before completion.",
+        },
+        "fr": {
+            "transition_invalid": "Ce changement de statut n’est pas autorisé depuis l’état actuel.",
+            "completion_invalid_state": "L’opération doit être en cours avant sa clôture.",
+            "completion_checklist_required": "Terminez chaque élément de la liste de contrôle avant la clôture.",
+            "completion_evidence_required": "Téléversez au moins une preuve avant la clôture.",
+            "completion_summary_required": "Ajoutez un résumé du travail effectué avant la clôture.",
+            "completion_note_required": "Ajoutez une note de clôture.",
+        },
+        "ru": {
+            "transition_invalid": "Это изменение статуса недоступно из текущего состояния.",
+            "completion_invalid_state": "Перед завершением операция должна выполняться.",
+            "completion_checklist_required": "Перед завершением выполните все пункты контрольного списка.",
+            "completion_evidence_required": "Перед завершением загрузите хотя бы одно подтверждение.",
+            "completion_summary_required": "Перед завершением добавьте описание выполненной работы.",
+            "completion_note_required": "Добавьте примечание о завершении.",
+        },
+    }
+    selected = messages.get(str(language or _resolve_current_language()).strip().lower(), messages["en"])
+    return selected.get(str(error_code or "").strip(), selected["transition_invalid"])
 
 
 def _normalize_operations_task_priority(priority):
@@ -5864,8 +5976,8 @@ def _append_operations_task_comment(task_id, operator, comment, comment_type="Ge
 
     _append_operations_task_event(
         target_task_id,
-        "comment_added_internal",
-        "Comment added",
+        "professional_comment_added" if comment_entry["author_role"] == "professional" else "comment_added_internal",
+        "Professional comment added" if comment_entry["author_role"] == "professional" else "Comment added",
         normalized_comment,
         status=updated_task.get("status", "NEW"),
     )
@@ -6116,6 +6228,7 @@ def _professional_task_transition(task, professional_account, action, *, note_te
         assigned_to=(task or {}).get("assigned_to", ""),
         assigned_professional_id=(professional_account or {}).get("id", ""),
         source="professional",
+        append_status_event=False,
     )
     if not updated_task:
         return None
@@ -7967,12 +8080,14 @@ def _stripe_transfer_for_task(task):
         return None, "transfer_failed"
 
 
-def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail"):
+def _update_operations_task_details(task_id, *, status=None, assigned_to=None, assigned_professional_id=None, notes=None, due_date=None, priority=None, source="detail", append_status_event=True):
     task = _find_operations_task(task_id)
     if not task:
         return None
 
     task_id = str(task_id or "").strip()
+    if status is not None and not _operations_task_status_input_valid(status):
+        return None
     new_status = _normalize_operations_task_status(status if status is not None else task.get("status", "NEW"))
     new_assigned_professional_id = str(assigned_professional_id if assigned_professional_id is not None else task.get("assigned_professional_id", "")).strip()
     current_assigned_professional_id = str(task.get("assigned_professional_id", "")).strip()
@@ -7991,9 +8106,37 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
     current_notes = str(task.get("admin_notes", "")).strip()
     current_due_date = str(task.get("due_date", "")).strip()
     current_priority = _normalize_operations_task_priority(task.get("priority", "NORMAL"))
+    professional_reassignment = new_assigned_professional_id != current_assigned_professional
+    legacy_reassignment = bool(
+        not new_assigned_professional_id
+        and not current_assigned_professional
+        and new_assigned_to != current_assigned_to
+    )
 
-    if new_assigned_professional_id and new_status == current_status and current_status == "NEW":
-        new_status = "ASSIGNED"
+    if professional_reassignment:
+        new_status = "ASSIGNED" if new_assigned_professional_id else "NEW"
+    elif legacy_reassignment:
+        new_status = "ASSIGNED" if new_assigned_to else "NEW"
+
+    if not _operations_task_transition_allowed(
+        task,
+        new_status,
+        source=source,
+        reassignment=professional_reassignment or legacy_reassignment,
+    ):
+        return None
+
+    if (
+        new_status == "ASSIGNED"
+        and not (new_assigned_professional_id or new_assigned_to)
+        and _operations_task_uses_strict_admin_lifecycle(task)
+    ):
+        return None
+
+    if new_status == "COMPLETED" and current_status != "COMPLETED":
+        completion_error = _operations_task_completion_validation_error(task)
+        if completion_error and _operations_task_uses_strict_admin_lifecycle(task):
+            return None
 
     if (
         new_status == current_status
@@ -8029,16 +8172,25 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
         app.logger.warning("Operations task update failed for %s: %s", task_id, type(exc).__name__)
         return None
 
-    if new_assigned_to and new_assigned_to != current_assigned_to:
+    professional_assignment_changed = bool(
+        new_assigned_professional_id
+        and new_assigned_professional_id != current_assigned_professional
+    )
+    legacy_assignment_changed = bool(
+        not professional_assignment_changed
+        and new_assigned_to != current_assigned_to
+    )
+
+    if legacy_assignment_changed:
         _append_operations_task_event(
             task_id,
             "assigned",
-            "Task assigned",
-            new_assigned_to,
+            "Task assigned" if new_assigned_to else "Task unassigned",
+            new_assigned_to or current_assigned_to,
             status=new_status,
         )
 
-    if new_assigned_professional_id and new_assigned_professional_id != current_assigned_professional:
+    if professional_assignment_changed:
         _append_operations_task_event(
             task_id,
             "professional_assigned",
@@ -8076,16 +8228,21 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
                 metadata="professional_assignment",
             )
 
+    assignment_transition = (
+        new_status in {"NEW", "ASSIGNED"}
+        and (professional_assignment_changed or legacy_assignment_changed)
+    )
     if new_status != current_status:
-        event_type = "completed" if new_status == "COMPLETED" else "status_changed"
-        event_title = "Task completed" if new_status == "COMPLETED" else f"Status changed to {new_status.replace('_', ' ').title()}"
-        _append_operations_task_event(
-            task_id,
-            event_type,
-            event_title,
-            f"{current_status.replace('_', ' ').title()} -> {new_status.replace('_', ' ').title()}",
-            status=new_status,
-        )
+        if append_status_event and not assignment_transition:
+            event_type = "completed" if new_status == "COMPLETED" else "status_changed"
+            event_title = "Task completed" if new_status == "COMPLETED" else f"Status changed to {new_status.replace('_', ' ').title()}"
+            _append_operations_task_event(
+                task_id,
+                event_type,
+                event_title,
+                f"{current_status.replace('_', ' ').title()} -> {new_status.replace('_', ' ').title()}",
+                status=new_status,
+            )
         _sync_reservation_from_operation_task({**task, "id": task_id, "status": new_status}, new_status)
         request_record = _find_service_request(task_id)
         if request_record:
@@ -8130,13 +8287,26 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
             operator_key=_current_admin_operator_key(),
             metadata="professional_completion",
         )
-        _append_operations_task_event(
-            task_id,
-            "workflow_transitioned",
-            "Ready for owner review",
-            f"{task.get('title', '')} is ready for owner review",
-            status=new_status,
-        )
+        owner_id = str(task.get("owner_id", "")).strip()
+        property_id = str(task.get("property_id", "")).strip()
+        if property_id and not owner_id:
+            owner_id = str((_find_owner_property(property_id) or {}).get("owner_id", "")).strip()
+        owner_safe_detail = str(task.get("title", "")).strip() or "Operation"
+        if property_id and owner_id:
+            _append_property_activity_event(
+                property_id,
+                owner_id,
+                "operation_completed",
+                "Operation completed",
+                owner_safe_detail,
+            )
+        if owner_id:
+            _append_owner_activity_event(
+                owner_id,
+                "operation_completed",
+                "Operation completed",
+                str(task.get("property_name", "")).strip() or str(task.get("title", "Operation")).strip(),
+            )
         if owner_email:
             owner_body = "\n".join([
                 "BlackSea Connect work completed",
@@ -12875,6 +13045,40 @@ def _owner_property_detail_context(owner_account, property_record):
     calendar = _property_calendar_context(property_record, owner_account)
     property_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "")])
     availability = _property_availability_engine(property_record, property_reservations)
+    activity_copy = {
+        "bg": {
+            "eyebrow": "Оперативна хронология",
+            "title": "Последни оперативни актуализации",
+            "empty": "Все още няма оперативни актуализации за този имот.",
+            "operation_completed": "Операцията е завършена",
+        },
+        "en": {
+            "eyebrow": "Operations timeline",
+            "title": "Recent operational updates",
+            "empty": "No operational updates are available for this property yet.",
+            "operation_completed": "Operation completed",
+        },
+        "fr": {
+            "eyebrow": "Chronologie des opérations",
+            "title": "Mises à jour opérationnelles récentes",
+            "empty": "Aucune mise à jour opérationnelle n’est encore disponible pour ce bien.",
+            "operation_completed": "Opération terminée",
+        },
+        "ru": {
+            "eyebrow": "Хронология операций",
+            "title": "Последние операционные обновления",
+            "empty": "Для этого объекта пока нет операционных обновлений.",
+            "operation_completed": "Операция завершена",
+        },
+    }.get(_resolve_current_language(), {})
+    property_activity = [
+        {
+            **event,
+            "title": activity_copy.get(event.get("event_type", ""), event.get("title", "")),
+        }
+        for event in _load_property_activity_events(property_record.get("id", ""))
+        if str(event.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
+    ]
     return {
         "property": {
             **property_record,
@@ -12909,6 +13113,8 @@ def _owner_property_detail_context(owner_account, property_record):
         "calendar": calendar,
         "availability": availability,
         "history_count": len(service_requests),
+        "property_activity": property_activity,
+        "activity_copy": activity_copy,
     }
 
 
@@ -15401,6 +15607,8 @@ def professional_task_attachment_delete(task_id, attachment_id):
     task_record = _find_operations_task(task_id)
     if not task_record or not _professional_task_matches_account(task_record, professional_account):
         return Response("Task not found.", status=404, mimetype="text/plain")
+    if _normalize_operations_task_status(task_record.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"}:
+        return _professional_task_redirect(task_id, error="action_invalid")
     attachment = _find_operations_task_attachment(task_record, attachment_id)
     if not attachment:
         return Response("Evidence not found.", status=404, mimetype="text/plain")
@@ -15441,6 +15649,11 @@ def professionals_task_detail(task_id):
             for item in [*request.files.getlist("attachment_files"), *request.files.getlist("attachment_file")]
             if item and item.filename
         ]
+        if current_status in {"COMPLETED", "ARCHIVED"}:
+            if action == "complete":
+                return _professional_task_redirect(task_id, notice="task_completed")
+            if action in {"checklist", "comment", "edit_comment", "attachment", "issue"}:
+                return _professional_task_redirect(task_id, error="action_invalid")
         if action == "accept":
             updated_task = _professional_task_transition(task_record, professional_account, "accept")
         elif action in {"on_the_way", "ontheway"}:
@@ -15498,16 +15711,12 @@ def professionals_task_detail(task_id):
                 },
             )
         elif action == "complete":
-            if current_status != "IN_PROGRESS":
-                return _professional_task_redirect(task_id, error="completion_invalid_state")
-            if not task_record.get("checklist_items") or not all(item.get("checked") for item in task_record["checklist_items"]):
-                return _professional_task_redirect(task_id, error="completion_checklist_required")
-            if not any(str(item.get("url", "")).strip() for item in task_record.get("attachments", [])):
-                return _professional_task_redirect(task_id, error="completion_evidence_required")
-            if not report_data["completed_work"]:
-                return _professional_task_redirect(task_id, error="completion_summary_required")
-            if not report_data["notes"]:
-                return _professional_task_redirect(task_id, error="completion_note_required")
+            completion_error = _operations_task_completion_validation_error(
+                task_record,
+                report_data=report_data,
+            )
+            if completion_error:
+                return _professional_task_redirect(task_id, error=completion_error)
             updated_task = _professional_task_transition(
                 task_record,
                 professional_account,
@@ -15529,7 +15738,6 @@ def professionals_task_detail(task_id):
             )
             if not comment_entry:
                 return _professional_task_redirect(task_id, error="comment_save_failed")
-            _append_operations_task_event(task_id, "professional_comment_added", "Professional comment added", note_text, status=_normalize_operations_task_status(task_record.get("status", "NEW")))
             _append_operations_notification(
                 "professional_comment_added",
                 "Professional comment added",
@@ -15632,6 +15840,7 @@ def professionals_task_detail(task_id):
                 assigned_to=task_record.get("assigned_to", ""),
                 assigned_professional_id=professional_account.get("id", ""),
                 source="professional_issue",
+                append_status_event=False,
             )
             if not updated_task:
                 return _professional_task_redirect(task_id, error="issue_save_failed")
@@ -16251,6 +16460,8 @@ def _admin_operations_task_context(task_record):
         "finance_copy": finance_copy,
         "evidence_error": evidence_errors.get(str(request.args.get("evidence_error", "")).strip(), ""),
         "evidence_notice": evidence_copy.get(str(request.args.get("evidence_notice", "")).strip(), ""),
+        "status_error": _operations_task_transition_error_copy(request.args.get("status_error", "transition_invalid"), current_language)
+            if request.args.get("status_error") else "",
         "format_evidence_file_size": _format_evidence_file_size,
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
         "completion_report": task_record.get("completion_report", _operations_task_completion_report(task_record.get("completion_report_json", ""))),
@@ -18086,6 +18297,13 @@ def admin_calendar_event_complete(event_id):
     backing_task = _admin_calendar_backing_task(existing)
 
     if backing_task is not None:
+        completion_error = _operations_task_completion_validation_error(backing_task)
+        if completion_error and _operations_task_uses_strict_admin_lifecycle(backing_task):
+            return jsonify({
+                "ok": False,
+                "code": completion_error,
+                "error": _operations_task_transition_error_copy(completion_error),
+            }), 409
         before = {
             "status": backing_task.get("status", ""),
             "completed_at": backing_task.get("completed_at", ""),
@@ -23554,6 +23772,14 @@ def admin_operation_create():
             )
 
             if created:
+                if professional:
+                    _append_operations_task_event(
+                        task_id,
+                        "professional_assigned",
+                        "Professional assigned",
+                        _professional_account_display_label(professional),
+                        status="ASSIGNED",
+                    )
                 return redirect(url_for("admin_operations_detail", task_id=task_id))
 
             create_error = ("operationCreateErrorSave", "Операцията не можа да бъде създадена.")
@@ -23708,7 +23934,7 @@ def admin_operations_detail(task_id):
             due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
             priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
             notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
-            _update_operations_task_details(
+            updated_task = _update_operations_task_details(
                 task_id,
                 status=status_value,
                 assigned_to=assigned_to_value,
@@ -23718,6 +23944,8 @@ def admin_operations_detail(task_id):
                 priority=priority_value,
                 source="detail",
             )
+            if not updated_task:
+                redirect_args["status_error"] = "transition_invalid"
         redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen", "finance_payment", "finance_release"} else ("evidence" if task_action == "attachment" else None)
         return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
@@ -23725,7 +23953,10 @@ def admin_operations_detail(task_id):
     return render_template(
         "admin_operations_detail.html",
         **context,
-        status_options=[{"value": status, "label": _operations_task_status_label(status)} for status in OPERATIONS_TASK_BOARD_STATUSES],
+        status_options=[
+            {"value": status, "label": _operations_task_status_label(status)}
+            for status in _operations_task_admin_status_options(task_record)
+        ],
     )
 
 
@@ -23751,9 +23982,34 @@ def admin_operations_status(task_id):
     if not status_value:
         return jsonify({"ok": False, "error": "missing_status"}), 400
 
-    updated_task = _update_operations_task_status(task_id, status_value, source="board")
-    if not updated_task:
+    task_record = _find_operations_task(task_id)
+    if not task_record:
         return jsonify({"ok": False, "error": "not_found"}), 404
+    target_status = _normalize_operations_task_status(status_value)
+    if not _operations_task_status_input_valid(status_value):
+        return jsonify({"ok": False, "error": "status_invalid"}), 400
+    if not _operations_task_transition_allowed(task_record, target_status, source="board"):
+        return jsonify({
+            "ok": False,
+            "error": "transition_invalid",
+            "message": _operations_task_transition_error_copy("transition_invalid"),
+        }), 409
+    if target_status == "COMPLETED":
+        completion_error = _operations_task_completion_validation_error(task_record)
+        if completion_error and _operations_task_uses_strict_admin_lifecycle(task_record):
+            return jsonify({
+                "ok": False,
+                "error": completion_error,
+                "message": _operations_task_transition_error_copy(completion_error),
+            }), 409
+
+    updated_task = _update_operations_task_status(task_id, target_status, source="board")
+    if not updated_task:
+        return jsonify({
+            "ok": False,
+            "error": "transition_invalid",
+            "message": _operations_task_transition_error_copy("transition_invalid"),
+        }), 409
 
     return jsonify({
         "ok": True,

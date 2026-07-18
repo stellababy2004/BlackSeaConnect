@@ -1925,8 +1925,8 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(service_task_rows[0]["priority"], "HIGH")
         self.assertEqual(service_task_rows[0]["due_date"], "2026-07-20")
         task_events = self._read_owner_db_rows("operations_task_events")
-        self.assertTrue(any(row["event_type"] == "assigned" for row in task_events))
-        self.assertTrue(any(row["event_type"] == "status_changed" for row in task_events))
+        self.assertEqual(sum(row["event_type"] == "assigned" for row in task_events), 1)
+        self.assertFalse(any(row["event_type"] == "status_changed" for row in task_events))
         self.assertTrue(any(row["event_type"] == "note_added" for row in task_events))
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):

@@ -470,7 +470,7 @@
           <button class="button button--secondary" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>
         {% endif %}
         {% if owner_phone %}<a class="button button--secondary" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
-        <a class="button button--secondary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>
+        {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>{% endif %}
         {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#issue-report">{{ labels.report_issue }}</a>{% endif %}
         {% if current_status == 'IN_PROGRESS' %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
       </div>
@@ -605,6 +605,7 @@
         <article class="professional-panel" id="comments">
           <p class="professional-kicker">{{ labels.internal_comments }}</p>
           <h2>{{ labels.operations_discussion }}</h2>
+          {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
             <input type="hidden" name="task_action" value="comment">
             <label>
@@ -622,6 +623,7 @@
               <button class="button button--secondary" type="submit">{{ labels.save_comment }}</button>
             </form>
           </details>
+          {% endif %}
           {% endif %}
           <div class="professional-chat">
             {% for comment in task.comments or [] %}
@@ -701,7 +703,7 @@
                   <div class="professional-actions" style="margin-top:10px;">
                     <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
                     <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ labels.download_evidence }}</a>
-                    {% if attachment.id and attachment.uploader_role == 'professional' and attachment.uploader_id == professional_account.id %}
+                    {% if current_status not in ['COMPLETED', 'ARCHIVED'] and attachment.id and attachment.uploader_role == 'professional' and attachment.uploader_id == professional_account.id %}
                       <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ labels.delete_evidence }}?');">
                         <button class="button button--ghost" type="submit">{{ labels.delete_evidence }}</button>
                       </form>
