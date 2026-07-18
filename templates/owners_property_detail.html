@@ -914,6 +914,24 @@
           {% else %}
             <p class="owner-property-detail-empty">No service requests are linked to this property yet.</p>
           {% endif %}
+
+          <p class="eyebrow">{{ property_context.activity_copy.eyebrow|e }}</p>
+          <h2 class="owner-property-detail-section-title">{{ property_context.activity_copy.title|e }}</h2>
+          {% if property_context.property_activity %}
+            <div class="owner-property-detail-history">
+              {% for event in property_context.property_activity %}
+                <div class="owner-property-detail-history__item">
+                  <div class="owner-property-detail-history__topline">
+                    <strong>{{ event.title|e }}</strong>
+                    <time data-owner-datetime="{{ event.created_at|e }}">{{ event.created_at|e }}</time>
+                  </div>
+                  {% if event.detail %}<p>{{ event.detail|e }}</p>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="owner-property-detail-empty">{{ property_context.activity_copy.empty|e }}</p>
+          {% endif %}
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="calendar">

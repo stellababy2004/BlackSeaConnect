@@ -1017,6 +1017,25 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(detail_response.status_code, 200)
         self.assertIn("Accept task", detail_response.get_data(as_text=True))
 
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            reassigned = self.client.post(
+                "/admin/operations/task-assignable",
+                data={
+                    "status": "ASSIGNED",
+                    "assigned_professional_id": other_account["id"],
+                    "priority": "NORMAL",
+                    "due_date": today,
+                    "admin_notes": "Reassigned for availability.",
+                },
+                headers=self._auth_headers(),
+            )
+        self.assertEqual(reassigned.status_code, 302)
+        reassigned_task = app_module._find_operations_task("task-assignable")
+        self.assertEqual(reassigned_task["status"], "ASSIGNED")
+        self.assertEqual(reassigned_task["assigned_professional_id"], other_account["id"])
+        self.assertEqual(reassigned_task["assigned_to"], "Other Professional")
+        self.assertEqual(self.client.get("/professionals/tasks/task-assignable").status_code, 404)
+
     def test_professional_lifecycle_updates_timeline_calendar_and_admin_notifications(self):
         self._seed_professional_account(
             full_name="Lifecycle Professional",
@@ -1261,7 +1280,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("professional_completed", event_types)
         self.assertIn("attachment_added", event_types)
         self.assertIn("completion_report_updated", event_types)
-        self.assertTrue(any(event["event_type"] == "workflow_transitioned" for event in events))
+        self.assertNotIn("workflow_transitioned", event_types)
 
         calendar_events = [event for event in app_module._load_calendar_events() if event.get("operation_task_id") == "task-workflow"]
         self.assertTrue(calendar_events)
@@ -1277,6 +1296,221 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("data-evidence-form", detail_html)
         self.assertIn("new DataTransfer()", detail_html)
         self.assertIn('xhr.upload.addEventListener("progress"', detail_html)
+
+    def test_admin_created_operation_end_to_end_is_secure_idempotent_and_owner_visible(self):
+        owner = app_module._upsert_owner_account({
+            "id": "owner-lifecycle",
+            "created_at": "2026-07-18T08:00:00Z",
+            "full_name": "Lifecycle Owner",
+            "email": "lifecycle-owner@example.com",
+            "phone": "+359888111111",
+            "property_type": "Villa",
+            "city": "Varna",
+            "property_name": "Lifecycle Villa",
+            "number_of_units": 1,
+            "status": "ACTIVE",
+            "language": "en",
+        })
+        other_owner = app_module._upsert_owner_account({
+            "id": "owner-unrelated",
+            "created_at": "2026-07-18T08:01:00Z",
+            "full_name": "Unrelated Owner",
+            "email": "unrelated-owner@example.com",
+            "phone": "+359888222222",
+            "property_type": "Apartment",
+            "city": "Burgas",
+            "property_name": "Other Home",
+            "number_of_units": 1,
+            "status": "ACTIVE",
+            "language": "en",
+        })
+        self.assertIsNotNone(owner)
+        self.assertIsNotNone(other_owner)
+        self.assertTrue(app_module._save_owner_properties([{
+            "id": "property-lifecycle",
+            "owner_id": owner["id"],
+            "created_at": "2026-07-18T08:02:00Z",
+            "name": "Lifecycle Villa",
+            "property_type": "Villa",
+            "location": "Varna",
+            "bedrooms": 2,
+            "bathrooms": 2,
+            "guest_capacity": 4,
+            "operating_mode": "year-round",
+            "status": "ACTIVE",
+        }]))
+        professional = self._seed_professional_account(
+            full_name="Lifecycle E2E Professional",
+            email="lifecycle-e2e-pro@example.com",
+            status="ACTIVE",
+            professional_category="Maintenance",
+            account_id="professional-lifecycle-e2e",
+        )
+        other_professional = self._seed_professional_account(
+            full_name="Unrelated Professional",
+            email="unrelated-e2e-pro@example.com",
+            status="ACTIVE",
+            professional_category="Cleaning",
+            account_id="professional-unrelated-e2e",
+        )
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            self.client.get("/admin/operations/new", headers=self._auth_headers())
+            with self.client.session_transaction() as session_data:
+                csrf_token = session_data["_admin_csrf_token"]
+            created_response = self.client.post(
+                "/admin/operations/new",
+                data={
+                    "csrf_token": csrf_token,
+                    "property_id": "property-lifecycle",
+                    "category": "MAINTENANCE",
+                    "title": "Canonical lifecycle operation",
+                    "priority": "HIGH",
+                    "due_date": datetime.now(timezone.utc).date().isoformat(),
+                    "assigned_professional_id": professional["id"],
+                    "notes": "Internal admin note that owners must not receive.",
+                },
+                headers=self._auth_headers(),
+            )
+        self.assertEqual(created_response.status_code, 302)
+        task_id = created_response.headers["Location"].rstrip("/").rsplit("/", 1)[-1]
+        self.assertEqual(app_module._find_operations_task(task_id)["status"], "ASSIGNED")
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            invalid_admin_transition = self.client.post(
+                f"/admin/operations/{task_id}/status",
+                json={"status": "IN_PROGRESS"},
+                headers=self._auth_headers(),
+            )
+        self.assertEqual(invalid_admin_transition.status_code, 409)
+        self.assertEqual(invalid_admin_transition.get_json()["error"], "transition_invalid")
+        self.assertEqual(app_module._find_operations_task(task_id)["status"], "ASSIGNED")
+
+        with self.client.session_transaction() as session_data:
+            session_data[app_module.PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
+            session_data[app_module.PROFESSIONAL_SESSION_ID_KEY] = other_professional["id"]
+            session_data[app_module.PROFESSIONAL_SESSION_EMAIL_KEY] = other_professional["email"]
+        unauthorized = self.client.post(
+            f"/professionals/tasks/{task_id}",
+            data={"task_action": "accept"},
+        )
+        self.assertEqual(unauthorized.status_code, 404)
+        self.assertEqual(app_module._find_operations_task(task_id)["status"], "ASSIGNED")
+
+        self._login_professional_via_magic(professional["email"])
+        visible_tasks = self.client.get("/professionals/tasks?lang=en").get_data(as_text=True)
+        self.assertIn("Canonical lifecycle operation", visible_tasks)
+        invalid_transition = self.client.post(
+            f"/professionals/tasks/{task_id}",
+            data={"task_action": "start"},
+        )
+        self.assertIn("error=transition_invalid", invalid_transition.headers["Location"])
+
+        for action in ("accept", "on_the_way", "arrived", "start"):
+            response = self.client.post(
+                f"/professionals/tasks/{task_id}",
+                data={"task_action": action},
+            )
+            self.assertEqual(response.status_code, 302)
+
+        incomplete = self.client.post(
+            f"/professionals/tasks/{task_id}",
+            data={
+                "task_action": "complete",
+                "completed_work": "Maintenance completed.",
+                "completion_notes": "Verified safe operation.",
+            },
+        )
+        self.assertIn("error=completion_checklist_required", incomplete.headers["Location"])
+        self.assertEqual(app_module._find_operations_task(task_id)["status"], "IN_PROGRESS")
+
+        for checklist_key, _label in app_module.OPERATIONS_TASK_CHECKLIST_ITEMS:
+            self.client.post(
+                f"/professionals/tasks/{task_id}",
+                data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
+            )
+        upload = self.client.post(
+            f"/professionals/tasks/{task_id}",
+            data={
+                "task_action": "attachment",
+                "attachment_category": "after_photos",
+                "attachment_file": (
+                    io.BytesIO(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")),
+                    "completed.png",
+                ),
+            },
+            content_type="multipart/form-data",
+        )
+        self.assertIn("notice=evidence_uploaded", upload.headers["Location"])
+        completion_payload = {
+            "task_action": "complete",
+            "completed_work": "Maintenance completed and tested.",
+            "materials_used": "Replacement part",
+            "time_spent_minutes": "60",
+            "recommendations": "No follow-up required.",
+            "follow_up_needed": "None",
+            "completion_notes": "Verified safe operation.",
+        }
+        completed = self.client.post(f"/professionals/tasks/{task_id}", data=completion_payload)
+        self.assertIn("notice=task_completed", completed.headers["Location"])
+        task = app_module._find_operations_task(task_id)
+        self.assertEqual(task["status"], "COMPLETED")
+
+        event_types = [event["event_type"] for event in app_module._load_operations_task_events(task_id)]
+        for event_type in (
+            "professional_assigned",
+            "professional_accepted",
+            "professional_on_the_way",
+            "professional_arrived",
+            "professional_started",
+            "professional_completed",
+        ):
+            self.assertEqual(event_types.count(event_type), 1)
+        self.assertNotIn("completed", event_types)
+
+        event_count = len(event_types)
+        notification_count = len(app_module._load_operations_notifications())
+        duplicate = self.client.post(f"/professionals/tasks/{task_id}", data=completion_payload)
+        self.assertIn("notice=task_completed", duplicate.headers["Location"])
+        self.assertEqual(len(app_module._load_operations_task_events(task_id)), event_count)
+        self.assertEqual(len(app_module._load_operations_notifications()), notification_count)
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            board_html = self.client.get("/admin/operations", headers=self._auth_headers()).get_data(as_text=True)
+        self.assertRegex(board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
+        owner_events = app_module._load_owner_activity_events(owner["id"])
+        property_events = app_module._load_property_activity_events("property-lifecycle")
+        self.assertEqual(sum(event["event_type"] == "operation_completed" for event in owner_events), 1)
+        self.assertEqual(sum(event["event_type"] == "operation_completed" for event in property_events), 1)
+        self.assertNotIn("Internal admin note", " ".join(event["detail"] for event in property_events))
+
+        evidence = task["attachments"][0]
+        with self.client.session_transaction() as session_data:
+            session_data.clear()
+            session_data[app_module.OWNER_SESSION_LOGGED_IN_KEY] = True
+            session_data[app_module.OWNER_SESSION_ID_KEY] = owner["id"]
+            session_data[app_module.OWNER_SESSION_EMAIL_KEY] = owner["email"]
+        for language, heading, completion_label in (
+            ("bg", "Последни оперативни актуализации", "Операцията е завършена"),
+            ("en", "Recent operational updates", "Operation completed"),
+            ("fr", "Mises à jour opérationnelles récentes", "Opération terminée"),
+        ):
+            owner_property_html = self.client.get(
+                f"/owners/properties/property-lifecycle?lang={language}"
+            ).get_data(as_text=True)
+            self.assertIn(heading, owner_property_html)
+            self.assertIn(completion_label, owner_property_html)
+            self.assertNotIn("Internal admin note", owner_property_html)
+
+        with self.client.session_transaction() as session_data:
+            session_data.clear()
+            session_data[app_module.OWNER_SESSION_LOGGED_IN_KEY] = True
+            session_data[app_module.OWNER_SESSION_ID_KEY] = other_owner["id"]
+            session_data[app_module.OWNER_SESSION_EMAIL_KEY] = other_owner["email"]
+        self.assertEqual(
+            self.client.get("/owners/properties/property-lifecycle?lang=en").status_code,
+            404,
+        )
+        self.assertEqual(self.client.get(evidence["url"]).status_code, 404)
 
     def test_operations_task_evidence_admin_upload_metadata_timeline_and_delete(self):
         self._seed_operations_task("task-admin-evidence")
