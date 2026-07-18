@@ -8,17 +8,24 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="pageTitle">{{ public_i18n('home', 'pageTitle', 'BlackSea Connect | Premium property operations for owners') }}</title>
-  <meta name="description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
-  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
-  <meta property="og:title" content="BlackSea Connect | Premium property operations for owners">
-  <meta property="og:description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
+  <title>{{ home_seo.title }}</title>
+  <meta name="description" content="{{ home_seo.description }}">
+  <link rel="canonical" href="{{ seo_canonical_url() }}">
+  <link rel="alternate" hreflang="bg" href="{{ seo_alternate_url('bg') }}">
+  <link rel="alternate" hreflang="en" href="{{ seo_alternate_url('en') }}">
+  <link rel="alternate" hreflang="fr" href="{{ seo_alternate_url('fr') }}">
+  <link rel="alternate" hreflang="ru" href="{{ seo_alternate_url('ru') }}">
+  <link rel="alternate" hreflang="x-default" href="{{ seo_alternate_url('') }}">
+  <meta property="og:title" content="{{ home_seo.title }}">
+  <meta property="og:description" content="{{ home_seo.description }}">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta property="og:url" content="{{ seo_canonical_url() }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BlackSea Connect | Premium property operations for owners">
-  <meta name="twitter:description" content="BlackSea Connect is a premium coastal operations platform for owners, managers and trusted service teams.">
+  <meta name="twitter:title" content="{{ home_seo.title }}">
+  <meta name="twitter:description" content="{{ home_seo.description }}">
   <meta name="robots" content="index,follow">
+  {% if google_site_verification %}<meta name="google-site-verification" content="{{ google_site_verification }}">{% endif %}
+  {% if bing_site_verification %}<meta name="msvalidate.01" content="{{ bing_site_verification }}">{% endif %}
   <link rel="stylesheet" href="/static/css/styles.css">
   <script type="application/ld+json">
     {{ {
@@ -28,7 +35,9 @@
           "@type": "Organization",
           "@id": site_url ~ "/#organization",
           "name": "BlackSea Connect",
+          "alternateName": "BlackSeaConnect",
           "url": site_url ~ "/",
+          "logo": site_url ~ "/static/favicon-512x512.png",
           "description": "BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.",
           "areaServed": "Black Sea coast",
           "serviceType": [
@@ -36,13 +45,13 @@
             "guest concierge",
             "housekeeping coordination",
             "guest arrival coordination"
-          ],
-          "sameAs": []
+          ]
         },
         {
           "@type": "WebSite",
           "@id": site_url ~ "/#website",
           "name": "BlackSea Connect",
+          "alternateName": "BlackSeaConnect.com",
           "url": site_url ~ "/",
           "description": "BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.",
           "publisher": {

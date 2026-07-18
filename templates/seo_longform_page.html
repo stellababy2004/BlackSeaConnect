@@ -10,11 +10,16 @@
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title>{{ page.title }}</title>
   <meta name="description" content="{{ page.description }}">
-  <link rel="canonical" href="{{ site_url }}{{ page.canonical_path }}">
+  <link rel="canonical" href="{{ seo_canonical_url(page.canonical_path, 'en') }}">
+  <link rel="alternate" hreflang="bg" href="{{ seo_alternate_url('bg', page.canonical_path, 'en') }}">
+  <link rel="alternate" hreflang="en" href="{{ seo_alternate_url('en', page.canonical_path, 'en') }}">
+  <link rel="alternate" hreflang="fr" href="{{ seo_alternate_url('fr', page.canonical_path, 'en') }}">
+  <link rel="alternate" hreflang="ru" href="{{ seo_alternate_url('ru', page.canonical_path, 'en') }}">
+  <link rel="alternate" hreflang="x-default" href="{{ seo_alternate_url('', page.canonical_path, 'en') }}">
   <meta property="og:title" content="{{ page.title }}">
   <meta property="og:description" content="{{ page.description }}">
   <meta property="og:type" content="{{ page.og_type }}">
-  <meta property="og:url" content="{{ site_url }}{{ page.canonical_path }}">
+  <meta property="og:url" content="{{ seo_canonical_url(page.canonical_path, 'en') }}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ page.title }}">
   <meta name="twitter:description" content="{{ page.description }}">

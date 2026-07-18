@@ -65,6 +65,12 @@ def test_production_rejects_insecure_site_url(tmp_path):
         load_settings(environment)
 
 
+def test_production_rejects_noncanonical_site_url(tmp_path):
+    environment = _protected_environment(tmp_path, "production")
+    with pytest.raises(ConfigurationError, match="production SITE_URL must be https://blackseaconnect.com"):
+        load_settings(environment)
+
+
 def test_production_rejects_weak_secret_key(tmp_path):
     environment = _protected_environment(tmp_path, "production")
     environment["SECRET_KEY"] = "too-short"

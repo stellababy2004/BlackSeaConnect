@@ -164,6 +164,8 @@ def validate_settings(settings: AppSettings, *, check_database: bool = True) -> 
     parsed_url = urlparse(settings.site_url)
     if protected and (parsed_url.scheme != "https" or not parsed_url.netloc):
         issues.append("SITE_URL must be an absolute HTTPS URL")
+    if settings.environment == "production" and settings.site_url != "https://blackseaconnect.com":
+        issues.append("production SITE_URL must be https://blackseaconnect.com")
     if protected and (
         len(settings.secret_key) < 32
         or settings.secret_key == DEFAULT_DEVELOPMENT_SECRET
