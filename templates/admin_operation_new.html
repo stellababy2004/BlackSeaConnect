@@ -1,0 +1,145 @@
+﻿<!doctype html>
+<html lang="{{ page_lang|default('bg')|e }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="operationCreatePageTitle">Създай операция · BlackSea Connect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body class="bsc-admin-workspace admin-operations-page">
+
+{% include "_admin_sidebar.html" %}
+
+<main class="admin-cockpit-shell">
+
+  <section class="bsc-page-header">
+    <div>
+      <p class="eyebrow" data-i18n="pageOperations">Операции</p>
+      <h1 data-i18n="createOperation">Създай операция</h1>
+      <p data-i18n="operationCreateIntro">Създайте задача за конкретен имот и при нужда я възложете веднага.</p>
+    </div>
+
+    <a class="button button--secondary" href="{{ url_for('admin_operations') }}">
+      <span data-i18n="backToOperations">Назад към операциите</span>
+    </a>
+  </section>
+
+  <section class="admin-operations-panel" style="max-width:1000px;">
+
+    {% if create_error %}
+      <div class="form-error" style="margin-bottom:18px;" role="alert">
+        <span data-i18n="{{ create_error[0]|e }}">{{ create_error[1]|e }}</span>
+      </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('admin_operation_create') }}"
+          class="admin-operations-form">
+
+      <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:18px;
+      ">
+
+        <label>
+          <span data-i18n="operationCreatePropertyLabel">Имот *</span>
+          <select name="property_id" required>
+            <option value="" data-i18n="operationCreatePropertyPlaceholder">Изберете имот</option>
+            {% for property in properties %}
+              <option value="{{ property.id|e }}"
+                {% if form_data.property_id == property.id|string %}selected{% endif %}>
+                {{ property.name|default(property.id,true)|e }}
+                {% if property.location %} — {{ property.location|e }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>
+          <span data-i18n="operationCreateTypeLabel">Тип операция *</span>
+          <select name="category" required>
+            <option value="" data-i18n="operationCreateTypePlaceholder">Изберете тип</option>
+            {% for value,translation_key,label in categories %}
+              <option value="{{ value|e }}" data-i18n="{{ translation_key|e }}"
+                {% if form_data.category == value %}selected{% endif %}>
+                {{ label|e }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label style="grid-column:1/-1;">
+          <span data-i18n="operationCreateTitleLabel">Заглавие *</span>
+          <input
+            type="text"
+            name="title"
+            required
+            maxlength="180"
+            value="{{ form_data.title|e }}"
+            placeholder="Напр. Почистване преди пристигане"
+            data-i18n-attr="placeholder:operationCreateTitlePlaceholder"
+          >
+        </label>
+
+        <label>
+          <span data-i18n="priority">Приоритет</span>
+          <select name="priority">
+            {% for value,translation_key,label in priorities %}
+              <option value="{{ value|e }}" data-i18n="{{ translation_key|e }}"
+                {% if form_data.priority == value %}selected{% endif %}>
+                {{ label|e }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>
+          <span data-i18n="operationCreateDeadlineLabel">Краен срок</span>
+          <input type="datetime-local"
+                 name="due_date"
+                 value="{{ form_data.due_date|e }}">
+        </label>
+
+        <label style="grid-column:1/-1;">
+          <span data-i18n="operationCreateProfessionalLabel">Професионалист</span>
+          <select name="assigned_professional_id">
+            <option value="" data-i18n="operationCreateUnassigned">Остави невъзложена</option>
+            {% for professional in professionals %}
+              <option value="{{ professional.id|e }}"
+                {% if form_data.assigned_professional_id == professional.id|string %}selected{% endif %}>
+                {{ professional.full_name|default(professional.email,true)|e }}
+                {% if professional.company %} — {{ professional.company|e }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label style="grid-column:1/-1;">
+          <span data-i18n="operationCreateNotesLabel">Описание / бележки</span>
+          <textarea name="notes" rows="5"
+                    placeholder="Инструкции, достъп, специални изисквания..."
+                    data-i18n-attr="placeholder:operationCreateNotesPlaceholder">{{ form_data.notes|e }}</textarea>
+        </label>
+
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
+        <button class="button button--primary" type="submit">
+          <span data-i18n="createOperation">Създай операция</span>
+        </button>
+
+        <a class="button button--secondary"
+           href="{{ url_for('admin_operations') }}">
+          <span data-i18n="cancel">Отказ</span>
+        </a>
+      </div>
+
+    </form>
+  </section>
+
+</main>
+</body>
+</html>
