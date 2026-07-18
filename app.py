@@ -706,6 +706,21 @@ OPERATIONS_TASK_STATUS_ALIASES = {
     "canceled": "ARCHIVED",
 }
 OPERATIONS_TASK_PRIORITY_VALUES = ("LOW", "NORMAL", "HIGH", "URGENT")
+ADMIN_OPERATION_CATEGORY_CHOICES = (
+    ("CLEANING", "operationTypeCleaning", "Почистване"),
+    ("MAINTENANCE", "operationTypeMaintenance", "Поддръжка"),
+    ("INSPECTION", "operationTypeInspection", "Проверка"),
+    ("CHECK_IN", "operationTypeCheckIn", "Настаняване"),
+    ("CHECK_OUT", "operationTypeCheckOut", "Напускане"),
+    ("REPAIR", "operationTypeRepair", "Ремонт"),
+    ("OTHER", "operationTypeOther", "Друга"),
+)
+ADMIN_OPERATION_PRIORITY_CHOICES = (
+    ("LOW", "priorityLow", "Нисък"),
+    ("NORMAL", "priorityNormal", "Нормален"),
+    ("HIGH", "priorityHigh", "Висок"),
+    ("URGENT", "priorityCritical", "Критичен"),
+)
 OPERATIONS_TASK_PRIORITY_ALIASES = {
     "low": "LOW",
     "normal": "NORMAL",
@@ -22397,7 +22412,7 @@ def _build_admin_dashboard():
         "professional_summary": professional_summary,
         "quick_actions": [
             {"label": t("quickActionCreateReservation", "Create Reservation"), "href": "/admin/reservations", "tone": "primary"},
-            {"label": t("quickActionCreateOperation", "Create Operation"), "href": "/admin/operations", "tone": "secondary"},
+            {"label": t("quickActionCreateOperation", "Create Operation"), "href": "/admin/operations/new", "tone": "secondary"},
             {"label": t("quickActionOpenCalendar", "Open Calendar"), "href": "/admin/calendar", "tone": "secondary"},
             {"label": t("quickActionOpenReservations", "Open Reservations"), "href": "/admin/reservations", "tone": "secondary"},
             {"label": t("quickActionOpenOperations", "Open Operations"), "href": "/admin/operations", "tone": "secondary"},
@@ -23450,6 +23465,111 @@ def admin_reservation_detail(reservation_id):
 def admin_operations():
     context = _admin_operations_board_context()
     return render_template("admin_operations.html", **context)
+
+
+@app.route("/admin/operations/new", methods=["GET", "POST"])
+@admin_required
+def admin_operation_create():
+    properties = _load_owner_properties()
+    professionals = [
+        p for p in _load_professional_accounts()
+        if _normalize_professional_account_status(p.get("status", "PENDING"))
+        in {"APPROVED", "ACTIVE"}
+    ]
+
+    form_data = {
+        "property_id": str(request.form.get("property_id", "")).strip(),
+        "title": str(request.form.get("title", "")).strip(),
+        "category": str(request.form.get("category", "")).strip(),
+        "priority": str(request.form.get("priority", "NORMAL")).strip() or "NORMAL",
+        "due_date": str(request.form.get("due_date", "")).strip(),
+        "assigned_professional_id": str(request.form.get("assigned_professional_id", "")).strip(),
+        "notes": str(request.form.get("notes", "")).strip(),
+    }
+
+    create_error = None
+    response_status = 200
+
+    if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
+        property_record = next(
+            (item for item in properties
+             if str(item.get("id", "")).strip() == form_data["property_id"]),
+            None,
+        )
+
+        valid_categories = {value for value, _key, _label in ADMIN_OPERATION_CATEGORY_CHOICES}
+        valid_priorities = {value for value, _key, _label in ADMIN_OPERATION_PRIORITY_CHOICES}
+        professional = next(
+            (item for item in professionals
+             if str(item.get("id", "")).strip() == form_data["assigned_professional_id"]),
+            None,
+        ) if form_data["assigned_professional_id"] else None
+
+        if not property_record:
+            create_error = ("operationCreateErrorProperty", "Изберете валиден имот.")
+        elif not form_data["title"]:
+            create_error = ("operationCreateErrorTitle", "Въведете заглавие.")
+        elif form_data["category"] not in valid_categories:
+            create_error = ("operationCreateErrorType", "Изберете валиден тип операция.")
+        elif form_data["priority"] not in valid_priorities:
+            create_error = ("operationCreateErrorPriority", "Изберете валиден приоритет.")
+        elif form_data["due_date"] and not _parse_iso_datetime(form_data["due_date"]):
+            create_error = ("operationCreateErrorDeadline", "Въведете валиден краен срок.")
+        elif form_data["assigned_professional_id"] and not professional:
+            create_error = ("operationCreateErrorProfessional", "Изберете валиден професионалист.")
+        else:
+            owner_id = str(property_record.get("owner_id", "")).strip()
+            owner = _find_owner_account(owner_id) if owner_id else None
+            task_id = uuid4().hex
+
+            created = _upsert_operations_task(
+                {
+                    "id": task_id,
+                    "request_id": task_id,
+                    "source_type": "ADMIN_OPERATION",
+                    "source_id": task_id,
+                    "title": form_data["title"],
+                    "category": form_data["category"],
+                    "property_id": str(property_record.get("id", "")).strip(),
+                    "property_name": str(property_record.get("name", "")).strip(),
+                    "property_location": str(property_record.get("location", "")).strip(),
+                    "owner_id": owner_id,
+                    "owner_name": str((owner or {}).get("full_name", "")).strip(),
+                    "owner_email": str((owner or {}).get("email", "")).strip(),
+                    "assigned_professional_id": str((professional or {}).get("id", "")).strip(),
+                    "assigned_to": _professional_account_display_label(professional) if professional else "",
+                    "priority": form_data["priority"],
+                    "status": "ASSIGNED" if professional else "NEW",
+                    "due_date": form_data["due_date"],
+                    "notes": form_data["notes"],
+                    "admin_notes": form_data["notes"],
+                    "organization_id": str(property_record.get("organization_id", "")).strip()
+                        or GLOBAL_ORGANIZATION_ID,
+                },
+                append_created_event=True,
+                notify=False,
+            )
+
+            if created:
+                return redirect(url_for("admin_operations_detail", task_id=task_id))
+
+            create_error = ("operationCreateErrorSave", "Операцията не можа да бъде създадена.")
+
+        if create_error:
+            response_status = 400
+
+    return render_template(
+        "admin_operation_new.html",
+        properties=properties,
+        professionals=professionals,
+        form_data=form_data,
+        create_error=create_error,
+        categories=ADMIN_OPERATION_CATEGORY_CHOICES,
+        priorities=ADMIN_OPERATION_PRIORITY_CHOICES,
+    ), response_status
 
 
 @app.get("/admin/operator")

@@ -1706,6 +1706,151 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Keep an eye on the guest guide.", refreshed_html)
         self.assertIn("Service request completed", refreshed_html)
 
+    def test_admin_operation_create_get_has_utf8_labels_and_navigation(self):
+        self._seed_owner_property(name="Морска вила", location="Варна")
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            response = self.client.get("/admin/operations/new", headers=self._auth_headers())
+            operator_response = self.client.get("/admin/operator", headers=self._auth_headers())
+            english_response = self.client.get("/admin/operations/new?lang=en", headers=self._auth_headers())
+            french_bundle = self.client.get("/static/js/i18n/admin-runtime.js")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html; charset=utf-8", response.headers["Content-Type"])
+        html = response.get_data(as_text=True)
+        self.assertNotIn("????", html)
+        self.assertNotIn("\ufffd", html)
+        for label in (
+            "Имот *",
+            "Тип операция *",
+            "Заглавие *",
+            "Приоритет",
+            "Краен срок",
+            "Професионалист",
+            "Описание / бележки",
+            "Почистване",
+            "Поддръжка",
+            "Проверка",
+            "Настаняване",
+            "Напускане",
+            "Ремонт",
+            "Друга",
+            "Нисък",
+            "Нормален",
+            "Висок",
+            "Критичен",
+            "Създай операция",
+            "Отказ",
+        ):
+            self.assertIn(label, html)
+        for value in ("CLEANING", "MAINTENANCE", "INSPECTION", "CHECK_IN", "CHECK_OUT", "REPAIR", "OTHER"):
+            self.assertIn(f'value="{value}"', html)
+        for value in ("LOW", "NORMAL", "HIGH", "URGENT"):
+            self.assertIn(f'value="{value}"', html)
+        self.assertIn('href="/admin/operations"', html)
+        self.assertIn('href="/admin/operations/new"', html)
+        self.assertIn('href="/admin/operations/new"', operator_response.get_data(as_text=True))
+        self.assertIn('<html lang="en">', english_response.get_data(as_text=True))
+
+        bundle = french_bundle.get_data(as_text=True)
+        self.assertIn('"Create operation · BlackSea Connect"', bundle)
+        self.assertIn('"Créer une opération · BlackSea Connect"', bundle)
+        self.assertIn('"Repair", "Réparation"', bundle)
+        self.assertNotIn("????", bundle)
+
+    def test_admin_operation_create_post_uses_canonical_task_and_detail_route(self):
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
+        self._insert_owner_db_rows("professional_accounts", [{
+            "id": "professional-1",
+            "email": "mira@example.com",
+            "created_at": "2026-07-18T08:00:00Z",
+            "full_name": "Mira Ivanova",
+            "company": "Black Sea Care",
+            "status": "APPROVED",
+        }])
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            get_response = self.client.get("/admin/operations/new", headers=self._auth_headers())
+            self.assertEqual(get_response.status_code, 200)
+            with self.client.session_transaction() as session_data:
+                csrf_token = session_data["_admin_csrf_token"]
+            response = self.client.post(
+                "/admin/operations/new",
+                data={
+                    "csrf_token": csrf_token,
+                    "property_id": "property-1",
+                    "category": "CLEANING",
+                    "title": "Почистване преди пристигане",
+                    "priority": "URGENT",
+                    "due_date": "2026-07-20T10:30",
+                    "assigned_professional_id": "professional-1",
+                    "notes": "Проверете инструкциите за достъп.",
+                },
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRegex(response.headers["Location"], r"/admin/operations/[0-9a-f]{32}$")
+        tasks = self._read_owner_db_rows("operations_tasks")
+        created_tasks = [row for row in tasks if row["source_type"] == "ADMIN_OPERATION"]
+        self.assertEqual(len(created_tasks), 1)
+        task = created_tasks[0]
+        self.assertEqual(task["source_id"], task["id"])
+        self.assertEqual(task["request_id"], task["id"])
+        self.assertEqual(task["property_id"], "property-1")
+        self.assertEqual(task["category"], "CLEANING")
+        self.assertEqual(task["priority"], "URGENT")
+        self.assertEqual(task["assigned_professional_id"], "professional-1")
+        self.assertEqual(task["assigned_to"], "Mira Ivanova / Black Sea Care")
+        self.assertEqual(task["status"], "ASSIGNED")
+        self.assertEqual(task["notes"], "Проверете инструкциите за достъп.")
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            detail_response = self.client.get(response.headers["Location"], headers=self._auth_headers())
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertIn("Проверете инструкциите за достъп.", detail_response.get_data(as_text=True))
+
+    def test_admin_operation_create_rejects_invalid_form_values(self):
+        self._seed_owner_property(name="Sea View Villa", location="Varna")
+
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            self.client.get("/admin/operations/new", headers=self._auth_headers())
+            with self.client.session_transaction() as session_data:
+                csrf_token = session_data["_admin_csrf_token"]
+
+            valid_payload = {
+                "csrf_token": csrf_token,
+                "property_id": "property-1",
+                "category": "REPAIR",
+                "title": "Repair balcony door",
+                "priority": "HIGH",
+                "due_date": "2026-07-21T09:00",
+                "assigned_professional_id": "",
+                "notes": "",
+            }
+            invalid_cases = (
+                ({"title": ""}, "Въведете заглавие."),
+                ({"property_id": "missing-property"}, "Изберете валиден имот."),
+                ({"category": "UNSUPPORTED"}, "Изберете валиден тип операция."),
+                ({"priority": "EMERGENCY"}, "Изберете валиден приоритет."),
+                ({"due_date": "not-a-date"}, "Въведете валиден краен срок."),
+                ({"assigned_professional_id": "missing-professional"}, "Изберете валиден професионалист."),
+            )
+
+            for overrides, expected_error in invalid_cases:
+                with self.subTest(overrides=overrides):
+                    response = self.client.post(
+                        "/admin/operations/new",
+                        data={**valid_payload, **overrides},
+                        headers=self._auth_headers(),
+                    )
+                    self.assertEqual(response.status_code, 400)
+                    html = response.get_data(as_text=True)
+                    self.assertIn(expected_error, html)
+                    self.assertNotIn("????", html)
+
+        self.assertEqual(self._read_owner_db_rows("operations_tasks"), [])
+
     def test_admin_operations_board_updates_sqlite_and_syncs_service_requests(self):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
