@@ -44,21 +44,59 @@ app.config.from_mapping(SETTINGS.flask_mapping())
 if SETTINGS.trust_proxy_headers:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 SITE_URL = SETTINGS.site_url
+GOOGLE_SITE_VERIFICATION = str(os.getenv("GOOGLE_SITE_VERIFICATION", "") or "").strip()
+BING_SITE_VERIFICATION = str(os.getenv("BING_SITE_VERIFICATION", "") or "").strip()
 PUBLIC_SITEMAP_PATHS = (
     "/",
     "/services",
     "/demo/operations",
-    "/guest/a-302",
     "/partners",
-    "/partners/apply",
     "/professionals",
-    "/professionals/apply",
     "/network",
-    "/request-service",
-    "/owners/register",
     "/pilot-access",
     *SEO_LANDING_PAGE_ORDER,
 )
+ROBOTS_DISALLOW_PATHS = (
+    "/admin",
+    "/api",
+    "/auth",
+    "/enterprise",
+    "/health",
+    "/operations",
+    "/organizations",
+    "/owners",
+    "/professionals/dashboard",
+    "/professionals/login",
+    "/professionals/logout",
+    "/professionals/stripe",
+    "/professionals/tasks",
+    "/webhooks",
+    "/workspace",
+)
+NOINDEX_EXACT_PATHS = {
+    "/guest/a-302",
+    "/partners/apply",
+    "/professionals/apply",
+    "/request-service",
+}
+HOME_SEO_METADATA = {
+    "bg": {
+        "title": "BlackSea Connect | Платформа за имотни и хотелски операции",
+        "description": "BlackSea Connect е платформа за имотни и хотелски операции за собственици, управители, екипи по гостоприемство и местни професионалисти по българското Черноморие.",
+    },
+    "en": {
+        "title": "BlackSea Connect | Property & hospitality operations platform",
+        "description": "BlackSea Connect is the property and hospitality operations platform for owners, property managers, hospitality teams and local service professionals on Bulgaria’s Black Sea coast.",
+    },
+    "fr": {
+        "title": "BlackSea Connect | Plateforme d’opérations immobilières et hôtelières",
+        "description": "BlackSea Connect est la plateforme d’opérations immobilières et hôtelières pour propriétaires, gestionnaires, équipes d’accueil et professionnels locaux sur la côte bulgare de la mer Noire.",
+    },
+    "ru": {
+        "title": "BlackSea Connect | Платформа управления недвижимостью и гостеприимством",
+        "description": "BlackSea Connect — платформа для владельцев, управляющих, команд гостеприимства и местных специалистов, обслуживающих недвижимость на болгарском побережье Чёрного моря.",
+    },
+}
 PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
 PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
@@ -11172,6 +11210,22 @@ def _load_public_i18n_value(namespace, lang, key, fallback=""):
 def inject_public_site_settings():
     current_lang = _resolve_current_language()
 
+    def seo_canonical_url(path=None, default_lang="bg"):
+        canonical_path = str(path or request.path or "/").strip() or "/"
+        requested_lang = _normalize_site_language(request.args.get("lang"))
+        normalized_default = _normalize_site_language(default_lang) or "bg"
+        if requested_lang and requested_lang != normalized_default:
+            return f"{SITE_URL}{canonical_path}?lang={requested_lang}"
+        return f"{SITE_URL}{canonical_path}"
+
+    def seo_alternate_url(lang, path=None, default_lang="bg"):
+        canonical_path = str(path or request.path or "/").strip() or "/"
+        normalized_lang = _normalize_site_language(lang)
+        normalized_default = _normalize_site_language(default_lang) or "bg"
+        if not normalized_lang or normalized_lang == normalized_default:
+            return f"{SITE_URL}{canonical_path}"
+        return f"{SITE_URL}{canonical_path}?lang={normalized_lang}"
+
     def language_switch_url(lang):
         normalized_lang = _normalize_site_language(lang) or "bg"
         preserved_args = [(key, value) for key, value in request.args.items(multi=True) if key != "lang"]
@@ -11233,6 +11287,10 @@ def inject_public_site_settings():
 
     return {
         "site_url": SITE_URL,
+        "seo_canonical_url": seo_canonical_url,
+        "seo_alternate_url": seo_alternate_url,
+        "google_site_verification": GOOGLE_SITE_VERIFICATION,
+        "bing_site_verification": BING_SITE_VERIFICATION,
         "language_switch_url": language_switch_url,
         "localized_url": localized_url,
         "page_lang": current_page_language(),
@@ -11246,6 +11304,13 @@ def force_utf8_charset(response):
     if mimetype.startswith("text/") or mimetype == "application/json" or mimetype == "application/javascript":
         if "charset=" not in (response.headers.get("Content-Type", "") or "").lower():
             response.headers["Content-Type"] = f"{mimetype}; charset=utf-8"
+    path = request.path.rstrip("/") or "/"
+    private_prefix = any(
+        path == prefix or path.startswith(f"{prefix}/")
+        for prefix in ROBOTS_DISALLOW_PATHS
+    )
+    if private_prefix or path in NOINDEX_EXACT_PATHS:
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
@@ -11254,6 +11319,7 @@ def robots_txt():
     lines = [
         "User-agent: *",
         "Allow: /",
+        *(f"Disallow: {path}" for path in ROBOTS_DISALLOW_PATHS),
         f"Sitemap: {SITE_URL}/sitemap.xml",
         "",
     ]
@@ -11285,7 +11351,20 @@ def _render_seo_landing_page(path):
 
 @app.route("/")
 def home():
-    return render_template("index.html", home_counters=_build_home_counters())
+    explicit_language = "lang" in request.args
+    requested_language = _normalize_site_language(request.args.get("lang")) if explicit_language else ""
+    stored_language = _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
+
+    if not explicit_language and stored_language in {"en", "fr", "ru"}:
+        return redirect(url_for("home", lang=stored_language))
+
+    current_lang = requested_language or "bg"
+    session[SITE_LANGUAGE_SESSION_KEY] = current_lang
+    return render_template(
+        "index.html",
+        home_counters=_build_home_counters(),
+        home_seo=HOME_SEO_METADATA[current_lang],
+    )
 
 
 @app.route("/guest/a-302")
