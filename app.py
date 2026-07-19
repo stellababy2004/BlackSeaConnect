@@ -3633,7 +3633,10 @@ def _reservation_calendar_event(reservation):
         "updated_at": str(reservation.get("updated_at", "")).strip() or _utc_now_iso(),
         "property_id": str(reservation.get("property_id", "")).strip(),
         "owner_id": str(reservation.get("owner_id", "")).strip(),
-        "operation_task_id": str(reservation.get("id", "")).strip(),
+        # A reservation calendar entry is source context, not one specific
+        # operation.  Reservation-derived operation events are persisted
+        # separately with their canonical operations_tasks.id.
+        "operation_task_id": "",
         "event_type": event_type,
         "title": title,
         "description": description,
@@ -3717,7 +3720,10 @@ def _reservation_operations_task_payloads(reservation):
     for suffix, category, label, due_date, phase in templates:
         payloads.append({
             "id": f"{reservation_id}:{suffix}",
-            "request_id": reservation_id,
+            # Legacy databases use request_id as the physical primary key.
+            # Each derived task therefore needs its own canonical identifier
+            # here as well; source_id remains the reservation linkage.
+            "request_id": f"{reservation_id}:{suffix}",
             "source_type": "RESERVATION",
             "source_id": reservation_id,
             "created_at": reservation.get("created_at", "") or _utc_now_iso(),
@@ -3750,11 +3756,33 @@ def _ensure_reservation_operations_tasks(reservation):
     payloads = _reservation_operations_task_payloads(reservation)
     created_tasks = []
     for payload in payloads:
-        existing_task = _find_operations_task(payload["id"])
-        if existing_task:
-            created_tasks.append(existing_task)
-            continue
-        created = _upsert_operations_task(payload, append_created_event=True, status_override="NEW", notify=False)
+        existing_task = _find_operations_task_by_canonical_id(payload["id"])
+        if existing_task and str(existing_task.get("request_id", "")).strip() != payload["request_id"]:
+            # Repair only the known legacy primary-key shape. This preserves
+            # the task ID and all event/notification references.
+            with _owner_db_connection() as conn:
+                primary_key_columns = {
+                    str(row["name"])
+                    for row in conn.execute("PRAGMA table_info(operations_tasks)").fetchall()
+                    if int(row["pk"] or 0) > 0
+                }
+                if "request_id" in primary_key_columns:
+                    conflict = conn.execute(
+                        "SELECT 1 FROM operations_tasks WHERE request_id = ? AND id <> ? LIMIT 1",
+                        (payload["request_id"], payload["id"]),
+                    ).fetchone()
+                    if not conflict:
+                        conn.execute(
+                            "UPDATE operations_tasks SET request_id = ? WHERE id = ?",
+                            (payload["request_id"], payload["id"]),
+                        )
+            existing_task = _find_operations_task_by_canonical_id(payload["id"])
+        created = _upsert_operations_task(
+            payload,
+            append_created_event=existing_task is None,
+            status_override="NEW" if existing_task is None else None,
+            notify=False,
+        )
         if created:
             created_tasks.append(created)
     return created_tasks
@@ -6453,6 +6481,182 @@ def _find_operations_task(task_id):
     if row:
         return _operations_task_from_row(row)
     return _demo_operations_task_by_id(target_task_id)
+
+
+def _find_operations_task_by_canonical_id(task_id, *, tasks=None):
+    """Return a task only when the supplied value is its persisted task ID."""
+    target_task_id = str(task_id or "").strip()
+    if not target_task_id:
+        return None
+    records = tasks if tasks is not None else _load_operations_tasks()
+    return next(
+        (
+            task for task in records
+            if str(task.get("id", "")).strip() == target_task_id
+        ),
+        None,
+    )
+
+
+def _operations_navigation(source_record=None, *, source_kind="", tasks=None):
+    """Resolve safe navigation without treating source IDs as task IDs."""
+    source = source_record or {}
+    records = tasks if tasks is not None else _load_operations_tasks()
+    kind = str(source_kind or source.get("kind", "")).strip().lower()
+    metadata = source.get("metadata") if isinstance(source.get("metadata"), dict) else {}
+
+    def _route_href(endpoint, **values):
+        if has_request_context():
+            return url_for(endpoint, **values)
+        if endpoint == "admin_operations_detail":
+            return f"/admin/operations/{urllib.parse.quote(str(values.get('task_id', '')), safe='')}"
+        if endpoint == "admin_reservation_detail":
+            return f"/admin/reservations/{urllib.parse.quote(str(values.get('reservation_id', '')), safe='')}"
+        if endpoint == "admin_service_request_detail":
+            return f"/admin/service-requests/{urllib.parse.quote(str(values.get('request_id', '')), safe='')}"
+        return "/admin/calendar" if endpoint == "admin_calendar" else ""
+
+    explicit_task_ids = []
+    if kind in {"operation", "task", "professional_task"}:
+        explicit_task_ids.append(source.get("id", ""))
+    explicit_task_ids.extend((
+        source.get("operation_task_id", ""),
+        source.get("linked_task_id", ""),
+        source.get("canonical_task_id", ""),
+    ))
+    for candidate in explicit_task_ids:
+        canonical_task = _find_operations_task_by_canonical_id(candidate, tasks=records)
+        if canonical_task:
+            canonical_id = str(canonical_task.get("id", "")).strip()
+            return {
+                "kind": "operation",
+                "canonical_task_id": canonical_id,
+                "href": _route_href("admin_operations_detail", task_id=canonical_id),
+                "is_clickable": True,
+                "reason": "canonical_task",
+            }
+
+    source_id = str(
+        source.get("source_id", "")
+        or metadata.get("reservation_id", "")
+        or source.get("reservation_id", "")
+        or source.get("request_id", "")
+    ).strip()
+    source_type = str(source.get("source_type", "")).strip().upper()
+    if source_id and source_type:
+        linked_tasks = [
+            task for task in records
+            if str(task.get("source_type", "")).strip().upper() == source_type
+            and str(task.get("source_id", "")).strip() == source_id
+        ]
+        if len(linked_tasks) == 1:
+            canonical_id = str(linked_tasks[0].get("id", "")).strip()
+            return {
+                "kind": "operation",
+                "canonical_task_id": canonical_id,
+                "href": _route_href("admin_operations_detail", task_id=canonical_id),
+                "is_clickable": True,
+                "reason": "unique_source_link",
+            }
+        if len(linked_tasks) > 1:
+            resolution_reason = "ambiguous_source_link"
+        else:
+            resolution_reason = "missing_source_link"
+    else:
+        resolution_reason = "missing_task_link"
+
+    reservation_id = str(
+        source.get("reservation_id", "")
+        or metadata.get("reservation_id", "")
+        or (source_id if source_type == "RESERVATION" or kind == "reservation" else "")
+        or (source.get("id", "") if kind == "reservation" else "")
+    ).strip()
+    if reservation_id and _find_reservation(reservation_id):
+        return {
+            "kind": "reservation",
+            "canonical_task_id": "",
+            "href": _route_href("admin_reservation_detail", reservation_id=reservation_id),
+            "is_clickable": True,
+            "reason": resolution_reason,
+        }
+
+    if kind == "calendar" and str(source.get("id", "")).strip():
+        return {
+            "kind": "calendar",
+            "canonical_task_id": "",
+            "href": _route_href("admin_calendar"),
+            "is_clickable": True,
+            "reason": resolution_reason,
+        }
+
+    if kind in {"request", "owner_request", "service_request"} and str(source.get("id", "")).strip():
+        return {
+            "kind": "request",
+            "canonical_task_id": "",
+            "href": _route_href("admin_service_request_detail", request_id=str(source.get("id", "")).strip()),
+            "is_clickable": True,
+            "reason": resolution_reason,
+        }
+
+    return {
+        "kind": "none",
+        "canonical_task_id": "",
+        "href": "",
+        "is_clickable": False,
+        "reason": resolution_reason,
+    }
+
+
+def _resolve_legacy_reservation_task_reference(identifier, *, tasks=None):
+    """Resolve only the historical reservation-id:suffix reference format."""
+    target = str(identifier or "").strip()
+    if ":" not in target:
+        return None
+    reservation_id, suffix = target.rsplit(":", 1)
+    expected_category = {
+        "arrival-cleaning": "Arrival Cleaning",
+        "checkin-preparation": "Check-in Preparation",
+        "welcome-pack": "Welcome Pack",
+        "guest-inspection": "Guest Inspection",
+        "midstay-cleaning": "Mid-stay Cleaning",
+        "checkout-inspection": "Checkout Inspection",
+        "departure-cleaning": "Departure Cleaning",
+        "maintenance-review": "Maintenance Review",
+    }.get(suffix)
+    if not reservation_id or not expected_category:
+        return None
+    records = tasks if tasks is not None else _load_operations_tasks()
+    candidates = [
+        task for task in records
+        if str(task.get("source_type", "")).strip().upper() == "RESERVATION"
+        and str(task.get("source_id", "")).strip() == reservation_id
+        and str(task.get("category", "")).strip() == expected_category
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def _operations_not_found_copy(language):
+    bundles = {
+        "bg": {
+            "title": "Операцията не е намерена",
+            "message": "Операцията не е намерена или вече не е достъпна.",
+            "back": "Назад към операциите",
+            "calendar": "Отвори календара",
+        },
+        "en": {
+            "title": "Operation not found",
+            "message": "The operation was not found or is no longer available.",
+            "back": "Back to operations",
+            "calendar": "Open calendar",
+        },
+        "fr": {
+            "title": "Opération introuvable",
+            "message": "L’opération est introuvable ou n’est plus disponible.",
+            "back": "Retour aux opérations",
+            "calendar": "Ouvrir le calendrier",
+        },
+    }
+    return bundles.get(str(language or "").strip().lower(), bundles["en"])
 
 
 def _load_operations_task_events(task_id=None):
@@ -12549,6 +12753,11 @@ def _calendar_enrich_event(event, property_map=None, owner_map=None, task_map=No
     if not professional and task_record:
         professional = str(task_record.get("assigned_to", "")).strip()
 
+    navigation = _operations_navigation(
+        {**event, "metadata": metadata},
+        source_kind="calendar",
+        tasks=list(task_map.values()),
+    )
     enriched = {
         **event,
         "metadata": metadata,
@@ -12566,6 +12775,9 @@ def _calendar_enrich_event(event, property_map=None, owner_map=None, task_map=No
         "week_label": _calendar_event_week_label(event),
         "search_text": _calendar_event_search_text({**event, "metadata": metadata}),
         "is_overdue": overdue,
+        "operation_navigation": navigation,
+        "operation_href": navigation["href"] if navigation["kind"] == "operation" else "",
+        "canonical_operation_task_id": navigation["canonical_task_id"],
     }
     return enriched
 
@@ -12581,6 +12793,8 @@ def _calendar_filter_events(events, filters):
     priority_filter = str(filters.get("priority", "")).strip().upper()
     status_filter = _normalize_calendar_event_status(filters.get("status", "")) if str(filters.get("status", "")).strip() else ""
     city_filter = str(filters.get("city", "")).strip()
+    date_from = _parse_iso_datetime(str(filters.get("date_from", "")).strip())
+    date_to = _parse_iso_datetime(str(filters.get("date_to", "")).strip())
 
     filtered = []
     for event in events:
@@ -12612,6 +12826,11 @@ def _calendar_filter_events(events, filters):
         if status_filter and _normalize_calendar_event_status(event.get("status", "")) != status_filter:
             continue
         if city_filter and _admin_property_query_value(event.get("city", "")) != _admin_property_query_value(city_filter):
+            continue
+        event_start, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+        if date_from and event_start and event_start.date() < date_from.date():
+            continue
+        if date_to and event_start and event_start.date() > date_to.date():
             continue
         filtered.append(event)
     return filtered
@@ -12723,6 +12942,114 @@ def _calendar_property_sections(events):
     }
 
 
+def _calendar_operations_center_context(events):
+    """Prepare compact, deterministic admin-calendar operational signals."""
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    open_statuses = {
+        "NEW", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED",
+        "IN_PROGRESS", "PAUSED", "WAITING_OWNER", "WAITING_OPERATIONS",
+    }
+    tasks = _load_operations_tasks()
+    open_tasks = [
+        task for task in tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) in open_statuses
+    ]
+    overdue_tasks = [task for task in open_tasks if _admin_operations_task_is_overdue(task)]
+    unassigned_tasks = [task for task in open_tasks if not _operations_task_is_assigned(task)]
+    waiting_owner = [
+        task for task in open_tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OWNER"
+    ]
+    waiting_operations = [
+        task for task in open_tasks
+        if _normalize_operations_task_status(task.get("status", "NEW")) == "WAITING_OPERATIONS"
+    ]
+    missing_property = [task for task in open_tasks if not str(task.get("property_id", "")).strip()]
+
+    reservations = _load_reservations()
+
+    def _on_date(value, target):
+        parsed = _parse_iso_datetime(str(value or "").strip())
+        if parsed is None:
+            return False
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc).date() == target
+
+    arrivals_today = sum(1 for item in reservations if _on_date(item.get("arrival_datetime"), today))
+    departures_today = sum(1 for item in reservations if _on_date(item.get("departure_datetime"), today))
+
+    active_events = []
+    for event in events:
+        if _normalize_calendar_event_status(event.get("status", "SCHEDULED")) in {"COMPLETED", "CANCELLED"}:
+            continue
+        start_dt = _parse_iso_datetime(event.get("start_datetime", ""))
+        end_dt = _parse_iso_datetime(event.get("end_datetime", ""))
+        professional = str(event.get("professional", "") or event.get("assigned_professional", "")).strip().casefold()
+        if start_dt and end_dt and professional:
+            active_events.append((professional, start_dt, end_dt))
+    active_events.sort(key=lambda item: (item[0], item[1], item[2]))
+    conflict_count = 0
+    for index, (professional, start_dt, end_dt) in enumerate(active_events):
+        for other_professional, other_start, other_end in active_events[index + 1:]:
+            if other_professional != professional:
+                break
+            if other_start >= end_dt:
+                break
+            if start_dt < other_end and end_dt > other_start:
+                conflict_count += 1
+
+    due_tasks = [task for task in open_tasks if _parse_iso_datetime(str(task.get("due_date", "")).strip())]
+    sla_tracked_ids = {
+        str(task.get("id", "") or task.get("request_id", "")).strip()
+        for task in [*due_tasks, *overdue_tasks]
+    }
+    sla_health = int(round(((len(sla_tracked_ids) - len(overdue_tasks)) / len(sla_tracked_ids)) * 100)) if sla_tracked_ids else 100
+    sla_health = max(0, min(100, sla_health))
+
+    professionals = [
+        account for account in _load_professional_accounts()
+        if _normalize_professional_account_status(account.get("status", "PENDING")) in {"APPROVED", "ACTIVE"}
+    ]
+
+    kpis = [
+        {"key": "calendarKpiActiveOperations", "value": len(open_tasks), "tone": "info", "href": "/admin/operations"},
+        {"key": "calendarKpiArrivalsToday", "value": arrivals_today, "tone": "info", "href": "/admin/calendar?category=Check-in"},
+        {"key": "calendarKpiDeparturesToday", "value": departures_today, "tone": "info", "href": "/admin/calendar?category=Check-out"},
+        {"key": "calendarKpiUnassigned", "value": len(unassigned_tasks), "tone": "warning" if unassigned_tasks else "healthy", "href": "/admin/operations?status=NEW"},
+        {"key": "calendarKpiOverdue", "value": len(overdue_tasks), "tone": "critical" if overdue_tasks else "healthy", "href": "/admin/operations"},
+        {"key": "calendarKpiWaitingOwner", "value": len(waiting_owner), "tone": "warning" if waiting_owner else "healthy", "href": "/admin/operations?status=WAITING_OWNER"},
+        {"key": "calendarKpiWaitingProfessional", "value": len(waiting_operations), "tone": "warning" if waiting_operations else "healthy", "href": "/admin/operations?status=WAITING_OPERATIONS"},
+        {"key": "calendarKpiSlaHealth", "value": f"{sla_health}%", "tone": "healthy" if sla_health >= 85 else "warning" if sla_health >= 60 else "critical", "href": "/admin/operations"},
+        {"key": "calendarKpiConflicts", "value": conflict_count, "tone": "critical" if conflict_count else "healthy", "href": ""},
+        {"key": "calendarKpiActiveProfessionals", "value": len(professionals), "tone": "info", "href": "/admin/professionals"},
+    ]
+
+    attention_candidates = [
+        (0, "calendarAttentionMissingProperty", len(missing_property), "/admin/operations", "critical"),
+        (1, "calendarAttentionOverdue", len(overdue_tasks), "/admin/operations", "critical"),
+        (2, "calendarAttentionConflicts", conflict_count, "/admin/calendar?view=week", "critical"),
+        (3, "calendarAttentionUnassigned", len(unassigned_tasks), "/admin/operations?status=NEW", "warning"),
+        (4, "calendarAttentionWaitingOwner", len(waiting_owner), "/admin/operations?status=WAITING_OWNER", "warning"),
+        (5, "calendarAttentionWaitingProfessional", len(waiting_operations), "/admin/operations?status=WAITING_OPERATIONS", "warning"),
+    ]
+    attention = [
+        {"key": key, "count": count, "href": href, "tone": tone}
+        for _, key, count, href, tone in attention_candidates if count
+    ][:5]
+    return {
+        "kpis": kpis,
+        "attention": attention,
+        "healthy": not attention,
+        "active_filter_count": sum(1 for value in (
+            request.args.get("property"), request.args.get("owner"), request.args.get("professional"),
+            request.args.get("category"), request.args.get("priority"), request.args.get("status"),
+            request.args.get("city"), request.args.get("q"), request.args.get("date_from"), request.args.get("date_to"),
+        ) if str(value or "").strip()),
+    }
+
+
 def _build_calendar_page_context(scope, owner_account=None):
     owner_account = owner_account or {}
     calendar_view = str(request.args.get("view", "")).strip().lower()
@@ -12739,6 +13066,8 @@ def _build_calendar_page_context(scope, owner_account=None):
         "status": str(request.args.get("status", "")).strip(),
         "city": str(request.args.get("city", "")).strip(),
         "search": str(request.args.get("q", "")).strip(),
+        "date_from": str(request.args.get("date_from", "")).strip(),
+        "date_to": str(request.args.get("date_to", "")).strip(),
     }
 
     owner_properties = []
@@ -12778,7 +13107,8 @@ def _build_calendar_page_context(scope, owner_account=None):
             {
                 "id": str(property_record.get("id", "")).strip(),
                 "display_name": str(property_record.get("name", "")).strip() or str(property_record.get("id", "")).strip(),
-                "owner_id": str(property_record.get("owner_id", "")).strip(),
+                "owner_id": str((owner_map.get(str(property_record.get("owner_id", "")).strip()) or {}).get("id", "")).strip(),
+                "owner_display_name": str((owner_map.get(str(property_record.get("owner_id", "")).strip()) or {}).get("full_name", "")).strip(),
             }
             for property_record in property_map.values()
             if str(property_record.get("id", "")).strip()
@@ -12791,6 +13121,7 @@ def _build_calendar_page_context(scope, owner_account=None):
     city_options = sorted({event.get("city", "") for event in enriched_events if event.get("city", "")})
     status_options = sorted({event.get("status", "") for event in enriched_events if event.get("status", "")})
 
+    operations_center = _calendar_operations_center_context(enriched_events) if scope == "admin" else {}
     return {
         "calendar_scope": scope,
         "calendar_view": calendar_view,
@@ -12815,6 +13146,7 @@ def _build_calendar_page_context(scope, owner_account=None):
         "calendar_scope_description": "Only your properties" if scope == "owner" else "All properties",
         "calendar_external_integration_points": CALENDAR_EXTERNAL_INTEGRATION_POINTS,
         "owner_calendar_snapshot": owner_calendar_snapshot,
+        "calendar_operations_center": operations_center,
     }
 
 
@@ -15688,7 +16020,7 @@ def _delete_operations_task_attachment(task, attachment):
 
 @app.get("/operations/tasks/<task_id>/attachments/<attachment_id>")
 def operations_task_attachment_file(task_id, attachment_id):
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     attachment = _find_operations_task_attachment(task_record, attachment_id)
     if not task_record or not attachment or not _operations_attachment_viewer_role(task_record):
         return Response("Evidence not found.", status=404, mimetype="text/plain")
@@ -15710,9 +16042,9 @@ def operations_task_attachment_file(task_id, attachment_id):
 @professional_required
 def professional_task_evidence(task_id, filename):
     professional_account = _current_professional_account()
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     if not task_record or not _professional_task_matches_account(task_record, professional_account):
-        return Response("Task not found.", status=404, mimetype="text/plain")
+        return Response(status=404)
 
     safe_filename = secure_filename(filename)
     canonical_task_id = str(task_record.get("id", "")).strip()
@@ -15743,9 +16075,9 @@ def professional_task_evidence(task_id, filename):
 @professional_required
 def professional_task_attachment_delete(task_id, attachment_id):
     professional_account = _current_professional_account()
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     if not task_record or not _professional_task_matches_account(task_record, professional_account):
-        return Response("Task not found.", status=404, mimetype="text/plain")
+        return Response(status=404)
     if _normalize_operations_task_status(task_record.get("status", "NEW")) in {"COMPLETED", "ARCHIVED"}:
         return _professional_task_redirect(task_id, error="action_invalid")
     attachment = _find_operations_task_attachment(task_record, attachment_id)
@@ -15765,9 +16097,9 @@ def professional_task_attachment_delete(task_id, attachment_id):
 @professional_required
 def professionals_task_detail(task_id):
     professional_account = _current_professional_account()
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     if not task_record or not _professional_task_matches_account(task_record, professional_account):
-        return Response("Task not found.", status=404, mimetype="text/plain")
+        return Response(status=404)
 
     if request.method == "POST":
         idempotency_key = str(request.headers.get("X-Idempotency-Key", "") or "").strip()
@@ -16111,6 +16443,9 @@ def professionals_task_detail(task_id):
         "professionals_task_detail.html",
         task={
             **refreshed_task,
+            # Every professional mutation/link must carry the canonical task
+            # ID, even for legacy records whose request_id is a source ID.
+            "request_id": str(refreshed_task.get("id", "")).strip(),
             "status_label": _operations_task_status_label(refreshed_task.get("status", "NEW")),
             "status_tone": _operations_task_status_tone(refreshed_task.get("status", "NEW")),
             "priority_label": _operations_task_priority_label(refreshed_task.get("priority", "NORMAL")),
@@ -16685,6 +17020,13 @@ def _admin_operations_board_context():
             "overdue": _admin_operations_task_is_overdue(task_record),
         })
 
+    for task in tasks:
+        task["operation_navigation"] = _operations_navigation(
+            task,
+            source_kind="operation",
+            tasks=tasks,
+        )
+
     search_query = str(request.args.get("q", "")).strip()
     property_filter = str(request.args.get("property", "")).strip()
     owner_filter = str(request.args.get("owner", "")).strip()
@@ -17013,6 +17355,16 @@ def _admin_notifications_context():
     current_operator_key = _current_admin_operator_key()
     preferences = _load_operations_notification_preferences(current_operator_key, create_default=True)
     notifications = _load_operations_notifications(limit=100)
+    tasks = _load_operations_tasks()
+    for notification in notifications:
+        notification["operation_navigation"] = _operations_navigation(
+            {
+                **notification,
+                "operation_task_id": notification.get("task_id", ""),
+            },
+            source_kind="notification",
+            tasks=tasks,
+        )
     return {
         "current_operator_key": current_operator_key,
         "preferences": preferences,
@@ -18031,11 +18383,9 @@ def _admin_calendar_resolve_relations(payload):
     properties = _load_owner_properties()
     owners = _load_owner_accounts()
     property_value = str((payload or {}).get("property_id", "") or (payload or {}).get("property", "")).strip()
-    owner_value = str((payload or {}).get("owner_id", "") or (payload or {}).get("owner", "")).strip()
     property_record = next((item for item in properties if property_value in {str(item.get("id", "")).strip(), str(item.get("name", "")).strip()}), None)
-    owner_account = next((item for item in owners if owner_value in {str(item.get("id", "")).strip(), str(item.get("full_name", "")).strip(), str(item.get("email", "")).strip()}), None)
-    if property_record and owner_account is None:
-        owner_account = next((item for item in owners if str(item.get("id", "")).strip() == str(property_record.get("owner_id", "")).strip()), None)
+    canonical_owner_id = str((property_record or {}).get("owner_id", "")).strip()
+    owner_account = next((item for item in owners if str(item.get("id", "")).strip() == canonical_owner_id), None)
     return property_record, owner_account
 
 
@@ -18182,7 +18532,7 @@ def _admin_calendar_backing_task(event):
     if not task_id:
         return None
 
-    task = _find_operations_task(task_id)
+    task = _find_operations_task_by_canonical_id(task_id)
     if task is None:
         return None
 
@@ -21780,6 +22130,11 @@ def _build_admin_dashboard():
         category = _normalize_calendar_event_type(event.get("event_type", ""))
         if category not in {"Cleaning", "Check-in", "Check-out", "Inspection", "Maintenance", "Arrival", "Departure"}:
             continue
+        navigation = event.get("operation_navigation") or _operations_navigation(
+            event,
+            source_kind="calendar",
+            tasks=operations_tasks,
+        )
         operations_events.append({
             "time": start_dt,
             "time_label": start_dt.astimezone(timezone.utc).strftime("%H:%M"),
@@ -21790,10 +22145,18 @@ def _build_admin_dashboard():
             "tone": event.get("color", "") or "neutral",
             "property": event.get("property_label", ""),
             "owner": event.get("owner_label", ""),
+            "href": navigation.get("href", ""),
+            "is_clickable": bool(navigation.get("is_clickable")),
+            "navigation_kind": navigation.get("kind", "none"),
         })
     for reservation in reservations:
         arrival_dt, departure_dt = _reservation_date_bounds(reservation)
         if arrival_dt and arrival_dt.date() == today:
+            reservation_navigation = _operations_navigation(
+                reservation,
+                source_kind="reservation",
+                tasks=operations_tasks,
+            )
             operations_events.append({
                 "time": arrival_dt,
                 "time_label": arrival_dt.astimezone(timezone.utc).strftime("%H:%M"),
@@ -21804,8 +22167,16 @@ def _build_admin_dashboard():
                 "tone": "arrival",
                 "property": reservation.get("property_name", ""),
                 "owner": reservation.get("owner_name", ""),
+                "href": reservation_navigation.get("href", ""),
+                "is_clickable": bool(reservation_navigation.get("is_clickable")),
+                "navigation_kind": reservation_navigation.get("kind", "none"),
             })
         if departure_dt and departure_dt.date() == today:
+            reservation_navigation = _operations_navigation(
+                reservation,
+                source_kind="reservation",
+                tasks=operations_tasks,
+            )
             operations_events.append({
                 "time": departure_dt,
                 "time_label": departure_dt.astimezone(timezone.utc).strftime("%H:%M"),
@@ -21816,6 +22187,9 @@ def _build_admin_dashboard():
                 "tone": "departure",
                 "property": reservation.get("property_name", ""),
                 "owner": reservation.get("owner_name", ""),
+                "href": reservation_navigation.get("href", ""),
+                "is_clickable": bool(reservation_navigation.get("is_clickable")),
+                "navigation_kind": reservation_navigation.get("kind", "none"),
             })
 
     operations_events.sort(key=lambda item: (item["time"], item["category"], item["property"], item["title"]))
@@ -23488,6 +23862,10 @@ def admin_service_request_detail(request_id):
         display_record["assigned_provider_id"] = str(display_record.get("assigned_provider_id", "")).strip() or str(backing_task.get("assigned_professional_id", "")).strip()
         display_record["assigned_provider_name"] = str(display_record.get("assigned_provider_name", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
         display_record["assigned_provider_company"] = str(display_record.get("assigned_provider_company", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
+    display_record["operation_navigation"] = _operations_navigation(
+        backing_task or display_record,
+        source_kind="operation" if backing_task else "service_request",
+    )
     display_record["is_assigned"] = _record_is_assigned(display_record, backing_task)
     matching_providers = _service_request_matching_providers(record.get("service_category"))
     return render_template(
@@ -24018,9 +24396,28 @@ def admin_notifications():
 @app.route("/admin/operations/<task_id>", methods=["GET", "POST"])
 @admin_required
 def admin_operations_detail(task_id):
-    task_record = _find_operations_task(task_id)
+    tasks = _load_operations_tasks()
+    task_record = _find_operations_task_by_canonical_id(task_id, tasks=tasks)
     if not task_record:
-        return Response("Task not found.", status=404, mimetype="text/plain")
+        legacy_task = (
+            _resolve_legacy_reservation_task_reference(task_id, tasks=tasks)
+            if request.method == "GET"
+            else None
+        )
+        if legacy_task:
+            return redirect(
+                url_for(
+                    "admin_operations_detail",
+                    task_id=str(legacy_task.get("id", "")).strip(),
+                    lang=_resolve_current_language(),
+                ),
+                code=302,
+            )
+        return render_template(
+            "admin_operations_not_found.html",
+            copy=_operations_not_found_copy(_resolve_current_language()),
+            show_calendar=":" in str(task_id or ""),
+        ), 404
 
     if request.method == "POST":
         task_action = str(request.form.get("task_action", "details")).strip().lower()
@@ -24157,7 +24554,7 @@ def admin_operations_detail(task_id):
 def admin_operations_attachment_delete(task_id, attachment_id):
     if not _validate_admin_csrf():
         return _admin_csrf_error_response()
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     attachment = _find_operations_task_attachment(task_record, attachment_id)
     if not task_record or not attachment:
         return Response("Evidence not found.", status=404, mimetype="text/plain")
@@ -24174,7 +24571,7 @@ def admin_operations_status(task_id):
     if not status_value:
         return jsonify({"ok": False, "error": "missing_status"}), 400
 
-    task_record = _find_operations_task(task_id)
+    task_record = _find_operations_task_by_canonical_id(task_id)
     if not task_record:
         return jsonify({"ok": False, "error": "not_found"}), 404
     target_status = _normalize_operations_task_status(status_value)

@@ -3096,6 +3096,13 @@
     {% else %}
       {% set dash = {'kicker': 'Operations dashboard', 'title': 'Dashboard', 'subtitle': 'Overview of operations as of today', 'operator': 'Operator console', 'calendar': 'Open calendar', 'late': 'Overdue operations', 'attention': 'Require attention', 'unassigned': 'Unassigned', 'assign': 'Ready to assign', 'requests': 'Waiting requests', 'owners': 'From owners', 'conflicts': 'Calendar conflicts', 'review': 'Needs review', 'sla': 'SLA health', 'current': 'Current status', 'today': 'Today', 'today_ops': "Today's operations", 'all_ops': 'View all', 'time': 'Time', 'operation': 'Operation', 'property': 'Property', 'status': 'Status', 'no_ops': 'No operations scheduled for today.', 'priority': 'Priority', 'tasks': 'Tasks', 'open_tasks': 'View all tasks', 'no_tasks': 'No active tasks require action.', 'team': 'Team', 'workload': 'Team workload', 'professionals': 'View all', 'active_tasks': 'active tasks', 'capacity': 'capacity available', 'unassigned_name': 'Unassigned', 'no_workload': 'No workload data available.', 'schedule': 'Schedule', 'calendar_title': 'Calendar', 'full_calendar': 'View full calendar', 'tomorrow': 'Tomorrow', 'week': 'This week', 'no_events': 'No upcoming events.'} %}
     {% endif %}
+    {% if admin_lang == 'bg' %}
+      {% set human_operation_titles = {'Guest Inspection': 'Инспекция преди пристигане', 'Arrival Cleaning': 'Почистване преди настаняване', 'Check-in Preparation': 'Подготовка за настаняване', 'Welcome Pack': 'Подготовка на пакет за посрещане', 'Pool Safety Check': 'Проверка на басейна', 'Pool safety and equipment check': 'Проверка на басейна и безопасността', 'Check-in': 'Настаняване', 'Check-out': 'Освобождаване', 'Cleaning': 'Почистване', 'Inspection': 'Инспекция'} %}
+    {% elif admin_lang == 'fr' %}
+      {% set human_operation_titles = {'Guest Inspection': "Inspection avant l’arrivée", 'Arrival Cleaning': "Nettoyage avant l’arrivée", 'Check-in Preparation': "Préparation de l’arrivée", 'Welcome Pack': "Préparation du kit d’accueil", 'Pool Safety Check': 'Contrôle de la piscine', 'Pool safety and equipment check': 'Contrôle de la piscine et de la sécurité', 'Check-in': 'Arrivée', 'Check-out': 'Départ', 'Cleaning': 'Nettoyage', 'Inspection': 'Inspection'} %}
+    {% else %}
+      {% set human_operation_titles = {'Guest Inspection': 'Pre-arrival inspection', 'Arrival Cleaning': 'Pre-arrival cleaning', 'Check-in Preparation': 'Check-in preparation', 'Welcome Pack': 'Welcome pack preparation', 'Pool Safety Check': 'Pool safety check', 'Pool safety and equipment check': 'Pool and safety equipment check', 'Check-in': 'Guest arrival', 'Check-out': 'Guest departure', 'Cleaning': 'Cleaning', 'Inspection': 'Inspection'} %}
+    {% endif %}
     {% set actionable_alert_categories = ['overdue_operations', 'unassigned_operations', 'calendar_conflicts', 'overlapping_reservations', 'reservations_missing_assigned_cleaning', 'owner_requests_waiting'] %}
     {% set critical_alert_count = namespace(value=0) %}
     {% set snapshot_counts = namespace(unassigned=0, owner_waiting=0, calendar_conflicts=0) %}
@@ -3171,7 +3178,7 @@
           {% for group in today_operations_groups %}
             {% for item in group['items'] %}
               {% if today_rows.count < 6 %}
-                <a href="/admin/operations" role="row"><time>{{ item.time_label or '—' }}</time><strong>{{ value_labels.get(item.category, item.category) if item.category else '—' }}</strong><span>{{ item.property or '—' }}</span><em data-tone="{{ item.tone }}">{{ value_labels.get(item.status, item.status) if item.status else '—' }}</em><b aria-hidden="true">⋮</b></a>
+                {% if item.is_clickable %}<a href="{{ item.href|e }}" role="row">{% else %}<div role="row" aria-disabled="true">{% endif %}<time>{{ item.time_label or '—' }}</time><strong>{{ human_operation_titles.get(item.title, human_operation_titles.get(item.category, value_labels.get(item.category, item.category))) if item.category else '—' }}</strong><span>{{ item.property or '—' }}</span><em data-tone="{{ item.tone }}">{{ value_labels.get(item.status, item.status) if item.status else '—' }}</em><b aria-hidden="true">⋮</b>{% if item.is_clickable %}</a>{% else %}</div>{% endif %}
                 {% set today_rows.count = today_rows.count + 1 %}
               {% endif %}
             {% endfor %}
@@ -3216,7 +3223,7 @@
         </div>
         <div class="bsc-dashboard-calendar-list">
           {% for event in calendar_widget.upcoming_events[:3] %}
-            <a href="/admin/calendar"><time>{{ event.start_display or event.start_datetime or '—' }}</time><span><strong>{{ event.title or event.event_type or '—' }}</strong><small>{{ event.property_name or event.metadata.property_name or '—' }}</small></span></a>
+            <a href="{{ event.operation_navigation.href if event.operation_navigation and event.operation_navigation.is_clickable else '/admin/calendar' }}"><time>{{ event.start_display or event.start_datetime or '—' }}</time><span><strong>{{ human_operation_titles.get(event.title, human_operation_titles.get(event.event_type, event.title or event.event_type or '—')) }}</strong><small>{{ event.property_name or event.metadata.property_name or '—' }}</small></span></a>
           {% else %}<p class="bsc-dashboard-empty">{{ dash.no_events }}</p>{% endfor %}
         </div>
       </article>
@@ -3996,7 +4003,7 @@
                     <div class="admin-property-meta">
                       <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
                       <div class="admin-sla-pill-row">
-                        <a class="button button--secondary" href="/admin/operations">{{ public_i18n('adminHome', 'openBoard', 'Open board') }}</a>
+                        {% if item.is_clickable %}<a class="button button--secondary" href="{{ item.href|e }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</a>{% endif %}
                         <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'calendar', 'Calendar') }}</a>
                       </div>
                     </div>

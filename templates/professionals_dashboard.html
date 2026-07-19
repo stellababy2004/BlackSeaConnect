@@ -314,7 +314,7 @@
         {% if next_task %}
           <h2 id="next-action-title">{{ next_task.title|e }}</h2>
           <p>{{ next_task.property_name|e or next_task.property_location|e }} · {{ next_task.due_date|e or labels.no_due_date }}</p>
-          <a class="button button--primary" href="{{ localized_url('/professionals/tasks/' ~ next_task.request_id|e) }}">{{ labels.open_task }} →</a>
+          <a class="button button--primary" href="{{ localized_url('/professionals/tasks/' ~ next_task.id|e) }}">{{ labels.open_task }} →</a>
         {% else %}
           <h2 id="next-action-title">{{ labels.no_assigned_tasks }}</h2>
         {% endif %}
@@ -345,7 +345,7 @@
         </div>
         <div class="professional-task-list">
           {% for task in assigned_tasks[:5] %}
-            <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
+            <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.id|e) }}">
               <div class="professional-task-card__meta">
                 <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
                 <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>

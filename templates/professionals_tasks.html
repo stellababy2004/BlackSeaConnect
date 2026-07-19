@@ -166,7 +166,7 @@
           {% set done_items = checklist|selectattr('checked')|list|length %}
           {% set progress = ((done_items * 100 / checklist|length)|round|int) if checklist else (100 if task.status|upper in ['COMPLETED', 'ARCHIVED'] else 0) %}
           {% set normalized_category = task.category|default('', true)|trim|replace('_', ' ')|title %}
-          <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-search="{{ (task.title ~ ' ' ~ task.property_name ~ ' ' ~ task.property_location ~ ' ' ~ task.owner_name ~ ' ' ~ task.owner_email ~ ' ' ~ normalized_category ~ ' ' ~ status_labels.get(task.status|upper, task.status))|lower|e }}">
+          <a class="professional-task-card" href="{{ localized_url('/professionals/tasks/' ~ task.id|e) }}" data-search="{{ (task.title ~ ' ' ~ task.property_name ~ ' ' ~ task.property_location ~ ' ' ~ task.owner_name ~ ' ' ~ task.owner_email ~ ' ' ~ normalized_category ~ ' ' ~ status_labels.get(task.status|upper, task.status))|lower|e }}">
             <div class="professional-task-card__header">
               <div>
                 <div class="professional-task-card__meta">

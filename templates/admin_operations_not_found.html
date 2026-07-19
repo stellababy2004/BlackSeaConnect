@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="{{ page_lang|e }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ copy.title|e }} · BlackSea Connect</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bsc-admin-workspace admin-operations-page">
+  <main class="admin-cockpit-shell">
+    <section class="bsc-page-header" aria-labelledby="operation-not-found-title">
+      <div>
+        <p class="eyebrow">BlackSea Connect · Operations</p>
+        <h1 id="operation-not-found-title">{{ copy.title|e }}</h1>
+        <p>{{ copy.message|e }}</p>
+      </div>
+    </section>
+    <section class="admin-operations-panel">
+      <div class="admin-empty-state" role="status">
+        <div class="admin-empty-illustration" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2>{{ copy.title|e }}</h2>
+        <p>{{ copy.message|e }}</p>
+        <div class="admin-actions-row">
+          <a class="button button--primary" href="{{ url_for('admin_operations', lang=page_lang) }}">{{ copy.back|e }}</a>
+          {% if show_calendar %}
+            <a class="button button--secondary" href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ copy.calendar|e }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

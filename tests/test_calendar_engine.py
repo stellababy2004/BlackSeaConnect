@@ -492,6 +492,260 @@ class CalendarEngineTests(unittest.TestCase):
             self.assertEqual(delete_response.get_json()["event_id"], event_id)
             self.assertFalse(any(event["id"] == event_id for event in app_module._load_calendar_events()))
 
+    def test_admin_calendar_uses_property_canonical_owner_on_create_and_update(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            self._seed_owner(owner_id="owner-a", email="a@example.com", full_name="Owner A", city="Varna")
+            self._seed_owner(owner_id="owner-b", email="b@example.com", full_name="Owner B", city="Burgas")
+            self._seed_property(property_id="property-a", owner_id="owner-a", name="Villa A", location="Varna")
+            self._seed_property(property_id="property-b", owner_id="owner-b", name="Villa B", location="Burgas")
+            self._seed_property(property_id="property-unowned", owner_id="", name="Villa Unowned", location="Nessebar")
+            self._seed_property(property_id="property-stale", owner_id="missing-owner", name="Villa Stale", location="Sozopol")
+            csrf_token = self._admin_csrf()
+            common = {
+                "csrf_token": csrf_token,
+                "event_type": "Cleaning",
+                "professional": "Selected Professional",
+                "priority": "HIGH",
+                "status": "SCHEDULED",
+                "start_datetime": "2026-07-12T10:00:00+00:00",
+                "end_datetime": "2026-07-12T12:00:00+00:00",
+            }
+
+            forged = self.client.post(
+                "/admin/api/calendar/events",
+                headers={**self._auth_headers(), "X-CSRF-Token": csrf_token},
+                json={**common, "property_id": "property-a", "owner_id": "owner-b", "owner": "Owner B"},
+            )
+            self.assertEqual(forged.status_code, 201)
+            forged_event = forged.get_json()["event"]
+            self.assertEqual(forged_event["owner_id"], "owner-a")
+            self.assertEqual(forged_event["owner_label"], "Owner A")
+            self.assertEqual(forged_event["professional"], "Selected Professional")
+
+            changed = self.client.patch(
+                f"/admin/api/calendar/events/{forged_event['id']}",
+                headers={**self._auth_headers(), "X-CSRF-Token": csrf_token},
+                json={**common, "property_id": "property-b", "owner_id": "owner-a"},
+            )
+            self.assertEqual(changed.status_code, 200)
+            self.assertEqual(changed.get_json()["event"]["owner_id"], "owner-b")
+            self.assertEqual(changed.get_json()["event"]["owner_label"], "Owner B")
+
+            for property_id in ("property-unowned", "property-stale"):
+                response = self.client.post(
+                    "/admin/api/calendar/events",
+                    headers={**self._auth_headers(), "X-CSRF-Token": csrf_token},
+                    json={**common, "property_id": property_id, "owner_id": "owner-a"},
+                )
+                self.assertEqual(response.status_code, 201)
+                self.assertEqual(response.get_json()["event"]["owner_id"], "")
+                self.assertEqual(response.get_json()["event"]["owner_label"], "")
+
+            legacy = self._seed_calendar_event(event_id="legacy-owner", property_id="property-a", owner_id="owner-b")
+            corrected = self.client.patch(
+                f"/admin/api/calendar/events/{legacy['id']}",
+                headers={**self._auth_headers(), "X-CSRF-Token": csrf_token},
+                json={**common, "property_id": "property-a", "owner_id": "owner-b"},
+            )
+            self.assertEqual(corrected.status_code, 200)
+            self.assertEqual(corrected.get_json()["event"]["owner_id"], "owner-a")
+
+            before_count = len(app_module._load_calendar_events())
+            invalid = self.client.post(
+                "/admin/api/calendar/events",
+                headers={**self._auth_headers(), "X-CSRF-Token": csrf_token},
+                json={**common, "property_id": "missing-property", "owner_id": "owner-a"},
+            )
+            self.assertEqual(invalid.status_code, 400)
+            self.assertEqual(invalid.get_json()["error"], "A valid property is required.")
+            self.assertEqual(len(app_module._load_calendar_events()), before_count)
+
+    def test_admin_calendar_owner_resolution_ui_and_localization(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            self._seed_owner(owner_id="owner-ui", email="ui@example.com", full_name="UI Owner", city="Varna")
+            self._seed_property(property_id="property-ui", owner_id="owner-ui", name="UI Villa", location="Varna")
+            self._seed_property(property_id="property-ui-unowned", owner_id="", name="UI Unowned", location="Burgas")
+            html = self.client.get("/admin/calendar", headers=self._auth_headers()).get_data(as_text=True)
+
+        self.assertIn('data-owner-id="owner-ui" data-owner-name="UI Owner"', html)
+        self.assertIn('data-admin-owner-display readonly', html)
+        self.assertIn('type="hidden" name="owner_id"', html)
+        self.assertIn('aria-describedby="adminCreateOwnerMessage"', html)
+        self.assertIn("syncOwnerFromProperty(changeEvent.target.form)", html)
+        self.assertIn("ownerIdInput.value = ownerId", html)
+        self.assertIn("ownerDisplay.value = propertyId", html)
+        self.assertNotIn('name="owner"><option', html)
+
+        i18n_source = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
+        for text in (
+            "Собственикът е определен автоматично от избрания имот.",
+            "The owner is determined automatically from the selected property.",
+            "Le propriétaire est déterminé automatiquement à partir du bien sélectionné.",
+            "Избраният имот няма свързан собственик.",
+            "Select a property first",
+            "Sélectionnez d’abord un bien",
+        ):
+            self.assertIn(text, i18n_source)
+
+    def test_admin_calendar_operations_center_layout_and_quick_create(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            self._seed_owner(owner_id="owner-v2", email="v2@example.com", full_name="V2 Owner", city="Varna")
+            self._seed_property(property_id="property-v2", owner_id="owner-v2", name="V2 Villa", location="Varna")
+            html = self.client.get("/admin/calendar", headers=self._auth_headers()).get_data(as_text=True)
+
+        self.assertIn("calendar-workspace--full-width", html)
+        self.assertIn("data-admin-kpi-strip", html)
+        self.assertIn("data-admin-attention-panel", html)
+        self.assertIn("admin-attention-panel__lead", html)
+        self.assertIn("admin-attention-panel__copy", html)
+        self.assertIn("admin-attention-list", html)
+        self.assertIn('id="adminCalendarFilters"', html)
+        self.assertIn("bsc-admin-sidebar", html)
+        self.assertNotIn('<span class="admin-ai-brief__icon">AI</span>', html)
+        self.assertNotIn("Operational item", html)
+        self.assertNotIn("Calendar metric", html)
+        self.assertNotIn(">Quick create<", html)
+        for label in ("Активни операции", "Пристигания днес", "Заминавания днес", "Невъзложени", "Просрочени"):
+            self.assertIn(label, html)
+        for view in ("month", "week", "day", "timeline", "property", "dispatch", "map", "executive"):
+            self.assertIn(f'data-admin-board="{view}"', html)
+        self.assertIn(".admin-ops-stage > [data-admin-board]", html)
+        self.assertIn("width: 100% !important", html)
+        self.assertIn("overflow-x: auto !important", html)
+        for category in ("Check-in", "Check-out", "Cleaning", "Inspection", "Repair", "Maintenance"):
+            self.assertIn(f'data-admin-quick-category="{category}"', html)
+        self.assertIn("setSelectValue(app.querySelector", html)
+        self.assertIn("button.dataset.adminQuickCategory", html)
+        i18n_source = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
+        for localized_text in (
+            "Бързо създаване", "Quick create", "Création rapide",
+            "Активни операции", "Active operations", "Opérations actives",
+            "Затвори детайлите", "Close details", "Fermer les détails",
+        ):
+            self.assertIn(localized_text, i18n_source)
+
+    def test_operations_board_and_week_grid_use_internal_width_contracts(self):
+        operations_template = (Path(self._cwd) / "templates" / "admin_operations.html").read_text(encoding="utf-8")
+        shared_css = (Path(self._cwd) / "static" / "css" / "styles.css").read_text(encoding="utf-8")
+        calendar_source = (Path(self._cwd) / "templates" / "calendar.html").read_text(encoding="utf-8")
+
+        scroll_start = operations_template.index('class="admin-operations-board-scroll"')
+        board_start = operations_template.index('class="admin-operations-board"', scroll_start)
+        scroll_end = operations_template.index("</div>", board_start)
+        self.assertLess(scroll_start, board_start)
+        self.assertGreater(scroll_end, board_start)
+        self.assertIn("overflow-x: auto !important;", shared_css)
+        self.assertIn("grid-auto-flow: column;", shared_css)
+        self.assertIn("grid-auto-columns: minmax(300px, 340px);", shared_css)
+        self.assertIn("width: max-content !important;", shared_css)
+        self.assertIn("min-width: 300px !important;", shared_css)
+        self.assertIn("html body.admin-operations-page {\n  overflow-x: hidden !important;", shared_css)
+        self.assertNotIn("grid-template-columns: repeat(5, minmax(0, 1fr)) !important;", shared_css)
+
+        self.assertIn("--admin-week-time-column: 58px;", calendar_source)
+        self.assertIn("grid-template-columns: var(--admin-week-time-column) repeat(7, minmax(0, 1fr)) !important;", calendar_source)
+        self.assertIn("contain: layout paint;", calendar_source)
+        self.assertIn("min-width: 0 !important;", calendar_source)
+        self.assertIn("const laneInset = (16 + laneGap * (laneCount - 1)) / laneCount;", calendar_source)
+        self.assertIn("card.style.width = `calc(${laneWidth.toFixed(4)}% - ${laneInset.toFixed(3)}px)`;", calendar_source)
+        self.assertNotIn("const weekGridColumns", calendar_source)
+        self.assertNotIn(".admin-ops-event { width: fit-content", calendar_source)
+        self.assertNotIn(".admin-ops-event { width: max-content", calendar_source)
+
+    def test_admin_calendar_detail_drawer_structure_localization_and_safe_states(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            html = self.client.get("/admin/calendar?lang=bg", headers=self._auth_headers()).get_data(as_text=True)
+
+        self.assertIn('class="admin-ops-detail" role="dialog" aria-modal="true"', html)
+        self.assertIn('aria-labelledby="calendarDetailTitle"', html)
+        self.assertIn('data-admin-detail-scroll tabindex="-1"', html)
+        self.assertIn('data-admin-detail-backdrop', html)
+        self.assertIn('class="admin-ops-detail__header"', html)
+        self.assertEqual(html.count('class="admin-ops-detail__header"'), 1)
+
+        header_start = html.index('<header class="admin-ops-detail__header">')
+        header_end = html.index("</header>", header_start)
+        header_html = html[header_start:header_end]
+        heading_end = header_html.index("</div>")
+        self.assertGreater(header_html.index("data-admin-detail-close"), heading_end)
+
+        ordered_sections = (
+            'data-admin-detail-section="summary"',
+            'data-admin-detail-section="assignment"',
+            'data-admin-detail-section="operational"',
+            'data-admin-detail-section="attachments"',
+            'data-admin-detail-section="notes"',
+            'data-admin-detail-section="actions"',
+            'data-admin-detail-section="timeline"',
+            'data-admin-detail-section="related"',
+        )
+        positions = [html.index(marker) for marker in ordered_sections]
+        self.assertEqual(positions, sorted(positions))
+
+        template_source = (Path(self._cwd) / "templates" / "calendar.html").read_text(encoding="utf-8")
+        self.assertNotIn('.admin-ops-detail__close {\n      position: sticky', template_source)
+        self.assertNotIn('document.createElement("section")', template_source)
+        self.assertIn('.admin-ops-detail__scroll {', template_source)
+        self.assertIn('overflow-y: auto;', template_source)
+        self.assertIn('detailPanel.inert = true', template_source)
+        self.assertIn('detailReturnFocus.focus({ preventScroll: true })', template_source)
+        self.assertIn('operationLink.hidden = !event.operationHref', template_source)
+        self.assertNotIn('`/admin/operations/${encodeURIComponent(event.operationTaskId)}`', template_source)
+        self.assertIn('propertyLink.hidden = !event.propertyId', template_source)
+        self.assertIn('event.ownerMissing ? adminLabel("calendarDetailNoOwner"', template_source)
+        self.assertIn('event.professionalMissing ? adminLabel("calendarDetailUnassigned"', template_source)
+        self.assertIn('app.querySelector("[data-admin-edit-event]").disabled = !persistence.canPersist', template_source)
+        self.assertIn('app.querySelector("[data-admin-delete-event]").disabled = !persistence.canPersist', template_source)
+
+        i18n_source = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
+        for localized_text in (
+            "Обобщение", "Summary", "Résumé",
+            "Прикачени файлове", "Attachments", "Pièces jointes",
+            "Няма собственик", "No owner", "Aucun propriétaire",
+            "Не е възложено", "Unassigned", "Non attribué",
+            "Няма прикачени файлове.", "No attachments.", "Aucune pièce jointe.",
+            "Свързани операции", "Related operations", "Opérations associées",
+        ):
+            self.assertIn(localized_text, i18n_source)
+
+    def test_admin_calendar_kpis_and_attention_use_canonical_tasks(self):
+        with patch.dict(os.environ, self.env, clear=True):
+            self._seed_owner(owner_id="owner-kpi", email="kpi@example.com", full_name="KPI Owner", city="Varna")
+            self._seed_property(property_id="property-kpi", owner_id="owner-kpi", name="KPI Villa", location="Varna")
+            with app.test_request_context("/admin/calendar"):
+                baseline_context = app_module._build_calendar_page_context("admin")["calendar_operations_center"]
+            overdue_due = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+            current_time = datetime.now(timezone.utc).isoformat()
+            self._create_task({
+                "id": "calendar-kpi-overdue", "request_id": "calendar-kpi-overdue", "source_type": "SERVICE_REQUEST",
+                "source_id": "calendar-kpi-overdue", "created_at": "2026-07-01T08:00:00+00:00",
+                "updated_at": "2026-07-01T08:00:00+00:00", "title": "Overdue cleaning", "category": "CLEANING",
+                "owner_name": "KPI Owner", "owner_email": "kpi@example.com", "property_id": "property-kpi",
+                "property_name": "KPI Villa", "assigned_to": "", "assigned_professional_id": "",
+                "priority": "HIGH", "status": "NEW", "due_date": overdue_due,
+            })
+            self._create_task({
+                "id": "calendar-kpi-owner", "request_id": "calendar-kpi-owner", "source_type": "SERVICE_REQUEST",
+                "source_id": "calendar-kpi-owner", "created_at": current_time,
+                "updated_at": current_time, "title": "Owner decision", "category": "MAINTENANCE",
+                "owner_name": "KPI Owner", "owner_email": "kpi@example.com", "property_id": "property-kpi",
+                "property_name": "KPI Villa", "assigned_to": "Team", "assigned_professional_id": "professional-kpi",
+                "priority": "NORMAL", "status": "WAITING_OWNER", "due_date": "",
+            })
+            with app.test_request_context("/admin/calendar"):
+                context = app_module._build_calendar_page_context("admin")["calendar_operations_center"]
+
+        metrics = {item["key"]: item["value"] for item in context["kpis"]}
+        baseline_metrics = {item["key"]: item["value"] for item in baseline_context["kpis"]}
+        attention = {item["key"]: item for item in context["attention"]}
+        self.assertEqual(metrics["calendarKpiActiveOperations"] - baseline_metrics["calendarKpiActiveOperations"], 2)
+        self.assertEqual(metrics["calendarKpiUnassigned"] - baseline_metrics["calendarKpiUnassigned"], 1)
+        self.assertEqual(metrics["calendarKpiOverdue"] - baseline_metrics["calendarKpiOverdue"], 1)
+        self.assertEqual(metrics["calendarKpiWaitingOwner"] - baseline_metrics["calendarKpiWaitingOwner"], 1)
+        self.assertEqual(attention["calendarAttentionOverdue"]["tone"], "critical")
+        self.assertEqual(attention["calendarAttentionUnassigned"]["tone"], "warning")
+        self.assertFalse(context["healthy"])
+
     def test_filters_and_timeline_view(self):
         with patch.dict(os.environ, self.env, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             self._seed_owner(owner_id="owner-1", email="owner-one@example.com", full_name="Elena Petrova", city="Varna")
@@ -848,7 +1102,7 @@ class CalendarEngineTests(unittest.TestCase):
             self.assertIn('data-assignment-submit disabled', html)
             self.assertIn("grid-template-columns: 150px minmax(0, 1fr);", html)
             self.assertIn(".admin-ops-toast :is(strong,span,p) { color:#fff !important; -webkit-text-fill-color:#fff !important; }", html)
-            self.assertIn('const weekGridColumns = "56px repeat(7, minmax(106px, 1fr))";', html)
+            self.assertIn("grid-template-columns: var(--admin-week-time-column) repeat(7, minmax(0, 1fr)) !important;", html)
 
     def test_persistent_time_correction_and_data_quality_rules(self):
         with patch.dict(os.environ, self.env, clear=True):

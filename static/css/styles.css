@@ -38391,14 +38391,14 @@ html body.admin-cockpit-page .admin-pilot-list .admin-pilot-card .admin-pilot-st
   background: #ffedef !important;
 }
 
-/* Operations board: contain the kanban width inside the admin workspace. */
+/* Operations board: usable fixed-width lanes inside one local horizontal scroller. */
 html body.admin-operations-page {
   overflow-x: hidden !important;
 }
 
 html body.admin-operations-page .admin-operations-shell,
 html body.admin-operations-page .admin-operations-workspace,
-html body.admin-operations-page .admin-operations-board {
+html body.admin-operations-page .admin-operations-board-scroll {
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box;
@@ -38408,36 +38408,57 @@ html body.admin-operations-page .admin-operations-workspace {
   grid-template-columns: minmax(0, 1fr) minmax(250px, 280px) !important;
 }
 
-html body.admin-operations-page .admin-operations-board {
+html body.admin-operations-page .admin-operations-board-scroll {
   width: 100% !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 8px !important;
   overflow-x: auto !important;
+  overflow-y: visible;
   overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
 }
 
-html body.admin-operations-page .admin-operations-column,
+html body.admin-operations-page .admin-operations-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(300px, 340px);
+  grid-template-columns: none !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  gap: 12px !important;
+  overflow: visible !important;
+  box-sizing: border-box;
+  padding: 0 0 10px !important;
+}
+
+html body.admin-operations-page .admin-operations-column {
+  width: 100%;
+  min-width: 300px !important;
+  max-width: 340px;
+}
+
 html body.admin-operations-page .admin-operations-card,
-html body.admin-operations-page .admin-operations-card__meta {
+html body.admin-operations-page .admin-operations-card__meta,
+html body.admin-operations-page .admin-operations-card__title {
   min-width: 0 !important;
 }
 
 html body.admin-operations-page .admin-operations-column__header {
-  padding: 10px !important;
+  padding: 10px 12px !important;
 }
 
 html body.admin-operations-page .admin-operations-column__header h2 {
   min-width: 0;
-  font-size: .68rem !important;
-  overflow-wrap: anywhere;
+  font-size: .76rem !important;
+  overflow-wrap: normal;
 }
 
 html body.admin-operations-page .admin-operations-column__body {
-  padding: 7px !important;
+  padding: 9px !important;
 }
 
 html body.admin-operations-page .admin-operations-card {
-  padding: 10px !important;
+  padding: 12px !important;
 }
 
 html body.admin-operations-page .admin-operations-card__title,
@@ -38447,28 +38468,24 @@ html body.admin-operations-page .admin-operations-card__signals span {
   word-break: normal;
 }
 
+html body.admin-operations-page .admin-operations-card__quick {
+  min-height: 44px;
+}
+
 @media (max-width: 1500px) {
   html body.admin-operations-page .admin-operations-workspace {
     grid-template-columns: 1fr !important;
-  }
-
-  html body.admin-operations-page .admin-operations-board {
-    grid-template-columns: repeat(5, minmax(200px, 1fr)) !important;
-  }
-
-  html body.admin-operations-page .admin-operations-column {
-    min-width: 200px !important;
   }
 }
 
 @media (max-width: 760px) {
   html body.admin-operations-page .admin-operations-board {
-    grid-template-columns: 1fr !important;
-    overflow-x: visible !important;
+    grid-auto-columns: minmax(280px, calc(100vw - 40px));
   }
 
   html body.admin-operations-page .admin-operations-column {
-    min-width: 0 !important;
+    min-width: 280px !important;
+    max-width: calc(100vw - 40px);
   }
 }
 /* Keep the operation summary in document flow so it cannot cover the hero. */

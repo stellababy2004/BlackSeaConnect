@@ -1843,6 +1843,126 @@
     color: #065f46;
     font-weight: 800;
   }
+
+  .admin-work-order-objective {
+    display: grid;
+    gap: 10px;
+    padding: 26px 30px;
+    border: 1px solid rgba(45, 122, 96, .22);
+    border-left: 6px solid #2d7a60;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #f4fbf7 0%, #ffffff 100%);
+    box-shadow: 0 14px 34px rgba(31, 88, 69, .08);
+  }
+  .admin-work-order-brief {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .admin-work-order-brief__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid rgba(28, 82, 67, .14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .72);
+    color: #435850;
+    font-size: .9rem;
+  }
+  .admin-work-order-brief__item strong {
+    color: #173f33;
+  }
+  .admin-work-order-brief__item--urgent {
+    border-color: rgba(185, 28, 28, .22);
+    background: #fff5f5;
+    color: #991b1b;
+  }
+  .admin-work-order-technical-name {
+    display: block;
+    margin-top: 8px;
+    color: #718078;
+    font-size: .78rem;
+  }
+  .admin-work-order-objective .eyebrow,
+  .admin-work-order-section-heading .eyebrow {
+    margin: 0;
+    color: #23644f;
+  }
+  .admin-work-order-objective h2 {
+    margin: 0;
+    color: #173f33;
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+  }
+  .admin-work-order-objective p:last-child {
+    margin: 0;
+    max-width: 76ch;
+    color: #344b43;
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+  .admin-work-order-checklist {
+    border: 2px solid rgba(45, 122, 96, .18);
+    background: #fff;
+  }
+  .admin-work-order-checklist .admin-operations-checklist {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  }
+  .admin-work-order-context {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .admin-work-order-context__card {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid rgba(28, 82, 67, .12);
+    border-radius: 16px;
+    background: #fff;
+  }
+  .admin-work-order-context__card span {
+    color: #6d7c76;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .admin-work-order-context__card strong {
+    color: #203c33;
+    font-size: 1.02rem;
+    overflow-wrap: anywhere;
+  }
+  .admin-work-order-context__card small {
+    color: #687770;
+    line-height: 1.5;
+  }
+  .admin-work-order-section-heading {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 -4px;
+  }
+  .admin-work-order-section-heading h2 {
+    margin: 0;
+    color: #203c33;
+    font-size: 1.3rem;
+  }
+  .admin-work-order-operational-info {
+    display: grid;
+    gap: 14px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(28, 82, 67, .14);
+  }
+  body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  @media (max-width: 820px) {
+    .admin-work-order-context { grid-template-columns: 1fr; }
+    .admin-work-order-objective { padding: 22px; }
+  }
 </style>
 </head>
 <body class="admin-operations-detail-page bsc-admin-workspace{% if request.args.get('embed') %} admin-operations-detail-page--embedded{% endif %}">
@@ -2004,8 +2124,75 @@
   {% set task_operational_ref = 'OP-' ~ (task_ref_seed[:8] if task_ref_seed else 'НОВА') %}
   {% set task_category_label = category_labels.get(task.category|upper, 'Оперативна задача') %}
   {% set task_property_label = property_record.name if property_record else (task.property_name or task.property_location or 'Без имот') %}
-  {% set task_operational_title = task_category_label ~ ' - ' ~ task_property_label %}
   {% set customer_message = task.notes or task.title or 'Няма клиентско описание.' %}
+  {% set task_title_catalogs = {
+    'bg': {
+      'Guest Inspection': 'Проверка на имота преди пристигане на гостите',
+      'Pool safety and equipment check': 'Проверка на басейна и оборудването за безопасност',
+      'Arrival Cleaning': 'Почистване на имота преди пристигане',
+      'Check-in Preparation': 'Подготовка на имота за настаняване',
+      'Welcome Pack': 'Подготовка на пакет за посрещане',
+      'Guest turnover and arrival preparation': 'Подготовка на имота за следващите гости',
+      'Pre-arrival property inspection': 'Финална проверка на имота преди пристигане',
+      'Diagnose terrace air-conditioning fault': 'Диагностика на климатика на терасата',
+      'Guest welcome and key handover': 'Посрещане на гостите и предаване на ключовете'
+    },
+    'en': {
+      'Guest Inspection': 'Check the property before the guests arrive',
+      'Pool safety and equipment check': 'Check the pool and safety equipment',
+      'Arrival Cleaning': 'Clean the property before guest arrival',
+      'Check-in Preparation': 'Prepare the property for check-in',
+      'Welcome Pack': 'Prepare the guest welcome pack'
+    },
+    'fr': {
+      'Guest Inspection': "Vérifier le logement avant l’arrivée des voyageurs",
+      'Pool safety and equipment check': 'Vérifier la piscine et les équipements de sécurité',
+      'Arrival Cleaning': "Nettoyer le logement avant l’arrivée des voyageurs",
+      'Check-in Preparation': "Préparer le logement pour l’arrivée",
+      'Welcome Pack': "Préparer le kit d’accueil"
+    },
+    'ru': {
+      'Guest Inspection': 'Проверить объект перед приездом гостей',
+      'Pool safety and equipment check': 'Проверить бассейн и оборудование безопасности',
+      'Arrival Cleaning': 'Убрать объект перед приездом гостей',
+      'Check-in Preparation': 'Подготовить объект к заселению',
+      'Welcome Pack': 'Подготовить приветственный набор'
+    }
+  } %}
+  {% set task_title_catalog = task_title_catalogs.get(page_lang, task_title_catalogs['bg']) %}
+  {% set task_display_title = task_title_catalog.get(task.title, task.title or task_category_label) %}
+  {% set task_objective_catalogs = {
+    'bg': {
+      'Guest Inspection': 'Проверете достъпа, удобствата, безопасността и готовността на имота, преди гостите да пристигнат.',
+      'Pool safety and equipment check': 'Проверете зоната около басейна, водата, филтрацията и наличното оборудване за безопасност.',
+      'Arrival Cleaning': 'Почистете и подредете имота така, че да бъде напълно готов за пристигането на гостите.',
+      'Check-in Preparation': 'Подгответе достъпа, основните удобства и информацията, необходима за безпроблемно настаняване.',
+      'Welcome Pack': 'Комплектовайте и поставете пакета за посрещане на определеното място преди пристигането.'
+    },
+    'en': {
+      'Guest Inspection': 'Verify access, amenities, safety, and overall readiness before the guests arrive.',
+      'Pool safety and equipment check': 'Inspect the pool area, water, filtration, and all required safety equipment.',
+      'Arrival Cleaning': 'Clean and arrange the property so it is fully ready for the arriving guests.',
+      'Check-in Preparation': 'Prepare access, essential amenities, and the information required for a smooth check-in.',
+      'Welcome Pack': 'Assemble and place the welcome pack in the agreed location before arrival.'
+    },
+    'fr': {
+      'Guest Inspection': "Vérifiez l’accès, les équipements, la sécurité et l’état général avant l’arrivée des voyageurs.",
+      'Pool safety and equipment check': 'Vérifiez la piscine, l’eau, la filtration et tous les équipements de sécurité.',
+      'Arrival Cleaning': "Nettoyez et préparez le logement afin qu’il soit prêt pour l’arrivée des voyageurs.",
+      'Check-in Preparation': "Préparez l’accès, les équipements essentiels et les informations nécessaires à une arrivée fluide.",
+      'Welcome Pack': "Préparez et placez le kit d’accueil à l’endroit convenu avant l’arrivée."
+    },
+    'ru': {
+      'Guest Inspection': 'Проверьте доступ, удобства, безопасность и общую готовность объекта до приезда гостей.',
+      'Pool safety and equipment check': 'Проверьте зону бассейна, воду, фильтрацию и оборудование безопасности.',
+      'Arrival Cleaning': 'Уберите и подготовьте объект к приезду гостей.',
+      'Check-in Preparation': 'Подготовьте доступ, основные удобства и информацию для беспроблемного заселения.',
+      'Welcome Pack': 'Соберите и разместите приветственный набор в согласованном месте до приезда гостей.'
+    }
+  } %}
+  {% set task_objective_catalog = task_objective_catalogs.get(page_lang, task_objective_catalogs['bg']) %}
+  {% set task_objective = task_objective_catalog.get(task.title, customer_message) %}
   {% set task_is_closed = task.status in ['COMPLETED', 'ARCHIVED'] %}
   {% set task_sla_completed_at = task.completed_at or task.updated_at %}
   {% set task_sla_has_due = task.due_date and task.due_date|string|trim %}
@@ -2044,52 +2231,95 @@
   {% set severity_tone = 'neutral' if not task_sla_has_due else ('red' if task_open_overdue or task_sla_late or task.priority == 'URGENT' else ('yellow' if task.priority == 'HIGH' or task.status in ['WAITING_OWNER', 'WAITING_OPERATIONS', 'PAUSED'] or not task.is_assigned else 'green')) %}
   {% set severity_label = 'Критично' if severity_tone == 'red' else ('За внимание' if severity_tone == 'yellow' else ('Неутрално' if severity_tone == 'neutral' else 'Стабилно')) %}
   <main class="admin-operations-detail-shell">
-    <section class="admin-operations-sticky-bar" aria-label="Бързи действия за задачата">
-      <div class="admin-operations-sticky-bar__grid">
-        <div class="admin-operations-sticky-bar__meta">
-          <span>Текущ статус</span>
-          <strong>{{ task_status_label|e }}</strong>
-        </div>
-        <div class="admin-operations-sticky-bar__meta">
-          <span>Приоритет</span>
-          <strong>{{ task_priority_label|e }}</strong>
-        </div>
-        <div class="admin-operations-sticky-bar__meta">
-          <span>Възложена на</span>
-          <strong>{{ task_assignee_label|e }}</strong>
-        </div>
-        <div class="admin-operations-sticky-bar__meta">
-          <span>Краен срок</span>
-          <strong>{{ bg_datetime(task.due_date) }}</strong>
-        </div>
-        <div class="admin-operations-sticky-bar__actions">
-          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Запази</button>
-          <a class="button button--secondary" href="/admin/operations">Към операциите</a>
-          <a class="button button--ghost" href="/admin/calendar">Отвори календар</a>
-          <button class="button button--ghost" type="button" disabled title="Очаква бекенд свързване">Уведоми собственик</button>
-          <button class="button button--ghost" type="button" disabled title="Очаква бекенд свързване">Уведоми професионалист</button>
+    <section class="admin-operations-detail-hero bsc-page-header">
+      <div>
+        <p class="eyebrow">Работна задача</p>
+        <h1>{{ task_display_title|e }}</h1>
+        {% if task.title and task_display_title != task.title %}<small class="admin-work-order-technical-name">Системно име: {{ task.title|e }}</small>{% endif %}
+        <div class="admin-work-order-brief" aria-label="Най-важното за задачата">
+          <span class="admin-work-order-brief__item"><strong>Къде:</strong> {{ task_property_label|e }}</span>
+          <span class="admin-work-order-brief__item{% if task_open_overdue or task.priority == 'URGENT' %} admin-work-order-brief__item--urgent{% endif %}"><strong>До:</strong> {{ bg_datetime(task.due_date) if task_sla_has_due else 'Няма зададен срок' }}</span>
+          <span class="admin-work-order-brief__item{% if severity_tone == 'red' %} admin-work-order-brief__item--urgent{% endif %}"><strong>Спешност:</strong> {{ task_priority_label|e }}</span>
         </div>
       </div>
     </section>
 
-    <section class="admin-operations-detail-hero bsc-page-header">
-      <div>
-        <div class="admin-operations-detail-meta">
-          <span class="admin-operations-chip">Админ</span>
-          <span class="admin-operations-chip">Операции</span>
-          <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}"><span class="admin-operations-chip__icon">С</span>{{ severity_label }}</span>
-          <span class="admin-operations-chip admin-operations-chip--status"><span class="admin-operations-chip__icon">✓</span>{{ task_status_label|e }}</span>
+    <section class="admin-work-order-objective" aria-labelledby="task-objective-title">
+      <p class="eyebrow">Какво трябва да се направи</p>
+      <h2 id="task-objective-title">Цел на задачата</h2>
+      <p>{{ task_objective|e }}</p>
+    </section>
+
+    <article class="admin-operations-detail-panel admin-work-order-checklist" id="operations-checklist">
+      <p class="eyebrow">Основна работа</p>
+      <h2 class="admin-operations-section-title">Чеклист / Стъпки за изпълнение</h2>
+      <div class="admin-operations-progress">
+        <strong>{{ checklist_completed_count }} от {{ checklist_total_count }} стъпки са изпълнени · {{ checklist_percentage }}%</strong>
+        <div class="admin-operations-progress__bar" aria-label="Завършеност на чеклиста">
+          <span style="width: {{ checklist_percentage }}%;"></span>
         </div>
-        <h1>{{ task_operational_title|e }}</h1>
-        <p class="admin-operations-detail-copy">{{ task_operational_ref|e }} · {{ task_category_label|e }} · {{ task_owner_label|e }}</p>
       </div>
-      <div class="admin-operations-detail-actions">
-        <a class="button button--secondary" href="/admin/operations">Към борда</a>
-        {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
-          <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Отвори заявката</a>
-        {% endif %}
+      <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
+        <input type="hidden" name="task_action" value="checklist">
+        <div class="admin-operations-checklist">
+          {% for item in checklist_items %}
+            <div class="admin-operations-checklist__item">
+              <label>
+                <input type="checkbox" name="checklist_{{ item.key|e }}" {% if item.checked %}checked{% endif %}>
+                <span>{{ checklist_labels.get(item.key, item.label)|e }}</span>
+              </label>
+              {% if item.checked %}
+                <span class="admin-operations-severity-chip admin-operations-severity-chip--green">Готово</span>
+              {% else %}
+                <span class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Предстои</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <button class="button button--primary" type="submit">Запази напредъка</button>
+      </form>
+    </article>
+
+    <section class="admin-work-order-context" aria-label="Имот, гост и професионалист">
+      <article class="admin-work-order-context__card">
+        <span>Имот</span>
+        <strong>{{ task_property_label|e }}</strong>
+        <small>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Локацията не е зададена{% endif %}</small>
+      </article>
+      <article class="admin-work-order-context__card">
+        <span>Гост</span>
+        <strong>{% if linked_reservation %}{{ linked_reservation.guest_name|e or 'Не е зададен' }}{% else %}Няма свързан гост{% endif %}</strong>
+        <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} – {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}Задачата не е свързана с резервация{% endif %}</small>
+      </article>
+      <article class="admin-work-order-context__card">
+        <span>Професионалист</span>
+        <strong>{{ task_assignee_label|e }}</strong>
+        <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or 'Свързан професионален профил' }}{% else %}Необходимо е възлагане{% endif %}</small>
+      </article>
+    </section>
+
+    <section class="admin-operations-sticky-bar" aria-label="Действия за задачата">
+      <div class="admin-operations-sticky-bar__grid">
+        <div class="admin-operations-sticky-bar__meta">
+          <span>Следващо действие</span>
+          <strong>{% if task_is_closed %}Прегледайте доказателствата{% elif task.is_assigned %}Обновете напредъка{% else %}Възложете професионалист{% endif %}</strong>
+        </div>
+        <div class="admin-operations-sticky-bar__actions">
+          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Запази промените</button>
+          <a class="button button--secondary" href="#operations-checklist">Към чеклиста</a>
+          <a class="button button--ghost" href="/admin/calendar">Отвори календар</a>
+          {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
+            <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Отвори заявката</a>
+          {% endif %}
+        </div>
       </div>
     </section>
+
+    <section class="admin-work-order-operational-info" aria-labelledby="operational-information-title">
+      <div class="admin-work-order-section-heading">
+        <p class="eyebrow">Вторична информация</p>
+        <h2 id="operational-information-title">Оперативна информация</h2>
+      </div>
 
     <section class="admin-operations-health-grid" aria-label="Здраве на задачата">
       <article class="admin-operations-health-card admin-operations-health-card--primary">
@@ -2192,6 +2422,7 @@
         <div class="admin-operations-workflow__step {% if task.status in ['COMPLETED', 'ARCHIVED'] %}is-active{% endif %}">Завършване</div>
       </div>
       <p class="sr-only">Собственик -> Операции -> Професионалист -> Завършване</p>
+    </section>
     </section>
 
     {% set assignment_recommendation = namespace(professional=none, available_count=0) %}
@@ -2404,36 +2635,6 @@
           </form>
         </article>
 
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Чеклист</p>
-          <h2 class="admin-operations-section-title">Напредък по чеклиста</h2>
-          <div class="admin-operations-progress">
-            <strong>Чеклист: {{ checklist_completed_count }} / {{ checklist_total_count }} изпълнени - {{ checklist_percentage }}%</strong>
-            <div class="admin-operations-progress__bar" aria-label="Завършеност на чеклиста">
-              <span style="width: {{ checklist_percentage }}%;"></span>
-            </div>
-          </div>
-          <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
-            <input type="hidden" name="task_action" value="checklist">
-            <div class="admin-operations-checklist">
-              {% for item in checklist_items %}
-                <div class="admin-operations-checklist__item">
-                  <label>
-                    <input type="checkbox" name="checklist_{{ item.key|e }}" {% if item.checked %}checked{% endif %}>
-                    <span>{{ checklist_labels.get(item.key, item.label)|e }}</span>
-                  </label>
-                  {% if item.checked %}
-                    <span class="admin-operations-severity-chip admin-operations-severity-chip--green">Готово</span>
-                  {% else %}
-                    <span class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Предстои</span>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-            <button class="button button--primary" type="submit">Запази чеклиста</button>
-          </form>
-        </article>
-
         <article class="admin-operations-detail-panel admin-evidence" id="evidence" data-evidence-section>
           <p class="eyebrow">{{ evidence_copy.eyebrow }}</p>
           <div class="admin-evidence__heading">
@@ -2445,7 +2646,7 @@
           </div>
           {% if evidence_notice %}<p class="admin-evidence__message admin-evidence__message--success" role="status">{{ evidence_notice }}</p>{% endif %}
           {% if evidence_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ evidence_error }}</p>{% endif %}
-          <form class="admin-operations-form admin-evidence__form" method="post" action="{{ localized_url('/admin/operations/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
+          <form class="admin-operations-form admin-evidence__form" method="post" action="{{ localized_url('/admin/operations/' ~ task.id|e) }}" enctype="multipart/form-data" data-evidence-form>
             <input type="hidden" name="task_action" value="attachment">
             <label>
               <span>{{ evidence_copy.category }}</span>
@@ -2494,7 +2695,7 @@
                       <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ evidence_copy.preview }}</a>
                       <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ evidence_copy.download }}</a>
                       {% if attachment.id %}
-                        <form method="post" action="{{ localized_url('/admin/operations/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ evidence_copy.delete }}?');">
+                        <form method="post" action="{{ localized_url('/admin/operations/' ~ task.id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ evidence_copy.delete }}?');">
                           <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                           <button class="button button--ghost admin-evidence-card__delete" type="submit">{{ evidence_copy.delete }}</button>
                         </form>
