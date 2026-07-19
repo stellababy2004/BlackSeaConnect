@@ -29,7 +29,7 @@ try:
     import stripe
 except ImportError:  # Production diagnostics handle a missing optional dependency safely.
     stripe = None
-from flask import Flask, Response, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
+from flask import Flask, Response, after_this_request, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
 from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
@@ -6492,7 +6492,7 @@ def _load_operations_task_events(task_id=None):
     return events
 
 
-def _append_operations_task_event(task_id, event_type, title, detail="", status=None):
+def _append_operations_task_event(task_id, event_type, title, detail="", status=None, *, event_id=""):
     target_task_id = str(task_id or "").strip()
     if not target_task_id:
         return None
@@ -6503,7 +6503,7 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
         return None
 
     event = {
-        "id": uuid4().hex,
+        "id": str(event_id or "").strip() or uuid4().hex,
         "task_id": target_task_id,
         "created_at": _utc_now_iso(),
         "event_type": normalized_event_type,
@@ -6537,6 +6537,48 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
         app.logger.warning("Operations task event append failed for %s: %s", target_task_id, type(exc).__name__)
         return None
     return event
+
+
+def _reserve_professional_pwa_mutation(task_id, receipt_id, idempotency_key, status):
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            conn.execute(
+                """
+                INSERT INTO operations_task_events (id, task_id, created_at, event_type, title, detail, status, organization_id)
+                VALUES (?, ?, ?, 'pwa_mutation_processing', 'Offline mutation processing', ?, ?, ?)
+                """,
+                (
+                    receipt_id,
+                    task_id,
+                    _utc_now_iso(),
+                    idempotency_key,
+                    _normalize_operations_task_status(status),
+                    str((_find_operations_task(task_id) or {}).get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
+                ),
+            )
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+
+def _finish_professional_pwa_mutation(receipt_id, *, succeeded, status="NEW"):
+    try:
+        with _owner_db_connection() as conn:
+            if succeeded:
+                conn.execute(
+                    """
+                    UPDATE operations_task_events
+                    SET event_type = 'pwa_mutation_receipt', title = 'Offline mutation synchronized', status = ?
+                    WHERE id = ?
+                    """,
+                    (_normalize_operations_task_status(status), receipt_id),
+                )
+            else:
+                conn.execute("DELETE FROM operations_task_events WHERE id = ? AND event_type = 'pwa_mutation_processing'", (receipt_id,))
+        return True
+    except sqlite3.Error:
+        return False
 
 
 def _operations_notification_from_row(row):
@@ -15408,11 +15450,13 @@ def _professional_task_redirect(task_id, *, notice="", error="", data=None):
         params["error"] = error
     target_url = url_for("professionals_task_detail", **params)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        current_task = _find_operations_task(task_id) or {}
         return jsonify({
             "ok": not bool(error),
             "notice": notice,
             "error": error,
             "redirect": target_url,
+            "server_version": str(current_task.get("updated_at", "")),
             **(data if isinstance(data, dict) else {}),
         }), (400 if error else 200)
     return redirect(target_url)
@@ -15726,6 +15770,59 @@ def professionals_task_detail(task_id):
         return Response("Task not found.", status=404, mimetype="text/plain")
 
     if request.method == "POST":
+        idempotency_key = str(request.headers.get("X-Idempotency-Key", "") or "").strip()
+        base_version = str(request.headers.get("X-Task-Version", "") or "").strip()
+        conflict_resolution = str(request.headers.get("X-Conflict-Resolution", "") or "").strip().lower()
+        receipt_id = ""
+        if idempotency_key:
+            if not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", idempotency_key):
+                return _professional_task_redirect(task_id, error="idempotency_key_invalid")
+            receipt_seed = f"{professional_account.get('id', '')}:{idempotency_key}".encode("utf-8")
+            receipt_id = f"pwa-{hashlib.sha256(receipt_seed).hexdigest()}"
+            receipt_event = next((event for event in _load_operations_task_events(task_record.get("id", task_id)) if event.get("id") == receipt_id), None)
+            if receipt_event and receipt_event.get("event_type") == "pwa_mutation_receipt":
+                return _professional_task_redirect(
+                    task_id,
+                    notice="already_synchronized",
+                    data={"duplicate": True, "idempotency_key": idempotency_key},
+                )
+            if receipt_event:
+                return jsonify({"ok": False, "error": "mutation_in_progress", "retryable": True}), 409
+
+        current_version = str(task_record.get("updated_at", "") or "").strip()
+        if base_version and current_version and base_version != current_version and conflict_resolution != "keep-local":
+            return jsonify({
+                "ok": False,
+                "conflict": True,
+                "error": "task_version_conflict",
+                "task_id": str(task_record.get("request_id", task_id)),
+                "server_version": current_version,
+                "server_state": {
+                    "status": _normalize_operations_task_status(task_record.get("status", "NEW")),
+                    "checklist": task_record.get("checklist_items", []),
+                    "completion_report": task_record.get("completion_report", {}),
+                },
+            }), 409
+
+        if receipt_id:
+            if not _reserve_professional_pwa_mutation(
+                task_record.get("id", task_id),
+                receipt_id,
+                idempotency_key,
+                task_record.get("status", "NEW"),
+            ):
+                return jsonify({"ok": False, "error": "mutation_in_progress", "retryable": True}), 409
+
+            @after_this_request
+            def record_offline_mutation_receipt(response):
+                refreshed_task = _find_operations_task(task_id) or task_record
+                _finish_professional_pwa_mutation(
+                    receipt_id,
+                    succeeded=200 <= response.status_code < 400,
+                    status=refreshed_task.get("status", "NEW"),
+                )
+                return response
+
         action = str(request.form.get("task_action", "")).strip().lower()
         note_text = str(request.form.get("note", "")).strip()
         current_status = _normalize_operations_task_status(task_record.get("status", "NEW"))
