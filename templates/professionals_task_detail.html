@@ -451,6 +451,44 @@
     </section>
 
     {% set current_status = task.status|upper %}
+    <script type="application/json" id="pwa-task-config">{{ {
+      "taskId": task.request_id,
+      "version": task.updated_at,
+      "task": {
+        "id": task.request_id,
+        "title": task.title,
+        "status": current_status,
+        "category": task.category,
+        "dueDate": task.due_date,
+        "instructions": task.notes
+      },
+      "checklist": task.checklist_items or [],
+      "attachments": task.attachments or [],
+      "ownerContact": {"name": task.owner_name, "email": owner_email, "phone": owner_phone},
+      "propertyInformation": property_snapshot,
+      "completionReport": task.completion_report or {},
+      "labels": {
+        "accept": labels.accept_task,
+        "on_the_way": labels.on_my_way,
+        "arrived": labels.arrived,
+        "start": labels.start_work,
+        "pause": labels.pause,
+        "resume": labels.resume,
+        "complete": labels.complete_work,
+        "completedWork": labels.completed_work,
+        "materialsUsed": labels.materials_used,
+        "timeSpent": labels.time_spent,
+        "recommendations": labels.recommendations,
+        "followUpNeeded": labels.follow_up_needed,
+        "completionNotes": labels.completion_notes,
+        "queued": public_i18n('professionals', 'offlineQueued', 'Saved offline. Sync pending.'),
+        "pending": public_i18n('professionals', 'offlinePending', 'Pending'),
+        "conflict": public_i18n('professionals', 'offlineConflict', 'This task changed on the server.'),
+        "keepLocal": public_i18n('professionals', 'offlineKeepLocal', 'Keep local'),
+        "keepServer": public_i18n('professionals', 'offlineKeepServer', 'Keep server'),
+        "retry": public_i18n('professionals', 'offlineRetry', 'Retry')
+      }
+    }|tojson }}</script>
     <nav class="professional-workbar" aria-label="{{ labels.status_controls }}">
       <span class="professional-live">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
       <div class="professional-status-controls">
@@ -545,7 +583,7 @@
           <h2>{{ labels.report_and_closeout }}</h2>
           {% if current_status == 'IN_PROGRESS' %}
             <p><small>{{ labels.completion_requirements }}</small></p>
-            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
+            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-pwa-completion-form>
               <input type="hidden" name="task_action" value="complete">
               <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" required placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
               <label><span>{{ labels.materials_used }}</span><textarea name="materials_used" placeholder="{{ public_i18n('professionals', 'detailMaterialsUsedPlaceholder', 'List materials, parts, or supplies used.') }}"></textarea></label>
@@ -558,7 +596,7 @@
           {% elif current_status in ['COMPLETED', 'ARCHIVED'] %}
             <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
           {% else %}
-            <p>{{ labels.completion_state_required }}</p>
+            <p data-pwa-completion-blocked>{{ labels.completion_state_required }}</p>
           {% endif %}
         </article>
 

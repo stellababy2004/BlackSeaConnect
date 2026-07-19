@@ -2,7 +2,16 @@
   "use strict";
   if (!("serviceWorker" in navigator)) return;
 
-  const labels = {online: "Online", offline: "You are offline.", reconnecting: "Reconnecting…", "back-online": "Back online"};
+  const labels = {
+    online: "Online",
+    offline: "You are offline.",
+    reconnecting: "Reconnecting…",
+    "back-online": "Back online",
+    "sync-pending": "Sync pending",
+    synchronizing: "Synchronizing",
+    synchronized: "Synchronized",
+    "sync-failed": "Sync failed",
+  };
   let backOnlineTimer;
   const status = document.createElement("div");
   status.className = "pwa-status";
@@ -17,23 +26,15 @@
   update.setAttribute("aria-live", "polite");
   update.innerHTML = "<span>New version available</span><button type=\"button\">Refresh</button>";
 
-  const setNetworkState = (state) => {
+  const setNetworkState = (state, detail = {}) => {
     clearTimeout(backOnlineTimer);
     status.dataset.state = state;
-    status.textContent = labels[state];
+    status.textContent = state === "synchronizing" && detail.total
+      ? `${labels[state]} ${detail.completed || 0}/${detail.total}`
+      : state === "sync-pending" && detail.pending
+        ? `${labels[state]} (${detail.pending})`
+        : labels[state] || labels.online;
     document.documentElement.classList.toggle("pwa-offline", state === "offline");
-    document.querySelectorAll("form").forEach((form) => {
-      if ((form.method || "get").toLowerCase() === "get") return;
-      form.querySelectorAll("button, input, select, textarea").forEach((control) => {
-        if (state === "offline") {
-          control.dataset.pwaWasDisabled = control.disabled ? "1" : "0";
-          control.disabled = true;
-        } else if (control.dataset.pwaWasDisabled !== undefined) {
-          control.disabled = control.dataset.pwaWasDisabled === "1";
-          delete control.dataset.pwaWasDisabled;
-        }
-      });
-    });
   };
 
   const showUpdate = (worker) => {
@@ -60,6 +61,7 @@
 
   document.addEventListener("submit", (event) => {
     if (navigator.onLine) return;
+    if (event.target.matches("form[action*='/professionals/tasks/']")) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     setNetworkState("offline");
@@ -71,6 +73,7 @@
     if (logoutLink && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({type: "CLEAR_PRIVATE_CACHES"});
     }
+    if (logoutLink) globalThis.BlackSeaOfflineStore?.clearAll().catch(() => {});
   }, true);
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -79,6 +82,7 @@
   });
   window.addEventListener("offline", () => setNetworkState("offline"));
   window.addEventListener("online", checkConnection);
+  window.addEventListener("bsc:offline-sync-state", (event) => setNetworkState(event.detail.state, event.detail));
   navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload());
 
   navigator.serviceWorker.register("/service-worker.js", {scope: "/"}).then((registration) => {
@@ -94,4 +98,6 @@
       });
     });
   }).catch(() => {});
+
+  globalThis.BlackSeaPWA = {setState: setNetworkState, checkConnection};
 })();

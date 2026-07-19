@@ -27,6 +27,10 @@
 .pwa-status[data-state="offline"]::before { background: #b33a3a; }
 .pwa-status[data-state="reconnecting"]::before { background: #96772e; animation: pwa-pulse 1s ease-in-out infinite; }
 .pwa-status[data-state="back-online"]::before { background: #318064; box-shadow: 0 0 0 4px rgba(49, 128, 100, .16); }
+.pwa-status[data-state="sync-pending"]::before { background: #96772e; }
+.pwa-status[data-state="synchronizing"]::before { background: #2563eb; animation: pwa-pulse 1s ease-in-out infinite; }
+.pwa-status[data-state="synchronized"]::before { background: #318064; }
+.pwa-status[data-state="sync-failed"]::before { background: #b33a3a; }
 
 .pwa-update {
   position: fixed;
@@ -50,7 +54,11 @@
 
 .pwa-update[hidden] { display: none; }
 .pwa-update button { min-height: 44px; padding: 8px 14px; border: 0; border-radius: 12px; background: #0f2345; color: #fff; font: inherit; cursor: pointer; }
-.pwa-offline form button[type="submit"], .pwa-offline form input[type="submit"] { cursor: not-allowed; opacity: .52; }
+.pwa-pending-badge { position: sticky; top: max(8px, var(--pwa-safe-top)); z-index: 8; width: max-content; box-shadow: 0 8px 20px rgba(15, 35, 69, .12); }
+.pwa-queued-uploads { display: grid; gap: 8px; }
+.pwa-conflict-card { display: grid; gap: 12px; }
+.pwa-conflict-card .professional-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pwa-conflict-card .button { min-height: 44px; }
 
 @keyframes pwa-pulse { 50% { opacity: .4; } }
 
