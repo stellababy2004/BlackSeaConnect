@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="{{ page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' }}">
 <head>
   <meta charset="UTF-8">
@@ -3064,6 +3064,7 @@
       }
     }
   </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard-v3.css') }}?v=3">
 </head>
 <body class="admin-cockpit-page admin-exec-page bsc-admin-workspace">
   {% include '_admin_sidebar.html' %}
@@ -3090,11 +3091,11 @@
     {% endif %}
     {% set semantic_tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'neutral': 'ЗДРАВО', 'info': 'ЗДРАВО'} %}
     {% if admin_lang == 'bg' %}
-      {% set dash = {'kicker': 'Оперативно табло', 'title': 'Табло', 'subtitle': 'Преглед на операциите към днешна дата', 'operator': 'Операторска конзола', 'calendar': 'Отвори календара', 'late': 'Просрочени операции', 'attention': 'Изискват внимание', 'unassigned': 'Невъзложени', 'assign': 'За възлагане', 'requests': 'Чакащи заявки', 'owners': 'От собственици', 'conflicts': 'Календарни конфликти', 'review': 'За преглед', 'sla': 'SLA здраве', 'current': 'Текущо състояние', 'today': 'Днес', 'today_ops': 'Операции за днес', 'all_ops': 'Виж всички', 'time': 'Час', 'operation': 'Операция', 'property': 'Имот', 'status': 'Статус', 'no_ops': 'Няма планирани операции за днес.', 'priority': 'Приоритет', 'tasks': 'Задачи', 'open_tasks': 'Виж всички задачи', 'no_tasks': 'Няма активни задачи за действие.', 'team': 'Екип', 'workload': 'Натовареност на екипа', 'professionals': 'Виж всички', 'active_tasks': 'активни задачи', 'capacity': 'свободен капацитет', 'unassigned_name': 'Невъзложени', 'no_workload': 'Няма налични данни за натоварване.', 'schedule': 'График', 'calendar_title': 'Календар', 'full_calendar': 'Виж пълен календар', 'tomorrow': 'Утре', 'week': 'Тази седмица', 'no_events': 'Няма предстоящи събития.'} %}
+      {% set dash = {'kicker': 'Оперативно табло', 'title': 'Табло', 'subtitle': 'Преглед на операциите към днешна дата', 'operator': 'Операторска конзола', 'calendar': 'Отвори календара', 'late': 'Просрочени', 'attention': 'Изискват внимание', 'unassigned': 'Невъзложени', 'assign': 'За възлагане', 'requests': 'Заявки', 'owners': 'От собственици', 'conflicts': 'Конфликти', 'review': 'За преглед', 'sla': 'SLA', 'current': 'Текущо състояние', 'today': 'Днес', 'today_ops': 'Операции за днес', 'all_ops': 'Виж всички', 'time': 'Час', 'operation': 'Операция', 'property': 'Имот', 'status': 'Статус', 'no_ops': 'Няма планирани операции за днес.', 'priority': 'Приоритет', 'tasks': 'Задачи', 'open_tasks': 'Виж всички задачи', 'no_tasks': 'Няма активни задачи за действие.', 'team': 'Екип', 'workload': 'Натовареност на екипа', 'professionals': 'Виж всички', 'active_tasks': 'активни задачи', 'capacity': 'свободен капацитет', 'unassigned_name': 'Невъзложени', 'no_workload': 'Няма налични данни за натоварване.', 'schedule': 'График', 'calendar_title': 'Календар', 'full_calendar': 'Виж пълен календар', 'tomorrow': 'Утре', 'week': 'Тази седмица', 'no_events': 'Няма предстоящи събития.'} %}
     {% elif admin_lang == 'fr' %}
-      {% set dash = {'kicker': 'Tableau opérationnel', 'title': 'Tableau de bord', 'subtitle': 'Aperçu des opérations à ce jour', 'operator': 'Console opérateur', 'calendar': 'Ouvrir le calendrier', 'late': 'Opérations en retard', 'attention': 'Nécessitent une attention', 'unassigned': 'Non attribuées', 'assign': 'À attribuer', 'requests': 'Demandes en attente', 'owners': 'Des propriétaires', 'conflicts': 'Conflits de calendrier', 'review': 'À examiner', 'sla': 'Santé SLA', 'current': 'État actuel', 'today': "Aujourd’hui", 'today_ops': "Opérations du jour", 'all_ops': 'Voir toutes', 'time': 'Heure', 'operation': 'Opération', 'property': 'Bien', 'status': 'Statut', 'no_ops': "Aucune opération prévue aujourd’hui.", 'priority': 'Priorité', 'tasks': 'Tâches', 'open_tasks': 'Voir toutes les tâches', 'no_tasks': "Aucune tâche active nécessitant une action.", 'team': 'Équipe', 'workload': "Charge de l’équipe", 'professionals': 'Voir tous', 'active_tasks': 'tâches actives', 'capacity': 'de capacité disponible', 'unassigned_name': 'Non attribuées', 'no_workload': 'Aucune donnée de charge disponible.', 'schedule': 'Planning', 'calendar_title': 'Calendrier', 'full_calendar': 'Voir le calendrier complet', 'tomorrow': 'Demain', 'week': 'Cette semaine', 'no_events': 'Aucun événement à venir.'} %}
+      {% set dash = {'kicker': 'Tableau opérationnel', 'title': 'Tableau de bord', 'subtitle': 'Aperçu des opérations à ce jour', 'operator': 'Console opérateur', 'calendar': 'Ouvrir le calendrier', 'late': 'En retard', 'attention': 'Nécessitent une attention', 'unassigned': 'Non attribuées', 'assign': 'À attribuer', 'requests': 'Demandes', 'owners': 'Des propriétaires', 'conflicts': 'Conflits', 'review': 'À examiner', 'sla': 'SLA', 'current': 'État actuel', 'today': "Aujourd’hui", 'today_ops': "Opérations du jour", 'all_ops': 'Voir toutes', 'time': 'Heure', 'operation': 'Opération', 'property': 'Bien', 'status': 'Statut', 'no_ops': "Aucune opération prévue aujourd’hui.", 'priority': 'Priorité', 'tasks': 'Tâches', 'open_tasks': 'Voir toutes les tâches', 'no_tasks': "Aucune tâche active nécessitant une action.", 'team': 'Équipe', 'workload': "Charge de l’équipe", 'professionals': 'Voir tous', 'active_tasks': 'tâches actives', 'capacity': 'de capacité disponible', 'unassigned_name': 'Non attribuées', 'no_workload': 'Aucune donnée de charge disponible.', 'schedule': 'Planning', 'calendar_title': 'Calendrier', 'full_calendar': 'Voir le calendrier complet', 'tomorrow': 'Demain', 'week': 'Cette semaine', 'no_events': 'Aucun événement à venir.'} %}
     {% else %}
-      {% set dash = {'kicker': 'Operations dashboard', 'title': 'Dashboard', 'subtitle': 'Overview of operations as of today', 'operator': 'Operator console', 'calendar': 'Open calendar', 'late': 'Overdue operations', 'attention': 'Require attention', 'unassigned': 'Unassigned', 'assign': 'Ready to assign', 'requests': 'Waiting requests', 'owners': 'From owners', 'conflicts': 'Calendar conflicts', 'review': 'Needs review', 'sla': 'SLA health', 'current': 'Current status', 'today': 'Today', 'today_ops': "Today's operations", 'all_ops': 'View all', 'time': 'Time', 'operation': 'Operation', 'property': 'Property', 'status': 'Status', 'no_ops': 'No operations scheduled for today.', 'priority': 'Priority', 'tasks': 'Tasks', 'open_tasks': 'View all tasks', 'no_tasks': 'No active tasks require action.', 'team': 'Team', 'workload': 'Team workload', 'professionals': 'View all', 'active_tasks': 'active tasks', 'capacity': 'capacity available', 'unassigned_name': 'Unassigned', 'no_workload': 'No workload data available.', 'schedule': 'Schedule', 'calendar_title': 'Calendar', 'full_calendar': 'View full calendar', 'tomorrow': 'Tomorrow', 'week': 'This week', 'no_events': 'No upcoming events.'} %}
+      {% set dash = {'kicker': 'Operations dashboard', 'title': 'Dashboard', 'subtitle': 'Overview of operations as of today', 'operator': 'Operator console', 'calendar': 'Open calendar', 'late': 'Overdue', 'attention': 'Require attention', 'unassigned': 'Unassigned', 'assign': 'Ready to assign', 'requests': 'Requests', 'owners': 'From owners', 'conflicts': 'Conflicts', 'review': 'Needs review', 'sla': 'SLA', 'current': 'Current status', 'today': 'Today', 'today_ops': "Today's operations", 'all_ops': 'View all', 'time': 'Time', 'operation': 'Operation', 'property': 'Property', 'status': 'Status', 'no_ops': 'No operations scheduled for today.', 'priority': 'Priority', 'tasks': 'Tasks', 'open_tasks': 'View all tasks', 'no_tasks': 'No active tasks require action.', 'team': 'Team', 'workload': 'Team workload', 'professionals': 'View all', 'active_tasks': 'active tasks', 'capacity': 'capacity available', 'unassigned_name': 'Unassigned', 'no_workload': 'No workload data available.', 'schedule': 'Schedule', 'calendar_title': 'Calendar', 'full_calendar': 'View full calendar', 'tomorrow': 'Tomorrow', 'week': 'This week', 'no_events': 'No upcoming events.'} %}
     {% endif %}
     {% if admin_lang == 'bg' %}
       {% set human_operation_titles = {'Guest Inspection': 'Инспекция преди пристигане', 'Arrival Cleaning': 'Почистване преди настаняване', 'Check-in Preparation': 'Подготовка за настаняване', 'Welcome Pack': 'Подготовка на пакет за посрещане', 'Pool Safety Check': 'Проверка на басейна', 'Pool safety and equipment check': 'Проверка на басейна и безопасността', 'Check-in': 'Настаняване', 'Check-out': 'Освобождаване', 'Cleaning': 'Почистване', 'Inspection': 'Инспекция'} %}
@@ -3148,88 +3149,210 @@
       <span>Partner Applications</span><strong>{{ partner_applications }}</strong>
       <span>Professional Applications</span><strong>{{ professional_applications }}</strong>
     </div>
-    <section class="bsc-dashboard-header">
-      <div>
-        <p>{{ dash.kicker }}</p>
-        <h1>{{ dash.title }}</h1>
-        <span>{{ dash.subtitle }}</span>
-      </div>
-      <div class="bsc-dashboard-header__actions">
-        <a href="/admin/operator">{{ dash.operator }}</a>
-        <a href="/admin/calendar">{{ dash.calendar }}</a>
-      </div>
-    </section>
+    <section class="dashboard-v3">
 
-    <section class="bsc-dashboard-kpis" aria-label="{{ dash.kicker }}">
-      <a href="/admin/operations" data-tone="danger"><i aria-hidden="true">!</i><span>{{ dash.late }}</span><strong>{{ operations_summary.late_operations }}</strong><small>{{ dash.attention }}</small></a>
-      <a href="/admin/operations" data-tone="warning"><i aria-hidden="true">⌁</i><span>{{ dash.unassigned }}</span><strong>{{ snapshot_counts.unassigned }}</strong><small>{{ dash.assign }}</small></a>
-      <a href="/admin/service-requests" data-tone="info"><i aria-hidden="true">≡</i><span>{{ dash.requests }}</span><strong>{{ snapshot_counts.owner_waiting }}</strong><small>{{ dash.owners }}</small></a>
-      <a href="/admin/calendar" data-tone="warning"><i aria-hidden="true">◇</i><span>{{ dash.conflicts }}</span><strong>{{ snapshot_counts.calendar_conflicts }}</strong><small>{{ dash.review }}</small></a>
-      <a href="/admin/operations" data-tone="success"><i aria-hidden="true">✓</i><span>{{ dash.sla }}</span><strong>{{ (100 - sla_monitoring.late_percent) if sla_monitoring.late_percent is number else '—' }}{% if sla_monitoring.late_percent is number %}%{% endif %}</strong><small>{{ dash.current }}</small></a>
-    </section>
-
-    <section class="bsc-dashboard-layout">
-    <section class="bsc-dashboard-grid bsc-dashboard-grid--primary">
-      <article class="bsc-dashboard-card">
-        <header><div><span>{{ dash.today }}</span><h2>{{ dash.today_ops }}</h2></div><a href="/admin/operations">{{ dash.all_ops }}</a></header>
-        <div class="bsc-dashboard-table" role="table" aria-label="{{ dash.today_ops }}">
-          <div class="bsc-dashboard-table__head" role="row"><span>{{ dash.time }}</span><span>{{ dash.operation }}</span><span>{{ dash.property }}</span><span>{{ dash.status }}</span><span></span></div>
-          {% set today_rows = namespace(count=0) %}
-          {% for group in today_operations_groups %}
-            {% for item in group['items'] %}
-              {% if today_rows.count < 6 %}
-                {% if item.is_clickable %}<a href="{{ item.href|e }}" role="row">{% else %}<div role="row" aria-disabled="true">{% endif %}<time>{{ item.time_label or '—' }}</time><strong>{{ human_operation_titles.get(item.title, human_operation_titles.get(item.category, value_labels.get(item.category, item.category))) if item.category else '—' }}</strong><span>{{ item.property or '—' }}</span><em data-tone="{{ item.tone }}">{{ value_labels.get(item.status, item.status) if item.status else '—' }}</em><b aria-hidden="true">⋮</b>{% if item.is_clickable %}</a>{% else %}</div>{% endif %}
-                {% set today_rows.count = today_rows.count + 1 %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-          {% if today_rows.count == 0 %}<p class="bsc-dashboard-empty">{{ dash.no_ops }}</p>{% endif %}
+      <header class="dashboard-v3-hero">
+        <div>
+          <p>{{ dash.kicker }}</p>
+          <h1>{{ public_i18n('adminHome', 'greeting', 'Добро утро, Стела') }} <span aria-hidden="true">👋</span></h1>
+          <small>{{ dash.subtitle }}</small>
         </div>
-      </article>
 
-      <article class="bsc-dashboard-card">
-        <header><div><span>{{ dash.team }}</span><h2>{{ dash.workload }}</h2></div><a href="/admin/professionals">{{ dash.professionals }}</a></header>
-        <div class="bsc-dashboard-workload">
-          {% for item in workload_distribution.top_professionals[:5] %}
-            {% set workload_is_unassigned = not item.name or item.name|lower in ['unassigned', 'невъзложени', 'няма възложен изпълнител'] %}
-            <div>
-              <p><strong>{{ item.name or dash.unassigned_name }}</strong><span>{{ item.count }} {{ dash.active_tasks }}</span></p>
-              {% if not workload_is_unassigned %}
-                <p><b>{{ item.utilization if item.utilization is number else '—' }}{% if item.utilization is number %}%{% endif %}</b><span>{{ item.capacity_remaining if item.capacity_remaining is defined else '—' }} {{ dash.capacity }}</span></p>
-                <i><span style="width: {{ [item.utilization|default(0), 100]|min }}%"></span></i>
-              {% endif %}
+        <nav class="dashboard-v3-actions" aria-label="{{ dash.kicker }}">
+          <a class="dashboard-v3-action dashboard-v3-action--primary" href="/admin/operations/new">
+            + {{ public_i18n('adminHome', 'newOperation', 'Нова операция') }}
+          </a>
+          <a class="dashboard-v3-action" href="/admin/operator">{{ dash.operator }}</a>
+          <a class="dashboard-v3-action" href="/admin/calendar">{{ dash.calendar }}</a>
+        </nav>
+      </header>
+
+      <section class="dashboard-v3-kpis" aria-label="{{ dash.kicker }}">
+        <a href="/admin/operations" data-tone="danger">
+          <i aria-hidden="true">!</i>
+          <div><span>{{ dash.late }}</span><strong>{{ operations_summary.late_operations }}</strong><small>{{ dash.attention }}</small></div>
+          <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,28 18,23 34,26 49,16 65,21 81,10 98,15 118,7"/></svg>
+        </a>
+
+        <a href="/admin/operations" data-tone="warning">
+          <i aria-hidden="true">⌁</i>
+          <div><span>{{ dash.unassigned }}</span><strong>{{ snapshot_counts.unassigned }}</strong><small>{{ dash.assign }}</small></div>
+          <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,27 18,25 34,18 49,22 65,13 81,17 98,9 118,12"/></svg>
+        </a>
+
+        <a href="/admin/service-requests" data-tone="info">
+          <i aria-hidden="true">≡</i>
+          <div><span>{{ dash.requests }}</span><strong>{{ snapshot_counts.owner_waiting }}</strong><small>{{ dash.owners }}</small></div>
+          <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,27 18,20 34,24 49,13 65,21 81,15 98,18 118,11"/></svg>
+        </a>
+
+        <a href="/admin/calendar" data-tone="warning">
+          <i aria-hidden="true">◇</i>
+          <div><span>{{ dash.conflicts }}</span><strong>{{ snapshot_counts.calendar_conflicts }}</strong><small>{{ dash.review }}</small></div>
+          <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,28 18,24 34,28 49,18 65,22 81,14 98,8 118,15"/></svg>
+        </a>
+
+        <a href="/admin/operations" data-tone="success">
+          <i aria-hidden="true">✓</i>
+          <div>
+            <span>{{ dash.sla }}</span>
+            <strong>{{ (100 - sla_monitoring.late_percent) if sla_monitoring.late_percent is number else '—' }}{% if sla_monitoring.late_percent is number %}%{% endif %}</strong>
+            <small>{{ dash.current }}</small>
+          </div>
+          <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,27 18,21 34,15 49,17 65,11 81,18 98,8 118,13"/></svg>
+        </a>
+      </section>
+
+      <section class="dashboard-v3-main">
+        <article class="dashboard-v3-card dashboard-v3-operations">
+          <header>
+            <div><small>{{ dash.today }}</small><h2>{{ dash.today_ops }}</h2></div>
+            <a href="/admin/operations">{{ dash.all_ops }}</a>
+          </header>
+
+          <div class="dashboard-v3-table">
+            <div class="dashboard-v3-table-head">
+              <span>{{ dash.time }}</span>
+              <span>{{ dash.operation }}</span>
+              <span>{{ dash.property }}</span>
+              <span>{{ dash.status }}</span>
             </div>
-          {% else %}<p class="bsc-dashboard-empty">{{ dash.no_workload }}</p>{% endfor %}
-        </div>
-      </article>
-    </section>
 
-    <section class="bsc-dashboard-grid bsc-dashboard-grid--secondary">
-      <article class="bsc-dashboard-card">
-        <header><div><span>{{ dash.priority }}</span><h2>{{ dash.tasks }}</h2></div><a href="/admin/operator">{{ dash.open_tasks }}</a></header>
-        <div class="bsc-dashboard-tasks">
-          {% for alert in executive_alerts[:5] %}
-            <a href="{{ alert.link or '/admin/operator' }}"><span data-tone="{{ alert.tone }}"></span><p><strong>{{ category_labels.get(alert.category|replace('_', ' '), alert.category|replace('_', ' ')|title) }}</strong><small>{{ alert.property or alert.operation or alert.detail or '—' }}</small></p><em>{{ severity_labels.get(alert.severity, alert.severity|title) }}</em><b aria-hidden="true">⋮</b></a>
-          {% else %}<p class="bsc-dashboard-empty">{{ dash.no_tasks }}</p>{% endfor %}
-        </div>
-      </article>
+            {% set today_rows = namespace(count=0) %}
+            {% for group in today_operations_groups %}
+              {% for item in group['items'] %}
+                {% if today_rows.count < 6 %}
+                  {% if item.is_clickable %}
+                    <a href="{{ item.href|e }}" class="dashboard-v3-operation-row">
+                  {% else %}
+                    <div class="dashboard-v3-operation-row">
+                  {% endif %}
 
-      <article class="bsc-dashboard-card">
-        <header><div><span>{{ dash.schedule }}</span><h2>{{ dash.calendar_title }}</h2></div><a href="/admin/calendar">{{ dash.full_calendar }}</a></header>
-        <div class="bsc-dashboard-calendar-summary">
-          <div><strong>{{ calendar_widget.summary.today if calendar_widget.summary.today is defined else '—' }}</strong><span>{{ dash.today }}</span></div>
-          <div><strong>{{ calendar_widget.summary.tomorrow if calendar_widget.summary.tomorrow is defined else '—' }}</strong><span>{{ dash.tomorrow }}</span></div>
-          <div><strong>{{ calendar_widget.summary.this_week if calendar_widget.summary.this_week is defined else '—' }}</strong><span>{{ dash.week }}</span></div>
-        </div>
-        <div class="bsc-dashboard-calendar-list">
-          {% for event in calendar_widget.upcoming_events[:3] %}
-            <a href="{{ event.operation_navigation.href if event.operation_navigation and event.operation_navigation.is_clickable else '/admin/calendar' }}"><time>{{ event.start_display or event.start_datetime or '—' }}</time><span><strong>{{ human_operation_titles.get(event.title, human_operation_titles.get(event.event_type, event.title or event.event_type or '—')) }}</strong><small>{{ event.property_name or event.metadata.property_name or '—' }}</small></span></a>
-          {% else %}<p class="bsc-dashboard-empty">{{ dash.no_events }}</p>{% endfor %}
-        </div>
-      </article>
-    </section>
-    </section>
+                    <time>{{ item.time_label or '—' }}</time>
 
+                    <div>
+                      <strong>
+                        {{ human_operation_titles.get(
+                          item.title,
+                          human_operation_titles.get(
+                            item.category,
+                            value_labels.get(item.category, item.category)
+                          )
+                        ) if item.category else '—' }}
+                      </strong>
+                    </div>
+
+                    <span>{{ item.property or '—' }}</span>
+                    <em data-tone="{{ item.tone }}">{{ value_labels.get(item.status, item.status) if item.status else '—' }}</em>
+
+                  {% if item.is_clickable %}</a>{% else %}</div>{% endif %}
+                  {% set today_rows.count = today_rows.count + 1 %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+
+            {% if today_rows.count == 0 %}
+              <div class="dashboard-v3-empty">{{ dash.no_ops }}</div>
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="dashboard-v3-card dashboard-v3-calendar">
+          <header>
+            <div><small>{{ dash.schedule }}</small><h2>{{ dash.calendar_title }}</h2></div>
+            <a href="/admin/calendar">{{ dash.full_calendar }}</a>
+          </header>
+
+          <div class="dashboard-v3-calendar-summary">
+            <div><strong>{{ calendar_widget.summary.today if calendar_widget.summary.today is defined else '—' }}</strong><span>{{ dash.today }}</span></div>
+            <div><strong>{{ calendar_widget.summary.tomorrow if calendar_widget.summary.tomorrow is defined else '—' }}</strong><span>{{ dash.tomorrow }}</span></div>
+            <div><strong>{{ calendar_widget.summary.this_week if calendar_widget.summary.this_week is defined else '—' }}</strong><span>{{ dash.week }}</span></div>
+          </div>
+
+          <div class="dashboard-v3-calendar-events">
+            {% for event in calendar_widget.upcoming_events[:5] %}
+              <a href="{{ event.operation_navigation.href if event.operation_navigation and event.operation_navigation.is_clickable else '/admin/calendar' }}">
+                {% set event_start = event.start_display or event.start_datetime or '' %}
+<time class="dashboard-v3-event-time" data-iso="{{ event_start|e }}">{{ event_start or '—' }}</time>
+                <div>
+                  <strong>{{ human_operation_titles.get(event.title, human_operation_titles.get(event.event_type, event.title or event.event_type or '—')) }}</strong>
+                  <small>{{ event.property_name or event.metadata.property_name or '—' }}</small>
+                </div>
+              </a>
+            {% else %}
+              <div class="dashboard-v3-empty">{{ dash.no_events }}</div>
+            {% endfor %}
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-v3-bottom">
+        <article class="dashboard-v3-card dashboard-v3-workload">
+          <header>
+            <div><small>{{ dash.team }}</small><h2>{{ dash.workload }}</h2></div>
+            <a href="/admin/professionals">{{ dash.professionals }}</a>
+          </header>
+
+          <div>
+            {% for item in workload_distribution.top_professionals[:4] %}
+              {% set workload_is_unassigned = not item.name or item.name|lower in ['unassigned', 'невъзложени', 'няма възложен изпълнител'] %}
+              <section>
+                <p><strong>{{ item.name or dash.unassigned_name }}</strong><span>{{ item.count }} {{ dash.active_tasks }}</span></p>
+
+                {% if not workload_is_unassigned %}
+                  <p><b>{{ item.utilization if item.utilization is number else '—' }}{% if item.utilization is number %}%{% endif %}</b><small>{{ item.capacity_remaining if item.capacity_remaining is defined else '—' }} {{ dash.capacity }}</small></p>
+                  <i><span style="width: {{ [item.utilization|default(0), 100]|min }}%"></span></i>
+                {% endif %}
+              </section>
+            {% else %}
+              <div class="dashboard-v3-empty">{{ dash.no_workload }}</div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="dashboard-v3-card dashboard-v3-priority">
+          <header>
+            <div><small>{{ dash.priority }}</small><h2>{{ dash.tasks }}</h2></div>
+            <a href="/admin/operator">{{ dash.open_tasks }}</a>
+          </header>
+
+          <div>
+            {% for alert in executive_alerts[:4] %}
+              <a href="{{ alert.link or '/admin/operator' }}">
+                <i data-tone="{{ alert.tone }}"></i>
+                <div>
+                  <strong>{{ category_labels.get(alert.category|replace('_', ' '), alert.category|replace('_', ' ')|title) }}</strong>
+                  <small>{{ alert.property or alert.operation or alert.detail or '—' }}</small>
+                </div>
+                <em>{{ severity_labels.get(alert.severity, alert.severity|title) }}</em>
+              </a>
+            {% else %}
+              <div class="dashboard-v3-empty">{{ dash.no_tasks }}</div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="dashboard-v3-card dashboard-v3-health">
+          <header>
+            <div><small>{{ dash.current }}</small><h2>{{ dash.sla }}</h2></div>
+            <a href="/admin/operations">{{ dash.all_ops }}</a>
+          </header>
+
+          <div class="dashboard-v3-health-body">
+            <div class="dashboard-v3-ring" style="--value: {{ 100 - sla_monitoring.late_percent }}">
+              <strong>{{ 100 - sla_monitoring.late_percent }}%</strong>
+            </div>
+
+            <ul>
+              <li><span>{{ public_i18n('adminHome', 'completedToday', 'Приключени днес') }}</span><strong>{{ operations_summary.completed_today }}</strong></li>
+              <li><span>{{ dash.late }}</span><strong>{{ operations_summary.late_operations }}</strong></li>
+              <li><span>{{ dash.unassigned }}</span><strong>{{ snapshot_counts.unassigned }}</strong></li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+    </section>
     <div class="admin-exec-legacy-dashboard" hidden>
     <section class="admin-cockpit-hero">
       <div>
@@ -4414,74 +4537,42 @@
     })();
 </script>
   {% include 'partials/pwa_runtime.html' %}
+<script>
+(function () {
+  function formatDashboardDates() {
+    document.querySelectorAll('.dashboard-v3-event-time[data-iso]').forEach(function (element) {
+      var raw = (element.dataset.iso || '').trim();
+
+      if (!raw || raw === '—') {
+        element.textContent = '—';
+        return;
+      }
+
+      var date = new Date(raw);
+
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
+
+      element.textContent = new Intl.DateTimeFormat(
+        document.documentElement.lang || 'bg',
+        {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }
+      ).format(date).replace(',', ' ·');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', formatDashboardDates);
+  } else {
+    formatDashboardDates();
+  }
+})();
+</script>
 </body>
 </html>
-
-<style>
-/* Mobile stabilization for the executive admin dashboard */
-@media (max-width: 768px) {
-  body.admin-cockpit-page {
-    overflow-x: clip;
-  }
-
-  .admin-cockpit-page .admin-cockpit-shell {
-    width: calc(100% - 16px) !important;
-    max-width: none !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    padding-top: 8px !important;
-    margin-inline: auto !important;
-  }
-
-  .admin-cockpit-page .admin-cockpit-shell > * {
-    min-width: 0 !important;
-    max-width: 100% !important;
-  }
-
-  .admin-cockpit-page .admin-cockpit-hero {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 16px !important;
-    padding: 16px !important;
-  }
-
-  .admin-cockpit-page .admin-cockpit-hero > *,
-  .admin-cockpit-page .admin-hero-side,
-  .admin-cockpit-page .admin-hero-summary {
-    min-width: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .admin-cockpit-page .admin-exec-kpis .admin-kpi-grid,
-  .admin-cockpit-page .admin-alert-grid,
-  .admin-cockpit-page .admin-command-center__grid,
-  .admin-cockpit-page .admin-cockpit-actions,
-  .admin-cockpit-page .admin-snapshot-grid,
-  .admin-cockpit-page .admin-risk-grid,
-  .admin-cockpit-page .admin-exec-action-row,
-  .admin-cockpit-page .admin-hero-stat-row,
-  .admin-cockpit-page .admin-two-up,
-  .admin-cockpit-page .admin-three-up,
-  .admin-cockpit-page .admin-four-up {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .admin-cockpit-page .admin-kpi-card,
-  .admin-cockpit-page .admin-alert-card,
-  .admin-cockpit-page .admin-command-card,
-  .admin-cockpit-page .admin-risk-card,
-  .admin-cockpit-page .admin-property-card,
-  .admin-cockpit-page .admin-dashboard-section,
-  .admin-cockpit-page .admin-cockpit-panel {
-    min-width: 0 !important;
-    max-width: 100% !important;
-  }
-
-  .admin-cockpit-page img,
-  .admin-cockpit-page svg,
-  .admin-cockpit-page video,
-  .admin-cockpit-page canvas {
-    max-width: 100% !important;
-    height: auto;
-  }
-}
-</style>
