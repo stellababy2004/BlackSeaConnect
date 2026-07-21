@@ -446,7 +446,7 @@
       <div class="admin-cockpit-actions">
         <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
         <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
-        <a class="button button--ghost" href="/admin/operations/{{ item.id|e }}">Open in Operations</a>
+        {% if item.operation_navigation.kind == 'operation' %}<a class="button button--ghost" href="{{ item.operation_navigation.href|e }}">Open in Operations</a>{% endif %}
         <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
       </div>
     </section>

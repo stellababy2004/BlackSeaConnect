@@ -231,7 +231,7 @@
                 <td><span class="admin-notifications-badge admin-notifications-badge--{{ notification.event_type|e }}">{{ notification.event_type|replace('_', ' ')|title }}</span></td>
                 <td>{{ notification.title|e }}</td>
                 <td>{{ notification.detail|e }}</td>
-                <td>{% if notification.task_id %}<a href="/admin/operations/{{ notification.task_id|e }}">{{ notification.task_id|e }}</a>{% else %}System{% endif %}</td>
+                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ notification.title|e }}</a>{% else %}System{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -261,7 +261,7 @@
             {% for notification in overdue_alerts %}
               <tr>
                 <td><time>{{ notification.created_at|e }}</time></td>
-                <td>{% if notification.task_id %}<a href="/admin/operations/{{ notification.task_id|e }}">{{ notification.task_id|e }}</a>{% else %}System{% endif %}</td>
+                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ notification.title|e }}</a>{% else %}System{% endif %}</td>
                 <td>{{ notification.detail|e }}</td>
               </tr>
             {% endfor %}

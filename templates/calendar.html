@@ -288,8 +288,8 @@
       --ops-hour-height: 64px;
       min-height: calc(100vh - 68px);
       height: auto;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 330px;
+      display: block;
+      grid-template-columns: none;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 244, 238, 0.96)),
         var(--ops-bg);
@@ -775,15 +775,11 @@
       font-weight: 850;
     }
     .admin-ops-detail {
-      position: sticky;
-      top: 68px;
       min-height: 0;
       height: auto;
       align-self: start;
       box-sizing: border-box;
-      padding: 22px;
       border-width: 0 0 0 1px;
-      overflow: auto;
     }
     .admin-ops-detail-card {
       gap: 18px;
@@ -986,19 +982,13 @@
     .admin-ops-select.is-invalid { border-color:#dc2626; box-shadow:0 0 0 3px rgba(220,38,38,.1); }
     @media (max-width: 1280px) {
       .admin-ops-calendar {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: none;
         overflow-y: auto;
-      }
-      .admin-ops-detail {
-        grid-column: 1 / -1;
-        position: static;
-        min-height: auto;
-        border-width: 1px 0 0;
       }
     }
     @media (max-width: 860px) {
       .admin-ops-calendar {
-        grid-template-columns: 1fr;
+        grid-template-columns: none;
         height: auto;
         min-height: 100vh;
         overflow: visible;
@@ -1167,9 +1157,8 @@
     }
 
     .admin-urgent-queue {
-      max-height: 360px;
-      overflow-y: auto;
-      overscroll-behavior: contain;
+      display: grid;
+      gap: 8px;
     }
 
     .admin-urgent-item {
@@ -1211,12 +1200,9 @@
     }
 
     .admin-urgent-queue {
-      position: sticky;
-      top: 14px;
-      max-height: calc(100vh - 180px);
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      scrollbar-width: thin;
+      position: static;
+      max-height: none;
+      overflow: visible;
     }
 
     .admin-command-dock {
@@ -1390,11 +1376,6 @@
     }
 
     @media (max-width: 1100px) {
-      .admin-urgent-queue {
-        position: static;
-        max-height: 260px;
-      }
-
       .admin-week-calendar,
       .admin-week-header,
       .admin-week-body {
@@ -1623,7 +1604,8 @@
 
     body.calendar-page--admin .admin-ops-calendar {
       --ops-hour-height: 46px;
-      grid-template-columns: minmax(0, 1fr);
+      display: block;
+      grid-template-columns: none;
       min-height: calc(100vh - 64px);
     }
 
@@ -1737,18 +1719,6 @@
       min-height: 92px;
     }
 
-    body.calendar-page--admin .admin-ops-detail {
-      top: 64px;
-      max-height: calc(100vh - 64px);
-      overflow-y: auto;
-    }
-
-    @media (min-width: 1181px) {
-      body.calendar-page--admin .admin-ops-calendar {
-        grid-template-columns: minmax(0, 1fr) 288px;
-      }
-    }
-
     @media (max-width: 1180px) {
       body.calendar-page--owner .calendar-summary-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1758,10 +1728,6 @@
         display: none;
       }
 
-      body.calendar-page--admin .admin-ops-detail {
-        position: static;
-        max-height: none;
-      }
     }
 
     @media (max-width: 900px) {
@@ -1859,6 +1825,692 @@
       body.calendar-page--admin .admin-ops-control-group {
         width: 100%;
         flex-wrap: wrap;
+      }
+    }
+
+    /* Operations Center V2 component styling. */
+    body.calendar-page--admin .admin-ops-toolbar__controls {
+      justify-content: space-between;
+    }
+    body.calendar-page--admin .admin-ops-summary {
+      grid-template-columns: repeat(5, minmax(128px, 1fr));
+      align-items: stretch;
+    }
+    body.calendar-page--admin .admin-ops-stat {
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      min-height: 62px;
+      padding: 8px 10px;
+      border: 1px solid var(--ops-line);
+      border-radius: 12px;
+      text-decoration: none;
+      background: #fff;
+    }
+    body.calendar-page--admin .admin-ops-stat--healthy { border-left: 4px solid #15803d; }
+    body.calendar-page--admin .admin-ops-stat--info { border-left: 4px solid #2563eb; }
+    body.calendar-page--admin .admin-ops-stat--warning { border-left: 4px solid #d97706; }
+    body.calendar-page--admin .admin-ops-stat--critical { border-left: 4px solid #dc2626; }
+    body.calendar-page--admin a.admin-ops-stat:hover,
+    body.calendar-page--admin a.admin-ops-stat:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, .2);
+      outline-offset: 2px;
+    }
+    .admin-attention-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .admin-attention-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 5px 9px;
+      border: 1px solid var(--ops-line);
+      border-radius: 10px;
+      color: var(--ops-ink);
+      text-decoration: none;
+      background: #fff;
+    }
+    .admin-attention-item--critical { border-color: #fecaca; background: #fff5f5; }
+    .admin-attention-item--warning { border-color: #fed7aa; background: #fff7ed; }
+    .admin-quick-create { position: relative; }
+    .admin-quick-create > summary { list-style: none; }
+    .admin-quick-create > summary::-webkit-details-marker { display: none; }
+    .admin-quick-create__menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 60;
+      width: min(240px, calc(100vw - 24px));
+      display: grid;
+      gap: 3px;
+      padding: 7px;
+      border: 1px solid var(--ops-line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 18px 42px rgba(15, 31, 46, .18);
+    }
+    .admin-quick-create__menu button {
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ops-ink);
+      font: inherit;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+    }
+    .admin-quick-create__menu button:hover,
+    .admin-quick-create__menu button:focus-visible { background: #f1f5f9; outline: 2px solid #275c84; }
+    .admin-filter-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      color: #fff;
+      background: #173654;
+      font-size: .72rem;
+    }
+    .admin-ops-create .admin-ops-actions-grid {
+      position: sticky;
+      bottom: -24px;
+      z-index: 2;
+      padding: 12px 0 0;
+      background: #fff;
+    }
+    :is(.admin-ops-button, .admin-ops-view-switch button, .admin-attention-item):focus-visible {
+      outline: 3px solid rgba(39, 92, 132, .3);
+      outline-offset: 2px;
+    }
+    @media (max-width: 1024px) {
+      body.calendar-page--admin .admin-ops-summary { grid-template-columns: repeat(3, minmax(128px, 1fr)); }
+      body.calendar-page--admin .admin-ai-brief { grid-template-columns: auto minmax(0, 1fr); }
+      .admin-attention-list { grid-column: 1 / -1; justify-content: flex-start; }
+    }
+    @media (max-width: 767px) {
+      body.calendar-page--admin .admin-ops-toolbar { position: relative; top: auto; }
+      body.calendar-page--admin .admin-ops-view-switch { flex-wrap: nowrap; overflow-x: auto; }
+      body.calendar-page--admin .admin-ops-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      body.calendar-page--admin .admin-ops-button,
+      body.calendar-page--admin .admin-ops-view-switch button,
+      .admin-quick-create__menu button { min-height: 44px; }
+      .admin-quick-create { flex: 1 1 auto; }
+      .admin-quick-create > summary { width: 100%; }
+      .admin-attention-item { min-height: 44px; }
+      .admin-ops-create { width: calc(100% - 16px); max-height: calc(100dvh - 16px); padding: 16px; }
+    }
+    @media (max-width: 390px) {
+      body.calendar-page--admin .admin-ops-summary { grid-template-columns: 1fr; }
+    }
+
+    /* Operations Center V2 visual acceptance: one shared, unconstrained width chain. */
+    html body.calendar-page--admin,
+    body.calendar-page--admin > .calendar-workspace--full-width,
+    body.calendar-page--admin .admin-ops-main,
+    body.calendar-page--admin .admin-ops-toolbar,
+    body.calendar-page--admin .admin-ops-summary,
+    body.calendar-page--admin .admin-ops-filters,
+    body.calendar-page--admin .admin-ops-stage {
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      margin-inline: 0 !important;
+      box-sizing: border-box;
+    }
+    body.calendar-page--admin > .calendar-workspace--full-width {
+      display: block !important;
+      inline-size: 100% !important;
+      grid-template-columns: none !important;
+    }
+    body.calendar-page--admin .admin-ops-main {
+      display: block;
+    }
+    body.calendar-page--admin .admin-ops-toolbar {
+      position: relative;
+      top: auto;
+      z-index: 30;
+      padding: 14px clamp(12px, 1.5vw, 24px);
+    }
+    body.calendar-page--admin .admin-attention-panel {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      padding: 12px 14px;
+    }
+    .admin-attention-panel__lead {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 11px;
+      align-items: center;
+      min-width: 0;
+    }
+    .admin-attention-panel__copy {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+    .admin-attention-panel__copy strong,
+    .admin-attention-panel__copy span {
+      max-width: none;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+    .admin-attention-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+    }
+    .admin-attention-item {
+      justify-content: flex-start;
+      min-width: 0;
+      min-height: 44px;
+      padding: 8px 11px;
+    }
+    .admin-attention-item span {
+      min-width: 0;
+      line-height: 1.3;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+    body.calendar-page--admin .admin-ops-toolbar__top {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+    }
+    body.calendar-page--admin .admin-ops-toolbar__top > .admin-ops-control-group {
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+    }
+    body.calendar-page--admin .admin-ops-toolbar__controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    body.calendar-page--admin .admin-ops-view-switch {
+      width: 100%;
+      min-width: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    body.calendar-page--admin .admin-ops-summary {
+      position: relative;
+      z-index: 1;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 8px;
+      padding: 10px clamp(12px, 1.5vw, 24px);
+      overflow: visible;
+    }
+    body.calendar-page--admin .admin-ops-stat {
+      min-width: 0;
+      min-height: 72px;
+      overflow: visible;
+    }
+    body.calendar-page--admin .admin-ops-stat strong,
+    body.calendar-page--admin .admin-ops-stat span {
+      display: block;
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+    }
+    body.calendar-page--admin .admin-ops-stage {
+      padding: 12px clamp(12px, 1.5vw, 24px) 28px;
+      overflow-x: hidden !important;
+    }
+    body.calendar-page--admin .admin-ops-stage > [data-admin-board] {
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      box-sizing: border-box;
+    }
+    body.calendar-page--admin :is(
+      .admin-week-calendar,
+      .admin-property-board,
+      .admin-month-board,
+      .admin-day-board,
+      .admin-timeline-board,
+      .admin-dispatch-board,
+      .admin-map-board,
+      .admin-executive-board
+    ) {
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      overflow-x: auto !important;
+      box-sizing: border-box;
+    }
+    body.calendar-page--admin .admin-week-calendar {
+      --admin-week-time-column: 58px;
+    }
+    body.calendar-page--admin .admin-week-header,
+    body.calendar-page--admin .admin-week-body {
+      width: 100%;
+      min-width: max(100%, 1180px) !important;
+      grid-template-columns: var(--admin-week-time-column) repeat(7, minmax(0, 1fr)) !important;
+    }
+    body.calendar-page--admin .admin-week-day,
+    body.calendar-page--admin .admin-week-column {
+      min-width: 0;
+    }
+    body.calendar-page--admin .admin-week-column {
+      overflow: hidden;
+      contain: layout paint;
+    }
+    body.calendar-page--admin .admin-ops-event {
+      box-sizing: border-box;
+      min-width: 0 !important;
+      max-width: none !important;
+      inline-size: auto;
+      writing-mode: horizontal-tb;
+      overflow: hidden;
+    }
+    body.calendar-page--admin .admin-property-header,
+    body.calendar-page--admin .admin-property-row {
+      width: 100%;
+      min-width: max(100%, 1040px);
+      grid-template-columns: 190px repeat(7, minmax(120px, 1fr));
+    }
+    body.calendar-page--admin .admin-month-grid {
+      width: 100%;
+      min-width: 840px;
+      grid-template-columns: repeat(7, minmax(112px, 1fr));
+    }
+    body.calendar-page--admin :is(.admin-timeline-list, .admin-day-list) {
+      width: 100%;
+      min-width: 0;
+    }
+    body.calendar-page--admin .admin-dispatch-board.is-active {
+      grid-template-columns: minmax(250px, .8fr) minmax(420px, 1.5fr) minmax(250px, .8fr);
+      min-width: 0 !important;
+    }
+    body.calendar-page--admin .admin-map-board.is-active {
+      grid-template-columns: minmax(600px, 1fr) 300px;
+      min-width: 0 !important;
+    }
+    body.calendar-page--admin .admin-exec-grid {
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+    }
+    body.calendar-page--admin {
+      --admin-topbar-height: 64px;
+    }
+    body.calendar-page--admin .admin-ops-detail-backdrop {
+      position: fixed;
+      inset: var(--admin-topbar-height) 0 0 232px;
+      z-index: 89;
+      border: 0;
+      padding: 0;
+      appearance: none;
+      background: rgba(15, 31, 46, .24) !important;
+      cursor: default;
+    }
+    body.calendar-page--admin .admin-ops-detail-backdrop[hidden] {
+      display: none;
+    }
+    body.calendar-page--admin .admin-ops-detail {
+      position: fixed;
+      top: var(--admin-topbar-height);
+      right: 0;
+      bottom: 0;
+      z-index: 90;
+      width: clamp(420px, 34vw, 500px);
+      max-width: calc(100vw - 232px);
+      height: calc(100dvh - var(--admin-topbar-height));
+      max-height: none;
+      align-self: auto;
+      padding: 0;
+      overflow: hidden;
+      border-width: 0 0 0 1px;
+      background: #fff;
+      box-shadow: -20px 0 50px rgba(15, 31, 46, .2);
+      transform: translateX(102%);
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform .2s ease, visibility .2s ease;
+    }
+    body.calendar-page--admin .admin-ops-detail.is-open {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+    body.calendar-page--admin .admin-ops-detail__shell {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    body.calendar-page--admin .admin-ops-detail__header {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      min-width: 0;
+      padding: 18px;
+      border-bottom: 1px solid var(--ops-line);
+      background: #fff;
+    }
+    body.calendar-page--admin .admin-ops-detail__heading {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail__badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail__header h2 {
+      margin: 0;
+      color: var(--ops-ink);
+      font-family: inherit;
+      font-size: clamp(1.25rem, 2vw, 1.55rem);
+      line-height: 1.2;
+      letter-spacing: -.015em;
+      overflow-wrap: anywhere;
+    }
+    body.calendar-page--admin .admin-ops-detail__subtitle,
+    body.calendar-page--admin .admin-ops-detail__time {
+      margin: 0;
+      color: var(--ops-muted);
+      font-size: .86rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    body.calendar-page--admin .admin-ops-detail__close {
+      position: static;
+      align-self: start;
+      justify-self: end;
+      min-width: 44px;
+      min-height: 44px;
+      margin: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail__scroll {
+      position: relative;
+      z-index: 0;
+      min-width: 0;
+      min-height: 0;
+      padding: 16px 18px 28px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      contain: paint;
+    }
+    body.calendar-page--admin .admin-ops-detail__content {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail-section {
+      display: grid;
+      gap: 11px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--ops-line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    body.calendar-page--admin .admin-ops-detail-section > h3 {
+      margin: 0;
+      color: var(--ops-ink);
+      font-family: inherit;
+      font-size: .96rem;
+      line-height: 1.3;
+    }
+    body.calendar-page--admin .admin-ops-detail-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+      min-width: 0;
+      margin: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail-field {
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail-field dt {
+      color: var(--ops-muted);
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+    body.calendar-page--admin .admin-ops-detail-field dd {
+      min-width: 0;
+      margin: 0;
+      color: var(--ops-ink);
+      font-size: .88rem;
+      font-weight: 750;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    body.calendar-page--admin .admin-ops-detail__empty,
+    body.calendar-page--admin .admin-ops-detail__note {
+      margin: 0;
+      color: var(--ops-muted);
+      font-size: .86rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    body.calendar-page--admin .admin-ops-detail__status-stack,
+    body.calendar-page--admin .admin-ops-detail__timeline,
+    body.calendar-page--admin .admin-ops-detail__related-list {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    body.calendar-page--admin .admin-ops-detail__timeline-item {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px;
+      min-width: 0;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--ops-line);
+    }
+    body.calendar-page--admin .admin-ops-detail__timeline-item:last-child {
+      border-bottom: 0;
+    }
+    body.calendar-page--admin .admin-ops-detail__timeline-item time {
+      color: var(--ops-muted);
+      font-size: .75rem;
+      font-weight: 750;
+    }
+    body.calendar-page--admin .admin-ops-detail__timeline-item div {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    body.calendar-page--admin .admin-ops-detail__actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    body.calendar-page--admin .admin-ops-detail__actions > * {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    body.calendar-page--admin .admin-ops-detail__actions [hidden] {
+      display: none;
+    }
+    body.calendar-page--admin .admin-urgent-queue,
+    body.calendar-page--admin [data-admin-urgent-queue] {
+      position: static;
+      max-height: none;
+      margin: 0;
+      overflow: visible;
+    }
+    body.calendar-page--admin .admin-urgent-item {
+      width: 100%;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 1180px) {
+      body.calendar-page--admin .admin-ops-detail {
+        width: min(56vw, 500px);
+      }
+      body.calendar-page--admin .admin-attention-panel {
+        grid-template-columns: 1fr;
+      }
+      body.calendar-page--admin .admin-attention-list {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+      body.calendar-page--admin .admin-ops-toolbar__controls {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+      }
+      body.calendar-page--admin .admin-ops-view-switch {
+        grid-column: 1 / -1;
+      }
+      body.calendar-page--admin .admin-ops-summary {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+      }
+    }
+    @media (max-width: 900px) {
+      body.calendar-page--admin .admin-ops-detail-backdrop {
+        inset: 0;
+      }
+      body.calendar-page--admin .admin-ops-detail {
+        top: 0;
+        height: 100dvh;
+        max-width: 100%;
+      }
+    }
+    @media (max-width: 767px) {
+      html,
+      body.calendar-page--admin {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden !important;
+      }
+      body.calendar-page--admin > .bsc-admin-sidebar,
+      body.calendar-page--admin > .bsc-admin-topbar,
+      body.calendar-page--admin > .calendar-workspace--full-width {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+      }
+      body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav {
+        grid-template-columns: 1fr !important;
+      }
+      body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-nav a,
+      body.calendar-page--admin > .bsc-admin-sidebar .bsc-admin-quick-actions a,
+      body.calendar-page--admin > .bsc-admin-topbar > *,
+      body.calendar-page--admin .admin-ops-toolbar > *,
+      body.calendar-page--admin .admin-ops-control-group,
+      body.calendar-page--admin .admin-ops-input,
+      body.calendar-page--admin .admin-ops-select {
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+      body.calendar-page--admin > .bsc-admin-topbar .bsc-admin-topbar-actions {
+        flex-wrap: wrap;
+      }
+      body.calendar-page--admin .admin-attention-panel,
+      body.calendar-page--admin .admin-attention-list,
+      body.calendar-page--admin .admin-ops-toolbar__top,
+      body.calendar-page--admin .admin-ops-toolbar__controls {
+        grid-template-columns: 1fr;
+      }
+      body.calendar-page--admin .admin-ops-calendar section {
+        padding-block: 0 !important;
+      }
+      body.calendar-page--admin .admin-ops-calendar .admin-attention-panel {
+        padding: 12px 14px !important;
+      }
+      body.calendar-page--admin .admin-ops-calendar .admin-ops-stage {
+        padding: 12px 12px 28px !important;
+      }
+      body.calendar-page--admin .admin-ops-calendar .admin-ops-detail-section {
+        padding: 14px !important;
+      }
+      body.calendar-page--admin .admin-ops-calendar p {
+        font-size: inherit !important;
+        line-height: 1.5 !important;
+      }
+      body.calendar-page--admin .admin-attention-item {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      body.calendar-page--admin .admin-attention-panel__lead {
+        grid-template-columns: 32px minmax(0, 1fr);
+      }
+      body.calendar-page--admin .admin-ai-brief__icon {
+        width: 32px;
+        height: 32px;
+      }
+      body.calendar-page--admin .admin-ops-heading h1 {
+        font-size: clamp(1.65rem, 9vw, 2.1rem) !important;
+        overflow-wrap: anywhere;
+      }
+      body.calendar-page--admin .admin-ops-toolbar__top > .admin-ops-control-group {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+      body.calendar-page--admin .admin-ops-view-switch {
+        grid-column: auto;
+      }
+      body.calendar-page--admin .admin-quick-create,
+      body.calendar-page--admin [data-admin-filter-toggle],
+      body.calendar-page--admin [data-admin-create-event] {
+        width: 100%;
+      }
+      body.calendar-page--admin .admin-ops-summary {
+        grid-template-columns: 1fr;
+      }
+      body.calendar-page--admin .admin-ops-detail {
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100dvh;
+        padding: 14px;
+        border-width: 0;
+      }
+      body.calendar-page--admin .admin-ops-detail-backdrop {
+        inset: 0;
+      }
+      body.calendar-page--admin .admin-ops-detail {
+        padding: 0;
+      }
+      body.calendar-page--admin .admin-ops-detail__header {
+        padding: 14px;
+      }
+      body.calendar-page--admin .admin-ops-detail__scroll {
+        padding: 14px 14px max(24px, env(safe-area-inset-bottom));
+      }
+      body.calendar-page--admin .admin-ops-detail-fields,
+      body.calendar-page--admin .admin-ops-detail__actions {
+        grid-template-columns: 1fr;
+      }
+      body.calendar-page--admin .admin-ops-detail__timeline-item {
+        grid-template-columns: 64px minmax(0, 1fr);
       }
     }
 </style>
@@ -2149,14 +2801,33 @@
     </section>
   </main>
   {% if calendar_scope == 'admin' %}
-    <div class="admin-ops-calendar" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
+    <div class="admin-ops-calendar calendar-workspace--full-width" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
       <main class="admin-ops-main">
         <header class="admin-ops-toolbar">
-          <div class="admin-ai-brief">
-            <span class="admin-ai-brief__icon">AI</span>
-            <div><strong>Какво изисква внимание сега?</strong><span data-admin-ai-brief>Анализираме днешните операции…</span></div>
-            <button class="admin-ops-button" type="button" data-admin-ai-focus>Покажи</button>
-          </div>
+          <section class="admin-ai-brief admin-attention-panel" aria-labelledby="calendarAttentionTitle" data-admin-attention-panel>
+            <div class="admin-attention-panel__lead">
+              <span class="admin-ai-brief__icon" aria-hidden="true">!</span>
+              <div class="admin-attention-panel__copy">
+              <strong id="calendarAttentionTitle" data-i18n="calendarAttention">Какво изисква внимание сега?</strong>
+              {% if calendar_operations_center.attention %}
+                <span data-i18n="calendarAttentionSummary">Приоритетни оперативни сигнали, подредени по сериозност.</span>
+              {% else %}
+                <span data-i18n="calendarAttentionHealthy">Няма критични задачи, изискващи внимание.</span>
+              {% endif %}
+              </div>
+            </div>
+            {% if calendar_operations_center.attention %}
+              <div class="admin-attention-list">
+                {% for item in calendar_operations_center.attention %}
+                  <a class="admin-attention-item admin-attention-item--{{ item.tone|e }}" href="{{ item.href|e }}">
+                    <strong>{{ item.count }}</strong><span data-i18n="{{ item.key|e }}">{% if item.key == 'calendarAttentionMissingProperty' %}Задачи без свързан имот{% elif item.key == 'calendarAttentionOverdue' %}Просрочени операции{% elif item.key == 'calendarAttentionConflicts' %}Конфликти в календара{% elif item.key == 'calendarAttentionUnassigned' %}Невъзложени операции{% elif item.key == 'calendarAttentionWaitingOwner' %}Операции, чакащи собственик{% else %}Операции, чакащи професионалист{% endif %}</span>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <span class="admin-health" data-i18n="calendarHealthyState">Операциите вървят по план</span>
+            {% endif %}
+          </section>
           <div class="admin-ops-toolbar__top">
             <div class="admin-ops-heading">
               <p class="admin-ops-label">Всички имоти</p>
@@ -2182,33 +2853,31 @@
               <button type="button" data-admin-view-mode="map" data-i18n="calendarMap">Карта</button>
               <button type="button" data-admin-view-mode="executive" data-i18n="calendarManagement">Ръководство</button>
             </div>
-            <button class="admin-ops-button" type="button" data-admin-filter-toggle data-i18n="calendarFilters">Филтри</button>
+            <button class="admin-ops-button" type="button" data-admin-filter-toggle aria-expanded="false" aria-controls="adminCalendarFilters"><span data-i18n="calendarFilters">Филтри</span>{% if calendar_operations_center.active_filter_count %}<strong class="admin-filter-count" aria-label="{{ calendar_operations_center.active_filter_count }} активни филтъра">{{ calendar_operations_center.active_filter_count }}</strong>{% endif %}</button>
+            <details class="admin-quick-create" data-admin-quick-create>
+              <summary class="admin-ops-button" data-i18n="calendarQuickCreate">Бързо създаване</summary>
+              <div class="admin-quick-create__menu" role="menu">
+                <button type="button" role="menuitem" data-admin-quick-category="Check-in" data-i18n="calendarQuickArrival">Пристигане / Настаняване</button>
+                <button type="button" role="menuitem" data-admin-quick-category="Check-out" data-i18n="calendarQuickDeparture">Заминаване / Освобождаване</button>
+                <button type="button" role="menuitem" data-admin-quick-category="Cleaning" data-i18n="calendarQuickCleaning">Почистване</button>
+                <button type="button" role="menuitem" data-admin-quick-category="Inspection" data-i18n="calendarQuickInspection">Инспекция</button>
+                <button type="button" role="menuitem" data-admin-quick-category="Repair" data-i18n="calendarQuickRepair">Ремонт</button>
+                <button type="button" role="menuitem" data-admin-quick-category="Maintenance" data-i18n="calendarQuickMaintenance">Поддръжка</button>
+              </div>
+            </details>
             <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event data-i18n="calendarCreateEvent">Създай събитие</button>
           </div>
         </header>
 
-        <section class="admin-mission-strip" aria-label="Mission control">
-          <span class="admin-mission-pill admin-mission-pill--critical"><i></i><strong data-mission-critical>0</strong> критични</span>
-          <span class="admin-mission-pill admin-mission-pill--warning"><i></i><strong data-mission-arrivals>0</strong> пристигания до 2ч</span>
-          <span class="admin-mission-pill admin-mission-pill--active"><i></i><strong data-mission-cleaning>0</strong> почиствания</span>
-          <span class="admin-mission-pill"><i></i><strong data-mission-ready>0</strong> готови имоти</span>
-          <span class="admin-mission-pill"><i></i><strong data-mission-pros>0</strong> активни екипи</span>
-          <span class="admin-mission-pill"><i></i><strong>—</strong> приход днес</span>
-          <span class="admin-mission-pill"><i></i><strong data-mission-occupancy>—</strong> заетост</span>
-          <span class="admin-mission-pill admin-mission-pill--critical"><i></i><strong data-mission-sla>0</strong> SLA нарушения</span>
+        <section class="admin-ops-summary" aria-label="Operations KPIs" data-admin-kpi-strip>
+          {% for kpi in calendar_operations_center.kpis %}
+            {% if kpi.href %}<a class="admin-ops-stat admin-ops-stat--{{ kpi.tone|e }}" href="{{ kpi.href|e }}" data-kpi-key="{{ kpi.key|e }}">{% else %}<div class="admin-ops-stat admin-ops-stat--{{ kpi.tone|e }}" data-kpi-key="{{ kpi.key|e }}">{% endif %}
+              <strong>{{ kpi.value }}</strong><span data-i18n="{{ kpi.key|e }}">{% if kpi.key == 'calendarKpiActiveOperations' %}Активни операции{% elif kpi.key == 'calendarKpiArrivalsToday' %}Пристигания днес{% elif kpi.key == 'calendarKpiDeparturesToday' %}Заминавания днес{% elif kpi.key == 'calendarKpiUnassigned' %}Невъзложени{% elif kpi.key == 'calendarKpiOverdue' %}Просрочени{% elif kpi.key == 'calendarKpiWaitingOwner' %}Чакат собственик{% elif kpi.key == 'calendarKpiWaitingProfessional' %}Чакат професионалист{% elif kpi.key == 'calendarKpiSlaHealth' %}SLA състояние{% elif kpi.key == 'calendarKpiConflicts' %}Конфликти{% else %}Активни професионалисти{% endif %}</span>
+            {% if kpi.href %}</a>{% else %}</div>{% endif %}
+          {% endfor %}
         </section>
 
-        <section class="admin-ops-summary" aria-label="Обзор на календара">
-          <div class="admin-ops-stat"><strong data-kpi-arrivals>0</strong><span>Пристигания днес</span></div>
-          <div class="admin-ops-stat"><strong data-kpi-departures>0</strong><span>Заминавания днес</span></div>
-          <div class="admin-ops-stat admin-ops-stat--good"><strong data-kpi-cleaning>0</strong><span>Активни почиствания</span></div>
-          <div class="admin-ops-stat"><strong data-kpi-professionals>0</strong><span>Активни професионалисти</span></div>
-          <div class="admin-ops-stat admin-ops-stat--danger"><strong>{{ calendar_summary.overdue }}</strong><span>Просрочени задачи</span></div>
-          <div class="admin-ops-stat"><strong data-kpi-occupancy>—</strong><span>Заетост</span></div>
-          <div class="admin-ops-stat"><strong data-kpi-revenue>—</strong><span>Приход днес</span></div>
-        </section>
-
-        <form class="admin-ops-filters" method="get" action="{{ request.path }}" data-admin-filters-panel>
+        <form class="admin-ops-filters" id="adminCalendarFilters" method="get" action="{{ request.path }}" data-admin-filters-panel>
           <input type="hidden" name="view" value="{{ calendar_view }}">
           <label class="admin-ops-filter">
             <span class="admin-ops-label">Търсене</span>
@@ -2286,8 +2955,8 @@
             <input class="admin-ops-input" type="date" name="date_to" value="{{ request.args.get('date_to', '')|e }}">
           </label>
           <div class="admin-ops-control-group">
-            <button class="admin-ops-button admin-ops-button--primary" type="submit">Приложи филтрите</button>
-            <a class="admin-ops-button" href="{{ request.path }}">Изчисти</a>
+            <button class="admin-ops-button admin-ops-button--primary" type="submit" data-i18n="calendarApplyFilters">Приложи филтрите</button>
+            <a class="admin-ops-button" href="{{ request.path }}?view={{ calendar_view|e }}" data-i18n="calendarClearAll">Изчисти всички</a>
           </div>
         </form>
 
@@ -2314,14 +2983,8 @@
           <section class="admin-map-board" data-admin-board="map" aria-label="Оперативна карта"></section>
           <section class="admin-executive-board" data-admin-board="executive" aria-label="Ръководен оперативен преглед"></section>
         </section>
-      </main>
 
-      <aside class="admin-ops-detail" aria-label="Детайли за избрано събитие" data-i18n-attr="aria-label:calendarSelectedEvent">
-        <div class="admin-ops-detail-card">
-          <section class="admin-urgent-queue" aria-label="Спешна опашка">
-            <span class="admin-ops-label">Изискват внимание</span>
-            <div data-admin-urgent-queue></div>
-          </section>
+        <section class="admin-command-dock" aria-label="Оперативна командна карта">
           <section class="admin-smart-card admin-next-command">
             <span class="admin-ops-detail-label">Следващо действие</span>
             <h3 data-admin-next-action>Изберете събитие</h3>
@@ -2353,50 +3016,92 @@
             <button class="admin-ops-button" type="button" data-quick-action="Подготви обаждане">Подготви обаждане</button>
             <button class="admin-ops-button" type="button" data-quick-action="Предложи отлагане с 30 мин">Предложи +30 мин</button>
           </div>
-          <div class="admin-ops-detail-header">
-            <span class="admin-ops-detail-pill admin-event-arrival" data-admin-detail-type>Избрано събитие</span>
-            <span class="admin-persistence-badge" data-admin-persistence-badge>Read-only</span>
-            <h2 data-admin-detail-title>Изберете събитие</h2>
-            <p data-admin-detail-time>Детайлите ще се покажат тук.</p>
-          </div>
-          <section class="admin-ops-detail-section">
-            <span class="admin-ops-detail-label">Автоматичен работен поток</span>
-            <div class="admin-workflow" data-admin-workflow></div>
-          </section>
-          <section class="admin-ops-detail-section">
-            <span class="admin-ops-detail-label">Оперативен поток</span>
-            <div class="admin-dispatch-list" data-admin-operations-feed></div>
-          </section>
-          <section class="admin-ops-detail-section">
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Имот</span><strong data-admin-detail-property>-</strong></div>
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Собственик</span><strong data-admin-detail-owner>-</strong></div>
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Професионалист</span><strong data-admin-detail-professional>-</strong></div>
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Приоритет</span><strong data-admin-detail-priority>-</strong></div>
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Статус</span><strong data-admin-detail-status>-</strong></div>
-          </section>
-          <section class="admin-ops-detail-section">
-            <span class="admin-ops-detail-label">Изпълнение на чеклиста</span>
-            <div class="admin-ops-progress" aria-label="Прогрес на чеклиста"><span data-admin-detail-progress></span></div>
-            <p data-admin-detail-checklist>0 от 0 задачи</p>
-          </section>
-          <section class="admin-ops-detail-section">
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">Прикачени</span><strong data-admin-detail-attachments>Няма</strong></div>
-            <div class="admin-ops-detail-row"><span class="admin-ops-detail-label">SLA таймер</span><strong data-admin-detail-sla>-</strong></div>
-          </section>
-          <section class="admin-ops-detail-section">
-            <span class="admin-ops-detail-label">Бележки</span>
-            <p data-admin-detail-notes>Няма избрани бележки.</p>
-          </section>
-          <section class="admin-ops-detail-section">
-            <span class="admin-ops-detail-label">Бързи действия</span>
-            <div class="admin-ops-actions-grid">
-              <button class="admin-ops-button" type="button" data-admin-edit-event>Редактирай</button>
-              <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event>Изтрий</button>
-              <a class="admin-ops-button" href="/admin/properties">Имот</a>
-              <a class="admin-ops-button" href="/admin/professionals">Възлагане</a>
-              <a class="admin-ops-button" href="/admin/notifications">Известие</a>
+        </section>
+      </main>
+
+      <button class="admin-ops-detail-backdrop" type="button" data-admin-detail-backdrop aria-label="Затвори детайлите" data-i18n-attr="aria-label:calendarCloseDetails" hidden></button>
+      <aside class="admin-ops-detail" role="dialog" aria-modal="true" aria-labelledby="calendarDetailTitle" aria-describedby="calendarDetailTime" aria-hidden="true" inert>
+        <div class="admin-ops-detail__shell">
+          <header class="admin-ops-detail__header">
+            <div class="admin-ops-detail__heading">
+              <div class="admin-ops-detail__badges">
+                <span class="admin-ops-detail-pill admin-event-arrival" data-admin-detail-type data-i18n="calendarSelectedEvent">Избрано събитие</span>
+                <span class="admin-persistence-badge" data-admin-persistence-badge>Само за четене</span>
+              </div>
+              <h2 id="calendarDetailTitle" data-admin-detail-title data-i18n="calendarChooseEvent">Изберете събитие</h2>
+              <p class="admin-ops-detail__subtitle" data-admin-detail-subtitle data-i18n="calendarDetailSubtitleEmpty">Изберете запис от календара, за да прегледате оперативните подробности.</p>
+              <p class="admin-ops-detail__time" id="calendarDetailTime" data-admin-detail-time data-i18n="calendarDetailTimeEmpty">Датата и часът ще се покажат тук.</p>
             </div>
-          </section>
+            <button class="admin-ops-button admin-ops-button--icon admin-ops-detail__close" type="button" data-admin-detail-close aria-label="Затвори детайлите" data-i18n-attr="aria-label:calendarCloseDetails">×</button>
+          </header>
+
+          <div class="admin-ops-detail__scroll" data-admin-detail-scroll tabindex="-1">
+            <div class="admin-ops-detail__content">
+              <section class="admin-ops-detail-section" data-admin-detail-section="summary" aria-labelledby="calendarDetailSummaryHeading">
+                <h3 id="calendarDetailSummaryHeading" data-i18n="calendarDetailSummary">Обобщение</h3>
+                <dl class="admin-ops-detail-fields">
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailStatus">Статус</dt><dd data-admin-detail-status>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailPriority">Приоритет</dt><dd data-admin-detail-priority>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarStart">Начало</dt><dd data-admin-detail-start>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarEnd">Край</dt><dd data-admin-detail-end>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarCategory">Категория</dt><dd data-admin-detail-category>—</dd></div>
+                </dl>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="assignment" aria-labelledby="calendarDetailAssignmentHeading">
+                <h3 id="calendarDetailAssignmentHeading" data-i18n="calendarDetailAssignmentLocation">Възлагане и местоположение</h3>
+                <dl class="admin-ops-detail-fields">
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailProperty">Имот</dt><dd data-admin-detail-property>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailAddress">Адрес</dt><dd data-admin-detail-address>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailProfessional">Професионалист</dt><dd data-admin-detail-professional>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailOwner">Собственик</dt><dd data-admin-detail-owner>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailGuest">Гост</dt><dd data-admin-detail-guest>—</dd></div>
+                </dl>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="operational" aria-labelledby="calendarDetailOperationalHeading">
+                <h3 id="calendarDetailOperationalHeading" data-i18n="calendarDetailOperationalState">Оперативно състояние</h3>
+                <dl class="admin-ops-detail-fields">
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailLifecycle">Текущ етап</dt><dd data-admin-detail-lifecycle>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailSlaRisk">SLA / риск</dt><dd data-admin-detail-sla>—</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailChecklist">Чеклист</dt><dd data-admin-detail-checklist>0 от 0 задачи</dd></div>
+                  <div class="admin-ops-detail-field"><dt data-i18n="calendarDetailIssues">Нерешени проблеми</dt><dd data-admin-detail-issues>—</dd></div>
+                </dl>
+                <div class="admin-ops-progress" aria-label="Прогрес на чеклиста" data-i18n-attr="aria-label:calendarDetailChecklistProgress"><span data-admin-detail-progress></span></div>
+                <div class="admin-ops-detail__status-stack admin-workflow" data-admin-workflow></div>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="attachments" aria-labelledby="calendarDetailAttachmentsHeading">
+                <h3 id="calendarDetailAttachmentsHeading" data-i18n="calendarDetailAttachments">Прикачени файлове</h3>
+                <p class="admin-ops-detail__empty" data-admin-detail-attachments data-i18n="calendarDetailNoAttachments">Няма прикачени файлове.</p>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="notes" aria-labelledby="calendarDetailNotesHeading">
+                <h3 id="calendarDetailNotesHeading" data-i18n="calendarDetailNotes">Бележки</h3>
+                <p class="admin-ops-detail__note" data-admin-detail-notes data-i18n="calendarDetailNoNotes">Няма оперативна бележка.</p>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="actions" aria-labelledby="calendarDetailActionsHeading">
+                <h3 id="calendarDetailActionsHeading" data-i18n="calendarQuickActions">Бързи действия</h3>
+                <div class="admin-ops-detail__actions">
+                  <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
+                  <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Изтрий</button>
+                  <a class="admin-ops-button" href="/admin/operations" data-admin-detail-operation hidden data-i18n="calendarDetailOpenOperation">Отвори операцията</a>
+                  <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
+                </div>
+              </section>
+
+              <section class="admin-ops-detail-section" data-admin-detail-section="timeline" aria-labelledby="calendarDetailTimelineHeading">
+                <h3 id="calendarDetailTimelineHeading" data-i18n="calendarDetailTimeline">Хронология</h3>
+                <ol class="admin-ops-detail__timeline" data-admin-operations-feed></ol>
+              </section>
+
+              <section class="admin-ops-detail-section admin-urgent-queue" data-admin-detail-section="related" aria-labelledby="calendarDetailRelatedHeading">
+                <h3 id="calendarDetailRelatedHeading" data-i18n="calendarDetailRelatedOperations">Свързани операции</h3>
+                <div class="admin-ops-detail__related-list" data-admin-urgent-queue></div>
+              </section>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -2420,7 +3125,8 @@
             data-notes="{{ (event.description or '')|e }}"
             data-overdue="{{ '1' if event.is_overdue else '0' }}"
             data-source="{{ ((event.metadata or {}).get('source') or (event.metadata or {}).get('source_type') or '')|e }}"
-            data-operation-task-id="{{ (event.operation_task_id or '')|e }}"
+            data-operation-task-id="{{ (event.canonical_operation_task_id or '')|e }}"
+            data-operation-href="{{ (event.operation_href or '')|e }}"
           ></article>
         {% endfor %}
       </div>
@@ -2432,9 +3138,9 @@
             <p data-admin-create-slot>Изберете дата и час.</p>
           </div>
           <div class="admin-ops-create-grid">
-            <label class="admin-ops-filter"><span class="admin-ops-label">Категория</span><select class="admin-ops-select" name="category" required data-admin-display-select="category">{% for option in calendar_category_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="Cleaning">Почистване</option><option value="Check-in">Пристигане</option><option value="Check-out">Заминаване</option><option value="Maintenance">Поддръжка</option><option value="Emergency">Спешен случай</option><option value="Inspection">Инспекция</option><option value="Transfer">Трансфер</option></select></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Имот</span><select class="admin-ops-select" name="property_id" required aria-describedby="adminCreatePropertyError"><option value="">Изберете имот</option>{% for property in calendar_property_records %}<option value="{{ property.id|e }}" data-owner-id="{{ property.owner_id|e }}">{{ property.display_name|e }}</option>{% endfor %}</select><span class="admin-inline-error" id="adminCreatePropertyError" data-admin-property-error hidden>Изберете валиден имот.</span></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Собственик</span><select class="admin-ops-select" name="owner"><option value="">Без собственик</option>{% for option in calendar_owner_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label" data-i18n="calendarCategory">Категория</span><select class="admin-ops-select" name="category" required data-admin-display-select="category">{% for option in calendar_category_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="Cleaning">Почистване</option><option value="Check-in">Пристигане</option><option value="Check-out">Заминаване</option><option value="Maintenance">Поддръжка</option><option value="Repair">Ремонт</option><option value="Emergency">Спешен случай</option><option value="Inspection">Инспекция</option><option value="Transfer">Трансфер</option></select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">Имот</span><select class="admin-ops-select" name="property_id" required aria-describedby="adminCreatePropertyError"><option value="">Изберете имот</option>{% for property in calendar_property_records %}<option value="{{ property.id|e }}" data-owner-id="{{ property.owner_id|e }}" data-owner-name="{{ property.owner_display_name|e }}">{{ property.display_name|e }}</option>{% endfor %}</select><span class="admin-inline-error" id="adminCreatePropertyError" data-admin-property-error hidden>Изберете валиден имот.</span></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label" data-i18n="calendarOwner">Собственик</span><input class="admin-ops-input" type="text" data-admin-owner-display readonly placeholder="Първо изберете имот" aria-describedby="adminCreateOwnerMessage"><input type="hidden" name="owner_id" value=""><span id="adminCreateOwnerMessage" data-admin-owner-message role="status">Първо изберете имот.</span></label>
             <label class="admin-ops-filter"><span class="admin-ops-label">Професионалист</span><select class="admin-ops-select" name="professional"><option value="">Не е възложено</option>{% for option in calendar_professional_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
             <label class="admin-ops-filter"><span class="admin-ops-label">Начало</span><input class="admin-ops-input" type="datetime-local" name="start" required></label>
             <label class="admin-ops-filter"><span class="admin-ops-label">Край</span><input class="admin-ops-input" type="datetime-local" name="end" required></label>
@@ -2549,10 +3255,13 @@
           start: parseDate(node.dataset.start),
           end: parseDate(node.dataset.end) || parseDate(node.dataset.start),
           property: cleanValue(node.dataset.property) || "Невъведен имот",
+          propertyMissing: !cleanValue(node.dataset.property),
           propertyId: cleanValue(node.dataset.propertyId),
           ownerId: cleanValue(node.dataset.ownerId),
           owner: cleanValue(node.dataset.owner) || "Няма собственик",
+          ownerMissing: !cleanValue(node.dataset.owner),
           professional: cleanValue(node.dataset.professional) || "Не е възложено",
+          professionalMissing: !cleanValue(node.dataset.professional),
           priority: cleanValue(node.dataset.priority) || "NORMAL",
           status: cleanValue(node.dataset.status) || "SCHEDULED",
           city: node.dataset.city || "",
@@ -2560,6 +3269,7 @@
           overdue: node.dataset.overdue === "1",
           source: cleanValue(node.dataset.source) || "calendar",
           operationTaskId: cleanValue(node.dataset.operationTaskId),
+          operationHref: cleanValue(node.dataset.operationHref),
           rawStart: cleanValue(node.dataset.start),
           rawEnd: cleanValue(node.dataset.end)
         })).filter((event) => event.start);
@@ -2579,39 +3289,13 @@
         const columns = [...app.querySelectorAll("[data-admin-day-column]")];
         const viewButtons = [...app.querySelectorAll("[data-admin-view-mode]")];
         let selectedEvent = null;
+        let detailReturnFocus = null;
         let editingEventId = null;
         const csrfToken = app.dataset.adminCsrf || "";
         const stage = app.querySelector(".admin-ops-stage");
-
-        const commandCard = app.querySelector(
-          ".admin-ops-detail-card > .admin-next-command"
-        );
-        const qualityCard = app.querySelector(
-          ".admin-ops-detail-card > .admin-smart-card--warning"
-        );
-        const quickActions = app.querySelector(
-          ".admin-ops-detail-card > .admin-smart-actions"
-        );
-
-        if (stage && commandCard && !app.querySelector(".admin-command-dock")) {
-          const commandDock = document.createElement("section");
-          commandDock.className = "admin-command-dock";
-          commandDock.setAttribute(
-            "aria-label",
-            "Оперативна командна карта"
-          );
-
-          stage.after(commandDock);
-          commandDock.appendChild(commandCard);
-
-          if (qualityCard) {
-            commandDock.appendChild(qualityCard);
-          }
-
-          if (quickActions) {
-            commandDock.appendChild(quickActions);
-          }
-        }
+        const detailPanel = app.querySelector(".admin-ops-detail");
+        const detailBackdrop = app.querySelector("[data-admin-detail-backdrop]");
+        const detailCloseButton = app.querySelector("[data-admin-detail-close]");
 
         let touchStartX = 0;
         stage?.addEventListener("touchstart", (touchEvent) => { touchStartX = touchEvent.changedTouches[0].screenX; }, { passive: true });
@@ -2644,8 +3328,10 @@
             render();
           }
         });
-        app.querySelector("[data-admin-filter-toggle]")?.addEventListener("click", () => {
-          app.querySelector("[data-admin-filters-panel]")?.classList.toggle("is-open");
+        app.querySelector("[data-admin-filter-toggle]")?.addEventListener("click", (clickEvent) => {
+          const panel = app.querySelector("[data-admin-filters-panel]");
+          const isOpen = panel?.classList.toggle("is-open") || false;
+          clickEvent.currentTarget.setAttribute("aria-expanded", String(isOpen));
         });
         viewButtons.forEach((button) => {
           button.addEventListener("click", () => {
@@ -2671,17 +3357,50 @@
           if (target) { activeView = "day"; focusDate = new Date(target.start); render(); selectEvent(target); }
         });
         app.querySelector("[data-admin-create-event]")?.addEventListener("click", () => openCreateDialog(focusDate));
+        detailCloseButton?.addEventListener("click", closeEventDetails);
+        detailBackdrop?.addEventListener("click", closeEventDetails);
+        detailPanel?.addEventListener("keydown", (keyEvent) => {
+          if (keyEvent.key !== "Tab" || !detailPanel.classList.contains("is-open")) return;
+          const focusable = [...detailPanel.querySelectorAll('a[href]:not([hidden]), button:not([disabled]):not([hidden]), [tabindex]:not([tabindex="-1"])')]
+            .filter((node) => !node.hasAttribute("inert") && node.getClientRects().length);
+          if (!focusable.length) {
+            keyEvent.preventDefault();
+            detailCloseButton?.focus();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (keyEvent.shiftKey && document.activeElement === first) {
+            keyEvent.preventDefault();
+            last.focus();
+          } else if (!keyEvent.shiftKey && document.activeElement === last) {
+            keyEvent.preventDefault();
+            first.focus();
+          }
+        });
+        app.querySelectorAll("[data-admin-quick-category]").forEach((button) => {
+          button.addEventListener("click", () => {
+            openCreateDialog(focusDate);
+            setSelectValue(app.querySelector('[data-admin-create-form] [name="category"]'), button.dataset.adminQuickCategory);
+            app.querySelector("[data-admin-quick-create]")?.removeAttribute("open");
+          });
+        });
         app.querySelector("[data-admin-create-cancel]")?.addEventListener("click", () => app.querySelector("[data-admin-create-dialog]")?.close());
         app.querySelector("[data-admin-create-form]")?.addEventListener("submit", createDraftEvent);
         app.querySelector('[data-admin-create-form] [name="property_id"]')?.addEventListener("change", (changeEvent) => {
           changeEvent.target.classList.remove("is-invalid");
           app.querySelector("[data-admin-property-error]").hidden = true;
+          syncOwnerFromProperty(changeEvent.target.form);
         });
+        window.addEventListener("blacksea:languagechange", () => syncOwnerFromProperty(app.querySelector("[data-admin-create-form]")));
         app.querySelector("[data-admin-edit-event]")?.addEventListener("click", () => selectedEvent && openEditDialog(selectedEvent));
         app.querySelector("[data-admin-delete-event]")?.addEventListener("click", deleteSelectedEvent);
         document.addEventListener("keydown", (keyEvent) => {
           if ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.key.toLowerCase() === "k") { keyEvent.preventDefault(); openCommandPalette(); }
-          if (keyEvent.key === "Escape") app.querySelector("[data-admin-command-palette]")?.close();
+          if (keyEvent.key === "Escape") {
+            app.querySelector("[data-admin-command-palette]")?.close();
+            closeEventDetails();
+          }
         });
 
         function parseDate(value) {
@@ -2727,6 +3446,38 @@
           if (/пристиган|check-in|arrival/.test(semanticText)) return labelFromMap("check-in", typeLabels);
           if (/заминаван|check-out|departure/.test(semanticText)) return labelFromMap("check-out", typeLabels);
           return labelFromMap("other", typeLabels);
+        }
+
+        function humanEventTitle(event) {
+          const lang = String(document.documentElement.lang || "bg").toLowerCase();
+          const catalogs = {
+            bg: {
+              "Guest Inspection": "Инспекция преди пристигане",
+              "Arrival Cleaning": "Почистване преди настаняване",
+              "Check-in Preparation": "Подготовка за настаняване",
+              "Welcome Pack": "Подготовка на пакет за посрещане",
+              "Pool Safety Check": "Проверка на басейна",
+              "Pool safety and equipment check": "Проверка на басейна и безопасността"
+            },
+            fr: {
+              "Guest Inspection": "Inspection avant l’arrivée",
+              "Arrival Cleaning": "Nettoyage avant l’arrivée",
+              "Check-in Preparation": "Préparation de l’arrivée",
+              "Welcome Pack": "Préparation du kit d’accueil",
+              "Pool Safety Check": "Contrôle de la piscine",
+              "Pool safety and equipment check": "Contrôle de la piscine et de la sécurité"
+            },
+            en: {
+              "Guest Inspection": "Pre-arrival inspection",
+              "Arrival Cleaning": "Pre-arrival cleaning",
+              "Check-in Preparation": "Check-in preparation",
+              "Welcome Pack": "Welcome pack preparation",
+              "Pool Safety Check": "Pool safety check",
+              "Pool safety and equipment check": "Pool and safety equipment check"
+            }
+          };
+          const title = String(event.title || "").trim();
+          return (catalogs[lang] || catalogs.en)[title] || eventTypeLabel(event);
         }
 
         function inferredCategoryKey(event) {
@@ -3270,7 +4021,11 @@
         }
 
         function renderShell() {
-          viewButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.adminViewMode === activeView));
+          viewButtons.forEach((button) => {
+            const isActive = button.dataset.adminViewMode === activeView;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-current", isActive ? "page" : "false");
+          });
           app.querySelectorAll("[data-admin-board]").forEach((board) => board.classList.toggle("is-active", board.dataset.adminBoard === activeView));
           if (dateInput) dateInput.value = focusDate.toISOString().slice(0, 10);
           const dates = weekDates();
@@ -3336,9 +4091,6 @@
             });
             layoutCluster();
           });
-          const weekGridColumns = "56px repeat(7, minmax(106px, 1fr))";
-          weekHeader.style.gridTemplateColumns = weekGridColumns;
-          app.querySelector(".admin-week-body").style.gridTemplateColumns = weekGridColumns;
           eventsByDay.forEach((dayEvents, dayIndex) => {
             dayEvents.forEach((event) => {
             const startHour = Math.max(6, event.start.getHours() + event.start.getMinutes() / 60);
@@ -3346,15 +4098,20 @@
             const endHour = Math.min(22, endDate.getHours() + endDate.getMinutes() / 60);
             const top = Math.max(0, (startHour - 6) * hourHeight);
             const height = Math.max(72, (Math.max(startHour + 0.875, endHour) - startHour) * hourHeight);
-            const width = 100 / Math.max(1, event._laneCount || 1);
+            const laneCount = Math.max(1, event._laneCount || 1);
+            const laneIndex = Math.min(laneCount - 1, event._laneIndex || 0);
+            const laneWidth = 100 / laneCount;
+            const laneGap = 4;
+            const laneInset = (16 + laneGap * (laneCount - 1)) / laneCount;
+            const laneLeft = 8 + laneIndex * (laneGap - laneInset);
             const card = document.createElement("button");
             card.type = "button";
             card.className = `admin-ops-event ${tone(event)}`;
             card.style.setProperty("--event-top", `${top}px`);
             card.style.setProperty("--event-height", `${height}px`);
-            card.style.left = `calc(8px + ${width * (event._laneIndex || 0)}%)`;
+            card.style.left = `calc(${(laneWidth * laneIndex).toFixed(4)}% + ${laneLeft.toFixed(3)}px)`;
             card.style.right = "auto";
-            card.style.width = `calc(${width}% - 12px)`;
+            card.style.width = `calc(${laneWidth.toFixed(4)}% - ${laneInset.toFixed(3)}px)`;
             card.dataset.eventId = event.id;
             card.draggable = true;
             card.dataset.urgency = urgency(event);
@@ -3369,7 +4126,10 @@
               </span>
               <span class="admin-ops-event__resize" aria-hidden="true"></span>
             `;
-            card.addEventListener("click", () => selectEvent(event));
+            card.addEventListener("click", () => {
+              detailReturnFocus = card;
+              selectEvent(event);
+            });
             card.addEventListener("dragstart", (dragEvent) => dragEvent.dataTransfer.setData("text/plain", event.id));
             card.addEventListener("keydown", (keyEvent) => navigateEvent(keyEvent, event));
             card.querySelectorAll("[data-card-action]").forEach((button) => button.addEventListener("click", (actionEvent) => { actionEvent.stopPropagation(); runAction(button.dataset.cardAction, event); }));
@@ -3403,6 +4163,7 @@
           const form = app.querySelector("[data-admin-create-form]");
           editingEventId = null;
           form.reset();
+          syncOwnerFromProperty(form);
           form.elements.property_id.classList.remove("is-invalid");
           form.querySelector("[data-admin-property-error]").hidden = true;
           dialog.querySelector("h2").textContent = adminLabel("calendarAddSchedule", "Добавяне към графика");
@@ -3420,13 +4181,34 @@
           control.value = match ? match.value : "";
         }
 
+        function syncOwnerFromProperty(form) {
+          if (!form) return;
+          const propertySelect = form.elements.property_id;
+          const ownerIdInput = form.elements.owner_id;
+          const ownerDisplay = form.querySelector("[data-admin-owner-display]");
+          const ownerMessage = form.querySelector("[data-admin-owner-message]");
+          const option = propertySelect?.selectedOptions?.[0];
+          const propertyId = String(propertySelect?.value || "").trim();
+          const ownerId = propertyId ? String(option?.dataset.ownerId || "").trim() : "";
+          const ownerName = ownerId ? String(option?.dataset.ownerName || "").trim() : "";
+          ownerIdInput.value = ownerId;
+          ownerDisplay.value = propertyId ? (ownerName || adminLabel("calendarNoOwner", "Без собственик")) : "";
+          ownerDisplay.placeholder = adminLabel("calendarSelectPropertyFirst", "Първо изберете имот");
+          ownerMessage.textContent = propertyId
+            ? (ownerId
+              ? adminLabel("calendarOwnerAutoHelper", "Собственикът е определен автоматично от избрания имот.")
+              : adminLabel("calendarPropertyNoOwnerWarning", "Избраният имот няма свързан собственик."))
+            : adminLabel("calendarSelectPropertyFirst", "Първо изберете имот.");
+          ownerMessage.classList.toggle("admin-inline-error", Boolean(propertyId && !ownerId));
+        }
+
         function openEditDialog(event) {
           const dialog = app.querySelector("[data-admin-create-dialog]");
           const form = app.querySelector("[data-admin-create-form]");
           editingEventId = event.id;
           setSelectValue(form.elements.category, event.type);
           setSelectValue(form.elements.property_id, event.propertyId);
-          setSelectValue(form.elements.owner, event.owner);
+          syncOwnerFromProperty(form);
           setSelectValue(form.elements.professional, event.professional);
           setSelectValue(form.elements.priority, event.priority);
           setSelectValue(form.elements.status, event.status);
@@ -3458,7 +4240,8 @@
             notes: record.description || "",
             overdue: Boolean(record.is_overdue),
             source: record.metadata?.source || record.metadata?.source_type || "calendar",
-            operationTaskId: record.operation_task_id || "",
+            operationTaskId: record.canonical_operation_task_id || "",
+            operationHref: record.operation_href || "",
             rawStart: record.start_datetime || "",
             rawEnd: record.end_datetime || "",
             localDraft: false
@@ -3466,7 +4249,7 @@
         }
 
         function apiPayload(event) {
-          return { csrf_token: csrfToken, event_type: event.type, title: event.title, property_id: event.propertyId, owner: event.owner, professional: event.professional, priority: event.priority, status: event.status, notes: event.notes, start_datetime: event.rawStart || event.start.toISOString(), end_datetime: event.rawEnd || event.end.toISOString() };
+          return { csrf_token: csrfToken, event_type: event.type, title: event.title, property_id: event.propertyId, owner_id: event.ownerId, professional: event.professional, priority: event.priority, status: event.status, notes: event.notes, start_datetime: event.rawStart || event.start.toISOString(), end_datetime: event.rawEnd || event.end.toISOString() };
         }
 
         async function createDraftEvent(submitEvent) {
@@ -3501,7 +4284,8 @@
             end,
             property: propertySelect.selectedOptions[0]?.textContent?.trim() || "Невъведен имот",
             propertyId,
-            owner: String(values.get("owner") || "Няма собственик"),
+            ownerId: String(values.get("owner_id") || ""),
+            owner: String(form.querySelector("[data-admin-owner-display]")?.value || "Няма собственик"),
             professional: String(values.get("professional") || "Не е възложено"),
             priority: String(values.get("priority") || "NORMAL"),
             status: String(values.get("status") || "SCHEDULED"),
@@ -3545,6 +4329,7 @@
           const index = events.findIndex((item) => item.id === event.id);
           events.splice(index, 1);
           selectedEvent = null;
+          closeEventDetails();
           render();
           showToast("Изтриване на събитието…");
           try {
@@ -3654,7 +4439,7 @@
           board.innerHTML = `<div class="admin-timeline-list">${sorted.map((event) => `
             <button type="button" class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}">
               <span>${formatDate(event.start, { weekday: "short", day: "2-digit", month: "short" })} · ${getSafeDisplayTime(event)}</span>
-              <strong>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.title)}</strong>
+              <strong>${escapeHtml(humanEventTitle(event))}</strong>
               <span>${escapeHtml(event.property)} · ${escapeHtml(event.professional)}</span>
             </button>
           `).join("") || '<p class="admin-ops-empty">Няма събития с текущите филтри.</p>'}</div>`;
@@ -3667,7 +4452,7 @@
           board.innerHTML = `<div class="admin-day-list">${dayEvents.map((event) => `
             <button type="button" class="admin-day-event ${tone(event)}" data-event-id="${event.id}">
               <span>${getSafeDisplayTime(event)}</span>
-              <strong>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.title)}</strong>
+              <strong>${escapeHtml(humanEventTitle(event))}</strong>
               <span>${escapeHtml(event.property)}</span>
             </button>
           `).join("") || '<p class="admin-ops-empty">Няма събития за този ден.</p>'}</div>`;
@@ -3697,9 +4482,21 @@
           scope.querySelectorAll("[data-event-id]").forEach((node) => {
             node.addEventListener("click", () => {
               const event = events.find((item) => item.id === node.dataset.eventId);
-              if (event) selectEvent(event);
+              if (event) {
+                detailReturnFocus = node;
+                selectEvent(event);
+              }
             });
           });
+        }
+
+        function closeEventDetails() {
+          if (!detailPanel?.classList.contains("is-open")) return;
+          detailPanel.classList.remove("is-open");
+          detailPanel.setAttribute("aria-hidden", "true");
+          detailPanel.inert = true;
+          if (detailBackdrop) detailBackdrop.hidden = true;
+          if (detailReturnFocus?.isConnected) detailReturnFocus.focus({ preventScroll: true });
         }
 
         function renderDispatch() {
@@ -3730,9 +4527,12 @@
           const completed = events.filter((event) => /completed/i.test(event.status)).length;
           const slaEvents = events.filter(tracksOperations);
           const compliance = slaEvents.length ? Math.round((slaEvents.length - slaEvents.filter((event) => event.overdue).length) / slaEvents.length * 100) : 100;
-          const utilization = events.length ? Math.min(96, 48 + new Set(events.map((event) => event.professional).filter(Boolean)).size * 7) : 0;
-          const metric = (label,value,copy,bars) => `<article class="admin-exec-card"><span class="admin-ops-label">${label}</span><strong>${value}</strong><p class="admin-ops-empty">${copy}</p><div class="admin-mini-bars">${bars.map((height) => `<i style="height:${height}%"></i>`).join("")}</div></article>`;
-          board.innerHTML = `<div class="admin-exec-grid">${metric("Заетост", app.querySelector("[data-kpi-occupancy]").textContent, "Оперативна оценка от видимите събития", [42,55,68,64,78,82,88])}${metric("SLA съответствие", `${compliance}%`, `${slaEvents.filter((event) => event.overdue).length} нарушения`, [88,91,84,94,90,compliance])}${metric("Натоварване на екипа", `${utilization}%`, "Активна професионална мрежа", [45,62,71,58,83,utilization])}${metric("Средно време за реакция", "18 мин", "Индикативно за текущия оперативен изглед", [76,68,59,54,48,42])}${metric("Завършени операции", completed, "В текущия филтриран период", [30,45,38,58,67,80])}${metric("Приход", "—", "Не е наличен във входния event payload", [0,0,0,0,0,0])}</div>`;
+          const active = events.filter((event) => !/completed|cancelled/i.test(event.status)).length;
+          const overdue = slaEvents.filter((event) => event.overdue).length;
+          const unassigned = slaEvents.filter((event) => !isEventAssigned(event)).length;
+          const professionals = new Set(events.filter(isEventAssigned).map((event) => event.professional).filter(Boolean)).size;
+          const metric = (label, value, copy) => `<article class="admin-exec-card"><span class="admin-ops-label">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><p class="admin-ops-empty">${escapeHtml(copy)}</p></article>`;
+          board.innerHTML = `<div class="admin-exec-grid">${metric(adminLabel("calendarGuideVisible", "Видими събития"), events.length, adminLabel("calendarGuideVisibleHelp", "В текущия календарен изглед"))}${metric(adminLabel("calendarGuideActive", "Активни събития"), active, adminLabel("calendarGuideActiveHelp", "Без завършени и отменени"))}${metric(adminLabel("calendarGuideSla", "SLA съответствие"), `${compliance}%`, `${overdue} ${adminLabel("calendarGuideBreaches", "нарушения")}`)}${metric(adminLabel("calendarGuideUnassigned", "Невъзложени"), unassigned, adminLabel("calendarGuideUnassignedHelp", "Оперативни събития без изпълнител"))}${metric(adminLabel("calendarGuideCompleted", "Завършени операции"), completed, adminLabel("calendarGuideCompletedHelp", "В текущия филтриран период"))}${metric(adminLabel("calendarGuideProfessionals", "Активни професионалисти"), professionals, adminLabel("calendarGuideProfessionalsHelp", "Във видимите календарни събития"))}</div>`;
         }
 
         function formatDuration(milliseconds) {
@@ -3809,35 +4609,17 @@
         }
 
         function renderIntelligence() {
-          const today = new Date();
-          const todayEvents = events.filter((event) => sameDate(event.start, today));
-          const arrivals = todayEvents.filter((event) => /arrival|check-in|guest/i.test(event.type));
-          const departures = todayEvents.filter((event) => /check-out|departure/i.test(event.type));
-          const cleanings = todayEvents.filter((event) => /clean/i.test(event.type) && !/completed/i.test(event.status));
-          const pros = new Set(todayEvents.filter(isEventAssigned).map((event) => event.professional).filter(Boolean));
-          app.querySelector("[data-kpi-arrivals]").textContent = arrivals.length;
-          app.querySelector("[data-kpi-departures]").textContent = departures.length;
-          app.querySelector("[data-kpi-cleaning]").textContent = cleanings.length;
-          app.querySelector("[data-kpi-professionals]").textContent = pros.size;
-          app.querySelector("[data-kpi-occupancy]").textContent = events.length ? `${Math.min(98, 62 + arrivals.length * 4)}%` : "—";
           const attention = events.filter((event) => urgency(event) === "critical").sort((a,b) => a.start-b.start);
-          const brief = attention[0] ? `${eventTypeLabel(attention[0])} в ${attention[0].property} изисква незабавно внимание.` : cleanings[0] ? `Почистването в ${cleanings[0].property} е следващата активна операция.` : "Няма критични зависимости. Денят е в график.";
-          app.querySelector("[data-admin-ai-brief]").textContent = brief;
-          app.querySelector("[data-admin-urgent-queue]").innerHTML = attention.slice(0,4).map((event) => `<button class="admin-urgent-item" data-event-id="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span></button>`).join("") || '<p class="admin-ops-empty">Няма критични задачи.</p>';
+          app.querySelector("[data-admin-urgent-queue]").innerHTML = attention.slice(0,4).map((event) => `<button class="admin-urgent-item" type="button" data-event-id="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span></button>`).join("") || `<p class="admin-ops-detail__empty">${escapeHtml(adminLabel("calendarDetailNoRelated", "Няма свързани критични операции."))}</p>`;
           bindBoardEvents(app.querySelector("[data-admin-urgent-queue]"));
-          const arrivalSoon = arrivals.filter((event) => event.start - new Date() < 7200000 && event.start > new Date()).length;
-          const ready = todayEvents.filter((event) => /completed/i.test(event.status)).length;
-          app.querySelector("[data-mission-critical]").textContent = attention.length;
-          app.querySelector("[data-mission-arrivals]").textContent = arrivalSoon;
-          app.querySelector("[data-mission-cleaning]").textContent = cleanings.length;
-          app.querySelector("[data-mission-ready]").textContent = ready;
-          app.querySelector("[data-mission-pros]").textContent = pros.size;
-          app.querySelector("[data-mission-occupancy]").textContent = app.querySelector("[data-kpi-occupancy]").textContent;
-          app.querySelector("[data-mission-sla]").textContent = events.filter((event) => tracksOperations(event) && event.overdue).length;
         }
 
         function selectEvent(event) {
           selectedEvent = event;
+          detailPanel?.classList.add("is-open");
+          detailPanel?.setAttribute("aria-hidden", "false");
+          if (detailPanel) detailPanel.inert = false;
+          if (detailBackdrop) detailBackdrop.hidden = false;
           const persistence = persistenceDiagnostics(event);
           const operational = tracksOperations(event);
           app.querySelectorAll("[data-event-id]").forEach((node) => node.classList.toggle("is-selected", node.dataset.eventId === event.id));
@@ -3845,27 +4627,57 @@
           typePill.textContent = eventTypeLabel(event);
           typePill.className = `admin-ops-detail-pill ${tone(event)}`;
           const persistenceBadge = app.querySelector("[data-admin-persistence-badge]");
-          persistenceBadge.textContent = ({ Persistent: "Постоянно", Legacy: "Наследено", "Read-only": "Само за четене", Imported: "Импортирано" })[persistence.kind] || "Само за четене";
+          persistenceBadge.textContent = ({
+            Persistent: adminLabel("calendarDetailPersistent", "Постоянно"),
+            Legacy: adminLabel("calendarDetailLegacy", "Наследено"),
+            "Read-only": adminLabel("calendarDetailReadOnly", "Само за четене"),
+            Imported: adminLabel("calendarDetailImported", "Импортирано")
+          })[persistence.kind] || adminLabel("calendarDetailReadOnly", "Само за четене");
           persistenceBadge.className = `admin-persistence-badge admin-persistence-badge--${persistence.kind.toLowerCase().replace(/[^a-z]+/g, "-")}`;
-          app.querySelector("[data-admin-detail-title]").textContent = event.title;
-          app.querySelector("[data-admin-detail-time]").textContent = event.start ? `${formatDate(event.start, { weekday: "long", day: "2-digit", month: "long" })} · ${getSafeDisplayTime(event)}` : "Часът не е уточнен";
-          app.querySelector("[data-admin-detail-property]").textContent = event.city ? `${event.property}, ${event.city}` : event.property;
-          app.querySelector("[data-admin-detail-owner]").textContent = event.owner;
-          app.querySelector("[data-admin-detail-professional]").textContent = operational ? event.professional : "Не се изисква";
+          app.querySelector("[data-admin-detail-title]").textContent = humanEventTitle(event);
+          const unavailable = adminLabel("calendarDetailUnavailable", "Няма данни");
+          const ownerText = event.ownerMissing ? adminLabel("calendarDetailNoOwner", "Няма собственик") : event.owner;
+          const professionalText = !operational ? adminLabel("calendarDetailNotRequired", "Не се изисква") : event.professionalMissing ? adminLabel("calendarDetailUnassigned", "Не е възложено") : event.professional;
+          const propertyText = event.propertyMissing ? unavailable : event.property;
+          app.querySelector("[data-admin-detail-subtitle]").textContent = `${propertyText} · ${professionalText}`;
+          app.querySelector("[data-admin-detail-time]").textContent = event.start ? `${formatDate(event.start, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })} · ${getSafeDisplayTime(event)}` : unavailable;
+          app.querySelector("[data-admin-detail-property]").textContent = propertyText;
+          app.querySelector("[data-admin-detail-address]").textContent = event.city || unavailable;
+          app.querySelector("[data-admin-detail-owner]").textContent = ownerText;
+          app.querySelector("[data-admin-detail-professional]").textContent = professionalText;
+          app.querySelector("[data-admin-detail-guest]").textContent = unavailable;
           app.querySelector("[data-admin-detail-priority]").textContent = priorityLabel(event.priority);
           app.querySelector("[data-admin-detail-status]").textContent = statusLabel(event.status);
-          app.querySelector("[data-admin-detail-notes]").textContent = event.notes || "Няма записани бележки за това събитие.";
+          app.querySelector("[data-admin-detail-start]").textContent = event.start ? `${formatDate(event.start, { day: "2-digit", month: "short", year: "numeric" })} · ${formatTime(event.start)}` : unavailable;
+          app.querySelector("[data-admin-detail-end]").textContent = event.end ? `${formatDate(event.end, { day: "2-digit", month: "short", year: "numeric" })} · ${formatTime(event.end)}` : unavailable;
+          app.querySelector("[data-admin-detail-category]").textContent = eventTypeLabel(event);
+          app.querySelector("[data-admin-detail-lifecycle]").textContent = statusLabel(event.status);
+          app.querySelector("[data-admin-detail-notes]").textContent = event.notes || adminLabel("calendarDetailNoNotes", "Няма оперативна бележка.");
           const completed = /completed/i.test(event.status) ? 4 : /progress/i.test(event.status) ? 2 : 0;
           app.querySelector("[data-admin-detail-progress]").style.width = `${completed * 25}%`;
-          app.querySelector("[data-admin-detail-checklist]").textContent = `${completed} от 4 задачи`;
-          app.querySelector("[data-admin-detail-attachments]").textContent = "Няма прикачени файлове";
+          app.querySelector("[data-admin-detail-checklist]").textContent = `${completed} / 4 ${adminLabel("calendarDetailTasks", "задачи")}`;
+          app.querySelector("[data-admin-detail-attachments]").textContent = adminLabel("calendarDetailNoAttachments", "Няма прикачени файлове.");
           const operationalOverdue = operational && event.overdue;
-          app.querySelector("[data-admin-detail-sla]").textContent = !operational ? "Не се следи SLA" : operationalOverdue ? "Просрочено" : event.start > new Date() ? `${Math.max(1, Math.ceil((event.start - new Date()) / 3600000))} ч. остават` : "В изпълнение";
+          app.querySelector("[data-admin-detail-sla]").textContent = !operational
+            ? adminLabel("calendarDetailSlaNotTracked", "SLA не се следи")
+            : operationalOverdue
+              ? adminLabel("calendarDetailSlaOverdue", "SLA е просрочено")
+              : event.start > new Date()
+                ? `${Math.max(1, Math.ceil((event.start - new Date()) / 3600000))} ${adminLabel("calendarDetailHoursRemaining", "ч. остават")}`
+                : adminLabel("calendarDetailInProgress", "В изпълнение");
           const minutes = Math.round((event.start - new Date()) / 60000);
           const unassigned = operational && !isEventAssigned(event);
           const recommendation = operational ? bestProfessional(event) : null;
           const qualityIssues = clientDataQuality(event);
           const issueCodes = new Set(qualityIssues.map((issue) => issue.code));
+          app.querySelector("[data-admin-detail-issues]").textContent = qualityIssues.length
+            ? `${qualityIssues.length} ${adminLabel("calendarDetailDataIssues", "проблема с данните")}`
+            : adminLabel("calendarDetailNoIssues", "Няма нерешени проблеми");
+          const operationLink = app.querySelector("[data-admin-detail-operation]");
+          operationLink.hidden = !event.operationHref;
+          if (event.operationHref) operationLink.href = event.operationHref;
+          const propertyLink = app.querySelector("[data-admin-detail-property-link]");
+          propertyLink.hidden = !event.propertyId;
           const score = operational ? actionRiskScore(event) : 0;
           const band = riskBand(Math.max(0, score));
           const slaText = !operational ? "Не се следи SLA" : operationalOverdue ? `Просрочено с ${Math.max(1, Math.ceil(Math.abs(minutes) / 60))} ч.` : minutes > 0 ? `${minutes < 60 ? minutes + " мин." : Math.ceil(minutes / 60) + " ч."} до начало` : "Активно сега";
@@ -3900,17 +4712,43 @@
           app.querySelector("[data-admin-warning]").textContent = qualityIssues.length ? `${qualityIssues.length} предупреждения за качеството на данните` : "Няма активни предупреждения.";
           app.querySelector("[data-admin-suggestion]").textContent = qualityIssues.map((issue) => issue.label).join(" · ") || `Следваща препоръка: ${primaryAction}.`;
           app.querySelector("[data-admin-technical-diagnostics]").innerHTML = `<pre>${escapeHtml(JSON.stringify({ source: event.source, operation_task_id: event.operationTaskId, persistence, issues: qualityIssues }, null, 2))}</pre>`;
-          const flow = ["Резервация", "Пристигане", "Почистване", "Инспекция", "Поддръжка", "Готов за гост"];
+          const flow = [
+            adminLabel("eventReservation", "Резервация"),
+            adminLabel("eventArrival", "Пристигане"),
+            adminLabel("eventCleaning", "Почистване"),
+            adminLabel("eventInspection", "Инспекция"),
+            adminLabel("eventMaintenance", "Поддръжка"),
+            adminLabel("calendarHealthyState", "Готов за гост")
+          ];
           const type = inferredCategoryKey(event);
           const current = /arrival|check-in/.test(type) ? 1 : /clean/.test(type) ? 2 : /inspect/.test(type) ? 3 : /maintenance|repair/.test(type) ? 4 : /completed/.test(event.status) ? 5 : 0;
           app.querySelector("[data-admin-workflow]").innerHTML = flow.map((step,index) => {
-            if (index < current) return `<div class="admin-workflow-step is-complete">${step} · Завършено</div>`;
-            if (index === current) return `<div class="admin-workflow-step is-current">${step} · Активно сега</div>`;
-            if (unassigned && index === current + 1) return `<div class="admin-workflow-step is-blocked" title="Няма възложен професионалист">${step} · Блокирано: няма възложен професионалист</div>`;
-            return `<div class="admin-workflow-step">${step} · Следващо</div>`;
+            if (index < current) return `<div class="admin-workflow-step is-complete">${escapeHtml(step)} · ${escapeHtml(adminLabel("calendarDetailCompleted", "Завършено"))}</div>`;
+            if (index === current) return `<div class="admin-workflow-step is-current">${escapeHtml(step)} · ${escapeHtml(adminLabel("calendarDetailCurrent", "Активно сега"))}</div>`;
+            if (unassigned && index === current + 1) return `<div class="admin-workflow-step is-blocked">${escapeHtml(step)} · ${escapeHtml(adminLabel("calendarDetailBlockedUnassigned", "Блокирано: няма възложен професионалист"))}</div>`;
+            return `<div class="admin-workflow-step">${escapeHtml(step)} · ${escapeHtml(adminLabel("calendarDetailNext", "Следващо"))}</div>`;
           }).join("");
-          const riskClass = band.tone === "critical" ? "admin-health--critical" : /medium|high/.test(band.tone) ? "admin-health--attention" : "";
-          app.querySelector("[data-admin-operations-feed]").innerHTML = `<div class="admin-health ${riskClass}">Риск ${Math.max(0, score)}/100 · ${band.label}</div>${["Събитието е синхронизирано", event.professional && !unassigned ? `Възложено на ${event.professional}` : "Очаква възлагане", `${statusLabel(event.status)} · ${getSafeDisplayTime(event)}`].map((item,index) => `<div class="admin-smart-card"><small>${formatTime(new Date(Date.now() - index * 12 * 60000))}</small><br><strong>${escapeHtml(item)}</strong></div>`).join("")}`;
+          const activity = [
+            {
+              at: event.start,
+              title: adminLabel("calendarDetailEventScheduled", "Събитието е планирано"),
+              detail: eventTypeLabel(event)
+            },
+            {
+              at: event.start,
+              title: event.professional && !unassigned
+                ? `${adminLabel("calendarDetailAssignedTo", "Възложено на")} ${event.professional}`
+                : adminLabel("calendarDetailAwaitingAssignment", "Очаква възлагане"),
+              detail: propertyText
+            },
+            {
+              at: event.end || event.start,
+              title: statusLabel(event.status),
+              detail: `${adminLabel("calendarDetailSlaRisk", "SLA / риск")}: ${Math.max(0, score)}/100 · ${band.label}`
+            }
+          ].sort((left, right) => (left.at?.getTime?.() || 0) - (right.at?.getTime?.() || 0));
+          app.querySelector("[data-admin-operations-feed]").innerHTML = activity.map((item) => `<li class="admin-ops-detail__timeline-item"><time datetime="${item.at ? item.at.toISOString() : ""}">${item.at ? escapeHtml(formatTime(item.at)) : "—"}</time><div><strong>${escapeHtml(item.title)}</strong><br><span>${escapeHtml(item.detail)}</span></div></li>`).join("");
+          window.setTimeout(() => detailCloseButton?.focus({ preventScroll: true }), 100);
         }
 
         function escapeHtml(value) {
@@ -3943,10 +4781,7 @@
           if (selectedEvent) selectEvent(selectedEvent);
         });
         render();
-        const initialAction = highestPriorityAction();
-        if (initialAction) selectEvent(initialAction);
         window.setInterval(updateSlaClocks, 1000);
-        window.setTimeout(initializeBriefing, 250);
       })();
     </script>
   {% endif %}
