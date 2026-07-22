@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -321,27 +321,27 @@
         </div>
         <h1>{{ property.name|e }}</h1>
         <p class="admin-property-detail-copy">
-          Inspect the property profile, review the owner linkage, save internal notes, and audit the property timeline in one place.
+          Прегледайте профила на имота, връзката със собственика, вътрешните бележки и хронологията на едно място.
         </p>
       </div>
       <div class="admin-property-detail-actions">
-        <a class="button button--secondary" href="/admin/properties">Back to properties</a>
-        <a class="button button--ghost" href="{{ url_for('admin_operations', property=property.name) }}">Open Active Tasks</a>
-        <a class="button button--ghost" href="/admin">Back to cockpit</a>
+        <a class="button button--secondary" href="/admin/properties">Назад към имотите</a>
+        <a class="button button--ghost admin-property-active-tasks-link" href="{{ url_for('admin_operations', property=property.name) }}">Отвори активните задачи</a>
+        <a class="button button--ghost" href="/admin">Назад към управленския панел</a>
       </div>
     </section>
 
     <section class="admin-property-detail-grid">
       <div class="admin-property-detail-stack">
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Property Profile</p>
-          <h2 class="admin-property-detail-section-title">Property details</h2>
+          <p class="eyebrow">ПРОФИЛ НА ИМОТА</p>
+          <h2 class="admin-property-detail-section-title">Детайли за имота</h2>
           <dl class="admin-property-detail-dl">
-            <div><dt>Property name</dt><dd>{{ property.name|e }}</dd></div>
-            <div><dt>Property type</dt><dd>{{ property.property_type|e }}</dd></div>
-            <div><dt>City / location</dt><dd>{{ property.location|e }}</dd></div>
-            <div><dt>Units</dt><dd>{{ property.guest_capacity }}</dd></div>
-            <div><dt>Status</dt><dd>{{ property.status_label|e }}</dd></div>
+            <div><dt>Име на имота</dt><dd>{{ property.name|e }}</dd></div>
+            <div><dt>Тип имот</dt><dd>{{ property.property_type|e }}</dd></div>
+            <div><dt>Град / местоположение</dt><dd>{{ property.location|e }}</dd></div>
+            <div><dt>Капацитет</dt><dd>{{ property.guest_capacity }}</dd></div>
+            <div><dt>Статус</dt><dd>{{ property.status_label|e }}</dd></div>
             <div><dt>Created at</dt><dd>{{ property.created_at|e }}</dd></div>
           </dl>
         </article>
@@ -367,7 +367,7 @@
             {% for item in checklist_items %}
               <div class="admin-property-detail-checklist__item">
                 <span>{{ item.label }}</span>
-                <strong>{% if item.ready %}Ready{% else %}Pending{% endif %}</strong>
+                <strong>{% if item.ready %}Готово{% else %}Предстои{% endif %}</strong>
               </div>
             {% endfor %}
           </div>
@@ -376,10 +376,10 @@
         <article class="admin-property-detail-panel">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
             <div>
-              <p class="eyebrow">Calendar</p>
-              <h2 class="admin-property-detail-section-title">Mini calendar</h2>
+              <p class="eyebrow">КАЛЕНДАР</p>
+              <h2 class="admin-property-detail-section-title" data-testid="property-mini-calendar">Мини календар</h2>
             </div>
-            <a class="button button--ghost" href="/admin/calendar?property={{ property.id|urlencode }}">Open admin calendar</a>
+            <a class="button button--ghost" href="/admin/calendar?property={{ property.id|urlencode }}">Отвори административния календар</a>
           </div>
           <div class="admin-property-detail-calendar">
             <div class="admin-property-detail-calendar-grid">
@@ -387,21 +387,21 @@
                 <div class="admin-property-detail-calendar-day">
                   <span>{{ day.label|e }}</span>
                   <strong>{{ day.day }}</strong>
-                  <p class="admin-property-detail-empty">{{ day.count }} events</p>
+                  <p class="admin-property-detail-empty">{{ day.count }} събития</p>
                 </div>
               {% endfor %}
             </div>
             <div class="admin-property-detail-card-grid" style="margin-top: 0;">
               <div class="admin-property-detail-stat">
-                <span>Upcoming events</span>
+                <span>Предстоящи събития</span>
                 <strong>{{ calendar.upcoming_events|length }}</strong>
               </div>
               <div class="admin-property-detail-stat">
-                <span>Cleaning schedule</span>
+                <span>График за почистване</span>
                 <strong>{{ calendar.cleaning_schedule|length }}</strong>
               </div>
               <div class="admin-property-detail-stat">
-                <span>Maintenance schedule</span>
+                <span>График за поддръжка</span>
                 <strong>{{ calendar.maintenance_schedule|length }}</strong>
               </div>
             </div>
@@ -454,16 +454,16 @@
 
       <div class="admin-property-detail-stack">
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Owner Information</p>
-          <h2 class="admin-property-detail-section-title">Owner profile</h2>
+          <p class="eyebrow" data-testid="property-owner-information">ИНФОРМАЦИЯ ЗА СОБСТВЕНИКА</p>
+          <h2 class="admin-property-detail-section-title">Профил на собственика</h2>
           {% if owner_account %}
             <dl class="admin-property-detail-dl">
-              <div><dt>Full name</dt><dd>{{ owner_account.full_name|e }}</dd></div>
-              <div><dt>Email</dt><dd>{{ owner_account.email|e }}</dd></div>
-              <div><dt>Phone</dt><dd>{{ owner_account.phone|e }}</dd></div>
-              <div><dt>Language</dt><dd>{{ owner_account.language|upper|e }}</dd></div>
-              <div><dt>Registration date</dt><dd>{{ owner_account.created_at|e }}</dd></div>
-              <div><dt>Last login</dt><dd>{% if owner_account.last_login_at %}{{ owner_account.last_login_at|e }}{% else %}n/a{% endif %}</dd></div>
+              <div><dt>Име и фамилия</dt><dd>{{ owner_account.full_name|e }}</dd></div>
+              <div><dt>Имейл</dt><dd>{{ owner_account.email|e }}</dd></div>
+              <div><dt>Телефон</dt><dd>{{ owner_account.phone|e }}</dd></div>
+              <div><dt>Език</dt><dd>{{ owner_account.language|upper|e }}</dd></div>
+              <div><dt>Дата на регистрация</dt><dd>{{ owner_account.created_at|e }}</dd></div>
+              <div><dt>Последно влизане</dt><dd>{% if owner_account.last_login_at %}{{ owner_account.last_login_at|e }}{% else %}Никога{% endif %}</dd></div>
             </dl>
           {% else %}
             <p class="admin-property-detail-empty">No owner account is linked to this property.</p>
@@ -472,19 +472,19 @@
 
         <article class="admin-property-detail-panel">
           <p class="eyebrow">Internal Notes</p>
-          <h2 class="admin-property-detail-section-title">Admin notes</h2>
+          <h2 class="admin-property-detail-section-title">Административни бележки</h2>
           <form class="admin-property-detail-form" method="post" action="/admin/properties/{{ property.id|e }}">
             <label>
-              <span>Internal notes</span>
-              <textarea name="admin_notes" placeholder="Private operational notes for the admin team">{{ property.admin_notes|e }}</textarea>
+              <span>Вътрешни бележки</span>
+              <textarea name="admin_notes" placeholder="Вътрешни оперативни бележки за екипа">{{ property.admin_notes|e }}</textarea>
             </label>
-            <button class="button button--primary" type="submit">Save notes</button>
+            <button class="button button--primary" type="submit">Запази бележките</button>
           </form>
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Timeline</p>
-          <h2 class="admin-property-detail-section-title">Property timeline</h2>
+          <p class="eyebrow" data-testid="property-timeline">ХРОНОЛОГИЯ</p>
+          <h2 class="admin-property-detail-section-title">Хронология на имота</h2>
           {% if timeline %}
             <div class="admin-property-detail-timeline">
               {% for event in timeline %}

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -249,10 +249,10 @@
       <div class="admin-owner-accounts-hero">
         <div>
           <span class="admin-owner-accounts-chip">Admin</span>
-          <span class="admin-owner-accounts-chip">Owner CRM</span>
-          <h1>Owner Accounts</h1>
+          <span class="admin-owner-accounts-chip">CRM на собственици</span>
+          <h1>Акаунти на собственици</h1>
           <p class="admin-owner-accounts-copy">
-            Search the owner base, review profile details, and open any account for notes, status changes, and activity history.
+            Търсете собственици, преглеждайте профили и управлявайте бележки, статуси и история на активността.
           </p>
         </div>
         <div class="admin-owner-accounts-actions" style="margin-top:0;">
@@ -261,12 +261,12 @@
         </div>
       </div>
       <p class="admin-owner-accounts-summary">
-        <span><strong>{{ owner_accounts_count }}</strong> filtered</span>
-        <span><strong>{{ owner_accounts_total_count }}</strong> total</span>
-        <span>Loaded from <code>{{ owner_accounts_path }}</code></span>
+        <span><strong>{{ owner_accounts_count }}</strong> показани</span>
+        <span data-testid="owner-total-count"><strong>{{ owner_accounts_total_count }}</strong> общо</span>
+
       </p>
       {% if request.args.get('seeded') == '1' %}
-        <div class="admin-owner-accounts-banner" role="status">Owner account seeded successfully.</div>
+        <div class="admin-owner-accounts-banner" role="status">Акаунтът на собственика е създаден успешно.</div>
       {% endif %}
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -293,7 +293,7 @@
           <label class="admin-owner-accounts-filter-field">
             <span>Language</span>
             <select name="language">
-              <option value="">All languages</option>
+              <option value="">Всички езици</option>
               {% for option in owner_language_options %}
                 <option value="{{ option|e }}" {% if language_filter|lower == option|lower %}selected{% endif %}>{{ option|upper|e }}</option>
               {% endfor %}
@@ -340,7 +340,7 @@
               </dl>
               <div class="admin-owner-account-card__footer">
                 <span class="admin-owner-accounts-chip">{{ account.language|upper|e }}</span>
-                <span class="admin-owner-account-card__link">Open profile</span>
+                <span class="admin-owner-account-card__link">Отвори профила</span>
               </div>
             </a>
           {% endfor %}

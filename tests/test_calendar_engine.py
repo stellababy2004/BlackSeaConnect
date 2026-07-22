@@ -414,13 +414,13 @@ class CalendarEngineTests(unittest.TestCase):
         self.assertIn("Upcoming Check-outs", admin_dashboard_html)
         self.assertIn("Today's Cleaning", admin_dashboard_html)
         self.assertIn("Overdue Events", admin_dashboard_html)
-        self.assertIn("Mini calendar", owner_property_html)
+        self.assertIn('data-testid="property-mini-calendar"', owner_property_html)
         self.assertIn("/owners/calendar?property=property-1&amp;lang=bg", owner_property_html)
         self.assertIn("Open full calendar", owner_property_html)
         self.assertIn("Blocked dates", owner_property_html)
-        self.assertIn("Mini calendar", admin_property_html)
+        self.assertIn('data-testid="property-mini-calendar"', admin_property_html)
         self.assertIn("/admin/calendar?property=property-1", admin_property_html)
-        self.assertIn("Open admin calendar", admin_property_html)
+        self.assertIn("Отвори административния календар", admin_property_html)
         self.assertIn("Owner calendar blocks", admin_property_html)
 
     def test_admin_calendar_event_crud_api(self):

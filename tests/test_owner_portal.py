@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import io
 import html as html_lib
 from html.parser import HTMLParser
@@ -1475,11 +1475,11 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Owner CRM", html)
-        self.assertIn("<strong>1</strong> filtered", html)
+        self.assertIn("CRM на собственици", html)
+        self.assertIn("<strong>1</strong> показани", html)
         self.assertIn("stoyanova@orange.fr", html)
         self.assertIn("2026-06-15T10:00:00Z", html)
-        self.assertIn("Open profile", html)
+        self.assertIn("Отвори профила", html)
         self.assertIn("PILOT", html)
         self.assertIn("BG", html)
 
@@ -1496,10 +1496,10 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(accounts_response.status_code, 200)
         html = accounts_response.get_data(as_text=True)
-        self.assertIn("Owner CRM", html)
-        self.assertIn("<strong>1</strong> filtered", html)
+        self.assertIn("CRM на собственици", html)
+        self.assertIn("<strong>1</strong> показани", html)
         self.assertIn("stoyanova@orange.fr", html)
-        self.assertIn("Owner account seeded successfully.", html)
+        self.assertIn("Акаунтът на собственика е създаден успешно.", html)
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             login_response = self.client.post("/owners/login", data={"email": "stoyanova@orange.fr"})
@@ -1527,7 +1527,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("<strong>1</strong> filtered", html)
+        self.assertIn("<strong>1</strong> показани", html)
         self.assertIn("stoyanova@orange.fr", html)
 
     def test_admin_owner_accounts_support_search_and_filters(self):
@@ -1571,8 +1571,8 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("<strong>1</strong> filtered", html)
-        self.assertIn("<strong>2</strong> total", html)
+        self.assertIn("<strong>1</strong> показани", html)
+        self.assertIn('data-testid="owner-total-count"><strong>2</strong>', html)
         self.assertIn("elena@example.com", html)
         self.assertNotIn("maya@example.com", html)
 
@@ -1659,19 +1659,19 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Sea View Villa", listing_html)
         self.assertIn("owner@example.com", listing_html)
         self.assertIn("Setup", listing_html)
-        self.assertRegex(listing_html, r"<strong>1</strong> filtered")
+        self.assertRegex(listing_html, r"<strong>1</strong> показани")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             detail = self.client.get("/admin/properties/property-1", headers=self._auth_headers())
 
         self.assertEqual(detail.status_code, 200)
         detail_html = detail.get_data(as_text=True)
-        self.assertIn("Property Profile", detail_html)
-        self.assertIn("Owner Information", detail_html)
+        self.assertIn("ПРОФИЛ НА ИМОТА", detail_html)
+        self.assertIn('data-testid="property-owner-information"', detail_html)
         self.assertIn("Readiness Checklist", detail_html)
         self.assertIn("Service Request History", detail_html)
         self.assertIn("Internal Notes", detail_html)
-        self.assertIn("Timeline", detail_html)
+        self.assertIn('data-testid="property-timeline"', detail_html)
         self.assertIn("Property created", detail_html)
         self.assertIn("Owner assigned", detail_html)
         self.assertIn("Service request submitted", detail_html)

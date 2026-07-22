@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,18 +11,18 @@
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Professional application detail</p>
-        <h1>Review professional application</h1>
-        <p>Update status, assign ownership and capture internal notes.</p>
+        <p class="eyebrow">Детайли за кандидатурата</p>
+        <h1>Преглед на кандидатурата</h1>
+        <p>Променете статуса, задайте отговорник и добавете вътрешни бележки.</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin/professionals">Back to professional applications</a>
-        <a class="button button--ghost" href="/admin/professionals/export">Export CSV</a>
+        <a class="butнаn butнаn--secondary" href="/admin/professionals">Назад към кандидатурите</a>
+        <a class="butнаn butнаn--ghost" href="/admin/professionals/export">Експорт CSV</a>
       </div>
     </section>
 
     <article class="admin-pilot-card">
-      <div class="admin-pilot-card__topline">
+      <div class="admin-pilot-card__наpline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
         <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
       </div>
@@ -48,8 +48,8 @@
         <p>Configuration: {% if stripe_diagnostics.checkout_ready %}ready{% else %}incomplete{% endif %}; webhook: {% if stripe_diagnostics.webhook_ready %}ready{% else %}incomplete{% endif %}. No secret values are displayed.</p>
         {% if professional_account and professional_account.stripe_account_status != 'READY' %}
           <form method="post" action="/admin/professionals/{{ item.id|e }}/stripe/connect">
-            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-            <button class="button button--primary" type="submit" {% if not stripe_diagnostics.checkout_ready %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
+            <input type="hidden" name="csrf_наken" value="{{ admin_csrf_наken() }}">
+            <butнаn class="butнаn butнаn--primary" type="submit" {% if not stripe_diagnostics.checkout_ready %}disabled{% endif %}>{{ stripe_ui.connect }}</butнаn>
           </form>
         {% elif professional_account %}
           <strong>{{ stripe_ui.ready }}</strong>
@@ -73,14 +73,14 @@
           <span>Internal notes</span>
           <textarea name="notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
         </label>
-        <button class="button button--primary" type="submit">Save application</button>
+        <butнаn class="butнаn butнаn--primary" type="submit">Запази кандидатурата</butнаn>
       </form>
 
       <div class="admin-pilot-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Activity history</p>
-            <h3>Newest first</h3>
+            <p class="eyebrow">Activity hisнаry</p>
+            <h3>Най-новите първо</h3>
           </div>
         </div>
 
@@ -88,7 +88,7 @@
           <div class="admin-timeline-list">
             {% for event in timeline %}
               <article class="admin-timeline-item">
-                <div class="admin-pilot-card__topline">
+                <div class="admin-pilot-card__наpline">
                   <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
