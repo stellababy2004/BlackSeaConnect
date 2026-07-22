@@ -1963,6 +1963,771 @@
     .admin-work-order-context { grid-template-columns: 1fr; }
     .admin-work-order-objective { padding: 22px; }
   }
+
+    /* BSC_OPERATIONS_DETAIL_V2_POLISH */
+
+    /* По-ясна основна колона и по-компактен sidebar */
+    body.admin-operations-detail-page .admin-operations-workspace {
+      grid-template-columns: minmax(0, 1.55fr) minmax(310px, .72fr) !important;
+      gap: 20px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-stack {
+      gap: 16px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-sidebar {
+      gap: 14px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-detail-panel {
+      scroll-margin-top: 96px;
+    }
+
+    /* Основните работни секции са по-видими от вторичния контекст */
+    body.admin-operations-detail-page .admin-operations-stack > .admin-operations-detail-panel {
+      border-color: rgba(15, 43, 71, .12) !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-sidebar > .admin-operations-detail-panel {
+      padding: 20px !important;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .07) !important;
+    }
+
+    /* Препоръките вече приличат на реални оперативни действия */
+    body.admin-operations-detail-page .admin-operations-recommendation-grid {
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+      gap: 12px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-recommendation-card {
+      position: relative;
+      min-height: 150px;
+      padding: 18px 18px 18px 22px !important;
+      border-left: 4px solid #173e63 !important;
+      background:
+        linear-gradient(145deg, rgba(245, 249, 253, .98), #fff) !important;
+      box-shadow: 0 10px 26px rgba(15, 35, 55, .07) !important;
+      transition:
+        transform .16s ease,
+        box-shadow .16s ease,
+        border-color .16s ease;
+    }
+
+    body.admin-operations-detail-page .admin-operations-recommendation-card:hover {
+      transform: translateY(-2px);
+      border-left-color: #b28b2e !important;
+      box-shadow: 0 16px 34px rgba(15, 35, 55, .11) !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-recommendation-card > span {
+      color: #526579 !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-recommendation-card > strong {
+      margin-top: 7px;
+      font-size: 1.08rem !important;
+      line-height: 1.25 !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-recommendation-card > small {
+      margin-top: auto;
+      padding-top: 10px;
+      color: #5f7082 !important;
+      line-height: 1.45 !important;
+    }
+
+    /* По-компактен панел за възлагане */
+    body.admin-operations-detail-page .admin-operations-control-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-control-card {
+      min-height: 118px;
+      padding: 14px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-pro-grid {
+      gap: 8px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-pro-row {
+      padding: 11px 13px !important;
+      border-radius: 14px !important;
+    }
+
+    /* Коментарите се четат преди формата за нов коментар */
+    body.admin-operations-detail-page
+      .admin-operations-sidebar
+      .admin-operations-detail-panel:has(.admin-operations-comment-box) {
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-detail-panel:has(.admin-operations-comment-box)
+      .admin-operations-comment-box {
+      order: 3;
+      margin-top: 4px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-detail-panel:has(.admin-operations-comment-box)
+      > .admin-operations-form {
+      order: 4;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(15, 23, 42, .10);
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-detail-panel:has(.admin-operations-comment-box)
+      textarea {
+      min-height: 88px !important;
+      resize: vertical;
+    }
+
+    body.admin-operations-detail-page .admin-operations-comment-box {
+      display: grid;
+      gap: 9px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-comment {
+      padding: 13px 14px !important;
+      border-radius: 14px !important;
+      box-shadow: none !important;
+      background: #f8fafc !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-comment__meta {
+      gap: 8px;
+    }
+
+    body.admin-operations-detail-page .admin-operations-comment-body {
+      margin: 8px 0 0 !important;
+    }
+
+    /* Истинска, компактна хронология вместо купчина големи карти */
+    body.admin-operations-detail-page .admin-operations-timeline-rail {
+      position: relative;
+      display: grid;
+      gap: 0 !important;
+      padding-left: 26px;
+    }
+
+    body.admin-operations-detail-page .admin-operations-timeline-rail::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 9px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        rgba(31, 95, 78, .38),
+        rgba(23, 62, 99, .16)
+      );
+    }
+
+    body.admin-operations-detail-page .admin-operations-timeline-item {
+      position: relative;
+      padding: 13px 10px 14px 14px !important;
+      border: 0 !important;
+      border-bottom: 1px solid rgba(15, 23, 42, .09) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item:last-child {
+      border-bottom: 0 !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: -22px;
+      width: 10px;
+      height: 10px;
+      border: 3px solid #eef5f2;
+      border-radius: 50%;
+      background: #28765e;
+      box-shadow: 0 0 0 1px rgba(40, 118, 94, .22);
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__header {
+      align-items: flex-start !important;
+      gap: 12px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__header time {
+      flex: 0 0 auto;
+      color: #6b7a8b;
+      font-size: .78rem;
+      white-space: nowrap;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__title {
+      min-width: 0;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__icon {
+      width: 30px !important;
+      height: 30px !important;
+      flex: 0 0 30px !important;
+      border-radius: 10px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item
+      .admin-operations-detail-meta {
+      margin-top: 7px !important;
+      gap: 6px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item
+      p {
+      margin: 8px 0 0 !important;
+      color: #536476 !important;
+      font-size: .9rem !important;
+      line-height: 1.42 !important;
+    }
+
+    /* По-малко визуален шум в етикетите */
+    body.admin-operations-detail-page
+      :is(.admin-operations-chip, .admin-operations-note-type) {
+      box-shadow: none !important;
+    }
+
+    /* Tablet */
+    @media (max-width: 1180px) {
+      body.admin-operations-detail-page .admin-operations-workspace {
+        grid-template-columns: 1fr !important;
+      }
+
+      body.admin-operations-detail-page .admin-operations-control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 760px) {
+      body.admin-operations-detail-page .admin-operations-control-grid,
+      body.admin-operations-detail-page .admin-operations-recommendation-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      body.admin-operations-detail-page
+        .admin-operations-timeline-item__header {
+        display: grid !important;
+      }
+
+      body.admin-operations-detail-page
+        .admin-operations-timeline-item__header time {
+        padding-left: 40px;
+      }
+    }
+
+    /* BSC_OPERATIONS_DETAIL_V3_COMPACT_WORKFLOW */
+
+    /* По-малко вертикален въздух между основните секции */
+    body.admin-operations-detail-page .admin-operations-workspace {
+      align-items: start !important;
+      gap: 16px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-stack,
+    body.admin-operations-detail-page .admin-operations-sidebar {
+      gap: 12px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-detail-panel {
+      padding: 22px !important;
+      border-radius: 22px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-detail-panel
+      + .admin-operations-detail-panel {
+      margin-top: 0 !important;
+    }
+
+    body.admin-operations-detail-page
+      :is(.admin-operations-detail-panel, .admin-operations-detail-section)
+      > .eyebrow {
+      margin-bottom: 8px !important;
+    }
+
+    body.admin-operations-detail-page
+      :is(.admin-operations-detail-panel, .admin-operations-detail-section)
+      > h2 {
+      margin-top: 0 !important;
+      margin-bottom: 14px !important;
+    }
+
+    /* Препоръки с ясна визуална посока и реални CTA контроли */
+    body.admin-operations-detail-page
+      .admin-operations-recommendation-grid {
+      align-items: stretch;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-recommendation-card {
+      min-height: 132px !important;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 5px;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-recommendation-card
+      :is(a, button) {
+      width: fit-content;
+      margin-top: auto;
+      padding: 8px 12px;
+      border: 1px solid rgba(19, 57, 91, .18);
+      border-radius: 10px;
+      background: #123b61;
+      color: #fff;
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-recommendation-card
+      :is(a, button):hover {
+      background: #0b2e4d;
+      transform: translateY(-1px);
+    }
+
+    /* Панел за възлагане: премахване на празните визуални клетки */
+    body.admin-operations-detail-page
+      .admin-operations-control-card:empty {
+      display: none !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-control-card:not(:has(*)):not(:has(textarea)):not(:has(input)):not(:has(select)) {
+      display: none !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-control-grid {
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(220px, 1fr)
+      ) !important;
+      align-items: stretch;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-control-card {
+      min-height: 0 !important;
+      padding: 15px 16px !important;
+    }
+
+    /* Налични професионалисти като работен списък */
+    body.admin-operations-detail-page
+      .admin-operations-pro-grid {
+      display: grid !important;
+      gap: 7px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-pro-row {
+      min-height: 68px;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center !important;
+      gap: 14px !important;
+      padding: 11px 13px !important;
+      border: 1px solid rgba(20, 48, 75, .10) !important;
+      background: #fff !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-pro-row:hover {
+      border-color: rgba(20, 64, 101, .24) !important;
+      background: #f8fbfd !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-pro-row
+      :is(h3, h4, strong) {
+      margin: 0 !important;
+      line-height: 1.25 !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-pro-row
+      :is(.button, button) {
+      white-space: nowrap;
+      min-height: 38px;
+      padding: 8px 13px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-pro-row
+      .admin-operations-detail-meta {
+      margin-top: 5px !important;
+      gap: 5px !important;
+    }
+
+    /* Значително по-компактна хронология */
+    body.admin-operations-detail-page
+      .admin-operations-timeline-rail {
+      padding-left: 22px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-rail::before {
+      left: 7px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item {
+      padding:
+        10px 4px
+        11px 12px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item::before {
+      top: 17px !important;
+      left: -19px !important;
+      width: 8px !important;
+      height: 8px !important;
+      border-width: 2px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__icon {
+      width: 27px !important;
+      height: 27px !important;
+      flex-basis: 27px !important;
+      border-radius: 8px !important;
+      font-size: .78rem !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__title
+      strong {
+      font-size: .94rem !important;
+      line-height: 1.3 !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item__header
+      time {
+      font-size: .72rem !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item
+      .admin-operations-detail-meta {
+      margin-top: 5px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item
+      :is(.admin-operations-chip, .admin-operations-note-type) {
+      padding: 5px 8px !important;
+      font-size: .68rem !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-timeline-item
+      p {
+      margin-top: 6px !important;
+      font-size: .84rem !important;
+      line-height: 1.38 !important;
+    }
+
+    /* Компактни вътрешни коментари */
+    body.admin-operations-detail-page
+      .admin-operations-comment {
+      padding: 11px 12px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-comment__meta {
+      font-size: .78rem !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-comment-body {
+      margin-top: 6px !important;
+      font-size: .9rem !important;
+      line-height: 1.4 !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-detail-panel:has(.admin-operations-comment-box)
+      textarea {
+      min-height: 76px !important;
+    }
+
+    /* Sidebar панелите не трябва да създават огромни празни пространства */
+    body.admin-operations-detail-page
+      .admin-operations-sidebar
+      .admin-operations-detail-panel {
+      min-height: 0 !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-sidebar
+      .admin-operations-detail-panel
+      > :last-child {
+      margin-bottom: 0 !important;
+    }
+
+    /* По-компактни форми */
+    body.admin-operations-detail-page
+      .admin-operations-form {
+      gap: 12px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-form
+      label {
+      gap: 6px !important;
+    }
+
+    body.admin-operations-detail-page
+      .admin-operations-form
+      :is(input, select, textarea) {
+      border-radius: 12px !important;
+    }
+
+    /* Tablet */
+    @media (max-width: 1180px) {
+      body.admin-operations-detail-page
+        .admin-operations-detail-panel {
+        padding: 19px !important;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 760px) {
+      body.admin-operations-detail-page
+        .admin-operations-detail-panel {
+        padding: 16px !important;
+        border-radius: 18px !important;
+      }
+
+      body.admin-operations-detail-page
+        .admin-operations-pro-row {
+        grid-template-columns: 1fr !important;
+      }
+
+      body.admin-operations-detail-page
+        .admin-operations-pro-row
+        :is(.button, button) {
+        width: 100%;
+      }
+    }
+  /* BSC_OPERATIONS_DETAIL_V6_FINAL_POLISH */
+  body.admin-operations-detail-page {
+    overflow-x: hidden;
+    padding: 18px 20px 32px;
+  }
+
+  body.admin-operations-detail-page .admin-operations-detail-shell {
+    gap: 24px;
+  }
+
+  body.admin-operations-detail-page .admin-operations-detail-hero {
+    min-height: 0 !important;
+    max-height: 220px;
+    align-items: center !important;
+    padding: 18px 22px !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+
+  body.admin-operations-detail-page .admin-operations-detail-hero h1 {
+    margin: 4px 0 6px !important;
+    font-size: clamp(1.45rem, 2.2vw, 2.1rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  body.admin-operations-detail-page .admin-work-order-brief {
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+
+  body.admin-operations-detail-page .admin-work-order-brief__item,
+  body.admin-operations-detail-page :is(.admin-operations-chip, .admin-operations-badge, .admin-operations-severity-chip, .admin-operations-note-type) {
+    min-height: 28px;
+    padding: 5px 9px !important;
+    border-radius: 999px !important;
+    font-size: .76rem !important;
+    line-height: 1.2 !important;
+  }
+
+  body.admin-operations-detail-page .admin-work-order-objective,
+  body.admin-operations-detail-page .admin-operations-detail-panel,
+  body.admin-operations-detail-page .admin-work-order-context__card,
+  body.admin-operations-detail-page :is(.admin-operations-control-card, .admin-operations-recommendation-card, .admin-operations-property-tile, .admin-operations-list-item, .admin-operations-comment, .admin-operations-checklist__item, .admin-operations-dl > div, .admin-evidence-card) {
+    border-radius: 12px !important;
+  }
+
+  body.admin-operations-detail-page .admin-work-order-objective,
+  body.admin-operations-detail-page .admin-operations-detail-panel {
+    padding: 20px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-stack,
+  body.admin-operations-detail-page .admin-operations-sidebar,
+  body.admin-operations-detail-page .admin-operations-form,
+  body.admin-operations-detail-page .admin-operations-list,
+  body.admin-operations-detail-page .admin-operations-checklist,
+  body.admin-operations-detail-page .admin-operations-comment-box {
+    gap: 12px !important;
+  }
+
+  body.admin-operations-detail-page :is(.u-mt-14, .u-mb-14) {
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-section-title,
+  body.admin-operations-detail-page .admin-work-order-section-heading h2 {
+    margin: 0 0 12px !important;
+    color: #17352d;
+    font-size: 1.15rem !important;
+    line-height: 1.2 !important;
+    font-weight: 800;
+  }
+
+  body.admin-operations-detail-page .eyebrow,
+  body.admin-operations-detail-page :is(.admin-operations-dl dt, .admin-operations-control-card span, .admin-operations-property-tile span, .admin-work-order-context__card span, .bsc-finance-summary span, .bsc-finance-status-grid span) {
+    font-size: .72rem !important;
+    letter-spacing: .06em !important;
+    line-height: 1.2 !important;
+  }
+
+  body.admin-operations-detail-page :is(.admin-operations-detail-copy, .admin-operations-empty, .admin-operations-attachment-empty, .admin-operations-comment-body, .admin-operations-dl dd, .admin-work-order-context__card small, .admin-operations-property-tile small, .admin-operations-control-card small, .admin-evidence-card__body p) {
+    font-size: .88rem !important;
+    line-height: 1.48 !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-sticky-bar {
+    position: sticky !important;
+    top: 8px !important;
+    z-index: 60 !important;
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-sticky-bar__grid {
+    grid-template-columns: minmax(180px, 1fr) auto !important;
+    gap: 12px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-sticky-bar__actions .button {
+    min-height: 36px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-control-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-control-card {
+    min-height: 0 !important;
+    padding: 14px !important;
+    gap: 7px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-control-card:empty,
+  body.admin-operations-detail-page .admin-operations-recommendation-card:empty,
+  body.admin-operations-detail-page .admin-operations-control-card:not(:has(*)),
+  body.admin-operations-detail-page .admin-operations-recommendation-card:not(:has(*)) {
+    display: none !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-dl,
+  body.admin-operations-detail-page .admin-work-order-context,
+  body.admin-operations-detail-page .admin-operations-property-grid,
+  body.admin-operations-detail-page .bsc-finance-form-grid,
+  body.admin-operations-detail-page .bsc-finance-summary,
+  body.admin-operations-detail-page .bsc-finance-status-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body.admin-operations-detail-page .admin-evidence__grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body.admin-operations-detail-page :is(.admin-operations-dl > div, .admin-work-order-context__card, .admin-operations-property-tile, .admin-operations-control-card, .admin-operations-checklist__item, .admin-operations-list-item, .admin-operations-comment, .admin-evidence-card__body, .bsc-finance-summary > div, .bsc-finance-status-grid > div) {
+    padding: 14px !important;
+  }
+
+  body.admin-operations-detail-page .admin-operations-workspace {
+    grid-template-columns: minmax(0, 1.45fr) minmax(300px, .8fr) !important;
+    gap: 24px !important;
+  }
+
+  body.admin-operations-detail-page :is(.admin-operations-detail-panel, .admin-work-order-objective, .admin-work-order-context__card, .admin-evidence-card, .admin-operations-control-card) {
+    min-width: 0;
+  }
+
+  body.admin-operations-detail-page :is(.admin-operations-table, .admin-evidence-card__body, .admin-operations-dl dd, .admin-operations-control-card strong, .admin-operations-control-card small) {
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 1180px) {
+    body.admin-operations-detail-page .admin-operations-workspace,
+    body.admin-operations-detail-page .admin-operations-control-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body.admin-operations-detail-page {
+      padding: 12px;
+    }
+
+    body.admin-operations-detail-page .admin-operations-detail-hero {
+      max-height: none;
+      padding: 16px !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-sticky-bar__grid,
+    body.admin-operations-detail-page .admin-operations-sticky-bar__actions,
+    body.admin-operations-detail-page .admin-evidence__grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    body.admin-operations-detail-page .admin-operations-sticky-bar__actions {
+      display: grid !important;
+    }
+  }
 </style>
 </head>
 <body class="admin-operations-detail-page bsc-admin-workspace{% if request.args.get('embed') %} admin-operations-detail-page--embedded{% endif %}">
@@ -2315,115 +3080,9 @@
       </div>
     </section>
 
-    <section class="admin-work-order-operational-info" aria-labelledby="operational-information-title">
-      <div class="admin-work-order-section-heading">
-        <p class="eyebrow">Вторична информация</p>
-        <h2 id="operational-information-title">Оперативна информация</h2>
-      </div>
-
-    <section class="admin-operations-health-grid" aria-label="Здраве на задачата">
-      <article class="admin-operations-health-card admin-operations-health-card--primary">
-        <span><span class="admin-operations-chip__icon">С</span>Оперативно състояние</span>
-        <strong>{% if not task_sla_has_due %}Без срок{% elif task_open_overdue or task_sla_late %}В риск{% elif task_is_closed %}Затворена{% elif checklist_percentage >= 75 %}Стабилна{% elif task.is_assigned %}В движение{% else %}Нуждае се от собственик{% endif %}</strong>
-        <small>
-          {% if not task_sla_has_due %}
-            Няма зададен краен срок. Следете възлагането и напредъка без SLA ескалация.
-          {% elif task_open_overdue %}
-            SLA е просрочен. Дайте приоритет на възлагането, комуникацията със собственика и бележките в хронологията.
-          {% elif task_sla_late %}
-            Задачата е приключена след крайния срок. Прегледайте причината и доказателствата.
-          {% elif task_is_closed %}
-            Работата е приключена. Потвърдете доказателствата за завършване и архивирайте при готовност.
-          {% elif task.is_assigned %}
-            Отговорният професионалист е видим. Поддържайте чеклиста и срока актуални.
-          {% else %}
-            Няма възложен професионалист. Използвайте контролния панел за диспечиране.
-          {% endif %}
-        </small>
-        <div class="admin-operations-health-meter" aria-label="Завършеност на чеклиста">
-          <span style="width: {{ checklist_percentage }}%;"></span>
-        </div>
-        <small>{{ checklist_completed_count }} от {{ checklist_total_count }} точки в чеклиста са изпълнени</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span><span class="admin-operations-chip__icon">✓</span>Статус</span>
-        <strong>{{ task_status_label|e }}</strong>
-        <small>{{ bg_datetime(task.updated_at) }}</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span>Приоритет</span>
-        <strong>{{ task_priority_label|e }}</strong>
-        <small>{% if task_open_overdue %}Кандидат за ескалация{% elif task_sla_late %}Приключена след срок{% else %}Приоритет в борда{% endif %}</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span>Професионалист</span>
-        <strong>{{ task_assignee_label|e }}</strong>
-        <small>{% if assigned_professional_account %}Свързан профил{% else %}Нужно е диспечиране{% endif %}</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span><span class="admin-operations-chip__icon">⏱</span>SLA</span>
-        <strong><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span></strong>
-        <small>Краен срок: {{ bg_datetime(task.due_date) }}</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span>Имот</span>
-        <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Не е зададен' }}{% endif %}</strong>
-        <small>{% if task.property_location %}{{ task.property_location|e }}{% elif property_record and property_record.location %}{{ property_record.location|e }}{% else %}Локацията предстои{% endif %}</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span><span class="admin-operations-chip__icon">□</span>Доказателства</span>
-        <strong>{{ attachments|length if attachments else 0 }}</strong>
-        <small>Записа с файлове</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span>Активност</span>
-        <strong>{{ timeline|length if timeline else 0 }}</strong>
-        <small>Събития в хронологията</small>
-      </article>
-      <article class="admin-operations-health-card">
-        <span>Собственик</span>
-        <strong>{{ task_owner_label|e }}</strong>
-        <small>{% if owner_account %}Свързан профил{% else %}Контакт от задачата{% endif %}</small>
-      </article>
-    </section>
-
-    <section class="admin-operations-summary-header" aria-label="Резюме на заявката">
-      <div>
-        <span>Оперативна референция</span>
-        <strong>{{ task_operational_ref|e }}</strong>
-      </div>
-      <div>
-        <span>Приоритет</span>
-        <strong>{{ task_priority_label|e }}</strong>
-      </div>
-      <div>
-        <span>SLA</span>
-        <strong><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span></strong>
-      </div>
-      <div>
-        <span>Собственик</span>
-        <strong>{{ task_owner_label|e }}</strong>
-      </div>
-      <div>
-        <span>Професионалист</span>
-        <strong>{{ task_assignee_label|e }}</strong>
-      </div>
-      <div>
-        <span>Последна активност</span>
-        <strong>{{ bg_datetime(task_last_activity, 'Няма данни') }}</strong>
-      </div>
-    </section>
-
-    <section class="admin-operations-workflow">
-      <div class="admin-operations-workflow__rail" aria-label="Процес на задачата">
-        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Собственик</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['NEW', 'ASSIGNED'] %}is-active{% endif %}">Операции</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'PAUSED', 'WAITING_OWNER', 'WAITING_OPERATIONS'] %}is-active{% endif %}">Професионалист</div>
-        <div class="admin-operations-workflow__step {% if task.status in ['COMPLETED', 'ARCHIVED'] %}is-active{% endif %}">Завършване</div>
-      </div>
-      <p class="sr-only">Собственик -> Операции -> Професионалист -> Завършване</p>
-    </section>
-    </section>
+        {# V5: премахнати са дублираните operational health cards,
+       summary header и workflow rail. Каноничните данни остават
+       в работните панели и формата за възлагане. #}
 
     {% set assignment_recommendation = namespace(professional=none, available_count=0) %}
     {% for professional in professional_accounts %}
@@ -2438,112 +3097,34 @@
 
     <section class="admin-operations-workspace">
       <div class="admin-operations-stack">
-        <article class="admin-operations-detail-panel admin-operations-sla {% if sla_tone == 'red' %}is-overdue{% elif sla_tone == 'neutral' %}is-neutral{% endif %}">
-          <p class="eyebrow">SLA / краен срок</p>
-          <h2 class="admin-operations-section-title">Оперативен срок</h2>
-          <span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span>
-          <small class="admin-operations-sla-detail" data-sla-detail data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_detail|e }}</small>
-          <dl class="admin-operations-dl u-mt-14">
-            <div><dt>Създадена</dt><dd>{{ bg_datetime(task.created_at) }}</dd></div>
-            <div><dt>Краен срок</dt><dd>{{ bg_datetime(task.due_date) }}</dd></div>
-            <div><dt>SLA</dt><dd><span class="admin-operations-sla-badge admin-operations-sla-badge--{{ sla_tone }}" data-sla-label data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_label|e }}</span><small class="admin-operations-sla-detail" data-sla-detail data-due="{{ task.due_date|e }}" data-completed="{{ task_sla_completed_at|e }}" data-status="{{ task.status|e }}">{{ sla_detail|e }}</small></dd></div>
-            <div><dt>Приоритет</dt><dd>{{ task_priority_label|e }}</dd></div>
-            <div><dt>Статус</dt><dd>{{ task_status_label|e }}</dd></div>
-            <div><dt>Просрочена</dt><dd>{{ sla_overdue_label }}</dd></div>
-          </dl>
-        </article>
+        {# V4: дублираните SLA, клиентски детайли, board details и recommendations
+           са премахнати. Каноничното оперативно резюме е по-горе. #}
 
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Описание от клиента</p>
-          <h2 class="admin-operations-section-title">Оригинално клиентско съобщение</h2>
-          <p class="admin-operations-comment-body">{{ customer_message|e }}</p>
-        </article>
 
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Преглед на задачата</p>
-          <h2 class="admin-operations-section-title">Детайли от борда</h2>
-          <dl class="admin-operations-dl">
-            <div><dt>Статус</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}"><span class="admin-operations-chip__icon">✓</span>{{ task_status_label|e }}</span></dd></div>
-            <div><dt>Приоритет</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}green{% endif %}">{{ task_priority_label|e }}</span></dd></div>
-            <div><dt>Категория</dt><dd>{{ task_category_label|e }}</dd></div>
-            <div><dt>Възложена на</dt><dd>{{ task_assignee_label|e }}</dd></div>
-            <div><dt>Референция</dt><dd>{{ task_operational_ref|e }}</dd></div>
-            <div><dt>Обновена</dt><dd>{{ bg_datetime(task.updated_at) }}</dd></div>
-          </dl>
-        </article>
-
-        <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Препоръки</p>
-          <h2 class="admin-operations-section-title">Следващи оперативни действия</h2>
-          <div class="admin-operations-recommendation-grid">
-            <div class="admin-operations-recommendation-card">
-              <span><span class="admin-operations-chip__icon">↗</span>Диспечиране</span>
-              {% if task.is_assigned %}
-                <strong>Запазете текущия изпълнител</strong>
-                <small>{{ task_assignee_label|e }} вече носи отговорност. Използвайте хронологията за последващи решения.</small>
-              {% elif assignment_recommendation.professional %}
-                <strong>Възложете на {{ assignment_recommendation.professional.full_name|e }}</strong>
-                <small>Категорията на услугата съвпада с {{ task_category_label|e }} в списъка с налични професионалисти.</small>
-              {% else %}
-                <strong>Няма автоматично предложение</strong>
-                <small>Не е намерен подходящ професионалист по категория. Използвайте селектора в контролния панел.</small>
-              {% endif %}
-            </div>
-            {% if task_sla_has_due and (task_open_overdue or task_sla_late or task_is_closed) %}
-              <div class="admin-operations-recommendation-card">
-                <span><span class="admin-operations-chip__icon">⏱</span>SLA</span>
-                {% if task_open_overdue %}
-                  <strong>Ескалирайте срока</strong>
-                  <small>Задачата е просрочена. Дайте приоритет на комуникацията със собственика и професионалиста преди промяна на статуса.</small>
-                {% elif task_sla_late %}
-                  <strong>Прегледайте закъснението</strong>
-                  <small>Задачата е приключена след крайния срок. Добавете причина в хронологията.</small>
-                {% else %}
-                  <strong>Потвърдете приключването</strong>
-                  <small>Проверете доказателствата и архива при готовност.</small>
-                {% endif %}
-              </div>
-            {% endif %}
-            <div class="admin-operations-recommendation-card">
-              <span><span class="admin-operations-chip__icon">□</span>Доказателства</span>
-              {% if attachments %}
-                <strong>Прегледайте доказателствата</strong>
-                <small>{{ attachments|length }} записа с файлове са налични към задачата.</small>
-              {% elif checklist_percentage >= 75 %}
-                <strong>Поискайте доказателство за приключване</strong>
-                <small>Чеклистът е напреднал, но още няма видими файлове.</small>
-              {% else %}
-                <strong>Добавете първо доказателство</strong>
-                <small>Добавяйте снимки, фактури или инспекционни доказателства с напредването на задачата.</small>
-              {% endif %}
-            </div>
-          </div>
-        </article>
-
-        <article class="admin-operations-detail-panel">
+        <article class="admin-operations-detail-panel" id="operations-assignment">
           <p class="eyebrow">Оперативни контроли</p>
           <h2 class="admin-operations-section-title">Панел за възлагане</h2>
           {% if status_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ status_error|e }}</p>{% endif %}
           <div class="admin-operations-control-grid u-mb-14">
             <div class="admin-operations-control-card admin-operations-control-card--current">
-              <span><span class="admin-operations-chip__icon">↗</span>Текущ изпълнител</span>
-              <strong>{{ task_assignee_label|e }}</strong>
-              <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') or 'Свързан професионален профил' }}{% elif task.is_assigned %}Текущото възлагане е записано{% else %}Още няма диспечерски отговорник{% endif %}</small>
-            </div>
-            <div class="admin-operations-control-card">
               {% if task.is_assigned %}
-                <span>Текущо възлагане</span>
+                <span><span class="admin-operations-chip__icon">↗</span>Current Professional</span>
                 <strong>{{ task_assignee_label|e }}</strong>
-                <small>Операцията вече има възложен професионалист.</small>
+                <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') or 'Свързан професионален профил' }}{% else %}Текущото възлагане е записано{% endif %}</small>
               {% elif assignment_recommendation.professional %}
-                <span>Препоръчан</span>
+                <span><span class="admin-operations-chip__icon">↗</span>Recommended Professional</span>
                 <strong>{{ assignment_recommendation.professional.full_name|e }}</strong>
                 <small>{{ assignment_recommendation.professional.company|e or category_labels.get(assignment_recommendation.professional.service_categories|upper, 'Друга услуга') or 'Одобрен професионалист' }}</small>
               {% else %}
-                <span>Препоръчан</span>
+                <span><span class="admin-operations-chip__icon">↗</span>No recommendation available</span>
                 <strong>Няма точно съвпадение</strong>
                 <small>Използвайте списъка с налични професионалисти или ръчния избор.</small>
               {% endif %}
+            </div>
+            <div class="admin-operations-control-card">
+              <span>Налични професионалисти</span>
+              <strong>{{ assignment_recommendation.available_count }}</strong>
+              <small>{% if assignment_recommendation.available_count == 1 %}Наличен е един одобрен изпълнител.{% else %}Налични са одобрени или активни изпълнители.{% endif %}</small>
             </div>
             <div class="admin-operations-control-card">
               <span>Състояние</span>
@@ -3337,5 +3918,22 @@
     }());
   </script>
   <script src="/static/js/admin-operations-collapsible.js"></script>
+  <script>
+    (() => {
+      const setPanelExpanded = (id, expanded) => {
+        const panel = document.getElementById(id);
+        if (!panel) return;
+        panel.classList.toggle('is-collapsed', !expanded);
+        const button = panel.querySelector(':scope > .admin-operations-collapse-header .admin-operations-collapse-toggle');
+        if (!button) return;
+        button.setAttribute('aria-expanded', String(expanded));
+        const state = button.querySelector('.admin-operations-collapse-toggle__state');
+        if (state) state.textContent = expanded ? 'Скрий' : 'Покажи';
+      };
+
+      ['operations-checklist', 'evidence', 'operations-assignment'].forEach((id) => setPanelExpanded(id, true));
+      ['linked-reservation', 'property-context', 'internal-notes', 'operations-finance', 'completion-report'].forEach((id) => setPanelExpanded(id, false));
+    })();
+  </script>
 </body>
 </html>
