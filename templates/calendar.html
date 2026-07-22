@@ -2513,6 +2513,491 @@
         grid-template-columns: 64px minmax(0, 1fr);
       }
     }
+    /* MISSION_CONTROL_V2_ADMIN_CALENDAR */
+    body.calendar-page--admin {
+      overflow-x: hidden !important;
+      background: #eef3f1 !important;
+    }
+
+    body.calendar-page--admin .admin-ops-calendar {
+      --mc-left: clamp(280px, 18vw, 320px);
+      --mc-right: clamp(360px, 24vw, 420px);
+      display: grid !important;
+      grid-template-columns: var(--mc-left) minmax(0, 1fr) var(--mc-right) !important;
+      gap: 12px;
+      min-height: calc(100vh - var(--admin-topbar-height, 64px));
+      padding: 12px;
+      background: #eef3f1;
+    }
+
+    body.calendar-page--admin .admin-mission-sidebar {
+      position: sticky;
+      top: calc(var(--admin-topbar-height, 64px) + 12px);
+      align-self: start;
+      display: grid;
+      gap: 12px;
+      max-height: calc(100vh - var(--admin-topbar-height, 64px) - 24px);
+      min-width: 0;
+      overflow: auto;
+      scrollbar-gutter: stable;
+    }
+
+    body.calendar-page--admin .admin-mission-panel {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid #d8e2df;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(15, 31, 46, .06);
+    }
+
+    body.calendar-page--admin .admin-mission-panel h2,
+    body.calendar-page--admin .admin-mission-panel h3 {
+      margin: 0;
+      color: #10243a;
+      font-family: inherit;
+      font-size: .92rem;
+      line-height: 1.25;
+    }
+
+    body.calendar-page--admin .admin-mission-filter-group {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    body.calendar-page--admin .admin-mission-filter-list {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    body.calendar-page--admin .admin-mission-filter {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: #f6f9f8;
+      color: #1e3448;
+      font: inherit;
+      font-size: .82rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    body.calendar-page--admin .admin-mission-filter span:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    body.calendar-page--admin .admin-mission-filter strong {
+      color: #60736c;
+      font-size: .72rem;
+    }
+
+    body.calendar-page--admin .admin-mission-filter.is-active {
+      border-color: #265f50;
+      background: #e8f3ef;
+      color: #173d32;
+      font-weight: 800;
+    }
+
+    body.calendar-page--admin .admin-mission-filter--preset {
+      grid-template-columns: minmax(0, 1fr);
+      background: #10243a;
+      color: #fff;
+    }
+
+    body.calendar-page--admin .admin-mission-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 28px;
+    }
+
+    body.calendar-page--admin .admin-mission-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      padding: 5px 8px;
+      border: 1px solid #d8e2df;
+      border-radius: 999px;
+      background: #fff;
+      color: #365148;
+      font-size: .74rem;
+      font-weight: 750;
+    }
+
+    body.calendar-page--admin .admin-mission-empty {
+      margin: 0;
+      color: #60736c;
+      font-size: .8rem;
+      line-height: 1.4;
+    }
+
+    body.calendar-page--admin .admin-ops-main {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 10px;
+      min-width: 0;
+    }
+
+    body.calendar-page--admin .admin-ops-toolbar {
+      position: sticky !important;
+      top: calc(var(--admin-topbar-height, 64px) + 12px) !important;
+      z-index: 50;
+      display: grid;
+      gap: 10px;
+      padding: 12px !important;
+      border: 1px solid #d8e2df;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 14px 34px rgba(15, 31, 46, .09);
+      backdrop-filter: blur(14px);
+    }
+
+    body.calendar-page--admin .admin-attention-panel {
+      display: none !important;
+    }
+
+    body.calendar-page--admin .admin-ops-toolbar__top {
+      grid-template-columns: minmax(220px, .7fr) minmax(260px, 1fr) auto !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-toolbar__controls {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 10px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-heading h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+      line-height: 1.1;
+    }
+
+    body.calendar-page--admin .admin-ops-heading p {
+      margin: 0;
+    }
+
+    body.calendar-page--admin .admin-ops-global-search {
+      min-width: 0;
+    }
+
+    body.calendar-page--admin .admin-ops-global-search .admin-ops-input {
+      min-height: 38px;
+      border-radius: 9px;
+    }
+
+    body.calendar-page--admin .admin-ops-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    body.calendar-page--admin .admin-ops-meta span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #edf3f0;
+      color: #365148;
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    body.calendar-page--admin .admin-ops-view-switch {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    body.calendar-page--admin .admin-ops-control-group {
+      flex-wrap: nowrap;
+    }
+
+    body.calendar-page--admin .admin-ops-button,
+    body.calendar-page--admin .admin-ops-view-switch button,
+    body.calendar-page--admin .admin-quick-create > summary {
+      min-height: 36px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      white-space: nowrap;
+    }
+
+    body.calendar-page--admin .admin-ops-summary {
+      display: grid !important;
+      grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      padding: 0 !important;
+      overflow: visible !important;
+    }
+
+    body.calendar-page--admin .admin-ops-stat {
+      min-height: 58px !important;
+      padding: 9px 10px !important;
+      border-radius: 11px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-stat strong {
+      font-size: 1.18rem !important;
+      line-height: 1.1;
+    }
+
+    body.calendar-page--admin .admin-ops-stat span {
+      font-size: .69rem !important;
+      line-height: 1.2 !important;
+    }
+
+    body.calendar-page--admin .admin-ops-filters {
+      display: none !important;
+    }
+
+    body.calendar-page--admin .admin-ops-stage {
+      min-height: 0;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    body.calendar-page--admin .admin-week-calendar,
+    body.calendar-page--admin .admin-month-board,
+    body.calendar-page--admin .admin-day-board,
+    body.calendar-page--admin .admin-timeline-board,
+    body.calendar-page--admin .admin-property-board,
+    body.calendar-page--admin .admin-dispatch-board,
+    body.calendar-page--admin .admin-map-board,
+    body.calendar-page--admin .admin-executive-board {
+      border: 1px solid #d8e2df;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(15, 31, 46, .06);
+    }
+
+    body.calendar-page--admin .admin-week-header,
+    body.calendar-page--admin .admin-week-body {
+      min-width: 0 !important;
+      grid-template-columns: 52px repeat(7, minmax(0, 1fr)) !important;
+    }
+
+    body.calendar-page--admin .admin-week-body {
+      max-height: calc(100vh - 310px);
+      overflow: auto;
+    }
+
+    body.calendar-page--admin .admin-week-day {
+      min-height: 42px !important;
+      padding: 7px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-event {
+      min-height: 42px !important;
+      padding: 6px 7px !important;
+      border-radius: 9px !important;
+      box-shadow: 0 8px 18px rgba(15, 31, 46, .11);
+    }
+
+    body.calendar-page--admin .admin-ops-event__type,
+    body.calendar-page--admin .admin-ops-event__property {
+      line-height: 1.14;
+    }
+
+    body.calendar-page--admin .admin-ops-event__footer {
+      gap: 5px;
+    }
+
+    body.calendar-page--admin .admin-event-avatar {
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .78);
+      color: #10243a;
+      font-size: .66rem;
+      font-weight: 900;
+    }
+
+    body.calendar-page--admin .admin-event-initials {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: rgba(15, 31, 46, .12);
+      color: inherit;
+      font-size: .64rem;
+      font-weight: 900;
+    }
+
+    body.calendar-page--admin .admin-ops-event:hover::after,
+    body.calendar-page--admin :is(.admin-month-event, .admin-day-event, .admin-timeline-event, .admin-property-chip):hover::after {
+      content: attr(data-preview);
+      position: absolute;
+      left: 8px;
+      bottom: calc(100% + 6px);
+      z-index: 20;
+      width: max-content;
+      max-width: 260px;
+      padding: 8px 10px;
+      border: 1px solid #cbd8d4;
+      border-radius: 9px;
+      background: #10243a;
+      color: #fff;
+      font-size: .75rem;
+      line-height: 1.35;
+      box-shadow: 0 12px 26px rgba(15, 31, 46, .22);
+      pointer-events: none;
+    }
+
+    body.calendar-page--admin :is(.admin-month-event, .admin-day-event, .admin-timeline-event, .admin-property-chip) {
+      position: relative;
+    }
+
+    body.calendar-page--admin .admin-command-dock {
+      display: none !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail-backdrop {
+      display: none !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail {
+      position: sticky !important;
+      top: calc(var(--admin-topbar-height, 64px) + 12px) !important;
+      right: auto !important;
+      bottom: auto !important;
+      z-index: 20 !important;
+      width: auto !important;
+      max-width: none !important;
+      height: calc(100vh - var(--admin-topbar-height, 64px) - 24px) !important;
+      max-height: none !important;
+      align-self: start;
+      border: 1px solid #d8e2df !important;
+      border-radius: 12px !important;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(15, 31, 46, .08) !important;
+      transform: none !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail__header {
+      padding: 14px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail__scroll {
+      padding: 12px 14px 18px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail__content {
+      gap: 10px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail-section {
+      gap: 8px !important;
+      padding: 12px !important;
+      border-radius: 10px !important;
+    }
+
+    body.calendar-page--admin .admin-ops-detail-fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+    }
+
+    @media (max-width: 1399px) {
+      body.calendar-page--admin .admin-ops-summary {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 1280px) {
+      body.calendar-page--admin .admin-ops-calendar {
+        grid-template-columns: 280px minmax(0, 1fr) !important;
+      }
+
+      body.calendar-page--admin .admin-ops-detail {
+        position: fixed !important;
+        top: var(--admin-topbar-height, 64px) !important;
+        right: 0 !important;
+        width: min(420px, calc(100vw - 280px)) !important;
+        height: calc(100dvh - var(--admin-topbar-height, 64px)) !important;
+        transform: translateX(102%) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+
+      body.calendar-page--admin .admin-ops-detail.is-open {
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+      }
+
+      body.calendar-page--admin .admin-ops-detail-backdrop:not([hidden]) {
+        display: block !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      body.calendar-page--admin .admin-ops-calendar {
+        grid-template-columns: 1fr !important;
+      }
+
+      body.calendar-page--admin .admin-mission-sidebar {
+        position: static;
+        max-height: none;
+      }
+
+      body.calendar-page--admin .admin-mission-filter-list {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+
+      body.calendar-page--admin .admin-ops-toolbar {
+        position: relative !important;
+        top: auto !important;
+      }
+
+      body.calendar-page--admin .admin-ops-toolbar__top,
+      body.calendar-page--admin .admin-ops-toolbar__controls {
+        grid-template-columns: 1fr !important;
+      }
+
+      body.calendar-page--admin .admin-ops-control-group,
+      body.calendar-page--admin .admin-ops-meta {
+        justify-content: flex-start;
+      }
+
+      body.calendar-page--admin .admin-week-calendar {
+        overflow-x: auto !important;
+      }
+
+      body.calendar-page--admin .admin-week-header,
+      body.calendar-page--admin .admin-week-body {
+        min-width: 860px !important;
+      }
+
+      body.calendar-page--admin .admin-ops-detail {
+        top: 0 !important;
+        width: min(100vw, 420px) !important;
+        height: 100dvh !important;
+      }
+    }
 </style>
 </head>
 <body class="calendar-page calendar-page--{{ calendar_scope|e }}{% if calendar_scope == 'admin' %} bsc-admin-workspace{% endif %}">
@@ -2802,6 +3287,81 @@
   </main>
   {% if calendar_scope == 'admin' %}
     <div class="admin-ops-calendar calendar-workspace--full-width" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
+      <aside class="admin-mission-sidebar" aria-label="Mission Control filters">
+        <section class="admin-mission-panel">
+          <p class="admin-ops-label">Mission Control</p>
+          <h2>Global Filters</h2>
+          <label class="admin-mission-filter-group">
+            <span class="admin-ops-label">Search</span>
+            <input class="admin-ops-input" type="search" data-mission-search placeholder="Search operations">
+          </label>
+          <div class="admin-mission-chip-row" data-mission-filter-chips>
+            <span class="admin-mission-empty">No active filters</span>
+          </div>
+          <button class="admin-ops-button" type="button" data-mission-clear>Clear All</button>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Saved filters</h3>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="today"><span>Today operations</span></button>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="overdue"><span>Overdue and urgent</span></button>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="unassigned"><span>Needs assignment</span></button>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Properties</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_property_options[:12] %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="property" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="property:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Professionals</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_professional_options[:10] %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="professional" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="professional:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Owners</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_owner_options[:10] %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="owner" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="owner:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Status</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_status_options %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="status" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="status:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Priority</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_priority_options %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="priority" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="priority:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="admin-mission-panel">
+          <h3>Categories</h3>
+          <div class="admin-mission-filter-list">
+            {% for option in calendar_category_options %}
+              <button class="admin-mission-filter" type="button" data-mission-filter="category" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="category:{{ option|e }}">0</strong></button>
+            {% endfor %}
+          </div>
+        </section>
+      </aside>
       <main class="admin-ops-main">
         <header class="admin-ops-toolbar">
           <section class="admin-ai-brief admin-attention-panel" aria-labelledby="calendarAttentionTitle" data-admin-attention-panel>
@@ -2840,6 +3400,14 @@
               <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-calendar-next aria-label="Следваща седмица" data-i18n-attr="aria-label:calendarNext">&gt;</button>
               <input class="admin-ops-input" type="date" data-admin-calendar-date aria-label="Избор на дата" data-i18n-attr="aria-label:calendarChooseDate">
             </div>
+            <label class="admin-ops-global-search">
+              <span class="sr-only">Search</span>
+              <input class="admin-ops-input" type="search" data-mission-search-top placeholder="Search operations, property, owner, professional">
+            </label>
+            <div class="admin-ops-meta">
+              <span data-admin-timezone>Timezone</span>
+              <span>Admin</span>
+            </div>
           </div>
 
           <div class="admin-ops-toolbar__controls">
@@ -2866,15 +3434,22 @@
               </div>
             </details>
             <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event data-i18n="calendarCreateEvent">Създай събитие</button>
+            <button class="admin-ops-button" type="button" data-admin-refresh>Refresh</button>
+            <button class="admin-ops-button" type="button" data-admin-export>Export</button>
+            <button class="admin-ops-button" type="button" data-admin-notifications>Notifications <strong data-admin-urgent-count>0</strong></button>
           </div>
         </header>
 
         <section class="admin-ops-summary" aria-label="Operations KPIs" data-admin-kpi-strip>
-          {% for kpi in calendar_operations_center.kpis %}
-            {% if kpi.href %}<a class="admin-ops-stat admin-ops-stat--{{ kpi.tone|e }}" href="{{ kpi.href|e }}" data-kpi-key="{{ kpi.key|e }}">{% else %}<div class="admin-ops-stat admin-ops-stat--{{ kpi.tone|e }}" data-kpi-key="{{ kpi.key|e }}">{% endif %}
-              <strong>{{ kpi.value }}</strong><span data-i18n="{{ kpi.key|e }}">{% if kpi.key == 'calendarKpiActiveOperations' %}Активни операции{% elif kpi.key == 'calendarKpiArrivalsToday' %}Пристигания днес{% elif kpi.key == 'calendarKpiDeparturesToday' %}Заминавания днес{% elif kpi.key == 'calendarKpiUnassigned' %}Невъзложени{% elif kpi.key == 'calendarKpiOverdue' %}Просрочени{% elif kpi.key == 'calendarKpiWaitingOwner' %}Чакат собственик{% elif kpi.key == 'calendarKpiWaitingProfessional' %}Чакат професионалист{% elif kpi.key == 'calendarKpiSlaHealth' %}SLA състояние{% elif kpi.key == 'calendarKpiConflicts' %}Конфликти{% else %}Активни професионалисти{% endif %}</span>
-            {% if kpi.href %}</a>{% else %}</div>{% endif %}
-          {% endfor %}
+          <div class="admin-ops-stat admin-ops-stat--green" data-kpi-key="calendarKpiActiveOperations"><strong>0</strong><span data-i18n="calendarKpiActiveOperations">Активни операции</span></div>
+          <div class="admin-ops-stat admin-ops-stat--red" data-kpi-key="calendarKpiOverdue"><strong>0</strong><span data-i18n="calendarKpiOverdue">Просрочени</span></div>
+          <div class="admin-ops-stat admin-ops-stat--blue" data-kpi-key="calendarKpiArrivalsToday"><strong>0</strong><span data-i18n="calendarKpiArrivalsToday">Пристигания днес</span></div>
+          <div class="admin-ops-stat admin-ops-stat--orange" data-kpi-key="calendarKpiWaitingOwner"><strong>0</strong><span data-i18n="calendarKpiWaitingOwner">Чакат собственик</span></div>
+          <div class="admin-ops-stat admin-ops-stat--purple" data-kpi-key="calendarKpiWaitingProfessional"><strong>0</strong><span data-i18n="calendarKpiWaitingProfessional">Чакат професионалист</span></div>
+          <div class="admin-ops-stat admin-ops-stat--red" data-kpi-key="calendarKpiConflicts"><strong>0</strong><span data-i18n="calendarKpiConflicts">Конфликти</span></div>
+          <div class="admin-ops-stat admin-ops-stat--green" data-kpi-key="calendarKpiActiveProfessionals"><strong>0</strong><span data-i18n="calendarKpiActiveProfessionals">Активни професионалисти</span></div>
+          <span class="sr-only" data-i18n="calendarKpiDeparturesToday">Заминавания днес</span>
+          <span class="sr-only" data-i18n="calendarKpiUnassigned">Невъзложени</span>
         </section>
 
         <form class="admin-ops-filters" id="adminCalendarFilters" method="get" action="{{ request.path }}" data-admin-filters-panel>
@@ -3020,7 +3595,7 @@
       </main>
 
       <button class="admin-ops-detail-backdrop" type="button" data-admin-detail-backdrop aria-label="Затвори детайлите" data-i18n-attr="aria-label:calendarCloseDetails" hidden></button>
-      <aside class="admin-ops-detail" role="dialog" aria-modal="true" aria-labelledby="calendarDetailTitle" aria-describedby="calendarDetailTime" aria-hidden="true" inert>
+      <aside class="admin-ops-detail" role="dialog" aria-modal="true" aria-labelledby="calendarDetailTitle" aria-describedby="calendarDetailTime" aria-hidden="false">
         <div class="admin-ops-detail__shell">
           <header class="admin-ops-detail__header">
             <div class="admin-ops-detail__heading">
@@ -3084,10 +3659,12 @@
               <section class="admin-ops-detail-section" data-admin-detail-section="actions" aria-labelledby="calendarDetailActionsHeading">
                 <h3 id="calendarDetailActionsHeading" data-i18n="calendarQuickActions">Бързи действия</h3>
                 <div class="admin-ops-detail__actions">
-                  <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
-                  <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Изтрий</button>
-                  <a class="admin-ops-button" href="/admin/operations" data-admin-detail-operation hidden data-i18n="calendarDetailOpenOperation">Отвори операцията</a>
-                  <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
+                  <a class="admin-ops-button admin-ops-button--primary" href="/admin/operations" data-admin-detail-operation hidden data-i18n="calendarDetailOpenOperation">Open Task</a>
+                  <button class="admin-ops-button" type="button" data-admin-detail-assign>Assign</button>
+                  <button class="admin-ops-button" type="button" data-admin-detail-complete>Complete</button>
+                  <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Property</a>
+                  <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Edit</button>
+                  <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Delete</button>
                 </div>
               </section>
 
@@ -3276,6 +3853,7 @@
         const urgentCount = events.filter((event) => tracksOperations(event) && (event.overdue || /urgent|emergency|спеш/i.test(`${event.priority} ${event.type}`))).length;
         const urgentNode = app.querySelector("[data-admin-urgent-count]");
         if (urgentNode) urgentNode.textContent = urgentCount;
+        const filterState = { q: "", property: "", professional: "", owner: "", status: "", priority: "", category: "", preset: "" };
 
         let focusDate = new Date();
         focusDate.setHours(12, 0, 0, 0);
@@ -3342,6 +3920,18 @@
         app.querySelectorAll("[data-quick-action]").forEach((button) => button.addEventListener("click", () => runAction(button.dataset.quickAction)));
         app.querySelector("[data-next-primary]")?.addEventListener("click", (clickEvent) => runAction(clickEvent.currentTarget.dataset.action || "Подготви действие"));
         app.querySelector("[data-next-secondary]")?.addEventListener("click", () => selectedEvent && openAssignmentDialog(selectedEvent));
+        app.querySelector("[data-admin-detail-assign]")?.addEventListener("click", () => selectedEvent && openAssignmentDialog(selectedEvent));
+        app.querySelector("[data-admin-detail-complete]")?.addEventListener("click", () => selectedEvent && runAction("complete", selectedEvent));
+        app.querySelector("[data-admin-refresh]")?.addEventListener("click", () => { render(); showToast("Calendar refreshed."); });
+        app.querySelector("[data-admin-export]")?.addEventListener("click", () => showToast("Export is prepared from the visible filtered operations."));
+        app.querySelector("[data-admin-notifications]")?.addEventListener("click", () => {
+          const target = visibleEvents().find((event) => urgency(event) === "critical");
+          if (target) selectEvent(target);
+          showToast(`${visibleEvents().filter((event) => urgency(event) === "critical").length} critical notifications.`);
+        });
+        app.querySelector("[data-admin-timezone]").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local timezone";
+        app.querySelector("[data-admin-filters-panel]")?.addEventListener("submit", (submitEvent) => submitEvent.preventDefault());
+        setupMissionControls();
         app.querySelector("[data-reconcile-cancel]")?.addEventListener("click", () => app.querySelector("[data-reconcile-dialog]")?.close());
         app.querySelector("[data-reconcile-form]")?.addEventListener("submit", submitPropertyReconciliation);
         app.querySelector("[data-reconcile-select]")?.addEventListener("change", (changeEvent) => {
@@ -3581,6 +4171,108 @@
 
         function tracksOperations(event) {
           return !/reservation|blocked dates|блокирани дати|personal stay|owner meeting/i.test(`${event?.type || ""} ${event?.title || ""}`);
+        }
+
+        function eventInitials(value) {
+          const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+          return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : (words[0] || "?").slice(0, 2)).toUpperCase();
+        }
+
+        function eventMatchesFilter(event, key, value) {
+          if (!value) return true;
+          const target = String(value).toLowerCase();
+          if (key === "property") return event.property.toLowerCase() === target;
+          if (key === "professional") return event.professional.toLowerCase() === target;
+          if (key === "owner") return event.owner.toLowerCase() === target;
+          if (key === "status") return event.status.toLowerCase() === target;
+          if (key === "priority") return event.priority.toLowerCase() === target;
+          if (key === "category") return `${event.type} ${eventTypeLabel(event)} ${inferredCategoryKey(event)}`.toLowerCase().includes(target);
+          return true;
+        }
+
+        function eventMatchesPreset(event) {
+          if (filterState.preset === "today") return sameDate(event.start, new Date());
+          if (filterState.preset === "overdue") return event.overdue || /urgent|high/i.test(event.priority) || urgency(event) === "critical";
+          if (filterState.preset === "unassigned") return tracksOperations(event) && !isEventAssigned(event);
+          return true;
+        }
+
+        function visibleEvents() {
+          const query = filterState.q.trim().toLowerCase();
+          return events.filter((event) => {
+            const haystack = `${humanEventTitle(event)} ${eventTypeLabel(event)} ${event.property} ${event.owner} ${event.professional} ${event.status} ${event.priority} ${event.city} ${event.notes}`.toLowerCase();
+            return (!query || haystack.includes(query))
+              && eventMatchesPreset(event)
+              && ["property", "professional", "owner", "status", "priority", "category"].every((key) => eventMatchesFilter(event, key, filterState[key]));
+          });
+        }
+
+        function setupMissionControls() {
+          const searchInputs = [app.querySelector("[data-mission-search]"), app.querySelector("[data-mission-search-top]")].filter(Boolean);
+          searchInputs.forEach((input) => {
+            input.addEventListener("input", () => {
+              filterState.q = input.value;
+              searchInputs.forEach((peer) => { if (peer !== input) peer.value = input.value; });
+              render();
+            });
+          });
+          app.querySelectorAll("[data-mission-filter]").forEach((button) => {
+            button.addEventListener("click", () => {
+              const key = button.dataset.missionFilter;
+              filterState[key] = filterState[key] === button.dataset.missionValue ? "" : button.dataset.missionValue;
+              filterState.preset = "";
+              render();
+            });
+          });
+          app.querySelectorAll("[data-mission-preset]").forEach((button) => {
+            button.addEventListener("click", () => {
+              filterState.preset = filterState.preset === button.dataset.missionPreset ? "" : button.dataset.missionPreset;
+              render();
+            });
+          });
+          app.querySelector("[data-mission-clear]")?.addEventListener("click", () => {
+            Object.keys(filterState).forEach((key) => { filterState[key] = ""; });
+            searchInputs.forEach((input) => { input.value = ""; });
+            render();
+          });
+        }
+
+        function updateMissionFilters(currentEvents) {
+          app.querySelectorAll("[data-mission-filter]").forEach((button) => {
+            const key = button.dataset.missionFilter;
+            const value = button.dataset.missionValue;
+            button.classList.toggle("is-active", filterState[key] === value);
+          });
+          app.querySelectorAll("[data-mission-preset]").forEach((button) => {
+            button.classList.toggle("is-active", filterState.preset === button.dataset.missionPreset);
+          });
+          app.querySelectorAll("[data-mission-count]").forEach((node) => {
+            const [key, ...rest] = node.dataset.missionCount.split(":");
+            const value = rest.join(":");
+            node.textContent = events.filter((event) => eventMatchesFilter(event, key, value)).length;
+          });
+          const chips = app.querySelector("[data-mission-filter-chips]");
+          const active = Object.entries(filterState).filter(([, value]) => value);
+          chips.innerHTML = active.length
+            ? active.map(([key, value]) => `<span class="admin-mission-chip">${escapeHtml(key)}: ${escapeHtml(value)}</span>`).join("")
+            : '<span class="admin-mission-empty">No active filters</span>';
+          updateMissionKpis(currentEvents);
+        }
+
+        function updateMissionKpis(currentEvents) {
+          const today = new Date();
+          const setKpi = (key, value) => {
+            const node = app.querySelector(`[data-kpi-key="${key}"] strong`);
+            if (node) node.textContent = value;
+          };
+          const operational = currentEvents.filter(tracksOperations);
+          setKpi("calendarKpiActiveOperations", operational.filter((event) => !/completed|cancelled/i.test(event.status)).length);
+          setKpi("calendarKpiOverdue", operational.filter((event) => event.overdue).length);
+          setKpi("calendarKpiArrivalsToday", currentEvents.filter((event) => sameDate(event.start, today)).length);
+          setKpi("calendarKpiWaitingOwner", operational.filter((event) => /owner/i.test(event.status)).length);
+          setKpi("calendarKpiWaitingProfessional", operational.filter((event) => !isEventAssigned(event)).length);
+          setKpi("calendarKpiConflicts", operational.filter((event) => event.overdue || urgency(event) === "critical").length);
+          setKpi("calendarKpiActiveProfessionals", new Set(currentEvents.filter(isEventAssigned).map((event) => event.professional).filter(Boolean)).size);
         }
 
         function isActionable(event) {
@@ -3955,7 +4647,7 @@
             return;
           }
           const previousId = event.id;
-          if (/завърш/i.test(action)) {
+          if (/завърш|complete/i.test(action)) {
             showToast("Записване на завършването…");
             try {
               const result = await requestCalendarJson(
@@ -4037,6 +4729,7 @@
 
         function renderWeek() {
           const dates = weekDates();
+          const currentEvents = visibleEvents();
           weekHeader.innerHTML = '<div class="admin-week-corner"></div>' + dates.map((date, index) => `
             <div class="admin-week-day ${index > 4 ? "is-weekend" : ""}">
               <strong>${weekdayName(dates[index], "long")}</strong>
@@ -4055,7 +4748,7 @@
           const endOfWeek = new Date(dates[6]);
           endOfWeek.setHours(23, 59, 59, 999);
           const eventsByDay = new Map();
-          events.filter((event) => eventInRange(event, dates[0], endOfWeek)).forEach((event) => {
+          currentEvents.filter((event) => eventInRange(event, dates[0], endOfWeek)).forEach((event) => {
             const dayIndex = dates.findIndex((date) => sameDate(date, event.start));
             if (dayIndex < 0) return;
             if (!eventsByDay.has(dayIndex)) eventsByDay.set(dayIndex, []);
@@ -4113,6 +4806,7 @@
             card.style.right = "auto";
             card.style.width = `calc(${laneWidth.toFixed(4)}% - ${laneInset.toFixed(3)}px)`;
             card.dataset.eventId = event.id;
+            card.dataset.preview = `${humanEventTitle(event)} · ${event.property} · ${event.professional} · ${statusLabel(event.status)}`;
             card.draggable = true;
             card.dataset.urgency = urgency(event);
             card.setAttribute("aria-label", `${eventTypeLabel(event)}, ${event.property}, ${getSafeDisplayTime(event)}`);
@@ -4121,6 +4815,8 @@
               <strong class="admin-ops-event__type">${escapeHtml(eventTypeLabel(event))}</strong>
               <strong class="admin-ops-event__property">${escapeHtml(event.property)}</strong>
               <span class="admin-ops-event__footer">
+                <span class="admin-event-initials">${escapeHtml(eventInitials(event.property))}</span>
+                <span class="admin-event-avatar">${escapeHtml(eventInitials(event.professional))}</span>
                 <span class="admin-ops-event__status">${escapeHtml(tracksOperations(event) && event.overdue ? "Просрочено" : statusLabel(event.status))}</span>
                 <span class="admin-event-sla" data-sla-event="${event.id}" data-sla-compact></span>
               </span>
@@ -4404,7 +5100,8 @@
         function renderProperty() {
           const board = app.querySelector('[data-admin-board="property"]');
           const dates = weekDates();
-          const properties = [...new Set(events.map((event) => event.property))].sort();
+          const currentEvents = visibleEvents();
+          const properties = [...new Set(currentEvents.map((event) => event.property))].sort();
           board.innerHTML = `
             <div class="admin-property-header">
               <div>Имот</div>
@@ -4417,7 +5114,7 @@
                   const dayStart = new Date(date);
                   const dayEnd = new Date(date);
                   dayEnd.setHours(23, 59, 59, 999);
-                  const items = events.filter((event) => event.property === property && eventInRange(event, dayStart, dayEnd));
+                  const items = currentEvents.filter((event) => event.property === property && eventInRange(event, dayStart, dayEnd));
                   return `<div class="admin-property-cell">${items.length ? items.map((event) => propertyChip(event, date)).join("") : '<span class="admin-ops-empty">Свободно</span>'}</div>`;
                 }).join("")}
               </div>
@@ -4428,16 +5125,16 @@
 
         function propertyChip(event, date) {
           const continued = !sameDate(event.start, date) ? " · продължава" : "";
-          return `<button type="button" class="admin-property-chip ${tone(event)}" data-event-id="${event.id}">
+          return `<button type="button" class="admin-property-chip ${tone(event)}" data-event-id="${event.id}" data-preview="${escapeHtml(humanEventTitle(event))} · ${escapeHtml(event.professional)} · ${escapeHtml(statusLabel(event.status))}">
             <strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${getSafeDisplayTime(event)} · ${escapeHtml(statusLabel(event.status))}${continued}</span>
           </button>`;
         }
 
         function renderTimeline() {
           const board = app.querySelector('[data-admin-board="timeline"]');
-          const sorted = [...events].sort((a, b) => a.start - b.start);
+          const sorted = [...visibleEvents()].sort((a, b) => a.start - b.start);
           board.innerHTML = `<div class="admin-timeline-list">${sorted.map((event) => `
-            <button type="button" class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}">
+            <button type="button" class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}" data-preview="${escapeHtml(event.property)} · ${escapeHtml(event.professional)} · ${escapeHtml(statusLabel(event.status))}">
               <span>${formatDate(event.start, { weekday: "short", day: "2-digit", month: "short" })} · ${getSafeDisplayTime(event)}</span>
               <strong>${escapeHtml(humanEventTitle(event))}</strong>
               <span>${escapeHtml(event.property)} · ${escapeHtml(event.professional)}</span>
@@ -4448,9 +5145,9 @@
 
         function renderDay() {
           const board = app.querySelector('[data-admin-board="day"]');
-          const dayEvents = events.filter((event) => sameDate(event.start, focusDate)).sort((a, b) => a.start - b.start);
+          const dayEvents = visibleEvents().filter((event) => sameDate(event.start, focusDate)).sort((a, b) => a.start - b.start);
           board.innerHTML = `<div class="admin-day-list">${dayEvents.map((event) => `
-            <button type="button" class="admin-day-event ${tone(event)}" data-event-id="${event.id}">
+            <button type="button" class="admin-day-event ${tone(event)}" data-event-id="${event.id}" data-preview="${escapeHtml(event.property)} · ${escapeHtml(event.professional)} · ${escapeHtml(statusLabel(event.status))}">
               <span>${getSafeDisplayTime(event)}</span>
               <strong>${escapeHtml(humanEventTitle(event))}</strong>
               <span>${escapeHtml(event.property)}</span>
@@ -4461,6 +5158,7 @@
 
         function renderMonth() {
           const board = app.querySelector('[data-admin-board="month"]');
+          const currentEvents = visibleEvents();
           const monthStart = startOfWeek(new Date(focusDate.getFullYear(), focusDate.getMonth(), 1));
           const days = Array.from({ length: 35 }, (_, index) => {
             const day = new Date(monthStart);
@@ -4468,9 +5166,9 @@
             return day;
           });
           board.innerHTML = `<div class="admin-month-grid">${days.map((day) => {
-            const items = events.filter((event) => sameDate(event.start, day)).slice(0, 3);
+            const items = currentEvents.filter((event) => sameDate(event.start, day)).slice(0, 3);
             return `<div class="admin-month-day"><time>${formatDate(day, { day: "2-digit", month: "short" })}</time>${items.map((event) => `
-              <button type="button" class="admin-month-event ${tone(event)}" data-event-id="${event.id}">
+              <button type="button" class="admin-month-event ${tone(event)}" data-event-id="${event.id}" data-preview="${escapeHtml(humanEventTitle(event))} · ${escapeHtml(event.professional)} · ${escapeHtml(statusLabel(event.status))}">
                 <strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span>
               </button>
             `).join("")}</div>`;
@@ -4492,6 +5190,11 @@
 
         function closeEventDetails() {
           if (!detailPanel?.classList.contains("is-open")) return;
+          if (window.matchMedia("(min-width: 1281px)").matches) {
+            detailPanel.setAttribute("aria-hidden", "false");
+            detailPanel.inert = false;
+            return;
+          }
           detailPanel.classList.remove("is-open");
           detailPanel.setAttribute("aria-hidden", "true");
           detailPanel.inert = true;
@@ -4501,10 +5204,11 @@
 
         function renderDispatch() {
           const board = app.querySelector('[data-admin-board="dispatch"]');
-          const urgent = events.filter((event) => urgency(event) !== "future" && !/completed/i.test(event.status)).sort((a, b) => a.start - b.start);
-          const names = [...new Set(events.filter(isEventAssigned).map((event) => event.professional).filter(Boolean))];
+          const currentEvents = visibleEvents();
+          const urgent = currentEvents.filter((event) => urgency(event) !== "future" && !/completed/i.test(event.status)).sort((a, b) => a.start - b.start);
+          const names = [...new Set(currentEvents.filter(isEventAssigned).map((event) => event.professional).filter(Boolean))];
           const professionals = names.length ? names : ["Елена Петрова", "Николай Иванов", "Мария Стоянова"];
-          board.innerHTML = `<section class="admin-dispatch-column"><span class="admin-ops-label">Спешни задачи</span><div class="admin-dispatch-list">${urgent.map((event) => `<article class="admin-dispatch-task ${tone(event)}" draggable="true" data-dispatch-event="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><br><small>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</small></article>`).join("") || '<p class="admin-ops-empty">Няма спешни задачи.</p>'}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Днешна времева линия</span><div class="admin-dispatch-list">${[...events].sort((a,b) => a.start-b.start).slice(0,12).map((event) => `<button class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}"><strong>${getSafeDisplayTime(event)} · ${escapeHtml(event.property)}</strong><span>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.professional)}</span></button>`).join("")}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Професионалисти</span><div class="admin-dispatch-list">${professionals.map((name,index) => `<article class="admin-pro-card" data-dispatch-professional="${escapeHtml(name)}"><span class="admin-pro-avatar">${escapeHtml(name.slice(0,1))}</span><div><strong>${escapeHtml(name)}</strong><br><small><span class="admin-status-dot ${index === 1 ? "admin-status-dot--busy" : ""}"></span>${index === 1 ? "На обект" : "Свободен"}</small></div></article>`).join("")}</div></section>`;
+          board.innerHTML = `<section class="admin-dispatch-column"><span class="admin-ops-label">Спешни задачи</span><div class="admin-dispatch-list">${urgent.map((event) => `<article class="admin-dispatch-task ${tone(event)}" draggable="true" data-dispatch-event="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><br><small>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</small></article>`).join("") || '<p class="admin-ops-empty">Няма спешни задачи.</p>'}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Днешна времева линия</span><div class="admin-dispatch-list">${[...currentEvents].sort((a,b) => a.start-b.start).slice(0,12).map((event) => `<button class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}"><strong>${getSafeDisplayTime(event)} · ${escapeHtml(event.property)}</strong><span>${escapeHtml(eventTypeLabel(event))} · ${escapeHtml(event.professional)}</span></button>`).join("")}</div></section><section class="admin-dispatch-column"><span class="admin-ops-label">Професионалисти</span><div class="admin-dispatch-list">${professionals.map((name,index) => `<article class="admin-pro-card" data-dispatch-professional="${escapeHtml(name)}"><span class="admin-pro-avatar">${escapeHtml(name.slice(0,1))}</span><div><strong>${escapeHtml(name)}</strong><br><small><span class="admin-status-dot ${index === 1 ? "admin-status-dot--busy" : ""}"></span>${index === 1 ? "На обект" : "Свободен"}</small></div></article>`).join("")}</div></section>`;
           bindBoardEvents(board);
           board.querySelectorAll("[data-dispatch-event]").forEach((task) => task.addEventListener("dragstart", (dragEvent) => dragEvent.dataTransfer.setData("text/plain", task.dataset.dispatchEvent)));
           board.querySelectorAll("[data-dispatch-professional]").forEach((pro) => {
@@ -4516,23 +5220,25 @@
 
         function renderMap() {
           const board = app.querySelector('[data-admin-board="map"]');
-          const properties = [...new Set(events.map((event) => event.property))];
+          const currentEvents = visibleEvents();
+          const properties = [...new Set(currentEvents.map((event) => event.property))];
           const pins = properties.map((property,index) => `<button class="admin-map-pin" style="left:${18 + (index * 23) % 70}%;top:${20 + (index * 31) % 62}%" title="${escapeHtml(property)}"><span>${index + 1}</span></button>`).join("");
-          const pros = [...new Set(events.map((event) => event.professional).filter(Boolean))].slice(0,4).map((name,index) => `<button class="admin-map-pin admin-map-pin--pro" style="left:${28 + (index * 29) % 60}%;top:${30 + (index * 37) % 52}%" title="${escapeHtml(name)}"><span>●</span></button>`).join("");
+          const pros = [...new Set(currentEvents.map((event) => event.professional).filter(Boolean))].slice(0,4).map((name,index) => `<button class="admin-map-pin admin-map-pin--pro" style="left:${28 + (index * 29) % 60}%;top:${30 + (index * 37) % 52}%" title="${escapeHtml(name)}"><span>●</span></button>`).join("");
           board.innerHTML = `<div class="admin-map-canvas">${pins}${pros}</div><aside class="admin-map-legend"><span class="admin-ops-label">Оперативна карта</span><h3>Оперативни групи</h3><p class="admin-ops-empty">${properties.length} имота и активните професионалисти са показани ориентировъчно. Надеждни координати не са налични.</p><div class="admin-dispatch-list"><div class="admin-smart-card"><strong>Проверка на наличност</strong><p>Подгответе предложение според услуга, график и натоварване.</p></div><div class="admin-smart-card"><strong>Предложение за маршрут</strong><p>Потвърдете адресите преди групиране на задачи.</p></div></div></aside>`;
         }
 
         function renderExecutive() {
           const board = app.querySelector('[data-admin-board="executive"]');
-          const completed = events.filter((event) => /completed/i.test(event.status)).length;
-          const slaEvents = events.filter(tracksOperations);
+          const currentEvents = visibleEvents();
+          const completed = currentEvents.filter((event) => /completed/i.test(event.status)).length;
+          const slaEvents = currentEvents.filter(tracksOperations);
           const compliance = slaEvents.length ? Math.round((slaEvents.length - slaEvents.filter((event) => event.overdue).length) / slaEvents.length * 100) : 100;
-          const active = events.filter((event) => !/completed|cancelled/i.test(event.status)).length;
+          const active = currentEvents.filter((event) => !/completed|cancelled/i.test(event.status)).length;
           const overdue = slaEvents.filter((event) => event.overdue).length;
           const unassigned = slaEvents.filter((event) => !isEventAssigned(event)).length;
-          const professionals = new Set(events.filter(isEventAssigned).map((event) => event.professional).filter(Boolean)).size;
+          const professionals = new Set(currentEvents.filter(isEventAssigned).map((event) => event.professional).filter(Boolean)).size;
           const metric = (label, value, copy) => `<article class="admin-exec-card"><span class="admin-ops-label">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><p class="admin-ops-empty">${escapeHtml(copy)}</p></article>`;
-          board.innerHTML = `<div class="admin-exec-grid">${metric(adminLabel("calendarGuideVisible", "Видими събития"), events.length, adminLabel("calendarGuideVisibleHelp", "В текущия календарен изглед"))}${metric(adminLabel("calendarGuideActive", "Активни събития"), active, adminLabel("calendarGuideActiveHelp", "Без завършени и отменени"))}${metric(adminLabel("calendarGuideSla", "SLA съответствие"), `${compliance}%`, `${overdue} ${adminLabel("calendarGuideBreaches", "нарушения")}`)}${metric(adminLabel("calendarGuideUnassigned", "Невъзложени"), unassigned, adminLabel("calendarGuideUnassignedHelp", "Оперативни събития без изпълнител"))}${metric(adminLabel("calendarGuideCompleted", "Завършени операции"), completed, adminLabel("calendarGuideCompletedHelp", "В текущия филтриран период"))}${metric(adminLabel("calendarGuideProfessionals", "Активни професионалисти"), professionals, adminLabel("calendarGuideProfessionalsHelp", "Във видимите календарни събития"))}</div>`;
+          board.innerHTML = `<div class="admin-exec-grid">${metric(adminLabel("calendarGuideVisible", "Видими събития"), currentEvents.length, adminLabel("calendarGuideVisibleHelp", "В текущия календарен изглед"))}${metric(adminLabel("calendarGuideActive", "Активни събития"), active, adminLabel("calendarGuideActiveHelp", "Без завършени и отменени"))}${metric(adminLabel("calendarGuideSla", "SLA съответствие"), `${compliance}%`, `${overdue} ${adminLabel("calendarGuideBreaches", "нарушения")}`)}${metric(adminLabel("calendarGuideUnassigned", "Невъзложени"), unassigned, adminLabel("calendarGuideUnassignedHelp", "Оперативни събития без изпълнител"))}${metric(adminLabel("calendarGuideCompleted", "Завършени операции"), completed, adminLabel("calendarGuideCompletedHelp", "В текущия филтриран период"))}${metric(adminLabel("calendarGuideProfessionals", "Активни професионалисти"), professionals, adminLabel("calendarGuideProfessionalsHelp", "Във видимите календарни събития"))}</div>`;
         }
 
         function formatDuration(milliseconds) {
@@ -4609,7 +5315,7 @@
         }
 
         function renderIntelligence() {
-          const attention = events.filter((event) => urgency(event) === "critical").sort((a,b) => a.start-b.start);
+          const attention = visibleEvents().filter((event) => urgency(event) === "critical").sort((a,b) => a.start-b.start);
           app.querySelector("[data-admin-urgent-queue]").innerHTML = attention.slice(0,4).map((event) => `<button class="admin-urgent-item" type="button" data-event-id="${event.id}"><strong>${escapeHtml(eventTypeLabel(event))}</strong><span>${escapeHtml(event.property)} · ${getSafeDisplayTime(event)}</span></button>`).join("") || `<p class="admin-ops-detail__empty">${escapeHtml(adminLabel("calendarDetailNoRelated", "Няма свързани критични операции."))}</p>`;
           bindBoardEvents(app.querySelector("[data-admin-urgent-queue]"));
         }
@@ -4763,6 +5469,8 @@
 
         function render() {
           localizeFilterOptions();
+          const currentEvents = visibleEvents();
+          updateMissionFilters(currentEvents);
           renderShell();
           renderWeek();
           renderProperty();
