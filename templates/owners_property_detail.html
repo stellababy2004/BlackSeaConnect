@@ -325,21 +325,21 @@
         </div>
         <div class="owner-property-detail-hero__content">
           <div class="owner-property-detail-meta">
-            <span class="owner-property-detail-chip">Owner portal</span>
-            <span class="owner-property-detail-chip">Property profile</span>
             <span class="owner-property-detail-chip owner-property-detail-chip--status" data-owner-status="{{ property_context.property.status_label|e }}">{{ property_context.property.status_label|e }}</span>
           </div>
           <h1>{{ property_context.property.name|e }}</h1>
           <p class="owner-property-detail-location">{{ property_context.property.location|e }} · {{ owner_account.full_name|e }}</p>
-          <p class="owner-property-detail-copy">
-            Your complete operational profile, guest knowledge, maintenance context, and live availability.
-          </p>
+          <p class="owner-property-detail-copy">See what is happening at your property and what comes next.</p>
           <div class="owner-property-detail-actions">
-            <button class="button button--primary" type="button" data-property-edit-toggle>Edit profile</button>
-            <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">Calendar</a>
-            <a class="button button--secondary" href="{{ localized_url('/owners/reservations?property=' ~ property_context.property.id) }}">Reservations</a>
-            <a class="button button--secondary" href="{{ localized_url('/owners/request-service?category=maintenance&property_id=' ~ property_context.property.id) }}">Maintenance</a>
-            <span class="button button--ghost is-disabled" aria-disabled="true">Guest portal</span>
+            <a class="button button--primary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">Request help</a>
+            <details class="owner-profile-dropdown">
+              <summary class="button button--secondary">More</summary>
+              <div class="owner-profile-dropdown__menu">
+                <button type="button" data-property-edit-toggle>Edit property</button>
+                <a href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">Calendar</a>
+                <a href="{{ localized_url('/owners/reservations?property=' ~ property_context.property.id) }}">Bookings</a>
+              </div>
+            </details>
           </div>
         </div>
       </section>
@@ -348,13 +348,13 @@
 
   <nav class="owner-property-workspace-tabs" aria-label="Property workspace" role="tablist">
     {% for tab_id, tab_label in [
-      ('overview', 'Overview'),
-      ('property', 'Property'),
+      ('overview', 'Today'),
+      ('property', 'Details'),
       ('calendar', 'Calendar'),
-      ('operations', 'Operations'),
-      ('knowledge', 'Knowledge'),
+      ('operations', 'Work'),
+      ('knowledge', 'Information'),
       ('equipment', 'Equipment'),
-      ('integrations', 'Integrations')
+      ('integrations', 'More')
     ] %}
       <button type="button"
               class="owner-property-workspace-tab {% if loop.first %}is-active{% endif %}"
@@ -379,17 +379,16 @@
     <article class="owner-property-detail-panel owner-property-overview" data-property-tab-section="overview">
       <div class="owner-property-overview__header">
         <div>
-          <p class="eyebrow">At a glance</p>
-          <h2 class="owner-property-detail-section-title">Operational overview</h2>
+          <p class="eyebrow">What matters now</p>
+          <h2 class="owner-property-detail-section-title">Today at your property</h2>
         </div>
         <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
       </div>
       <div class="owner-property-overview__grid">
         <div><span>Property</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
-        <div><span>Readiness</span><strong>{{ property_context.property.readiness_percent }}%</strong><small>{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} complete</small></div>
-        <div><span>Next arrival</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No arrival', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Schedule clear', true)|e }}</small></div>
-        <div><span>Next cleaning</span><strong data-owner-datetime="{{ property_context.availability.upcoming_departure.departure_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_departure.departure_datetime|default('No turnover', true)|e }}</strong><small>{% if property_context.availability.cleaning_required %}Cleaning required{% else %}No action required{% endif %}</small></div>
-        <div><span>Open requests</span><strong>{{ open_request_count.value }}</strong><small>Property operations</small></div>
+        <div><span>Current status</span><strong>{{ property_context.property.status_label|e }}</strong><small>{% if property_context.property.readiness_percent == 100 %}Everything is ready{% else %}{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} checks complete{% endif %}</small></div>
+        <div><span>Next booking</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No booking planned', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Nothing to prepare', true)|e }}</small></div>
+        <div><span>Today's work</span><strong>{{ open_request_count.value }}</strong><small>{% if open_request_count.value %}work items in progress{% else %}No work planned today{% endif %}</small></div>
         <div class="{% if property_context.property.checklist_completed < property_context.property.checklist_total %}is-alert{% else %}is-healthy{% endif %}">
           <span>Key alerts</span>
           <strong>{{ property_context.property.checklist_total - property_context.property.checklist_completed }}</strong>

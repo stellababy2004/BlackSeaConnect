@@ -4063,9 +4063,14 @@
                   <p class="admin-ops-detail__empty" data-admin-detail-operation-missing hidden>Липсва валиден идентификатор на задачата.</p>
                   <button class="admin-ops-button" type="button" data-admin-detail-assign>Възложи</button>
                   <button class="admin-ops-button" type="button" data-admin-detail-complete>Завърши</button>
-                  <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
-                  <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
-                  <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Изтрий</button>
+                  <details>
+                    <summary class="admin-ops-button">Още</summary>
+                    <div class="admin-ops-detail__actions">
+                      <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
+                      <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
+                      <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Изтрий</button>
+                    </div>
+                  </details>
                 </div>
               </section>
 

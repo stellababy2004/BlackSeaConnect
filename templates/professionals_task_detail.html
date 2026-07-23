@@ -204,14 +204,14 @@
   "Other": public_i18n("owners", "ownerCategoryOther", "Other")
 } %}
 {% set attachment_labels = {
-  "before_photos": public_i18n("professionals", "detailBeforePhotos", "Before photos"),
-  "after_photos": public_i18n("professionals", "detailAfterPhotos", "After photos"),
-  "invoice": public_i18n("professionals", "detailEvidenceInvoice", "Invoice"),
-  "receipt": public_i18n("professionals", "detailEvidenceReceipt", "Receipt"),
-  "inspection_report": public_i18n("professionals", "detailEvidenceInspectionReport", "Inspection report"),
-  "damage_evidence": public_i18n("professionals", "detailEvidenceDamage", "Damage evidence"),
-  "completion_report_attachment": public_i18n("professionals", "detailEvidenceCompletionAttachment", "Completion report attachment"),
-  "other": public_i18n("professionals", "detailEvidenceOther", "Other")
+  "before_photos": public_i18n("professionals", "detailBeforeWork", "Before work"),
+  "after_photos": public_i18n("professionals", "detailAfterWork", "After work"),
+  "invoice": public_i18n("professionals", "detailReceipts", "Receipts"),
+  "receipt": public_i18n("professionals", "detailReceipts", "Receipts"),
+  "inspection_report": public_i18n("professionals", "detailOtherFiles", "Other files"),
+  "damage_evidence": public_i18n("professionals", "detailOtherFiles", "Other files"),
+  "completion_report_attachment": public_i18n("professionals", "detailOtherFiles", "Other files"),
+  "other": public_i18n("professionals", "detailOtherFiles", "Other files")
 } %}
 {% set timeline_labels = {
   "task_created": labels.task_event_task_created,
@@ -373,6 +373,7 @@
     .professional-check-progress__track span { display:block; height:100%; background:linear-gradient(90deg,#96772e,#c2a45b); }
     .professional-check-item { display:flex; align-items:center; gap:12px; min-height:54px; }
     .professional-check-form { margin:0; }
+    .professional-check-form:not(.is-active-check) { display:none; }
     .professional-check-toggle { display:flex; width:100%; min-height:54px; align-items:center; gap:12px; padding:0; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; }
     .professional-check-toggle:focus-visible { outline:3px solid #96772e; outline-offset:4px; border-radius:12px; }
     .professional-check-mark { display:grid; place-items:center; flex:0 0 28px; height:28px; border:2px solid #c6b788; border-radius:8px; color:#fff; background:#fff; }
@@ -391,6 +392,27 @@
     .professional-chat-bubble { min-width:0; padding:12px 14px; border-radius:6px 18px 18px; background:#f7f4ee; border:1px solid rgba(15,35,69,.1); }
     .professional-snapshot { background:linear-gradient(145deg,#fff,#f4f7f5); }
     .professional-snapshot .professional-dl > div { background:rgba(255,255,255,.8); }
+    .professional-today-label { margin:0 0 8px; color:#318064; font-size:13px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+    .professional-task-address { margin:8px 0 0; color:#40536e; font-size:1rem; line-height:1.5; }
+    .professional-task-timing { display:flex; flex-wrap:wrap; gap:8px 18px; margin:14px 0 0; color:#23395d; }
+    .professional-task-timing span { display:inline-flex; gap:6px; align-items:center; }
+    .professional-hero__navigate { width:min(100%,320px); min-height:58px; font-size:1.05rem; }
+    .professional-step-flow { display:grid; gap:0; padding:6px 2px; }
+    .professional-step { position:relative; display:grid; grid-template-columns:42px minmax(0,1fr); gap:12px; align-items:center; min-height:62px; color:#657287; }
+    .professional-step:not(:last-child)::after { content:""; position:absolute; left:20px; top:43px; bottom:-3px; width:2px; background:#dbe3df; }
+    .professional-step__number { position:relative; z-index:1; display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:#edf1ef; color:#526177; font-weight:900; }
+    .professional-step strong { display:block; color:#23395d; font-size:1rem; }
+    .professional-step small { display:block; margin-bottom:2px; font-size:10px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+    .professional-step.is-current .professional-step__number { background:#0f2345; color:#fff; box-shadow:0 0 0 5px rgba(15,35,69,.1); }
+    .professional-step.is-current strong { color:#0f2345; font-size:1.08rem; }
+    .professional-step.is-done .professional-step__number { background:#318064; color:#fff; }
+    .professional-secondary-tools { border:0; box-shadow:none; background:transparent; padding:0 4px; }
+    .professional-secondary-tools summary { min-height:48px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#40536e; font-weight:800; }
+    .professional-secondary-tools__content { display:flex; flex-wrap:wrap; gap:8px; padding:8px 0 4px; }
+    .professional-completion-celebration { padding:30px 20px; border-radius:24px; background:#e8f3ef; color:#16624c; text-align:center; }
+    .professional-completion-celebration span { display:grid; place-items:center; width:64px; height:64px; margin:0 auto 14px; border-radius:50%; background:#318064; color:#fff; font-size:32px; }
+    .professional-completion-celebration h2 { margin:0 0 8px; font-size:1.65rem; }
+    .professional-completion-celebration p { margin:0; line-height:1.55; }
     @media (max-width: 920px) {
       .professional-grid,
       .professional-grid-two-up,
@@ -398,21 +420,29 @@
       .professional-workbar { grid-template-columns:1fr; }
     }
     @media (max-width:640px) {
-      .professional-task-page { padding:10px 10px 98px; }
-      .professional-task-shell { width:calc(100vw - 40px); max-width:calc(100vw - 40px); margin-inline:auto; gap:12px; }
+      .professional-task-page { padding:8px 10px calc(102px + env(safe-area-inset-bottom)); }
+      .professional-task-shell { width:100%; max-width:100%; margin-inline:auto; gap:12px; }
       .professional-panel { width:100%; max-width:100%; padding:18px 15px; border-radius:24px; }
-      .professional-meta .professional-badge:last-child { flex-basis:100%; }
-      .professional-hero .professional-task-actions { display:grid; width:100%; grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .professional-hero .professional-task-actions .button { width:100%; min-height:48px; }
-      .professional-hero .language-switcher { grid-column:1 / -1; width:100%; min-width:0; }
-      .professional-workbar { top:6px; margin-inline:0; padding:9px 10px; border-radius:20px; }
+      .professional-hero { display:grid; padding:22px 18px; }
+      .professional-hero h1 { margin:4px 0!important; font-size:clamp(1.75rem,9vw,2.35rem); line-height:1.05; }
+      .professional-hero__navigate { width:100%; }
+      .professional-workbar { position:fixed; inset:auto 10px calc(8px + env(safe-area-inset-bottom)); top:auto; z-index:20; margin:0; padding:8px; border-radius:20px; box-shadow:0 16px 40px rgba(15,35,69,.24); }
       .professional-workbar .professional-live { display:none; }
-      .professional-workbar .professional-status-controls { width:100%; grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .professional-workbar .button { min-width:0; min-height:46px; }
+      .professional-workbar .professional-status-controls { width:100%; display:block; }
+      .professional-workbar .button { width:100%; min-width:0; min-height:58px; font-size:1.05rem; }
       .professional-photo-grid { grid-template-columns:1fr 1fr; }
       .professional-photo-slot { min-height:135px; padding:14px; }
       .professional-form .button { width:100%; min-height:52px; }
       .professional-list-item { padding:14px; }
+      .professional-check-item { min-height:68px; padding:8px 14px!important; }
+      .professional-check-toggle { min-height:58px; }
+      .professional-check-mark { flex-basis:34px; height:34px; }
+      .professional-evidence-image { max-height:none; aspect-ratio:4/3; border-radius:18px; }
+      .professional-dropzone { min-height:190px; }
+      .professional-grid > .professional-stack:first-child { order:2; }
+      .professional-grid > .professional-stack:last-child { order:1; }
+      .professional-grid > .professional-stack:first-child > article:not(#evidence-upload):not(#issue-report):not(#completion-report) { display:none; }
+      .professional-grid > .professional-stack:last-child > article:nth-child(n+3) { display:none; }
     }
   </style>
 </head>
@@ -424,33 +454,26 @@
     {% if action_error %}
       <div class="professional-alert professional-alert--error" role="alert">{{ error_labels.get(action_error, labels.error_action) }}</div>
     {% endif %}
+    {% set current_status = task.status|upper %}
     <section class="professional-panel professional-hero">
       <div>
         {% set owner_email = task.owner_email|default('', true) %}
         {% set owner_phone = property_snapshot.owner_phone|default('', true) %}
+        <p class="professional-today-label">{{ public_i18n('professionals', 'detailTodaysTask', "Today's task") }}</p>
         <div class="professional-meta">
-          <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
           <span class="professional-badge">{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</span>
-          <span class="professional-badge">{{ task.assigned_professional_label|e }}</span>
         </div>
-        <h1 style="margin:10px 0 8px;">{{ task.title|e }}</h1>
-        <p style="margin:0;color:#4b5563;line-height:1.65;">{{ task.property_name|e or task.property_location|e or labels.property_not_set }}</p>
-        <p style="margin:0;color:#4b5563;line-height:1.65;">{{ labels.due_date }}: {{ task.due_date|e or labels.due_date_not_set }}</p>
-      </div>
-      <div class="professional-task-actions">
-        <a class="button button--secondary" href="{{ localized_url('/professionals/tasks') }}">{{ labels.back_to_tasks }}</a>
-        <a class="button button--ghost" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
-        <a class="button button--secondary" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
-        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel', 'Language switcher') }}">
-          {% for lang_code in ['bg', 'en', 'fr', 'ru'] %}
-            {% if not loop.first %}<span class="language-switcher__divider" aria-hidden="true">|</span>{% endif %}
-            <a class="language-switcher__button{% if page_lang == lang_code %} is-active{% endif %}" href="{{ language_switch_url(lang_code) }}" data-lang-switch="{{ lang_code }}">{{ lang_code|upper }}</a>
-          {% endfor %}
+        <h1>{{ task.property_name|e or task.title|e }}</h1>
+        <p class="professional-task-address">{{ property_snapshot.address|e or task.property_location|e or labels.location_not_set }}</p>
+        <div class="professional-task-timing">
+          {% if task.arrival_date|default('', true) or task.check_in|default('', true) %}<span><strong>{{ public_i18n('professionals', 'detailArrival', 'Arrival') }}:</strong> {{ task.arrival_date|default('', true)|e or task.check_in|default('', true)|e }}</span>{% endif %}
+          {% if task.departure_date|default('', true) or task.check_out|default('', true) %}<span><strong>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}:</strong> {{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e }}</span>{% endif %}
+          {% if not (task.arrival_date|default('', true) or task.check_in|default('', true) or task.departure_date|default('', true) or task.check_out|default('', true)) %}<span><strong>{{ labels.due_date }}:</strong> {{ task.due_date|e or labels.due_date_not_set }}</span>{% endif %}
         </div>
       </div>
+      {% if property_snapshot.address %}<button class="button button--primary professional-hero__navigate" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>{% endif %}
     </section>
 
-    {% set current_status = task.status|upper %}
     <script type="application/json" id="pwa-task-config">{{ {
       "taskId": task.request_id,
       "version": task.updated_at,
@@ -501,51 +524,48 @@
         {% elif current_status == 'ARRIVED' %}
           <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
         {% elif current_status == 'IN_PROGRESS' %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--primary" type="submit">{{ labels.pause }}</button></form>
+          {% set checklist = task.checklist_items or [] %}
+          {% set checked_count = checklist|selectattr('checked')|list|length %}
+          {% if checklist and checked_count < checklist|length %}
+            <a class="button button--primary" href="#task-checklist">{{ public_i18n('professionals', 'detailContinueChecklist', 'Continue checklist') }}</a>
+          {% elif not task.attachments %}
+            <a class="button button--primary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhotos', 'Upload photos') }}</a>
+          {% else %}
+            <a class="button button--primary" href="#completion-report">{{ public_i18n('professionals', 'detailFinishTask', 'Finish task') }}</a>
+          {% endif %}
         {% elif current_status == 'PAUSED' %}
           <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
+        {% elif current_status in ['COMPLETED', 'ARCHIVED'] %}
+          <a class="button button--primary" href="#completion-summary">{{ public_i18n('professionals', 'detailViewSummary', 'View summary') }}</a>
         {% endif %}
-        {% if property_snapshot.address %}
-          <button class="button button--secondary" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>
-        {% endif %}
-        {% if owner_phone %}<a class="button button--secondary" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
-        {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#evidence-upload">{{ public_i18n('professionals', 'detailUploadPhoto', 'Upload photo') }}</a>{% endif %}
-        {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}<a class="button button--secondary" href="#issue-report">{{ labels.report_issue }}</a>{% endif %}
-        {% if current_status == 'IN_PROGRESS' %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
       </div>
     </nav>
 
     <section class="professional-panel" aria-label="{{ public_i18n('professionals', 'detailFieldFlowLabel', 'Field work order') }}">
-      <p class="professional-kicker">{{ public_i18n('professionals', 'detailFieldFlowKicker', 'Phone-first workflow') }}</p>
-      <div class="professional-list">
-        <div class="professional-list-item">
-          <div class="professional-list-item__topline">
-            <strong>{{ labels.address }}</strong>
-            {% if property_snapshot.address %}
-              <button class="button button--ghost" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>
-            {% endif %}
-          </div>
-          <p>{{ property_snapshot.address|e or labels.location_not_set }}</p>
-        </div>
-        <div class="professional-list-item">
-          <div class="professional-list-item__topline">
-            <strong>{{ public_i18n('professionals', 'detailFieldFlowNextAction', 'Next action') }}</strong>
-            <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
-          </div>
-          <p>{{ labels.start_work if current_status == 'ARRIVED' else labels.accept_task if current_status in ['NEW', 'ASSIGNED'] else labels.complete_work if current_status == 'IN_PROGRESS' else labels.arrival_workflow }}</p>
-        </div>
-        <div class="professional-list-item">
-          <div class="professional-list-item__topline">
-            <strong>{{ labels.checklist }} -> {{ labels.attachments }} -> {{ labels.complete_work }}</strong>
-          </div>
-          <p>{{ public_i18n('professionals', 'detailFieldFlowProofCopy', 'Complete the checklist, upload before/after proof, then finish with a clear completion note.') }}</p>
-        </div>
+      <div class="professional-step-flow">
+        <div class="professional-step{% if current_status not in ['NEW','ASSIGNED','ACCEPTED','ON_THE_WAY'] %} is-done{% elif current_status in ['ACCEPTED','ON_THE_WAY'] %} is-current{% endif %}"><span class="professional-step__number">{% if current_status not in ['NEW','ASSIGNED','ACCEPTED','ON_THE_WAY'] %}✓{% else %}1{% endif %}</span><div><small>{{ public_i18n('professionals', 'detailStep', 'Step') }} 1</small><strong>{{ public_i18n('professionals', 'detailGoToProperty', 'Go to the property') }}</strong></div></div>
+        <div class="professional-step{% if current_status in ['IN_PROGRESS','PAUSED','COMPLETED','ARCHIVED'] %} is-done{% elif current_status in ['ARRIVED'] %} is-current{% endif %}"><span class="professional-step__number">{% if current_status in ['IN_PROGRESS','PAUSED','COMPLETED','ARCHIVED'] %}✓{% else %}2{% endif %}</span><div><small>{{ public_i18n('professionals', 'detailStep', 'Step') }} 2</small><strong>{{ labels.start_work }}</strong></div></div>
+        <div class="professional-step{% if current_status in ['COMPLETED','ARCHIVED'] or (task.checklist_items and (task.checklist_items|selectattr('checked')|list|length == task.checklist_items|length)) %} is-done{% elif current_status in ['IN_PROGRESS','PAUSED'] %} is-current{% endif %}"><span class="professional-step__number">{% if current_status in ['COMPLETED','ARCHIVED'] or (task.checklist_items and (task.checklist_items|selectattr('checked')|list|length == task.checklist_items|length)) %}✓{% else %}3{% endif %}</span><div><small>{{ public_i18n('professionals', 'detailStep', 'Step') }} 3</small><strong>{{ public_i18n('professionals', 'detailCompleteChecklist', 'Complete checklist') }}</strong></div></div>
+        <div class="professional-step{% if task.attachments %} is-done{% elif current_status == 'IN_PROGRESS' and (not task.checklist_items or task.checklist_items|selectattr('checked')|list|length == task.checklist_items|length) %} is-current{% endif %}"><span class="professional-step__number">{% if task.attachments %}✓{% else %}4{% endif %}</span><div><small>{{ public_i18n('professionals', 'detailStep', 'Step') }} 4</small><strong>{{ public_i18n('professionals', 'detailTakePhotos', 'Take photos') }}</strong></div></div>
+        <div class="professional-step{% if current_status in ['COMPLETED','ARCHIVED'] %} is-done{% elif current_status == 'IN_PROGRESS' and task.attachments %} is-current{% endif %}"><span class="professional-step__number">{% if current_status in ['COMPLETED','ARCHIVED'] %}✓{% else %}5{% endif %}</span><div><small>{{ public_i18n('professionals', 'detailStep', 'Step') }} 5</small><strong>{{ public_i18n('professionals', 'detailFinishTask', 'Finish task') }}</strong></div></div>
       </div>
     </section>
 
+    <details class="professional-secondary-tools">
+      <summary>{{ public_i18n('professionals', 'detailMoreHelp', 'More options and help') }}</summary>
+      <div class="professional-secondary-tools__content">
+        <a class="button button--ghost" href="{{ localized_url('/professionals/tasks') }}">{{ labels.back_to_tasks }}</a>
+        <a class="button button--ghost" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
+        {% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
+        <a class="button button--ghost" href="#issue-report">{{ labels.report_issue }}</a>
+        {% if current_status == 'IN_PROGRESS' %}<form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--ghost" type="submit">{{ labels.pause }}</button></form>{% endif %}
+        <a class="button button--ghost" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
+      </div>
+    </details>
+
     <section class="professional-grid">
       <div class="professional-stack">
-        <article class="professional-panel">
+        <article class="professional-panel" id="task-checklist">
           <p class="professional-kicker">{{ labels.task_summary }}</p>
           <h2>{{ labels.execution_details }}</h2>
           <dl class="professional-dl">
@@ -629,8 +649,8 @@
         </article>
 
         <article class="professional-panel" id="evidence-upload">
-          <p class="professional-kicker">{{ labels.attachments }}</p>
-          <h2>{{ labels.before_after_evidence }}</h2>
+          <p class="professional-kicker">{{ public_i18n('professionals', 'detailPhotos', 'Photos') }}</p>
+          <h2>{{ public_i18n('professionals', 'detailWorkPhotos', 'Work photos') }}</h2>
           <p><small>{{ public_i18n('professionals', 'detailEvidenceTrustCopy', 'Photos are proof for Operations and the owner. Group uploads as before photos, after photos, documents, receipts, or reports.') }}</small></p>
           {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
@@ -661,11 +681,11 @@
           <h2>{{ labels.report_issue }}</h2>
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data">
             <input type="hidden" name="task_action" value="issue">
-            <label><span>{{ labels.issue_category }}</span><select name="issue_category" required><option value=""></option><option value="access">{{ labels.issue_category_access }}</option><option value="safety">{{ labels.issue_category_safety }}</option><option value="damage">{{ labels.issue_category_damage }}</option><option value="supplies">{{ labels.issue_category_supplies }}</option><option value="other">{{ labels.issue_category_other }}</option></select></label>
-            <label><span>{{ labels.issue_severity }}</span><select name="issue_severity" required><option value=""></option><option value="low">{{ labels.issue_severity_low }}</option><option value="medium">{{ labels.issue_severity_medium }}</option><option value="high">{{ labels.issue_severity_high }}</option><option value="urgent">{{ labels.issue_severity_urgent }}</option></select></label>
-            <label><span>{{ labels.issue_description }}</span><textarea name="issue_description" required placeholder="{{ labels.issue_description_placeholder }}"></textarea></label>
-            <label><span>{{ labels.issue_photos }}</span><input type="file" name="issue_photos" accept="image/jpeg,image/png,image/webp" multiple><small>{{ labels.evidence_requirements }}</small></label>
-            <button class="button button--secondary" type="submit">{{ labels.report_issue }}</button>
+            <input type="hidden" name="issue_category" value="other">
+            <input type="hidden" name="issue_severity" value="medium">
+            <label class="professional-dropzone"><span><strong>{{ public_i18n('professionals', 'detailPhoto', 'Photo') }}</strong><br><small>{{ labels.evidence_requirements }}</small></span><input type="file" name="issue_photos" accept="image/jpeg,image/png,image/webp" multiple style="position:absolute;inline-size:1px;block-size:1px;opacity:0;"></label>
+            <label><span>{{ public_i18n('professionals', 'detailDescription', 'Description') }}</span><textarea name="issue_description" required placeholder="{{ public_i18n('professionals', 'detailSimpleIssuePlaceholder', 'What went wrong?') }}"></textarea></label>
+            <button class="button button--secondary" type="submit">{{ public_i18n('professionals', 'detailSend', 'Send') }}</button>
           </form>
         </article>
         {% endif %}
@@ -722,8 +742,11 @@
             <strong data-check-progress-count>{{ checked_count }}/{{ checklist|length }}</strong>
           </div>
           <div class="professional-list">
+            {% set checklist_state = namespace(active_shown=false) %}
             {% for item in task.checklist_items or [] %}
-              <form class="professional-list-item professional-check-item professional-check-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-checklist-form data-checklist-key="{{ item.key|e }}">
+              {% set is_active_check = (not item.checked and not checklist_state.active_shown) %}
+              <form class="professional-list-item professional-check-item professional-check-form{% if is_active_check %} is-active-check{% endif %}" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-checklist-form data-checklist-key="{{ item.key|e }}">
+                {% if is_active_check %}{% set checklist_state.active_shown = true %}{% endif %}
                 <input type="hidden" name="task_action" value="checklist">
                 <input type="hidden" name="checklist_key" value="{{ item.key|e }}">
                 <input type="hidden" name="checked" value="1">
@@ -786,7 +809,14 @@
           </div>
         </article>
 
-        <article class="professional-panel">
+        <article class="professional-panel" id="completion-summary">
+          {% if current_status in ['COMPLETED', 'ARCHIVED'] %}
+          <div class="professional-completion-celebration">
+            <span aria-hidden="true">✓</span>
+            <h2>{{ public_i18n('professionals', 'detailGreatJob', 'Great job!') }}</h2>
+            <p>{{ public_i18n('professionals', 'detailOwnerReceivesUpdate', 'The owner will now receive your update.') }}</p>
+          </div>
+          {% endif %}
           <p class="professional-kicker">{{ labels.completion_report }}</p>
           <h2>{{ labels.latest_report }}</h2>
           <div class="professional-list">
@@ -900,6 +930,12 @@
               badge.textContent = messages.done;
               document.querySelector("[data-check-progress-bar]").style.width = `${result.progress}%`;
               document.querySelector("[data-check-progress-count]").textContent = `${result.checked_count}/${result.total_count}`;
+              form.classList.remove("is-active-check");
+              const nextChecklistForm = Array.from(document.querySelectorAll("[data-checklist-form]")).find((candidate) => {
+                const candidateButton = candidate.querySelector(".professional-check-toggle");
+                return candidateButton && !candidateButton.disabled;
+              });
+              if (nextChecklistForm) nextChecklistForm.classList.add("is-active-check");
               announce({{ labels.notice_checklist_saved|tojson }});
               setLoading(form, false);
               button.disabled = true;

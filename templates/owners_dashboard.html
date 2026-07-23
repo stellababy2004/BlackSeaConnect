@@ -720,6 +720,30 @@
         </article>
       </section>
     {% else %}
+      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-latest-updates-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-heading__eyebrow">Today</p>
+            <h2 id="owner-latest-updates-title">Latest updates</h2>
+          </div>
+          <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
+        </div>
+        <div class="owner-portal-card">
+          {% if owner_portal.recent_updates %}
+            {% set latest = owner_portal.recent_updates[0] %}
+            <strong>{{ latest.service_category|e }}</strong>
+            <p>{{ latest.description|default(latest.detail, true)|default(ui.recent_updates_title, true)|e }}</p>
+            <small><span data-i18n="ownerRequestLastUpdateLabel">{{ ui.updated_label }}</span> {{ latest.last_update_display|default(latest.last_update_at)|e }}</small>
+          {% elif owner_portal.notifications %}
+            {% set latest = owner_portal.notifications[0] %}
+            <strong data-i18n="{{ latest.label_key }}">{{ latest.label }}</strong>
+            <p data-i18n="{{ latest.detail_key }}">{{ latest.detail }}</p>
+          {% else %}
+            <strong>Everything is OK.</strong>
+            <p>No new updates need your attention. New work and photos will appear here automatically.</p>
+          {% endif %}
+        </div>
+      </section>
       <details class="owner-dashboard-disclosure" open>
         <summary>
           <span data-i18n="ownerDashboardQuickActions">{{ ui.quick_actions_eyebrow }}</span>
@@ -730,8 +754,13 @@
           <span class="owner-operational-actions__label" data-i18n="ownerDashboardQuickActions">{{ ui.quick_actions_eyebrow }}</span>
           <a class="owner-operational-action owner-operational-action--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
           <a class="owner-operational-action" href="mailto:concierge@blackseaconnect.com" data-i18n="ownerDashboardContactConciergeAction">{{ ui.contact_concierge }}</a>
-          <a class="owner-operational-action" href="{{ localized_url('/owners/properties') }}">{{ ui.upload_photo }}</a>
-          <a class="owner-operational-action owner-operational-action--urgent" href="{{ localized_url('/owners/request-service?category=maintenance') }}">{{ ui.emergency_issue }}</a>
+          <details class="owner-profile-dropdown">
+            <summary class="owner-operational-action">More</summary>
+            <div class="owner-profile-dropdown__menu">
+              <a href="{{ localized_url('/owners/properties') }}">{{ ui.upload_photo }}</a>
+              <a href="{{ localized_url('/owners/request-service?category=maintenance') }}">{{ ui.emergency_issue }}</a>
+            </div>
+          </details>
         </div>
         {% set ops = namespace(maintenance=0, cleaning=0) %}
         {% for property in owner_portal.properties %}
@@ -1434,4 +1463,3 @@
   {% include 'partials/pwa_runtime.html' %}
 </body>
 </html>
-

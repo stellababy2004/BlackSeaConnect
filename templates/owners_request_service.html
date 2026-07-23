@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
   <title data-i18n="ownerRequestServicePageTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServicePageTitle', '') }}</title>
-  <meta name="description" data-i18n-attr="content:ownerRequestServiceMeta" content="Заявете почистване, инспекция, поддръжка и консиерж подкрепа от портала си за собственици.">
+  <meta name="description" data-i18n-attr="content:ownerRequestServiceMeta" content="{{ public_i18n('ownersRequestService', 'ownerRequestServiceMeta', '') }}">
   <link rel="canonical" href="{{ site_url }}{{ request.path }}">
   <meta property="og:title" data-i18n-attr="content:ownerRequestServicePageTitleOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServicePageTitleOg', '') }}">
   <meta property="og:description" data-i18n-attr="content:ownerRequestServiceMetaOg" content="{{ public_i18n('ownersRequestService', 'ownerRequestServiceMetaOg', '') }}">
@@ -182,20 +182,20 @@
       <h2 id="owner-request-next-title" data-i18n="ownerRequestServiceWhatHappensNextTitle">{{ public_i18n('ownersRequestService', 'ownerRequestServiceWhatHappensNextTitle', '') }}</h2>
       <div class="owner-request-next__grid">
         <div>
-          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep1Title', 'Step 1 - Request received') }}</strong>
-          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep1Copy', 'Your request is saved and visible to the local operations team.') }}</p>
+          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep1Title', 'Step 1') }}</strong>
+          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep1Copy', 'We review the request.') }}</p>
         </div>
         <div>
-          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep2Title', 'Step 2 - Contractor assignment') }}</strong>
-          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep2Copy', 'We will assign the right local contractor for the property and service type.') }}</p>
+          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep2Title', 'Step 2') }}</strong>
+          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep2Copy', 'We assign the right local service provider.') }}</p>
         </div>
         <div>
-          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep3Title', 'Step 3 - Task sent') }}</strong>
-          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep3Copy', 'The contractor receives the address, checklist, notes, and timing.') }}</p>
+          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep3Title', 'Step 3') }}</strong>
+          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep3Copy', 'The work is completed.') }}</p>
         </div>
         <div>
-          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep4Title', 'Step 4 - Proof shared') }}</strong>
-          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep4Copy', 'You will receive photos and completion notes when the work is finished.') }}</p>
+          <strong>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep4Title', 'Step 4') }}</strong>
+          <p>{{ public_i18n('ownersRequestService', 'ownerRequestTrustStep4Copy', 'You receive photos and confirmation.') }}</p>
         </div>
       </div>
     </section>

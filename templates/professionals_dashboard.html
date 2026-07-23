@@ -240,20 +240,38 @@
       color:#23395d;
       line-height:1.55;
     }
+    .professional-dashboard-tools { overflow:hidden; }
+    .professional-dashboard-tools > summary { min-height:52px; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; font-weight:850; list-style:none; }
+    .professional-dashboard-tools > summary::-webkit-details-marker { display:none; }
+    .professional-dashboard-tools > summary::after { content:"+"; display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:#edf3f1; color:#244f43; font-size:20px; }
+    .professional-dashboard-tools[open] > summary::after { content:"−"; }
+    .professional-dashboard-tools__body { padding-top:14px; border-top:1px solid rgba(15,35,69,.1); }
+    .professional-next-card .button--primary { min-height:54px; display:inline-flex; align-items:center; justify-content:center; }
     @media (max-width: 920px) {
       .professional-dashboard-grid { grid-template-columns: 1fr 1fr; }
       .professional-grid-two-up { grid-template-columns: 1fr; }
       .professional-next { grid-template-columns:1fr; }
     }
     @media (max-width: 640px) {
-      .professional-dashboard-page { padding:12px 10px 88px; }
-      .professional-panel,.professional-hero { padding:18px 15px; border-radius:24px; }
-      .professional-hero .hero__cta { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+      .professional-dashboard-page { padding:8px 10px calc(30px + env(safe-area-inset-bottom)); }
+      .professional-dashboard-shell { gap:12px; }
+      .professional-panel,.professional-hero { padding:18px; border-radius:22px; box-shadow:0 10px 28px rgba(15,35,69,.08); }
+      .professional-hero { display:grid; }
+      .professional-hero h1 { font-size:clamp(1.8rem,10vw,2.45rem); }
+      .professional-hero > div:first-child > p:not(.eyebrow) { display:none; }
+      .professional-hero .hero__cta { width:100%; display:flex; align-items:center; overflow-x:auto; padding-bottom:2px; }
+      .professional-hero .hero__cta .button { flex:0 0 auto; min-height:46px; }
+      .professional-next-card { padding:22px 18px; border-radius:22px; }
+      .professional-next-card .button { width:100%; min-height:58px; }
+      .professional-day-note { display:none; }
       .professional-dashboard-grid { grid-template-columns:1fr 1fr; gap:9px; }
       .professional-kpi { min-height:102px; padding:14px; }
       .professional-kpi strong { font-size:1.25rem; }
       .professional-kpi small { font-size:11px; }
-      .professional-next-card { padding:20px 18px; }
+      .professional-dashboard-grid .professional-kpi:nth-child(n+3) { display:none; }
+      .professional-grid-two-up > .professional-panel:first-child { order:1; }
+      .professional-grid-two-up > .professional-panel:last-child { order:2; }
+      .professional-notification-list .professional-notification:nth-child(n+3) { display:none; }
     }
   </style>
 </head>
@@ -289,23 +307,6 @@
       </div>
     </section>
 
-    <section class="professional-panel" aria-labelledby="stripe-connect-title">
-      <p class="eyebrow">Stripe Connect</p>
-      <h2 id="stripe-connect-title">{{ stripe_status_label }}</h2>
-      {% if request.args.get('stripe_notice') %}<p>{{ request.args.get('stripe_notice')|replace('_', ' ')|e }}</p>{% endif %}
-      {% if professional_account.stripe_account_status == 'READY' %}
-        <form method="post" action="{{ localized_url('/professionals/stripe/dashboard') }}">
-          <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
-          <button class="button button--secondary" type="submit">{{ stripe_ui.dashboard }}</button>
-        </form>
-      {% else %}
-        <form method="post" action="{{ localized_url('/professionals/stripe/connect') }}">
-          <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
-          <button class="button button--primary" type="submit" {% if not stripe_connect_available %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
-        </form>
-      {% endif %}
-    </section>
-
     {% set next_task = assigned_tasks|first %}
     {% set urgent_tasks = assigned_tasks|selectattr('priority', 'equalto', 'URGENT')|list %}
     <section class="professional-next" aria-labelledby="next-action-title">
@@ -325,6 +326,26 @@
         <p>{{ labels.travel_schedule }}: {% if upcoming_tasks %}{{ upcoming_tasks|length }}{% else %}{{ labels.no_schedule }}{% endif %}</p>
       </article>
     </section>
+
+    <details class="professional-panel professional-dashboard-tools"{% if request.args.get('stripe_notice') %} open{% endif %}>
+      <summary>{{ public_i18n('professionals', 'dashboardAccountAndPayments', 'Account and payments') }}</summary>
+      <div class="professional-dashboard-tools__body" aria-labelledby="stripe-connect-title">
+        <p class="eyebrow">Stripe Connect</p>
+        <h2 id="stripe-connect-title">{{ stripe_status_label }}</h2>
+        {% if request.args.get('stripe_notice') %}<p>{{ request.args.get('stripe_notice')|replace('_', ' ')|e }}</p>{% endif %}
+        {% if professional_account.stripe_account_status == 'READY' %}
+          <form method="post" action="{{ localized_url('/professionals/stripe/dashboard') }}">
+            <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
+            <button class="button button--secondary" type="submit">{{ stripe_ui.dashboard }}</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ localized_url('/professionals/stripe/connect') }}">
+            <input type="hidden" name="csrf_token" value="{{ professional_stripe_csrf_token|e }}">
+            <button class="button button--secondary" type="submit" {% if not stripe_connect_available %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
+          </form>
+        {% endif %}
+      </div>
+    </details>
 
     <section class="professional-dashboard-grid">
       <article class="professional-kpi"><span>{{ labels.today }}</span><strong>{{ today_count }}</strong><small>{{ labels.todays_jobs }} · {{ labels.assigned_today_detail }}</small></article>

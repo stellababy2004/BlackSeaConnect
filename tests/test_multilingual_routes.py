@@ -616,32 +616,32 @@ class MultilingualRouteTests(unittest.TestCase):
 
         expected = {
             "bg": [
-                "Заявете услуга за вашия имот.",
-                "Отвори формата",
-                "Съответства на одобрени професионалисти",
+                "Кажете ни каква помощ ви трябва.",
+                "Започни заявка",
+                "Насочва се към одобрен изпълнител",
             ],
             "en": [
-                "Request a service for your property.",
-                "Open request form",
-                "Matched to approved professionals",
+                "Tell us what help you need.",
+                "Start request",
+                "Routed to an approved service provider",
             ],
             "fr": [
-                "Demandez un service pour votre bien.",
-                "Ouvrir le formulaire",
-                "Correspond à des professionnels approuvés",
+                "Dites-nous de quelle aide vous avez besoin.",
+                "Commencer la demande",
+                "Transmise à un prestataire agréé",
             ],
             "ru": [
-                "Запросите услугу для вашей недвижимости.",
-                "Открыть форму",
-                "Сопоставляется с одобренными профессионалами",
+                "Расскажите, какая помощь вам нужна.",
+                "Создать заявку",
+                "Передаётся проверенному исполнителю",
             ],
         }
 
         forbidden = {
-            "bg": ["Request a service for your property.", "Demandez un service pour votre bien.", "Запросите услугу для вашей недвижимости."],
-            "en": ["Заявете услуга за вашия имот.", "Demandez un service pour votre bien.", "Запросите услугу для вашей недвижимости."],
-            "fr": ["Заявете услуга за вашия имот.", "Request a service for your property.", "Запросите услугу для вашей недвижимости."],
-            "ru": ["Заявете услуга за вашия имот.", "Request a service for your property.", "Demandez un service pour votre bien."],
+            "bg": ["Tell us what help you need.", "Dites-nous de quelle aide vous avez besoin.", "Расскажите, какая помощь вам нужна."],
+            "en": ["Кажете ни каква помощ ви трябва.", "Dites-nous de quelle aide vous avez besoin.", "Расскажите, какая помощь вам нужна."],
+            "fr": ["Кажете ни каква помощ ви трябва.", "Tell us what help you need.", "Расскажите, какая помощь вам нужна."],
+            "ru": ["Кажете ни каква помощ ви трябва.", "Tell us what help you need.", "Dites-nous de quelle aide vous avez besoin."],
         }
 
         for lang, snippets in expected.items():
