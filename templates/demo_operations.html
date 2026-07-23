@@ -55,7 +55,7 @@
           <span class="operations-chip operations-chip--live" data-i18n="demo.topStatusChip">Демо операциите са на живо</span>
           <span class="operations-chip" data-i18n="demo.topUpdatedChip">Обновено преди 2 мин.</span>
         </div>
-        <button class="operations-button operations-button--ghost" type="button" data-open-pilot-modal data-i18n="demo.topPilotCta">Заяви пилотен достъп</button>
+        <a class="operations-button operations-button--ghost" href="{{ localized_url('/pilot-access') }}" data-i18n="demo.topPilotCta">Заяви пилотен достъп</a>
       </div>
     </nav>
 
@@ -68,7 +68,7 @@
         </p>
 
         <div class="operations-hero__cta-row">
-          <button class="operations-button operations-button--primary" type="button" data-open-pilot-modal data-i18n="demo.heroPrimaryCta">Заяви пилотен достъп</button>
+          <a class="operations-button operations-button--primary" href="{{ localized_url('/pilot-access') }}" data-i18n="demo.heroPrimaryCta">Заяви пилотен достъп</a>
           <a class="operations-button operations-button--secondary" href="#operations-overview" data-i18n="demo.heroSecondaryCta">Виж демо на живо</a>
         </div>
 
@@ -313,12 +313,12 @@
   </main>
 
   <div class="operations-mobile-dock" aria-label="Mobile operations actions">
-    <button class="operations-mobile-dock__button" type="button" data-open-pilot-modal data-i18n="demo.dockPilot">Пилотен достъп</button>
+    <a class="operations-mobile-dock__button" href="{{ localized_url('/pilot-access') }}" data-i18n="demo.dockPilot">Пилотен достъп</a>
     <a class="operations-mobile-dock__button operations-mobile-dock__button--secondary" href="#operations-overview" data-i18n="demo.dockStatus">Бърз статус</a>
     <button class="operations-mobile-dock__button" type="button" data-i18n="demo.dockQueue">Опашка на консиержа</button>
   </div>
 
-  <button class="operations-floating-cta" type="button" data-open-pilot-modal data-i18n="demo.floatingPilot">Пилот за консиерж</button>
+  <a class="operations-floating-cta" href="{{ localized_url('/pilot-access') }}" data-i18n="demo.floatingPilot">Пилот за консиерж</a>
 
   <section class="operations-modal" aria-hidden="true" role="dialog" aria-labelledby="pilot-access-title" data-pilot-modal>
     <div class="operations-modal__backdrop" data-close-pilot-modal></div>
@@ -386,8 +386,8 @@
       <p data-i18n="footerMeta">Оперативен софтуер за координация на гости, екипи по имоти и доверени местни партньори.</p>
     </div>
   </footer>
-<script src="/static/js/translations.js?v=20260621"></script>
-  <script src="/static/js/i18n.js?v=20260621"></script>
+<script src="/static/js/translations.js?v=20260724"></script>
+  <script src="/static/js/i18n.js?v=20260724"></script>
   <script src="/static/js/pilot-form.js"></script>
 
   <script>
@@ -438,7 +438,7 @@
 
 <!-- ===== PILOT ACCESS FLOAT ===== -->
 <a
-  href="{{ localized_url('/pilot-access#pilot-form') }}"
+  href="{{ localized_url('/pilot-access') }}"
   class="whatsapp-float"
   aria-label="Pilot access concierge" data-i18n-attr="aria-label:pilotAccessConciergeLabel"
 >

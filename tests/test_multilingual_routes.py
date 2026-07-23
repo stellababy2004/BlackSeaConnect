@@ -578,7 +578,7 @@ class MultilingualRouteTests(unittest.TestCase):
             'href="/services?lang=ru"',
             'href="/partners?lang=ru"',
             'href="/owners/register?lang=ru"',
-            'href="/pilot-access?lang=ru#pilot-form"',
+            'href="/pilot-access?lang=ru"',
         ]:
             with self.subTest(page="pilot", href=href):
                 self.assertIn(href, pilot_html)
@@ -619,6 +619,158 @@ class MultilingualRouteTests(unittest.TestCase):
         ]:
             with self.subTest(page="partners", href=href):
                 self.assertIn(href, partners_html)
+
+    def test_pilot_and_owner_registration_ctas_use_real_localized_routes(self):
+        for lang in ("bg", "en", "fr", "ru"):
+            with self.subTest(lang=lang, page="demo"):
+                demo_html = self.client.get(f"/demo/operations?lang={lang}").get_data(as_text=True)
+                self.assertNotRegex(
+                    demo_html,
+                    r"<(?:a|button)[^>]+data-open-pilot-modal",
+                )
+                self.assertGreaterEqual(demo_html.count(f'href="/pilot-access?lang={lang}"'), 6)
+
+            with self.subTest(lang=lang, page="owner-login"):
+                login_html = self.client.get(f"/owners/login?lang={lang}").get_data(as_text=True)
+                self.assertRegex(
+                    login_html,
+                    rf'<a class="button button--secondary" href="/owners/register\?lang={lang}" data-i18n="ownerLoginSecondaryCta">',
+                )
+
+            for path, key in (
+                ("/", "homeCreateAccountCta"),
+                ("/owners", "ownerLandingCreateAccountCta"),
+            ):
+                with self.subTest(lang=lang, page=path, key=key):
+                    html = self.client.get(f"{path}?lang={lang}").get_data(as_text=True)
+                    matches = re.findall(
+                        rf'<a[^>]+href="/owners/register\?lang={lang}"[^>]+data-i18n="{key}"',
+                        html,
+                    )
+                    self.assertTrue(matches)
+
+        professionals_template = (
+            Path(self._cwd) / "templates" / "professionals.html"
+        ).read_text(encoding="utf-8-sig")
+        self.assertIn(
+            'data-i18n="professionalsApply.{{ category.key }}"',
+            professionals_template,
+        )
+
+    def test_selected_language_persists_across_required_navigation_journeys(self):
+        journeys = (
+            ("/services", "/"),
+            ("/owners/login",),
+            ("/owners",),
+            ("/demo/operations",),
+            ("/owners/register",),
+        )
+
+        for lang in ("bg", "en", "fr", "ru"):
+            for journey in journeys:
+                with self.subTest(lang=lang, journey=journey):
+                    client = app.test_client()
+                    selected = client.get(f"/?lang={lang}")
+                    self.assertEqual(selected.status_code, 200)
+                    self.assertIn(f'<html lang="{lang}">', selected.get_data(as_text=True))
+
+                    for path in journey:
+                        response = client.get(path, follow_redirects=True)
+                        self.assertEqual(response.status_code, 200)
+                        self.assertIn(f'<html lang="{lang}">', response.get_data(as_text=True))
+
+                    with client.session_transaction() as session_state:
+                        self.assertEqual(session_state.get("site_lang"), lang)
+
+    def test_client_i18n_rewrites_stale_internal_navigation_to_active_language(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        script = textwrap.dedent(
+            """
+            const fs = require('fs');
+            const vm = require('vm');
+
+            function node(tagName, attributes) {
+              return {
+                tagName,
+                attributes: { ...attributes },
+                getAttribute(name) { return this.attributes[name] ?? null; },
+                setAttribute(name, value) { this.attributes[name] = value; },
+                classList: { toggle() {} }
+              };
+            }
+
+            const services = node('A', { href: '/services?lang=bg' });
+            const login = node('A', { href: '/owners/login?next=%2Fowners&lang=bg' });
+            const external = node('A', { href: 'https://outside.example/path?lang=bg' });
+            const form = node('FORM', { action: '/owners/register?lang=bg' });
+
+            const document = {
+              readyState: 'complete',
+              documentElement: { lang: 'bg' },
+              querySelectorAll(selector) {
+                if (selector === 'a[href]:not([data-lang-switch]):not([data-lang])') {
+                  return [services, login, external];
+                }
+                if (selector === 'form[action]') {
+                  return [form];
+                }
+                return [];
+              },
+              querySelector() { return null; },
+              addEventListener() {}
+            };
+
+            const window = {
+              document,
+              BlackSeaI18N: { bg: { home: {} }, en: { home: {} }, fr: { home: {} }, ru: { home: {} } },
+              location: {
+                href: 'https://blacksea.example/?lang=fr',
+                origin: 'https://blacksea.example',
+                search: '?lang=fr',
+                hostname: 'blacksea.example',
+                pathname: '/'
+              },
+              history: { replaceState() {} },
+              dispatchEvent() {},
+              CustomEvent: function(type, init) { return { type, detail: init && init.detail }; },
+              console: { log() {}, warn() {}, error() {} }
+            };
+            window.window = window;
+
+            const sandbox = {
+              window,
+              document,
+              URL,
+              URLSearchParams,
+              CustomEvent: window.CustomEvent,
+              console: window.console
+            };
+            vm.runInNewContext(fs.readFileSync('static/js/i18n.js', 'utf8'), sandbox);
+
+            console.log(JSON.stringify({
+              lang: document.documentElement.lang,
+              services: services.getAttribute('href'),
+              login: login.getAttribute('href'),
+              external: external.getAttribute('href'),
+              form: form.getAttribute('action')
+            }));
+            """
+        )
+        result = subprocess.run(
+            ["node", "-e", script],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["lang"], "fr")
+        self.assertEqual(payload["services"], "/services?lang=fr")
+        self.assertEqual(payload["login"], "/owners/login?next=%2Fowners&lang=fr")
+        self.assertEqual(payload["external"], "https://outside.example/path?lang=bg")
+        self.assertEqual(payload["form"], "/owners/register?lang=fr")
 
     def test_internal_links_preserve_existing_query_params_on_owner_flows(self):
         self._login_owner()
