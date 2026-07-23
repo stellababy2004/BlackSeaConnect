@@ -108,19 +108,19 @@
 
       <div class="ds-hero__grid">
         <div class="ds-hero__copy ds-reveal" data-reveal>
-          <p class="ds-eyebrow" data-i18n="homePremiumEyebrow">{{ public_i18n('home', 'homePremiumEyebrow', 'Your holiday home, looked after') }}</p>
+          <p class="ds-eyebrow" data-i18n="homePremiumEyebrow">{{ public_i18n('home', 'homePremiumEyebrow') }}</p>
           <h1 class="ds-title">
-            <span data-i18n="homePremiumTitle">{{ public_i18n('home', 'homePremiumTitle', 'Manage your holiday property remotely.') }}</span>
-            <span class="ds-title__accent" data-i18n="homePremiumTitleAccent">{{ public_i18n('home', 'homePremiumTitleAccent', 'With local help you can trust.') }}</span>
+            <span data-i18n="homePremiumTitle">{{ public_i18n('home', 'homePremiumTitle') }}</span>
+            <span class="ds-title__accent" data-i18n="homePremiumTitleAccent">{{ public_i18n('home', 'homePremiumTitleAccent') }}</span>
           </h1>
-          <p class="ds-lead" data-i18n="homePremiumIntro">{{ public_i18n('home', 'homePremiumIntro', 'BlackSea Connect helps owners manage holiday properties remotely.') }}</p>
+          <p class="ds-lead" data-i18n="homePremiumIntro">{{ public_i18n('home', 'homePremiumIntro') }}</p>
 
           <div class="ds-hero__actions" aria-label="Primary actions">
-            <a class="button button--accent ds-button ds-button--accent" href="{{ localized_url('/owners/register') }}" data-i18n="homeCreateAccountCta">{{ public_i18n('home', 'homeCreateAccountCta', 'Create account') }}</a>
-            <a class="button button--ghost ds-button ds-button--ghost" href="{{ localized_url('/owners/login') }}" data-i18n="homeOwnerPortalCta">{{ public_i18n('home', 'homeOwnerPortalCta', 'Sign in') }}</a>
+            <a class="button button--accent ds-button ds-button--accent" href="{{ localized_url('/owners/register') }}" data-i18n="homeCreateAccountCta">{{ public_i18n('home', 'homeCreateAccountCta') }}</a>
+            <a class="button button--ghost ds-button ds-button--ghost" href="{{ localized_url('/owners/login') }}" data-i18n="homeOwnerPortalCta">{{ public_i18n('home', 'homeOwnerPortalCta') }}</a>
           </div>
 
-          <div class="ds-hero__signal-row" aria-label="Platform highlights" data-i18n-attr="aria-label:homePlatformSignalsLabel">
+          <div class="ds-hero__signal-row" aria-label="{{ public_i18n('home', 'homePlatformSignalsLabel') }}" data-i18n-attr="aria-label:homePlatformSignalsLabel">
             <a class="ds-icon-chip" href="{{ localized_url('/owners/login') }}">
               <span class="ds-icon-chip__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.4-3.2 8.1-7 9-3.8-.9-7-4.6-7-9V7l7-4z"/><path d="M9.2 12.2l1.9 1.9 3.8-4"/></svg>
@@ -160,29 +160,29 @@
           </div>
         </div>
 
-        <aside class="ds-hero__visual ds-reveal" aria-label="Premium operations summary" data-reveal>
+        <aside class="ds-hero__visual ds-reveal" aria-label="{{ public_i18n('home', 'homePreviewTodayLabel') }}" data-i18n-attr="aria-label:homePreviewTodayLabel" data-reveal>
           <div class="ds-hero__visual-frame">
-            <div class="ds-hero__visual-metric-grid" aria-label="Preview metrics" data-i18n-attr="aria-label:homePreviewMetricsLabel">
+            <div class="ds-hero__visual-metric-grid" aria-label="{{ public_i18n('home', 'homePreviewUpdatesLabel') }}" data-i18n-attr="aria-label:homePreviewUpdatesLabel">
               <div class="ds-mini-metric">
-                <span class="ds-mini-metric__label" data-i18n="homeMetricOccupancy">{{ public_i18n('home', 'homeMetricOccupancy', 'Occupancy') }}</span>
-                <span class="ds-mini-metric__value" data-count="87">0%</span>
-                <span class="ds-mini-metric__note" data-i18n="homeMetricOccupancyNote">{{ public_i18n('home', 'homeMetricOccupancyNote', '+6.4% this week') }}</span>
+                <span class="ds-mini-metric__label" data-i18n="homeMetricCleaning">{{ public_i18n('home', 'homeMetricCleaning') }}</span>
+                <span class="ds-mini-metric__value" data-i18n="homeStatusCompleted">{{ public_i18n('home', 'homeStatusCompleted') }}</span>
+                <span class="ds-mini-metric__note" data-i18n="homePhotosUploadedCount">{{ public_i18n('home', 'homePhotosUploadedCount') }}</span>
               </div>
               <div class="ds-mini-metric">
-                <span class="ds-mini-metric__label" data-i18n="homeMetricRequests">{{ public_i18n('home', 'homeMetricRequests', 'Requests') }}</span>
-                <span class="ds-mini-metric__value" data-count="14">0</span>
-                <span class="ds-mini-metric__note" data-i18n="homeMetricRequestsNote">{{ public_i18n('home', 'homeMetricRequestsNote', '4 awaiting review') }}</span>
+                <span class="ds-mini-metric__label" data-i18n="homeMetricNextGuest">{{ public_i18n('home', 'homeMetricNextGuest') }}</span>
+                <span class="ds-mini-metric__value" data-i18n="homeTomorrow">{{ public_i18n('home', 'homeTomorrow') }}</span>
+                <span class="ds-mini-metric__note" data-i18n="homeArrivalAt1640">{{ public_i18n('home', 'homeArrivalAt1640') }}</span>
               </div>
               <div class="ds-mini-metric">
-                <span class="ds-mini-metric__label" data-i18n="homeMetricArrivals">{{ public_i18n('home', 'homeMetricArrivals', 'Arrivals') }}</span>
-                <span class="ds-mini-metric__value" data-count="6">0</span>
-                <span class="ds-mini-metric__note" data-i18n="homeMetricArrivalsNote">{{ public_i18n('home', 'homeMetricArrivalsNote', 'Next in 2h 15m') }}</span>
+                <span class="ds-mini-metric__label" data-i18n="homeRequestAirportTransfer">{{ public_i18n('home', 'homeRequestAirportTransfer') }}</span>
+                <span class="ds-mini-metric__value" data-i18n="homeStatusConfirmed">{{ public_i18n('home', 'homeStatusConfirmed') }}</span>
+                <span class="ds-mini-metric__note" data-i18n="homeDriverAssigned">{{ public_i18n('home', 'homeDriverAssigned') }}</span>
               </div>
             </div>
             <div class="ds-hero__visual-panel">
               <div class="ds-row" style="margin-bottom: 12px;">
-                <strong data-i18n="homeHarborStatus">{{ public_i18n('home', 'homeHarborStatus', 'Harbor view status') }}</strong>
-                <span class="ds-badge" data-i18n="homeLiveLabel">{{ public_i18n('home', 'homeLiveLabel', 'Live') }}</span>
+                <strong data-i18n="homePreviewTodayLabel">{{ public_i18n('home', 'homePreviewTodayLabel') }}</strong>
+                <span class="ds-badge" data-i18n="homeStatusUpToDate">{{ public_i18n('home', 'homeStatusUpToDate') }}</span>
               </div>
               <div class="ds-progress"><span></span></div>
             </div>
@@ -197,10 +197,10 @@
       <div class="ds-shell">
         <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
           <div>
-            <span class="ds-section__eyebrow" data-i18n="homeDashboardEyebrow">{{ public_i18n('home', 'homeDashboardEyebrow', 'Owner dashboard preview') }}</span>
-            <h2 id="dashboard-preview-title" class="ds-title" data-i18n="homeDashboardTitle">{{ public_i18n('home', 'homeDashboardTitle', 'A real SaaS dashboard, built entirely with HTML and CSS.') }}</h2>
+            <span class="ds-section__eyebrow" data-i18n="homeDashboardEyebrow">{{ public_i18n('home', 'homeDashboardEyebrow') }}</span>
+            <h2 id="dashboard-preview-title" class="ds-title" data-i18n="homeDashboardTitle">{{ public_i18n('home', 'homeDashboardTitle') }}</h2>
           </div>
-          <p class="ds-lead" data-i18n="homeDashboardIntro">{{ public_i18n('home', 'homeDashboardIntro', 'No image mockups. This is a realistic operating workspace with navigation, properties, requests, calendar visibility, messages, notifications and recent updates in one calm interface.') }}</p>
+          <p class="ds-lead" data-i18n="homeDashboardIntro">{{ public_i18n('home', 'homeDashboardIntro') }}</p>
         </div>
 
         <div class="ds-card ds-reveal" data-reveal>
@@ -212,46 +212,46 @@
                   <strong>BlackSea Connect</strong>
                 </div>
               </div>
-              <span class="ds-badge" style="margin: 14px 0; width: fit-content;" data-i18n="homeDashboardOnline">{{ public_i18n('home', 'homeDashboardOnline', '2 properties online') }}</span>
-              <nav class="ds-list" aria-label="Dashboard navigation" style="gap: 8px;">
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardOverview">{{ public_i18n('home', 'homeDashboardOverview', 'Overview') }}</span><span>8</span></a>
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardProperties">{{ public_i18n('home', 'homeDashboardProperties', 'Properties') }}</span><span>12</span></a>
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</span><span>4</span></a>
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardUpcomingArrivals">{{ public_i18n('home', 'homeDashboardUpcomingArrivals', 'Upcoming arrivals') }}</span><span>6</span></a>
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardCalendar">{{ public_i18n('home', 'homeDashboardCalendar', 'Calendar') }}</span><span>12</span></a>
-                <a class="ds-chip" href="#" style="justify-content: space-between;"><span data-i18n="homeDashboardMessages">{{ public_i18n('home', 'homeDashboardMessages', 'Messages') }}</span><span>3</span></a>
+              <span class="ds-badge" style="margin: 14px 0; width: fit-content;" data-i18n="homeEverythingNormal">{{ public_i18n('home', 'homeEverythingNormal') }}</span>
+              <nav class="ds-list" aria-label="{{ public_i18n('home', 'homeOwnerNavigationLabel') }}" data-i18n-attr="aria-label:homeOwnerNavigationLabel" style="gap: 8px;">
+                <a class="ds-chip" href="#" data-i18n="homeToday">{{ public_i18n('home', 'homeToday') }}</a>
+                <a class="ds-chip" href="#" data-i18n="homeDashboardProperties">{{ public_i18n('home', 'homeDashboardProperties') }}</a>
+                <a class="ds-chip" href="#" data-i18n="homeServiceRequests">{{ public_i18n('home', 'homeServiceRequests') }}</a>
+                <a class="ds-chip" href="#" data-i18n="homeGuestArrivals">{{ public_i18n('home', 'homeGuestArrivals') }}</a>
+                <a class="ds-chip" href="#" data-i18n="homeDashboardCalendar">{{ public_i18n('home', 'homeDashboardCalendar') }}</a>
+                <a class="ds-chip" href="#" data-i18n="homeUpdatesPhotos">{{ public_i18n('home', 'homeUpdatesPhotos') }}</a>
               </nav>
             </aside>
 
             <div class="ds-stack">
               <div class="ds-row">
                 <div>
-                  <h3 style="margin:0;color:var(--ds-ink);font:700 1.22rem/1.1 var(--font-display);letter-spacing:-0.03em;" data-i18n="homeDashboardOwnerOverview">{{ public_i18n('home', 'homeDashboardOwnerOverview', 'Owner overview') }}</h3>
-                  <div class="ds-meta" data-i18n="homeDashboardUpdated">{{ public_i18n('home', 'homeDashboardUpdated', 'Sunday, July 2 · Updated 2 minutes ago') }}</div>
+                  <h3 style="margin:0;color:var(--ds-ink);font:700 1.22rem/1.1 var(--font-display);letter-spacing:-0.03em;" data-i18n="homePropertySeaViewVilla">{{ public_i18n('home', 'homePropertySeaViewVilla') }}</h3>
+                  <div class="ds-meta" data-i18n="homeDashboardUpdated">{{ public_i18n('home', 'homeDashboardUpdated') }}</div>
                 </div>
                 <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/request-service') }}" data-i18n="homeRequestServiceCta">{{ public_i18n('home', 'homeRequestServiceCta', 'Request service') }}</a>
               </div>
 
-              <div class="ds-kpi-grid" aria-label="KPI overview" data-i18n-attr="aria-label:homeKpiOverviewLabel">
+              <div class="ds-kpi-grid" aria-label="{{ public_i18n('home', 'homePropertyStatusLabel') }}" data-i18n-attr="aria-label:homePropertyStatusLabel">
                 <article class="ds-kpi">
-                  <span class="ds-kpi__label" data-i18n="homeDashboardPortfolioHealth">{{ public_i18n('home', 'homeDashboardPortfolioHealth', 'Portfolio health') }}</span>
-                  <strong class="ds-kpi__value" data-count="96">0%</strong>
-                  <div class="ds-kpi__detail" data-i18n="homeDashboardPortfolioHealthCopy">{{ public_i18n('home', 'homeDashboardPortfolioHealthCopy', 'All critical tasks on track') }}</div>
+                  <span class="ds-kpi__label" data-i18n="homePropertyStatusLabel">{{ public_i18n('home', 'homePropertyStatusLabel') }}</span>
+                  <strong class="ds-kpi__value" data-i18n="homeStatusReadyShort">{{ public_i18n('home', 'homeStatusReadyShort') }}</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeReadyNextGuest">{{ public_i18n('home', 'homeReadyNextGuest') }}</div>
                 </article>
                 <article class="ds-kpi">
-                  <span class="ds-kpi__label" data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</span>
-                  <strong class="ds-kpi__value" data-count="14">0</strong>
-                  <div class="ds-kpi__detail" data-i18n="homeDashboardOpenRequestsCopy">{{ public_i18n('home', 'homeDashboardOpenRequestsCopy', '2 need owner review') }}</div>
+                  <span class="ds-kpi__label" data-i18n="homeNextArrival">{{ public_i18n('home', 'homeNextArrival') }}</span>
+                  <strong class="ds-kpi__value" data-i18n="homeTomorrow">{{ public_i18n('home', 'homeTomorrow') }}</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeGuestExpected1600">{{ public_i18n('home', 'homeGuestExpected1600') }}</div>
                 </article>
                 <article class="ds-kpi">
-                  <span class="ds-kpi__label" data-i18n="homeDashboardUpcomingArrivals">{{ public_i18n('home', 'homeDashboardUpcomingArrivals', 'Upcoming arrivals') }}</span>
-                  <strong class="ds-kpi__value" data-count="6">0</strong>
-                  <div class="ds-kpi__detail" data-i18n="homeDashboardUpcomingArrivalsCopy">{{ public_i18n('home', 'homeDashboardUpcomingArrivalsCopy', 'Next check-in in 2h 15m') }}</div>
+                  <span class="ds-kpi__label" data-i18n="homeMetricCleaning">{{ public_i18n('home', 'homeMetricCleaning') }}</span>
+                  <strong class="ds-kpi__value" data-i18n="homeStatusCompleted">{{ public_i18n('home', 'homeStatusCompleted') }}</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeFinalCheck1220">{{ public_i18n('home', 'homeFinalCheck1220') }}</div>
                 </article>
                 <article class="ds-kpi">
-                  <span class="ds-kpi__label" data-i18n="homeDashboardReplyTime">{{ public_i18n('home', 'homeDashboardReplyTime', 'Reply time') }}</span>
-                  <strong class="ds-kpi__value" data-count="12" data-i18n="homeDashboardReplyTimeValue">{{ public_i18n('home', 'homeDashboardReplyTimeValue', '0m') }}</strong>
-                  <div class="ds-kpi__detail" data-i18n="homeDashboardReplyTimeCopy">{{ public_i18n('home', 'homeDashboardReplyTimeCopy', 'Average response time') }}</div>
+                  <span class="ds-kpi__label" data-i18n="homeRequestAirportTransfer">{{ public_i18n('home', 'homeRequestAirportTransfer') }}</span>
+                  <strong class="ds-kpi__value" data-i18n="homeStatusConfirmed">{{ public_i18n('home', 'homeStatusConfirmed') }}</strong>
+                  <div class="ds-kpi__detail" data-i18n="homeDriverPickupReady">{{ public_i18n('home', 'homeDriverPickupReady') }}</div>
                 </article>
               </div>
 
@@ -260,26 +260,26 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeDashboardProperties">{{ public_i18n('home', 'homeDashboardProperties', 'Properties') }}</h4>
-                        <p data-i18n="homeDashboardPropertiesCopy">{{ public_i18n('home', 'homeDashboardPropertiesCopy', 'Current operating status by home.') }}</p>
+                        <h4 data-i18n="homePropertyReadiness">{{ public_i18n('home', 'homePropertyReadiness') }}</h4>
+                        <p data-i18n="homePropertyReadinessCopy">{{ public_i18n('home', 'homePropertyReadinessCopy') }}</p>
                       </div>
-                      <span class="ds-badge" data-i18n="homeDashboardActive">{{ public_i18n('home', 'homeDashboardActive', '4 active') }}</span>
+                      <span class="ds-badge" data-i18n="homeStatusReadyShort">{{ public_i18n('home', 'homeStatusReadyShort') }}</span>
                     </div>
                     <ul class="ds-list">
                       <li>
-                        <div class="ds-row"><strong>Sea View Villa</strong><span class="ds-meta" data-i18n="homeLocationStVlas">{{ public_i18n('home', 'homeLocationStVlas', 'St. Vlas') }}</span></div>
-                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyReady">{{ public_i18n('home', 'homePropertyReady', 'Ready for arrival') }}</span><span class="ds-meta">92%</span></div>
-                        <div class="ds-progress"><span style="width:92%"></span></div>
+                        <div class="ds-row"><strong data-i18n="homePropertySeaViewVilla">{{ public_i18n('home', 'homePropertySeaViewVilla') }}</strong><span class="ds-meta" data-i18n="homeCitySvetiVlas">{{ public_i18n('home', 'homeCitySvetiVlas') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homeReadyTomorrowGuest">{{ public_i18n('home', 'homeReadyTomorrowGuest') }}</span><span class="ds-meta" data-i18n="homeStatusReadyShort">{{ public_i18n('home', 'homeStatusReadyShort') }}</span></div>
+                        <div class="ds-progress"><span style="width:100%"></span></div>
                       </li>
                       <li>
-                        <div class="ds-row"><strong>Marina Residence</strong><span class="ds-meta" data-i18n="homeLocationVarna">{{ public_i18n('home', 'homeLocationVarna', 'Varna') }}</span></div>
-                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyCleaning">{{ public_i18n('home', 'homePropertyCleaning', 'Cleaning in progress') }}</span><span class="ds-meta">74%</span></div>
-                        <div class="ds-progress"><span style="width:74%"></span></div>
+                        <div class="ds-row"><strong data-i18n="homeCleaningFinalCheck">{{ public_i18n('home', 'homeCleaningFinalCheck') }}</strong><span class="ds-meta" data-i18n="homeStatusCompleted">{{ public_i18n('home', 'homeStatusCompleted') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homeCleaningCheckDetails">{{ public_i18n('home', 'homeCleaningCheckDetails') }}</span><span class="ds-meta">12:20</span></div>
+                        <div class="ds-progress"><span style="width:100%"></span></div>
                       </li>
                       <li>
-                        <div class="ds-row"><strong>Golden Bay Penthouse</strong><span class="ds-meta" data-i18n="homeLocationBurgas">{{ public_i18n('home', 'homeLocationBurgas', 'Burgas') }}</span></div>
-                        <div class="ds-row"><span class="ds-meta" data-i18n="homePropertyInspection">{{ public_i18n('home', 'homePropertyInspection', 'Awaiting inspection') }}</span><span class="ds-meta">61%</span></div>
-                        <div class="ds-progress"><span style="width:61%"></span></div>
+                        <div class="ds-row"><strong data-i18n="homeGuestWelcome">{{ public_i18n('home', 'homeGuestWelcome') }}</strong><span class="ds-meta" data-i18n="homeStatusPrepared">{{ public_i18n('home', 'homeStatusPrepared') }}</span></div>
+                        <div class="ds-row"><span class="ds-meta" data-i18n="homeKeysWelcomeReady">{{ public_i18n('home', 'homeKeysWelcomeReady') }}</span><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday') }}</span></div>
+                        <div class="ds-progress"><span style="width:100%"></span></div>
                       </li>
                     </ul>
                   </article>
@@ -287,22 +287,22 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeDashboardOpenRequests">{{ public_i18n('home', 'homeDashboardOpenRequests', 'Open requests') }}</h4>
-                        <p data-i18n="homeDashboardRequestsCopy">{{ public_i18n('home', 'homeDashboardRequestsCopy', 'Requests waiting on action or approval.') }}</p>
+                        <h4 data-i18n="homeYourRequests">{{ public_i18n('home', 'homeYourRequests') }}</h4>
+                        <p data-i18n="homeYourRequestsCopy">{{ public_i18n('home', 'homeYourRequestsCopy') }}</p>
                       </div>
                     </div>
                     <ul class="ds-list">
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeRequestWelcomeSetup">{{ public_i18n('home', 'homeRequestWelcomeSetup', 'Welcome setup') }}</strong><span class="ds-meta" data-i18n="homeRequestCleaning">{{ public_i18n('home', 'homeRequestCleaning', 'Cleaning') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeRequestWelcomeSetupCopy">{{ public_i18n('home', 'homeRequestWelcomeSetupCopy', 'Owner approved, partner assigned, due by 15:30.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homePoolMaintenance">{{ public_i18n('home', 'homePoolMaintenance') }}</strong><span class="ds-meta" data-i18n="homeStatusCompleted">{{ public_i18n('home', 'homeStatusCompleted') }}</span></div>
+                        <span class="ds-meta" data-i18n="homePoolReadyCopy">{{ public_i18n('home', 'homePoolReadyCopy') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeRequestAirportTransfer">{{ public_i18n('home', 'homeRequestAirportTransfer', 'Airport transfer') }}</strong><span class="ds-meta" data-i18n="homeRequestConcierge">{{ public_i18n('home', 'homeRequestConcierge', 'Concierge') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeRequestAirportTransferCopy">{{ public_i18n('home', 'homeRequestAirportTransferCopy', 'Guest pickup details confirmed by the team.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeRequestAirportTransfer">{{ public_i18n('home', 'homeRequestAirportTransfer') }}</strong><span class="ds-meta" data-i18n="homeStatusConfirmed">{{ public_i18n('home', 'homeStatusConfirmed') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeGuestDriverReady">{{ public_i18n('home', 'homeGuestDriverReady') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeRequestFilter">{{ public_i18n('home', 'homeRequestFilter', 'Filter replacement') }}</strong><span class="ds-meta" data-i18n="homeRequestMaintenance">{{ public_i18n('home', 'homeRequestMaintenance', 'Maintenance') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeRequestFilterCopy">{{ public_i18n('home', 'homeRequestFilterCopy', 'Waiting for owner review before dispatch.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeTerraceLighting">{{ public_i18n('home', 'homeTerraceLighting') }}</strong><span class="ds-meta" data-i18n="homeStatusWaitingApproval">{{ public_i18n('home', 'homeStatusWaitingApproval') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeEstimateReadyCopy">{{ public_i18n('home', 'homeEstimateReadyCopy') }}</span>
                       </li>
                     </ul>
                   </article>
@@ -310,22 +310,22 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeDashboardActivity">{{ public_i18n('home', 'homeDashboardActivity', 'Activity feed') }}</h4>
-                        <p data-i18n="homeDashboardActivityCopy">{{ public_i18n('home', 'homeDashboardActivityCopy', 'Recent operational events.') }}</p>
+                        <h4 data-i18n="homeLatestUpdates">{{ public_i18n('home', 'homeLatestUpdates') }}</h4>
+                        <p data-i18n="homeLatestUpdatesCopy">{{ public_i18n('home', 'homeLatestUpdatesCopy') }}</p>
                       </div>
                     </div>
                     <ul class="ds-list">
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeActivityApproved">{{ public_i18n('home', 'homeActivityApproved', 'Request approved') }}</strong><span class="ds-meta" data-i18n="homeActivityApprovedTime">{{ public_i18n('home', 'homeActivityApprovedTime', '12 min ago') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeActivityApprovedCopy">{{ public_i18n('home', 'homeActivityApprovedCopy', 'Premium cleaning scheduled for Sea View Villa.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeCleaningCompleted">{{ public_i18n('home', 'homeCleaningCompleted') }}</strong><span class="ds-meta" data-i18n="homeActivityApprovedTime">{{ public_i18n('home', 'homeActivityApprovedTime') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeVillaCleanReady">{{ public_i18n('home', 'homeVillaCleanReady') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeActivityArrival">{{ public_i18n('home', 'homeActivityArrival', 'Arrival updated') }}</strong><span class="ds-meta" data-i18n="homeActivityArrivalTime">{{ public_i18n('home', 'homeActivityArrivalTime', '35 min ago') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeActivityArrivalCopy">{{ public_i18n('home', 'homeActivityArrivalCopy', 'Guest ETA changed to 16:40 with concierge notified.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeArrivalTimeUpdated">{{ public_i18n('home', 'homeArrivalTimeUpdated') }}</strong><span class="ds-meta" data-i18n="homeActivityArrivalTime">{{ public_i18n('home', 'homeActivityArrivalTime') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeGuestExpectedTeamReady">{{ public_i18n('home', 'homeGuestExpectedTeamReady') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeActivityOwnerNote">{{ public_i18n('home', 'homeActivityOwnerNote', 'Owner note added') }}</strong><span class="ds-meta" data-i18n="homeActivityOwnerNoteTime">{{ public_i18n('home', 'homeActivityOwnerNoteTime', '1 hr ago') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeActivityOwnerNoteCopy">{{ public_i18n('home', 'homeActivityOwnerNoteCopy', 'Inspection photos shared for the north terrace.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeNewPhotosUploaded">{{ public_i18n('home', 'homeNewPhotosUploaded') }}</strong><span class="ds-meta" data-i18n="homeActivityOwnerNoteTime">{{ public_i18n('home', 'homeActivityOwnerNoteTime') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeTerracePhotosReady">{{ public_i18n('home', 'homeTerracePhotosReady') }}</span>
                       </li>
                     </ul>
                   </article>
@@ -335,8 +335,8 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeDashboardCalendar">{{ public_i18n('home', 'homeDashboardCalendar', 'Calendar') }}</h4>
-                        <p data-i18n="homeCalendarCopy">{{ public_i18n('home', 'homeCalendarCopy', 'Arrival rhythm this week.') }}</p>
+                        <h4 data-i18n="homeUpcomingBooking">{{ public_i18n('home', 'homeUpcomingBooking') }}</h4>
+                        <p data-i18n="homeBookingTomorrow1600">{{ public_i18n('home', 'homeBookingTomorrow1600') }}</p>
                       </div>
                       <span class="ds-badge" data-i18n="homeThisWeek">{{ public_i18n('home', 'homeThisWeek', 'This week') }}</span>
                     </div>
@@ -347,9 +347,9 @@
                         <div class="ds-calendar__cell">8</div><div class="ds-calendar__cell">9</div><div class="ds-calendar__cell">10</div><div class="ds-calendar__cell">11</div><div class="ds-calendar__cell">12</div><div class="ds-calendar__cell is-current">13</div><div class="ds-calendar__cell">14</div>
                       </div>
                       <div class="ds-pill-row">
-                        <span class="ds-pill" data-i18n="homeCalendarArrivals">{{ public_i18n('home', 'homeCalendarArrivals', '2 arrivals') }}</span>
-                        <span class="ds-pill" data-i18n="homeCalendarCleaning">{{ public_i18n('home', 'homeCalendarCleaning', '1 cleaning') }}</span>
-                        <span class="ds-pill" data-i18n="homeCalendarReminders">{{ public_i18n('home', 'homeCalendarReminders', '3 reminders') }}</span>
+                        <span class="ds-pill" data-i18n="homeGuestArrival1600">{{ public_i18n('home', 'homeGuestArrival1600') }}</span>
+                        <span class="ds-pill" data-i18n="homeTransferConfirmed">{{ public_i18n('home', 'homeTransferConfirmed') }}</span>
+                        <span class="ds-pill" data-i18n="homeWelcomeReady">{{ public_i18n('home', 'homeWelcomeReady') }}</span>
                       </div>
                     </div>
                   </article>
@@ -357,25 +357,25 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeDashboardMessages">{{ public_i18n('home', 'homeDashboardMessages', 'Messages') }}</h4>
-                        <p data-i18n="homeMessagesCopy">{{ public_i18n('home', 'homeMessagesCopy', 'Latest owner and team notes.') }}</p>
+                        <h4 data-i18n="homeTodaysWork">{{ public_i18n('home', 'homeTodaysWork') }}</h4>
+                        <p data-i18n="homeTodaysWorkCopy">{{ public_i18n('home', 'homeTodaysWorkCopy') }}</p>
                       </div>
-                      <span class="ds-badge" data-i18n="homeUnread">{{ public_i18n('home', 'homeUnread', '3 unread') }}</span>
+                      <span class="ds-badge" data-i18n="homeAllOnTrack">{{ public_i18n('home', 'homeAllOnTrack') }}</span>
                     </div>
                     <ul class="ds-list">
                       <li>
                         <div class="ds-row">
-                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">A</div><strong>Anna Petrova</strong></div>
+                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">C</div><strong data-i18n="homeCleaningCompleted">{{ public_i18n('home', 'homeCleaningCompleted') }}</strong></div>
                           <span class="ds-meta" data-i18n="homeJustNow">{{ public_i18n('home', 'homeJustNow', 'Just now') }}</span>
                         </div>
-                        <span class="ds-meta" data-i18n="homeMessageAnna">{{ public_i18n('home', 'homeMessageAnna', 'Please confirm the welcome setup for tomorrow.') }}</span>
+                        <span class="ds-meta" data-i18n="homeEverythingReadyTomorrow">{{ public_i18n('home', 'homeEverythingReadyTomorrow') }}</span>
                       </li>
                       <li>
                         <div class="ds-row">
-                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">M</div><strong data-i18n="homeMarinaOperations">{{ public_i18n('home', 'homeMarinaOperations', 'Marina Operations') }}</strong></div>
+                          <div class="ds-row" style="justify-content:flex-start;"><div class="ds-avatar">P</div><strong data-i18n="homePoolMaintenanceFinished">{{ public_i18n('home', 'homePoolMaintenanceFinished') }}</strong></div>
                           <span class="ds-meta" data-i18n="homeMessageMarinaTime">{{ public_i18n('home', 'homeMessageMarinaTime', '18 min ago') }}</span>
                         </div>
-                        <span class="ds-meta" data-i18n="homeMessageMarina">{{ public_i18n('home', 'homeMessageMarina', 'The inspection is complete and photos are ready.') }}</span>
+                        <span class="ds-meta" data-i18n="homePoolCheckedReady">{{ public_i18n('home', 'homePoolCheckedReady') }}</span>
                       </li>
                     </ul>
                   </article>
@@ -383,19 +383,19 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeNotifications">{{ public_i18n('home', 'homeNotifications', 'Notifications') }}</h4>
-                        <p data-i18n="homeNotificationsCopy">{{ public_i18n('home', 'homeNotificationsCopy', 'Small pulses, high signal.') }}</p>
+                        <h4 data-i18n="homeRecentPhotos">{{ public_i18n('home', 'homeRecentPhotos') }}</h4>
+                        <p data-i18n="homeRecentPhotosCopy">{{ public_i18n('home', 'homeRecentPhotosCopy') }}</p>
                       </div>
-                      <span class="ds-badge"><span class="ds-floating-cta__pulse" aria-hidden="true"></span><span data-i18n="homeActiveLabel">{{ public_i18n('home', 'homeActiveLabel', 'Active') }}</span></span>
+                      <span class="ds-badge"><span class="ds-floating-cta__pulse" aria-hidden="true"></span><span data-i18n="homeTwelveNew">{{ public_i18n('home', 'homeTwelveNew') }}</span></span>
                     </div>
                     <ul class="ds-list">
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeNotificationCleaning">{{ public_i18n('home', 'homeNotificationCleaning', 'Cleaning reassigned') }}</strong><span class="ds-meta">02:10</span></div>
-                        <span class="ds-meta" data-i18n="homeNotificationCleaningCopy">{{ public_i18n('home', 'homeNotificationCleaningCopy', 'The task moved to a certified local partner.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeCleaningPhotosUploaded">{{ public_i18n('home', 'homeCleaningPhotosUploaded') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeRoomsPhotosReady">{{ public_i18n('home', 'homeRoomsPhotosReady') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeNotificationAccess">{{ public_i18n('home', 'homeNotificationAccess', 'Guest access prepared') }}</strong><span class="ds-meta">01:40</span></div>
-                        <span class="ds-meta" data-i18n="homeNotificationAccessCopy">{{ public_i18n('home', 'homeNotificationAccessCopy', 'Secure entry details are now ready for the owner.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeTerracePhotosUploaded">{{ public_i18n('home', 'homeTerracePhotosUploaded') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeBeforeAfterShowWork">{{ public_i18n('home', 'homeBeforeAfterShowWork') }}</span>
                       </li>
                     </ul>
                   </article>
@@ -403,18 +403,18 @@
                   <article class="ds-card">
                     <div class="ds-card__header">
                       <div>
-                        <h4 data-i18n="homeRecentUpdates">{{ public_i18n('home', 'homeRecentUpdates', 'Recent updates') }}</h4>
-                        <p data-i18n="homeRecentUpdatesCopy">{{ public_i18n('home', 'homeRecentUpdatesCopy', 'Concise summary of the latest owner-facing events.') }}</p>
+                        <h4 data-i18n="homePropertyHistory">{{ public_i18n('home', 'homePropertyHistory') }}</h4>
+                        <p data-i18n="homePropertyHistoryCopy">{{ public_i18n('home', 'homePropertyHistoryCopy') }}</p>
                       </div>
                     </div>
                     <ul class="ds-list">
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeUpdateHistory">{{ public_i18n('home', 'homeUpdateHistory', 'Service history refreshed') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday', 'Today') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeUpdateHistoryCopy">{{ public_i18n('home', 'homeUpdateHistoryCopy', 'All completed tasks now sit alongside requests and arrival notes.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeInvoiceAvailable">{{ public_i18n('home', 'homeInvoiceAvailable') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday') }}</span></div>
+                        <span class="ds-meta" data-i18n="homePoolInvoiceReady">{{ public_i18n('home', 'homePoolInvoiceReady') }}</span>
                       </li>
                       <li>
-                        <div class="ds-row"><strong data-i18n="homeUpdateConcierge">{{ public_i18n('home', 'homeUpdateConcierge', 'Concierge follow-up queued') }}</strong><span class="ds-meta" data-i18n="homeToday">{{ public_i18n('home', 'homeToday', 'Today') }}</span></div>
-                        <span class="ds-meta" data-i18n="homeUpdateConciergeCopy">{{ public_i18n('home', 'homeUpdateConciergeCopy', 'A premium welcome package is scheduled before the next check-in.') }}</span>
+                        <div class="ds-row"><strong data-i18n="homeKeysHandedOver">{{ public_i18n('home', 'homeKeysHandedOver') }}</strong><span class="ds-meta" data-i18n="homeYesterday">{{ public_i18n('home', 'homeYesterday') }}</span></div>
+                        <span class="ds-meta" data-i18n="homeHostKeysReady">{{ public_i18n('home', 'homeHostKeysReady') }}</span>
                       </li>
                     </ul>
                   </article>

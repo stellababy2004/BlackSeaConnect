@@ -6,6 +6,7 @@ import shutil
 import textwrap
 import unittest
 import html as html_lib
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -1367,6 +1368,44 @@ class MultilingualRouteTests(unittest.TestCase):
         ]:
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, bg_services)
+
+    def test_active_translation_bindings_are_complete(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [sys.executable, "scripts/check_i18n.py"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_homepage_hero_and_owner_preview_are_fully_localized(self):
+        expected = {
+            "bg": ("Вашият имот е в сигурни ръце.", "Моят имот днес", "Почистването приключи"),
+            "en": ("Your property, cared for.", "My property today", "Cleaning completed"),
+            "fr": ("Votre propriété, entre de bonnes mains.", "Ma propriété aujourd’hui", "Ménage terminé"),
+            "ru": ("О вашей недвижимости заботятся.", "Моя недвижимость сегодня", "Уборка завершена"),
+        }
+        forbidden_markers = ("[MISSING:", "undefined", ">null<", "data-i18n-missing")
+        for lang, phrases in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                html = html_lib.unescape(response.get_data(as_text=True))
+                for phrase in phrases:
+                    self.assertIn(phrase, html)
+                for marker in forbidden_markers:
+                    self.assertNotIn(marker, html)
+
+        ru_html = html_lib.unescape(self.client.get("/?lang=ru").get_data(as_text=True))
+        for english_fallback in (
+            "Your property, cared for.",
+            "Create account",
+            "My property today",
+            "Cleaning completed",
+            "Waiting for approval",
+        ):
+            self.assertNotIn(english_fallback, ru_html)
 
 
 

@@ -23,6 +23,8 @@
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
   const warnedKeys = new Set();
   const DEBUG_I18N = false;
+  const STRICT_I18N = Boolean(window.BlackSeaI18NStrict) ||
+    /^(localhost|127\.0\.0\.1)$/.test(String(window.location && window.location.hostname || ""));
 
   function normalizeLanguage(lang) {
     if (!lang) {
@@ -167,8 +169,8 @@
 
   function getTranslation(lang, key, pageNamespace) {
     const translations = window.BlackSeaI18N || {};
-    const dictionary = translations[lang] || translations[FALLBACK_LANG] || translations[DEFAULT_LANG] || {};
-    const fallbackDictionary = translations[FALLBACK_LANG] || translations[DEFAULT_LANG] || {};
+    const dictionary = translations[lang] || (STRICT_I18N ? {} : translations[FALLBACK_LANG] || translations[DEFAULT_LANG]) || {};
+    const fallbackDictionary = STRICT_I18N ? {} : translations[FALLBACK_LANG] || translations[DEFAULT_LANG] || {};
     let value;
 
     if (!key) {
@@ -289,7 +291,7 @@
 
       if (value === undefined) {
         warnMissing(key, lang);
-        value = null;
+        value = STRICT_I18N ? `[MISSING: ${pageNamespace || "common"}.${key}]` : null;
       }
     }
     if (DEBUG_I18N && window.console && typeof window.console.log === "function") {

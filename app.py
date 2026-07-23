@@ -11458,13 +11458,17 @@ def _load_public_i18n_value(namespace, lang, key, fallback=""):
     bundle = _load_public_i18n_bundle(namespace)
     normalized_lang = _normalize_site_language(lang) or "en"
 
-    for candidate_lang in (normalized_lang, "en"):
+    candidate_langs = (normalized_lang,) if app.testing or app.debug else (normalized_lang, "en")
+    for candidate_lang in candidate_langs:
         namespace_copy = bundle.get(candidate_lang, {}).get(namespace, {})
         if isinstance(namespace_copy, dict):
             value = namespace_copy.get(key)
             if value is not None and value != "":
                 return value
 
+    app.logger.warning("Missing i18n translation namespace=%s key=%s lang=%s", namespace, key, normalized_lang)
+    if app.testing or app.debug:
+        return f"[MISSING: {namespace}.{key}]"
     return fallback
 
 
@@ -11531,11 +11535,13 @@ def inject_public_site_settings():
 
     def public_i18n(namespace, key, fallback=""):
         bundle = _load_public_i18n_bundle(namespace)
+        missing_label = f"[MISSING: {namespace}.{key}]"
         if not bundle:
-            return fallback
+            app.logger.warning("Missing i18n namespace=%s key=%s lang=%s", namespace, key, current_lang)
+            return missing_label if app.testing or app.debug else fallback
 
         lang_candidates = [current_lang]
-        if "en" not in lang_candidates:
+        if not (app.testing or app.debug) and "en" not in lang_candidates:
             lang_candidates.append("en")
 
         for lang in lang_candidates:
@@ -11545,7 +11551,8 @@ def inject_public_site_settings():
                 if value is not None and value != "":
                     return value
 
-        return fallback
+        app.logger.warning("Missing i18n translation namespace=%s key=%s lang=%s", namespace, key, current_lang)
+        return missing_label if app.testing or app.debug else fallback
 
     return {
         "site_url": SITE_URL,
