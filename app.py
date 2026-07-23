@@ -12649,6 +12649,7 @@ def _owner_portal_activity_timeline(owner_requests, dashboard_copy):
             "detail": detail,
             "detail_key": detail_key,
             "time": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or dashboard_copy["recently"],
+            "request_id": str(record.get("id", "")).strip(),
             "time_key": "",
             "tone": tone,
         })

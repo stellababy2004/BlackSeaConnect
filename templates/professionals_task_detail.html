@@ -79,7 +79,7 @@
   "no_checklist_items": public_i18n("professionals", "detailNoChecklistItems", "No checklist items are configured yet."),
   "done": public_i18n("professionals", "detailDone", "Done"),
   "open": public_i18n("professionals", "detailOpen", "Open"),
-  "attachments": public_i18n("professionals", "detailAttachments", "Attachments"),
+  "attachments": public_i18n("professionals", "detailPhotosFromWork", "Photos from the work"),
   "before_after_evidence": public_i18n("professionals", "detailBeforeAfterEvidence", "Before / after evidence"),
   "attachment": public_i18n("professionals", "detailAttachment", "Attachment"),
   "no_attachments": public_i18n("professionals", "detailNoAttachments", "No evidence uploaded yet."),
@@ -515,6 +515,34 @@
       </div>
     </nav>
 
+    <section class="professional-panel" aria-label="{{ public_i18n('professionals', 'detailFieldFlowLabel', 'Field work order') }}">
+      <p class="professional-kicker">{{ public_i18n('professionals', 'detailFieldFlowKicker', 'Phone-first workflow') }}</p>
+      <div class="professional-list">
+        <div class="professional-list-item">
+          <div class="professional-list-item__topline">
+            <strong>{{ labels.address }}</strong>
+            {% if property_snapshot.address %}
+              <button class="button button--ghost" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>
+            {% endif %}
+          </div>
+          <p>{{ property_snapshot.address|e or labels.location_not_set }}</p>
+        </div>
+        <div class="professional-list-item">
+          <div class="professional-list-item__topline">
+            <strong>{{ public_i18n('professionals', 'detailFieldFlowNextAction', 'Next action') }}</strong>
+            <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
+          </div>
+          <p>{{ labels.start_work if current_status == 'ARRIVED' else labels.accept_task if current_status in ['NEW', 'ASSIGNED'] else labels.complete_work if current_status == 'IN_PROGRESS' else labels.arrival_workflow }}</p>
+        </div>
+        <div class="professional-list-item">
+          <div class="professional-list-item__topline">
+            <strong>{{ labels.checklist }} -> {{ labels.attachments }} -> {{ labels.complete_work }}</strong>
+          </div>
+          <p>{{ public_i18n('professionals', 'detailFieldFlowProofCopy', 'Complete the checklist, upload before/after proof, then finish with a clear completion note.') }}</p>
+        </div>
+      </div>
+    </section>
+
     <section class="professional-grid">
       <div class="professional-stack">
         <article class="professional-panel">
@@ -603,6 +631,7 @@
         <article class="professional-panel" id="evidence-upload">
           <p class="professional-kicker">{{ labels.attachments }}</p>
           <h2>{{ labels.before_after_evidence }}</h2>
+          <p><small>{{ public_i18n('professionals', 'detailEvidenceTrustCopy', 'Photos are proof for Operations and the owner. Group uploads as before photos, after photos, documents, receipts, or reports.') }}</small></p>
           {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
           <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
             <input type="hidden" name="task_action" value="attachment">
@@ -752,6 +781,7 @@
               </div>
             {% else %}
               <p>{{ labels.no_attachments }}</p>
+              <p><small>{{ public_i18n('professionals', 'detailNoWorkProof', 'Add before photos, after photos, receipts, or reports so Operations and the owner can verify the work.') }}</small></p>
             {% endfor %}
           </div>
         </article>

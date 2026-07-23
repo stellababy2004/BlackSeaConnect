@@ -440,10 +440,10 @@
             <div><dt>Floor</dt><dd>{{ profile.floor|e if profile else '' }}</dd></div>
             <div><dt>Elevator</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
             <div><dt>Parking</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
-            <div><dt>Status</dt><dd>{{ property_context.property.status_label|e }}</dd></div>
-            <div><dt>Created at</dt><dd>{{ property_context.property.created_at|e }}</dd></div>
+            <div><dt>Status explanation</dt><dd>{{ property_context.property.status_label|e }}. We use this to decide whether the local team should monitor, prepare, or pause work.</dd></div>
+            <div><dt>Added to portal</dt><dd data-owner-datetime="{{ property_context.property.created_at|e }}">{{ property_context.property.created_at|e }}</dd></div>
             <div><dt>Readiness</dt><dd>{{ property_context.property.readiness_percent }}%</dd></div>
-            <div><dt>Last updated</dt><dd>{{ property_context.property.last_updated_at|e }}</dd></div>
+            <div><dt>Last update</dt><dd data-owner-datetime="{{ property_context.property.last_updated_at|e }}">{{ property_context.property.last_updated_at|e }}</dd></div>
           </dl>
         </article>
 
@@ -675,7 +675,7 @@
                   {% endfor %}
                 </div>
               {% else %}
-                <p class="owner-property-detail-empty">No documents uploaded yet.</p>
+                <p class="owner-property-detail-empty">No documents have been uploaded yet. When a receipt, manual, or property document is added, it will appear here with its upload details.</p>
               {% endif %}
             </section>
 
@@ -687,9 +687,10 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="property">
-          <p class="eyebrow">Property Gallery</p>
-          <h2 class="owner-property-detail-section-title">Gallery</h2>
+          <p class="eyebrow">Photos from the property</p>
+          <h2 class="owner-property-detail-section-title">Photo proof</h2>
           {% if property_context.photos %}
+            <h2 data-i18n="propertyGalleryTitle">{{ public_i18n('ownersPropertyDetail', 'propertyGalleryTitle', 'Gallery') }}</h2>
             <div class="owner-property-detail-gallery">
               <div class="owner-property-detail-gallery__cover">
                 {% set cover_photo = property_context.property.cover_photo if property_context.property.cover_photo else property_context.photos[0] %}
@@ -704,7 +705,7 @@
               </div>
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No photos have been uploaded yet.</p>
+            <p class="owner-property-detail-empty">No photos have been uploaded yet. When work is completed, before and after photos will appear here so you can verify the result remotely.</p>
           {% endif %}
         </article>
 
@@ -763,8 +764,8 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="knowledge">
-          <p class="eyebrow">Documents</p>
-          <h2 class="owner-property-detail-section-title">Documents</h2>
+          <p class="eyebrow">Documents and receipts</p>
+          <h2 class="owner-property-detail-section-title">Stored proof</h2>
           {% if property_context.documents %}
             <div class="owner-property-detail-history">
               {% for document in property_context.documents %}
@@ -773,12 +774,12 @@
                     <strong>{{ document.filename|e }}</strong>
                     <time>{{ document.uploaded_at|e }}</time>
                   </div>
-                  <p>{{ document.kind|e }}</p>
+                  <p>{{ document.kind|e }}{% if document.uploaded_by %} &middot; Uploaded by {{ document.uploaded_by|e }}{% endif %}</p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No documents have been uploaded yet.</p>
+            <p class="owner-property-detail-empty">No documents have been uploaded yet. Receipts, reports, and manuals will appear here after the local team uploads them.</p>
           {% endif %}
         </article>
 
@@ -788,7 +789,7 @@
           {% if property_context.welcome_instructions %}
             <p class="owner-property-detail-copy">{{ property_context.welcome_instructions|e }}</p>
           {% else %}
-            <p class="owner-property-detail-empty">No welcome instructions have been added yet.</p>
+            <p class="owner-property-detail-empty">No welcome instructions have been added yet. Once instructions are saved, the team can use them to prepare arrivals consistently.</p>
           {% endif %}
         </article>
 
@@ -832,11 +833,11 @@
 
       <div class="owner-property-detail-stack">
         <article class="owner-property-detail-panel" data-property-tab-section="operations">
-          <p class="eyebrow">Operational Status</p>
+          <p class="eyebrow">Operational control</p>
           <h2 class="owner-property-detail-section-title">Readiness summary</h2>
           <div class="owner-property-detail-summary">
             <div class="owner-property-detail-stat">
-              <span>Status</span>
+              <span>Status explanation</span>
               <strong>{{ property_context.property.status_label|e }}</strong>
             </div>
             <div class="owner-property-detail-stat">
@@ -894,25 +895,26 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="operations">
-          <p class="eyebrow">Service Request History</p>
-          <h2 class="owner-property-detail-section-title">Recent requests</h2>
+          <p class="eyebrow">Task history</p>
+          <h2 class="owner-property-detail-section-title">Recent requests timeline</h2>
           {% if property_context.service_requests %}
             <div class="owner-property-detail-history">
               {% for request in property_context.service_requests %}
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
-                    <strong>{{ request.service_category|e }}</strong>
+                    <strong>{{ request.service_category|e }} request received</strong>
                     <time data-owner-datetime="{{ request.created_at|e }}">{{ request.created_at|e }}</time>
                   </div>
                   <p>
-                    <span data-owner-status="{{ request.status|e }}">{{ request.status|upper|e }}</span> &middot; {{ request.property|e }}
-                    {% if request.description %}<br>{{ request.description|e }}{% endif %}
+                    Current step: <span data-owner-status="{{ request.status|e }}">{{ request.status|replace('_', ' ')|title|e }}</span> for {{ request.property|e }}.
+                    {% if request.description %}<br>Notes for the team: {{ request.description|e }}{% endif %}
+                    <br>Next step: {% if request.status|lower == 'completed' %}The completed work remains visible here for review.{% elif request.status|lower == 'in_progress' %}The contractor will upload photos and completion notes when the work is finished.{% elif request.status|lower == 'assigned' %}The assigned contractor will accept or start the task next.{% else %}We will assign the right local contractor and keep the timeline updated.{% endif %}
                   </p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No service requests are linked to this property yet.</p>
+            <p class="owner-property-detail-empty">No work has been requested for this property yet. When a contractor is assigned, starts, uploads photos, or finishes, the timeline will appear here.</p>
           {% endif %}
 
           <p class="eyebrow">{{ property_context.activity_copy.eyebrow|e }}</p>
@@ -950,7 +952,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No blocked dates or personal stays are scheduled yet.</p>
+            <p class="owner-property-detail-empty">No blocked dates or personal stays are scheduled. The calendar is clear unless a reservation, owner stay, or operations block appears here.</p>
           {% endif %}
         </article>
       </div>

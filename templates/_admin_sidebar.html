@@ -5,7 +5,7 @@
   </a>
   <nav class="bsc-admin-nav">
     <section class="bsc-admin-nav-group">
-      <h2 data-i18n="shellOperations">Операции</h2>
+      <h2 data-i18n="shellOperations">Задачи</h2>
       <a href="/admin"{% if request.path == '/admin' %} aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span data-i18n="shellDashboard">Табло</span></a>
       <a href="/admin/calendar"{% if request.path.startswith('/admin/calendar') %} aria-current="page"{% endif %}><span aria-hidden="true">□</span><span data-i18n="shellCalendar">Календар</span></a>
       <a href="/admin/operator"{% if request.path == '/admin/operator' or request.path.startswith('/admin/operations') %} aria-current="page"{% endif %}><span aria-hidden="true">✓</span><span data-i18n="shellTasks">Задачи</span></a>
@@ -17,7 +17,7 @@
     </section>
     <section class="bsc-admin-nav-group">
       <h2 data-i18n="shellNetwork">Мрежа</h2>
-      <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span><span data-i18n="shellProfessionals">Професионалисти</span></a>
+      <a href="/admin/professionals"{% if request.path.startswith('/admin/professionals') %} aria-current="page"{% endif %}><span aria-hidden="true">◎</span><span data-i18n="shellProfessionals">Изпълнители</span></a>
       <a href="/admin/pilot-requests"{% if request.path.startswith('/admin/pilot-requests') %} aria-current="page"{% endif %}><span aria-hidden="true">≡</span><span data-i18n="shellApplications">Кандидатури</span></a>
     </section>
     <section class="bsc-admin-nav-group">
@@ -33,7 +33,7 @@
   </nav>
   <div class="bsc-admin-quick-actions" aria-label="Бързи действия">
     <span data-i18n="shellQuickActions">Бързи действия</span>
-    <a href="/admin/operations/new" data-i18n="shellCreateOperation">+ Операция</a>
+    <a href="/admin/operations/new" data-i18n="shellCreateOperation">+ Задача</a>
     <a href="/admin/calendar" data-i18n="shellCreateEvent">+ Събитие</a>
   </div>
 </aside>

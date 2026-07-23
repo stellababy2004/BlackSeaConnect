@@ -891,11 +891,11 @@
         <div class="owner-ai-center__main">
           <div class="owner-ai-center__header">
             <div>
-              <p class="owner-portal-card__eyebrow">Operational intelligence</p>
-              <h2 id="owner-ai-operations-title">AI Operations</h2>
-              <p>Your portfolio is being coordinated in real time.</p>
+              <p class="owner-portal-card__eyebrow">Operations control</p>
+              <h2 id="owner-ai-operations-title">What is happening now</h2>
+              <p>Your portfolio is being coordinated by the local operations team.</p>
             </div>
-            <span class="owner-ai-live">Monitoring live</span>
+            <span class="owner-ai-live">Last updated recently</span>
           </div>
           <div class="owner-ai-timeline">
             {% for item in owner_portal.activity_timeline[:4] %}
@@ -912,7 +912,7 @@
                 <span class="owner-ai-event__mark" aria-hidden="true">✓</span>
                 <div>
                   <strong>Portfolio monitoring active</strong>
-                  <p>New operational updates will appear here automatically.</p>
+                  <p>No work has been completed yet. When a contractor finishes a task, photos and updates will appear here.</p>
                 </div>
                 <time>Now</time>
               </article>
@@ -930,7 +930,7 @@
           </div>
         </div>
         <aside class="owner-ai-center__aside" aria-labelledby="owner-health-signals-title">
-          <p class="owner-portal-card__eyebrow">Portfolio intelligence</p>
+          <p class="owner-portal-card__eyebrow">Portfolio confidence</p>
           <h3 id="owner-health-signals-title">Property health</h3>
           <div class="owner-health-signals">
             {% for item in owner_portal.property_health %}
@@ -1127,7 +1127,7 @@
                 {% endfor %}
               </div>
             {% else %}
-              <p class="owner-portal-card__subcopy">{{ public_i18n('common', 'dashboardNoCalendarEventsScheduled', 'No calendar events are scheduled yet.') }}</p>
+              <p class="owner-portal-card__subcopy">{{ public_i18n('common', 'dashboardNoCalendarEventsScheduled', 'No calendar events are scheduled. If a reservation, cleaning, or maintenance visit is added, it will appear here with the responsible team member.') }}</p>
             {% endif %}
           </article>
         </div>
@@ -1193,7 +1193,7 @@
                 {% endfor %}
               </div>
             {% else %}
-              <p class="owner-portal-card__subcopy">{{ public_i18n('common', 'dashboardNoUpcomingArrivals', 'No upcoming arrivals yet.') }}</p>
+              <p class="owner-portal-card__subcopy">{{ public_i18n('common', 'dashboardNoUpcomingArrivals', 'No upcoming arrivals are scheduled. Your property stays in monitoring mode until the next guest or service event is added.') }}</p>
             {% endif %}
           </article>
         </div>
@@ -1329,7 +1329,10 @@
         <h2 id="owner-activity-timeline-title" data-i18n="ownerDashboardActivityTimelineTitle">{{ ui.activity_timeline_title }}</h2>
         <div class="owner-timeline-list">
           {% for item in owner_portal.activity_timeline %}
-            <article class="owner-timeline-item owner-timeline-item--{{ item.tone|e }}">
+            <article
+              class="owner-timeline-item owner-timeline-item--{{ item.tone|e }}"
+              data-request-id="{{ (item.request_id or item.id)|default('', true)|e }}"
+            >
               <span class="owner-timeline-item__icon" aria-hidden="true"></span>
               <div class="owner-timeline-item__content">
                 {% if item.time_key %}
@@ -1397,13 +1400,25 @@
                   {% endif %}
                 </div>
                 <p>{{ item.property|e }}</p>
-                <p class="owner-activity-item__meta"><span data-i18n="ownerRequestIdLabel">{{ ui.request_id_label }}</span> {{ item.id|e }} · <span data-i18n="ownerRequestLastUpdateLabel">{{ ui.updated_label }}</span> {{ item.last_update_display|default(item.last_update_at)|e }}</p>
+                <p class="owner-activity-item__meta">
+                  <span data-i18n="ownerRequestLastUpdateLabel">{{ ui.updated_label }}</span> {{ item.last_update_display|default(item.last_update_at)|e }}
+                  &middot; {{ public_i18n('common', 'ownerTrustNextStepLabel', 'Next step') }}:
+                  {% if item.status|lower == "completed" %}
+                    {{ public_i18n('common', 'ownerTrustCompletedNextStep', 'Photos and completion notes remain available for review.') }}
+                  {% elif item.status|lower == "in_progress" %}
+                    {{ public_i18n('common', 'ownerTrustInProgressNextStep', 'The contractor will upload proof when the work is finished.') }}
+                  {% elif item.status|lower == "assigned" %}
+                    {{ public_i18n('common', 'ownerTrustAssignedNextStep', 'The assigned contractor will accept or start the task next.') }}
+                  {% else %}
+                    {{ public_i18n('common', 'ownerTrustNewNextStep', 'We will assign the right local contractor.') }}
+                  {% endif %}
+                </p>
               </article>
             {% endfor %}
           </div>
         {% else %}
           <div class="owner-activity-empty">
-            <p data-i18n="ownerDashboardEmptyCopy">{{ ui.empty_activity_copy }}</p>
+            <p>{{ public_i18n('ownersDashboard', 'ownerDashboardTrustEmptyCopy', 'No work has been requested yet. When a contractor is assigned, starts, uploads photos, or completes a task, the update will appear here.') }}</p>
             <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardRequestCta">{{ ui.hero_primary_cta }}</a>
           </div>
         {% endif %}
