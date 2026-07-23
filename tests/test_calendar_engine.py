@@ -583,7 +583,7 @@ class CalendarEngineTests(unittest.TestCase):
             "Le propriétaire est déterminé automatiquement à partir du bien sélectionné.",
             "Избраният имот няма свързан собственик.",
             "Select a property first",
-            "Sélectionnez d’abord un bien",
+            "Sélectionnez d'abord un bien",
         ):
             self.assertIn(text, i18n_source)
 
@@ -618,8 +618,8 @@ class CalendarEngineTests(unittest.TestCase):
         self.assertIn("button.dataset.adminQuickCategory", html)
         i18n_source = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
         for localized_text in (
-            "Бързо създаване", "Quick create", "Création rapide",
-            "Активни операции", "Active operations", "Opérations actives",
+            "Бързи действия", "Quick actions", "Actions rapides",
+            "Текущи задачи", "Active tasks", "Tâches en cours",
             "Затвори детайлите", "Close details", "Fermer les détails",
         ):
             self.assertIn(localized_text, i18n_source)
@@ -700,11 +700,11 @@ class CalendarEngineTests(unittest.TestCase):
         i18n_source = (Path(self._cwd) / "static" / "js" / "i18n" / "admin-runtime.js").read_text(encoding="utf-8")
         for localized_text in (
             "Обобщение", "Summary", "Résumé",
-            "Прикачени файлове", "Attachments", "Pièces jointes",
+            "Снимки и документи", "Photos and documents", "Photos et documents",
             "Няма собственик", "No owner", "Aucun propriétaire",
             "Не е възложено", "Unassigned", "Non attribué",
             "Няма прикачени файлове.", "No attachments.", "Aucune pièce jointe.",
-            "Свързани операции", "Related operations", "Opérations associées",
+            "Свързани задачи", "Related tasks", "Tâches associées",
         ):
             self.assertIn(localized_text, i18n_source)
 
@@ -848,15 +848,15 @@ class CalendarEngineTests(unittest.TestCase):
                 for language in ("bg", "en", "fr")
             }
 
-        for html in html_by_language.values():
+        for language, html in html_by_language.items():
             self.assertIn('<html lang="', html)
             self.assertIn('data-reconcile-selection', html)
             self.assertIn('data-reconcile-empty hidden', html)
             self.assertIn('data-reconcile-create hidden', html)
             self.assertIn('data-reconcile-properties hidden', html)
             self.assertIn('data-reconcile-submit disabled', html)
-            self.assertIn('href="/owners/property/new"', html)
-            self.assertIn('href="/admin/properties"', html)
+            self.assertIn(f'href="/owners/property/new?lang={language}"', html)
+            self.assertIn(f'href="/admin/properties?lang={language}"', html)
 
         template_source = (Path(self._cwd) / "templates" / "calendar.html").read_text(encoding="utf-8")
         self.assertIn('submitButton.disabled = empty || !select.value;', template_source)
@@ -867,7 +867,7 @@ class CalendarEngineTests(unittest.TestCase):
         for text in (
             "Календарният запис няма свързан каноничен имот.",
             "This calendar record has no linked canonical property.",
-            "Cet enregistrement du calendrier n’est associé à aucun bien de référence.",
+            "Cet enregistrement du calendrier n'est associé à aucun bien de référence.",
             "Създай нов имот",
             "Create a new property",
             "Créer un nouveau bien",

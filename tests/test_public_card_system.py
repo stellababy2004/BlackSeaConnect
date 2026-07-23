@@ -127,8 +127,9 @@ class PublicCardSystemTests(unittest.TestCase):
             'data-i18n-attr="aria-label:homeSiteNavLabel"',
             'data-i18n-attr="aria-label:homeLanguageSwitcherLabel"',
             'data-i18n-attr="aria-label:homePlatformSignalsLabel"',
-            'data-i18n-attr="aria-label:homePreviewMetricsLabel"',
-            'data-i18n-attr="aria-label:homeKpiOverviewLabel"',
+            'data-i18n-attr="aria-label:homePreviewTodayLabel"',
+            'data-i18n-attr="aria-label:homePreviewUpdatesLabel"',
+            'data-i18n-attr="aria-label:homePropertyStatusLabel"',
             'data-i18n-attr="aria-label:homeFooterLinksLabel"',
         ]:
             with self.subTest(selector=selector):

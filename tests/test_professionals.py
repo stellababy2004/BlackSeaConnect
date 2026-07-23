@@ -805,7 +805,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
 
         expectations = {
             "bg": {
-                "portal": "Портал за професионалисти",
+                "dashboard_eyebrow": "Вашият ден",
                 "tasks": "Задачи",
                 "search": "Търси",
                 "back": "Обратно към задачите",
@@ -815,10 +815,10 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Висок",
                 "category": "Поддръжка",
                 "no_notifications": "Няма скорошни известия.",
-                "no_attachments": "Все още няма качени доказателства.",
+                "no_attachments": "Все още няма снимки. Те ще се появят тук, след като бъдат качени.",
             },
             "en": {
-                "portal": "Professional portal",
+                "dashboard_eyebrow": "Your day",
                 "tasks": "Tasks",
                 "search": "Search",
                 "back": "Back to tasks",
@@ -828,10 +828,10 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "High",
                 "category": "Maintenance",
                 "no_notifications": "No recent notifications.",
-                "no_attachments": "No evidence uploaded yet.",
+                "no_attachments": "No photos yet. They will appear here after upload.",
             },
             "fr": {
-                "portal": "Portail professionnel",
+                "dashboard_eyebrow": "Votre journée",
                 "tasks": "Tâches",
                 "search": "Rechercher",
                 "back": "Retour aux tâches",
@@ -841,10 +841,10 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Élevée",
                 "category": "Maintenance",
                 "no_notifications": "Aucune notification récente.",
-                "no_attachments": "Aucune preuve téléversée pour le moment.",
+                "no_attachments": "Aucune photo pour le moment. Elles apparaîtront ici après leur ajout.",
             },
             "ru": {
-                "portal": "Портал профессионалов",
+                "dashboard_eyebrow": "Ваш день",
                 "tasks": "Задачи",
                 "search": "Поиск",
                 "back": "Назад к задачам",
@@ -854,7 +854,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 "priority": "Высокий",
                 "category": "Обслуживание",
                 "no_notifications": "Недавних уведомлений нет.",
-                "no_attachments": "Подтверждения пока не загружены.",
+                "no_attachments": "Фотографий пока нет. Они появятся здесь после загрузки.",
             },
         }
 
@@ -864,7 +864,8 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertEqual(dashboard.status_code, 200)
                 dashboard_html = dashboard.get_data(as_text=True)
                 self.assertIn(f'<html lang="{lang}">', dashboard_html)
-                self.assertIn(expected["portal"], dashboard_html)
+                self.assertIn(expected["dashboard_eyebrow"], dashboard_html)
+                self.assertNotIn("[MISSING:", dashboard_html)
                 self.assertIn(expected["no_notifications"], dashboard_html)
                 self.assertIn(expected["status"], dashboard_html)
                 self.assertIn(expected["priority"], dashboard_html)
@@ -876,6 +877,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertEqual(tasks.status_code, 200)
                 tasks_html = tasks.get_data(as_text=True)
                 self.assertIn(f'<html lang="{lang}">', tasks_html)
+                self.assertNotIn("[MISSING:", tasks_html)
                 self.assertIn(expected["tasks"], tasks_html)
                 self.assertIn(expected["search"], tasks_html)
                 self.assertIn(expected["status"], tasks_html)
@@ -900,6 +902,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 self.assertEqual(detail.status_code, 200)
                 detail_html = detail.get_data(as_text=True)
                 self.assertIn(f'<html lang="{lang}">', detail_html)
+                self.assertNotIn("[MISSING:", detail_html)
                 self.assertIn(expected["back"], detail_html)
                 self.assertIn(expected["accept"], detail_html)
                 self.assertNotIn(f">{expected['complete']}<", detail_html)

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ current_lang if current_lang is defined and current_lang else 'en' }}">
+<html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4066,7 +4066,7 @@
                   <details>
                     <summary class="admin-ops-button">Още</summary>
                     <div class="admin-ops-detail__actions">
-                      <a class="admin-ops-button" href="/admin/properties" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
+                      <a class="admin-ops-button" href="{{ localized_url('/admin/properties') }}" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
                       <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
                       <button class="admin-ops-button admin-ops-button--danger" type="button" data-admin-delete-event data-i18n="calendarDetailDelete">Изтрий</button>
                     </div>
@@ -4154,7 +4154,7 @@
           <div class="admin-smart-card" data-reconcile-details></div>
           <label class="admin-ops-filter" data-reconcile-selection><span class="admin-ops-label" data-i18n="calendarMatchingProperties">Подходящи имоти</span><select class="admin-ops-select" name="property_id" required data-reconcile-select></select></label>
           <div class="admin-smart-card admin-reconcile-empty" data-reconcile-empty hidden><strong data-i18n="calendarNoMatchingProperty">Няма намерен подходящ имот</strong><p data-i18n="calendarPropertyRequiredBeforeLink">Преди събитието да бъде свързано, имотът трябва първо да съществува.</p></div>
-          <div class="admin-ops-actions-grid" data-reconcile-actions><button class="admin-ops-button" type="button" data-reconcile-cancel data-i18n="calendarCancel">Отказ</button><a class="admin-ops-button" href="/admin/properties" data-reconcile-properties hidden data-i18n="calendarOpenProperties">Отвори списъка с имоти</a><a class="admin-ops-button admin-ops-button--primary" href="/owners/property/new" data-reconcile-create hidden data-i18n="calendarCreateProperty">Създай нов имот</a><button class="admin-ops-button admin-ops-button--primary" type="submit" data-reconcile-submit disabled data-i18n="calendarLinkToProperty">Свържи с имот</button></div>
+          <div class="admin-ops-actions-grid" data-reconcile-actions><button class="admin-ops-button" type="button" data-reconcile-cancel data-i18n="calendarCancel">Отказ</button><a class="admin-ops-button" href="{{ localized_url('/admin/properties') }}" data-reconcile-properties hidden data-i18n="calendarOpenProperties">Отвори списъка с имоти</a><a class="admin-ops-button admin-ops-button--primary" href="{{ localized_url('/owners/property/new') }}" data-reconcile-create hidden data-i18n="calendarCreateProperty">Създай нов имот</a><button class="admin-ops-button admin-ops-button--primary" type="submit" data-reconcile-submit disabled data-i18n="calendarLinkToProperty">Свържи с имот</button></div>
         </form>
       </dialog>
       <dialog class="admin-ops-create" data-assignment-dialog>

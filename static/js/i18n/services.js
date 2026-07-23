@@ -113,6 +113,7 @@
       "servicesTitle": "Services opérationnels pour les séjours, les équipes et les partenaires locaux de confiance.",
       "servicesIntro": "BlackSea Connect réunit les arrivées, le ménage, les transferts, l’assistance conciergerie, les partenaires locaux et le portail client dans un flux de travail calme.",
       "servicesPrimaryCta": "Demander un accès pilote",
+      "servicesOwnerCta": "Demander un service pour votre bien",
       "servicesSecondaryCta": "Voir la démo opérationnelle",
       "servicesTertiaryCta": "Partenaires de confiance",
       "serviceChip1": "coordination client",

@@ -48,7 +48,7 @@
 
   window.BlackSeaI18NModules = window.BlackSeaI18NModules || {};
   var base = '/static/js/i18n/';
-  var moduleVersion = '20260723';
+  var moduleVersion = '20260724';
   var moduleFiles = [
     'common.js',
     'home.js',

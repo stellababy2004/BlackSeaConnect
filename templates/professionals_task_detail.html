@@ -100,7 +100,7 @@
   "wifi_name": public_i18n("professionals", "detailWifiName", "Wi-Fi network"),
   "wifi_password": public_i18n("professionals", "detailWifiPassword", "Wi-Fi password"),
   "emergency_contact": public_i18n("professionals", "detailEmergencyContact", "Emergency contact"),
-  "action_loading": public_i18n("professionals", "detailActionLoading", "Workingâ€¦"),
+  "action_loading": public_i18n("professionals", "detailActionLoading", "Working…"),
   "task_status_new": public_i18n("professionals", "taskStatusNew", "New"),
   "task_status_assigned": public_i18n("professionals", "taskStatusAssigned", "Assigned"),
   "task_status_accepted": public_i18n("professionals", "taskStatusAccepted", "Accepted"),
@@ -288,19 +288,19 @@
   "action_invalid": labels.error_action
 } %}
 {% set event_icons = {
-  "professional_accepted": "âœ“",
-  "professional_on_the_way": "â†’",
-  "professional_arrived": "âŒ–",
-  "professional_started": "â–¶",
-  "professional_paused": "â…¡",
-  "professional_resumed": "â–¶",
-  "professional_completed": "âœ“",
-  "professional_comment_added": "âœŽ",
-  "professional_comment_edited": "âœŽ",
+  "professional_accepted": "✓",
+  "professional_on_the_way": "→",
+  "professional_arrived": "⌖",
+  "professional_started": "▶",
+  "professional_paused": "Ⅱ",
+  "professional_resumed": "▶",
+  "professional_completed": "✓",
+  "professional_comment_added": "✎",
+  "professional_comment_edited": "✎",
   "professional_issue_reported": "!",
-  "checklist_updated": "â˜‘",
-  "attachment_added": "â–£",
-  "completion_report_updated": "â‰¡"
+  "checklist_updated": "☑",
+  "attachment_added": "▣",
+  "completion_report_updated": "≡"
 } %}
 <html lang="{{ page_lang }}">
 <head>
@@ -362,7 +362,7 @@
     .professional-kicker { color:#5b6d84; text-transform:uppercase; letter-spacing:0.08em; font-size:12px; font-weight:700; }
     .professional-photo-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
     .professional-photo-slot { min-width:0; min-height:140px; padding:18px; border-radius:22px; border:1px dashed rgba(15,35,69,.25); background:linear-gradient(145deg,#f7f4ee,#fff); display:flex; flex-direction:column; justify-content:flex-end; }
-    .professional-photo-slot::before { content:"ï¼‹"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
+    .professional-photo-slot::before { content:"＋"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
     .professional-photo-slot strong { display:block; margin-bottom:6px; }
     .professional-photo-slot p { margin:0; color:#40536e; line-height:1.55; }
     .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
@@ -720,7 +720,7 @@
                 <div class="professional-chat-bubble">
                   <div class="professional-list-item__topline"><strong>{{ comment.operator|e }}</strong><time>{{ comment.created_at|e }}</time></div>
                   <p class="professional-preserve-format">{{ comment.comment|e }}</p>
-                  {% if comment.edited_at %}<small>{{ labels.edited }} Â· {{ comment.edited_at|e }}</small>{% endif %}
+                  {% if comment.edited_at %}<small>{{ labels.edited }} · {{ comment.edited_at|e }}</small>{% endif %}
                 </div>
               </div>
             {% else %}
@@ -751,7 +751,7 @@
                 <input type="hidden" name="checklist_key" value="{{ item.key|e }}">
                 <input type="hidden" name="checked" value="1">
                 <button class="professional-check-toggle" type="submit" aria-pressed="{{ 'true' if item.checked else 'false' }}" {% if item.checked or current_status in ['COMPLETED', 'ARCHIVED'] %}disabled{% endif %}>
-                <span class="professional-check-mark{% if item.checked %} professional-check-mark--done{% endif %}" aria-hidden="true">{% if item.checked %}âœ“{% endif %}</span>
+                <span class="professional-check-mark{% if item.checked %} professional-check-mark--done{% endif %}" aria-hidden="true">{% if item.checked %}✓{% endif %}</span>
                 <span class="professional-list-item__topline" style="flex:1;">
                   <strong>{{ checklist_labels.get(item.key, item.label)|e }}</strong>
                   <span class="professional-badge">{{ labels.done if item.checked else labels.open }}</span>
@@ -782,7 +782,7 @@
                   {% else %}
                     {{ labels.attachment }}
                   {% endif %}
-                  {% if attachment.uploaded_by %} Â· {{ attachment.uploaded_by|e }}{% endif %}
+                  {% if attachment.uploaded_by %} · {{ attachment.uploaded_by|e }}{% endif %}
                 </p>
                 {% set attachment_name = attachment.name|default('', true)|lower %}
                 {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
@@ -849,7 +849,7 @@
               {% set event_type = event.event_type|default('', true) %}
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
-                  <span style="display:flex;align-items:center;gap:9px;"><span class="professional-timeline-icon" aria-hidden="true">{{ event_icons.get(event_type, "â€¢") }}</span><strong>{{ timeline_labels.get(event_type, labels.task_event_unknown) }}</strong></span>
+                  <span style="display:flex;align-items:center;gap:9px;"><span class="professional-timeline-icon" aria-hidden="true">{{ event_icons.get(event_type, "•") }}</span><strong>{{ timeline_labels.get(event_type, labels.task_event_unknown) }}</strong></span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
                 <div class="professional-meta" style="margin-top:8px;">
@@ -926,7 +926,7 @@
               button.disabled = true;
               button.setAttribute("aria-pressed", "true");
               mark.classList.add("professional-check-mark--done");
-              mark.textContent = "âœ“";
+              mark.textContent = "✓";
               badge.textContent = messages.done;
               document.querySelector("[data-check-progress-bar]").style.width = `${result.progress}%`;
               document.querySelector("[data-check-progress-count]").textContent = `${result.checked_count}/${result.total_count}`;

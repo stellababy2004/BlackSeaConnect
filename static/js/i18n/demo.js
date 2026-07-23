@@ -298,6 +298,9 @@
   "en": {
     "demo": {
       "pageTitle": "BlackSea Connect | Coastal Operations Demo",
+      "note1Time": "14:05",
+      "note2Time": "13:42",
+      "note3Time": "12:58",
       "topStatusChip": "Demo operations live",
       "topUpdatedChip": "Updated 2 min ago",
       "topPilotCta": "Request pilot access",
@@ -426,6 +429,9 @@
   "fr": {
     "demo": {
       "pageTitle": "BlackSea Connect | Démo des opérations",
+      "note1Time": "14:05",
+      "note2Time": "13:42",
+      "note3Time": "12:58",
       "topStatusChip": "Les opérations de démonstration sont en direct",
       "topUpdatedChip": "Mis à jour il y a 2 min",
       "topPilotCta": "Demander un accès pilote",
@@ -572,6 +578,9 @@
   "ru": {
     "demo": {
       "pageTitle": "BlackSea Connect | Демонстрация операций",
+      "note1Time": "14:05",
+      "note2Time": "13:42",
+      "note3Time": "12:58",
       "topStatusChip": "Демо-операции в прямом эфире",
       "topUpdatedChip": "Обновлено 2 мин назад",
       "topPilotCta": "Запросить пилотный доступ",

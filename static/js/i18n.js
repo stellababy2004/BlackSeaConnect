@@ -74,6 +74,47 @@
     }
   }
 
+  function localizeInternalUrl(rawUrl, lang) {
+    const target = String(rawUrl || "").trim();
+    if (
+      !target ||
+      target.startsWith("#") ||
+      /^(?:mailto:|tel:|javascript:|data:)/i.test(target)
+    ) {
+      return target;
+    }
+
+    try {
+      const url = new URL(target, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname.startsWith("/static/")) {
+        return target;
+      }
+      url.searchParams.set("lang", lang);
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch (error) {
+      void error;
+      return target;
+    }
+  }
+
+  function syncInternalNavigation(activeLang) {
+    document.querySelectorAll("a[href]:not([data-lang-switch]):not([data-lang])").forEach((link) => {
+      const href = link.getAttribute("href");
+      const localizedHref = localizeInternalUrl(href, activeLang);
+      if (localizedHref && localizedHref !== href) {
+        link.setAttribute("href", localizedHref);
+      }
+    });
+
+    document.querySelectorAll("form[action]").forEach((form) => {
+      const action = form.getAttribute("action");
+      const localizedAction = localizeInternalUrl(action, activeLang);
+      if (localizedAction && localizedAction !== action) {
+        form.setAttribute("action", localizedAction);
+      }
+    });
+  }
+
   function getLanguageFromControl(control) {
     if (!control) {
       return "";
@@ -391,6 +432,7 @@
         setLanguageInUrl(activeLang);
       }
 
+      syncInternalNavigation(activeLang);
       syncLanguageControls(activeLang);
 
       window.dispatchEvent(new CustomEvent("blacksea:languagechange", {
@@ -448,6 +490,14 @@
     document.addEventListener("click", function (event) {
       const control = event.target.closest(LANGUAGE_CONTROL_SELECTOR);
       if (!control) {
+        const link = event.target.closest("a[href]");
+        if (link) {
+          const activeLang = normalizeLanguage(document.documentElement.lang) || DEFAULT_LANG;
+          const localizedHref = localizeInternalUrl(link.getAttribute("href"), activeLang);
+          if (localizedHref) {
+            link.setAttribute("href", localizedHref);
+          }
+        }
         return;
       }
 
@@ -457,6 +507,18 @@
 
       handleLanguageControlClick.call(control, event);
     });
+
+    document.addEventListener("submit", function (event) {
+      const form = event.target;
+      if (!form || form.tagName !== "FORM") {
+        return;
+      }
+      const activeLang = normalizeLanguage(document.documentElement.lang) || DEFAULT_LANG;
+      const localizedAction = localizeInternalUrl(form.getAttribute("action"), activeLang);
+      if (localizedAction) {
+        form.setAttribute("action", localizedAction);
+      }
+    }, true);
 
     function boot() {
       bindLanguageControls();
