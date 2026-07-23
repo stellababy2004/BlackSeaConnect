@@ -1,5 +1,6 @@
 ﻿import json
 import os
+import re
 import sqlite3
 import subprocess
 import shutil
@@ -39,6 +40,29 @@ class FakeSMTP:
 
 
 class MultilingualRouteTests(unittest.TestCase):
+    @staticmethod
+    def _visible_text(rendered_html):
+        visible = re.sub(
+            r"<script\b[^>]*>.*?</script>",
+            " ",
+            rendered_html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        visible = re.sub(
+            r"<style\b[^>]*>.*?</style>",
+            " ",
+            visible,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        visible = re.sub(
+            r"<head\b[^>]*>.*?</head>",
+            " ",
+            visible,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        visible = re.sub(r"<[^>]+>", " ", visible)
+        return re.sub(r"\s+", " ", html_lib.unescape(visible)).strip()
+
     def setUp(self):
         self._cwd = os.getcwd()
         self._tmpdir = Path(self._cwd) / f".tmp_multilingual_routes_tests_{id(self)}"
@@ -1381,31 +1405,50 @@ class MultilingualRouteTests(unittest.TestCase):
 
     def test_homepage_hero_and_owner_preview_are_fully_localized(self):
         expected = {
-            "bg": ("Вашият имот е в сигурни ръце.", "Моят имот днес", "Почистването приключи"),
-            "en": ("Your property, cared for.", "My property today", "Cleaning completed"),
-            "fr": ("Votre propriété, entre de bonnes mains.", "Ma propriété aujourd’hui", "Ménage terminé"),
-            "ru": ("О вашей недвижимости заботятся.", "Моя недвижимость сегодня", "Уборка завершена"),
+            "bg": ("Вашият имот е в сигурни ръце.", "Моят имот днес", "Почистването приключи", "Всичко протича нормално"),
+            "en": ("Your property, cared for.", "My property today", "Cleaning completed", "Everything is running normally"),
+            "fr": ("Votre propriété, entre de bonnes mains.", "Ma propriété aujourd’hui", "Ménage terminé", "Tout se déroule normalement"),
+            "ru": ("О вашей недвижимости заботятся.", "Моя недвижимость сегодня", "Уборка завершена", "Всё идёт нормально"),
+        }
+        forbidden_by_language = {
+            "bg": ("Уборка", "Завершено", "Следующий гость", "Завтра", "Подтверждено", "Моя недвижимость сегодня", "Всё идёт нормально", "Demain", "Ménage", "Tomorrow", "Cleaning completed"),
+            "en": ("Почистване", "Моят имот днес", "Уборка", "Моя недвижимость сегодня", "Ménage", "Ma propriété aujourd’hui"),
+            "fr": ("Почистване", "Моят имот днес", "Cleaning completed", "My property today", "Уборка", "Моя недвижимость сегодня"),
+            "ru": ("Почистване", "Моят имот днес", "Cleaning completed", "My property today", "Ménage", "Ma propriété aujourd’hui"),
         }
         forbidden_markers = ("[MISSING:", "undefined", ">null<", "data-i18n-missing")
         for lang, phrases in expected.items():
             with self.subTest(lang=lang):
                 response = self.client.get(f"/?lang={lang}")
                 self.assertEqual(response.status_code, 200)
-                html = html_lib.unescape(response.get_data(as_text=True))
+                html = response.get_data(as_text=True)
+                visible_text = self._visible_text(html)
                 for phrase in phrases:
-                    self.assertIn(phrase, html)
+                    self.assertIn(phrase, visible_text)
                 for marker in forbidden_markers:
-                    self.assertNotIn(marker, html)
+                    self.assertNotIn(marker, visible_text)
+                for foreign_text in forbidden_by_language[lang]:
+                    self.assertNotIn(foreign_text, visible_text)
+                self.assertNotIn("`n", html)
 
-        ru_html = html_lib.unescape(self.client.get("/?lang=ru").get_data(as_text=True))
-        for english_fallback in (
-            "Your property, cared for.",
-            "Create account",
-            "My property today",
-            "Cleaning completed",
-            "Waiting for approval",
+    def test_homepage_carousel_dataset_contains_keys_not_localized_sentences(self):
+        source = (Path(__file__).resolve().parents[1] / "templates" / "index.html").read_text(encoding="utf-8")
+        match = re.search(r"const slides\s*=\s*\[(.*?)\];", source, re.DOTALL)
+        self.assertIsNotNone(match)
+        slide_source = match.group(1)
+        self.assertNotRegex(slide_source, r"[А-Яа-яЁё]{3,}")
+        self.assertNotRegex(slide_source, r"\b(?:your|property|guest|work|photos)\b.*[.!?]")
+        self.assertNotRegex(slide_source, r"\b(?:votre|propriété|travail|photos|voyageur)\b.*[.!?]")
+        for key_field in (
+            "propertyKey",
+            "cityKey",
+            "ownerKey",
+            "statusKey",
+            "testimonialQuoteKey",
+            "testimonialCopyKey",
         ):
-            self.assertNotIn(english_fallback, ru_html)
+            self.assertIn(f"{key_field}:", slide_source)
+        self.assertNotIn("`n", source)
 
 
 

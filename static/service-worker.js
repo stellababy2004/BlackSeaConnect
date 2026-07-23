@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "bsc-pwa-v2";
+const CACHE_VERSION = "bsc-pwa-v3";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;

@@ -21,6 +21,15 @@ KEY_PATTERNS = (
     re.compile(r'data-i18n-attr="[^"]*?:([^";]+)'),
     re.compile(r"public_i18n\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]+)['\"]"),
 )
+DYNAMIC_HOME_KEY_PATTERN = re.compile(
+    r"(?:propertyKey|cityKey|ownerKey|statusKey|testimonialQuoteKey|testimonialCopyKey)\s*:\s*['\"]([^'\"]+)['\"]"
+)
+SLIDES_PATTERN = re.compile(r"const slides\s*=\s*\[(.*?)\];", re.DOTALL)
+SUSPICIOUS_SLIDE_TEXT = re.compile(
+    r"[А-Яа-яЁё]{3,}|(?:\b(?:the|your|property|guest|work|photos)\b.*[.!?])|"
+    r"(?:\b(?:votre|propriété|travail|photos|voyageur)\b.*[.!?])",
+    re.IGNORECASE,
+)
 
 
 class DuplicateKeyError(ValueError):
@@ -60,8 +69,6 @@ def load_modules():
 
 def collect_template_keys(path):
     source = path.read_text(encoding="utf-8")
-    if path.name == "index.html":
-        source = source[source.find('<header class="ds-hero"') : source.find('aria-labelledby="benefits-title"')]
     keys = set()
     explicit = set()
     for pattern in KEY_PATTERNS[:2]:
@@ -93,6 +100,21 @@ def validate():
             if not owners:
                 continue
             checked.add((owners[0], key, template_name))
+
+    homepage_source = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    for key in DYNAMIC_HOME_KEY_PATTERN.findall(homepage_source):
+        checked.add(("home", key, "templates/index.html (dynamic carousel)"))
+    slides_match = SLIDES_PATTERN.search(homepage_source)
+    if not slides_match:
+        errors.append("templates/index.html: carousel slide dataset not found")
+    else:
+        slide_source = slides_match.group(1)
+        if SUSPICIOUS_SLIDE_TEXT.search(slide_source):
+            errors.append(
+                "templates/index.html: suspicious localized sentence in carousel slide dataset; use translation keys"
+            )
+    if "`n" in homepage_source:
+        errors.append("templates/index.html: literal `n template artifact found")
 
     for namespace, key, template_name in sorted(checked):
         module = modules.get(namespace)

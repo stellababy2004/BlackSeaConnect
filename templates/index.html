@@ -652,8 +652,8 @@
   <section class="owner-fit-section home-light-section" hidden aria-hidden="true"></section>
   <section class="cta-panel home-light-section" hidden aria-hidden="true"></section>
 
-  <script src="/static/js/translations.js?v=20260621"></script>
-  <script src="/static/js/i18n.js?v=20260621"></script>
+  <script src="/static/js/translations.js?v=20260723"></script>
+  <script src="/static/js/i18n.js?v=20260723"></script>
   <script>
     (() => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -711,79 +711,78 @@
         return;
       }
 
-      const portfolioOwnerLabel = {{ public_i18n('home', 'homePortfolioOwnerLabel', 'Portfolio owner')|tojson }};
       const slides = [
         {
           image: {{ url_for('static', filename='img/properties/sea-view-villa.webp')|tojson }},
           position: '52% 54%',
-          property: {{ public_i18n('home', 'homePropertySeaViewVilla', 'Sea View Villa')|tojson }},
-          city: {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerElenaPetrova', 'Elena Petrova')|tojson }},
+          propertyKey: 'homePropertySeaViewVilla',
+          cityKey: 'homeCitySvetiVlas',
+          ownerKey: 'homeOwnerElenaPetrova',
           ownerInitial: 'E',
-          status: {{ public_i18n('home', 'homeStatusAvailable', 'Available')|tojson }},
+          statusKey: 'homeStatusAvailable',
           statusTone: 'available',
-          testimonialQuote: {{ public_i18n('home', 'homeSlideSeaViewQuote', 'This property gives me the peace of mind I need to manage remotely.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlideSeaViewCopy', 'I can stay in touch with my team, approve guest arrivals and keep the property ready at all times.')|tojson }}
+          testimonialQuoteKey: 'homeSlideSeaViewQuote',
+          testimonialCopyKey: 'homeSlideSeaViewCopy'
         },
         {
           image: {{ url_for('static', filename='img/properties/marina-residence.webp')|tojson }},
           position: '72% 48%',
-          property: {{ public_i18n('home', 'homePropertyMarinaResidence', 'Marina Residence')|tojson }},
-          city: {{ public_i18n('home', 'homeCityVarna', 'Varna')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerIvanDimitrov', 'Ivan Dimitrov')|tojson }},
+          propertyKey: 'homePropertyMarinaResidence',
+          cityKey: 'homeCityVarna',
+          ownerKey: 'homeOwnerIvanDimitrov',
           ownerInitial: 'I',
-          status: {{ public_i18n('home', 'homeStatusReserved', 'Reserved')|tojson }},
+          statusKey: 'homeStatusReserved',
           statusTone: 'reserved',
-          testimonialQuote: {{ public_i18n('home', 'homeSlideMarinaQuote', 'Reservation week was seamless, and the team handled everything without prompting.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlideMarinaCopy', 'I only check in when I want to, knowing my home is ready for guests and my calendar is under control.')|tojson }}
+          testimonialQuoteKey: 'homeSlideMarinaQuote',
+          testimonialCopyKey: 'homeSlideMarinaCopy'
         },
         {
           image: {{ url_for('static', filename='img/properties/golden-bay-penthouse.webp')|tojson }},
           position: '30% 58%',
-          property: {{ public_i18n('home', 'homePropertyGoldenBayPenthouse', 'Golden Bay Penthouse')|tojson }},
-          city: {{ public_i18n('home', 'homeCityBurgas', 'Burgas')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerMariaIvanova', 'Maria Ivanova')|tojson }},
+          propertyKey: 'homePropertyGoldenBayPenthouse',
+          cityKey: 'homeCityBurgas',
+          ownerKey: 'homeOwnerMariaIvanova',
           ownerInitial: 'M',
-          status: {{ public_i18n('home', 'homeStatusReady', 'Ready for guests')|tojson }},
+          statusKey: 'homeStatusReady',
           statusTone: 'ready',
-          testimonialQuote: {{ public_i18n('home', 'homeSlideGoldenBayQuote', 'The property was guest-ready faster than expected, and everything looked pristine.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlideGoldenBayCopy', 'I enjoy transparent status updates and a calm interface that helps me stay confident in every booking.')|tojson }}
+          testimonialQuoteKey: 'homeSlideGoldenBayQuote',
+          testimonialCopyKey: 'homeSlideGoldenBayCopy'
         },
         {
           image: {{ url_for('static', filename='img/properties/dolce-vita-residence.webp')|tojson }},
           position: '64% 68%',
-          property: {{ public_i18n('home', 'homePropertyDolceVitaApartment', 'Dolce Vita Apartment')|tojson }},
-          city: {{ public_i18n('home', 'homeCitySvetiVlas', 'Sveti Vlas')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerGeorgiNikolov', 'Georgi Nikolov')|tojson }},
+          propertyKey: 'homePropertyDolceVitaApartment',
+          cityKey: 'homeCitySvetiVlas',
+          ownerKey: 'homeOwnerGeorgiNikolov',
           ownerInitial: 'G',
-          status: {{ public_i18n('home', 'homeStatusMaintenance', 'Maintenance today')|tojson }},
+          statusKey: 'homeStatusMaintenance',
           statusTone: 'maintenance',
-          testimonialQuote: {{ public_i18n('home', 'homeSlideDolceVitaQuote', 'Maintenance tasks are coordinated precisely, so I know the property is always in top shape.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlideDolceVitaCopy', 'The operations platform removes uncertainty and keeps my team aligned on what needs to happen next.')|tojson }}
+          testimonialQuoteKey: 'homeSlideDolceVitaQuote',
+          testimonialCopyKey: 'homeSlideDolceVitaCopy'
         },
         {
           image: {{ url_for('static', filename='img/properties/panorama-residence.webp')|tojson }},
           position: '43% 42%',
-          property: {{ public_i18n('home', 'homePropertyPanoramaResidence', 'Panorama Residence')|tojson }},
-          city: {{ public_i18n('home', 'homeCityNessebar', 'Nessebar')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerElenaPetrova', 'Elena Petrova')|tojson }},
+          propertyKey: 'homePropertyPanoramaResidence',
+          cityKey: 'homeCityNessebar',
+          ownerKey: 'homeOwnerElenaPetrova',
           ownerInitial: 'E',
-          status: {{ public_i18n('home', 'homeStatusAvailable', 'Available')|tojson }},
+          statusKey: 'homeStatusAvailable',
           statusTone: 'available',
-          testimonialQuote: {{ public_i18n('home', 'homeSlidePanoramaQuote', 'When my property is available, I love that the team keeps it staged and ready for guests.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlidePanoramaCopy', 'It is easy to glance at the property status and know exactly what is happening at any time.')|tojson }}
+          testimonialQuoteKey: 'homeSlidePanoramaQuote',
+          testimonialCopyKey: 'homeSlidePanoramaCopy'
         },
         {
           image: {{ url_for('static', filename='img/properties/royal-beach-villa.webp')|tojson }},
           position: '82% 58%',
-          property: {{ public_i18n('home', 'homePropertyBlackPearlVilla', 'Black Pearl Villa')|tojson }},
-          city: {{ public_i18n('home', 'homeCitySozopol', 'Sozopol')|tojson }},
-          owner: {{ public_i18n('home', 'homeOwnerIvanDimitrov', 'Ivan Dimitrov')|tojson }},
+          propertyKey: 'homePropertyBlackPearlVilla',
+          cityKey: 'homeCitySozopol',
+          ownerKey: 'homeOwnerIvanDimitrov',
           ownerInitial: 'I',
-          status: {{ public_i18n('home', 'homeStatusReady', 'Ready for guests')|tojson }},
+          statusKey: 'homeStatusReady',
           statusTone: 'ready',
-          testimonialQuote: {{ public_i18n('home', 'homeSlideBlackPearlQuote', 'This villa feels like a well-managed asset, even while I am traveling elsewhere.')|tojson }},
-          testimonialCopy: {{ public_i18n('home', 'homeSlideBlackPearlCopy', 'I trust the automated updates and can focus on the bigger picture rather than daily details.')|tojson }}
+          testimonialQuoteKey: 'homeSlideBlackPearlQuote',
+          testimonialCopyKey: 'homeSlideBlackPearlCopy'
         }
       ];
 
@@ -804,7 +803,6 @@
       const previous = showcase.querySelector('[data-carousel-previous]');
       const next = showcase.querySelector('[data-carousel-next]');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const goToLabel = {{ public_i18n('home', 'homeCarouselGoTo', 'Show property')|tojson }};
       const statusTones = ['available', 'reserved', 'ready', 'maintenance'];
       let activeImage = 0;
       let activeSlide = 0;
@@ -812,15 +810,45 @@
       let contentTimer = 0;
       let isPaused = false;
 
+      const selectedLanguage = () => {
+        const lang = String(document.documentElement.lang || 'bg').toLowerCase();
+        return ['bg', 'en', 'fr', 'ru'].includes(lang) ? lang : 'bg';
+      };
+
+      const translateHome = (key) => {
+        const dictionary = window.BlackSeaI18N?.[selectedLanguage()]?.home;
+        return dictionary && typeof dictionary[key] === 'string'
+          ? dictionary[key]
+          : `[MISSING: home.${key}]`;
+      };
+
+      const translatedSlide = (slide) => ({
+        ...slide,
+        property: translateHome(slide.propertyKey),
+        city: translateHome(slide.cityKey),
+        owner: translateHome(slide.ownerKey),
+        status: translateHome(slide.statusKey),
+        testimonialQuote: translateHome(slide.testimonialQuoteKey),
+        testimonialCopy: translateHome(slide.testimonialCopyKey)
+      });
+
       const dots = slides.map((slide, slideIndex) => {
         const dot = document.createElement('button');
         dot.className = 'ds-carousel-dot';
         dot.type = 'button';
-        dot.setAttribute('aria-label', `${goToLabel} ${slideIndex + 1}: ${slide.property}`);
+        const translated = translatedSlide(slide);
+        dot.setAttribute('aria-label', `${translateHome('homeCarouselGoTo')} ${slideIndex + 1}: ${translated.property}`);
         dot.addEventListener('click', () => showSlide(slideIndex));
         pagination.appendChild(dot);
         return dot;
       });
+
+      const updateDotLabels = () => {
+        dots.forEach((dot, slideIndex) => {
+          const translated = translatedSlide(slides[slideIndex]);
+          dot.setAttribute('aria-label', `${translateHome('homeCarouselGoTo')} ${slideIndex + 1}: ${translated.property}`);
+        });
+      };
 
       const stopRotation = () => {
         window.clearTimeout(rotationTimer);
@@ -837,6 +865,7 @@
       };
 
       const updateContent = (slide) => {
+        slide = translatedSlide(slide);
         propertyName.textContent = slide.property;
         city.textContent = slide.city;
         statusLabel.textContent = slide.status;
@@ -852,7 +881,7 @@
           testimonialCopy.textContent = slide.testimonialCopy;
         }
         if (testimonialRole) {
-          testimonialRole.textContent = `${portfolioOwnerLabel} · ${slide.city}`;
+          testimonialRole.textContent = `${translateHome('homePortfolioOwnerLabel')} · ${slide.city}`;
         }
         caption.classList.remove('is-updating');
         ownerDetails.classList.remove('is-updating');
@@ -860,7 +889,7 @@
 
       function showSlide(requestedIndex, animate = true) {
         const nextIndex = (requestedIndex + slides.length) % slides.length;
-        const slide = slides[nextIndex];
+        const slide = translatedSlide(slides[nextIndex]);
         activeSlide = nextIndex;
 
         if (animate && !reduceMotion) {
@@ -879,13 +908,13 @@
           caption.classList.add('is-updating');
           ownerDetails.classList.add('is-updating');
           window.clearTimeout(contentTimer);
-          contentTimer = window.setTimeout(() => updateContent(slide), 240);
+          contentTimer = window.setTimeout(() => updateContent(slides[nextIndex]), 240);
         } else {
           const currentImage = imageLayers[activeImage];
           currentImage.src = slide.image;
           currentImage.style.objectPosition = slide.position;
           currentImage.alt = `${slide.property} — ${slide.city}`;
-          updateContent(slide);
+          updateContent(slides[nextIndex]);
         }
 
         dots.forEach((dot, dotIndex) => {
@@ -928,11 +957,15 @@
         }, 0);
       });
       document.addEventListener('visibilitychange', scheduleRotation);
+      window.addEventListener('blacksea:languagechange', () => {
+        updateDotLabels();
+        showSlide(activeSlide, false);
+      });
 
+      updateDotLabels();
       showSlide(0, false);
     })();
   </script>
-`n
   {% include 'partials/pwa_runtime.html' %}
 </body>
 </html>

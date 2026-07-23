@@ -443,7 +443,8 @@
       "homeSlidePanoramaQuote": "When my property is available, I love that the team keeps it staged and ready for guests.",
       "homeSlidePanoramaCopy": "It is easy to glance at the property status and know exactly what is happening at any time.",
       "homeSlideBlackPearlQuote": "This villa feels like a well-managed asset, even while I am traveling elsewhere.",
-      "homeSlideBlackPearlCopy": "I trust the automated updates and can focus on the bigger picture rather than daily details."
+      "homeSlideBlackPearlCopy": "I receive clear updates and can enjoy my time without worrying about daily details.",
+      "pilotAccessConciergeLabel": "Personal support"
     }
   },
   "fr": {
@@ -640,7 +641,8 @@
       "homeSlidePanoramaQuote": "Lorsque ma propriété est disponible, l'équipe la garde soignée et parfaitement prête pour les voyageurs.",
       "homeSlidePanoramaCopy": "Un regard suffit pour connaître son statut et comprendre exactement ce qui se passe.",
       "homeSlideBlackPearlQuote": "Cette villa est gérée comme un actif professionnel, même lorsque je voyage ailleurs.",
-      "homeSlideBlackPearlCopy": "Je fais confiance aux mises à jour automatiques et me concentre sur l'essentiel plutôt que sur les détails quotidiens."
+      "homeSlideBlackPearlCopy": "Je reçois des nouvelles claires et profite de mon temps sans me soucier des détails quotidiens.",
+      "pilotAccessConciergeLabel": "Assistance personnalisée"
     }
   },
   "ru": {
@@ -837,7 +839,8 @@
       "homeSlidePanoramaQuote": "Когда объект свободен, команда поддерживает порядок и полную готовность к приезду гостей.",
       "homeSlidePanoramaCopy": "Одного взгляда достаточно, чтобы увидеть статус объекта и понять, что происходит.",
       "homeSlideBlackPearlQuote": "Эта вилла управляется как профессиональный актив, даже когда я нахожусь в поездке.",
-      "homeSlideBlackPearlCopy": "Я доверяю автоматическим обновлениям и сосредотачиваюсь на общей картине, а не на ежедневных деталях."
+      "homeSlideBlackPearlCopy": "Я получаю понятные новости и не беспокоюсь о повседневных деталях.",
+      "pilotAccessConciergeLabel": "Персональная поддержка"
     }
   }
 };

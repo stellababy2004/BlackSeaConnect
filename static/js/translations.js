@@ -48,6 +48,7 @@
 
   window.BlackSeaI18NModules = window.BlackSeaI18NModules || {};
   var base = '/static/js/i18n/';
+  var moduleVersion = '20260723';
   var moduleFiles = [
     'common.js',
     'home.js',
@@ -73,7 +74,7 @@
 
   if (typeof document !== 'undefined' && typeof document.write === 'function') {
     document.write(moduleFiles.map(function (file) {
-      return '<script src="' + base + file + '"></script>';
+      return '<script src="' + base + file + '?v=' + moduleVersion + '"></script>';
     }).join(''));
   }
 })();
