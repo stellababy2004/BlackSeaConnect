@@ -288,6 +288,7 @@
 </head>
 <body class="reservations-page reservations-page--{{ scope|e }}">
   <main class="reservations-shell">
+    {% if scope == 'owner' %}{% include 'partials/owner_property_setup.html' %}{% endif %}
     <section class="reservations-hero" id="top">
       <div>
         <p class="eyebrow">BlackSea Connect</p>
@@ -539,6 +540,6 @@
       </aside>
     </section>
   </main>
-  {% if scope == 'owner' %}<script src="/static/js/owner-experience.js?v=20260706"></script>{% endif %}
+  {% if scope == 'owner' %}<script src="/static/js/owner-experience.js?v=20260726"></script>{% endif %}
 </body>
 </html>

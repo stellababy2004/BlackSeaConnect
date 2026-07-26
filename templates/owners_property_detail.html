@@ -368,6 +368,8 @@
     {% endfor %}
   </nav>
 
+  {% set setup_journey = property_context.setup_journey %}
+  {% include 'partials/owner_property_setup.html' %}
   <main class="owner-property-detail-shell">
     {% set knowledge = property_context.knowledge if property_context.knowledge else {} %}
     {% set open_request_count = namespace(value=0) %}
@@ -375,6 +377,13 @@
       {% if service_request.status|lower not in ['completed', 'cancelled'] %}
         {% set open_request_count.value = open_request_count.value + 1 %}
       {% endif %}
+    {% endfor %}
+    {% for setup_tab_id in ['overview', 'property', 'calendar', 'operations', 'knowledge', 'equipment', 'integrations'] %}
+      <div data-property-tab-section="{{ setup_tab_id }}">
+        {% with setup_mode='tab', setup_tab=setup_tab_id %}
+          {% include 'partials/owner_property_setup.html' %}
+        {% endwith %}
+      </div>
     {% endfor %}
     <article class="owner-property-detail-panel owner-property-overview" data-property-tab-section="overview">
       <div class="owner-property-overview__header">
@@ -490,6 +499,14 @@
             {% for field in ['guest_guide_ready', 'access_instructions_ready', 'emergency_contact_ready', 'cleaning_partner_ready'] %}
               <input type="hidden" name="{{ field }}" value="{% if property_context.property[field] %}1{% endif %}">
             {% endfor %}
+
+            <section class="owner-property-knowledge-section" id="property-photo-upload">
+              <h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepFirstPhoto', 'Upload a property photo') }}</h3>
+              <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
+                <span>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionPhotos', 'Add current property photos.') }}</span>
+                <input type="file" name="knowledge_photos" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
+              </label>
+            </section>
 
             <section class="owner-property-knowledge-section">
               <h3>General</h3>
@@ -662,7 +679,7 @@
               <h3>Document center</h3>
               <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
                 <span>Upload documents</span>
-                <input type="file" name="knowledge_documents" multiple accept="application/pdf,image/*,video/*">
+                <input id="owner-knowledge-documents" type="file" name="knowledge_documents" multiple accept="application/pdf,image/*,video/*">
               </label>
               {% if property_context.documents %}
                 <div class="owner-property-knowledge-documents">
@@ -674,7 +691,11 @@
                   {% endfor %}
                 </div>
               {% else %}
-                <p class="owner-property-detail-empty">No documents have been uploaded yet. When a receipt, manual, or property document is added, it will appear here with its upload details.</p>
+                <div class="owner-setup-card">
+                  <span class="owner-setup-card__state">1</span>
+                  <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepFirstDocument', 'Upload the first document') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionDocuments', 'Upload manuals and important property records.') }}</p></div>
+                  <label class="button button--secondary" for="owner-knowledge-documents">{{ property_setup_ui.open_action|e }}</label>
+                </div>
               {% endif %}
             </section>
 
@@ -704,7 +725,11 @@
               </div>
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No photos have been uploaded yet. When work is completed, before and after photos will appear here so you can verify the result remotely.</p>
+            <div class="owner-setup-card">
+              <span class="owner-setup-card__state">1</span>
+              <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepFirstPhoto', 'Upload a property photo') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionPhotos', 'Add current property photos.') }}</p></div>
+              <a class="button button--secondary" href="#property-knowledge">{{ property_setup_ui.open_action|e }}</a>
+            </div>
           {% endif %}
         </article>
 
@@ -742,7 +767,7 @@
               <article class="owner-property-integration-card">
                 <span class="owner-property-integration-card__logo">{{ mark }}</span>
                 <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
-                <button type="button" class="button button--ghost" disabled>Connect</button>
+                <a class="button button--ghost" href="{{ localized_url('/owners/reservations?source=' ~ provider) }}">{{ property_setup_ui.open_action|e }}</a>
               </article>
             {% endfor %}
           </div>
@@ -778,7 +803,11 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No documents have been uploaded yet. Receipts, reports, and manuals will appear here after the local team uploads them.</p>
+            <div class="owner-setup-card">
+              <span class="owner-setup-card__state">1</span>
+              <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepFirstDocument', 'Upload the first document') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionDocuments', 'Upload manuals and important property records.') }}</p></div>
+              <a class="button button--secondary" href="#property-knowledge">{{ property_setup_ui.open_action|e }}</a>
+            </div>
           {% endif %}
         </article>
 
@@ -788,7 +817,11 @@
           {% if property_context.welcome_instructions %}
             <p class="owner-property-detail-copy">{{ property_context.welcome_instructions|e }}</p>
           {% else %}
-            <p class="owner-property-detail-empty">No welcome instructions have been added yet. Once instructions are saved, the team can use them to prepare arrivals consistently.</p>
+            <div class="owner-setup-card">
+              <span class="owner-setup-card__state">1</span>
+              <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepWelcomeMessage', 'Create the welcome message') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionGuestGuide', 'Prepare clear guest guidance.') }}</p></div>
+              <a class="button button--secondary" href="#property-knowledge">{{ property_setup_ui.open_action|e }}</a>
+            </div>
           {% endif %}
         </article>
 
@@ -913,7 +946,11 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No work has been requested for this property yet. When a contractor is assigned, starts, uploads photos, or finishes, the timeline will appear here.</p>
+            <div class="owner-setup-card">
+              <span class="owner-setup-card__state">1</span>
+              <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepCleaningPreference', 'Add a cleaning preference') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionServicePreferences', 'Tell the local team how to support the property.') }}</p></div>
+              <a class="button button--secondary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">{{ public_i18n('ownersDashboard', 'ownerDashboardRequestCta', 'Request service') }}</a>
+            </div>
           {% endif %}
 
           <p class="eyebrow">{{ property_context.activity_copy.eyebrow|e }}</p>
@@ -951,7 +988,11 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="owner-property-detail-empty">No blocked dates or personal stays are scheduled. The calendar is clear unless a reservation, owner stay, or operations block appears here.</p>
+            <div class="owner-setup-card">
+              <span class="owner-setup-card__state">1</span>
+              <div><h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepCalendarActivity', 'Confirm calendar synchronization') }}</h3><p>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionCalendarConnection', 'Connect booking channels and verify synchronization.') }}</p></div>
+              <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">{{ property_setup_ui.open_action|e }}</a>
+            </div>
           {% endif %}
         </article>
       </div>
@@ -959,6 +1000,6 @@
   </main>
   <script src="/static/js/translations.js"></script>
   <script src="/static/js/i18n.js?v=20260724"></script>
-  <script src="/static/js/owner-experience.js?v=20260706"></script>
+  <script src="/static/js/owner-experience.js?v=20260726"></script>
 </body>
 </html>

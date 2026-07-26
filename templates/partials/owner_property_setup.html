@@ -1,0 +1,84 @@
+{% set setup = setup_journey|default(property_setup, true) %}
+{% set setup_mode = setup_mode|default('summary') %}
+{% if setup %}
+  <section class="owner-setup owner-setup--{{ setup_mode }}" data-owner-property-setup data-property-id="{{ setup.property_id|e }}">
+    <header class="owner-setup__header">
+      <div>
+        <p class="eyebrow">{{ property_setup_ui.eyebrow|e }}</p>
+        <h2>{{ property_setup_ui.title|e }}</h2>
+        <p>{{ setup.property_name|e }} · <strong>{{ setup.completed }} / {{ setup.total }}</strong> {{ property_setup_ui.completed|e }}</p>
+      </div>
+      <div class="owner-setup__score" aria-label="{{ property_setup_ui.current_completion|e }}: {{ setup.percent }}%">
+        <strong>{{ setup.percent }}%</strong>
+        <span>{{ property_setup_ui.current_completion|e }}</span>
+      </div>
+    </header>
+    <div class="owner-setup__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ setup.percent }}">
+      <span style="width: {{ setup.percent }}%"></span>
+    </div>
+
+    {% if setup_mode == 'tab' %}
+      <div class="owner-setup__tab-heading">
+        <strong>{{ property_setup_ui.remaining_steps|e }}</strong>
+        <span>{{ setup.remaining_count }} {{ property_setup_ui.steps_left|e }}</span>
+      </div>
+      <div class="owner-setup__cards">
+        {% for step in setup.steps if step.tab == setup_tab %}
+          <article class="owner-setup-card {% if step.ready %}is-complete{% endif %}">
+            <span class="owner-setup-card__state" aria-hidden="true">{{ '✓' if step.ready else loop.index }}</span>
+            <div>
+              <small>{{ step.category_label|e }}</small>
+              <h3>{{ step.title|e }}</h3>
+              <p>{{ step.description|e }}</p>
+            </div>
+            {% if step.ready %}
+              <span class="owner-setup-card__complete">{{ property_setup_ui.complete_state|e }}</span>
+            {% else %}
+              <a class="button button--secondary" href="{{ localized_url(step.href) }}">{{ step.action_label|e }}</a>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="owner-setup__guidance">
+        <article class="owner-setup__next">
+          <span>{{ property_setup_ui.next_action|e }}</span>
+          {% if setup.next_action %}
+            <h3>{{ setup.next_action.title|e }}</h3>
+            <p>{{ setup.next_action.description|e }}</p>
+            <a class="button button--primary" href="{{ localized_url(setup.next_action.href) }}">{{ setup.next_action.action_label|e }}</a>
+          {% else %}
+            <h3>{{ property_setup_ui.all_complete|e }}</h3>
+            <span class="owner-setup-card__complete">{{ property_setup_ui.complete_state|e }}</span>
+          {% endif %}
+        </article>
+
+        <article class="owner-setup__recent">
+          <span>{{ property_setup_ui.recently_completed|e }}</span>
+          {% if setup.recently_completed %}
+            <ul>
+              {% for step in setup.recently_completed %}
+                <li><b aria-hidden="true">✓</b><span>{{ step.title|e }}</span></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>{{ property_setup_ui.no_recent|e }}</p>
+          {% endif %}
+        </article>
+
+        <article class="owner-setup__remaining">
+          <span>{{ property_setup_ui.remaining_steps|e }}</span>
+          <strong>{{ setup.remaining_count }} {{ property_setup_ui.steps_left|e }}</strong>
+          <div>
+            {% for step in setup.remaining_steps[:3] %}
+              <a href="{{ localized_url(step.href) }}">
+                <span>{{ step.title|e }}</span>
+                <small>{{ step.category_label|e }}</small>
+              </a>
+            {% endfor %}
+          </div>
+        </article>
+      </div>
+    {% endif %}
+  </section>
+{% endif %}

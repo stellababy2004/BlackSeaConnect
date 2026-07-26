@@ -77,7 +77,14 @@
         const target = panels[section.dataset.propertyTabSection];
         if (target) target.appendChild(section);
       });
-      propertyMain.prepend(panelContainer);
+      const setupSummary = Array.from(propertyMain.children).find(function (child) {
+        return child.matches && child.matches("[data-owner-property-setup]");
+      });
+      if (setupSummary) {
+        setupSummary.after(panelContainer);
+      } else {
+        propertyMain.prepend(panelContainer);
+      }
       sourceGrid?.remove();
 
       const activateTab = function (tabId, updateHash) {

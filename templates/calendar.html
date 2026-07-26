@@ -3366,6 +3366,7 @@
     {% include '_admin_sidebar.html' %}
   {% endif %}
   <main class="calendar-shell{% if calendar_scope == 'admin' %} calendar-shell--legacy-hidden{% endif %}">
+    {% if calendar_scope == 'owner' %}{% include 'partials/owner_property_setup.html' %}{% endif %}
     <section class="calendar-hero">
       <div class="calendar-hero__content">
         <p class="eyebrow">BLACKSEA CONNECT</p>
@@ -6305,6 +6306,6 @@
       })();
     </script>
   {% endif %}
-  <script src="/static/js/owner-experience.js?v=20260706"></script>
+  <script src="/static/js/owner-experience.js?v=20260726"></script>
 </body>
 </html>

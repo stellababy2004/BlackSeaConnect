@@ -710,6 +710,7 @@
   </header>
 
   <main class="owner-portal-dashboard owner-dashboard-main">
+    {% include 'partials/owner_property_setup.html' %}
     {% if owner_portal.empty_state %}
       <section class="owner-portal-section owner-dashboard-section owner-dashboard-section--empty" aria-labelledby="owner-onboarding-title">
         <article class="owner-portal-card owner-portal-card--onboarding owner-onboarding-card">
@@ -986,8 +987,8 @@
                 <div class="owner-onboarding-step {% if stage.complete %}is-complete{% endif %}">
                   <span class="owner-onboarding-step__index">{{ loop.index }}</span>
                   <div>
-                    <strong data-i18n="{{ stage.label_key }}">{{ stage.label }}</strong>
-                    <p>{% if stage.complete %}{{ ui.onboarding_complete }}{% else %}{{ ui.onboarding_pending }}{% endif %}</p>
+                    <strong{% if stage.label_key %} data-i18n="{{ stage.label_key }}"{% endif %}>{{ stage.label }}</strong>
+                    <p>{{ stage.completed }}/{{ stage.total }} · {% if stage.complete %}{{ ui.onboarding_complete }}{% else %}{{ ui.onboarding_pending }}{% endif %}</p>
                   </div>
                 </div>
               {% endfor %}
@@ -1459,7 +1460,7 @@
 
   <script src="/static/js/translations.js?v=20260724"></script>
   <script src="/static/js/i18n.js?v=20260724"></script>
-  <script src="/static/js/owner-experience.js?v=20260706"></script>
+  <script src="/static/js/owner-experience.js?v=20260726"></script>
   {% include 'partials/pwa_runtime.html' %}
 </body>
 </html>

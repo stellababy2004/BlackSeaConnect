@@ -956,6 +956,7 @@ class OwnerPortalTests(unittest.TestCase):
                 "seasonal_open_pool_target_date": "2026-07-01",
                 "seasonal_open_pool_cadence": "Seasonal",
                 "seasonal_open_pool_notes": "Coordinate with maintenance.",
+                "knowledge_photos": (io.BytesIO(b"fake-photo"), "living-room.jpg"),
             },
         )
 
@@ -968,6 +969,9 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(knowledge["wifi"]["network_name"], "BlackSea")
         self.assertEqual(knowledge["service_providers"]["electrician"]["name"], "Blue Spark")
         self.assertTrue(knowledge["seasonal_tasks"]["open_pool"]["active"])
+        self.assertEqual(knowledge["photos"][0]["filename"], "living-room.jpg")
+        self.assertTrue(knowledge["photos"][0]["is_cover"])
+        self.assertIn("first_photo", knowledge["setup"]["completed_at"])
 
         calendar_rows = self._read_owner_db_rows("calendar_events")
         self.assertTrue(any(row["created_by"] == "owner-knowledge-hub" and row["property_id"] == "property-1" for row in calendar_rows))
@@ -984,6 +988,23 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("/owners/properties/property-1/media/photo-1", html)
         self.assertIn("Ready", html)
+
+    def test_property_setup_journey_reuses_knowledge_and_tracks_42_steps(self):
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")
+        self._seed_owner_property_assets()
+        property_record = app_module._find_owner_property("property-1")
+
+        with patch.object(app_module, "_load_reservations", return_value=[]), patch.object(app_module, "_load_calendar_events", return_value=[]):
+            journey = app_module._owner_property_setup_journey(property_record, "en")
+            french_journey = app_module._owner_property_setup_journey(property_record, "fr")
+
+        self.assertEqual(journey["total"], 42)
+        self.assertEqual(len(journey["categories"]), 11)
+        self.assertEqual(journey["completed"], sum(1 for step in journey["steps"] if step["ready"]))
+        self.assertEqual(journey["remaining_count"], 42 - journey["completed"])
+        self.assertEqual(journey["next_action"]["title"], journey["remaining_steps"][0]["title"])
+        self.assertEqual(french_journey["categories"][0]["label"], "Informations sur le bien")
+        self.assertTrue(all(step["href"].startswith("/owners/properties/property-1#property-") for step in journey["steps"]))
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()

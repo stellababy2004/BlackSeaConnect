@@ -9270,6 +9270,9 @@ def _owner_property_default_assets():
         "house_rules": {},
         "access_information": {},
         "welcome_instructions": "",
+        "setup": {
+            "completed_at": {},
+        },
         "last_updated_at": "",
     }
 
@@ -9632,55 +9635,209 @@ def _owner_property_knowledge_from_form(form, current_knowledge=None):
 
 def _owner_property_readiness_sections(property_record):
     property_record = property_record or {}
-    knowledge = _owner_property_default_assets()
-    stored_knowledge = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
-    if isinstance(stored_knowledge, dict):
-        for key, value in stored_knowledge.items():
-            if key in knowledge:
-                knowledge[key] = value
-
+    merged_property = (
+        dict(property_record)
+        if isinstance(property_record.get("assets"), dict)
+        else _owner_property_merge_assets(property_record)
+    )
+    knowledge = merged_property.get("assets", {}) if isinstance(merged_property.get("assets", {}), dict) else {}
     profile = knowledge.get("profile", {}) if isinstance(knowledge.get("profile", {}), dict) else {}
     photos = knowledge.get("photos", []) if isinstance(knowledge.get("photos", []), list) else []
     documents = knowledge.get("documents", []) if isinstance(knowledge.get("documents", []), list) else []
     amenities = knowledge.get("amenities", {}) if isinstance(knowledge.get("amenities", {}), dict) else {}
     house_rules = knowledge.get("house_rules", {}) if isinstance(knowledge.get("house_rules", {}), dict) else {}
-    access_information = knowledge.get("access", {}) if isinstance(knowledge.get("access", {}), dict) else {}
+    access = knowledge.get("access", {}) if isinstance(knowledge.get("access", {}), dict) else {}
     wifi = knowledge.get("wifi", {}) if isinstance(knowledge.get("wifi", {}), dict) else {}
-    general = knowledge.get("general", {}) if isinstance(knowledge.get("general", {}), dict) else {}
     house_manual = knowledge.get("house_manual", {}) if isinstance(knowledge.get("house_manual", {}), dict) else {}
     emergency = knowledge.get("emergency", {}) if isinstance(knowledge.get("emergency", {}), dict) else {}
     appliances = knowledge.get("appliances", {}) if isinstance(knowledge.get("appliances", {}), dict) else {}
     service_providers = knowledge.get("service_providers", {}) if isinstance(knowledge.get("service_providers", {}), dict) else {}
     seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
 
+    has_value = lambda value: bool(str(value or "").strip())
+    contact_ready = lambda item: isinstance(item, dict) and any(has_value(item.get(field)) for field in ("phone", "email", "notes"))
+    appliance_ready = lambda item: isinstance(item, dict) and any(has_value(item.get(field)) for field in ("brand", "model", "serial_number", "manual", "maintenance_notes"))
+    provider_ready = lambda item: isinstance(item, dict) and any(has_value(item.get(field)) for field in ("phone", "email", "availability", "notes"))
+    preferred_provider = any(bool(item.get("preferred")) for item in service_providers.values() if isinstance(item, dict))
+    any_provider = any(provider_ready(item) for item in service_providers.values())
+    any_emergency = any(contact_ready(item) for item in emergency.values())
+    trade_contact = any(contact_ready(emergency.get(key, {})) for key in ("electrician", "plumber", "utility_companies"))
+    appliance_manual = any(has_value(item.get("manual")) for item in appliances.values() if isinstance(item, dict))
+
     return [
-        {
-            "key": "property_information",
-            "ready": bool(
-                str(property_record.get("name", "")).strip()
-                and str(property_record.get("property_type", "")).strip()
-                and (
-                    str(property_record.get("location", "")).strip()
-                    or str(profile.get("address", "")).strip()
-                    or str(profile.get("city", "")).strip()
-                    or str(profile.get("country", "")).strip()
-                )
-            ),
-        },
-        {"key": "photos", "ready": bool(photos)},
-        {"key": "general", "ready": any(bool(str(value).strip()) for value in general.values())},
-        {"key": "amenities", "ready": any(bool(value) for value in amenities.values())},
-        {"key": "access_information", "ready": any(bool(str(value).strip()) for value in access_information.values())},
-        {"key": "wifi", "ready": any(bool(str(value).strip()) for value in wifi.values())},
-        {"key": "documents", "ready": bool(documents)},
-        {"key": "welcome_instructions", "ready": bool(str(knowledge.get("welcome_instructions", "")).strip())},
-        {"key": "house_rules", "ready": any(bool(str(value).strip()) for value in house_rules.values())},
-        {"key": "house_manual", "ready": any(bool(str(value).strip()) for value in house_manual.values())},
-        {"key": "emergency", "ready": any(bool(str(value.get("phone", "")).strip() or str(value.get("email", "")).strip() or str(value.get("notes", "")).strip()) for value in emergency.values() if isinstance(value, dict))},
-        {"key": "appliances", "ready": any(bool(str(item.get("brand", "")).strip() or str(item.get("model", "")).strip()) for item in appliances.values() if isinstance(item, dict))},
-        {"key": "service_providers", "ready": any(bool(str(item.get("name", "")).strip() and (str(item.get("phone", "")).strip() or str(item.get("email", "")).strip())) for item in service_providers.values() if isinstance(item, dict))},
-        {"key": "seasonal_tasks", "ready": any(bool(item.get("active")) for item in seasonal_tasks.values() if isinstance(item, dict))},
+        {"key": "property_name", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("name"))},
+        {"key": "property_type", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("property_type"))},
+        {"key": "property_location", "category": "property_information", "tab": "property", "ready": any(has_value(value) for value in (merged_property.get("location"), profile.get("address"), profile.get("city"), profile.get("country")))},
+        {"key": "guest_capacity", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("guest_capacity") or profile.get("capacity"))},
+        {"key": "rooms", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("bedrooms") or profile.get("bedrooms")) and has_value(merged_property.get("bathrooms") or profile.get("bathrooms"))},
+        {"key": "first_photo", "category": "photos", "tab": "knowledge", "ready": len(photos) >= 1},
+        {"key": "cover_photo", "category": "photos", "tab": "knowledge", "ready": bool(merged_property.get("cover_photo")) or any(bool(item.get("is_cover")) for item in photos if isinstance(item, dict))},
+        {"key": "photo_gallery", "category": "photos", "tab": "knowledge", "ready": len(photos) >= 5},
+        {"key": "amenities_selected", "category": "amenities", "tab": "knowledge", "ready": any(bool(value) for value in amenities.values())},
+        {"key": "internet_amenity", "category": "amenities", "tab": "knowledge", "ready": bool(amenities.get("wifi"))},
+        {"key": "climate_amenity", "category": "amenities", "tab": "knowledge", "ready": bool(amenities.get("air_conditioning") or amenities.get("heating"))},
+        {"key": "guest_amenities", "category": "amenities", "tab": "knowledge", "ready": any(bool(amenities.get(key)) for key in ("pool", "beach_access", "kitchen", "balcony", "garden"))},
+        {"key": "entry_instructions", "category": "access_instructions", "tab": "knowledge", "ready": any(has_value(access.get(key)) for key in ("building_entrance_code", "apartment_code", "gate_instructions"))},
+        {"key": "key_handover", "category": "access_instructions", "tab": "knowledge", "ready": any(has_value(access.get(key)) for key in ("key_safe_code", "smart_lock"))},
+        {"key": "parking_access", "category": "access_instructions", "tab": "knowledge", "ready": any(has_value(access.get(key)) for key in ("garage_access", "parking_space", "gate_instructions"))},
+        {"key": "intercom", "category": "access_instructions", "tab": "knowledge", "ready": has_value(access.get("intercom"))},
+        {"key": "wifi_network", "category": "wifi", "tab": "knowledge", "ready": has_value(wifi.get("network_name"))},
+        {"key": "wifi_password", "category": "wifi", "tab": "knowledge", "ready": has_value(wifi.get("password"))},
+        {"key": "router_details", "category": "wifi", "tab": "knowledge", "ready": has_value(wifi.get("router_location") or wifi.get("troubleshooting_notes"))},
+        {"key": "emergency_contact", "category": "emergency_contacts", "tab": "knowledge", "ready": any_emergency},
+        {"key": "property_contact", "category": "emergency_contacts", "tab": "knowledge", "ready": contact_ready(emergency.get("property_manager", {})) or contact_ready(emergency.get("owner", {}))},
+        {"key": "trade_contacts", "category": "emergency_contacts", "tab": "knowledge", "ready": trade_contact},
+        {"key": "equipment_register", "category": "equipment", "tab": "equipment", "ready": any(appliance_ready(item) for item in appliances.values())},
+        {"key": "washing_machine", "category": "equipment", "tab": "equipment", "ready": appliance_ready(appliances.get("washing_machine", {}))},
+        {"key": "kitchen_equipment", "category": "equipment", "tab": "equipment", "ready": any(appliance_ready(appliances.get(key, {})) for key in ("coffee_machine", "dishwasher", "oven", "microwave"))},
+        {"key": "climate_equipment", "category": "equipment", "tab": "equipment", "ready": appliance_ready(appliances.get("air_conditioner", {}))},
+        {"key": "entertainment_equipment", "category": "equipment", "tab": "equipment", "ready": appliance_ready(appliances.get("tv", {}))},
+        {"key": "welcome_message", "category": "guest_guide", "tab": "knowledge", "ready": has_value(knowledge.get("welcome_instructions"))},
+        {"key": "arrival_guide", "category": "guest_guide", "tab": "knowledge", "ready": has_value(house_manual.get("arrival"))},
+        {"key": "departure_guide", "category": "guest_guide", "tab": "knowledge", "ready": has_value(house_manual.get("departure"))},
+        {"key": "house_rules", "category": "guest_guide", "tab": "knowledge", "ready": any(has_value(value) for value in house_rules.values())},
+        {"key": "local_recommendations", "category": "guest_guide", "tab": "knowledge", "ready": has_value(house_manual.get("local_recommendations"))},
+        {"key": "first_document", "category": "documents", "tab": "knowledge", "ready": len(documents) >= 1},
+        {"key": "property_documents", "category": "documents", "tab": "knowledge", "ready": len(documents) >= 2},
+        {"key": "appliance_manuals", "category": "documents", "tab": "equipment", "ready": appliance_manual or len(documents) >= 3},
+        {"key": "airbnb_calendar", "category": "calendar_connection", "tab": "calendar", "ready": False},
+        {"key": "booking_calendar", "category": "calendar_connection", "tab": "calendar", "ready": False},
+        {"key": "calendar_activity", "category": "calendar_connection", "tab": "overview", "ready": False},
+        {"key": "operating_mode", "category": "service_preferences", "tab": "overview", "ready": has_value(merged_property.get("operating_mode"))},
+        {"key": "cleaning_preference", "category": "service_preferences", "tab": "operations", "ready": bool(merged_property.get("cleaning_partner_ready")) or provider_ready(service_providers.get("cleaning_company", {}))},
+        {"key": "preferred_provider", "category": "service_preferences", "tab": "integrations", "ready": preferred_provider or any_provider},
+        {"key": "seasonal_preferences", "category": "service_preferences", "tab": "integrations", "ready": any(bool(item.get("active")) for item in seasonal_tasks.values() if isinstance(item, dict))},
     ]
+
+
+def _owner_property_setup_journey(property_record, language=None):
+    if not property_record:
+        return None
+    language = _normalize_site_language(language) or _resolve_current_language()
+    property_record = _owner_property_merge_assets(property_record)
+    property_id = str(property_record.get("id", "")).strip()
+    setup_metadata = property_record.get("assets", {}).get("setup", {}) if isinstance(property_record.get("assets", {}), dict) else {}
+    completed_at_map = setup_metadata.get("completed_at", {}) if isinstance(setup_metadata, dict) and isinstance(setup_metadata.get("completed_at", {}), dict) else {}
+    raw_sections = _owner_property_readiness_sections(property_record)
+    reservations = _load_reservations(property_ids=[property_id]) if property_id else []
+    calendar_events = _load_calendar_events(property_ids=[property_id]) if property_id else []
+    reservation_sources = " ".join(
+        str(item.get("channel_name", item.get("reservation_source", ""))).strip().lower()
+        for item in reservations
+    )
+    calendar_states = {
+        "airbnb_calendar": "airbnb" in reservation_sources,
+        "booking_calendar": "booking" in reservation_sources,
+        "calendar_activity": bool(calendar_events or reservations),
+    }
+    steps = []
+    for position, section in enumerate(raw_sections, start=1):
+        if section["key"] in calendar_states:
+            section = {**section, "ready": calendar_states[section["key"]]}
+        key = section["key"]
+        category = section["category"]
+        tab = section["tab"]
+        steps.append({
+            **section,
+            "position": position,
+            "title": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupStep{''.join(part.title() for part in key.split('_'))}", key.replace("_", " ").title()),
+            "category_label": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupCategory{''.join(part.title() for part in category.split('_'))}", category.replace("_", " ").title()),
+            "description": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupDescription{''.join(part.title() for part in category.split('_'))}", ""),
+            "action_label": _load_public_i18n_value("ownersDashboard", language, "ownerSetupAction", "Open step"),
+            "href": f"/owners/properties/{property_id}#property-{tab}",
+            "completed_at": str(completed_at_map.get(key, "")).strip(),
+        })
+    completed = [step for step in steps if step["ready"]]
+    remaining = [step for step in steps if not step["ready"]]
+    categories = []
+    for category_key in dict.fromkeys(step["category"] for step in steps):
+        category_steps = [step for step in steps if step["category"] == category_key]
+        category_completed = sum(1 for step in category_steps if step["ready"])
+        categories.append({
+            "key": category_key,
+            "label": category_steps[0]["category_label"],
+            "completed": category_completed,
+            "total": len(category_steps),
+            "percent": int(round((category_completed / len(category_steps)) * 100)) if category_steps else 0,
+            "steps": category_steps,
+        })
+    total = len(steps)
+    completed_count = len(completed)
+    return {
+        "property_id": property_id,
+        "property_name": str(property_record.get("name", "")).strip(),
+        "steps": steps,
+        "categories": categories,
+        "completed": completed_count,
+        "total": total,
+        "percent": int(round((completed_count / total) * 100)) if total else 0,
+        "next_action": remaining[0] if remaining else None,
+        "remaining_steps": remaining[:5],
+        "remaining_count": len(remaining),
+        "recently_completed": sorted(
+            completed,
+            key=lambda step: (step.get("completed_at", ""), step.get("position", 0)),
+            reverse=True,
+        )[:3],
+        "complete": not remaining,
+    }
+
+
+def _owner_property_setup_ui(language=None):
+    language = _normalize_site_language(language) or _resolve_current_language()
+    keys = {
+        "eyebrow": ("ownerSetupEyebrow", "Property setup"),
+        "title": ("ownerSetupTitle", "Property readiness"),
+        "completed": ("ownerSetupCompleted", "completed"),
+        "current_completion": ("ownerSetupCurrentCompletion", "Current completion"),
+        "next_action": ("ownerSetupNextAction", "Recommended next action"),
+        "recently_completed": ("ownerSetupRecentlyCompleted", "Recently completed"),
+        "remaining_steps": ("ownerSetupRemainingSteps", "Remaining steps"),
+        "all_complete": ("ownerSetupAllComplete", "Your property setup is complete."),
+        "complete_state": ("ownerSetupCompleteState", "Complete"),
+        "open_action": ("ownerSetupAction", "Open step"),
+        "view_all": ("ownerSetupViewAll", "View full setup"),
+        "no_recent": ("ownerSetupNoRecent", "Complete a step and it will appear here."),
+        "steps_left": ("ownerSetupStepsLeft", "steps left"),
+    }
+    return {
+        name: _load_public_i18n_value("ownersDashboard", language, key, fallback)
+        for name, (key, fallback) in keys.items()
+    }
+
+
+@app.context_processor
+def inject_owner_property_setup():
+    if not request.path.startswith("/owners") or not session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        return {}
+    owner_account = getattr(g, "owner_account", None) or _current_owner_account()
+    if not owner_account:
+        return {}
+    properties = _owner_properties_for_account(owner_account.get("id", ""))
+    if not properties:
+        return {"property_setup": None, "property_setup_ui": _owner_property_setup_ui()}
+
+    requested_property = str(
+        (request.view_args or {}).get("property_id", "")
+        or request.args.get("property_id", "")
+        or request.args.get("property", "")
+    ).strip()
+    selected_property = next(
+        (
+            item
+            for item in properties
+            if requested_property
+            and requested_property.lower() in {
+                str(item.get("id", "")).strip().lower(),
+                str(item.get("name", "")).strip().lower(),
+            }
+        ),
+        properties[0],
+    )
+    return {
+        "property_setup": _owner_property_setup_journey(selected_property),
+        "property_setup_ui": _owner_property_setup_ui(),
+    }
 
 
 def _owner_property_assets_readiness(property_record):
@@ -12500,6 +12657,7 @@ def _owner_property_status_key(status):
 
 def _owner_property_card_context(property_record, has_owner_requests, dashboard_copy):
     property_record = _owner_property_merge_assets(property_record)
+    setup_journey = _owner_property_setup_journey(property_record)
     status, status_label, status_key, status_tone, status_note = _owner_property_status(property_record, has_owner_requests, dashboard_copy)
     bedrooms = str(property_record.get("bedrooms", "")).strip() or "0"
     bathrooms = str(property_record.get("bathrooms", "")).strip() or "0"
@@ -12520,7 +12678,9 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
 
     checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
     availability = _property_availability_engine(property_record, _load_reservations(property_ids=[property_record.get("id", "")]))
-    readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
+    readiness_completed = setup_journey["completed"]
+    readiness_total = setup_journey["total"]
+    readiness_percent = setup_journey["percent"]
     photos = property_record.get("photos", []) if isinstance(property_record.get("photos", []), list) else []
     cover_photo = property_record.get("cover_photo", {}) if isinstance(property_record.get("cover_photo", {}), dict) else {}
 
@@ -12553,6 +12713,7 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
         "readiness_completed": readiness_completed,
         "readiness_total": readiness_total,
         "readiness_percent": readiness_percent,
+        "setup_journey": setup_journey,
         "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
         "last_updated_display": _format_owner_portal_timestamp(str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip()) or str(property_record.get("created_at", "")).strip(),
         "quick_actions": [
@@ -13193,30 +13354,19 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     if not city:
         city = str(owner_account.get("city", "")).strip() or dashboard_copy["location_pending"]
 
+    primary_setup = primary_property.get("setup_journey") if primary_property else None
     onboarding_stages = [
         {
-            "label": dashboard_copy["onboarding_stage_property_added"],
-            "label_key": "ownerOnboardingStagePropertyAdded",
-            "complete": has_properties,
-        },
-        {
-            "label": dashboard_copy["onboarding_stage_information_reviewed"],
-            "label_key": "ownerOnboardingStageInformationReviewed",
-            "complete": has_properties,
-        },
-        {
-            "label": dashboard_copy["onboarding_stage_operations_configured"],
-            "label_key": "ownerOnboardingStageOperationsConfigured",
-            "complete": bool(owner_requests),
-        },
-        {
-            "label": dashboard_copy["onboarding_stage_concierge_ready"],
-            "label_key": "ownerOnboardingStageConciergeReady",
-            "complete": bool(owner_requests and any(_normalize_service_request_status(request.get("status", "new")) in {"assigned", "in_progress", "completed"} for request in owner_requests)),
-        },
+            "label": category["label"],
+            "label_key": "",
+            "complete": category["completed"] == category["total"],
+            "completed": category["completed"],
+            "total": category["total"],
+        }
+        for category in (primary_setup.get("categories", []) if primary_setup else [])
     ]
-    onboarding_completed = sum(1 for stage in onboarding_stages if stage["complete"])
-    onboarding_percentage = int(round((onboarding_completed / len(onboarding_stages)) * 100)) if onboarding_stages else 0
+    onboarding_completed = primary_setup.get("completed", 0) if primary_setup else 0
+    onboarding_percentage = primary_setup.get("percent", 0) if primary_setup else 0
 
     completed_requests = [
         request
@@ -13458,9 +13608,12 @@ def _owner_property_management_context(owner_account):
     property_cards = []
     for property_record in owner_properties:
         property_record = _owner_property_merge_assets(property_record)
+        setup_journey = _owner_property_setup_journey(property_record)
         status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
         checklist_completed, checklist_total = _owner_property_checklist_completion(property_record)
-        readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
+        readiness_completed = setup_journey["completed"]
+        readiness_total = setup_journey["total"]
+        readiness_percent = setup_journey["percent"]
         profile = property_record.get("property_profile", {}) if isinstance(property_record.get("property_profile", {}), dict) else {}
         city = str(profile.get("city", "")).strip() or str(property_record.get("location", "")).strip()
         cover_photo = property_record.get("cover_photo", {}) if isinstance(property_record.get("cover_photo", {}), dict) else {}
@@ -13476,6 +13629,7 @@ def _owner_property_management_context(owner_account):
             "readiness_completed": readiness_completed,
             "readiness_total": readiness_total,
             "readiness_percent": readiness_percent,
+            "setup_journey": setup_journey,
             "cover_photo": cover_photo,
             "cover_photo_url": str(property_record.get("cover_photo_url", "")).strip(),
             "last_updated_at": str(property_record.get("last_updated_at", property_record.get("created_at", ""))).strip() or str(property_record.get("created_at", "")).strip(),
@@ -13491,10 +13645,13 @@ def _owner_property_management_context(owner_account):
 
 def _owner_property_detail_context(owner_account, property_record):
     property_record = _owner_property_merge_assets(property_record)
+    setup_journey = _owner_property_setup_journey(property_record)
     status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
     assets = property_record.get("assets", {}) if isinstance(property_record.get("assets", {}), dict) else {}
     knowledge_health = _owner_property_knowledge_health(assets, property_record)
-    readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness(property_record)
+    readiness_completed = setup_journey["completed"]
+    readiness_total = setup_journey["total"]
+    readiness_percent = setup_journey["percent"]
     checklist_items = [
         {
             "key": "guest_guide_ready",
@@ -13592,6 +13749,7 @@ def _owner_property_detail_context(owner_account, property_record):
         "history_count": len(service_requests),
         "property_activity": property_activity,
         "activity_copy": activity_copy,
+        "setup_journey": setup_journey,
     }
 
 
@@ -14490,6 +14648,11 @@ def owners_property_detail(property_id):
         previous_notes = str(property_record.get("notes", "")).strip()
         current_knowledge = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
         updated_knowledge = _owner_property_knowledge_from_form(request.form, current_knowledge)
+        photo_records = [
+            item
+            for item in (updated_knowledge.get("photos", []) if isinstance(updated_knowledge.get("photos", []), list) else [])
+            if isinstance(item, dict)
+        ]
         document_records = []
         for existing_document in updated_knowledge.get("documents", []) if isinstance(updated_knowledge.get("documents", []), list) else []:
             if isinstance(existing_document, dict):
@@ -14506,7 +14669,41 @@ def owners_property_detail(property_id):
                 continue
             file_storage.save(str(media_path))
             document_records.append(media_record)
+        for file_storage in request.files.getlist("knowledge_photos"):
+            if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
+                continue
+            media_record = _owner_property_media_record(
+                file_storage=file_storage,
+                asset_kind="photo",
+                is_cover=not photo_records,
+            )
+            media_path = _owner_property_media_path(property_record["id"], media_record["stored_filename"])
+            if not media_path:
+                continue
+            file_storage.save(str(media_path))
+            photo_records.append(media_record)
+        updated_knowledge["photos"] = photo_records
         updated_knowledge["documents"] = document_records
+        previous_setup_steps = {
+            item["key"]: bool(item["ready"])
+            for item in _owner_property_readiness_sections(property_record)
+        }
+        updated_setup_steps = _owner_property_readiness_sections({
+            **property_record,
+            "assets": updated_knowledge,
+        })
+        setup_metadata = updated_knowledge.get("setup", {}) if isinstance(updated_knowledge.get("setup", {}), dict) else {}
+        completed_at_map = dict(setup_metadata.get("completed_at", {})) if isinstance(setup_metadata.get("completed_at", {}), dict) else {}
+        for setup_step in updated_setup_steps:
+            setup_key = setup_step["key"]
+            if setup_step["ready"] and not previous_setup_steps.get(setup_key, False):
+                completed_at_map[setup_key] = _utc_now_iso()
+            elif not setup_step["ready"]:
+                completed_at_map.pop(setup_key, None)
+        updated_knowledge["setup"] = {
+            **setup_metadata,
+            "completed_at": completed_at_map,
+        }
         updated_property = {
             **property_record,
             "status": _normalize_owner_property_status(request.form.get("status", property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))),
