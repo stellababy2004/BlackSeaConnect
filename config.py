@@ -53,6 +53,9 @@ class AppSettings:
     session_cookie_secure: bool
     session_cookie_samesite: str
     proxy_headers_explicit: bool
+    analytics_enabled: bool
+    ga4_measurement_id: str
+    microsoft_clarity_project_id: str
 
     def flask_mapping(self) -> dict[str, object]:
         return {
@@ -67,6 +70,9 @@ class AppSettings:
             "TRUST_PROXY_HEADERS": self.trust_proxy_headers,
             "SESSION_COOKIE_SECURE": self.session_cookie_secure,
             "SESSION_COOKIE_SAMESITE": self.session_cookie_samesite,
+            "ANALYTICS_ENABLED": self.analytics_enabled,
+            "GA4_MEASUREMENT_ID": self.ga4_measurement_id,
+            "MICROSOFT_CLARITY_PROJECT_ID": self.microsoft_clarity_project_id,
         }
 
     def diagnostics(self) -> dict[str, object]:
@@ -131,6 +137,9 @@ def load_settings(environ: Mapping[str, str] | None = None) -> AppSettings:
         session_cookie_secure=_boolean(source, "SESSION_COOKIE_SECURE", protected),
         session_cookie_samesite=value("SESSION_COOKIE_SAMESITE") or "Lax",
         proxy_headers_explicit="TRUST_PROXY_HEADERS" in source and bool(str(source.get("TRUST_PROXY_HEADERS", "")).strip()),
+        analytics_enabled=_boolean(source, "ANALYTICS_ENABLED", False),
+        ga4_measurement_id=value("GA4_MEASUREMENT_ID"),
+        microsoft_clarity_project_id=value("MICROSOFT_CLARITY_PROJECT_ID"),
     )
     validate_settings(settings, check_database=protected)
     return settings

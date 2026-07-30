@@ -46,6 +46,13 @@ if SETTINGS.trust_proxy_headers:
 SITE_URL = SETTINGS.site_url
 GOOGLE_SITE_VERIFICATION = str(os.getenv("GOOGLE_SITE_VERIFICATION", "") or "").strip()
 BING_SITE_VERIFICATION = str(os.getenv("BING_SITE_VERIFICATION", "") or "").strip()
+GA4_MEASUREMENT_ID_PATTERN = re.compile(r"^G-[A-Z0-9]{6,20}$")
+CLARITY_PROJECT_ID_PATTERN = re.compile(r"^[a-z0-9]{6,32}$", re.IGNORECASE)
+PUBLIC_ANALYTICS_PATHS = {
+    "/", "/services", "/demo/operations", "/pilot-access", "/partners", "/partners/apply",
+    "/professionals", "/professionals/apply", "/network", "/request-service", "/owners/register", "/owners/login",
+    *SEO_LANDING_PAGE_ORDER,
+}
 PUBLIC_SITEMAP_PATHS = (
     "/",
     "/services",
@@ -189,6 +196,18 @@ def _finish_request_observability(response):
         duration_ms=duration_ms,
     )
     return response
+
+
+def _analytics_configuration():
+    """Return public provider identifiers only when production analytics is enabled."""
+    if SETTINGS.environment != "production" or not SETTINGS.analytics_enabled or app.testing:
+        return {}
+    config = {}
+    if GA4_MEASUREMENT_ID_PATTERN.fullmatch(SETTINGS.ga4_measurement_id):
+        config["ga4_measurement_id"] = SETTINGS.ga4_measurement_id
+    if CLARITY_PROJECT_ID_PATTERN.fullmatch(SETTINGS.microsoft_clarity_project_id):
+        config["clarity_project_id"] = SETTINGS.microsoft_clarity_project_id
+    return config
 
 
 def _wants_json_error():
@@ -11744,6 +11763,24 @@ def force_utf8_charset(response):
     )
     if private_prefix or path in NOINDEX_EXACT_PATHS:
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    if (
+        response.mimetype == "text/html"
+        and response.status_code < 400
+        and (path in PUBLIC_ANALYTICS_PATHS or path.startswith("/network/"))
+        and b"</body>" in response.get_data()
+    ):
+        analytics_config = _analytics_configuration()
+        if analytics_config:
+            fragment = render_template(
+                "partials/analytics.html",
+                analytics_config=analytics_config,
+                analytics_event=(
+                    getattr(g, "public_analytics_event", "")
+                    or (session.pop("public_analytics_event", "") if path == "/owners/login" else "")
+                ),
+                analytics_event_params=getattr(g, "public_analytics_event_params", {}),
+            )
+            response.set_data(response.get_data().replace(b"</body>", fragment.encode("utf-8") + b"</body>", 1))
     return response
 
 
@@ -13962,6 +13999,7 @@ def owners_register():
                     url_for("admin_operations_detail", task_id=saved_account["id"], _external=True),
                     notification_type="task_created",
                 )
+                session["public_analytics_event"] = "owner_registration_completed"
                 magic_token = _create_owner_magic_token(saved_account["email"])
                 _append_owner_magic_email_event("token_created", saved_account["email"], "token_created", "register", current_lang)
                 login_url = f"{SITE_URL}{url_for('owner_magic_login', token=magic_token['token'], lang=current_lang)}"
@@ -15384,6 +15422,7 @@ def partners_apply():
             )
             _queue_partner_application_notification_email(record, admin_detail_url)
             submitted = True
+            g.public_analytics_event = "partner_application_submitted"
             return render_template(
                 "partners_apply.html",
                 service_categories=_partner_service_category_items(),
@@ -15565,6 +15604,8 @@ def request_service():
                 ), 500
 
             submitted = True
+            g.public_analytics_event = "service_request_submitted"
+            g.public_analytics_event_params = {"form_type": "service_request"}
             app.logger.info("Saved service request: %s", request_record["id"])
             _upsert_operations_task_from_source(
                 _operations_task_payload_from_source("CONCIERGE_REQUEST", request_record),
@@ -15778,6 +15819,7 @@ def professionals_apply():
             )
             _queue_professional_application_notification_email(record, admin_detail_url)
             submitted = True
+            g.public_analytics_event = "professional_application_submitted"
 
             return render_template(
                 "professionals_apply.html",
@@ -23717,7 +23759,9 @@ def api_pilot_request():
     _queue_pilot_request_email(record)
     _queue_internal_pilot_notification(record, admin_detail_url)
 
-    return jsonify({"ok": True}), 200
+    response = jsonify({"ok": True})
+    response.headers["X-BlackSea-Analytics-Event"] = "pilot_request_submitted"
+    return response, 200
 
 
 @app.get("/admin/pilot-requests")

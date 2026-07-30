@@ -1,0 +1,19 @@
+<div
+  class="analytics-consent"
+  data-analytics-consent
+  data-ga4-measurement-id="{{ analytics_config.ga4_measurement_id|default('', true)|e }}"
+  data-clarity-project-id="{{ analytics_config.clarity_project_id|default('', true)|e }}"
+  data-event="{{ analytics_event|default('', true)|e }}"
+  data-event-params='{{ analytics_event_params|default({}, true)|tojson }}'
+  hidden
+>
+  <section class="analytics-consent__dialog" role="dialog" aria-modal="false" aria-labelledby="analytics-consent-title">
+    <h2 id="analytics-consent-title" data-i18n="analytics.consentTitle">{{ public_i18n('analytics', 'consentTitle', 'Analytics preferences') }}</h2>
+    <p data-i18n="analytics.consentCopy">{{ public_i18n('analytics', 'consentCopy', 'Help us understand anonymous traffic and improve this public site. Analytics stays off unless you accept.') }}</p>
+    <div class="analytics-consent__actions">
+      <button type="button" class="button button--primary" data-analytics-accept data-i18n="analytics.accept">{{ public_i18n('analytics', 'accept', 'Accept analytics') }}</button>
+      <button type="button" class="button button--ghost" data-analytics-reject data-i18n="analytics.reject">{{ public_i18n('analytics', 'reject', 'Reject') }}</button>
+    </div>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='js/analytics.js') }}?v=20260730" defer></script>

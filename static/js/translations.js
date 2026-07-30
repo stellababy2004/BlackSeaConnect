@@ -69,6 +69,7 @@
     'admin.js',
     'admin-shell.js',
     'professionals-apply.js',
+    'analytics.js',
     'index.js'
   ];
 

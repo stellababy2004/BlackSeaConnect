@@ -13239,6 +13239,13 @@ body::after {
 }
 
 /* TRUE EOF override: final premium hospitality balance, guest credential clarity, and operations rhythm. */
+
+/* Privacy-first analytics consent banner. */
+.analytics-consent { position: fixed; z-index: 1000; right: 1rem; bottom: 1rem; left: 1rem; max-width: 38rem; margin-left: auto; }
+.analytics-consent__dialog { padding: 1rem; border: 1px solid rgba(255,255,255,.22); border-radius: .75rem; background: #102a43; color: #fff; box-shadow: 0 1rem 3rem rgba(0,0,0,.3); }
+.analytics-consent__dialog h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.analytics-consent__dialog p { margin: 0 0 1rem; }
+.analytics-consent__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .hero h1,
 .operations-hero h1,
 .guest-portal-page .guest-portal-header h1,

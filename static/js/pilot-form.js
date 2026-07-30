@@ -221,6 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok || !data.ok) throw new Error(data.error || "Request failed");
 
       if (response) response.textContent = getI18n("pilotFormSuccess", "Request received. We will contact you shortly.");
+      const analyticsEvent = res.headers.get("X-BlackSea-Analytics-Event");
+      if (analyticsEvent && window.BlackSeaAnalytics) {
+        window.BlackSeaAnalytics.track(analyticsEvent, { form_type: "pilot_request" });
+      }
       form.reset();
     } catch (error) {
       if (response) response.textContent = getI18n("pilotFormError", "The request could not be sent. Please email concierge@blackseaconnect.com.");

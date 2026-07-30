@@ -21,6 +21,18 @@ When Stripe Connect is enabled, all three Stripe variables are required. Staging
 
 Production additionally requires `STRIPE_MODE=live`, matching live-mode keys if Stripe Connect is enabled, `MANUAL_FINANCE_ENABLED=0`, and `SESSION_COOKIE_SECURE=1`.
 
+## Optional public analytics
+
+Analytics is disabled by default and is never loaded outside production. To enable consent-gated GA4 and Microsoft Clarity in Render Environment settings, set:
+
+```
+ANALYTICS_ENABLED=true
+GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+MICROSOFT_CLARITY_PROJECT_ID=xxxxxxxxxx
+```
+
+Replace the placeholder values with the provider project IDs. Do not enable analytics until those values are configured.
+
 ## Create the staging SQLite volume
 
 Mount a persistent volume at `/app/data` and set:
