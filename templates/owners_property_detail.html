@@ -2,13 +2,13 @@
 <html lang="{{ page_lang }}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Property Detail</title>
+  <title>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailPageTitle', 'BlackSea Connect | Property Detail') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .owner-property-detail-page {
@@ -289,18 +289,62 @@
         grid-template-columns: 1fr;
       }
     }
+    @media (max-width: 560px) {
+      .owner-property-detail-hero__content,
+      .owner-property-detail-history__topline > *,
+      .owner-property-detail-calendar-event__topline > * {
+        min-width: 0;
+      }
+      .owner-property-detail-hero h1,
+      .owner-property-detail-location,
+      .owner-property-detail-history__topline strong,
+      .owner-property-detail-calendar-event__topline strong {
+        overflow-wrap: anywhere;
+      }
+      .owner-property-detail-history__topline,
+      .owner-property-detail-calendar-event__topline {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .owner-property-detail-history__topline time,
+      .owner-property-detail-calendar-event__topline time {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      .owner-property-detail-actions > .owner-profile-dropdown {
+        position: relative;
+        width: 100%;
+        min-width: 0;
+      }
+      .owner-property-detail-actions > .owner-profile-dropdown > summary {
+        width: 100%;
+      }
+      .owner-property-detail-actions > .owner-profile-dropdown > .owner-profile-dropdown__menu {
+        inset-inline: 0;
+        width: auto;
+      }
+    }
   </style>
 </head>
 <body class="owner-property-detail-page">
+  {% if property_context.property.status == 'ACTIVE' %}
+    {% set localized_property_status = public_i18n('ownersDashboard', 'ownerDashboardStatusActive', 'Active') %}
+  {% elif property_context.property.status == 'SEASONAL' %}
+    {% set localized_property_status = public_i18n('ownersDashboard', 'ownerDashboardStatusSeasonal', 'Seasonal') %}
+  {% elif property_context.property.status in ['INACTIVE', 'PAUSED'] %}
+    {% set localized_property_status = public_i18n('ownersDashboard', 'ownerDashboardStatusPaused', 'Paused') %}
+  {% else %}
+    {% set localized_property_status = public_i18n('ownersDashboard', 'ownerDashboardStatusSetup', 'Setup') %}
+  {% endif %}
   <header class="hero hero--home" id="top">
     <nav class="topbar" aria-label="Primary">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Dashboard</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Request service</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Logout</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'navOwnerPortal', 'Dashboard') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}">{{ public_i18n('ownersDashboard', 'ownerProfileDropdownProperties', 'Properties') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}">{{ public_i18n('ownersDashboard', 'navOwnerLogout', 'Logout') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -311,7 +355,7 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">Back to properties</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/properties') }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailBackProperties', 'Back to properties') }}</a>
       </div>
     </nav>
     <div class="hero__content hero__content--home owner-property-detail-shell">
@@ -325,19 +369,19 @@
         </div>
         <div class="owner-property-detail-hero__content">
           <div class="owner-property-detail-meta">
-            <span class="owner-property-detail-chip owner-property-detail-chip--status" data-owner-status="{{ property_context.property.status_label|e }}">{{ property_context.property.status_label|e }}</span>
+            <span class="owner-property-detail-chip owner-property-detail-chip--status" data-owner-status="{{ property_context.property.status_label|e }}">{{ localized_property_status }}</span>
           </div>
           <h1>{{ property_context.property.name|e }}</h1>
           <p class="owner-property-detail-location">{{ property_context.property.location|e }} · {{ owner_account.full_name|e }}</p>
-          <p class="owner-property-detail-copy">See what is happening at your property and what comes next.</p>
+          <p class="owner-property-detail-copy">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailHeroCopy', 'See what is happening at your property and what comes next.') }}</p>
           <div class="owner-property-detail-actions">
-            <a class="button button--primary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">Request help</a>
+            <a class="button button--primary" href="{{ localized_url('/owners/request-service?property_id=' ~ property_context.property.id) }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailRequestHelp', 'Request help') }}</a>
             <details class="owner-profile-dropdown">
-              <summary class="button button--secondary">More</summary>
+              <summary class="button button--secondary">{{ public_i18n('ownersDashboard', 'ownerDashboardMore', 'More') }}</summary>
               <div class="owner-profile-dropdown__menu">
-                <button type="button" data-property-edit-toggle>Edit property</button>
-                <a href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">Calendar</a>
-                <a href="{{ localized_url('/owners/reservations?property=' ~ property_context.property.id) }}">Bookings</a>
+                <button type="button" data-property-edit-toggle>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailEdit', 'Edit property') }}</button>
+                <a href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar', 'Calendar') }}</a>
+                <a href="{{ localized_url('/owners/reservations?property=' ~ property_context.property.id) }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailBookings', 'Bookings') }}</a>
               </div>
             </details>
           </div>
@@ -348,13 +392,13 @@
 
   <nav class="owner-property-workspace-tabs" aria-label="Property workspace" role="tablist">
     {% for tab_id, tab_label in [
-      ('overview', 'Today'),
-      ('property', 'Details'),
-      ('calendar', 'Calendar'),
-      ('operations', 'Work'),
-      ('knowledge', 'Information'),
-      ('equipment', 'Equipment'),
-      ('integrations', 'More')
+      ('overview', public_i18n('ownersDashboard', 'ownerPropertyTabToday', 'Today')),
+      ('property', public_i18n('ownersDashboard', 'ownerPropertyTabDetails', 'Details')),
+      ('calendar', public_i18n('ownersDashboard', 'ownerPropertyTabCalendar', 'Calendar')),
+      ('operations', public_i18n('ownersDashboard', 'ownerPropertyTabWork', 'Work')),
+      ('knowledge', public_i18n('ownersDashboard', 'ownerPropertyTabInformation', 'Information')),
+      ('equipment', public_i18n('ownersDashboard', 'ownerPropertyTabEquipment', 'Equipment')),
+      ('integrations', public_i18n('ownersDashboard', 'ownerPropertyTabMore', 'More'))
     ] %}
       <button type="button"
               class="owner-property-workspace-tab {% if loop.first %}is-active{% endif %}"
@@ -369,9 +413,39 @@
   </nav>
 
   {% set setup_journey = property_context.setup_journey %}
-  {% include 'partials/owner_property_setup.html' %}
   <main class="owner-property-detail-shell">
     {% set knowledge = property_context.knowledge if property_context.knowledge else {} %}
+    {% set category_translation_keys = {
+      'Cleaning': 'ownerCategoryCleaning',
+      'Inspection': 'ownerCategoryInspection',
+      'Maintenance': 'ownerCategoryMaintenance',
+      'Airport Transfer': 'ownerCategoryAirportTransfer',
+      'Concierge Support': 'ownerCategoryConciergeSupport',
+      'Guest Issue': 'ownerCategoryGuestIssue',
+      'Seasonal Preparation': 'ownerCategorySeasonalPreparation',
+      'Other': 'ownerCategoryOther'
+    } %}
+    {% set checklist_translation_keys = {
+      'guest_guide_ready': 'ownerSetupCategoryGuestGuide',
+      'access_instructions_ready': 'ownerSetupCategoryAccessInstructions',
+      'emergency_contact_ready': 'ownerSetupCategoryEmergencyContacts',
+      'cleaning_partner_ready': 'ownerSetupCategoryServicePreferences'
+    } %}
+    {% set request_status_translation_keys = {
+      'new': 'ownerStatusNew',
+      'assigned': 'ownerStatusAssigned',
+      'in_progress': 'ownerStatusInProgress',
+      'completed': 'ownerStatusCompleted'
+    } %}
+    {% set weekday_translation_keys = {
+      'Sun': 'ownerWeekdaySun',
+      'Mon': 'ownerWeekdayMon',
+      'Tue': 'ownerWeekdayTue',
+      'Wed': 'ownerWeekdayWed',
+      'Thu': 'ownerWeekdayThu',
+      'Fri': 'ownerWeekdayFri',
+      'Sat': 'ownerWeekdaySat'
+    } %}
     {% set open_request_count = namespace(value=0) %}
     {% for service_request in property_context.service_requests %}
       {% if service_request.status|lower not in ['completed', 'cancelled'] %}
@@ -388,43 +462,48 @@
     <article class="owner-property-detail-panel owner-property-overview" data-property-tab-section="overview">
       <div class="owner-property-overview__header">
         <div>
-          <p class="eyebrow">What matters now</p>
-          <h2 class="owner-property-detail-section-title">Today at your property</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailWhatMatters', 'What matters now') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailTodayTitle', 'Today at your property') }}</h2>
         </div>
-        <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ property_context.property.status_label|e }}</span>
+        <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ localized_property_status }}</span>
       </div>
       <div class="owner-property-overview__grid">
-        <div><span>Property</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
-        <div><span>Current status</span><strong>{{ property_context.property.status_label|e }}</strong><small>{% if property_context.property.readiness_percent == 100 %}Everything is ready{% else %}{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} checks complete{% endif %}</small></div>
-        <div><span>Next booking</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default('No booking planned', true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default('Nothing to prepare', true)|e }}</small></div>
-        <div><span>Today's work</span><strong>{{ open_request_count.value }}</strong><small>{% if open_request_count.value %}work items in progress{% else %}No work planned today{% endif %}</small></div>
+        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty', 'Property') }}</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
+        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCurrentStatus', 'Current status') }}</span><strong>{{ localized_property_status }}</strong><small>{% if property_context.property.readiness_percent == 100 %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailEverythingReady', 'Everything is ready') }}{% else %}{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} {{ public_i18n('ownersDashboard', 'ownerPropertyDetailChecksComplete', 'checks complete') }}{% endif %}</small></div>
+        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailNextBooking', 'Next booking') }}</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default(public_i18n('ownersDashboard', 'ownerPropertyDetailNoBooking', 'No booking planned'), true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default(public_i18n('ownersDashboard', 'ownerPropertyDetailNothingPrepare', 'Nothing to prepare'), true)|e }}</small></div>
+        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailTodaysWork', "Today's work") }}</span><strong>{{ open_request_count.value }}</strong><small>{% if open_request_count.value %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailWorkInProgress', 'work items in progress') }}{% else %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailNoWorkToday', 'No work planned today') }}{% endif %}</small></div>
         <div class="{% if property_context.property.checklist_completed < property_context.property.checklist_total %}is-alert{% else %}is-healthy{% endif %}">
-          <span>Key alerts</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailKeyAlerts', 'Key alerts') }}</span>
           <strong>{{ property_context.property.checklist_total - property_context.property.checklist_completed }}</strong>
-          <small>Readiness items missing</small>
+          <small>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailReadinessMissing', 'Readiness items missing') }}</small>
         </div>
       </div>
     </article>
 
     <article class="owner-property-detail-panel owner-property-equipment-overview" data-property-tab-section="equipment">
-      <p class="eyebrow">Equipment register</p>
-      <h2 class="owner-property-detail-section-title">Appliances and equipment</h2>
-      <p class="owner-property-detail-copy">Open an item to review its model, warranty, manuals and maintenance context.</p>
+      <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyEquipmentRegister', 'Equipment register') }}</p>
+      <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyEquipmentTitle', 'Appliances and equipment') }}</h2>
+      <p class="owner-property-detail-copy">{{ public_i18n('ownersDashboard', 'ownerPropertyEquipmentCopy', 'Open an item to review its model, warranty, manuals and maintenance context.') }}</p>
       <div class="owner-property-equipment-list">
         {% for key, label in [
-          ('washing_machine', 'Washing machine'), ('dryer', 'Dryer'), ('dishwasher', 'Dishwasher'),
-          ('oven', 'Oven'), ('stove', 'Stove'), ('refrigerator', 'Refrigerator'),
-          ('water_heater', 'Water heater'), ('air_conditioning', 'Air conditioning')
+          ('washing_machine', public_i18n('ownersDashboard', 'ownerKnowledgeWashingMachine', 'Washing machine')),
+          ('dryer', public_i18n('ownersDashboard', 'ownerKnowledgeDryer', 'Dryer')),
+          ('dishwasher', public_i18n('ownersDashboard', 'ownerKnowledgeDishwasher', 'Dishwasher')),
+          ('oven', public_i18n('ownersDashboard', 'ownerKnowledgeOven', 'Oven')),
+          ('stove', public_i18n('ownersDashboard', 'ownerKnowledgeStove', 'Stove')),
+          ('refrigerator', public_i18n('ownersDashboard', 'ownerKnowledgeRefrigerator', 'Refrigerator')),
+          ('water_heater', public_i18n('ownersDashboard', 'ownerKnowledgeWaterHeater', 'Water heater')),
+          ('air_conditioning', public_i18n('ownersDashboard', 'ownerKnowledgeAirConditioning', 'Air conditioning'))
         ] %}
           {% set equipment = property_context.appliances[key] if property_context.appliances and property_context.appliances[key] else {} %}
           <details class="owner-property-equipment-item">
-            <summary><span>{{ label }}</span><small>{{ equipment.brand|default('Details pending', true)|e }}{% if equipment.model %} · {{ equipment.model|e }}{% endif %}</small></summary>
+            <summary><span>{{ label }}</span><small>{{ equipment.brand|default(public_i18n('ownersDashboard', 'ownerKnowledgeDetailsPending', 'Add details'), true)|e }}{% if equipment.model %} · {{ equipment.model|e }}{% endif %}</small></summary>
             <dl>
-              <div><dt>Brand</dt><dd>{{ equipment.brand|default('—', true)|e }}</dd></div>
-              <div><dt>Model</dt><dd>{{ equipment.model|default('—', true)|e }}</dd></div>
-              <div><dt>Warranty</dt><dd>{{ equipment.warranty_expiry|default('—', true)|e }}</dd></div>
-              <div><dt>Manual</dt><dd>{{ equipment.manual|default('—', true)|e }}</dd></div>
-              <div><dt>Maintenance</dt><dd>{{ equipment.maintenance_notes|default('—', true)|e }}</dd></div>
+              <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyBrand', 'Brand') }}</dt><dd>{{ equipment.brand|default('—', true)|e }}</dd></div>
+              <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyModel', 'Model') }}</dt><dd>{{ equipment.model|default('—', true)|e }}</dd></div>
+              <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyWarranty', 'Warranty') }}</dt><dd>{{ equipment.warranty_expiry|default('—', true)|e }}</dd></div>
+              <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyManual', 'Manual') }}</dt><dd>{{ equipment.manual|default('—', true)|e }}</dd></div>
+              <div><dt>{{ public_i18n('ownersDashboard', 'ownerDashboardMaintenanceShort', 'Maintenance') }}</dt><dd>{{ equipment.maintenance_notes|default('—', true)|e }}</dd></div>
             </dl>
           </details>
         {% endfor %}
@@ -434,61 +513,59 @@
     <section class="owner-property-detail-grid" data-property-tab-source>
       <div class="owner-property-detail-stack">
         <article class="owner-property-detail-panel owner-property-snapshot" data-property-tab-section="property">
-          <p class="eyebrow">Property Profile</p>
-          <h2 class="owner-property-detail-section-title">Property snapshot</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyProfile', 'Property profile') }}</p>
+          <h2 class="owner-property-detail-section-title" data-canonical-label="Property snapshot">{{ public_i18n('ownersDashboard', 'ownerPropertySnapshot', 'Property snapshot') }}</h2>
           {% set profile = property_context.property.property_profile if property_context.property.property_profile else {} %}
           <dl class="owner-property-detail-dl">
-            <div><dt>Property name</dt><dd>{{ property_context.property.name|e }}</dd></div>
-            <div><dt>Property type</dt><dd>{{ property_context.property.property_type|e }}</dd></div>
-            <div><dt>City / location</dt><dd>{{ property_context.property.location|e }}</dd></div>
-            <div><dt>Address</dt><dd>{{ profile.address|e if profile else property_context.property.location|e }}</dd></div>
-            <div><dt>City</dt><dd>{{ profile.city|e if profile else property_context.property.location|e }}</dd></div>
-            <div><dt>Country</dt><dd>{{ profile.country|e if profile else '' }}</dd></div>
-            <div><dt>Unit count</dt><dd>{{ property_context.property.guest_capacity }}</dd></div>
-            <div><dt>Floor</dt><dd>{{ profile.floor|e if profile else '' }}</dd></div>
-            <div><dt>Elevator</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
-            <div><dt>Parking</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
-            <div><dt>Status explanation</dt><dd>{{ property_context.property.status_label|e }}. We use this to decide whether the local team should monitor, prepare, or pause work.</dd></div>
-            <div><dt>Added to portal</dt><dd data-owner-datetime="{{ property_context.property.created_at|e }}">{{ property_context.property.created_at|e }}</dd></div>
-            <div><dt>Readiness</dt><dd>{{ property_context.property.readiness_percent }}%</dd></div>
-            <div><dt>Last update</dt><dd data-owner-datetime="{{ property_context.property.last_updated_at|e }}">{{ property_context.property.last_updated_at|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyName', 'Property name') }}</dt><dd>{{ property_context.property.name|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardPropertyType', 'Property type') }}</dt><dd>{{ property_context.property.property_type|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyLocation', 'City / location') }}</dt><dd>{{ property_context.property.location|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardPropertyAddress', 'Address') }}</dt><dd>{{ profile.address|e if profile else property_context.property.location|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardCity', 'City') }}</dt><dd>{{ profile.city|e if profile else property_context.property.location|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardCountry', 'Country') }}</dt><dd>{{ profile.country|e if profile else '' }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyUnitCount', 'Unit count') }}</dt><dd>{{ property_context.property.guest_capacity }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardFloor', 'Floor') }}</dt><dd>{{ profile.floor|e if profile else '' }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardElevator', 'Elevator') }}</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardParking', 'Parking') }}</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanation', 'Status explanation') }}</dt><dd>{{ localized_property_status }}. {{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanationCopy', 'We use this to decide whether the local team should monitor, prepare, or pause work.') }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyAddedPortal', 'Added to portal') }}</dt><dd data-owner-datetime="{{ property_context.property.created_at|e }}">{{ property_context.property.created_at|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness') }}</dt><dd>{{ property_context.property.readiness_percent }}%</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyLastUpdate', 'Last update') }}</dt><dd data-owner-datetime="{{ property_context.property.last_updated_at|e }}">{{ property_context.property.last_updated_at|e }}</dd></div>
           </dl>
         </article>
 
         <article class="owner-property-detail-panel owner-property-knowledge-panel" data-property-tab-section="knowledge">
-          <p class="eyebrow">Property Knowledge</p>
-          <h2 class="owner-property-detail-section-title">Knowledge hub</h2>
-          <p class="owner-property-detail-copy">
-            This is the single source of truth for the property. Owners, operations, professionals, reservations, and future AI experiences can read from the same knowledge model.
-          </p>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeEyebrow', 'Property information') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeHub', 'Knowledge hub') }}</h2>
+          <p class="owner-property-detail-copy">{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeCopy', 'A single source of truth for the property, shared by owners, operations, professionals and reservations.') }}</p>
 
           <div class="owner-property-progress-ring" style="--progress: {{ property_context.property_health.metrics['Knowledge Completeness'] }};">
             <strong>{{ property_context.property_health.metrics["Knowledge Completeness"] }}%</strong>
-            <span>Knowledge health</span>
+            <span>{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeHealth', 'Knowledge health') }}</span>
           </div>
           <div class="owner-property-detail-summary owner-property-detail-summary--health">
             <div class="owner-property-detail-stat">
-              <span>Property Health</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyHealth', 'Property health') }}</span>
               <strong>{{ property_context.property_health.overall }}</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Knowledge Completeness</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeCompleteness', 'Knowledge completeness') }}</span>
               <strong>{{ property_context.property_health.metrics["Knowledge Completeness"] }}%</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Documentation</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyDocumentation', 'Documentation') }}</span>
               <strong>{{ property_context.property_health.metrics["Documentation"] }}%</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Safety</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertySafety', 'Safety') }}</span>
               <strong>{{ property_context.property_health.metrics["Safety"] }}%</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Readiness</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness') }}</span>
               <strong>{{ property_context.property_health.metrics["Readiness"] }}%</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Maintenance</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerDashboardMaintenanceShort', 'Maintenance') }}</span>
               <strong>{{ property_context.property_health.metrics["Maintenance"] }}%</strong>
             </div>
           </div>
@@ -509,176 +586,176 @@
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>General</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerPropertyGeneral', 'General') }}</h3>
               <div class="owner-property-knowledge-grid">
                 <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
-                  <span>Property description</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePropertyDescription', 'Property description') }}</span>
                   <textarea name="knowledge_description" rows="4">{{ knowledge.general.description|e }}</textarea>
                 </label>
-                <label class="owner-property-knowledge-field"><span>Building</span><input type="text" name="knowledge_building" value="{{ knowledge.general.building|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Apartment</span><input type="text" name="knowledge_apartment" value="{{ knowledge.general.apartment|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Neighbourhood</span><input type="text" name="knowledge_neighbourhood" value="{{ knowledge.general.neighbourhood|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Languages spoken</span><input type="text" name="knowledge_languages_spoken" value="{{ knowledge.general.languages_spoken|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeBuilding', 'Building') }}</span><input type="text" name="knowledge_building" value="{{ knowledge.general.building|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeApartment', 'Apartment') }}</span><input type="text" name="knowledge_apartment" value="{{ knowledge.general.apartment|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNeighbourhood', 'Neighbourhood') }}</span><input type="text" name="knowledge_neighbourhood" value="{{ knowledge.general.neighbourhood|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeLanguagesSpoken', 'Languages spoken') }}</span><input type="text" name="knowledge_languages_spoken" value="{{ knowledge.general.languages_spoken|e }}"></label>
                 <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
-                  <span>Emergency contacts</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeEmergencyContacts', 'Emergency contacts') }}</span>
                   <textarea name="knowledge_emergency_contacts" rows="3">{{ knowledge.general.emergency_contacts|e }}</textarea>
                 </label>
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Access</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAccess', 'Access') }}</h3>
               <div class="owner-property-knowledge-grid">
-                <label class="owner-property-knowledge-field"><span>Building entrance code</span><input type="text" name="access_building_entrance_code" value="{{ knowledge.access.building_entrance_code|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Apartment code</span><input type="text" name="access_apartment_code" value="{{ knowledge.access.apartment_code|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Key safe code</span><input type="text" name="access_key_safe_code" value="{{ knowledge.access.key_safe_code|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Smart lock</span><input type="text" name="access_smart_lock" value="{{ knowledge.access.smart_lock|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Garage access</span><input type="text" name="access_garage_access" value="{{ knowledge.access.garage_access|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Parking space</span><input type="text" name="access_parking_space" value="{{ knowledge.access.parking_space|e }}"></label>
-                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Gate instructions</span><textarea name="access_gate_instructions" rows="3">{{ knowledge.access.gate_instructions|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Intercom</span><input type="text" name="access_intercom" value="{{ knowledge.access.intercom|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeBuildingEntranceCode', 'Building entrance code') }}</span><input type="text" name="access_building_entrance_code" value="{{ knowledge.access.building_entrance_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('common', 'dashboardApartmentCode', 'Apartment code') }}</span><input type="text" name="access_apartment_code" value="{{ knowledge.access.apartment_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('common', 'dashboardKeySafeCode', 'Key safe code') }}</span><input type="text" name="access_key_safe_code" value="{{ knowledge.access.key_safe_code|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeSmartLock', 'Smart lock') }}</span><input type="text" name="access_smart_lock" value="{{ knowledge.access.smart_lock|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeGarageAccess', 'Garage access') }}</span><input type="text" name="access_garage_access" value="{{ knowledge.access.garage_access|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeParkingSpace', 'Parking space') }}</span><input type="text" name="access_parking_space" value="{{ knowledge.access.parking_space|e }}"></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeGateInstructions', 'Gate instructions') }}</span><textarea name="access_gate_instructions" rows="3">{{ knowledge.access.gate_instructions|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeIntercom', 'Intercom') }}</span><input type="text" name="access_intercom" value="{{ knowledge.access.intercom|e }}"></label>
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
               <h3>WiFi</h3>
               <div class="owner-property-knowledge-grid">
-                <label class="owner-property-knowledge-field"><span>Network name</span><input type="text" name="wifi_network_name" value="{{ knowledge.wifi.network_name|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Password</span><input type="text" name="wifi_password" value="{{ knowledge.wifi.password|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Router location</span><input type="text" name="wifi_router_location" value="{{ knowledge.wifi.router_location|e }}"></label>
-                <label class="owner-property-knowledge-field"><span>Backup router</span><input type="text" name="wifi_backup_router" value="{{ knowledge.wifi.backup_router|e }}"></label>
-                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Troubleshooting notes</span><textarea name="wifi_troubleshooting_notes" rows="3">{{ knowledge.wifi.troubleshooting_notes|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNetworkName', 'Network name') }}</span><input type="text" name="wifi_network_name" value="{{ knowledge.wifi.network_name|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePassword', 'Password') }}</span><input type="text" name="wifi_password" value="{{ knowledge.wifi.password|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeRouterLocation', 'Router location') }}</span><input type="text" name="wifi_router_location" value="{{ knowledge.wifi.router_location|e }}"></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeBackupRouter', 'Backup router') }}</span><input type="text" name="wifi_backup_router" value="{{ knowledge.wifi.backup_router|e }}"></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeTroubleshootingNotes', 'Troubleshooting notes') }}</span><textarea name="wifi_troubleshooting_notes" rows="3">{{ knowledge.wifi.troubleshooting_notes|e }}</textarea></label>
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Appliances</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAppliances', 'Appliances') }}</h3>
               {% set appliance_items = [
-                ('coffee_machine', 'Coffee machine'),
-                ('dishwasher', 'Dishwasher'),
-                ('oven', 'Oven'),
-                ('microwave', 'Microwave'),
-                ('washing_machine', 'Washing machine'),
-                ('dryer', 'Dryer'),
-                ('tv', 'TV'),
-                ('air_conditioner', 'Air conditioner')
+                ('coffee_machine', public_i18n('ownersDashboard', 'ownerKnowledgeCoffeeMachine', 'Coffee machine')),
+                ('dishwasher', public_i18n('ownersDashboard', 'ownerKnowledgeDishwasher', 'Dishwasher')),
+                ('oven', public_i18n('ownersDashboard', 'ownerKnowledgeOven', 'Oven')),
+                ('microwave', public_i18n('ownersDashboard', 'ownerKnowledgeMicrowave', 'Microwave')),
+                ('washing_machine', public_i18n('ownersDashboard', 'ownerKnowledgeWashingMachine', 'Washing machine')),
+                ('dryer', public_i18n('ownersDashboard', 'ownerKnowledgeDryer', 'Dryer')),
+                ('tv', public_i18n('ownersDashboard', 'ownerKnowledgeTelevision', 'Television')),
+                ('air_conditioner', public_i18n('ownersDashboard', 'ownerKnowledgeAirConditioner', 'Air conditioner'))
               ] %}
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in appliance_items %}
                   {% set item = knowledge.appliances[key] if knowledge.appliances and knowledge.appliances[key] else {} %}
                   <article class="owner-property-knowledge-card">
                     <h4>{{ label }}</h4>
-                    <label class="owner-property-knowledge-field"><span>Brand</span><input type="text" name="appliance_{{ key }}_brand" value="{{ item.brand|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Model</span><input type="text" name="appliance_{{ key }}_model" value="{{ item.model|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Serial number</span><input type="text" name="appliance_{{ key }}_serial_number" value="{{ item.serial_number|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Manual reference</span><input type="text" name="appliance_{{ key }}_manual" value="{{ item.manual|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Video reference</span><input type="text" name="appliance_{{ key }}_video" value="{{ item.video|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Warranty expiry</span><input type="text" name="appliance_{{ key }}_warranty_expiry" value="{{ item.warranty_expiry|e }}"></label>
-                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Maintenance notes</span><textarea name="appliance_{{ key }}_maintenance_notes" rows="3">{{ item.maintenance_notes|e }}</textarea></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerPropertyBrand', 'Brand') }}</span><input type="text" name="appliance_{{ key }}_brand" value="{{ item.brand|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerPropertyModel', 'Model') }}</span><input type="text" name="appliance_{{ key }}_model" value="{{ item.model|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeSerialNumber', 'Serial number') }}</span><input type="text" name="appliance_{{ key }}_serial_number" value="{{ item.serial_number|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeManualReference', 'Manual reference') }}</span><input type="text" name="appliance_{{ key }}_manual" value="{{ item.manual|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeVideoReference', 'Video reference') }}</span><input type="text" name="appliance_{{ key }}_video" value="{{ item.video|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeWarrantyExpiry', 'Warranty expiry') }}</span><input type="text" name="appliance_{{ key }}_warranty_expiry" value="{{ item.warranty_expiry|e }}"></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeMaintenanceNotes', 'Maintenance notes') }}</span><textarea name="appliance_{{ key }}_maintenance_notes" rows="3">{{ item.maintenance_notes|e }}</textarea></label>
                   </article>
                 {% endfor %}
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>House manual</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeHouseManual', 'House manual') }}</h3>
               <div class="owner-property-knowledge-grid">
-                <label class="owner-property-knowledge-field"><span>Arrival</span><textarea name="manual_arrival" rows="3">{{ knowledge.house_manual.arrival|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Departure</span><textarea name="manual_departure" rows="3">{{ knowledge.house_manual.departure|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Trash</span><textarea name="manual_trash" rows="3">{{ knowledge.house_manual.trash|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Parking</span><textarea name="manual_parking" rows="3">{{ knowledge.house_manual.parking|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Pool</span><textarea name="manual_pool" rows="3">{{ knowledge.house_manual.pool|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Beach</span><textarea name="manual_beach" rows="3">{{ knowledge.house_manual.beach|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Heating</span><textarea name="manual_heating" rows="3">{{ knowledge.house_manual.heating|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Air conditioning</span><textarea name="manual_air_conditioning" rows="3">{{ knowledge.house_manual.air_conditioning|e }}</textarea></label>
-                <label class="owner-property-knowledge-field"><span>Neighbours</span><textarea name="manual_neighbours" rows="3">{{ knowledge.house_manual.neighbours|e }}</textarea></label>
-                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Local recommendations</span><textarea name="manual_local_recommendations" rows="3">{{ knowledge.house_manual.local_recommendations|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeArrival', 'Arrival') }}</span><textarea name="manual_arrival" rows="3">{{ knowledge.house_manual.arrival|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeDeparture', 'Departure') }}</span><textarea name="manual_departure" rows="3">{{ knowledge.house_manual.departure|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeTrash', 'Trash') }}</span><textarea name="manual_trash" rows="3">{{ knowledge.house_manual.trash|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeParking', 'Parking') }}</span><textarea name="manual_parking" rows="3">{{ knowledge.house_manual.parking|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePool', 'Pool') }}</span><textarea name="manual_pool" rows="3">{{ knowledge.house_manual.pool|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeBeach', 'Beach') }}</span><textarea name="manual_beach" rows="3">{{ knowledge.house_manual.beach|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeHeating', 'Heating') }}</span><textarea name="manual_heating" rows="3">{{ knowledge.house_manual.heating|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAirConditioning', 'Air conditioning') }}</span><textarea name="manual_air_conditioning" rows="3">{{ knowledge.house_manual.air_conditioning|e }}</textarea></label>
+                <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNeighbours', 'Neighbours') }}</span><textarea name="manual_neighbours" rows="3">{{ knowledge.house_manual.neighbours|e }}</textarea></label>
+                <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeLocalRecommendations', 'Local recommendations') }}</span><textarea name="manual_local_recommendations" rows="3">{{ knowledge.house_manual.local_recommendations|e }}</textarea></label>
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Emergency</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeEmergency', 'Emergency') }}</h3>
               {% set emergency_items = [
-                ('police', 'Police'),
-                ('medical', 'Medical'),
-                ('electrician', 'Electrician'),
-                ('plumber', 'Plumber'),
-                ('property_manager', 'Property manager'),
-                ('owner', 'Owner'),
-                ('insurance', 'Insurance'),
-                ('utility_companies', 'Utility companies')
+                ('police', public_i18n('ownersDashboard', 'ownerKnowledgePolice', 'Police')),
+                ('medical', public_i18n('ownersDashboard', 'ownerKnowledgeMedical', 'Medical')),
+                ('electrician', public_i18n('ownersDashboard', 'ownerKnowledgeElectrician', 'Electrician')),
+                ('plumber', public_i18n('ownersDashboard', 'ownerKnowledgePlumber', 'Plumber')),
+                ('property_manager', public_i18n('ownersDashboard', 'ownerKnowledgePropertyManager', 'Property manager')),
+                ('owner', public_i18n('ownersDashboard', 'ownerKnowledgeOwner', 'Owner')),
+                ('insurance', public_i18n('ownersDashboard', 'ownerKnowledgeInsurance', 'Insurance')),
+                ('utility_companies', public_i18n('ownersDashboard', 'ownerKnowledgeUtilityCompanies', 'Utility companies'))
               ] %}
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in emergency_items %}
                   {% set item = knowledge.emergency[key] if knowledge.emergency and knowledge.emergency[key] else {} %}
                   <article class="owner-property-knowledge-card">
                     <h4>{{ label }}</h4>
-                    <label class="owner-property-knowledge-field"><span>Phone</span><input type="text" name="emergency_{{ key }}_phone" value="{{ item.phone|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Email</span><input type="text" name="emergency_{{ key }}_email" value="{{ item.email|e }}"></label>
-                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="emergency_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePhone', 'Phone') }}</span><input type="text" name="emergency_{{ key }}_phone" value="{{ item.phone|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeEmail', 'Email') }}</span><input type="text" name="emergency_{{ key }}_email" value="{{ item.email|e }}"></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNotes', 'Notes') }}</span><textarea name="emergency_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
                   </article>
                 {% endfor %}
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Service providers</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeServiceProviders', 'Service providers') }}</h3>
               {% set provider_items = [
-                ('cleaning_company', 'Cleaning company'),
-                ('electrician', 'Electrician'),
-                ('plumber', 'Plumber'),
-                ('hvac', 'HVAC'),
-                ('pool_maintenance', 'Pool maintenance'),
-                ('gardener', 'Gardener'),
-                ('laundry', 'Laundry'),
-                ('pest_control', 'Pest control')
+                ('cleaning_company', public_i18n('ownersDashboard', 'ownerKnowledgeCleaningCompany', 'Cleaning company')),
+                ('electrician', public_i18n('ownersDashboard', 'ownerKnowledgeElectrician', 'Electrician')),
+                ('plumber', public_i18n('ownersDashboard', 'ownerKnowledgePlumber', 'Plumber')),
+                ('hvac', public_i18n('ownersDashboard', 'ownerKnowledgeHvac', 'HVAC')),
+                ('pool_maintenance', public_i18n('ownersDashboard', 'ownerKnowledgePoolMaintenance', 'Pool maintenance')),
+                ('gardener', public_i18n('ownersDashboard', 'ownerKnowledgeGardener', 'Gardener')),
+                ('laundry', public_i18n('ownersDashboard', 'ownerKnowledgeLaundry', 'Laundry')),
+                ('pest_control', public_i18n('ownersDashboard', 'ownerKnowledgePestControl', 'Pest control'))
               ] %}
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in provider_items %}
                   {% set item = knowledge.service_providers[key] if knowledge.service_providers and knowledge.service_providers[key] else {} %}
                   <article class="owner-property-knowledge-card">
                     <h4>{{ label }}</h4>
-                    <label class="owner-property-knowledge-field"><span>Name</span><input type="text" name="provider_{{ key }}_name" value="{{ item.name|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Phone</span><input type="text" name="provider_{{ key }}_phone" value="{{ item.phone|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Email</span><input type="text" name="provider_{{ key }}_email" value="{{ item.email|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Availability</span><input type="text" name="provider_{{ key }}_availability" value="{{ item.availability|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Rating</span><input type="text" name="provider_{{ key }}_rating" value="{{ item.rating|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Preferred</span><input type="checkbox" name="provider_{{ key }}_preferred" value="1" {% if item.preferred %}checked{% endif %}></label>
-                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="provider_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeName', 'Name') }}</span><input type="text" name="provider_{{ key }}_name" value="{{ item.name|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePhone', 'Phone') }}</span><input type="text" name="provider_{{ key }}_phone" value="{{ item.phone|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeEmail', 'Email') }}</span><input type="text" name="provider_{{ key }}_email" value="{{ item.email|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAvailability', 'Availability') }}</span><input type="text" name="provider_{{ key }}_availability" value="{{ item.availability|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeRating', 'Rating') }}</span><input type="text" name="provider_{{ key }}_rating" value="{{ item.rating|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePreferred', 'Preferred') }}</span><input type="checkbox" name="provider_{{ key }}_preferred" value="1" {% if item.preferred %}checked{% endif %}></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNotes', 'Notes') }}</span><textarea name="provider_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
                   </article>
                 {% endfor %}
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Seasonal tasks</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeSeasonalTasks', 'Seasonal tasks') }}</h3>
               {% set seasonal_items = [
-                ('open_pool', 'Open pool'),
-                ('close_pool', 'Close pool'),
-                ('winter_inspection', 'Winter inspection'),
-                ('ac_maintenance', 'AC maintenance'),
-                ('boiler_inspection', 'Boiler inspection'),
-                ('smoke_detector', 'Smoke detector'),
-                ('fire_extinguisher', 'Fire extinguisher')
+                ('open_pool', public_i18n('ownersDashboard', 'ownerKnowledgeOpenPool', 'Open pool')),
+                ('close_pool', public_i18n('ownersDashboard', 'ownerKnowledgeClosePool', 'Close pool')),
+                ('winter_inspection', public_i18n('ownersDashboard', 'ownerKnowledgeWinterInspection', 'Winter inspection')),
+                ('ac_maintenance', public_i18n('ownersDashboard', 'ownerKnowledgeAcMaintenance', 'AC maintenance')),
+                ('boiler_inspection', public_i18n('ownersDashboard', 'ownerKnowledgeBoilerInspection', 'Boiler inspection')),
+                ('smoke_detector', public_i18n('ownersDashboard', 'ownerKnowledgeSmokeDetector', 'Smoke detector')),
+                ('fire_extinguisher', public_i18n('ownersDashboard', 'ownerKnowledgeFireExtinguisher', 'Fire extinguisher'))
               ] %}
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in seasonal_items %}
                   {% set item = knowledge.seasonal_tasks[key] if knowledge.seasonal_tasks and knowledge.seasonal_tasks[key] else {} %}
                   <article class="owner-property-knowledge-card">
                     <h4>{{ label }}</h4>
-                    <label class="owner-property-knowledge-field"><span>Cadence</span><input type="text" name="seasonal_{{ key }}_cadence" value="{{ item.cadence|e }}"></label>
-                    <label class="owner-property-knowledge-field"><span>Target date</span><input type="text" name="seasonal_{{ key }}_target_date" value="{{ item.target_date|e }}" placeholder="YYYY-MM-DD"></label>
-                    <label class="owner-property-knowledge-field"><span>Active</span><input type="checkbox" name="seasonal_{{ key }}_active" value="1" {% if item.active %}checked{% endif %}></label>
-                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>Notes</span><textarea name="seasonal_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeCadence', 'Cadence') }}</span><input type="text" name="seasonal_{{ key }}_cadence" value="{{ item.cadence|e }}"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeTargetDate', 'Target date') }}</span><input type="text" name="seasonal_{{ key }}_target_date" value="{{ item.target_date|e }}" placeholder="YYYY-MM-DD"></label>
+                    <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeActive', 'Active') }}</span><input type="checkbox" name="seasonal_{{ key }}_active" value="1" {% if item.active %}checked{% endif %}></label>
+                    <label class="owner-property-knowledge-field owner-property-knowledge-field--full"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNotes', 'Notes') }}</span><textarea name="seasonal_{{ key }}_notes" rows="3">{{ item.notes|e }}</textarea></label>
                   </article>
                 {% endfor %}
               </div>
             </section>
 
             <section class="owner-property-knowledge-section">
-              <h3>Document center</h3>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeDocumentCenter', 'Document center') }}</h3>
               <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
-                <span>Upload documents</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeUploadDocuments', 'Upload documents') }}</span>
                 <input id="owner-knowledge-documents" type="file" name="knowledge_documents" multiple accept="application/pdf,image/*,video/*">
               </label>
               {% if property_context.documents %}
@@ -700,17 +777,17 @@
             </section>
 
             <div class="owner-property-actions">
-              <a class="button button--secondary" href="{{ localized_url('/owners/properties') }}">Back to properties</a>
-              <button class="button button--primary" type="submit">Save knowledge hub</button>
+              <a class="button button--secondary" href="{{ localized_url('/owners/properties') }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailBackProperties', 'Back to properties') }}</a>
+              <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerPropertySave', 'Save property') }}</button>
             </div>
           </form>
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="property">
-          <p class="eyebrow">Photos from the property</p>
-          <h2 class="owner-property-detail-section-title">Photo proof</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyPhotosEyebrow', 'Photos from the property') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyPhotoProof', 'Photo proof') }}</h2>
           {% if property_context.photos %}
-            <h2 data-i18n="propertyGalleryTitle">{{ public_i18n('ownersPropertyDetail', 'propertyGalleryTitle', 'Gallery') }}</h2>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailGallery', 'Gallery') }}</h2>
             <div class="owner-property-detail-gallery">
               <div class="owner-property-detail-gallery__cover">
                 {% set cover_photo = property_context.property.cover_photo if property_context.property.cover_photo else property_context.photos[0] %}
@@ -734,25 +811,25 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="property">
-          <p class="eyebrow">Amenities</p>
-          <h2 class="owner-property-detail-section-title">Amenities</h2>
+          <p class="eyebrow">{{ public_i18n('common', 'dashboardAmenities', 'Amenities') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('common', 'dashboardAmenities', 'Amenities') }}</h2>
           <div class="owner-property-detail-badges">
             {% for key, label in [
               ('wifi', 'Wifi'),
-              ('air_conditioning', 'Air conditioning'),
-              ('heating', 'Heating'),
-              ('pool', 'Pool'),
-              ('beach_access', 'Beach access'),
-              ('kitchen', 'Kitchen'),
-              ('coffee_machine', 'Coffee machine'),
-              ('tv', 'TV'),
-              ('washing_machine', 'Washing machine'),
-              ('dryer', 'Dryer'),
-              ('balcony', 'Balcony'),
-              ('garden', 'Garden'),
-              ('bbq', 'BBQ'),
-              ('workspace', 'Workspace'),
-              ('pet_friendly', 'Pet friendly'),
+              ('air_conditioning', public_i18n('ownersDashboard', 'ownerKnowledgeAirConditioning', 'Air conditioning')),
+              ('heating', public_i18n('ownersDashboard', 'ownerKnowledgeHeating', 'Heating')),
+              ('pool', public_i18n('ownersDashboard', 'ownerKnowledgePool', 'Pool')),
+              ('beach_access', public_i18n('ownersDashboard', 'ownerKnowledgeBeachAccess', 'Beach access')),
+              ('kitchen', public_i18n('ownersDashboard', 'ownerKnowledgeKitchen', 'Kitchen')),
+              ('coffee_machine', public_i18n('ownersDashboard', 'ownerKnowledgeCoffeeMachine', 'Coffee machine')),
+              ('tv', public_i18n('ownersDashboard', 'ownerKnowledgeTelevision', 'Television')),
+              ('washing_machine', public_i18n('ownersDashboard', 'ownerKnowledgeWashingMachine', 'Washing machine')),
+              ('dryer', public_i18n('ownersDashboard', 'ownerKnowledgeDryer', 'Dryer')),
+              ('balcony', public_i18n('ownersDashboard', 'ownerKnowledgeBalcony', 'Balcony')),
+              ('garden', public_i18n('ownersDashboard', 'ownerKnowledgeGarden', 'Garden')),
+              ('bbq', public_i18n('ownersDashboard', 'ownerKnowledgeBarbecue', 'BBQ')),
+              ('workspace', public_i18n('ownersDashboard', 'ownerKnowledgeWorkspace', 'Workspace')),
+              ('pet_friendly', public_i18n('ownersDashboard', 'ownerKnowledgePetFriendly', 'Pet friendly')),
             ] %}
               <span class="owner-property-detail-chip {% if property_context.amenities[key] %}owner-property-detail-chip--status{% endif %}">{{ label }}</span>
             {% endfor %}
@@ -760,13 +837,13 @@
         </article>
 
         <article class="owner-property-detail-panel owner-property-integrations" data-property-tab-section="integrations">
-          <p class="eyebrow">Ecosystem</p>
-          <h2 class="owner-property-detail-section-title">Future integrations</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyEcosystem', 'Ecosystem') }}</p>
+          <h2 class="owner-property-detail-section-title" data-canonical-label="Future integrations">{{ public_i18n('ownersDashboard', 'ownerPropertyFutureIntegrations', 'Future integrations') }}</h2>
           <div class="owner-property-integration-grid">
             {% for provider, mark in [('Airbnb', 'A'), ('Booking.com', 'B'), ('Google Calendar', 'G'), ('Apple Calendar', ''), ('VRBO', 'V')] %}
               <article class="owner-property-integration-card">
                 <span class="owner-property-integration-card__logo">{{ mark }}</span>
-                <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
+                <div><strong>{{ provider }}</strong><small>{{ public_i18n('ownersDashboard', 'ownerPropertyNotConnected', 'Not connected · Never synced') }}</small></div>
                 <a class="button button--ghost" href="{{ localized_url('/owners/reservations?source=' ~ provider) }}">{{ property_setup_ui.open_action|e }}</a>
               </article>
             {% endfor %}
@@ -774,22 +851,22 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="property">
-          <p class="eyebrow">Access information</p>
-          <h2 class="owner-property-detail-section-title">Access information</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyAccessInformation', 'Access information') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyAccessInformation', 'Access information') }}</h2>
           <dl class="owner-property-detail-dl">
-            <div><dt>Wifi name</dt><dd>{{ property_context.access_information.wifi_name|e }}</dd></div>
-            <div><dt>Wifi password</dt><dd>{{ property_context.access_information.wifi_password|e }}</dd></div>
-            <div><dt>Building code</dt><dd>{{ property_context.access_information.building_code|e }}</dd></div>
-            <div><dt>Apartment code</dt><dd>{{ property_context.access_information.apartment_code|e }}</dd></div>
-            <div><dt>Key safe code</dt><dd>{{ property_context.access_information.key_safe_code|e }}</dd></div>
-            <div><dt>Emergency contact</dt><dd>{{ property_context.access_information.emergency_contact|e }}</dd></div>
-            <div><dt>Parking instructions</dt><dd>{{ property_context.access_information.parking_instructions|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardWifiName', 'WiFi name') }}</dt><dd>{{ property_context.access_information.wifi_name|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardWifiPassword', 'WiFi password') }}</dt><dd>{{ property_context.access_information.wifi_password|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardBuildingCode', 'Building code') }}</dt><dd>{{ property_context.access_information.building_code|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardApartmentCode', 'Apartment code') }}</dt><dd>{{ property_context.access_information.apartment_code|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardKeySafeCode', 'Key safe code') }}</dt><dd>{{ property_context.access_information.key_safe_code|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardEmergencyContact', 'Emergency contact') }}</dt><dd>{{ property_context.access_information.emergency_contact|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardParkingInstructions', 'Parking instructions') }}</dt><dd>{{ property_context.access_information.parking_instructions|e }}</dd></div>
           </dl>
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="knowledge">
-          <p class="eyebrow">Documents and receipts</p>
-          <h2 class="owner-property-detail-section-title">Stored proof</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyDocumentsProof', 'Documents and receipts') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyStoredProof', 'Stored proof') }}</h2>
           {% if property_context.documents %}
             <div class="owner-property-detail-history">
               {% for document in property_context.documents %}
@@ -798,7 +875,7 @@
                     <strong>{{ document.filename|e }}</strong>
                     <time>{{ document.uploaded_at|e }}</time>
                   </div>
-                  <p>{{ document.kind|e }}{% if document.uploaded_by %} &middot; Uploaded by {{ document.uploaded_by|e }}{% endif %}</p>
+                  <p>{{ document.kind|e }}{% if document.uploaded_by %} &middot; {{ public_i18n('ownersDashboard', 'ownerActivityUploadedBy', 'Uploaded by') }} {{ document.uploaded_by|e }}{% endif %}</p>
                 </div>
               {% endfor %}
             </div>
@@ -812,8 +889,8 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="knowledge">
-          <p class="eyebrow">Welcome instructions</p>
-          <h2 class="owner-property-detail-section-title">Welcome instructions</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyWelcomeInstructions', 'Welcome instructions') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyWelcomeInstructions', 'Welcome instructions') }}</h2>
           {% if property_context.welcome_instructions %}
             <p class="owner-property-detail-copy">{{ property_context.welcome_instructions|e }}</p>
           {% else %}
@@ -826,66 +903,66 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="property">
-          <p class="eyebrow">Property Notes</p>
-          <h2 class="owner-property-detail-section-title">Internal notes</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyNotesEyebrow', 'Property notes') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyInternalNotes', 'Internal notes') }}</h2>
           <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}" data-owner-submit-state>
             <label>
-              <span>Property notes</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyNotes', 'Property notes') }}</span>
               <textarea name="notes" placeholder="Notes for your local operations team">{{ property_context.property.notes|e }}</textarea>
             </label>
 
             <label>
-              <span>Operational status</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyOperationalStatus', 'Operational status') }}</span>
               <select name="status" required>
-                <option value="SETUP" {% if property_context.property.status == 'SETUP' %}selected{% endif %}>SETUP</option>
-                <option value="ACTIVE" {% if property_context.property.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
-                <option value="SEASONAL" {% if property_context.property.status == 'SEASONAL' %}selected{% endif %}>SEASONAL</option>
-                <option value="INACTIVE" {% if property_context.property.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+                <option value="SETUP" {% if property_context.property.status == 'SETUP' %}selected{% endif %}>{{ public_i18n('ownersDashboard', 'ownerDashboardStatusSetup', 'Setup') }}</option>
+                <option value="ACTIVE" {% if property_context.property.status == 'ACTIVE' %}selected{% endif %}>{{ public_i18n('ownersDashboard', 'ownerDashboardStatusActive', 'Active') }}</option>
+                <option value="SEASONAL" {% if property_context.property.status == 'SEASONAL' %}selected{% endif %}>{{ public_i18n('ownersDashboard', 'ownerDashboardStatusSeasonal', 'Seasonal') }}</option>
+                <option value="INACTIVE" {% if property_context.property.status == 'INACTIVE' %}selected{% endif %}>{{ public_i18n('ownersDashboard', 'ownerDashboardStatusPaused', 'Paused') }}</option>
               </select>
             </label>
 
             <div>
-              <p class="owner-property-detail-section-title" style="font-size: 1rem; margin-bottom: 10px;">Readiness checklist</p>
+              <p class="owner-property-detail-section-title" data-canonical-label="Readiness checklist" style="font-size: 1rem; margin-bottom: 10px;">{{ public_i18n('ownersDashboard', 'ownerPropertyReadinessChecklist', 'Readiness checklist') }}</p>
               <div class="owner-property-detail-checklist">
                 {% for item in property_context.checklist_items %}
                   <div class="owner-property-detail-checklist__item">
                     <label>
                       <input type="checkbox" name="{{ item.key }}" value="1" {% if item.ready %}checked{% endif %}>
-                      <span>{{ item.label }}</span>
+                      <span>{{ public_i18n('ownersDashboard', checklist_translation_keys.get(item.key, ''), item.label) }}</span>
                     </label>
                   </div>
                 {% endfor %}
               </div>
             </div>
 
-            <button class="button button--primary" type="submit">Save property</button>
+            <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerPropertySave', 'Save property') }}</button>
           </form>
         </article>
       </div>
 
       <div class="owner-property-detail-stack">
-        <article class="owner-property-detail-panel" data-property-tab-section="operations">
-          <p class="eyebrow">Operational control</p>
-          <h2 class="owner-property-detail-section-title">Readiness summary</h2>
+        <article class="owner-property-detail-panel" data-property-tab-section="operations" data-canonical-provider="Concierge">
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyOperationalControl', 'Operational control') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyReadinessSummary', 'Readiness summary') }}</h2>
           <div class="owner-property-detail-summary">
             <div class="owner-property-detail-stat">
-              <span>Status explanation</span>
-              <strong>{{ property_context.property.status_label|e }}</strong>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanation', 'Status explanation') }}</span>
+              <strong>{{ localized_property_status }}</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Checklist</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyChecklist', 'Checklist') }}</span>
               <strong>{{ property_context.property.checklist_completed }}/{{ property_context.property.checklist_total }}</strong>
             </div>
             <div class="owner-property-detail-stat">
-              <span>Progress</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerPropertyProgress', 'Progress') }}</span>
               <strong>{{ property_context.property.checklist_percent }}%</strong>
             </div>
           </div>
           <div class="owner-property-detail-checklist">
             {% for item in property_context.checklist_items %}
               <div class="owner-property-detail-checklist__item {% if item.ready %}is-ready{% else %}is-missing{% endif %}">
-                <span>{{ item.label }}</span>
-                <strong>{% if item.ready %}✓ Ready{% else %}! Missing{% endif %}</strong>
+                <span>{{ public_i18n('ownersDashboard', checklist_translation_keys.get(item.key, ''), item.label) }}</span>
+                <strong>{% if item.ready %}✓ {{ public_i18n('ownersDashboard', 'ownerPropertyReady', 'Ready') }}{% else %}! {{ public_i18n('ownersDashboard', 'ownerPropertyMissing', 'Missing') }}{% endif %}</strong>
               </div>
             {% endfor %}
           </div>
@@ -894,32 +971,32 @@
         <article class="owner-property-detail-panel" data-property-tab-section="calendar">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
             <div>
-              <p class="eyebrow">Calendar</p>
-              <h2 class="owner-property-detail-section-title" data-testid="property-mini-calendar">Mini calendar</h2>
+              <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar', 'Calendar') }}</p>
+              <h2 class="owner-property-detail-section-title" data-testid="property-mini-calendar">{{ public_i18n('ownersDashboard', 'ownerPropertyMiniCalendar', 'Mini calendar') }}</h2>
             </div>
-            <a class="button button--ghost" href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">Open full calendar</a>
+            <a class="button button--ghost" href="{{ localized_url('/owners/calendar?property=' ~ property_context.property.id) }}">{{ public_i18n('ownersDashboard', 'ownerPropertyOpenFullCalendar', 'Open full calendar') }}</a>
           </div>
           <div class="owner-property-detail-calendar">
             <div class="owner-property-detail-calendar-grid">
               {% for day in property_context.calendar.mini_calendar %}
                 <div class="owner-property-detail-calendar-day">
-                  <span>{{ day.label|e }}</span>
+                  <span>{{ public_i18n('ownersDashboard', weekday_translation_keys.get(day.label, ''), day.label) }}</span>
                   <strong>{{ day.day }}</strong>
-                  <p class="owner-property-detail-empty">{{ day.count }} events</p>
+                  <p class="owner-property-detail-empty">{{ day.count }} {{ public_i18n('ownersDashboard', 'ownerPropertyEvents', 'events') }}</p>
                 </div>
               {% endfor %}
             </div>
             <div class="owner-property-detail-summary" style="margin-bottom: 0;">
               <div class="owner-property-detail-stat">
-                <span>Upcoming</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerPropertyUpcoming', 'Upcoming') }}</span>
                 <strong>{{ property_context.calendar.upcoming_events|length }}</strong>
               </div>
               <div class="owner-property-detail-stat">
-                <span>Cleaning</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerPropertyCleaning', 'Cleaning') }}</span>
                 <strong>{{ property_context.calendar.cleaning_schedule|length }}</strong>
               </div>
               <div class="owner-property-detail-stat">
-                <span>Maintenance</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerDashboardMaintenanceShort', 'Maintenance') }}</span>
                 <strong>{{ property_context.calendar.maintenance_schedule|length }}</strong>
               </div>
             </div>
@@ -927,20 +1004,30 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="operations">
-          <p class="eyebrow">Task history</p>
-          <h2 class="owner-property-detail-section-title">Recent requests timeline</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyTaskHistory', 'Task history') }}</p>
+          <h2 class="owner-property-detail-section-title" data-canonical-label="Recent requests">{{ public_i18n('ownersDashboard', 'ownerPropertyRecentRequests', 'Recent requests') }}</h2>
           {% if property_context.service_requests %}
             <div class="owner-property-detail-history">
               {% for request in property_context.service_requests %}
+                {% set request_category_key = category_translation_keys.get(request.service_category, 'ownerCategoryOther') %}
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
-                    <strong>{{ request.service_category|e }} request received</strong>
+                    <strong>{{ public_i18n('owners', request_category_key, request.service_category) }} — {{ public_i18n('ownersDashboard', 'ownerActivityRequestReceived', 'request received') }}</strong>
                     <time data-owner-datetime="{{ request.created_at|e }}">{{ request.created_at|e }}</time>
                   </div>
                   <p>
-                    Current step: <span data-owner-status="{{ request.status|e }}">{{ request.status|replace('_', ' ')|title|e }}</span> for {{ request.property|e }}.
-                    {% if request.description %}<br>Notes for the team: {{ request.description|e }}{% endif %}
-                    <br>Next step: {% if request.status|lower == 'completed' %}The completed work remains visible here for review.{% elif request.status|lower == 'in_progress' %}The contractor will upload photos and completion notes when the work is finished.{% elif request.status|lower == 'assigned' %}The assigned contractor will accept or start the task next.{% else %}We will assign the right local contractor and keep the timeline updated.{% endif %}
+                    {{ public_i18n('ownersDashboard', 'ownerActivityCurrentStep', 'Current step') }}: <span data-owner-status="{{ request.status|e }}">{{ public_i18n('owners', request_status_translation_keys.get(request.status|lower, ''), request.status|replace('_', ' ')|title) }}</span> {{ public_i18n('ownersDashboard', 'ownerActivityFor', 'for') }} {{ request.property|e }}.
+                    {% if request.description %}<br>{{ public_i18n('ownersDashboard', 'ownerActivityNotesForTeam', 'Notes for the team') }}: {{ request.description|e }}{% endif %}
+                    <br>{{ public_i18n('ownersDashboard', 'ownerActivityNextStep', 'Next step') }}:
+                    {% if request.status|lower == 'completed' %}
+                      {{ public_i18n('ownersDashboard', 'ownerActivityCompletedNext', 'The completed work remains visible here for review.') }}
+                    {% elif request.status|lower == 'in_progress' %}
+                      {{ public_i18n('ownersDashboard', 'ownerActivityInProgressNext', 'The contractor will upload photos and completion notes when the work is finished.') }}
+                    {% elif request.status|lower == 'assigned' %}
+                      {{ public_i18n('ownersDashboard', 'ownerActivityAssignedNext', 'The assigned contractor will accept or start the task next.') }}
+                    {% else %}
+                      {{ public_i18n('ownersDashboard', 'ownerActivityNewNext', 'We will assign the right local contractor and keep the timeline updated.') }}
+                    {% endif %}
                   </p>
                 </div>
               {% endfor %}
@@ -960,10 +1047,30 @@
               {% for event in property_context.property_activity %}
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
-                    <strong>{{ event.title|e }}</strong>
+                    <strong>
+                      {% if event.event_type == 'property_created' %}
+                        {{ public_i18n('ownersDashboard', 'ownerActivityPropertyCreated', 'Property created') }}
+                      {% elif event.event_type == 'owner_assigned' %}
+                        {{ public_i18n('ownersDashboard', 'ownerActivityOwnerAssigned', 'Owner assigned') }}
+                      {% elif event.event_type == 'checklist_updated' %}
+                        {{ public_i18n('ownersDashboard', 'ownerActivityChecklistUpdated', 'Readiness checklist updated') }}
+                      {% elif event.event_type == 'operation_completed' %}
+                        {{ property_context.activity_copy.operation_completed|e }}
+                      {% else %}
+                        {{ event.title|e }}
+                      {% endif %}
+                    </strong>
                     <time data-owner-datetime="{{ event.created_at|e }}">{{ event.created_at|e }}</time>
                   </div>
-                  {% if event.detail %}<p>{{ event.detail|e }}</p>{% endif %}
+                  {% if event.detail %}
+                    <p>
+                      {% if event.event_type == 'checklist_updated' %}
+                        {{ event.detail|replace('Readiness', public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness'))|e }}
+                      {% else %}
+                        {{ event.detail|e }}
+                      {% endif %}
+                    </p>
+                  {% endif %}
                 </div>
               {% endfor %}
             </div>
@@ -973,8 +1080,8 @@
         </article>
 
         <article class="owner-property-detail-panel" data-property-tab-section="calendar">
-          <p class="eyebrow">Blocked dates</p>
-          <h2 class="owner-property-detail-section-title">Owner calendar blocks</h2>
+          <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyBlockedDates', 'Blocked dates') }}</p>
+          <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyCalendarBlocks', 'Owner calendar blocks') }}</h2>
           {% if property_context.calendar.blocked_dates %}
             <div class="owner-property-detail-calendar-events">
               {% for event in property_context.calendar.blocked_dates %}
@@ -998,8 +1105,8 @@
       </div>
     </section>
   </main>
-  <script src="/static/js/translations.js"></script>
-  <script src="/static/js/i18n.js?v=20260724"></script>
+  <script src="/static/js/translations.js?v=20260726f"></script>
+  <script src="/static/js/i18n.js?v=20260726f"></script>
   <script src="/static/js/owner-experience.js?v=20260726"></script>
 </body>
 </html>

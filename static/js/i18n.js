@@ -171,6 +171,14 @@
     if (window.location.pathname.startsWith("/admin/service-requests/")) {
       return "adminServiceRequests";
     }
+    if (
+      window.location.pathname.startsWith("/owners/properties") ||
+      window.location.pathname.startsWith("/owners/property") ||
+      window.location.pathname.startsWith("/owners/calendar") ||
+      window.location.pathname.startsWith("/owners/reservations")
+    ) {
+      return "ownersDashboard";
+    }
     return PAGE_NAMESPACE_BY_PATH[window.location.pathname] || "home";
   }
 

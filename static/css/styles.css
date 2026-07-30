@@ -39659,6 +39659,44 @@ body.home-page .ds-section[aria-labelledby="dashboard-preview-title"] .ds-sectio
   font-weight: 800;
 }
 
+/* Property setup is part of the existing Owner Portal card system. */
+body.owner-portal-page .owner-setup.owner-portal-card,
+body.owner-properties-page .owner-setup.owner-portal-card,
+body.owner-property-detail-page .owner-setup.owner-portal-card,
+body.calendar-page--owner .owner-setup.owner-portal-card,
+body.reservations-page--owner .owner-setup.owner-portal-card {
+  width: 100%;
+  margin: clamp(18px, 3vw, 30px) 0;
+  color: #0f2345;
+}
+
+.owner-setup__score strong,
+.owner-setup__score span,
+.owner-setup__guidance > article > span,
+.owner-setup__tab-heading span,
+.owner-setup__remaining small,
+.owner-setup-card small {
+  color: #365f78;
+}
+
+.owner-setup__progress {
+  background: rgba(15, 35, 69, 0.1);
+}
+
+.owner-setup__progress span {
+  background: linear-gradient(90deg, #153d68, #5fa9b5);
+}
+
+.owner-setup__guidance > article,
+.owner-setup-card {
+  border-color: rgba(15, 35, 69, 0.1);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.owner-setup-card.is-complete {
+  background: rgba(235, 247, 239, 0.82);
+}
+
 .owner-setup--tab {
   width: 100%;
   margin: 0 0 18px;

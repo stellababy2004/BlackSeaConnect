@@ -1216,6 +1216,54 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('data-i18n="ownerRequestServicePreselected"', html)
         self.assertIn("Cleaning", html)
 
+    def test_owner_request_service_and_reservation_dropdowns_are_localized(self):
+        self._seed_owner_property()
+        self._login_owner_via_magic()
+
+        expected_categories = {
+            "bg": ("Инспекция", "Консиерж поддръжка", "Проблем с гост", "Сезонна подготовка"),
+            "en": ("Inspection", "Concierge Support", "Guest Issue", "Seasonal Preparation"),
+            "fr": ("Inspection", "Assistance de conciergerie", "Problème avec un voyageur", "Préparation saisonnière"),
+            "ru": ("Инспекция", "Поддержка консьержа", "Проблема с гостем", "Сезонная подготовка"),
+        }
+        expected_statuses = {
+            "bg": ("Изчаква", "Потвърдена", "Настанен", "Напуснал", "Отменена", "Не се яви"),
+            "en": ("Pending", "Confirmed", "Checked In", "Checked Out", "Cancelled", "No Show"),
+            "fr": ("En attente", "Confirmée", "Arrivée enregistrée", "Départ enregistré", "Annulée", "Non-présentation"),
+            "ru": ("Ожидается", "Подтверждено", "Заселён", "Выселен", "Отменено", "Неявка"),
+        }
+        expected_setup = {
+            "bg": ("Готовност на имота", "Текущ напредък", "Отвори стъпката", "Оставащи стъпки", "Добавете актуални снимки"),
+            "en": ("Property readiness", "Current completion", "Open step", "Remaining steps", "Add current photos"),
+            "fr": ("Préparation du bien", "Progression actuelle", "Ouvrir l’étape", "Étapes restantes", "Ajoutez des photos récentes"),
+            "ru": ("Готовность объекта", "Текущий прогресс", "Открыть шаг", "Оставшиеся шаги", "Добавьте актуальные фотографии"),
+        }
+        bulgarian_setup_copy = expected_setup["bg"]
+
+        for lang in ("bg", "en", "fr", "ru"):
+            request_html = self.client.get(f"/owners/request-service?lang={lang}").get_data(as_text=True)
+            reservations_html = self.client.get(f"/owners/reservations?lang={lang}").get_data(as_text=True)
+
+            self.assertNotIn("[MISSING:", request_html, msg=f"request service {lang}")
+            self.assertNotIn("[MISSING:", reservations_html, msg=f"reservations {lang}")
+            for hook in (
+                'data-i18n="ownersDashboard.ownerSetupTitle"',
+                'data-i18n="ownersDashboard.ownerSetupCurrentCompletion"',
+                'data-i18n="ownersDashboard.ownerSetupAction"',
+                'data-i18n="ownersDashboard.ownerSetupRemainingSteps"',
+                'data-i18n="ownersDashboard.ownerSetupDescriptionPhotos"',
+            ):
+                self.assertIn(hook, request_html, msg=f"property setup binding {lang}: {hook}")
+            for label in expected_categories[lang]:
+                self.assertIn(label, request_html, msg=f"request service {lang}: {label}")
+            for label in expected_setup[lang]:
+                self.assertIn(label, request_html, msg=f"property setup {lang}: {label}")
+            if lang != "bg":
+                for label in bulgarian_setup_copy:
+                    self.assertNotIn(label, request_html, msg=f"mixed property setup language {lang}: {label}")
+            for label in expected_statuses[lang]:
+                self.assertIn(label, reservations_html, msg=f"reservations {lang}: {label}")
+
     def test_owner_pages_include_language_switcher_and_i18n_hooks(self):
         self._login_owner_via_magic()
 

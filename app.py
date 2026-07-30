@@ -9737,12 +9737,18 @@ def _owner_property_setup_journey(property_record, language=None):
         key = section["key"]
         category = section["category"]
         tab = section["tab"]
+        title_key = f"ownerSetupStep{''.join(part.title() for part in key.split('_'))}"
+        category_key = f"ownerSetupCategory{''.join(part.title() for part in category.split('_'))}"
+        description_key = f"ownerSetupDescription{''.join(part.title() for part in category.split('_'))}"
         steps.append({
             **section,
             "position": position,
-            "title": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupStep{''.join(part.title() for part in key.split('_'))}", key.replace("_", " ").title()),
-            "category_label": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupCategory{''.join(part.title() for part in category.split('_'))}", category.replace("_", " ").title()),
-            "description": _load_public_i18n_value("ownersDashboard", language, f"ownerSetupDescription{''.join(part.title() for part in category.split('_'))}", ""),
+            "title_key": title_key,
+            "category_key": category_key,
+            "description_key": description_key,
+            "title": _load_public_i18n_value("ownersDashboard", language, title_key, key.replace("_", " ").title()),
+            "category_label": _load_public_i18n_value("ownersDashboard", language, category_key, category.replace("_", " ").title()),
+            "description": _load_public_i18n_value("ownersDashboard", language, description_key, ""),
             "action_label": _load_public_i18n_value("ownersDashboard", language, "ownerSetupAction", "Open step"),
             "href": f"/owners/properties/{property_id}#property-{tab}",
             "completed_at": str(completed_at_map.get(key, "")).strip(),
@@ -9810,12 +9816,13 @@ def _owner_property_setup_ui(language=None):
 def inject_owner_property_setup():
     if not request.path.startswith("/owners") or not session.get(OWNER_SESSION_LOGGED_IN_KEY):
         return {}
+    current_language = _resolve_current_language()
     owner_account = getattr(g, "owner_account", None) or _current_owner_account()
     if not owner_account:
         return {}
     properties = _owner_properties_for_account(owner_account.get("id", ""))
     if not properties:
-        return {"property_setup": None, "property_setup_ui": _owner_property_setup_ui()}
+        return {"property_setup": None, "property_setup_ui": _owner_property_setup_ui(current_language)}
 
     requested_property = str(
         (request.view_args or {}).get("property_id", "")
@@ -9835,8 +9842,8 @@ def inject_owner_property_setup():
         properties[0],
     )
     return {
-        "property_setup": _owner_property_setup_journey(selected_property),
-        "property_setup_ui": _owner_property_setup_ui(),
+        "property_setup": _owner_property_setup_journey(selected_property, current_language),
+        "property_setup_ui": _owner_property_setup_ui(current_language),
     }
 
 

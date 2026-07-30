@@ -3362,6 +3362,16 @@
 </style>
 </head>
 <body class="calendar-page calendar-page--{{ calendar_scope|e }}{% if calendar_scope == 'admin' %} bsc-admin-workspace{% endif %}">
+  {% macro localized_owner_event_type(event_type) -%}
+    {% if calendar_scope != 'owner' %}{{ event_type|e }}
+    {% elif event_type == 'Cleaning' %}{{ public_i18n('owners', 'ownerCategoryCleaning', 'Cleaning') }}
+    {% elif event_type == 'Inspection' %}{{ public_i18n('owners', 'ownerCategoryInspection', 'Inspection') }}
+    {% elif event_type == 'Maintenance' %}{{ public_i18n('owners', 'ownerCategoryMaintenance', 'Maintenance') }}
+    {% elif event_type == 'Blocked Dates' %}{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}
+    {% elif event_type == 'Personal Stay' %}{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}
+    {% else %}{{ event_type|e }}
+    {% endif %}
+  {%- endmacro %}
   {% if calendar_scope == 'admin' %}
     {% include '_admin_sidebar.html' %}
   {% endif %}
@@ -3370,14 +3380,14 @@
     <section class="calendar-hero">
       <div class="calendar-hero__content">
         <p class="eyebrow">BLACKSEA CONNECT</p>
-        <h1>{{ calendar_scope_label }}</h1>
-        <p class="calendar-copy">{{ calendar_scope_description }}. One event engine powers every view across owners and operations.</p>
+        <h1>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar', 'Calendar') if calendar_scope == 'owner' else calendar_scope_label }}</h1>
+        <p class="calendar-copy">{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerCalendarDescription', 'Your reservations, availability, and property work in one synchronized calendar.') }}{% else %}{{ calendar_scope_description }}. One event engine powers every view across owners and operations.{% endif %}</p>
         <div class="calendar-hero__stats">
           {% if calendar_scope == 'owner' %}
-            <div><span>Today</span><strong>{{ owner_calendar_snapshot.today }}</strong></div>
-            <div><span>Upcoming arrival</span><strong>{{ owner_calendar_snapshot.next_arrival }}</strong></div>
-            <div><span>Next cleaning</span><strong>{{ owner_calendar_snapshot.next_cleaning }}</strong></div>
-            <div><span>Occupancy</span><strong>{{ owner_calendar_snapshot.occupancy }}</strong></div>
+            <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyTabToday', 'Today') }}</span><strong>{{ owner_calendar_snapshot.today }}</strong></div>
+            <div><span>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrival') }}</span><strong>{{ owner_calendar_snapshot.next_arrival }}</strong></div>
+            <div><span>{{ public_i18n('common', 'dashboardNextCleaning', 'Next cleaning') }}</span><strong>{{ owner_calendar_snapshot.next_cleaning }}</strong></div>
+            <div><span>{{ public_i18n('ownersDashboard', 'ownerDashboardOccupancyLabel', 'Occupancy') }}</span><strong>{{ owner_calendar_snapshot.occupancy }}</strong></div>
           {% else %}
             <div><span>Днес</span><strong>{{ calendar_summary.today }}</strong></div>
             <div><span>Тази седмица</span><strong>{{ calendar_summary.this_week }}</strong></div>
@@ -3387,8 +3397,8 @@
       </div>
       <div class="calendar-actions">
         {% if calendar_scope == 'owner' %}
-          <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
-          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Dashboard</a>
+          <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'navOwnerPortal', 'Dashboard') }}</a>
         {% else %}
           <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
           <a class="button button--secondary" href="/admin">Управленски панел</a>
@@ -3400,23 +3410,23 @@
     <section class="calendar-panel">
       <div class="calendar-summary-grid">
         <article class="calendar-summary-card">
-          <span>Видими събития</span>
+          <span>{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerCalendarVisibleEvents', 'Visible events') }}{% else %}Видими събития{% endif %}</span>
           <strong>{{ calendar_filtered_count }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Днес</span>
+          <span>{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerPropertyTabToday', 'Today') }}{% else %}Днес{% endif %}</span>
           <strong>{{ calendar_summary.today }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Утре</span>
+          <span>{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerCalendarTomorrow', 'Tomorrow') }}{% else %}Утре{% endif %}</span>
           <strong>{{ calendar_summary.tomorrow }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Тази седмица</span>
+          <span>{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerCalendarThisWeek', 'This week') }}{% else %}Тази седмица{% endif %}</span>
           <strong>{{ calendar_summary.this_week }}</strong>
         </article>
         <article class="calendar-summary-card">
-          <span>Просрочени</span>
+          <span>{% if calendar_scope == 'owner' %}{{ public_i18n('ownersDashboard', 'ownerCalendarOverdue', 'Overdue') }}{% else %}Просрочени{% endif %}</span>
           <strong>{{ calendar_summary.overdue }}</strong>
         </article>
       </div>
@@ -3427,7 +3437,11 @@
         {% for view in calendar_views %}
           <a class="calendar-tab {% if view == calendar_view %}is-active{% endif %}"
              href="{{ request.path }}?view={{ view }}{% for key, value in calendar_filters.items() if value %}&{{ key }}={{ value|urlencode }}{% endfor %}">
-            {{ {'month': 'Месец', 'week': 'Седмица', 'day': 'Ден', 'timeline': 'Списък със задачи'}.get(view, view|title) }}
+            {% if calendar_scope == 'owner' %}
+              {{ {'month': public_i18n('ownersDashboard', 'ownerCalendarMonth', 'Month'), 'week': public_i18n('ownersDashboard', 'ownerCalendarWeek', 'Week'), 'day': public_i18n('ownersDashboard', 'ownerCalendarDay', 'Day'), 'timeline': public_i18n('ownersDashboard', 'ownerCalendarTimeline', 'Task list')}.get(view, view|title) }}
+            {% else %}
+              {{ {'month': 'Месец', 'week': 'Седмица', 'day': 'Ден', 'timeline': 'Списък със задачи'}.get(view, view|title) }}
+            {% endif %}
           </a>
         {% endfor %}
       </div>
@@ -3437,75 +3451,75 @@
       <form class="calendar-filters" method="get" action="{{ request.path }}">
         <input type="hidden" name="view" value="{{ calendar_view }}">
         <label class="calendar-filter">
-          <span>Търсене</span>
-          <input type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Търсене в събития">
+          <span>{{ public_i18n('ownersDashboard', 'ownerCalendarSearch', 'Search') if calendar_scope == 'owner' else 'Търсене' }}</span>
+          <input type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerCalendarSearchPlaceholder', 'Search events') if calendar_scope == 'owner' else 'Търсене в събития' }}">
         </label>
         <label class="calendar-filter">
-          <span>Имот</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerReservationsProperty', 'Property') if calendar_scope == 'owner' else 'Имот' }}</span>
           <select name="property">
-            <option value="">Всички имоти</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllProperties', 'All properties') if calendar_scope == 'owner' else 'Всички имоти' }}</option>
             {% for option in calendar_property_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.property %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Собственик</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerReservationsOwner', 'Owner') if calendar_scope == 'owner' else 'Собственик' }}</span>
           <select name="owner">
-            <option value="">Всички собственици</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllOwners', 'All owners') if calendar_scope == 'owner' else 'Всички собственици' }}</option>
             {% for option in calendar_owner_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.owner %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Изпълнител</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerCalendarProfessional', 'Professional') if calendar_scope == 'owner' else 'Изпълнител' }}</span>
           <select name="professional">
-            <option value="">Всички професионалисти</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllProfessionals', 'All professionals') if calendar_scope == 'owner' else 'Всички професионалисти' }}</option>
             {% for option in calendar_professional_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.professional %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Категория</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerCalendarCategory', 'Category') if calendar_scope == 'owner' else 'Категория' }}</span>
           <select name="category">
-            <option value="">Всички категории</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllCategories', 'All categories') if calendar_scope == 'owner' else 'Всички категории' }}</option>
             {% for option in calendar_category_options %}
-              <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ option|e }}</option>
+              <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ localized_owner_event_type(option) }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Статус</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerReservationsStatus', 'Status') if calendar_scope == 'owner' else 'Статус' }}</span>
           <select name="status">
-            <option value="">Всички статуси</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllStatuses', 'All statuses') if calendar_scope == 'owner' else 'Всички статуси' }}</option>
             {% for option in calendar_status_options %}
               <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Град</span>
+          <span>{{ public_i18n('common', 'dashboardCity', 'City') if calendar_scope == 'owner' else 'Град' }}</span>
           <select name="city">
-            <option value="">Всички градове</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllCities', 'All cities') if calendar_scope == 'owner' else 'Всички градове' }}</option>
             {% for option in calendar_city_options %}
               <option value="{{ option|e }}" {% if option == calendar_filters.city %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label class="calendar-filter">
-          <span>Приоритет</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerCalendarPriority', 'Priority') if calendar_scope == 'owner' else 'Приоритет' }}</span>
           <select name="priority">
-            <option value="">Всички приоритети</option>
+            <option value="">{{ public_i18n('ownersDashboard', 'ownerCalendarAllPriorities', 'All priorities') if calendar_scope == 'owner' else 'Всички приоритети' }}</option>
             {% for option in calendar_priority_options %}
               <option value="{{ option|e }}" data-owner-status="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
             {% endfor %}
           </select>
         </label>
         <div class="calendar-actions" style="align-self: end;">
-          <button class="button button--primary" type="submit">Приложи филтрите</button>
-          <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">Изчисти</a>
+          <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerCalendarApplyFilters', 'Apply filters') if calendar_scope == 'owner' else 'Приложи филтрите' }}</button>
+          <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">{{ public_i18n('ownersDashboard', 'ownerCalendarClear', 'Clear') if calendar_scope == 'owner' else 'Изчисти' }}</a>
         </div>
       </form>
     </section>
@@ -3523,7 +3537,7 @@
                       <article class="calendar-event" data-calendar-event data-event-date="{{ event.start_datetime[:10]|e }}">
                         <div class="calendar-event__topline">
                           <div class="calendar-event__flag">
-                            <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
+                            <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ localized_owner_event_type(event.event_type) }}</span>
                             {% if event.is_overdue %}
                               <span>Просрочено</span>
                             {% endif %}
@@ -3556,8 +3570,8 @@
           </div>
         {% else %}
           <div class="calendar-group calendar-empty-state {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}" role="status">
-            <h3>No calendar items yet</h3>
-            <p class="calendar-note">Reservations, blocked dates, personal stays, and scheduled operations will appear here automatically.</p>
+            <h3>{{ public_i18n('ownersDashboard', 'ownerCalendarEmptyTitle', 'No calendar items yet') }}</h3>
+            <p class="calendar-note">{{ public_i18n('ownersDashboard', 'ownerCalendarEmptyCopy', 'Reservations, blocked dates, personal stays, and scheduled operations will appear here automatically.') }}</p>
           </div>
         {% endif %}
       </article>
@@ -3566,18 +3580,18 @@
         {% if calendar_can_create %}
           <section class="calendar-panel">
             <div class="section-heading">
-              <p class="section-heading__eyebrow">Owner actions</p>
-              <h2>Create availability blocks</h2>
+              <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerCalendarActions', 'Owner actions') }}</p>
+              <h2>{{ public_i18n('ownersDashboard', 'ownerCalendarCreateBlocks', 'Create availability blocks') }}</h2>
             </div>
-            <p class="calendar-note">Owners can create blocked dates and personal stays without touching the operational workflow.</p>
+            <p class="calendar-note">{{ public_i18n('ownersDashboard', 'ownerCalendarCreateCopy', 'Owners can create blocked dates and personal stays without touching the operational workflow.') }}</p>
             {% if calendar_owner_properties %}
               <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}" data-owner-submit-state>
                 <div class="calendar-event-type-picker" aria-label="Event type">
-                  <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>Blocked dates</button>
-                  <button type="button" data-event-type="Personal Stay"><span>⌂</span>Personal stay</button>
+                  <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}</button>
+                  <button type="button" data-event-type="Personal Stay"><span>⌂</span>{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}</button>
                 </div>
                 <label>
-                  <span>Property</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty', 'Property') }}</span>
                   <select name="property_id" required>
                     {% for property in calendar_owner_properties %}
                       <option value="{{ property.id|e }}">{{ property.name|e }} · {{ property.location|e }}</option>
@@ -3585,46 +3599,46 @@
                   </select>
                 </label>
                 <label>
-                  <span>Event type</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerCalendarEventType', 'Event type') }}</span>
                   <select name="event_type" required data-event-type-select>
-                    <option value="Blocked Dates">Blocked Dates</option>
-                    <option value="Personal Stay">Personal Stay</option>
+                    <option value="Blocked Dates">{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}</option>
+                    <option value="Personal Stay">{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}</option>
                   </select>
                 </label>
                 <label>
-                  <span>Title</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerCalendarTitleLabel', 'Title') }}</span>
                   <input type="text" name="title" placeholder="Optional title">
                 </label>
                 <label>
-                  <span>Description</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerCalendarDescriptionLabel', 'Description') }}</span>
                   <textarea name="description" placeholder="Optional note"></textarea>
                 </label>
                 <div class="calendar-owner-form__grid">
                   <label>
-                    <span>Start</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerCalendarStart', 'Start') }}</span>
                     <input type="datetime-local" name="start_datetime" required>
                   </label>
                   <label>
-                    <span>End</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerCalendarEnd', 'End') }}</span>
                     <input type="datetime-local" name="end_datetime" required>
                   </label>
                 </div>
                 <div class="calendar-date-shortcuts">
-                  <button type="button" data-calendar-range="today">Today</button>
-                  <button type="button" data-calendar-range="weekend">This weekend</button>
-                  <button type="button" data-calendar-range="week">Next 7 days</button>
+                  <button type="button" data-calendar-range="today">{{ public_i18n('ownersDashboard', 'ownerPropertyTabToday', 'Today') }}</button>
+                  <button type="button" data-calendar-range="weekend">{{ public_i18n('ownersDashboard', 'ownerCalendarWeekend', 'This weekend') }}</button>
+                  <button type="button" data-calendar-range="week">{{ public_i18n('ownersDashboard', 'ownerCalendarNextSevenDays', 'Next 7 days') }}</button>
                 </div>
                 <label class="calendar-owner-form__check">
                   <input type="checkbox" name="all_day" value="1">
-                  <span>All day</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerCalendarAllDay', 'All day') }}</span>
                 </label>
                 <div class="calendar-actions">
-                  <button class="button button--primary" type="submit">Save event</button>
-                  <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}">Request service</a>
+                  <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerCalendarSaveEvent', 'Save event') }}</button>
+                  <a class="button button--secondary" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
                 </div>
               </form>
             {% else %}
-              <p class="calendar-note">Add a property first to create blocked dates or personal stays.</p>
+              <p class="calendar-note">{{ public_i18n('ownersDashboard', 'ownerCalendarAddPropertyFirst', 'Add a property first to create blocked dates or personal stays.') }}</p>
             {% endif %}
           </section>
         {% endif %}
@@ -3638,7 +3652,7 @@
             {% for provider in calendar_external_integration_points %}
               <article class="calendar-integration-card">
                 <span class="calendar-integration-card__logo">{{ provider[:1] }}</span>
-                <div><strong>{{ provider }}</strong><small>Not connected · Never synced</small></div>
+                <div><strong>{{ provider }}</strong><small>{{ public_i18n('ownersDashboard', 'ownerCalendarNotConnected', 'Not connected · Never synced') }}</small></div>
                 <button class="button button--ghost" type="button" disabled>Свържи</button>
               </article>
             {% endfor %}
@@ -6305,6 +6319,10 @@
         window.setInterval(updateSlaClocks, 1000);
       })();
     </script>
+  {% endif %}
+  {% if calendar_scope == 'owner' %}
+    <script src="/static/js/translations.js?v=20260726f"></script>
+    <script src="/static/js/i18n.js?v=20260726f"></script>
   {% endif %}
   <script src="/static/js/owner-experience.js?v=20260726"></script>
 </body>

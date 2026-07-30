@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Owner Properties</title>
+  <title>{{ public_i18n('ownersDashboard', 'ownerPropertiesPageTitle', 'BlackSea Connect | Owner Properties') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <style>
     .owner-properties-page {
@@ -194,10 +194,10 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Owner portal">
-          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">Dashboard</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">Properties</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">Request service</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">Logout</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'navOwnerPortal', 'Dashboard') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}" data-i18n="ownerProfileDropdownProperties">{{ public_i18n('ownersDashboard', 'ownerProfileDropdownProperties', 'Properties') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}">{{ public_i18n('ownersDashboard', 'navOwnerLogout', 'Logout') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
@@ -208,23 +208,23 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerProfileDropdownProperties">Add property</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/property/new') }}">{{ public_i18n('ownersDashboard', 'ownerPropertiesAddProperty', 'Add property') }}</a>
       </div>
     </nav>
 
     <div class="hero__content hero__content--home owner-property-shell">
       <div class="hero__copy owner-properties-hero">
         <div>
-          <span class="owner-properties-chip">Owner portal</span>
-          <span class="owner-properties-chip">Properties</span>
-          <h1>Property Management</h1>
+          <span class="owner-properties-chip">{{ public_i18n('ownersDashboard', 'ownerPropertiesPortalChip', 'Owner portal') }}</span>
+          <span class="owner-properties-chip">{{ public_i18n('ownersDashboard', 'ownerProfileDropdownProperties', 'Properties') }}</span>
+          <h1 data-canonical-label="Property Management">{{ public_i18n('ownersDashboard', 'ownerPropertiesTitle', 'Property Management') }}</h1>
           <p class="owner-properties-copy">
-            Review every property linked to your account, track readiness, and open a detail page to update status and notes.
+            {{ public_i18n('ownersDashboard', 'ownerPropertiesCopy', 'Review every property linked to your account, track readiness, and open a detail page to update status and notes.') }}
           </p>
         </div>
         <div class="owner-properties-actions">
-          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Back to dashboard</a>
-          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">Add property</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'ownerPropertiesBackDashboard', 'Back to dashboard') }}</a>
+          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">{{ public_i18n('ownersDashboard', 'ownerPropertiesAddProperty', 'Add property') }}</a>
         </div>
       </div>
     </div>
@@ -234,7 +234,7 @@
     {% include 'partials/owner_property_setup.html' %}
     <section class="owner-properties-panel">
       <p class="owner-properties-copy" style="margin-top: 0;">
-        <strong>{{ property_count }}</strong> properties in this account.
+        <strong>{{ property_count }}</strong> {{ public_i18n('ownersDashboard', 'ownerPropertiesAccountCount', 'properties in this account.') }}
       </p>
 
       {% if property_cards %}
@@ -258,31 +258,31 @@
                     <span>{{ property.city|e or property.location|e }}</span>
                   </div>
                 </div>
-                <span class="owner-property-card__status" data-owner-status="{{ property.status_label|e }}">{{ property.status_label|e }}</span>
+                <span class="owner-property-card__status" data-owner-status="{{ property.status_label|e }}" data-owner-status-code="Setup">{% if property.status == 'ACTIVE' %}{{ public_i18n('ownersDashboard', 'ownerDashboardStatusActive', 'Active') }}{% elif property.status == 'SEASONAL' %}{{ public_i18n('ownersDashboard', 'ownerDashboardStatusSeasonal', 'Seasonal') }}{% elif property.status == 'INACTIVE' %}{{ public_i18n('ownersDashboard', 'ownerDashboardStatusPaused', 'Paused') }}{% else %}{{ public_i18n('ownersDashboard', 'ownerDashboardStatusSetup', 'Setup') }}{% endif %}</span>
               </div>
               <div class="owner-property-card__hero-copy">
-                <span class="owner-property-card__progress">{{ property.readiness_percent }}% Ready</span>
-                <span class="owner-property-card__updated">Updated {{ property.last_updated_display|e }}</span>
+                <span class="owner-property-card__progress" data-readiness-label="Ready">{{ property.readiness_percent }}% {{ public_i18n('ownersDashboard', 'ownerPropertiesReady', 'Ready') }}</span>
+                <span class="owner-property-card__updated">{{ public_i18n('ownersDashboard', 'ownerPropertiesUpdated', 'Updated') }} {{ property.last_updated_display|e }}</span>
               </div>
-              <div class="owner-property-card__progress-meter" role="progressbar" aria-label="Property readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ property.readiness_percent }}">
+              <div class="owner-property-card__progress-meter" role="progressbar" aria-label="{{ public_i18n('ownersDashboard', 'ownerSetupTitle', 'Property readiness') }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ property.readiness_percent }}">
                 <span style="--owner-progress: {{ property.readiness_percent }}%"></span>
               </div>
               <div class="owner-property-card__facts">
                 <div class="owner-property-card__fact">
-                  <span>Guests</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertiesGuests', 'Guests') }}</span>
                   <strong>{{ property.guest_capacity }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>Readiness</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness') }}</span>
                   <strong>{{ property.readiness_completed }}/{{ property.readiness_total }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>City</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertiesCity', 'City') }}</span>
                   <strong>{{ property.city|e or property.location|e }}</strong>
                 </div>
                 <div class="owner-property-card__fact">
-                  <span>Cover</span>
-                  <strong>{% if property.cover_photo_url %}Ready{% else %}Missing{% endif %}</strong>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertiesCover', 'Cover') }}</span>
+                  <strong>{% if property.cover_photo_url %}{{ public_i18n('ownersDashboard', 'ownerPropertiesReady', 'Ready') }}{% else %}{{ public_i18n('ownersDashboard', 'ownerPropertiesMissing', 'Missing') }}{% endif %}</strong>
                 </div>
               </div>
               <div class="owner-property-card__actions">
@@ -293,15 +293,15 @@
         </div>
       {% else %}
         <div class="owner-properties-empty owner-premium-empty">
-          <h2>Your property workspace is ready</h2>
-          <p>Add your first property to begin tracking readiness, stays, and service activity in one place.</p>
-          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">Add property</a>
+          <h2>{{ public_i18n('ownersDashboard', 'ownerPropertiesEmptyTitle', 'Your property workspace is ready') }}</h2>
+          <p>{{ public_i18n('ownersDashboard', 'ownerPropertiesEmptyCopy', 'Add your first property to begin tracking readiness, stays, and service activity in one place.') }}</p>
+          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">{{ public_i18n('ownersDashboard', 'ownerPropertiesAddProperty', 'Add property') }}</a>
         </div>
       {% endif %}
     </section>
   </main>
-  <script src="/static/js/translations.js"></script>
-  <script src="/static/js/i18n.js?v=20260724"></script>
+  <script src="/static/js/translations.js?v=20260726f"></script>
+  <script src="/static/js/i18n.js?v=20260726f"></script>
   <script src="/static/js/owner-experience.js?v=20260726"></script>
 </body>
 </html>

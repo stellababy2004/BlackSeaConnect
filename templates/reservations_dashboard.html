@@ -287,15 +287,35 @@
   </style>
 </head>
 <body class="reservations-page reservations-page--{{ scope|e }}">
+  {% set reservation_status_translation_keys = {
+    "PENDING": "ownerReservationStatusPending",
+    "CONFIRMED": "ownerReservationStatusConfirmed",
+    "CHECKED_IN": "ownerReservationStatusCheckedIn",
+    "CHECKED_OUT": "ownerReservationStatusCheckedOut",
+    "CANCELLED": "ownerReservationStatusCancelled",
+    "NO_SHOW": "ownerReservationStatusNoShow"
+  } %}
+  {% macro localized_property_state(state) -%}
+    {% if scope != 'owner' %}{{ state|e }}
+    {% elif state == 'Occupied' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateOccupied', 'Occupied') }}
+    {% elif state == 'Blocked' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateBlocked', 'Blocked') }}
+    {% elif state == 'Maintenance' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateMaintenance', 'Maintenance') }}
+    {% elif state == 'Cleaning' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateCleaning', 'Cleaning') }}
+    {% elif state == 'Preparation' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStatePreparation', 'Preparation') }}
+    {% elif state == 'Ready' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateReady', 'Ready') }}
+    {% elif state == 'Available' %}{{ public_i18n('ownersDashboard', 'ownerPropertyStateAvailable', 'Available') }}
+    {% else %}{{ state|e }}
+    {% endif %}
+  {%- endmacro %}
   <main class="reservations-shell">
     {% if scope == 'owner' %}{% include 'partials/owner_property_setup.html' %}{% endif %}
     <section class="reservations-hero" id="top">
       <div>
         <p class="eyebrow">BlackSea Connect</p>
-        <h1>{{ page_title }}</h1>
+        <h1>{{ public_i18n('ownersDashboard', 'ownerReservationsLabel', 'Reservations') if scope == 'owner' else page_title }}</h1>
         <p class="reservations-copy">
           {% if scope == 'owner' %}
-            Manage your reservations, create manual stays, block dates, and keep the calendar synchronized with operations.
+            {{ public_i18n('ownersDashboard', 'ownerReservationsDescription', 'Manage your reservations, create manual stays, block dates, and keep the calendar synchronized with operations.') }}
           {% else %}
             Review every reservation across the portfolio with live filters, linked operations, and calendar synchronization.
           {% endif %}
@@ -303,8 +323,8 @@
       </div>
       <div class="reservations-actions">
         {% if scope == 'owner' %}
-          <a class="button button--primary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
-          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">Back to dashboard</a>
+          <a class="button button--primary" href="{{ localized_url('/owners/calendar') }}">{{ public_i18n('ownersDashboard', 'ownerReservationsOpenCalendar', 'Open calendar') }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'ownerPropertiesBackDashboard', 'Back to dashboard') }}</a>
         {% else %}
           <a class="button button--primary" href="{{ localized_url('/admin/operator') }}">Operator Console</a>
           <a class="button button--secondary" href="{{ localized_url('/admin/calendar') }}">Open calendar</a>
@@ -317,19 +337,19 @@
     <section class="reservations-summary" aria-label="Reservation widgets">
       {% if scope == 'owner' %}
         <article class="reservations-summary-card">
-          <span>Upcoming arrivals</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrivals') }}</span>
           <strong>{{ widgets.stats.upcoming_arrivals }}</strong>
         </article>
         <article class="reservations-summary-card">
-          <span>Upcoming departures</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingDeparturesLabel', 'Upcoming departures') }}</span>
           <strong>{{ widgets.stats.upcoming_departures }}</strong>
         </article>
         <article class="reservations-summary-card">
-          <span>Current guests</span>
+          <span>{{ public_i18n('ownersDashboard', 'ownerReservationsCurrentGuests', 'Current guests') }}</span>
           <strong>{{ widgets.stats.current_guests }}</strong>
         </article>
         <article class="reservations-summary-card">
-          <span>Next cleaning</span>
+          <span>{{ public_i18n('common', 'dashboardNextCleaning', 'Next cleaning') }}</span>
           <strong>{{ widgets.stats.next_cleaning }}</strong>
         </article>
       {% else %}
@@ -357,29 +377,29 @@
         {% if scope == 'owner' and create_allowed %}
           <article class="reservations-panel">
             <div class="section-heading">
-              <p class="section-heading__eyebrow">Create reservation</p>
-              <h2>Manual reservation or block dates</h2>
+              <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsCreate', 'Create reservation') }}</p>
+              <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsManualOrBlock', 'Manual reservation or block dates') }}</h2>
             </div>
             <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}" data-owner-submit-state>
               <div class="reservations-form-grid">
                 <label>
-                  <span>Reservation type</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerReservationsType', 'Reservation type') }}</span>
                   <select name="reservation_kind">
-                    <option value="reservation">Manual reservation</option>
-                    <option value="blocked_dates">Block dates</option>
+                    <option value="reservation">{{ public_i18n('ownersDashboard', 'ownerReservationsManual', 'Manual reservation') }}</option>
+                    <option value="blocked_dates">{{ public_i18n('ownersDashboard', 'ownerReservationsBlockDates', 'Block dates') }}</option>
                   </select>
                 </label>
                 <label>
-                  <span>Property</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty', 'Property') }}</span>
                   <select name="property_id" required>
-                    <option value="">Select property</option>
+                    <option value="">{{ public_i18n('ownersDashboard', 'ownerReservationsSelectProperty', 'Select property') }}</option>
                     {% for property in owner_properties %}
                       <option value="{{ property.id|e }}">{{ property.name|e }}</option>
                     {% endfor %}
                   </select>
                 </label>
                 <label>
-                  <span>Reservation source</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerReservationsSource', 'Reservation source') }}</span>
                   <select name="reservation_source">
                     {% for source in source_options %}
                       <option value="{{ source|e }}">{{ source }}</option>
@@ -387,60 +407,61 @@
                   </select>
                 </label>
                 <label>
-                  <span>Status</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerReservationsStatus', 'Status') }}</span>
                   <select name="status">
                     {% for status in status_options %}
-                      <option value="{{ status|e }}">{{ status.replace('_', ' ').title() }}</option>
+                      {% set status_key = reservation_status_translation_keys.get(status, '') %}
+                      <option value="{{ status|e }}" data-i18n="{{ status_key }}">{{ public_i18n('ownersDashboard', status_key, status.replace('_', ' ').title()) }}</option>
                     {% endfor %}
                   </select>
                 </label>
               </div>
               <div class="reservations-form-grid" style="margin-top: 12px;">
-                <label><span>Guest first name</span><input name="guest_first_name" placeholder="Elena"></label>
-                <label><span>Guest last name</span><input name="guest_last_name" placeholder="Petrova"></label>
-                <label><span>Guest email</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
-                <label><span>Guest phone</span><input name="guest_phone" placeholder="+359..."></label>
-                <label><span>Adults</span><input name="adults" type="number" min="0" value="1"></label>
-                <label><span>Children</span><input name="children" type="number" min="0" value="0"></label>
-                <label><span>Infants</span><input name="infants" type="number" min="0" value="0"></label>
-                <label><span>Pets</span><input name="pets" type="number" min="0" value="0"></label>
-                <label><span>Arrival</span><input name="arrival_datetime" type="datetime-local" required></label>
-                <label><span>Departure</span><input name="departure_datetime" type="datetime-local" required></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsGuestFirstName', 'Guest first name') }}</span><input name="guest_first_name" placeholder="Elena"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsGuestLastName', 'Guest last name') }}</span><input name="guest_last_name" placeholder="Petrova"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsGuestEmail', 'Guest email') }}</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsGuestPhone', 'Guest phone') }}</span><input name="guest_phone" placeholder="+359..."></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsAdults', 'Adults') }}</span><input name="adults" type="number" min="0" value="1"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsChildren', 'Children') }}</span><input name="children" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsInfants', 'Infants') }}</span><input name="infants" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsPets', 'Pets') }}</span><input name="pets" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsArrival', 'Arrival') }}</span><input name="arrival_datetime" type="datetime-local" required></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsDeparture', 'Departure') }}</span><input name="departure_datetime" type="datetime-local" required></label>
               </div>
               <label style="margin-top: 12px;">
-                <span>External reference</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerReservationsExternalReference', 'External reference') }}</span>
                 <input name="external_reference" placeholder="Manual / Airbnb / CSV / iCal reference">
               </label>
               <label style="margin-top: 12px;">
-                <span>Notes</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerReservationsNotes', 'Notes') }}</span>
                 <textarea name="notes" placeholder="Private reservation notes or blocking details"></textarea>
               </label>
               <div class="reservations-form__actions" style="margin-top: 12px;">
-                <button class="button button--primary" type="submit">Save reservation</button>
-                <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+                <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerReservationsSave', 'Save reservation') }}</button>
+                <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">{{ public_i18n('ownersDashboard', 'ownerReservationsOpenCalendar', 'Open calendar') }}</a>
               </div>
             </form>
           </article>
         {% else %}
           <article class="reservations-panel">
             <div class="section-heading">
-              <p class="section-heading__eyebrow">Filters</p>
-              <h2>Search reservations</h2>
+              <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsFilters', 'Filters') }}</p>
+              <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsSearch', 'Search reservations') }}</h2>
             </div>
-            <form class="reservations-form" method="get" action="{{ localized_url('/admin/reservations') }}">
+            <form class="reservations-form" method="get" action="{{ localized_url('/owners/reservations' if scope == 'owner' else '/admin/reservations') }}">
               <div class="reservations-filter-grid">
-                <label><span>Property</span><input name="property" value="{{ filters.property|e }}" placeholder="Property"></label>
-                <label><span>Owner</span><input name="owner" value="{{ filters.owner|e }}" placeholder="Owner"></label>
-                <label><span>Guest</span><input name="guest" value="{{ filters.guest|e }}" placeholder="Guest"></label>
-                <label><span>Status</span><input name="status" value="{{ filters.status|e }}" placeholder="CONFIRMED"></label>
-                <label><span>Arrival</span><input name="arrival" value="{{ filters.arrival|e }}" placeholder="2026-06-25"></label>
-                <label><span>Departure</span><input name="departure" value="{{ filters.departure|e }}" placeholder="2026-06-30"></label>
-                <label><span>Source</span><input name="source" value="{{ filters.source|e }}" placeholder="Manual Reservation"></label>
-                <label><span>Search</span><input name="q" value="{{ filters.search|e }}" placeholder="Guest, property, notes"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsProperty', 'Property') if scope == 'owner' else 'Property' }}</span><input name="property" value="{{ filters.property|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerReservationsProperty', 'Property') if scope == 'owner' else 'Property' }}"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsOwner', 'Owner') if scope == 'owner' else 'Owner' }}</span><input name="owner" value="{{ filters.owner|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerReservationsOwner', 'Owner') if scope == 'owner' else 'Owner' }}"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsGuest', 'Guest') if scope == 'owner' else 'Guest' }}</span><input name="guest" value="{{ filters.guest|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerReservationsGuest', 'Guest') if scope == 'owner' else 'Guest' }}"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsStatus', 'Status') if scope == 'owner' else 'Status' }}</span><input name="status" value="{{ filters.status|e }}" placeholder="CONFIRMED"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsArrival', 'Arrival') if scope == 'owner' else 'Arrival' }}</span><input name="arrival" value="{{ filters.arrival|e }}" placeholder="2026-06-25"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsDeparture', 'Departure') if scope == 'owner' else 'Departure' }}</span><input name="departure" value="{{ filters.departure|e }}" placeholder="2026-06-30"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsSource', 'Source') if scope == 'owner' else 'Source' }}</span><input name="source" value="{{ filters.source|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerReservationsManual', 'Manual reservation') if scope == 'owner' else 'Manual Reservation' }}"></label>
+                <label><span>{{ public_i18n('ownersDashboard', 'ownerReservationsSearch', 'Search') if scope == 'owner' else 'Search' }}</span><input name="q" value="{{ filters.search|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerReservationsSearchPlaceholder', 'Guest, property, notes') if scope == 'owner' else 'Guest, property, notes' }}"></label>
               </div>
               <div class="reservations-form__actions" style="margin-top: 12px;">
-                <button class="button button--primary" type="submit">Apply filters</button>
-                <a class="button button--secondary" href="{{ localized_url('/admin/reservations') }}">Reset</a>
+                <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerReservationsApplyFilters', 'Apply filters') }}</button>
+                <a class="button button--secondary" href="{{ localized_url('/owners/reservations' if scope == 'owner' else '/admin/reservations') }}">{{ public_i18n('ownersDashboard', 'ownerReservationsReset', 'Reset') if scope == 'owner' else 'Reset' }}</a>
               </div>
             </form>
           </article>
@@ -448,8 +469,8 @@
 
         <article class="reservations-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Reservations</p>
-            <h2>Reservation list</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsLabel', 'Reservations') if scope == 'owner' else 'Reservations' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsList', 'Reservation list') if scope == 'owner' else 'Reservation list' }}</h2>
           </div>
           {% if reservations %}
             <div class="reservations-list">
@@ -460,10 +481,11 @@
                       <h3>{{ reservation.guest_label|e }}</h3>
                       <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}</p>
                     </div>
-                    <span class="reservations-badge reservations-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
+                    <span class="reservations-badge reservations-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ localized_property_state(reservation.property_status) }}</span>
                   </div>
                   <div class="reservations-card__meta">
-                    <span class="reservations-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
+                    {% set status_key = reservation_status_translation_keys.get(reservation.status, '') %}
+                    <span class="reservations-chip" data-owner-status="{{ reservation.status|e }}"{% if scope == 'owner' and status_key %} data-i18n="{{ status_key }}"{% endif %}>{{ public_i18n('ownersDashboard', status_key, reservation.status.replace('_', ' ').title()) if scope == 'owner' and status_key else reservation.status.replace('_', ' ').title() }}</span>
                     <span class="reservations-chip">{{ reservation.reservation_source|e }}</span>
                     <span class="reservations-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
                   </div>
@@ -471,19 +493,19 @@
                     {% if reservation.guest_name %}
                       {{ reservation.guest_email|e }}{% if reservation.guest_phone %} · {{ reservation.guest_phone|e }}{% endif %}
                     {% else %}
-                      Blocked dates or private stay placeholder.
+                      {{ public_i18n('ownersDashboard', 'ownerReservationsPrivateStay', 'Blocked dates or private stay.') if scope == 'owner' else 'Blocked dates or private stay placeholder.' }}
                     {% endif %}
                   </p>
                   <div class="reservations-card__footer">
-                    <span>Operations: {{ reservation.linked_operations|length }}</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerReservationsOperations', 'Operations') if scope == 'owner' else 'Operations' }}: {{ reservation.linked_operations|length }}</span>
                     <div class="reservations-card__actions">
                       {% if scope == 'owner' %}
-                        <a class="button button--ghost" href="{{ localized_url('/owners/reservations/' ~ reservation.id) }}">Open detail</a>
+                        <a class="button button--ghost" href="{{ localized_url('/owners/reservations/' ~ reservation.id) }}">{{ public_i18n('ownersDashboard', 'ownerReservationsOpenDetail', 'Open detail') }}</a>
                       {% else %}
                         <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ reservation.id) }}">Open detail</a>
                       {% endif %}
                       {% if reservation.calendar_event %}
-                        <a class="button button--ghost" href="{{ localized_url(('/owners/calendar?property=' if scope == 'owner' else '/admin/calendar?property=') ~ reservation.property_name) }}">Calendar</a>
+                        <a class="button button--ghost" href="{{ localized_url(('/owners/calendar?property=' if scope == 'owner' else '/admin/calendar?property=') ~ reservation.property_name) }}">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar', 'Calendar') if scope == 'owner' else 'Calendar' }}</a>
                       {% endif %}
                     </div>
                   </div>
@@ -492,9 +514,9 @@
             </div>
           {% else %}
             <div class="reservations-empty {% if scope == 'owner' %}owner-premium-empty{% endif %}">
-              <h3>Your stays will appear here</h3>
-              <p>Create a manual reservation or block dates above. Imported stays will also appear automatically when available.</p>
-              {% if scope == 'owner' and create_allowed %}<a class="button button--primary" href="#top">Create reservation</a>{% endif %}
+              <h3>{{ public_i18n('ownersDashboard', 'ownerReservationsEmptyTitle', 'Your stays will appear here') if scope == 'owner' else 'Your stays will appear here' }}</h3>
+              <p>{{ public_i18n('ownersDashboard', 'ownerReservationsEmptyCopy', 'Create a manual reservation or block dates above. Imported stays will also appear automatically when available.') if scope == 'owner' else 'Create a manual reservation or block dates above. Imported stays will also appear automatically when available.' }}</p>
+              {% if scope == 'owner' and create_allowed %}<a class="button button--primary" href="#top">{{ public_i18n('ownersDashboard', 'ownerReservationsCreate', 'Create reservation') }}</a>{% endif %}
             </div>
           {% endif %}
         </article>
@@ -503,10 +525,10 @@
       <aside class="reservations-side">
         <article class="reservations-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Calendar</p>
-            <h2>Synced schedule</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsCalendar', 'Calendar') if scope == 'owner' else 'Calendar' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsSyncedSchedule', 'Synced schedule') if scope == 'owner' else 'Synced schedule' }}</h2>
           </div>
-          <p class="reservations-copy" style="margin-bottom: 12px;">Reservations sync to the calendar engine automatically and drive operations tasks, property status, and notifications.</p>
+          <p class="reservations-copy" style="margin-bottom: 12px;">{{ public_i18n('ownersDashboard', 'ownerReservationsSyncCopy', 'Reservations sync automatically with the calendar and drive operations tasks, property status and notifications.') if scope == 'owner' else 'Reservations sync to the calendar engine automatically and drive operations tasks, property status, and notifications.' }}</p>
           <div class="reservations-mini-list">
             {% if reservations %}
               {% for reservation in reservations[:5] %}
@@ -521,25 +543,29 @@
 
         <article class="reservations-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Property status</p>
-            <h2>Calculated state</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsPropertyStatus', 'Property status') if scope == 'owner' else 'Property status' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsCalculatedState', 'Calculated state') if scope == 'owner' else 'Calculated state' }}</h2>
           </div>
           {% if reservations %}
             <div class="reservations-mini-list">
               {% for reservation in reservations[:5] %}
                 <div class="reservations-mini-item">
                   <strong>{{ reservation.property_name|e }}</strong>
-                  <span>{{ reservation.property_status }}</span>
+                  <span>{{ localized_property_state(reservation.property_status) }}</span>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <div class="reservations-empty">Property states will appear after the first reservation is created.</div>
+            <div class="reservations-empty">{{ public_i18n('ownersDashboard', 'ownerReservationsStatesEmpty', 'Property states will appear after the first reservation is created.') if scope == 'owner' else 'Property states will appear after the first reservation is created.' }}</div>
           {% endif %}
         </article>
       </aside>
     </section>
   </main>
-  {% if scope == 'owner' %}<script src="/static/js/owner-experience.js?v=20260726"></script>{% endif %}
+  {% if scope == 'owner' %}
+    <script src="/static/js/translations.js?v=20260726g"></script>
+    <script src="/static/js/i18n.js?v=20260726g"></script>
+    <script src="/static/js/owner-experience.js?v=20260726"></script>
+  {% endif %}
 </body>
 </html>

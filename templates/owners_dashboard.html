@@ -620,13 +620,29 @@
 </head>
 <body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page">
   {% set ui = owner_portal.ui %}
+  {% macro owner_metric(key, fallback) -%}
+    {{ public_i18n('owners', key, fallback) if key else fallback }}
+  {%- endmacro %}
+  {% macro owner_event_type(event_type) -%}
+    {% if event_type == 'Cleaning' %}{{ public_i18n('owners', 'ownerCategoryCleaning', 'Cleaning') }}
+    {% elif event_type == 'Inspection' %}{{ public_i18n('owners', 'ownerCategoryInspection', 'Inspection') }}
+    {% elif event_type == 'Maintenance' %}{{ public_i18n('owners', 'ownerCategoryMaintenance', 'Maintenance') }}
+    {% elif event_type == 'Airport Transfer' %}{{ public_i18n('owners', 'ownerCategoryAirportTransfer', 'Airport transfer') }}
+    {% elif event_type == 'Concierge Support' %}{{ public_i18n('owners', 'ownerCategoryConciergeSupport', 'Concierge support') }}
+    {% elif event_type == 'Guest Issue' %}{{ public_i18n('owners', 'ownerCategoryGuestIssue', 'Guest issue') }}
+    {% elif event_type == 'Seasonal Preparation' %}{{ public_i18n('owners', 'ownerCategorySeasonalPreparation', 'Seasonal preparation') }}
+    {% elif event_type == 'Blocked Dates' %}{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}
+    {% elif event_type == 'Personal Stay' %}{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}
+    {% else %}{{ event_type|e }}
+    {% endif %}
+  {%- endmacro %}
   <header class="hero hero--home owner-dashboard-masthead" id="top">
     <nav class="topbar" aria-label="{{ ui.nav_portal }}">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="{{ ui.nav_portal }}">
           <a class="site-nav__link is-active" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ ui.nav_portal }}</a>
-          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ ui.nav_request_service }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}">{{ ui.nav_request_service }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/reservations') }}">{{ public_i18n('common', 'dashboardReservationsNav', 'Reservations') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/calendar') }}">{{ public_i18n('common', 'dashboardCalendarNav', 'Calendar') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}" data-i18n="navOwnerLogout">{{ ui.nav_logout }}</a>
@@ -647,10 +663,10 @@
             <span class="owner-profile-dropdown__email">{{ owner_account.email|e }}</span>
           </summary>
           <div class="owner-profile-dropdown__menu">
-            <a href="{{ localized_url('/owners/dashboard') }}" data-i18n="ownerProfileDropdownProfile">{{ ui.profile_profile }}</a>
-            <a href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerProfileDropdownProperties">{{ ui.profile_properties }}</a>
+            <a href="{{ localized_url('/owners/dashboard') }}">{{ ui.profile_profile }}</a>
+            <a href="{{ localized_url('/owners/property/new') }}">{{ ui.profile_properties }}</a>
             <a href="{{ localized_url('/owners/properties') }}">{{ public_i18n('common', 'dashboardManageProperties', 'Manage properties') }}</a>
-            <a href="{{ localized_url('/owners/logout') }}" data-i18n="ownerProfileDropdownLogout">{{ ui.profile_logout }}</a>
+            <a href="{{ localized_url('/owners/logout') }}">{{ ui.profile_logout }}</a>
           </div>
         </details>
         <a class="button button--ghost topbar__portal" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardRequestCta">{{ ui.hero_primary_cta }}</a>
@@ -679,29 +695,29 @@
             <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyStatus">{{ ui.property_status_label }}</p>
             <h2>{{ ui.welcome_greeting }} {{ owner_account.full_name|e }}</h2>
           </div>
-          <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="{{ owner_portal.property_overview.status_key }}">{{ owner_portal.property_overview.status }}</span>
+          <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}">{{ owner_portal.property_overview.status }}</span>
         </div>
-        <p class="owner-command-summary__status" data-i18n="{{ owner_portal.property_overview.status_note_key }}">{{ owner_portal.property_overview.status_note }}</p>
+        <p class="owner-command-summary__status">{{ owner_portal.property_overview.status_note }}</p>
         <dl class="owner-command-summary__metrics">
           <div>
             <dt>{{ ui.properties_count_label }}</dt>
             <dd>{{ owner_portal.properties|length }}</dd>
-            <span class="owner-executive-label">Portfolio</span>
+            <span class="owner-executive-label">{{ public_i18n('ownersDashboard', 'ownerDashboardPortfolioLabel', 'Portfolio') }}</span>
           </div>
           <div>
-            <dt>Overall health</dt>
+            <dt>{{ public_i18n('ownersDashboard', 'ownerDashboardOverallHealth', 'Overall health') }}</dt>
             <dd>{% if owner_portal.properties %}{{ (executive.readiness_total / owner_portal.properties|length)|round|int }}%{% else %}—{% endif %}</dd>
-            <span class="owner-executive-label">Operational readiness</span>
+            <span class="owner-executive-label">{{ public_i18n('ownersDashboard', 'ownerDashboardOperationalReadiness', 'Operational readiness') }}</span>
           </div>
           <div>
-            <dt>Next event</dt>
-            <dd>{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_portal.calendar_widget.upcoming_events[0].display_label|e }}{% else %}Clear{% endif %}</dd>
-            <span class="owner-executive-label">{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_portal.calendar_widget.upcoming_events[0].event_type|e }}{% else %}No event scheduled{% endif %}</span>
+            <dt>{{ public_i18n('ownersDashboard', 'ownerDashboardNextEvent', 'Next event') }}</dt>
+            <dd>{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_portal.calendar_widget.upcoming_events[0].display_label|e }}{% else %}{{ public_i18n('ownersDashboard', 'ownerDashboardClear', 'Clear') }}{% endif %}</dd>
+            <span class="owner-executive-label">{% if owner_portal.calendar_widget.upcoming_events %}{{ owner_event_type(owner_portal.calendar_widget.upcoming_events[0].event_type) }}{% else %}{{ public_i18n('ownersDashboard', 'ownerDashboardNoEventScheduled', 'No event scheduled') }}{% endif %}</span>
           </div>
           <div>
-            <dt>Attention required</dt>
+            <dt>{{ public_i18n('ownersDashboard', 'ownerDashboardAttentionRequired', 'Attention required') }}</dt>
             <dd>{{ executive.maintenance + owner_portal.open_request_count }}</dd>
-            <span class="owner-executive-label">{{ executive.maintenance }} maintenance · {{ owner_portal.open_request_count }} guest</span>
+            <span class="owner-executive-label">{{ executive.maintenance }} {{ public_i18n('ownersDashboard', 'ownerDashboardMaintenanceShort', 'maintenance') }} &middot; {{ owner_portal.open_request_count }} {{ public_i18n('ownersDashboard', 'ownerDashboardGuestShort', 'guest') }}</span>
           </div>
         </dl>
         <a class="button button--primary owner-command-summary__cta" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
@@ -714,18 +730,18 @@
     {% if owner_portal.empty_state %}
       <section class="owner-portal-section owner-dashboard-section owner-dashboard-section--empty" aria-labelledby="owner-onboarding-title">
         <article class="owner-portal-card owner-portal-card--onboarding owner-onboarding-card">
-          <p class="owner-portal-card__eyebrow" data-i18n="ownerOnboardingEyebrow">{{ ui.onboarding_eyebrow }}</p>
-          <h2 id="owner-onboarding-title" data-i18n="ownerOnboardingTitle">{{ ui.empty_state_title }}</h2>
-          <p class="owner-portal-card__subcopy" data-i18n="ownerOnboardingCopy">{{ ui.empty_state_copy }}</p>
-          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}" data-i18n="ownerOnboardingCta">{{ ui.empty_state_cta }}</a>
+          <p class="owner-portal-card__eyebrow">{{ ui.onboarding_eyebrow }}</p>
+          <h2 id="owner-onboarding-title">{{ ui.empty_state_title }}</h2>
+          <p class="owner-portal-card__subcopy">{{ ui.empty_state_copy }}</p>
+          <a class="button button--primary" href="{{ localized_url('/owners/property/new') }}">{{ ui.empty_state_cta }}</a>
         </article>
       </section>
     {% else %}
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-latest-updates-title">
         <div class="section-heading">
           <div>
-            <p class="section-heading__eyebrow">Today</p>
-            <h2 id="owner-latest-updates-title">Latest updates</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerDashboardTodayLabel', 'Today') }}</p>
+            <h2 id="owner-latest-updates-title">{{ public_i18n('ownersDashboard', 'ownerDashboardLatestUpdates', 'Latest updates') }}</h2>
           </div>
           <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
         </div>
@@ -734,21 +750,21 @@
             {% set latest = owner_portal.recent_updates[0] %}
             <strong>{{ latest.service_category|e }}</strong>
             <p>{{ latest.description|default(latest.detail, true)|default(ui.recent_updates_title, true)|e }}</p>
-            <small><span data-i18n="ownerRequestLastUpdateLabel">{{ ui.updated_label }}</span> {{ latest.last_update_display|default(latest.last_update_at)|e }}</small>
+            <small><span>{{ ui.updated_label }}</span> {{ latest.last_update_display|default(latest.last_update_at)|e }}</small>
           {% elif owner_portal.notifications %}
             {% set latest = owner_portal.notifications[0] %}
             <strong data-i18n="{{ latest.label_key }}">{{ latest.label }}</strong>
             <p data-i18n="{{ latest.detail_key }}">{{ latest.detail }}</p>
           {% else %}
-            <strong>Everything is OK.</strong>
-            <p>No new updates need your attention. New work and photos will appear here automatically.</p>
+            <strong>{{ public_i18n('ownersDashboard', 'ownerDashboardEverythingOk', 'Everything is OK.') }}</strong>
+            <p>{{ public_i18n('ownersDashboard', 'ownerDashboardNoUpdates', 'No new updates need your attention. New work and photos will appear here automatically.') }}</p>
           {% endif %}
         </div>
       </section>
       <details class="owner-dashboard-disclosure" open>
         <summary>
           <span data-i18n="ownerDashboardQuickActions">{{ ui.quick_actions_eyebrow }}</span>
-          <strong>{{ public_i18n('common', 'dashboardOperationalShortcuts', 'Operational shortcuts') }}</strong>
+          <strong>{{ public_i18n('ownersDashboard', 'ownerDashboardOperationalShortcuts', 'Operational shortcuts') }}</strong>
         </summary>
       <section class="owner-operational-command" aria-label="{{ ui.quick_actions_eyebrow }}">
         <div class="owner-operational-actions">
@@ -756,7 +772,7 @@
           <a class="owner-operational-action owner-operational-action--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
           <a class="owner-operational-action" href="mailto:concierge@blackseaconnect.com" data-i18n="ownerDashboardContactConciergeAction">{{ ui.contact_concierge }}</a>
           <details class="owner-profile-dropdown">
-            <summary class="owner-operational-action">More</summary>
+            <summary class="owner-operational-action">{{ public_i18n('ownersDashboard', 'ownerDashboardMore', 'More') }}</summary>
             <div class="owner-profile-dropdown__menu">
               <a href="{{ localized_url('/owners/properties') }}">{{ ui.upload_photo }}</a>
               <a href="{{ localized_url('/owners/request-service?category=maintenance') }}">{{ ui.emergency_issue }}</a>
@@ -805,29 +821,29 @@
         <section id="owner-finance-approvals" class="owner-finance-approval-center" aria-labelledby="owner-finance-approval-title">
           <div class="owner-finance-approval-center__header">
             <div>
-              <p class="owner-portal-card__eyebrow">Action required</p>
-              <h2 id="owner-finance-approval-title">Quotes awaiting approval</h2>
-              <p>Review the service price before work proceeds.</p>
+              <p class="owner-portal-card__eyebrow">{{ public_i18n('ownersDashboard', 'ownerDashboardActionRequired', 'Action required') }}</p>
+              <h2 id="owner-finance-approval-title">{{ public_i18n('ownersDashboard', 'ownerDashboardQuotesAwaitingApproval', 'Quotes awaiting approval') }}</h2>
+              <p>{{ public_i18n('ownersDashboard', 'ownerDashboardReviewServicePrice', 'Review the service price before work proceeds.') }}</p>
             </div>
-            <span class="owner-ai-live">{{ owner_portal.pending_finance_count }} pending</span>
+            <span class="owner-ai-live">{{ owner_portal.pending_finance_count }} {{ public_i18n('ownersDashboard', 'ownerDashboardPendingShort', 'pending') }}</span>
           </div>
 
           {% set finance_notice = request.args.get('finance_notice', '') %}
           {% if finance_notice == 'approved' %}
             <div class="owner-finance-notice owner-finance-notice--success">
-              Quote approved. Payment is now pending.
+              {{ public_i18n('ownersDashboard', 'ownerDashboardQuoteApprovedNotice', 'Quote approved. Payment is now pending.') }}
             </div>
           {% elif finance_notice == 'changes_requested' %}
             <div class="owner-finance-notice owner-finance-notice--warning">
-              Your change request was sent to the operations team.
+              {{ public_i18n('ownersDashboard', 'ownerDashboardChangesRequestedNotice', 'Your change request was sent to the operations team.') }}
             </div>
           {% elif finance_notice == 'rejected' %}
             <div class="owner-finance-notice owner-finance-notice--warning">
-              The quote was rejected.
+              {{ public_i18n('ownersDashboard', 'ownerDashboardQuoteRejectedNotice', 'The quote was rejected.') }}
             </div>
           {% elif finance_notice == 'already_processed' %}
             <div class="owner-finance-notice">
-              This quote has already been processed.
+              {{ public_i18n('ownersDashboard', 'ownerDashboardQuoteProcessedNotice', 'This quote has already been processed.') }}
             </div>
           {% elif finance_notice == 'payment_pending' %}
             <div class="owner-finance-notice">{{ owner_portal.finance_ui.pending }}</div>
@@ -850,11 +866,11 @@
 
                 <div class="owner-finance-approval-grid">
                   <div>
-                    <span>Professional service</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerDashboardProfessionalService', 'Professional service') }}</span>
                     <strong>{{ "%.2f"|format(quote.professional_quote_amount or 0) }} {{ quote.currency or "EUR" }}</strong>
                   </div>
                   <div>
-                    <span>BlackSea Connect fee</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerDashboardPlatformFee', 'BlackSea Connect fee') }}</span>
                     <strong>
                       {% if quote.platform_fee_type == "PERCENT" %}
                         {{ "%.2f"|format(quote.platform_fee_value or 0) }}%
@@ -864,7 +880,7 @@
                     </strong>
                   </div>
                   <div class="owner-finance-approval-grid__total">
-                    <span>Total due</span>
+                    <span>{{ public_i18n('ownersDashboard', 'ownerDashboardTotalDue', 'Total due') }}</span>
                     <strong>{{ "%.2f"|format(quote.owner_total_amount or 0) }} {{ quote.currency or "EUR" }}</strong>
                   </div>
                 </div>
@@ -874,25 +890,25 @@
                   <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/approve') }}">
                     <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
                     <button class="button button--primary" type="submit">
-                      Approve quote
+                      {{ public_i18n('ownersDashboard', 'ownerDashboardApproveQuote', 'Approve quote') }}
                     </button>
                   </form>
 
                   <form method="post" action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/request-changes') }}">
                     <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
                     <button class="button" type="submit">
-                      Request changes
+                      {{ public_i18n('ownersDashboard', 'ownerDashboardRequestChanges', 'Request changes') }}
                     </button>
                   </form>
 
                   <form
                     method="post"
                     action="{{ localized_url('/owners/finance/' ~ quote.id ~ '/reject') }}"
-                    onsubmit="return confirm('Reject this quote?');"
+                    onsubmit="return confirm('{{ public_i18n('ownersDashboard', 'ownerDashboardRejectQuoteConfirm', 'Reject this quote?')|e }}');"
                   >
                     <input type="hidden" name="csrf_token" value="{{ owner_finance_csrf_token|e }}">
                     <button class="button owner-finance-reject-button" type="submit">
-                      Reject
+                      {{ public_i18n('ownersDashboard', 'ownerDashboardReject', 'Reject') }}
                     </button>
                   </form>
                   {% elif quote.quote_status == 'APPROVED' and quote.owner_approval_status == 'APPROVED' and quote.payment_status in ['PENDING', 'UNPAID'] %}
@@ -921,11 +937,11 @@
         <div class="owner-ai-center__main">
           <div class="owner-ai-center__header">
             <div>
-              <p class="owner-portal-card__eyebrow">Operations control</p>
-              <h2 id="owner-ai-operations-title">What is happening now</h2>
-              <p>Your portfolio is being coordinated by the local operations team.</p>
+              <p class="owner-portal-card__eyebrow">{{ public_i18n('ownersDashboard', 'ownerDashboardOperationsControl', 'Operations control') }}</p>
+              <h2 id="owner-ai-operations-title">{{ public_i18n('ownersDashboard', 'ownerDashboardWhatIsHappeningNow', 'What is happening now') }}</h2>
+              <p>{{ public_i18n('ownersDashboard', 'ownerDashboardPortfolioCoordinated', 'Your portfolio is being coordinated by the local operations team.') }}</p>
             </div>
-            <span class="owner-ai-live">Last updated recently</span>
+            <span class="owner-ai-live">{{ public_i18n('ownersDashboard', 'ownerDashboardUpdatedRecently', 'Last updated recently') }}</span>
           </div>
           <div class="owner-ai-timeline">
             {% for item in owner_portal.activity_timeline[:4] %}
@@ -941,10 +957,10 @@
               <article class="owner-ai-event">
                 <span class="owner-ai-event__mark" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Portfolio monitoring active</strong>
-                  <p>No work has been completed yet. When a contractor finishes a task, photos and updates will appear here.</p>
+                  <strong>{{ public_i18n('ownersDashboard', 'ownerDashboardMonitoringActive', 'Portfolio monitoring active') }}</strong>
+                  <p>{{ public_i18n('ownersDashboard', 'ownerDashboardNoWorkCompleted', 'No work has been completed yet. When a contractor finishes a task, photos and updates will appear here.') }}</p>
                 </div>
-                <time>Now</time>
+                <time>{{ public_i18n('ownersDashboard', 'ownerDashboardNow', 'Now') }}</time>
               </article>
             {% endfor %}
             {% for event in owner_portal.calendar_widget.upcoming_events[:2] %}
@@ -960,13 +976,13 @@
           </div>
         </div>
         <aside class="owner-ai-center__aside" aria-labelledby="owner-health-signals-title">
-          <p class="owner-portal-card__eyebrow">Portfolio confidence</p>
-          <h3 id="owner-health-signals-title">Property health</h3>
+          <p class="owner-portal-card__eyebrow">{{ public_i18n('ownersDashboard', 'ownerDashboardPortfolioConfidence', 'Portfolio confidence') }}</p>
+          <h3 id="owner-health-signals-title">{{ public_i18n('ownersDashboard', 'ownerDashboardPropertyHealth', 'Property health') }}</h3>
           <div class="owner-health-signals">
             {% for item in owner_portal.property_health %}
               <a class="owner-health-signal" href="{{ localized_url('/owners/properties') }}">
                 <span data-i18n="{{ item.label_key }}">{{ item.label }}</span>
-                <strong data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+                <strong{% if item.value_key %} data-i18n="{{ item.value_key }}"{% endif %}>{{ owner_metric(item.value_key, item.value) }}</strong>
                 <small data-i18n="{{ item.support_key }}">{{ item.support }}</small>
               </a>
             {% endfor %}
@@ -977,8 +993,8 @@
       {% if owner_portal.onboarding.percentage > 0 %}
         <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-onboarding-progress-title">
           <article class="owner-portal-card owner-portal-card--summary owner-onboarding-progress" style="--onboarding-progress: {{ owner_portal.onboarding.percentage }}%;">
-            <p class="owner-portal-card__eyebrow" data-i18n="ownerOnboardingProgressEyebrow">{{ ui.onboarding_eyebrow }}</p>
-            <h2 id="owner-onboarding-progress-title" data-i18n="ownerOnboardingProgressTitle">{{ ui.onboarding_title }}</h2>
+            <p class="owner-portal-card__eyebrow">{{ ui.onboarding_eyebrow }}</p>
+            <h2 id="owner-onboarding-progress-title">{{ ui.onboarding_title }}</h2>
             <div class="owner-onboarding-progress__meter" aria-label="{{ ui.onboarding_title }}">
               <strong>{{ owner_portal.onboarding.percentage }}%</strong>
             </div>
@@ -1004,8 +1020,8 @@
         </summary>
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-properties-title">
         <div class="section-heading">
-          <p class="section-heading__eyebrow" data-i18n="ownerDashboardPropertiesEyebrow">{{ ui.properties_eyebrow }}</p>
-          <h2 id="owner-properties-title" data-i18n="ownerDashboardPropertiesTitle">{{ ui.properties_title }}</h2>
+          <p class="section-heading__eyebrow">{{ ui.properties_eyebrow }}</p>
+          <h2 id="owner-properties-title">{{ ui.properties_title }}</h2>
         </div>
         <div class="owner-portal-grid owner-portal-grid--properties">
           {% for property in owner_portal.properties %}
@@ -1022,7 +1038,7 @@
                   <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyOverview">{{ ui.summary_eyebrow }}</p>
                   <h3 class="owner-property-card__name">{{ property.name|e }}</h3>
                 </div>
-                <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}" data-i18n="{{ property.status_key }}">{{ property.status_label }}</span>
+                <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}">{{ property.status_label }}</span>
               </div>
               <p class="owner-property-card__location">{{ property.city|e or property.location|e }}</p>
               <div class="owner-property-readiness">
@@ -1048,11 +1064,11 @@
                   <strong>{% if property.availability.maintenance_required %}1{% else %}0{% endif %}</strong>
                 </div>
                 <div>
-                  <span>Cleaning</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardCleaningLabel', 'Cleaning') }}</span>
                   <strong>{% if property.availability.cleaning_required %}1{% else %}0{% endif %}</strong>
                 </div>
                 <div>
-                  <span>Occupancy</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardOccupancyLabel', 'Occupancy') }}</span>
                   <strong>{{ property.availability.occupancy_percent }}%</strong>
                 </div>
               </div>
@@ -1066,20 +1082,20 @@
                   <dd>{{ property.property_type|e }}</dd>
                 </div>
                 <div>
-                  <dt data-i18n="ownerPropertyBedroomsLabel">{{ ui.bedrooms_label }}</dt>
+                  <dt>{{ ui.bedrooms_label }}</dt>
                   <dd>{{ property.bedrooms|e }}</dd>
                 </div>
                 <div>
-                  <dt data-i18n="ownerPropertyBathroomsLabel">{{ ui.bathrooms_label }}</dt>
+                  <dt>{{ ui.bathrooms_label }}</dt>
                   <dd>{{ property.bathrooms|e }}</dd>
                 </div>
                 <div>
-                  <dt data-i18n="ownerPropertyGuestCapacityLabel">{{ ui.capacity_label }}</dt>
+                  <dt>{{ ui.capacity_label }}</dt>
                   <dd>{{ property.guest_capacity|e }}</dd>
                 </div>
                 <div>
-                  <dt data-i18n="ownerPropertyOperatingModeLabel">{{ ui.operating_mode_label }}</dt>
-                  <dd data-i18n="{{ property.operating_mode_key }}">{{ property.operating_mode_label }}</dd>
+                  <dt>{{ ui.operating_mode_label }}</dt>
+                  <dd>{{ property.operating_mode_label }}</dd>
                 </div>
                 <div>
                   <dt>{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</dt>
@@ -1106,7 +1122,7 @@
       <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-calendar-title">
         <div class="section-heading">
           <p class="section-heading__eyebrow">{{ public_i18n('common', 'dashboardUnifiedScheduling', 'Unified scheduling') }}</p>
-          <h2 id="owner-calendar-title">{{ owner_portal.calendar_widget.headline }}</h2>
+          <h2 id="owner-calendar-title">{{ public_i18n('common', 'dashboardUpcomingEvents', owner_portal.calendar_widget.headline) }}</h2>
         </div>
         <div class="owner-portal-grid owner-portal-grid--overview">
           <article class="owner-portal-card owner-portal-card--snapshot">
@@ -1148,7 +1164,7 @@
                 {% for event in owner_portal.calendar_widget.upcoming_events %}
                   <div class="owner-activity-item">
                     <div class="owner-activity-item__meta">
-                      <span class="owner-status-badge owner-status-badge--{{ event.color|e }}">{{ event.event_type|e }}</span>
+                      <span class="owner-status-badge owner-status-badge--{{ event.color|e }}">{{ owner_event_type(event.event_type) }}</span>
                       <time>{{ event.display_label|e }}</time>
                     </div>
                     <strong>{{ event.title|e }}</strong>
@@ -1214,11 +1230,19 @@
                 {% for reservation in owner_portal.reservation_widget.upcoming_arrivals %}
                   <div class="owner-activity-item">
                     <div class="owner-activity-item__meta">
-                      <span class="owner-status-badge owner-status-badge--{{ reservation.status|lower|replace(' ', '-') }}">{{ reservation.status|default(reservation.property_status, true)|e }}</span>
-                      <time>Arrival · {{ reservation.arrival_datetime|e }}</time>
+                      {% set reservation_status_key = {
+  'PENDING': 'ownerReservationStatusPending',
+  'CONFIRMED': 'ownerReservationStatusConfirmed',
+  'CHECKED_IN': 'ownerReservationStatusCheckedIn',
+  'CHECKED_OUT': 'ownerReservationStatusCheckedOut',
+  'CANCELLED': 'ownerReservationStatusCancelled',
+  'NO_SHOW': 'ownerReservationStatusNoShow'
+}.get(reservation.status, '') %}
+<span class="owner-status-badge owner-status-badge--{{ reservation.status|lower|replace(' ', '-') }}"{% if reservation_status_key %} data-i18n="{{ reservation_status_key }}"{% endif %}>{{ public_i18n('ownersDashboard', reservation_status_key, reservation.status|default(reservation.property_status, true)) if reservation_status_key else reservation.status|default(reservation.property_status, true)|e }}</span>
+                      <time><span data-i18n="ownerReservationsArrival">{{ public_i18n('ownersDashboard', 'ownerReservationsArrival', 'Arrival') }}</span> · {{ reservation.arrival_datetime|e }}</time>
                     </div>
                     <strong>{{ reservation.guest_label|e }}</strong>
-                    <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}{% if reservation.departure_datetime %} · Departure {{ reservation.departure_datetime|e }}{% endif %}</p>
+                    <p>{{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}{% if reservation.departure_datetime %} · <span data-i18n="ownerReservationsDeparture">{{ public_i18n('ownersDashboard', 'ownerReservationsDeparture', 'Departure') }}</span> {{ reservation.departure_datetime|e }}{% endif %}</p>
                   </div>
                 {% endfor %}
               </div>
@@ -1243,7 +1267,7 @@
               <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyOverview">{{ ui.summary_eyebrow }}</p>
               <h3>{{ owner_portal.property_overview.property_name|e }}</h3>
             </div>
-            <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}" data-i18n="{{ owner_portal.property_overview.status_key }}">{{ owner_portal.property_overview.status }}</span>
+            <span class="owner-status-badge owner-status-badge--{{ owner_portal.property_overview.status_tone|e }}">{{ owner_portal.property_overview.status }}</span>
           </div>
           <p class="owner-portal-card__subcopy">{{ owner_portal.property_overview.location|e }} · {{ owner_portal.property_overview.property_type|e }} · {{ owner_portal.property_overview.units|e }}</p>
           <dl class="owner-portal-dl">
@@ -1268,7 +1292,7 @@
           {% for item in owner_portal.operations_snapshot %}
               <article class="owner-kpi-card">
                 <p class="owner-kpi-card__label" data-i18n="{{ item.label_key }}">{{ item.label }}</p>
-                <strong class="owner-kpi-card__value" data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+                <strong class="owner-kpi-card__value"{% if item.value_key %} data-i18n="{{ item.value_key }}"{% endif %}>{{ owner_metric(item.value_key, item.value) }}</strong>
                 <span class="owner-kpi-card__support" data-i18n="{{ item.support_key }}">{{ item.support }}</span>
               </article>
           {% endfor %}
@@ -1285,7 +1309,7 @@
           {% for item in owner_portal.property_health %}
             <div class="owner-health-item">
               <p class="owner-health-item__label" data-i18n="{{ item.label_key }}">{{ item.label }}</p>
-              <strong class="owner-health-item__value" data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+              <strong class="owner-health-item__value"{% if item.value_key %} data-i18n="{{ item.value_key }}"{% endif %}>{{ owner_metric(item.value_key, item.value) }}</strong>
               <span class="owner-health-item__support" data-i18n="{{ item.support_key }}">{{ item.support }}</span>
             </div>
           {% endfor %}
@@ -1325,7 +1349,7 @@
           {% for item in owner_portal.monthly_summary %}
             <article class="owner-kpi-card owner-kpi-card--summary">
               <p class="owner-kpi-card__label" data-i18n="{{ item.label_key }}">{{ item.label }}</p>
-              <strong class="owner-kpi-card__value" data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+              <strong class="owner-kpi-card__value"{% if item.value_key %} data-i18n="{{ item.value_key }}"{% endif %}>{{ owner_metric(item.value_key, item.value) }}</strong>
               <span class="owner-kpi-card__support" data-i18n="{{ item.support_key }}">{{ item.support }}</span>
             </article>
           {% endfor %}
@@ -1339,7 +1363,7 @@
           {% for item in owner_portal.performance_snapshot %}
             <article class="owner-kpi-card owner-kpi-card--summary">
               <p class="owner-kpi-card__label" data-i18n="{{ item.label_key }}">{{ item.label }}</p>
-              <strong class="owner-kpi-card__value" data-i18n="{{ item.value_key }}">{{ item.value }}</strong>
+              <strong class="owner-kpi-card__value"{% if item.value_key %} data-i18n="{{ item.value_key }}"{% endif %}>{{ owner_metric(item.value_key, item.value) }}</strong>
               <span class="owner-kpi-card__support" data-i18n="{{ item.support_key }}">{{ item.support }}</span>
             </article>
           {% endfor %}
@@ -1397,7 +1421,7 @@
               <div>
                 <div class="owner-notification-item__header">
                   <strong data-i18n="{{ notification.label_key }}">{{ notification.label }}</strong>
-                  <span class="owner-notification-item__chip">{{ notification.tone|title }} · {{ ui.notification_update }}</span>
+                  <span class="owner-notification-item__chip">{{ ui.notification_update }}</span>
                 </div>
                 <p data-i18n="{{ notification.detail_key }}">{{ notification.detail }}</p>
                 <time class="owner-notification-item__time">{{ public_i18n('ownersDashboard', 'ownerDashboardTimelineRecently', 'Recently') }}</time>
@@ -1405,7 +1429,7 @@
             </div>
           {% endfor %}
         </div>
-        <a class="button button--secondary" href="#owner-activity-timeline-title">{{ public_i18n('common', 'dashboardViewAll', 'View all') }}</a>
+        <a class="button button--secondary" href="#owner-activity-timeline-title">{{ public_i18n('ownersDashboard', 'ownerDashboardViewAll', 'View all') }}</a>
       </article>
 
       <article class="owner-portal-card owner-portal-card--activity">
@@ -1416,7 +1440,7 @@
             {% for item in owner_portal.recent_activity %}
               <article class="owner-activity-item">
                 <div class="owner-activity-item__topline">
-                  <strong data-i18n="{{ item.service_category_key }}">{{ item.service_category|e }}</strong>
+                  <strong data-i18n="{{ item.service_category_key }}">{{ public_i18n('owners', item.service_category_key|replace('owners.', ''), item.service_category) }}</strong>
                   {% if item.status|lower == "new" %}
                     <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusNew" data-owner-status="NEW">{{ ui.owner_status_new }}</span>
                   {% elif item.status|lower == "assigned" %}
@@ -1431,16 +1455,16 @@
                 </div>
                 <p>{{ item.property|e }}</p>
                 <p class="owner-activity-item__meta">
-                  <span data-i18n="ownerRequestLastUpdateLabel">{{ ui.updated_label }}</span> {{ item.last_update_display|default(item.last_update_at)|e }}
-                  &middot; {{ public_i18n('common', 'ownerTrustNextStepLabel', 'Next step') }}:
+                  <span>{{ ui.updated_label }}</span> {{ item.last_update_display|default(item.last_update_at)|e }}
+                  &middot; {{ public_i18n('ownersDashboard', 'ownerDashboardNextStepLabel', 'Next step') }}:
                   {% if item.status|lower == "completed" %}
-                    {{ public_i18n('common', 'ownerTrustCompletedNextStep', 'Photos and completion notes remain available for review.') }}
+                    {{ public_i18n('ownersDashboard', 'ownerDashboardCompletedNextStep', 'Photos and completion notes remain available for review.') }}
                   {% elif item.status|lower == "in_progress" %}
-                    {{ public_i18n('common', 'ownerTrustInProgressNextStep', 'The contractor will upload proof when the work is finished.') }}
+                    {{ public_i18n('ownersDashboard', 'ownerDashboardInProgressNextStep', 'The contractor will upload proof when the work is finished.') }}
                   {% elif item.status|lower == "assigned" %}
-                    {{ public_i18n('common', 'ownerTrustAssignedNextStep', 'The assigned contractor will accept or start the task next.') }}
+                    {{ public_i18n('ownersDashboard', 'ownerDashboardAssignedNextStep', 'The assigned contractor will accept or start the task next.') }}
                   {% else %}
-                    {{ public_i18n('common', 'ownerTrustNewNextStep', 'We will assign the right local contractor.') }}
+                    {{ public_i18n('ownersDashboard', 'ownerDashboardNewNextStep', 'We will assign the right local contractor.') }}
                   {% endif %}
                 </p>
               </article>
@@ -1458,8 +1482,8 @@
     {% endif %}
   </main>
 
-  <script src="/static/js/translations.js?v=20260724"></script>
-  <script src="/static/js/i18n.js?v=20260724"></script>
+  <script src="/static/js/translations.js?v=20260726f"></script>
+  <script src="/static/js/i18n.js?v=20260726f"></script>
   <script src="/static/js/owner-experience.js?v=20260726"></script>
   {% include 'partials/pwa_runtime.html' %}
 </body>
