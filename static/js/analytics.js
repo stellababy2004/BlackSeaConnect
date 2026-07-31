@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   "use strict";
   var preferenceKey = "blacksea_analytics_consent";
   var allowedEvents = new Set([
@@ -52,11 +52,7 @@
     var root = document.querySelector("[data-analytics-consent]");
     if (!root) return;
     var current = preference();
-    if (privacySignal()) {
-      root.hidden = true;
-      return;
-    }
-    if (current === "accepted") configureAndLoad(root);
+if (current === "accepted") configureAndLoad(root);
     else if (!current) root.hidden = false;
     root.querySelector("[data-analytics-accept]").addEventListener("click", function () { savePreference("accepted"); root.hidden = true; configureAndLoad(root); fireEvent(root, root.dataset.event, JSON.parse(root.dataset.eventParams || "{}")); });
     root.querySelector("[data-analytics-reject]").addEventListener("click", function () { savePreference("rejected"); root.hidden = true; });
@@ -65,3 +61,4 @@
   }
   document.addEventListener("DOMContentLoaded", init, { once: true });
 }());
+
