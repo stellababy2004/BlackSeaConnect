@@ -91,6 +91,17 @@
       font-size: 1.28rem;
       font-weight: 750;
     }
+    .owner-command-summary__metrics dt,
+    .owner-command-summary__metrics dd,
+    .owner-command-summary__metrics span,
+    .owner-dashboard-disclosure > summary strong,
+    .owner-operational-kpi span,
+    .owner-operational-kpi strong,
+    .owner-ai-center__header > div,
+    .owner-ai-event > div {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .owner-command-summary__metrics .is-placeholder dd {
       color: #9aa6a0;
       font-size: .9rem;
@@ -291,6 +302,7 @@
       margin-top: 4px;
       color: #17382e;
       font-size: 1.2rem;
+      line-height: 1.05;
     }
     .owner-operational-actions { gap: 8px; }
     .owner-operational-action { min-height: 40px; padding: 9px 14px; }
@@ -458,6 +470,8 @@
       .owner-command-summary__metrics { grid-template-columns: repeat(2, 1fr); }
       .owner-command-summary__metrics > div:nth-child(odd) { border-left: 0; padding-left: 0; }
       .owner-command-summary__metrics > div:nth-child(4) { border-left: 1px solid #e1e7e3; padding-left: 11px; }
+      .owner-command-summary__metrics dd { font-size: clamp(.95rem, 5vw, 1.18rem); }
+      .owner-executive-label { font-size: .64rem; line-height: 1.2; }
       .owner-dashboard-disclosure > summary { min-height: 58px; padding: 12px 14px; }
       .owner-dashboard-disclosure .owner-dashboard-section { padding: 14px; }
       .owner-operational-actions__label { width: 100%; }
@@ -467,16 +481,60 @@
       .owner-property-card__stay { grid-template-columns: 1fr; }
       .owner-property-card__footer .button { font-size: .66rem; }
       .owner-operational-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .owner-operational-kpi { padding: 10px; }
+      .owner-operational-kpi strong { font-size: clamp(1rem, 6vw, 1.15rem); }
       .owner-onboarding-progress {
         grid-template-columns: 1fr;
         grid-template-areas: "copy" "meter" "steps";
         max-height: none;
       }
       .owner-onboarding-progress__steps { grid-template-columns: 1fr; }
+      .owner-ai-center__header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .owner-ai-live {
+        width: fit-content;
+        max-width: 100%;
+        white-space: normal;
+      }
       .owner-ai-center__main,
       .owner-ai-center__aside { padding: 18px; }
       .owner-ai-event { grid-template-columns: 26px 1fr; }
       .owner-ai-event time { grid-column: 2; }
+    }
+    @media (max-width: 430px) {
+      .owner-dashboard-main { padding-bottom: 76px; }
+      .owner-dashboard-masthead .hero__copy h1 { font-size: 1.85rem; }
+      .owner-command-summary { padding: 15px; }
+      .owner-command-summary__metrics > div { padding-right: 8px; }
+      .owner-command-summary__metrics > div:nth-child(even) { padding-left: 8px; }
+      .owner-dashboard-disclosure > summary {
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .owner-property-card__footer { grid-template-columns: 1fr; }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-kpi-card__value {
+        font-size: clamp(1.25rem, 8vw, 1.75rem);
+        overflow-wrap: anywhere;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page :is(.pilot-access-float, .whatsapp-float, .operations-floating-cta, .pwa-status) {
+        max-width: calc(100vw - 28px);
+        min-height: 42px;
+        padding: 8px 12px;
+        font-size: .78rem;
+      }
+    }
+    @media (max-width: 360px) {
+      .owner-command-summary__metrics,
+      .owner-operational-kpis { grid-template-columns: 1fr; }
+      .owner-command-summary__metrics > div {
+        border-left: 0 !important;
+        border-top: 1px solid #e1e7e3;
+        padding-left: 0 !important;
+      }
+      .owner-command-summary__metrics > div:first-child { border-top: 0; }
     }
       .owner-finance-approval-center {
       display: grid;
