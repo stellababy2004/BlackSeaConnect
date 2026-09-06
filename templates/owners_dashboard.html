@@ -100,7 +100,12 @@
     .owner-ai-center__header > div,
     .owner-ai-event > div {
       min-width: 0;
-      overflow-wrap: anywhere;
+    }
+    .owner-command-summary__metrics dd,
+    .owner-operational-kpi strong,
+    .owner-ai-event > div {
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     .owner-command-summary__metrics .is-placeholder dd {
       color: #9aa6a0;
@@ -160,6 +165,21 @@
       border-radius: 50%;
       background: #42a77b;
       box-shadow: 0 0 0 4px rgba(66,167,123,.13);
+    }
+    .owner-profile-dropdown,
+    .owner-profile-dropdown__summary,
+    .owner-profile-dropdown__name,
+    .owner-profile-dropdown__email {
+      min-width: 0;
+    }
+    .owner-profile-dropdown__summary,
+    .owner-profile-dropdown__name,
+    .owner-profile-dropdown__email {
+      max-width: 100%;
+    }
+    .owner-profile-dropdown__email {
+      overflow-wrap: anywhere;
+      word-break: normal;
     }
     .owner-ai-timeline { position: relative; display: grid; gap: 0; }
     .owner-ai-timeline::before {
@@ -519,22 +539,60 @@
         font-size: clamp(1.25rem, 8vw, 1.75rem);
         overflow-wrap: anywhere;
       }
-      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page :is(.pilot-access-float, .whatsapp-float, .operations-floating-cta, .pwa-status) {
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .pwa-status {
         max-width: calc(100vw - 28px);
         min-height: 42px;
         padding: 8px 12px;
         font-size: .78rem;
       }
     }
-    @media (max-width: 360px) {
-      .owner-command-summary__metrics,
-      .owner-operational-kpis { grid-template-columns: 1fr; }
+    @media (max-width: 600px) {
+      .owner-dashboard-main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+      .owner-command-summary__metrics { grid-template-columns: minmax(0, 1fr); }
       .owner-command-summary__metrics > div {
         border-left: 0 !important;
         border-top: 1px solid #e1e7e3;
-        padding-left: 0 !important;
+        padding: 10px 0 !important;
       }
-      .owner-command-summary__metrics > div:first-child { border-top: 0; }
+      .owner-command-summary__metrics > div:first-child { border-top: 0; padding-top: 0 !important; }
+      .owner-command-summary__metrics dt,
+      .owner-command-summary__metrics span {
+        min-height: 0;
+        overflow-wrap: normal;
+        word-break: normal;
+      }
+      .owner-command-summary__metrics dd {
+        font-size: clamp(1.15rem, 6vw, 1.38rem);
+        line-height: 1.12;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .topbar__actions,
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-profile-dropdown {
+        min-width: 0;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-profile-dropdown__summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+        white-space: normal;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-profile-dropdown__name {
+        overflow-wrap: normal;
+        word-break: normal;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-profile-dropdown__email {
+        overflow-wrap: anywhere;
+        word-break: normal;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .pwa-status {
+        right: calc(12px + env(safe-area-inset-right));
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        max-width: min(180px, calc(100vw - 24px));
+        min-height: 36px;
+        padding: 7px 10px;
+      }
+    }
+    @media (max-width: 360px) {
+      .owner-operational-kpis { grid-template-columns: 1fr; }
     }
       .owner-finance-approval-center {
       display: grid;
