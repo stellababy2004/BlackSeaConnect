@@ -39839,3 +39839,148 @@ body.reservations-page--owner .owner-setup.owner-portal-card {
     align-items: flex-start;
   }
 }
+
+@media (max-width: 600px) {
+  body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__hero > div,
+  body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__name {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-property-card__name {
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+    line-height: 1.08;
+  }
+
+  body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-status-badge {
+    max-width: 100%;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup.owner-portal-card {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup__header > *,
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup__score {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup__score {
+    width: 100%;
+    text-align: left;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card > *,
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card :is(h3, p, small, .button, .owner-setup-card__complete) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card__state {
+    justify-self: start;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card :is(h3, p, small) {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card .button,
+  body:is(
+    .owner-portal-dashboard-page,
+    .owner-properties-page,
+    .owner-property-detail-page,
+    .calendar-page--owner,
+    .reservations-page--owner
+  ) .owner-setup-card__complete {
+    grid-column: 1;
+    justify-self: stretch;
+    width: 100%;
+    white-space: normal;
+  }
+}
