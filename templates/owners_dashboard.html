@@ -548,7 +548,7 @@
     }
     @media (max-width: 600px) {
       .owner-dashboard-main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-      .owner-command-summary__metrics { grid-template-columns: minmax(0, 1fr); }
+      .owner-command-summary__metrics { grid-template-columns: minmax(0, 1fr) !important; }
       .owner-command-summary__metrics > div {
         border-left: 0 !important;
         border-top: 1px solid #e1e7e3;
@@ -582,6 +582,25 @@
       body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-profile-dropdown__email {
         overflow-wrap: anywhere;
         word-break: normal;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-setup.owner-portal-card {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        margin-inline: 0;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-setup__header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-setup__header > *,
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-setup__score {
+        min-width: 0;
+        max-width: 100%;
+      }
+      body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .owner-setup__score {
+        width: 100%;
+        text-align: left;
       }
       body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .pwa-status {
         right: calc(12px + env(safe-area-inset-right));
