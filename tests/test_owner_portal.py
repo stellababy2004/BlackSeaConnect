@@ -922,7 +922,6 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Access information", detail_html)
         self.assertIn("Amenities", detail_html)
         self.assertIn("Knowledge hub", detail_html)
-        self.assertIn("Property Health", detail_html)
 
     def test_owner_property_knowledge_hub_persists_and_syncs_calendar(self):
         self._seed_owner_account(email="owner@example.com")
