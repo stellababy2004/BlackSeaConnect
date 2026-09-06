@@ -863,7 +863,7 @@ class OwnerPortalTests(unittest.TestCase):
         self._login_owner_via_magic(seed_property=False)
 
         step_one_response = self.client.post(
-            "/owners/property/new",
+            "/owners/property/new?lang=en",
             data={
                 "wizard_step": "basic",
                 "name": "Sea View Villa",
@@ -890,7 +890,7 @@ class OwnerPortalTests(unittest.TestCase):
         property_id = property_rows[0]["id"]
 
         step_two_response = self.client.post(
-            "/owners/property/new",
+            "/owners/property/new?lang=en",
             data={
                 "wizard_step": "photos",
                 "property_id": property_id,
@@ -915,7 +915,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(assets["amenities"]["wifi"])
         self.assertEqual(assets["welcome_instructions"], "Please enjoy your stay.")
 
-        detail_response = self.client.get(f"/owners/properties/{property_id}")
+        detail_response = self.client.get(f"/owners/properties/{property_id}?lang=en")
         self.assertEqual(detail_response.status_code, 200)
         detail_html = detail_response.get_data(as_text=True)
         self.assertIn("Gallery", detail_html)
