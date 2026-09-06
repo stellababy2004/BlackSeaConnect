@@ -602,12 +602,28 @@
         width: 100%;
         text-align: left;
       }
+      .owner-onboarding-progress {
+        grid-template-areas:
+          "eyebrow"
+          "copy"
+          "meter"
+          "steps";
+      }
+      .owner-onboarding-progress > .owner-portal-card__eyebrow {
+        grid-area: eyebrow;
+      }
+      .owner-onboarding-progress > h2 {
+        grid-area: copy;
+        align-self: start;
+        margin: 0;
+      }
       body.owner-portal-page.owner-portal-dashboard-page.owner-dashboard-page .pwa-status {
         right: calc(12px + env(safe-area-inset-right));
-        bottom: calc(12px + env(safe-area-inset-bottom));
+        bottom: calc(72px + env(safe-area-inset-bottom));
         max-width: min(180px, calc(100vw - 24px));
-        min-height: 36px;
-        padding: 7px 10px;
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: .75rem;
       }
     }
     @media (max-width: 360px) {
