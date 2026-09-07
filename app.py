@@ -21,7 +21,7 @@ import time
 import urllib.error
 import urllib.request
 import urllib.parse
-from threading import Thread
+from threading import RLock, Thread
 from uuid import uuid4
 
 import click
@@ -10923,28 +10923,32 @@ def _is_service_request_archived(record):
     return bool(str((record or {}).get("archived_at", "")).strip())
 
 
+_SERVICE_REQUESTS_LOCK = RLock()
+
+
 def _load_service_requests(*, include_deleted=False, include_archived=False):
     path = SERVICE_REQUESTS_JSONL_PATH
     requests_list = []
 
-    if not path.exists():
-        app.logger.info("Loaded service requests: %s", len(requests_list))
-        return requests_list
+    with _SERVICE_REQUESTS_LOCK:
+        if not path.exists():
+            app.logger.info("Loaded service requests: %s", len(requests_list))
+            return requests_list
 
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
 
-            normalized = _normalize_service_request(record)
-            if normalized:
-                if _is_service_request_deleted(normalized) and not include_deleted:
-                    continue
-                if _is_service_request_archived(normalized) and not include_archived:
-                    continue
-                requests_list.append(normalized)
+                normalized = _normalize_service_request(record)
+                if normalized:
+                    if _is_service_request_deleted(normalized) and not include_deleted:
+                        continue
+                    if _is_service_request_archived(normalized) and not include_archived:
+                        continue
+                    requests_list.append(normalized)
 
     requests_list.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     app.logger.info("Loaded service requests: %s", len(requests_list))
@@ -10955,9 +10959,50 @@ def _save_service_requests(requests_list):
     data_dir = SERVICE_REQUESTS_JSONL_PATH.parent
     data_dir.mkdir(exist_ok=True)
     path = SERVICE_REQUESTS_JSONL_PATH
-    with path.open("w", encoding="utf-8") as f:
-        for record in requests_list:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    temp_path = path.with_suffix(path.suffix + ".tmp")
+
+    with _SERVICE_REQUESTS_LOCK:
+        existing_by_id = {
+            str(record.get("id", "")): record
+            for record in _load_service_requests(
+                include_deleted=True,
+                include_archived=True,
+            )
+            if str(record.get("id", "")).strip()
+        }
+
+        merged_requests = []
+        for source_record in requests_list:
+            record = dict(source_record)
+            request_id = str(record.get("id", "")).strip()
+            existing = existing_by_id.get(request_id)
+
+            if (
+                existing
+                and "ai_triage" not in record
+                and existing.get("ai_triage")
+            ):
+                record["ai_triage"] = existing["ai_triage"]
+                if existing.get("ai_triage_updated_at"):
+                    record["ai_triage_updated_at"] = existing[
+                        "ai_triage_updated_at"
+                    ]
+
+            merged_requests.append(record)
+
+        try:
+            with temp_path.open("w", encoding="utf-8") as f:
+                for record in merged_requests:
+                    f.write(
+                        json.dumps(record, ensure_ascii=False) + "\n"
+                    )
+            os.replace(temp_path, path)
+        finally:
+            if temp_path.exists():
+                try:
+                    temp_path.unlink()
+                except OSError:
+                    pass
 
 
 def _find_service_request(request_id, *, include_deleted=False, include_archived=False):
@@ -10965,6 +11010,87 @@ def _find_service_request(request_id, *, include_deleted=False, include_archived
         if str(record.get("id", "")) == str(request_id):
             return record
     return None
+
+
+def _store_service_request_ai_triage(request_id, ai_triage):
+    normalized = _normalize_ai_service_request_triage(ai_triage)
+    if not normalized:
+        return False
+
+    request_id = str(request_id or "").strip()
+    if not request_id:
+        return False
+
+    with _SERVICE_REQUESTS_LOCK:
+        requests_list = _load_service_requests(
+            include_deleted=True,
+            include_archived=True,
+        )
+
+        updated = False
+        for index, record in enumerate(requests_list):
+            if str(record.get("id", "")).strip() != request_id:
+                continue
+
+            updated_record = dict(record)
+            updated_record["ai_triage"] = normalized
+            updated_record["ai_triage_updated_at"] = _utc_now_iso()
+            requests_list[index] = updated_record
+            updated = True
+            break
+
+        if not updated:
+            return False
+
+        _save_service_requests(requests_list)
+
+    return True
+
+
+def _run_service_request_ai_triage(
+    request_id,
+    description,
+    current_category,
+    current_urgency,
+):
+    try:
+        ai_triage = _normalize_ai_service_request_triage(
+            _ai_service_request_triage(
+                description,
+                current_category=current_category,
+                current_urgency=current_urgency,
+            )
+        )
+        if not ai_triage:
+            return
+
+        _store_service_request_ai_triage(
+            request_id,
+            ai_triage,
+        )
+    except Exception:
+        app.logger.exception(
+            "Background AI triage failed for service request %s",
+            request_id,
+        )
+
+
+def _queue_service_request_ai_triage(
+    request_id,
+    description,
+    current_category,
+    current_urgency,
+):
+    Thread(
+        target=_run_service_request_ai_triage,
+        args=(
+            request_id,
+            description,
+            current_category,
+            current_urgency,
+        ),
+        daemon=True,
+    ).start()
 
 
 def _service_request_status_counts(requests_list):
@@ -15150,18 +15276,6 @@ def owners_request_service():
             if property_record and not form_values["property"]:
                 form_values["property"] = property_record.get("name", "")
 
-            ai_triage = None
-            try:
-                ai_triage = _normalize_ai_service_request_triage(
-                    _ai_service_request_triage(
-                        form_values["description"],
-                        current_category=form_values["category"],
-                        current_urgency=form_values["urgency"],
-                    )
-                )
-            except Exception:
-                ai_triage = None
-
             request_record = {
                 "id": uuid4().hex,
                 "created_at": _utc_now_iso(),
@@ -15195,8 +15309,6 @@ def owners_request_service():
                 "internal_notes": "",
                 "timeline": [],
             }
-            if ai_triage:
-                request_record["ai_triage"] = ai_triage
             _append_service_request_timeline_event(
                 request_record,
                 "SERVICE_REQUEST_CREATED",
@@ -15206,8 +15318,24 @@ def owners_request_service():
             )
 
             SERVICE_REQUESTS_JSONL_PATH.parent.mkdir(exist_ok=True)
-            with SERVICE_REQUESTS_JSONL_PATH.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(request_record, ensure_ascii=False) + "\n")
+            with _SERVICE_REQUESTS_LOCK:
+                with SERVICE_REQUESTS_JSONL_PATH.open(
+                    "a",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(
+                        json.dumps(
+                            request_record,
+                            ensure_ascii=False,
+                        ) + "\n"
+                    )
+
+            _queue_service_request_ai_triage(
+                request_record["id"],
+                form_values["description"],
+                form_values["category"],
+                form_values["urgency"],
+            )
 
             global _OWNER_DB_BACKFILL_SUPPRESSED
             previous_state = _OWNER_DB_BACKFILL_SUPPRESSED
