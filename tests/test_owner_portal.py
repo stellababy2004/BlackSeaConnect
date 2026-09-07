@@ -3142,6 +3142,63 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("admin-request-detail-description", admin_html)
         self.assertIn("admin-request-detail-timeline", admin_html)
 
+    def test_admin_service_request_detail_shows_ai_triage_when_present(self):
+        request_record = self._demo_owner_request(
+            service_category="Airport Transfer",
+            urgency="Standard",
+            ai_triage={
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "Active water leak under kitchen sink.",
+                "suggested_next_action": "Review and arrange qualified maintenance inspection.",
+                "confidence": 0.8,
+                "needs_human_review": True,
+            },
+        )
+        self._seed_jsonl("service_requests.jsonl", [request_record])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get(
+                "/admin/service-requests/owner-request-1",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        self.assertIn("admin-request-ai-triage", html)
+        self.assertIn("AI recommendation for human review", html)
+        self.assertIn("Human review required", html)
+        self.assertIn("Maintenance", html)
+        self.assertIn("High urgency", html)
+        self.assertIn("80% confidence", html)
+        self.assertIn("Owner selected", html)
+        self.assertIn("AI recommendation", html)
+        self.assertIn("Active water leak under kitchen sink.", html)
+        self.assertIn(
+            "Review and arrange qualified maintenance inspection.",
+            html,
+        )
+
+        self._seed_jsonl(
+            "service_requests.jsonl",
+            [self._demo_owner_request()],
+        )
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response_without_ai = self.client.get(
+                "/admin/service-requests/owner-request-1",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response_without_ai.status_code, 200)
+        html_without_ai = response_without_ai.get_data(as_text=True)
+        self.assertNotIn(
+            '<section class="admin-request-ai-triage" aria-label="AI service request triage">',
+            html_without_ai,
+        )
+        self.assertNotIn("AI recommendation for human review", html_without_ai)
+
     def test_public_owner_ctas_are_visible(self):
         response_home = self.client.get("/")
         response_services = self.client.get("/services")
