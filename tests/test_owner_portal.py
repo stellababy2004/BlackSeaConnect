@@ -3777,6 +3777,84 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(record["status"], "new")
         self.assertNotIn("ai_triage", record)
 
+    def test_ai_service_request_triage_prompt_contains_quality_guardrails(self):
+        captured = {}
+
+        class FakeHTTPResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                return False
+
+            def read(self):
+                response = {
+                    "response": json.dumps({
+                        "category": "Maintenance",
+                        "urgency": "Standard",
+                        "summary": "Air conditioner is not cooling.",
+                        "suggested_next_action": "Schedule an inspection.",
+                        "summary_bg": "\\u041a\\u043b\\u0438\\u043c\\u0430\\u0442\\u0438\\u043a\\u044a\\u0442 \\u043d\\u0435 \\u043e\\u0445\\u043b\\u0430\\u0436\\u0434\\u0430.",
+                        "suggested_next_action_bg": "\\u041e\\u0440\\u0433\\u0430\\u043d\\u0438\\u0437\\u0438\\u0440\\u0430\\u0439\\u0442\\u0435 \\u043f\\u0440\\u043e\\u0432\\u0435\\u0440\\u043a\\u0430.",
+                        "summary_fr": "Le climatiseur ne refroidit pas.",
+                        "suggested_next_action_fr": "Organisez une verification.",
+                        "confidence": 0.9,
+                    }, ensure_ascii=False)
+                }
+                return json.dumps(response, ensure_ascii=False).encode("utf-8")
+
+        def fake_urlopen(request, timeout=None):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            captured["timeout"] = timeout
+            return FakeHTTPResponse()
+
+        with patch.dict(
+            os.environ,
+            {
+                "AI_SERVICE_REQUEST_TRIAGE_ENABLED": "1",
+                "OLLAMA_BASE_URL": "http://localhost:11434",
+                "OLLAMA_MODEL": "gemma3:4b",
+            },
+            clear=False,
+        ), patch(
+            "urllib.request.urlopen",
+            side_effect=fake_urlopen,
+        ):
+            result = app_module._ai_service_request_triage(
+                "The air conditioner is running but it is not cooling the apartment.",
+                current_category="Maintenance",
+                current_urgency="Standard",
+            )
+
+        self.assertIsInstance(result, dict)
+
+        prompt = captured["body"]["prompt"]
+
+        self.assertIn(
+            "should normally be Standard, not High",
+            prompt,
+        )
+        self.assertIn(
+            "Never infer property damage merely from lack of cooling",
+            prompt,
+        )
+        self.assertIn(
+            "Keep suggested-action timing consistent with urgency",
+            prompt,
+        )
+        self.assertIn(
+            "Use correct Bulgarian grammar",
+            prompt,
+        )
+        self.assertIn(
+            "Avoid enqueter for a technical fault",
+            prompt,
+        )
+        self.assertIn(
+            "Never translate those enum values",
+            prompt,
+        )
+
     def test_ai_service_request_triage_parses_ollama_response(self):
         class FakeHTTPResponse:
             def __enter__(self):
