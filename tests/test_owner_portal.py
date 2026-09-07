@@ -3622,6 +3622,129 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(record["ai_triage"]["confidence"], 0.93)
         self.assertTrue(record["ai_triage"]["needs_human_review"])
 
+    def test_owner_service_request_does_not_wait_for_ai_triage(self):
+        self._login_owner_via_magic()
+
+        import threading
+        import time
+
+        ai_started = threading.Event()
+        ai_release = threading.Event()
+
+        def slow_ai_triage(*args, **kwargs):
+            ai_started.set()
+            ai_release.wait(timeout=5)
+            return {
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "Delayed AI summary.",
+                "suggested_next_action": "Delayed AI action.",
+                "confidence": 0.91,
+            }
+
+        try:
+            with patch(
+                "app._ai_service_request_triage",
+                side_effect=slow_ai_triage,
+            ), patch.dict(
+                os.environ,
+                self.SMTP_ENV,
+                clear=True,
+            ), patch(
+                "app.smtplib.SMTP",
+                FakeSMTP,
+            ), patch(
+                "app.smtplib.SMTP_SSL",
+                FakeSMTP,
+            ):
+                started_at = time.monotonic()
+                response = self.client.post(
+                    "/owners/request-service",
+                    data=self._service_request_payload(),
+                )
+                elapsed = time.monotonic() - started_at
+
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(ai_started.wait(timeout=1))
+            self.assertLess(
+                elapsed,
+                1.0,
+                msg=f"Owner POST waited {elapsed:.2f}s for background AI.",
+            )
+
+            record = self._read_jsonl("service_requests.jsonl")[0]
+            self.assertNotIn("ai_triage", record)
+        finally:
+            ai_release.set()
+
+
+    def test_background_ai_triage_updates_existing_request_safely(self):
+        request_record = self._demo_owner_request(
+            id="owner-request-async-ai",
+            service_category="Airport Transfer",
+            urgency="Standard",
+            internal_notes="Keep this admin note.",
+        )
+        self._seed_jsonl(
+            "service_requests.jsonl",
+            [request_record],
+        )
+
+        ai_result = {
+            "category": "Maintenance",
+            "urgency": "High",
+            "summary": "Background AI summary.",
+            "suggested_next_action": "Background AI action.",
+            "confidence": 0.89,
+        }
+
+        with patch(
+            "app._ai_service_request_triage",
+            return_value=ai_result,
+        ):
+            app_module._run_service_request_ai_triage(
+                "owner-request-async-ai",
+                "Water is leaking under the sink.",
+                "Airport Transfer",
+                "Standard",
+            )
+
+        records = self._read_jsonl("service_requests.jsonl")
+        self.assertEqual(len(records), 1)
+
+        record = records[0]
+        self.assertEqual(
+            record["internal_notes"],
+            "Keep this admin note.",
+        )
+        self.assertEqual(
+            record["service_category"],
+            "Airport Transfer",
+        )
+        self.assertEqual(
+            record["urgency"],
+            "Standard",
+        )
+        self.assertEqual(
+            record["ai_triage"]["category"],
+            "Maintenance",
+        )
+        self.assertEqual(
+            record["ai_triage"]["urgency"],
+            "High",
+        )
+        self.assertEqual(
+            record["ai_triage"]["confidence"],
+            0.89,
+        )
+        self.assertTrue(
+            record["ai_triage"]["needs_human_review"]
+        )
+        self.assertTrue(
+            record.get("ai_triage_updated_at")
+        )
+
+
     def test_owner_service_request_survives_ai_failure(self):
         self._login_owner_via_magic()
 
