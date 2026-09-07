@@ -1543,7 +1543,7 @@
                 {% if item.time_key %}
                   <time class="owner-timeline-item__time" data-i18n="{{ item.time_key }}">{{ item.time|e }}</time>
                 {% else %}
-                  <time class="owner-timeline-item__time" data-owner-datetime="{{ item.time|e }}">{{ item.time|e }}</time>
+                  <time class="owner-timeline-item__time" datetime="{{ item.time|e }}">{{ format_local_datetime(item.time, page_lang) }}</time>
                 {% endif %}
                 <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
                 <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
