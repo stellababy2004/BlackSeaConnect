@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Owner Accounts</title>
+  <title data-i18n="ownerAccountsPageTitle">BlackSea Connect | Акаунти на собственици</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-owner-accounts-page {
@@ -204,6 +204,18 @@
       background: rgba(31, 41, 55, 0.06);
       color: #1f2937;
     }
+    .admin-owner-accounts-chip--new {
+      flex: 0 0 auto;
+      background: #116466;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(17, 100, 102, 0.22);
+    }
+    .admin-owner-account-card__badges {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
     .admin-owner-account-card__footer {
       display: flex;
       flex-wrap: wrap;
@@ -249,20 +261,20 @@
       <div class="admin-owner-accounts-hero">
         <div>
           <span class="admin-owner-accounts-chip">Admin</span>
-          <span class="admin-owner-accounts-chip">CRM на собственици</span>
-          <h1>Акаунти на собственици</h1>
-          <p class="admin-owner-accounts-copy">
+          <span class="admin-owner-accounts-chip" data-i18n="ownerAccountsCrm">CRM на собственици</span>
+          <h1 data-i18n="pageOwnerAccounts">Акаунти на собственици</h1>
+          <p class="admin-owner-accounts-copy" data-i18n="ownerAccountsIntro">
             Търсете собственици, преглеждайте профили и управлявайте бележки, статуси и история на активността.
           </p>
         </div>
         <div class="admin-owner-accounts-actions" style="margin-top:0;">
-          <a class="admin-owner-accounts-button" href="/admin/recycle-bin">Recycle bin</a>
-          <a class="admin-owner-accounts-button" href="/admin">Back to cockpit</a>
+          <a class="admin-owner-accounts-button" href="/admin/recycle-bin" data-i18n="recycleBin">Кошче</a>
+          <a class="admin-owner-accounts-button" href="/admin" data-i18n="backToCockpit">Назад към управленския панел</a>
         </div>
       </div>
       <p class="admin-owner-accounts-summary">
-        <span><strong>{{ owner_accounts_count }}</strong> показани</span>
-        <span data-testid="owner-total-count"><strong>{{ owner_accounts_total_count }}</strong> общо</span>
+        <span><strong>{{ owner_accounts_count }}</strong> <span data-i18n="shown">показани</span></span>
+        <span data-testid="owner-total-count"><strong>{{ owner_accounts_total_count }}</strong> <span data-i18n="total">общо</span></span>
 
       </p>
       {% if request.args.get('seeded') == '1' %}
@@ -278,22 +290,23 @@
       <form method="get" action="{{ url_for('admin_owner_accounts') }}">
         <div class="admin-owner-accounts-filters">
           <label class="admin-owner-accounts-filter-field">
-            <span>Search</span>
-            <input type="search" name="q" value="{{ search_query|e }}" placeholder="Name, email, city">
+            <span data-i18n="search">Търсене</span>
+            <input type="search" name="q" value="{{ search_query|e }}" placeholder="Име, имейл, град" data-i18n-attr="placeholder:ownerAccountsSearchPlaceholder">
           </label>
           <label class="admin-owner-accounts-filter-field">
-            <span>Status</span>
+            <span data-i18n="status">Статус</span>
             <select name="status">
-              <option value="">All statuses</option>
+              <option value="" data-i18n="allStatuses">Всички статуси</option>
               {% for option in owner_status_options %}
-                <option value="{{ option|lower|e }}" {% if status_filter|lower == option|lower %}selected{% endif %}>{{ option|title|e }}</option>
+                {% set status_key = 'statusActive' if option == 'ACTIVE' else 'statusInactive' if option == 'INACTIVE' else 'statusArchived' if option == 'ARCHIVED' else 'statusPilot' %}
+                <option value="{{ option|lower|e }}" {% if status_filter|lower == option|lower %}selected{% endif %} data-i18n="{{ status_key }}">{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-owner-accounts-filter-field">
-            <span>Language</span>
+            <span data-i18n="language">Език</span>
             <select name="language">
-              <option value="">Всички езици</option>
+              <option value="" data-i18n="allLanguages">Всички езици</option>
               {% for option in owner_language_options %}
                 <option value="{{ option|e }}" {% if language_filter|lower == option|lower %}selected{% endif %}>{{ option|upper|e }}</option>
               {% endfor %}
@@ -301,13 +314,13 @@
           </label>
         </div>
         <div class="admin-owner-accounts-filter-actions">
-          <button class="admin-owner-accounts-button" type="submit">Apply filters</button>
-          <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}">Reset</a>
+          <button class="admin-owner-accounts-button" type="submit" data-i18n="applyFilters">Приложи филтрите</button>
+          <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}" data-i18n="reset">Изчисти</a>
         </div>
       </form>
 
       {% if owner_accounts %}
-        <div class="admin-owner-accounts-grid" aria-label="Owner accounts">
+        <div class="admin-owner-accounts-grid" aria-label="Акаунти на собственици" data-i18n-attr="aria-label:pageOwnerAccounts">
           {% for account in owner_accounts %}
             <a class="admin-owner-account-card" href="/admin/owner-accounts/{{ account.id|e }}" data-search="{{ (account.full_name ~ ' ' ~ account.email ~ ' ' ~ account.city ~ ' ' ~ account.property_name ~ ' ' ~ account.property_type ~ ' ' ~ account.status ~ ' ' ~ account.language)|lower|e }}">
               <div class="admin-owner-account-card__topline">
@@ -318,39 +331,45 @@
                     <span>{{ account.phone|e }}</span>
                   </div>
                 </div>
-                <span class="admin-owner-accounts-chip admin-owner-accounts-chip--status">{{ account.status|upper|e }}</span>
+                <div class="admin-owner-account-card__badges">
+                  {% if account.is_new_for_admin %}
+                    <span class="admin-owner-accounts-chip admin-owner-accounts-chip--new" data-testid="new-owner-badge" data-i18n="newOwnerBadge">НОВ</span>
+                  {% endif %}
+                  {% set account_status_key = 'statusActive' if account.status == 'ACTIVE' else 'statusInactive' if account.status == 'INACTIVE' else 'statusArchived' if account.status == 'ARCHIVED' else 'statusPilot' %}
+                  <span class="admin-owner-accounts-chip admin-owner-accounts-chip--status" data-i18n="{{ account_status_key }}">{{ account.status|upper|e }}</span>
+                </div>
               </div>
               <dl class="admin-owner-account-card__details">
                 <div class="admin-owner-account-card__detail">
-                  <dt>Property count</dt>
+                  <dt data-i18n="propertyCount">Брой имоти</dt>
                   <dd>{{ account.property_count }}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt>Created at</dt>
+                  <dt data-i18n="createdAt">Дата на създаване</dt>
                   <dd>{{ account.created_at|e }}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt>Last login</dt>
-                  <dd>{% if account.last_login_at %}{{ account.last_login_at|e }}{% else %}n/a{% endif %}</dd>
+                  <dt data-i18n="lastLogin">Последен вход</dt>
+                  <dd>{% if account.last_login_at %}{{ account.last_login_at|e }}{% else %}<span data-i18n="notAvailable">няма данни</span>{% endif %}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt>City</dt>
+                  <dt data-i18n="city">Град</dt>
                   <dd>{{ account.city|e }}</dd>
                 </div>
               </dl>
               <div class="admin-owner-account-card__footer">
                 <span class="admin-owner-accounts-chip">{{ account.language|upper|e }}</span>
-                <span class="admin-owner-account-card__link">Отвори профила</span>
+                <span class="admin-owner-account-card__link" data-i18n="openProfile">Отвори профила</span>
               </div>
             </a>
           {% endfor %}
         </div>
       {% else %}
-        <p class="admin-owner-accounts-empty">No owner accounts found.</p>
+        <p class="admin-owner-accounts-empty" data-i18n="noOwnerAccountsFound">Няма намерени акаунти на собственици.</p>
       {% endif %}
 
       <form class="admin-owner-accounts-actions" method="post" action="{{ url_for('admin_seed_owner') }}">
-        <button class="admin-owner-accounts-button" type="submit">Seed Stella Account</button>
+        <button class="admin-owner-accounts-button" type="submit" data-i18n="seedStellaAccount">Създай тестов акаунт на Stella</button>
       </form>
     </section>
   </main>

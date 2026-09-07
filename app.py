@@ -1678,6 +1678,7 @@ def _normalize_owner_account(record):
         "notes",
         "internal_notes",
         "last_login_at",
+        "admin_seen_at",
         "organization_id",
     ):
         normalized[field] = str(normalized.get(field, "")).strip()
@@ -2449,6 +2450,7 @@ def _ensure_owner_account_schema(conn):
         "language": f"TEXT NOT NULL DEFAULT '{OWNER_LANGUAGE_DEFAULT}'",
         "last_login_at": "TEXT NOT NULL DEFAULT ''",
         "internal_notes": "TEXT NOT NULL DEFAULT ''",
+        "admin_seen_at": "TEXT NOT NULL DEFAULT '1970-01-01T00:00:00Z'",
         "organization_id": f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'",
     }
     for column_name, column_sql in required_columns.items():
@@ -5146,7 +5148,7 @@ def _seed_operations_task_backfill(conn):
 
     owner_account_rows = conn.execute(
         """
-        SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+        SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
         FROM owner_accounts
         ORDER BY created_at DESC, email DESC
         """
@@ -5400,7 +5402,8 @@ def _ensure_owner_db_schema(conn):
                 status TEXT NOT NULL DEFAULT 'PILOT',
                 language TEXT NOT NULL DEFAULT 'bg',
                 last_login_at TEXT NOT NULL DEFAULT '',
-                internal_notes TEXT NOT NULL DEFAULT ''
+                internal_notes TEXT NOT NULL DEFAULT '',
+                admin_seen_at TEXT NOT NULL DEFAULT '1970-01-01T00:00:00Z'
             )
             """
         )
@@ -5713,6 +5716,7 @@ def _ensure_enterprise_schema(conn):
         )
 
     _ensure_table_column(conn, "owner_accounts", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
+    _ensure_table_column(conn, "owner_accounts", "admin_seen_at", "TEXT NOT NULL DEFAULT '1970-01-01T00:00:00Z'")
     _ensure_table_column(conn, "owner_properties", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
     _ensure_table_column(conn, "reservations", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
     _ensure_table_column(conn, "operations_tasks", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
@@ -5804,6 +5808,7 @@ def _owner_account_from_row(row):
         "language": _normalize_owner_language(row["language"] if "language" in row.keys() else OWNER_LANGUAGE_DEFAULT) or OWNER_LANGUAGE_DEFAULT,
         "last_login_at": str(row["last_login_at"]) if "last_login_at" in row.keys() else "",
         "internal_notes": str(row["internal_notes"]) if "internal_notes" in row.keys() else "",
+        "admin_seen_at": str(row["admin_seen_at"]) if "admin_seen_at" in row.keys() else "1970-01-01T00:00:00Z",
         "organization_id": str(row["organization_id"]) if "organization_id" in row.keys() else GLOBAL_ORGANIZATION_ID,
     }
 
@@ -8758,8 +8763,8 @@ def _import_owner_accounts_jsonl(conn):
             conn.execute(
                 """
                 INSERT INTO owner_accounts (
-                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(email) DO UPDATE SET
                     id = excluded.id,
                     created_at = excluded.created_at,
@@ -8790,6 +8795,7 @@ def _import_owner_accounts_jsonl(conn):
                     normalized["language"],
                     normalized["last_login_at"],
                     normalized["internal_notes"],
+                    normalized["admin_seen_at"] or _utc_now_iso(),
                 ),
             )
 
@@ -8979,7 +8985,7 @@ def _load_owner_accounts():
         _migrate_owner_jsonl_backups(conn)
         rows = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
             FROM owner_accounts
             ORDER BY created_at DESC, email DESC
             """
@@ -9004,8 +9010,8 @@ def _save_owner_accounts(accounts):
                 conn.execute(
                     """
                     INSERT INTO owner_accounts (
-                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         normalized["email"],
@@ -9022,6 +9028,7 @@ def _save_owner_accounts(accounts):
                         normalized["language"],
                         normalized["last_login_at"],
                         normalized["internal_notes"],
+                        normalized["admin_seen_at"] or _utc_now_iso(),
                         normalized["organization_id"],
                     ),
                 )
@@ -9047,7 +9054,7 @@ def _find_owner_account_by_email(email):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
             FROM owner_accounts
             WHERE email = ?
             LIMIT 1
@@ -9070,7 +9077,7 @@ def _find_owner_account(account_id):
         _migrate_owner_jsonl_backups(conn)
         row = conn.execute(
             """
-            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
+            SELECT email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
             FROM owner_accounts
             WHERE id = ?
             ORDER BY created_at DESC
@@ -9082,6 +9089,29 @@ def _find_owner_account(account_id):
     if row:
         return _owner_account_from_row(row)
     return _demo_record_index("owner_accounts").get(target_account_id)
+
+
+def _mark_owner_account_admin_seen(owner_id):
+    target_owner_id = str(owner_id or "").strip()
+    if not target_owner_id:
+        return False
+
+    try:
+        with _owner_db_connection() as conn:
+            _ensure_owner_db_schema(conn)
+            _migrate_owner_jsonl_backups(conn)
+            cursor = conn.execute(
+                """
+                UPDATE owner_accounts
+                SET admin_seen_at = ?
+                WHERE id = ? AND admin_seen_at = ''
+                """,
+                (_utc_now_iso(), target_owner_id),
+            )
+            return cursor.rowcount > 0
+    except Exception as exc:
+        app.logger.warning("Owner account admin seen update failed for %s: %s", target_owner_id, type(exc).__name__)
+        return False
 
 
 def _upsert_owner_account(record):
@@ -9104,11 +9134,14 @@ def _upsert_owner_account(record):
             normalized["language"] = _normalize_owner_language(record.get("language", existing_account.get("language", OWNER_LANGUAGE_DEFAULT))) or existing_account.get("language", OWNER_LANGUAGE_DEFAULT)
             normalized["last_login_at"] = str(record.get("last_login_at", existing_account.get("last_login_at", ""))).strip()
             normalized["internal_notes"] = str(record.get("internal_notes", existing_account.get("internal_notes", ""))).strip()
+            normalized["admin_seen_at"] = str(record.get("admin_seen_at", existing_account.get("admin_seen_at", "1970-01-01T00:00:00Z"))).strip()
         else:
             normalized["status"] = _normalize_owner_status(normalized.get("status", OWNER_STATUS_DEFAULT))
             normalized["language"] = _normalize_owner_language(normalized.get("language", OWNER_LANGUAGE_DEFAULT)) or OWNER_LANGUAGE_DEFAULT
             normalized["last_login_at"] = str(normalized.get("last_login_at", "")).strip()
             normalized["internal_notes"] = str(normalized.get("internal_notes", "")).strip()
+            if "admin_seen_at" not in record:
+                normalized["admin_seen_at"] = _utc_now_iso()
 
         try:
             with _owner_db_connection() as conn:
@@ -9117,8 +9150,8 @@ def _upsert_owner_account(record):
                 conn.execute(
                     """
                     INSERT INTO owner_accounts (
-                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, organization_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        email, id, created_at, full_name, phone, property_type, city, property_name, number_of_units, notes, status, language, last_login_at, internal_notes, admin_seen_at, organization_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(email) DO UPDATE SET
                         id = excluded.id,
                         created_at = excluded.created_at,
@@ -9150,6 +9183,7 @@ def _upsert_owner_account(record):
                         normalized["language"],
                         normalized["last_login_at"],
                         normalized["internal_notes"],
+                        normalized["admin_seen_at"],
                         normalized["organization_id"],
                     ),
                 )
@@ -13971,6 +14005,7 @@ def owners_register():
                 "notes": form_values["notes"],
                 "language": current_lang,
                 "status": OWNER_STATUS_DEFAULT,
+                "admin_seen_at": "" if not existing_account else existing_account.get("admin_seen_at", "1970-01-01T00:00:00Z"),
             }
             saved_account = _upsert_owner_account(account)
             if saved_account:
@@ -18342,6 +18377,7 @@ def admin_owner_accounts():
         filtered_owner_accounts.append({
             **owner_account,
             "property_count": len(owner_properties),
+            "is_new_for_admin": not owner_account.get("is_demo") and not bool(str(owner_account.get("admin_seen_at", "")).strip()),
         })
 
     return render_template(
@@ -18364,6 +18400,8 @@ def admin_owner_account_detail(owner_id):
     owner_account = _find_owner_account(owner_id)
     if not owner_account:
         return Response("Owner account not found.", status=404, mimetype="text/plain")
+    _mark_owner_account_admin_seen(owner_account.get("id", owner_id))
+    owner_account = _find_owner_account(owner_id) or owner_account
 
     properties = _admin_owner_account_properties(owner_account.get("id", ""))
     service_requests = _admin_owner_account_service_requests(owner_account)
