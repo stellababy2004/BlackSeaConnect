@@ -3142,6 +3142,63 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("admin-request-detail-description", admin_html)
         self.assertIn("admin-request-detail-timeline", admin_html)
 
+    def test_admin_service_request_detail_shows_ai_triage_when_present(self):
+        request_record = self._demo_owner_request(
+            service_category="Airport Transfer",
+            urgency="Standard",
+            ai_triage={
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "Active water leak under kitchen sink.",
+                "suggested_next_action": "Review and arrange qualified maintenance inspection.",
+                "confidence": 0.8,
+                "needs_human_review": True,
+            },
+        )
+        self._seed_jsonl("service_requests.jsonl", [request_record])
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response = self.client.get(
+                "/admin/service-requests/owner-request-1",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        self.assertIn("admin-request-ai-triage", html)
+        self.assertIn("AI recommendation for human review", html)
+        self.assertIn("Human review required", html)
+        self.assertIn("Maintenance", html)
+        self.assertIn("High urgency", html)
+        self.assertIn("80% confidence", html)
+        self.assertIn("Owner selected", html)
+        self.assertIn("AI recommendation", html)
+        self.assertIn("Active water leak under kitchen sink.", html)
+        self.assertIn(
+            "Review and arrange qualified maintenance inspection.",
+            html,
+        )
+
+        self._seed_jsonl(
+            "service_requests.jsonl",
+            [self._demo_owner_request()],
+        )
+
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
+            response_without_ai = self.client.get(
+                "/admin/service-requests/owner-request-1",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response_without_ai.status_code, 200)
+        html_without_ai = response_without_ai.get_data(as_text=True)
+        self.assertNotIn(
+            '<section class="admin-request-ai-triage" aria-label="AI service request triage">',
+            html_without_ai,
+        )
+        self.assertNotIn("AI recommendation for human review", html_without_ai)
+
     def test_public_owner_ctas_are_visible(self):
         response_home = self.client.get("/")
         response_services = self.client.get("/services")
@@ -3263,6 +3320,253 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertEqual(actual["homeTitle"], expected["homeTitle"])
                 self.assertEqual(actual["homePrimaryCta"], expected["homePrimaryCta"])
                 self.assertEqual(actual["navApply"], expected["navApply"])
+
+    def test_ai_service_request_triage_normalizes_valid_payload(self):
+        result = app_module._normalize_ai_service_request_triage({
+            "category": "maintenance",
+            "urgency": "High",
+            "summary": "Water is leaking from the boiler.",
+            "suggested_next_action": "Request photos and arrange a technician inspection.",
+            "confidence": 0.91,
+        })
+
+        self.assertEqual(result["category"], "Maintenance")
+        self.assertEqual(result["urgency"], "High")
+        self.assertEqual(result["summary"], "Water is leaking from the boiler.")
+        self.assertEqual(
+            result["suggested_next_action"],
+            "Request photos and arrange a technician inspection.",
+        )
+        self.assertEqual(result["confidence"], 0.91)
+        self.assertTrue(result["needs_human_review"])
+
+    def test_ai_service_request_triage_rejects_invalid_category_or_urgency(self):
+        invalid_category = app_module._normalize_ai_service_request_triage({
+            "category": "Plumbing",
+            "urgency": "High",
+            "summary": "Leak detected.",
+            "suggested_next_action": "Inspect the property.",
+            "confidence": 0.8,
+        })
+        invalid_urgency = app_module._normalize_ai_service_request_triage({
+            "category": "Maintenance",
+            "urgency": "Critical",
+            "summary": "Leak detected.",
+            "suggested_next_action": "Inspect the property.",
+            "confidence": 0.8,
+        })
+
+        self.assertIsNone(invalid_category)
+        self.assertIsNone(invalid_urgency)
+
+    def test_ai_service_request_triage_clamps_confidence_and_requires_text(self):
+        result = app_module._normalize_ai_service_request_triage({
+            "category": "Cleaning",
+            "urgency": "Standard",
+            "summary": "Apartment needs cleaning.",
+            "suggested_next_action": "Schedule cleaning.",
+            "confidence": 4.2,
+        })
+        missing_summary = app_module._normalize_ai_service_request_triage({
+            "category": "Cleaning",
+            "urgency": "Standard",
+            "summary": "",
+            "suggested_next_action": "Schedule cleaning.",
+            "confidence": "invalid",
+        })
+
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertIsNone(missing_summary)
+
+    def test_ai_service_request_triage_is_optional_without_provider(self):
+        result = app_module._ai_service_request_triage(
+            "There is water leaking under the kitchen sink.",
+            current_category="Maintenance",
+            current_urgency="Standard",
+        )
+
+        self.assertIsNone(result)
+
+    def test_owner_service_request_saves_valid_ai_triage(self):
+        self._login_owner_via_magic()
+
+        ai_result = {
+            "category": "Maintenance",
+            "urgency": "High",
+            "summary": "Water is leaking under the kitchen sink.",
+            "suggested_next_action": "Request photos and arrange a technician inspection.",
+            "confidence": 0.93,
+        }
+
+        with patch(
+            "app._ai_service_request_triage",
+            return_value=ai_result,
+        ), patch.dict(
+            os.environ,
+            self.SMTP_ENV,
+            clear=True,
+        ), patch(
+            "app.Thread",
+            ImmediateThread,
+        ), patch(
+            "app.smtplib.SMTP",
+            FakeSMTP,
+        ), patch(
+            "app.smtplib.SMTP_SSL",
+            FakeSMTP,
+        ):
+            response = self.client.post(
+                "/owners/request-service",
+                data=self._service_request_payload(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        record = self._read_jsonl("service_requests.jsonl")[0]
+        self.assertIn("ai_triage", record)
+        self.assertEqual(record["ai_triage"]["category"], "Maintenance")
+        self.assertEqual(record["ai_triage"]["urgency"], "High")
+        self.assertEqual(record["ai_triage"]["confidence"], 0.93)
+        self.assertTrue(record["ai_triage"]["needs_human_review"])
+
+    def test_owner_service_request_survives_ai_failure(self):
+        self._login_owner_via_magic()
+
+        with patch(
+            "app._ai_service_request_triage",
+            side_effect=RuntimeError("AI unavailable"),
+        ), patch.dict(
+            os.environ,
+            self.SMTP_ENV,
+            clear=True,
+        ), patch(
+            "app.Thread",
+            ImmediateThread,
+        ), patch(
+            "app.smtplib.SMTP",
+            FakeSMTP,
+        ), patch(
+            "app.smtplib.SMTP_SSL",
+            FakeSMTP,
+        ):
+            response = self.client.post(
+                "/owners/request-service",
+                data=self._service_request_payload(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        record = self._read_jsonl("service_requests.jsonl")[0]
+        self.assertEqual(record["request_source"], "owner")
+        self.assertEqual(record["status"], "new")
+        self.assertNotIn("ai_triage", record)
+
+    def test_ai_service_request_triage_parses_ollama_response(self):
+        class FakeHTTPResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                return False
+
+            def read(self):
+                return (
+                    b'{"response":"'
+                    b'{\\\"category\\\":\\\"Maintenance\\\",'
+                    b'\\\"urgency\\\":\\\"High\\\",'
+                    b'\\\"summary\\\":\\\"Water is leaking under the sink.\\\",'
+                    b'\\\"suggested_next_action\\\":'
+                    b'\\\"Recommend arranging a technician inspection.\\\",'
+                    b'\\\"confidence\\\":0.94}'
+                    b'"}'
+                )
+
+        with patch.dict(
+            os.environ,
+            {
+                "AI_SERVICE_REQUEST_TRIAGE_ENABLED": "1",
+                "OLLAMA_BASE_URL": "http://localhost:11434",
+                "OLLAMA_MODEL": "gemma3:4b",
+            },
+            clear=False,
+        ), patch(
+            "urllib.request.urlopen",
+            return_value=FakeHTTPResponse(),
+        ):
+            result = app_module._ai_service_request_triage(
+                "There is water leaking under the kitchen sink.",
+                current_category="Maintenance",
+                current_urgency="Standard",
+            )
+
+        self.assertEqual(result["category"], "Maintenance")
+        self.assertEqual(result["urgency"], "High")
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(
+            result["suggested_next_action"],
+            "Recommend arranging a technician inspection.",
+        )
+
+    def test_owner_service_request_uses_ollama_triage_end_to_end(self):
+        self._login_owner_via_magic()
+
+        class FakeHTTPResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                return False
+
+            def read(self):
+                return (
+                    b'{"response":"'
+                    b'{\\\"category\\\":\\\"Maintenance\\\",'
+                    b'\\\"urgency\\\":\\\"High\\\",'
+                    b'\\\"summary\\\":\\\"Active leak under kitchen sink.\\\",'
+                    b'\\\"suggested_next_action\\\":'
+                    b'\\\"Recommend arranging a technician inspection.\\\",'
+                    b'\\\"confidence\\\":0.88}'
+                    b'"}'
+                )
+
+        with patch.dict(
+            os.environ,
+            {
+                "AI_SERVICE_REQUEST_TRIAGE_ENABLED": "1",
+                "OLLAMA_BASE_URL": "http://localhost:11434",
+                "OLLAMA_MODEL": "gemma3:4b",
+            },
+            clear=False,
+        ), patch(
+            "urllib.request.urlopen",
+            return_value=FakeHTTPResponse(),
+        ), patch.dict(
+            os.environ,
+            self.SMTP_ENV,
+            clear=False,
+        ), patch(
+            "app.Thread",
+            ImmediateThread,
+        ), patch(
+            "app.smtplib.SMTP",
+            FakeSMTP,
+        ), patch(
+            "app.smtplib.SMTP_SSL",
+            FakeSMTP,
+        ):
+            response = self.client.post(
+                "/owners/request-service",
+                data=self._service_request_payload(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        record = self._read_jsonl("service_requests.jsonl")[0]
+        self.assertIn("ai_triage", record)
+        self.assertEqual(record["ai_triage"]["category"], "Maintenance")
+        self.assertEqual(record["ai_triage"]["urgency"], "High")
+        self.assertEqual(record["ai_triage"]["confidence"], 0.88)
+        self.assertTrue(record["ai_triage"]["needs_human_review"])
 
     def test_owner_service_request_creation_saves_and_emails(self):
         self._login_owner_via_magic()

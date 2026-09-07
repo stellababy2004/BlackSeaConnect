@@ -1117,6 +1117,153 @@ def _normalize_owner_service_category(category):
     return title_case if title_case in OWNER_SERVICE_CATEGORIES else ""
 
 
+AI_SERVICE_REQUEST_URGENCIES = (
+    "Low",
+    "Standard",
+    "High",
+    "Same day",
+)
+
+
+def _normalize_ai_service_request_triage(payload):
+    if not isinstance(payload, dict):
+        return None
+
+    category = _normalize_owner_service_category(payload.get("category"))
+    urgency = str(payload.get("urgency", "")).strip()
+    summary = str(payload.get("summary", "")).strip()
+    suggested_next_action = str(
+        payload.get("suggested_next_action", "")
+    ).strip()
+
+    try:
+        confidence = float(payload.get("confidence", 0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+
+    confidence = max(0.0, min(1.0, confidence))
+
+    if not category:
+        return None
+
+    if urgency not in AI_SERVICE_REQUEST_URGENCIES:
+        return None
+
+    if not summary or not suggested_next_action:
+        return None
+
+    return {
+        "category": category,
+        "urgency": urgency,
+        "summary": summary[:500],
+        "suggested_next_action": suggested_next_action[:1000],
+        "confidence": confidence,
+        "needs_human_review": True,
+    }
+
+
+def _ai_service_request_triage(description, current_category="", current_urgency="Standard"):
+    description = str(description or "").strip()
+    if not description:
+        return None
+
+    enabled = str(
+        os.getenv("AI_SERVICE_REQUEST_TRIAGE_ENABLED", "0")
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled:
+        return None
+
+    base_url = str(
+        os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    ).strip().rstrip("/")
+    model = str(
+        os.getenv("OLLAMA_MODEL", "gemma3:4b")
+    ).strip() or "gemma3:4b"
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "category": {
+                "type": "string",
+                "enum": list(OWNER_SERVICE_CATEGORIES),
+            },
+            "urgency": {
+                "type": "string",
+                "enum": list(AI_SERVICE_REQUEST_URGENCIES),
+            },
+            "summary": {
+                "type": "string",
+            },
+            "suggested_next_action": {
+                "type": "string",
+            },
+            "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+            },
+        },
+        "required": [
+            "category",
+            "urgency",
+            "summary",
+            "suggested_next_action",
+            "confidence",
+        ],
+        "additionalProperties": False,
+    }
+
+    prompt = (
+        "You triage property-management service requests for BlackSea Connect.\n"
+        "Use only the category and urgency values allowed by the JSON schema.\n"
+        "Your role is advisory only. Do not claim that a provider has been dispatched, "
+        "contacted, booked, paid, approved, or assigned.\n"
+        "Suggested actions must be recommendations for human review.\n"
+        "Urgency rules:\n"
+        "- Same day: immediate safety risk, uncontrolled flooding, loss of essential service, "
+        "or a problem requiring action today to prevent serious damage.\n"
+        "- High: active leak or issue likely to cause significant damage or disruption within 24-48 hours.\n"
+        "- Standard: routine repair or service that can reasonably wait several days.\n"
+        "- Low: cosmetic, preventive, planning, or non-time-sensitive request.\n"
+        "Do not simply copy the owner's selected urgency; classify from the description.\n\n"
+        f"Owner description: {description}\n"
+        f"Current category: {current_category or 'Not selected'}\n"
+        f"Current urgency: {current_urgency or 'Standard'}"
+    )
+
+    payload = {
+        "model": model,
+        "stream": False,
+        "format": schema,
+        "prompt": prompt,
+    }
+
+    try:
+        from urllib import request as urllib_request
+
+        request_body = json.dumps(payload).encode("utf-8")
+        http_request = urllib_request.Request(
+            f"{base_url}/api/generate",
+            data=request_body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        with urllib_request.urlopen(http_request, timeout=15) as response:
+            response_payload = json.loads(
+                response.read().decode("utf-8")
+            )
+
+        raw_output = str(response_payload.get("response", "")).strip()
+        if not raw_output:
+            return None
+
+        return json.loads(raw_output)
+
+    except Exception:
+        return None
+
+
 def _normalize_application_status(status):
     normalized = str(status or "").strip().lower()
     normalized = CRM_PIPELINE_STATUS_ALIASES.get(normalized, normalized)
@@ -14922,6 +15069,18 @@ def owners_request_service():
             if property_record and not form_values["property"]:
                 form_values["property"] = property_record.get("name", "")
 
+            ai_triage = None
+            try:
+                ai_triage = _normalize_ai_service_request_triage(
+                    _ai_service_request_triage(
+                        form_values["description"],
+                        current_category=form_values["category"],
+                        current_urgency=form_values["urgency"],
+                    )
+                )
+            except Exception:
+                ai_triage = None
+
             request_record = {
                 "id": uuid4().hex,
                 "created_at": _utc_now_iso(),
@@ -14955,6 +15114,8 @@ def owners_request_service():
                 "internal_notes": "",
                 "timeline": [],
             }
+            if ai_triage:
+                request_record["ai_triage"] = ai_triage
             _append_service_request_timeline_event(
                 request_record,
                 "SERVICE_REQUEST_CREATED",

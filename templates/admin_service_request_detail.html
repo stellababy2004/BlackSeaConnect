@@ -343,6 +343,95 @@
       -webkit-text-fill-color: currentColor !important;
     }
 
+    .admin-request-ai-triage {
+      display: grid;
+      gap: 16px;
+      margin: 22px 0;
+      padding: 18px;
+      border: 1px solid rgba(37, 99, 235, 0.22);
+      border-radius: 16px;
+      background: #f8fbff;
+      color: #142334;
+    }
+
+    .admin-request-ai-triage__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .admin-request-ai-triage__header h3 {
+      margin: 4px 0 0;
+      color: #0f1f35;
+    }
+
+    .admin-request-ai-triage__review {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid rgba(180, 83, 9, 0.22);
+      border-radius: 999px;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 0.76rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .admin-request-ai-triage__comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .admin-request-ai-triage__comparison > div,
+    .admin-request-ai-triage__content {
+      padding: 13px 14px;
+      border: 1px solid rgba(20, 35, 52, 0.09);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .admin-request-ai-triage__label {
+      display: block;
+      margin-bottom: 5px;
+      color: #64748b;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .admin-request-ai-triage__value {
+      margin: 0;
+      color: #142334;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+
+    .admin-request-ai-triage__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .admin-request-ai-triage__chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e8f0ff;
+      color: #1d4ed8;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .admin-request-ai-triage__content p {
+      margin: 0;
+      line-height: 1.55;
+    }
+
     @media (max-width: 640px) {
       .admin-request-actions-panel {
         grid-template-columns: 1fr;
@@ -367,6 +456,19 @@
 
       body.admin-pilot-detail-page .admin-request-detail-details {
         grid-template-columns: 1fr;
+      }
+
+      .admin-request-ai-triage__header,
+      .admin-request-ai-triage__comparison {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-request-ai-triage__header {
+        display: grid;
+      }
+
+      .admin-request-ai-triage__review {
+        width: fit-content;
       }
     }
     /* Admin service/recycle light theme override */
@@ -564,6 +666,47 @@
         </div>
         <p class="admin-request-detail-description__copy">{{ item.description|e }}</p>
       </section>
+
+      {% if item.ai_triage %}
+      <section class="admin-request-ai-triage" aria-label="AI service request triage">
+        <div class="admin-request-ai-triage__header">
+          <div>
+            <p class="eyebrow">AI TRIAGE</p>
+            <h3>AI recommendation for human review</h3>
+          </div>
+          {% if item.ai_triage.needs_human_review %}
+          <span class="admin-request-ai-triage__review">Human review required</span>
+          {% endif %}
+        </div>
+
+        <div class="admin-request-ai-triage__meta">
+          <span class="admin-request-ai-triage__chip">{{ item.ai_triage.category|e }}</span>
+          <span class="admin-request-ai-triage__chip">{{ item.ai_triage.urgency|e }} urgency</span>
+          <span class="admin-request-ai-triage__chip">{{ (item.ai_triage.confidence * 100)|round|int }}% confidence</span>
+        </div>
+
+        <div class="admin-request-ai-triage__comparison">
+          <div>
+            <span class="admin-request-ai-triage__label">Owner selected</span>
+            <p class="admin-request-ai-triage__value">{{ item.service_category|e }} · {{ item.urgency|default('Standard', true)|e }}</p>
+          </div>
+          <div>
+            <span class="admin-request-ai-triage__label">AI recommendation</span>
+            <p class="admin-request-ai-triage__value">{{ item.ai_triage.category|e }} · {{ item.ai_triage.urgency|e }}</p>
+          </div>
+        </div>
+
+        <div class="admin-request-ai-triage__content">
+          <span class="admin-request-ai-triage__label">AI summary</span>
+          <p>{{ item.ai_triage.summary|e }}</p>
+        </div>
+
+        <div class="admin-request-ai-triage__content">
+          <span class="admin-request-ai-triage__label">Recommended next action</span>
+          <p>{{ item.ai_triage.suggested_next_action|e }}</p>
+        </div>
+      </section>
+      {% endif %}
 
       <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
         <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
