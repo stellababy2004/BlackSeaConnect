@@ -652,7 +652,7 @@ class OwnerPortalTests(unittest.TestCase):
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
         html = page.get_data(as_text=True)
-        self.assertIn(f"Ð˜Ð·Ð¿Ñ€Ð°Ñ‚Ð¸Ñ…Ð¼Ðµ Ð·Ð°Ñ‰Ð¸Ñ‚ÐµÐ½ Ð»Ð¸Ð½Ðº Ð´Ð¾ {_mask_email('owner@example.com')}. ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÑ‚Ðµ Ð²Ñ…Ð¾Ð´ÑÑ‰Ð°Ñ‚Ð° Ð¿Ð¾Ñ‰Ð° Ð¸ Spam.", html)
+        self.assertIn(f"Изпратихме защитен линк до {_mask_email('owner@example.com')}. Проверете входящата поща и Spam.", html)
 
         with self.client.session_transaction() as sess:
             self.assertNotIn("owner_logged_in", sess)
@@ -669,7 +669,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(tokens[0]["email"], "owner@example.com")
         self.assertEqual(len(FakeSMTP.sent_messages), 3)
         admin_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "[BlackSea Owners] New owner registration")
-        owner_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "BlackSea Connect â€” Ð’Ñ…Ð¾Ð´ Ð² Ð¿Ð¾Ñ€Ñ‚Ð°Ð»Ð° Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸")
+        owner_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "BlackSea Connect — Вход в портала за собственици")
         operations_message = next(message for message in FakeSMTP.sent_messages if message["Subject"] == "[BlackSeaConnect] Operations task notification")
 
         self.assertEqual(admin_message["From"], "BlackSea Connect <concierge@blackseaconnect.com>")
@@ -700,7 +700,7 @@ class OwnerPortalTests(unittest.TestCase):
         )
         html_part = owner_message.get_body(preferencelist=("html",))
         self.assertIsNotNone(html_part)
-        self.assertIn("Ð’Ð»ÐµÐ·Ñ‚Ðµ Ð² Ð¿Ð¾Ñ€Ñ‚Ð°Ð»Ð°", html_part.get_content())
+        self.assertIn("Влезте в портала", html_part.get_content())
 
         events = self._read_jsonl("owner_magic_email_events.jsonl")
         self.assertEqual([event["event"] for event in events], ["owner_registration_notification_sent", "token_created", "sent"])
@@ -770,8 +770,8 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Ð”Ð¾Ð±Ñ€Ðµ Ð´Ð¾ÑˆÐ»Ð¸ Ð² BlackSea Connect", html)
-        self.assertIn("Ð”Ð¾Ð±Ð°Ð²ÐµÑ‚Ðµ Ð¿ÑŠÑ€Ð²Ð¸Ñ ÑÐ¸ Ð¸Ð¼Ð¾Ñ‚, Ð·Ð° Ð´Ð° Ð·Ð°Ð¿Ð¾Ñ‡Ð½ÐµÐ¼ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð°Ñ‚Ð° Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²ÐºÐ°.", html)
+        self.assertIn("Добре дошли в BlackSea Connect", html)
+        self.assertIn("Добавете първия си имот, за да започнем оперативната подготовка.", html)
         self.assertIn('href="/owners/property/new?lang=bg"', html)
 
     def test_owner_dashboard_renders_french_copy_and_preserves_lang_links(self):
@@ -782,7 +782,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn('<html lang="fr">', html)
-        self.assertIn("AperÃ§u premium du bien.", html)
+        self.assertIn("Aperçu premium du bien.", html)
         self.assertIn("Retour au site", html)
         self.assertIn('href="/owners/request-service?lang=fr"', html)
         self.assertIn('href="/owners/property/new?lang=fr"', html)
@@ -823,7 +823,7 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn('<html lang="fr">', html)
         self.assertIn("Ajouter un bien", html)
-        self.assertIn("Renseignez votre premier bien pour lancer la prÃ©paration opÃ©rationnelle.", html)
+        self.assertIn("Renseignez votre premier bien pour lancer la préparation opérationnelle.", html)
         self.assertIn("Que se passe-t-il ensuite ?", html)
         self.assertIn('name="lang" value="fr"', html)
         self.assertIn('href="/owners/dashboard?lang=fr"', html)
@@ -1051,8 +1051,8 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Sea View Villa", html)
         self.assertIn("Marina Apartment", html)
         self.assertIn("Sveti Vlas", html)
-        self.assertIn("Ð¡ÐµÐ·Ð¾Ð½ÐµÐ½", html)
-        self.assertIn("Ð¦ÐµÐ»Ð¾Ð³Ð¾Ð´Ð¸ÑˆÐµÐ½", html)
+        self.assertIn("Сезонен", html)
+        self.assertIn("Целогодишен", html)
 
     def test_owner_dashboard_shows_onboarding_progress_after_first_property(self):
         self._seed_owner_account()
@@ -1063,7 +1063,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("ÐŸÐ¾Ð´Ð³Ð¾Ñ‚Ð²ÑÐ¼Ðµ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ð¸Ñ‚Ðµ Ð½Ð° Ð¸Ð¼Ð¾Ñ‚Ð° Ð²Ð¸.", html)
+        self.assertIn("Подготвяме операциите на имота ви.", html)
         self.assertIn("50%", html)
 
     def test_owner_login_and_dashboard_visibility(self):
@@ -1222,22 +1222,22 @@ class OwnerPortalTests(unittest.TestCase):
         self._login_owner_via_magic()
 
         expected_categories = {
-            "bg": ("Ð˜Ð½ÑÐ¿ÐµÐºÑ†Ð¸Ñ", "ÐšÐ¾Ð½ÑÐ¸ÐµÑ€Ð¶ Ð¿Ð¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°", "ÐŸÑ€Ð¾Ð±Ð»ÐµÐ¼ Ñ Ð³Ð¾ÑÑ‚", "Ð¡ÐµÐ·Ð¾Ð½Ð½Ð° Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²ÐºÐ°"),
+            "bg": ("Инспекция", "Консиерж поддръжка", "Проблем с гост", "Сезонна подготовка"),
             "en": ("Inspection", "Concierge Support", "Guest Issue", "Seasonal Preparation"),
-            "fr": ("Inspection", "Assistance de conciergerie", "ProblÃ¨me avec un voyageur", "PrÃ©paration saisonniÃ¨re"),
-            "ru": ("Ð˜Ð½ÑÐ¿ÐµÐºÑ†Ð¸Ñ", "ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ° ÐºÐ¾Ð½ÑÑŒÐµÑ€Ð¶Ð°", "ÐŸÑ€Ð¾Ð±Ð»ÐµÐ¼Ð° Ñ Ð³Ð¾ÑÑ‚ÐµÐ¼", "Ð¡ÐµÐ·Ð¾Ð½Ð½Ð°Ñ Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²ÐºÐ°"),
+            "fr": ("Inspection", "Assistance de conciergerie", "Problème avec un voyageur", "Préparation saisonnière"),
+            "ru": ("Инспекция", "Поддержка консьержа", "Проблема с гостем", "Сезонная подготовка"),
         }
         expected_statuses = {
-            "bg": ("Ð˜Ð·Ñ‡Ð°ÐºÐ²Ð°", "ÐŸÐ¾Ñ‚Ð²ÑŠÑ€Ð´ÐµÐ½Ð°", "ÐÐ°ÑÑ‚Ð°Ð½ÐµÐ½", "ÐÐ°Ð¿ÑƒÑÐ½Ð°Ð»", "ÐžÑ‚Ð¼ÐµÐ½ÐµÐ½Ð°", "ÐÐµ ÑÐµ ÑÐ²Ð¸"),
+            "bg": ("Изчаква", "Потвърдена", "Настанен", "Напуснал", "Отменена", "Не се яви"),
             "en": ("Pending", "Confirmed", "Checked In", "Checked Out", "Cancelled", "No Show"),
-            "fr": ("En attente", "ConfirmÃ©e", "ArrivÃ©e enregistrÃ©e", "DÃ©part enregistrÃ©", "AnnulÃ©e", "Non-prÃ©sentation"),
-            "ru": ("ÐžÐ¶Ð¸Ð´Ð°ÐµÑ‚ÑÑ", "ÐŸÐ¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½Ð¾", "Ð—Ð°ÑÐµÐ»Ñ‘Ð½", "Ð’Ñ‹ÑÐµÐ»ÐµÐ½", "ÐžÑ‚Ð¼ÐµÐ½ÐµÐ½Ð¾", "ÐÐµÑÐ²ÐºÐ°"),
+            "fr": ("En attente", "Confirmée", "Arrivée enregistrée", "Départ enregistré", "Annulée", "Non-présentation"),
+            "ru": ("Ожидается", "Подтверждено", "Заселён", "Выселен", "Отменено", "Неявка"),
         }
         expected_setup = {
-            "bg": ("Ð“Ð¾Ñ‚Ð¾Ð²Ð½Ð¾ÑÑ‚ Ð½Ð° Ð¸Ð¼Ð¾Ñ‚Ð°", "Ð¢ÐµÐºÑƒÑ‰ Ð½Ð°Ð¿Ñ€ÐµÐ´ÑŠÐº", "ÐžÑ‚Ð²Ð¾Ñ€Ð¸ ÑÑ‚ÑŠÐ¿ÐºÐ°Ñ‚Ð°", "ÐžÑÑ‚Ð°Ð²Ð°Ñ‰Ð¸ ÑÑ‚ÑŠÐ¿ÐºÐ¸", "Ð”Ð¾Ð±Ð°Ð²ÐµÑ‚Ðµ Ð°ÐºÑ‚ÑƒÐ°Ð»Ð½Ð¸ ÑÐ½Ð¸Ð¼ÐºÐ¸"),
+            "bg": ("Готовност на имота", "Текущ напредък", "Отвори стъпката", "Оставащи стъпки", "Добавете актуални снимки"),
             "en": ("Property readiness", "Current completion", "Open step", "Remaining steps", "Add current photos"),
-            "fr": ("PrÃ©paration du bien", "Progression actuelle", "Ouvrir lâ€™Ã©tape", "Ã‰tapes restantes", "Ajoutez des photos rÃ©centes"),
-            "ru": ("Ð“Ð¾Ñ‚Ð¾Ð²Ð½Ð¾ÑÑ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°", "Ð¢ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð¿Ñ€Ð¾Ð³Ñ€ÐµÑÑ", "ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ ÑˆÐ°Ð³", "ÐžÑÑ‚Ð°Ð²ÑˆÐ¸ÐµÑÑ ÑˆÐ°Ð³Ð¸", "Ð”Ð¾Ð±Ð°Ð²ÑŒÑ‚Ðµ Ð°ÐºÑ‚ÑƒÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ñ„Ð¾Ñ‚Ð¾Ð³Ñ€Ð°Ñ„Ð¸Ð¸"),
+            "fr": ("Préparation du bien", "Progression actuelle", "Ouvrir l’étape", "Étapes restantes", "Ajoutez des photos récentes"),
+            "ru": ("Готовность объекта", "Текущий прогресс", "Открыть шаг", "Оставшиеся шаги", "Добавьте актуальные фотографии"),
         }
         bulgarian_setup_copy = expected_setup["bg"]
 
@@ -1338,20 +1338,20 @@ class OwnerPortalTests(unittest.TestCase):
     def test_owner_gateway_renders_supported_languages_without_mixed_copy(self):
         expectations = {
             "bg": {
-                "eyebrow": "ÐŸÐ¾Ñ€Ñ‚Ð°Ð» Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸",
-                "title": "Ð•Ð´Ð½Ð¾ Ð¼ÑÑÑ‚Ð¾ Ð·Ð° Ð¸Ð¼Ð¾Ñ‚Ð° Ð²Ð¸.",
+                "eyebrow": "Портал за собственици",
+                "title": "Едно място за имота ви.",
             },
             "en": {
                 "eyebrow": "Owner portal",
                 "title": "One place for your property.",
             },
             "fr": {
-                "eyebrow": "Portail propriÃ©taire",
+                "eyebrow": "Portail propriétaire",
                 "title": "Un seul endroit pour votre bien.",
             },
             "ru": {
-                "eyebrow": "ÐŸÐ¾Ñ€Ñ‚Ð°Ð» Ð²Ð»Ð°Ð´ÐµÐ»ÑŒÑ†Ð°",
-                "title": "ÐžÐ´Ð½Ð¾ Ð¼ÐµÑÑ‚Ð¾ Ð´Ð»Ñ Ð²Ð°ÑˆÐµÐ³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°.",
+                "eyebrow": "Портал владельца",
+                "title": "Одно место для вашего объекта.",
             },
         }
 
@@ -1422,7 +1422,7 @@ class OwnerPortalTests(unittest.TestCase):
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
         html = page.get_data(as_text=True)
-        self.assertIn("ÐÐºÐ¾ Ð¸Ð¼ÐµÐ¹Ð»ÑŠÑ‚ Ðµ Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð¸Ñ€Ð°Ð½, Ñ‰Ðµ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚Ðµ Ð·Ð°Ñ‰Ð¸Ñ‚ÐµÐ½ Ð»Ð¸Ð½Ðº.", html)
+        self.assertIn("Ако имейлът е регистриран, ще получите защитен линк.", html)
         self.assertNotIn("ownerAccountNotFoundError", html)
         self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
 
@@ -1449,7 +1449,7 @@ class OwnerPortalTests(unittest.TestCase):
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
         html = page.get_data(as_text=True)
-        self.assertIn(f"Ð˜Ð·Ð¿Ñ€Ð°Ñ‚Ð¸Ñ…Ð¼Ðµ Ð·Ð°Ñ‰Ð¸Ñ‚ÐµÐ½ Ð»Ð¸Ð½Ðº Ð´Ð¾ {_mask_email('owner@blackseaconnect.com')}. ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÑ‚Ðµ Ð²Ñ…Ð¾Ð´ÑÑ‰Ð°Ñ‚Ð° Ð¿Ð¾Ñ‰Ð° Ð¸ Spam.", html)
+        self.assertIn(f"Изпратихме защитен линк до {_mask_email('owner@blackseaconnect.com')}. Проверете входящата поща и Spam.", html)
 
         tokens = self._read_jsonl("owner_magic_tokens.jsonl")
         self.assertEqual(len(tokens), 1)
@@ -1473,7 +1473,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
-        self.assertIn("ÐÐµ ÑƒÑÐ¿ÑÑ…Ð¼Ðµ Ð´Ð° Ð¸Ð·Ð¿Ñ€Ð°Ñ‚Ð¸Ð¼ Ð»Ð¸Ð½ÐºÐ°. ÐœÐ¾Ð»Ñ, Ð¾Ð¿Ð¸Ñ‚Ð°Ð¹Ñ‚Ðµ Ð¾Ñ‚Ð½Ð¾Ð²Ð¾ ÑÐ»ÐµÐ´ Ð¼Ð°Ð»ÐºÐ¾.", page.get_data(as_text=True))
+        self.assertIn("Не успяхме да изпратим линка. Моля, опитайте отново след малко.", page.get_data(as_text=True))
 
         self.assertEqual(self._read_jsonl("owner_magic_tokens.jsonl"), [])
         events = self._read_jsonl("owner_magic_email_events.jsonl")
@@ -1494,7 +1494,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         page = self.client.get(response.headers["Location"])
         self.assertEqual(page.status_code, 200)
-        self.assertIn("ÐŸÑ€Ð¾Ñ„Ð¸Ð»ÑŠÑ‚ Ðµ ÑÑŠÐ·Ð´Ð°Ð´ÐµÐ½, Ð½Ð¾ Ð¸Ð¼ÐµÐ¹Ð»ÑŠÑ‚ Ð½Ðµ Ð±ÐµÑˆÐµ Ð¸Ð·Ð¿Ñ€Ð°Ñ‚ÐµÐ½. ÐœÐ¾Ð»Ñ, Ð¾Ð¿Ð¸Ñ‚Ð°Ð¹Ñ‚Ðµ Ð²Ñ…Ð¾Ð´ Ð¾Ñ‚Ð½Ð¾Ð²Ð¾ Ð¸Ð»Ð¸ ÑÐµ ÑÐ²ÑŠÑ€Ð¶ÐµÑ‚Ðµ Ñ Ð½Ð°Ñ.", page.get_data(as_text=True))
+        self.assertIn("Профилът е създаден, но имейлът не беше изпратен. Моля, опитайте вход отново или се свържете с нас.", page.get_data(as_text=True))
 
         accounts = self._read_jsonl("owner_accounts.jsonl")
         self.assertEqual(len(accounts), 1)
@@ -1514,7 +1514,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("/owners/login?registered=1&magic_sent=1", response.headers["Location"])
         self.assertIn("delivery=sent", response.headers["Location"])
         self.assertEqual(len(FakeSMTP.sent_messages), 2)
-        self.assertTrue(any(message["Subject"] == "BlackSea Connect â€” Ð’Ñ…Ð¾Ð´ Ð² Ð¿Ð¾Ñ€Ñ‚Ð°Ð»Ð° Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸" for message in FakeSMTP.sent_messages))
+        self.assertTrue(any(message["Subject"] == "BlackSea Connect — Вход в портала за собственици" for message in FakeSMTP.sent_messages))
         self.assertTrue(any(message["Subject"] == "[BlackSeaConnect] Operations task notification" for message in FakeSMTP.sent_messages))
 
     def test_owner_registration_validation_errors_do_not_send_admin_notification(self):
@@ -1545,14 +1545,14 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("CRM Ð½Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸", html)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ð¸</span>', html)
+        self.assertIn("CRM на собственици", html)
+        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
         self.assertIn("stoyanova@orange.fr", html)
         self.assertIn("2026-06-15T10:00:00Z", html)
-        self.assertIn("ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»Ð°", html)
+        self.assertIn("Отвори профила", html)
         self.assertIn("PILOT", html)
         self.assertIn("BG", html)
-        self.assertEqual(html.count('<span data-i18n="shellOwners">Ð¡Ð¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸</span>'), 1)
+        self.assertEqual(html.count('<span data-i18n="shellOwners">Собственици</span>'), 1)
         self.assertNotIn('data-i18n="shellOwnerAccounts"', html)
 
     def test_admin_seed_owner_creates_account_and_enables_login_delivery_sent(self):
@@ -1568,10 +1568,10 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(accounts_response.status_code, 200)
         html = accounts_response.get_data(as_text=True)
-        self.assertIn("CRM Ð½Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸", html)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ð¸</span>', html)
+        self.assertIn("CRM на собственици", html)
+        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
         self.assertIn("stoyanova@orange.fr", html)
-        self.assertIn("ÐÐºÐ°ÑƒÐ½Ñ‚ÑŠÑ‚ Ð½Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸ÐºÐ° Ðµ ÑÑŠÐ·Ð´Ð°Ð´ÐµÐ½ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾.", html)
+        self.assertIn("Акаунтът на собственика е създаден успешно.", html)
         self.assertNotIn('data-testid="new-owner-badge"', html)
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
@@ -1600,7 +1600,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ð¸</span>', html)
+        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
         self.assertIn("stoyanova@orange.fr", html)
 
     def test_admin_owner_accounts_support_search_and_filters(self):
@@ -1644,7 +1644,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ð¸</span>', html)
+        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
         self.assertIn('data-testid="owner-total-count"><strong>2</strong>', html)
         self.assertIn("elena@example.com", html)
         self.assertNotIn("maya@example.com", html)
@@ -1657,10 +1657,10 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertEqual(html.count('<span data-i18n="shellOwners">Ð¡Ð¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸</span>'), 1)
+        self.assertEqual(html.count('<span data-i18n="shellOwners">Собственици</span>'), 1)
         self.assertNotIn('data-i18n="shellOwnerAccounts"', html)
-        self.assertIn('<h2 data-i18n="shellAccounts">ÐÐºÐ°ÑƒÐ½Ñ‚Ð¸</h2>', html)
-        self.assertIn('<span data-i18n="shellOwners">Ð¡Ð¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸</span>', html)
+        self.assertIn('<h2 data-i18n="shellAccounts">Акаунти</h2>', html)
+        self.assertIn('<span data-i18n="shellOwners">Собственици</span>', html)
 
     def test_new_owner_badge_clears_after_admin_opens_detail(self):
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
@@ -1676,7 +1676,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(list_response.status_code, 200)
         list_html = list_response.get_data(as_text=True)
         self.assertIn('data-testid="new-owner-badge"', list_html)
-        self.assertIn('data-i18n="newOwnerBadge">ÐÐžÐ’</span>', list_html)
+        self.assertIn('data-i18n="newOwnerBadge">НОВ</span>', list_html)
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             detail_response = self.client.get(f"/admin/owner-accounts/{account['id']}", headers=self._auth_headers())
@@ -1726,14 +1726,14 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn('<html lang="bg">', html)
-        for text in ("Ð¢ÑŠÑ€ÑÐµÐ½Ðµ", "Ð¡Ñ‚Ð°Ñ‚ÑƒÑ", "Ð’ÑÐ¸Ñ‡ÐºÐ¸ ÑÑ‚Ð°Ñ‚ÑƒÑÐ¸", "Ð‘Ñ€Ð¾Ð¹ Ð¸Ð¼Ð¾Ñ‚Ð¸", "Ð”Ð°Ñ‚Ð° Ð½Ð° ÑÑŠÐ·Ð´Ð°Ð²Ð°Ð½Ðµ", "ÐŸÐ¾ÑÐ»ÐµÐ´ÐµÐ½ Ð²Ñ…Ð¾Ð´", "ÐšÐ¾ÑˆÑ‡Ðµ", "ÐÐ°Ð·Ð°Ð´ ÐºÑŠÐ¼ ÑƒÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½ÑÐºÐ¸Ñ Ð¿Ð°Ð½ÐµÐ»"):
+        for text in ("Търсене", "Статус", "Всички статуси", "Брой имоти", "Дата на създаване", "Последен вход", "Кошче", "Назад към управленския панел"):
             self.assertIn(text, html)
 
         runtime_path = Path(app_module.__file__).parent / "static" / "js" / "i18n" / "admin-runtime.js"
         runtime = runtime_path.read_text(encoding="utf-8")
         for text in ("Search", "Status", "All statuses", "Property count", "Created", "Last login", "Recycle bin", "Back to cockpit", "Reset", "Seed Stella Account", "NEW"):
             self.assertIn(text, runtime)
-        for text in ("Recherche", "Statut", "Tous les statuts", "Nombre de biens", "Date de crÃ©ation", "DerniÃ¨re connexion", "Corbeille", "Retour au cockpit", "RÃ©initialiser", "NOUVEAU"):
+        for text in ("Recherche", "Statut", "Tous les statuts", "Nombre de biens", "Date de création", "Dernière connexion", "Corbeille", "Retour au cockpit", "Réinitialiser", "NOUVEAU"):
             self.assertIn(text, runtime)
 
     def test_admin_owner_account_detail_shows_timeline_and_persists_notes_and_status(self):
@@ -1819,14 +1819,14 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Sea View Villa", listing_html)
         self.assertIn("owner@example.com", listing_html)
         self.assertIn("Setup", listing_html)
-        self.assertRegex(listing_html, r"<strong>1</strong> Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ð¸")
+        self.assertRegex(listing_html, r"<strong>1</strong> показани")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             detail = self.client.get("/admin/properties/property-1", headers=self._auth_headers())
 
         self.assertEqual(detail.status_code, 200)
         detail_html = detail.get_data(as_text=True)
-        self.assertIn("ÐŸÐ ÐžÐ¤Ð˜Ð› ÐÐ Ð˜ÐœÐžÐ¢Ð", detail_html)
+        self.assertIn("ПРОФИЛ НА ИМОТА", detail_html)
         self.assertIn('data-testid="property-owner-information"', detail_html)
         self.assertIn("Readiness Checklist", detail_html)
         self.assertIn("Service Request History", detail_html)
@@ -1867,7 +1867,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Service request completed", refreshed_html)
 
     def test_admin_operation_create_get_has_utf8_labels_and_navigation(self):
-        self._seed_owner_property(name="ÐœÐ¾Ñ€ÑÐºÐ° Ð²Ð¸Ð»Ð°", location="Ð’Ð°Ñ€Ð½Ð°")
+        self._seed_owner_property(name="Морска вила", location="Варна")
 
         with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
             response = self.client.get("/admin/operations/new", headers=self._auth_headers())
@@ -1881,26 +1881,26 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertNotIn("????", html)
         self.assertNotIn("\ufffd", html)
         for label in (
-            "Ð˜Ð¼Ð¾Ñ‚ *",
-            "Ð¢Ð¸Ð¿ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ñ *",
-            "Ð—Ð°Ð³Ð»Ð°Ð²Ð¸Ðµ *",
-            "ÐŸÑ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚",
-            "ÐšÑ€Ð°ÐµÐ½ ÑÑ€Ð¾Ðº",
-            "ÐŸÑ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚",
-            "ÐžÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ / Ð±ÐµÐ»ÐµÐ¶ÐºÐ¸",
-            "ÐŸÐ¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½Ðµ",
-            "ÐŸÐ¾Ð´Ð´Ñ€ÑŠÐ¶ÐºÐ°",
-            "ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ°",
-            "ÐÐ°ÑÑ‚Ð°Ð½ÑÐ²Ð°Ð½Ðµ",
-            "ÐÐ°Ð¿ÑƒÑÐºÐ°Ð½Ðµ",
-            "Ð ÐµÐ¼Ð¾Ð½Ñ‚",
-            "Ð”Ñ€ÑƒÐ³Ð°",
-            "ÐÐ¸ÑÑŠÐº",
-            "ÐÐ¾Ñ€Ð¼Ð°Ð»ÐµÐ½",
-            "Ð’Ð¸ÑÐ¾Ðº",
-            "ÐšÑ€Ð¸Ñ‚Ð¸Ñ‡ÐµÐ½",
-            "Ð¡ÑŠÐ·Ð´Ð°Ð¹ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ñ",
-            "ÐžÑ‚ÐºÐ°Ð·",
+            "Имот *",
+            "Тип операция *",
+            "Заглавие *",
+            "Приоритет",
+            "Краен срок",
+            "Професионалист",
+            "Описание / бележки",
+            "Почистване",
+            "Поддръжка",
+            "Проверка",
+            "Настаняване",
+            "Напускане",
+            "Ремонт",
+            "Друга",
+            "Нисък",
+            "Нормален",
+            "Висок",
+            "Критичен",
+            "Създай операция",
+            "Отказ",
         ):
             self.assertIn(label, html)
         for value in ("CLEANING", "MAINTENANCE", "INSPECTION", "CHECK_IN", "CHECK_OUT", "REPAIR", "OTHER"):
@@ -1913,9 +1913,9 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('<html lang="en">', english_response.get_data(as_text=True))
 
         bundle = french_bundle.get_data(as_text=True)
-        self.assertIn('"Create operation Â· BlackSea Connect"', bundle)
-        self.assertIn('"CrÃ©er une opÃ©ration Â· BlackSea Connect"', bundle)
-        self.assertIn('"Repair", "RÃ©paration"', bundle)
+        self.assertIn('"Create operation · BlackSea Connect"', bundle)
+        self.assertIn('"Créer une opération · BlackSea Connect"', bundle)
+        self.assertIn('"Repair", "Réparation"', bundle)
         self.assertNotIn("????", bundle)
 
     def test_admin_operation_create_post_uses_canonical_task_and_detail_route(self):
@@ -1940,11 +1940,11 @@ class OwnerPortalTests(unittest.TestCase):
                     "csrf_token": csrf_token,
                     "property_id": "property-1",
                     "category": "CLEANING",
-                    "title": "ÐŸÐ¾Ñ‡Ð¸ÑÑ‚Ð²Ð°Ð½Ðµ Ð¿Ñ€ÐµÐ´Ð¸ Ð¿Ñ€Ð¸ÑÑ‚Ð¸Ð³Ð°Ð½Ðµ",
+                    "title": "Почистване преди пристигане",
                     "priority": "URGENT",
                     "due_date": "2026-07-20T10:30",
                     "assigned_professional_id": "professional-1",
-                    "notes": "ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÑ‚Ðµ Ð¸Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ð¸Ñ‚Ðµ Ð·Ð° Ð´Ð¾ÑÑ‚ÑŠÐ¿.",
+                    "notes": "Проверете инструкциите за достъп.",
                 },
                 headers=self._auth_headers(),
             )
@@ -1963,12 +1963,12 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(task["assigned_professional_id"], "professional-1")
         self.assertEqual(task["assigned_to"], "Mira Ivanova / Black Sea Care")
         self.assertEqual(task["status"], "ASSIGNED")
-        self.assertEqual(task["notes"], "ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÑ‚Ðµ Ð¸Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ð¸Ñ‚Ðµ Ð·Ð° Ð´Ð¾ÑÑ‚ÑŠÐ¿.")
+        self.assertEqual(task["notes"], "Проверете инструкциите за достъп.")
 
         with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
             detail_response = self.client.get(response.headers["Location"], headers=self._auth_headers())
         self.assertEqual(detail_response.status_code, 200)
-        self.assertIn("ÐŸÑ€Ð¾Ð²ÐµÑ€ÐµÑ‚Ðµ Ð¸Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ð¸Ñ‚Ðµ Ð·Ð° Ð´Ð¾ÑÑ‚ÑŠÐ¿.", detail_response.get_data(as_text=True))
+        self.assertIn("Проверете инструкциите за достъп.", detail_response.get_data(as_text=True))
 
     def test_admin_operation_create_rejects_invalid_form_values(self):
         self._seed_owner_property(name="Sea View Villa", location="Varna")
@@ -1989,12 +1989,12 @@ class OwnerPortalTests(unittest.TestCase):
                 "notes": "",
             }
             invalid_cases = (
-                ({"title": ""}, "Ð’ÑŠÐ²ÐµÐ´ÐµÑ‚Ðµ Ð·Ð°Ð³Ð»Ð°Ð²Ð¸Ðµ."),
-                ({"property_id": "missing-property"}, "Ð˜Ð·Ð±ÐµÑ€ÐµÑ‚Ðµ Ð²Ð°Ð»Ð¸Ð´ÐµÐ½ Ð¸Ð¼Ð¾Ñ‚."),
-                ({"category": "UNSUPPORTED"}, "Ð˜Ð·Ð±ÐµÑ€ÐµÑ‚Ðµ Ð²Ð°Ð»Ð¸Ð´ÐµÐ½ Ñ‚Ð¸Ð¿ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ñ."),
-                ({"priority": "EMERGENCY"}, "Ð˜Ð·Ð±ÐµÑ€ÐµÑ‚Ðµ Ð²Ð°Ð»Ð¸Ð´ÐµÐ½ Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚."),
-                ({"due_date": "not-a-date"}, "Ð’ÑŠÐ²ÐµÐ´ÐµÑ‚Ðµ Ð²Ð°Ð»Ð¸Ð´ÐµÐ½ ÐºÑ€Ð°ÐµÐ½ ÑÑ€Ð¾Ðº."),
-                ({"assigned_professional_id": "missing-professional"}, "Ð˜Ð·Ð±ÐµÑ€ÐµÑ‚Ðµ Ð²Ð°Ð»Ð¸Ð´ÐµÐ½ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚."),
+                ({"title": ""}, "Въведете заглавие."),
+                ({"property_id": "missing-property"}, "Изберете валиден имот."),
+                ({"category": "UNSUPPORTED"}, "Изберете валиден тип операция."),
+                ({"priority": "EMERGENCY"}, "Изберете валиден приоритет."),
+                ({"due_date": "not-a-date"}, "Въведете валиден краен срок."),
+                ({"assigned_professional_id": "missing-professional"}, "Изберете валиден професионалист."),
             )
 
             for overrides, expected_error in invalid_cases:
@@ -2299,9 +2299,9 @@ class OwnerPortalTests(unittest.TestCase):
                 f"/admin/operations/{task_id}?lang=bg",
                 headers=self._auth_headers(),
             ).get_data(as_text=True)
-            self.assertIn("ÐŸÐ»Ð°Ñ‚ÐµÐ½Ð¾", funded_refresh)
-            self.assertIn("Ð“Ð¾Ñ‚Ð¾Ð²Ð¾ Ð·Ð° Ð¸Ð·Ð¿Ð»Ð°Ñ‰Ð°Ð½Ðµ", funded_refresh)
-            self.assertIn("ÐžÑÐ²Ð¾Ð±Ð¾Ð´Ð¸ Ð¿Ð»Ð°Ñ‰Ð°Ð½ÐµÑ‚Ð¾ ÐºÑŠÐ¼ Ð¿Ñ€Ð¾Ñ„ÐµÑÐ¸Ð¾Ð½Ð°Ð»Ð¸ÑÑ‚Ð°", funded_refresh)
+            self.assertIn("Платено", funded_refresh)
+            self.assertIn("Готово за изплащане", funded_refresh)
+            self.assertIn("Освободи плащането към професионалиста", funded_refresh)
             funded_form_audit = FormAuditParser()
             funded_form_audit.feed(funded_refresh)
             self.assertFalse(funded_form_audit.has_nested_form)
@@ -2348,8 +2348,8 @@ class OwnerPortalTests(unittest.TestCase):
                 f"/admin/operations/{task_id}?lang=bg",
                 headers=self._auth_headers(),
             ).get_data(as_text=True)
-            self.assertIn("Ð˜Ð·Ð¿Ð»Ð°Ñ‚ÐµÐ½Ð¾", final_refresh)
-            self.assertIn("Ð¤Ð¸Ð½Ð°Ð½ÑÐ¾Ð²Ð¸ÑÑ‚ Ñ†Ð¸ÐºÑŠÐ» Ðµ Ð¿Ñ€Ð¸ÐºÐ»ÑŽÑ‡ÐµÐ½ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾.", final_refresh)
+            self.assertIn("Изплатено", final_refresh)
+            self.assertIn("Финансовият цикъл е приключен успешно.", final_refresh)
             self.assertNotIn('id="owner-payment-confirm-form"', final_refresh)
             self.assertNotIn('id="professional-payout-release-form"', final_refresh)
 
@@ -2362,7 +2362,7 @@ class OwnerPortalTests(unittest.TestCase):
                 headers=self._auth_headers(),
             ).get_data(as_text=True)
             self.assertIn("The financial cycle has been completed successfully.", english_refresh)
-            self.assertIn("Le cycle financier sâ€™est terminÃ© avec succÃ¨s.", french_refresh)
+            self.assertIn("Le cycle financier s’est terminé avec succès.", french_refresh)
 
             events = [
                 row["event_type"]
@@ -2585,12 +2585,12 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Ð˜Ð·Ð¿ÑŠÐ»Ð½Ð¸Ñ‚ÐµÐ»Ð½Ð¸ ÑÐ¸Ð³Ð½Ð°Ð»Ð¸", html)
-        self.assertIn("ÐžÐ¿ÐµÑ€Ð°Ñ‚Ð¸Ð²ÐµÐ½ Ñ€Ð¸ÑÐº", html)
-        self.assertIn("Ð•Ð´Ð¸Ð½Ð½Ð° Ñ…Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ", html)
-        self.assertIn("Ð Ð°Ð·Ð¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ Ð½Ð° Ð¶Ð¸Ð²Ð¾Ñ‚Ð¾ Ð½Ð°Ñ‚Ð¾Ð²Ð°Ñ€Ð²Ð°Ð½Ðµ", html)
-        self.assertIn("SLA Ð½Ð°Ð±Ð»ÑŽÐ´ÐµÐ½Ð¸Ðµ", html)
-        self.assertIn("Ð£Ð¼Ð½Ð¸ Ð¿Ñ€ÐµÐ¿Ð¾Ñ€ÑŠÐºÐ¸", html)
+        self.assertIn("Изпълнителни сигнали", html)
+        self.assertIn("Оперативен риск", html)
+        self.assertIn("Единна хронология", html)
+        self.assertIn("Разпределение на живото натоварване", html)
+        self.assertIn("SLA наблюдение", html)
+        self.assertIn("Умни препоръки", html)
         self.assertIn("Overdue Operations", html)
         self.assertIn("Properties Without Readiness", html)
         self.assertIn("Operations Without Due Dates", html)
@@ -2599,9 +2599,9 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Move operation to another team", html)
         self.assertIn("Sea View Villa", html)
         self.assertRegex(html, r"Risk\s*\d+/100")
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð·Ð°Ð²ÑŠÑ€ÑˆÐ²Ð°Ð½Ðµ", html)
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð²ÑŠÐ·Ð»Ð°Ð³Ð°Ð½Ðµ", html)
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð¾Ñ‚Ð³Ð¾Ð²Ð¾Ñ€", html)
+        self.assertIn("Средно време за завършване", html)
+        self.assertIn("Средно време за възлагане", html)
+        self.assertIn("Средно време за отговор", html)
         self.assertIn("Mira Ivanova", html)
         self.assertIn("Varna", html)
 
@@ -2702,13 +2702,13 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Ð•Ð´Ð¸Ð½Ð½Ð° Ñ…Ñ€Ð¾Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ", html)
+        self.assertIn("Единна хронология", html)
         self.assertLess(html.index("Latest event"), html.index("Older event"))
         self.assertIn("2h 00m", html)
         self.assertIn("30m", html)
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð·Ð°Ð²ÑŠÑ€ÑˆÐ²Ð°Ð½Ðµ", html)
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð²ÑŠÐ·Ð»Ð°Ð³Ð°Ð½Ðµ", html)
-        self.assertIn("Ð¡Ñ€ÐµÐ´Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ðµ Ð·Ð° Ð¾Ñ‚Ð³Ð¾Ð²Ð¾Ñ€", html)
+        self.assertIn("Средно време за завършване", html)
+        self.assertIn("Средно време за възлагане", html)
+        self.assertIn("Средно време за отговор", html)
 
     def test_operations_tasks_are_created_for_public_intakes(self):
         smtp_env = {
@@ -3137,7 +3137,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('class="admin-request-detail-form__control" name="assigned_provider_id"', admin_html)
         self.assertNotIn("No professional selected", admin_html)
         self.assertIn('value="pro-1" selected', admin_html)
-        self.assertIn("Approved Concierge Â· Assigned", admin_html)
+        self.assertIn("Approved Concierge · Assigned", admin_html)
         self.assertIn('class="admin-request-detail-form__control admin-request-detail-form__textarea"', admin_html)
         self.assertIn("admin-request-detail-description", admin_html)
         self.assertIn("admin-request-detail-timeline", admin_html)
@@ -3165,25 +3165,25 @@ class OwnerPortalTests(unittest.TestCase):
         html = self.client.get("/").get_data(as_text=True)
 
         for phrase in [
-            "ÐŸÑŠÐ»ÐµÐ½ ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð» Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸Ñ‚Ðµ.",
-            "ÐŸÐ¾Ð´Ñ…Ð¾Ð´ÑÑ‰Ð¾ Ð·Ð°",
-            "ÐžÑ‚Ð²Ð¾Ñ€Ð¸ Ð¿Ð¾Ñ€Ñ‚Ð°Ð»Ð° Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸",
-            "Ð—Ð°ÑÐ²ÐµÑ‚Ðµ Ð¿Ð¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿ Ð¸ Ñ‚ÐµÑÑ‚Ð²Ð°Ð¹Ñ‚Ðµ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¸Ñ Ð¼Ð¾Ð´ÐµÐ».",
-            "Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð¸Ñ€Ð°Ð¹Ñ‚Ðµ ÑÐµ, Ð¿Ð¾Ð»ÑƒÑ‡ÐµÑ‚Ðµ ÑÐ¸Ð³ÑƒÑ€ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿, ÑƒÐ¿Ñ€Ð°Ð²Ð»ÑÐ²Ð°Ð¹Ñ‚Ðµ Ð¸Ð¼Ð¾Ñ‚Ð¸Ñ‚Ðµ, Ð·Ð°ÑÐ²ÑÐ²Ð°Ð¹Ñ‚Ðµ ÑƒÑÐ»ÑƒÐ³Ð¸ Ð¸ ÑÐ¸ Ð¿Ð¾Ñ‡Ð¸Ð²Ð°Ð¹Ñ‚Ðµ.",
-            "ÐŸÐ¸Ð»Ð¾Ñ‚ÐµÐ½ Ð´Ð¾ÑÑ‚ÑŠÐ¿",
-            "Ð”ÐµÐ¼Ð¾",
-            "Ð£ÑÐ»ÑƒÐ³Ð¸",
+            "Пълен контрол за собствениците.",
+            "Подходящо за",
+            "Отвори портала за собственици",
+            "Заявете пилотен достъп и тествайте оперативния модел.",
+            "Регистрирайте се, получете сигурен достъп, управлявайте имотите, заявявайте услуги и си почивайте.",
+            "Пилотен достъп",
+            "Демо",
+            "Услуги",
         ]:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, html)
 
         for phrase in [
-            "Ð–Ð¸Ð² Ð¿Ñ€ÐµÐ³Ð»ÐµÐ´ Ð½Ð° Ð¼Ñ€ÐµÐ¶Ð°Ñ‚Ð°",
-            "ÐšÐ°ÐºÐ²Ð¾ Ð¿Ð¾ÐºÑ€Ð¸Ð²Ð°",
-            "ÐÐ¸Ð²Ð¾ Ð½Ð° Ð´Ð¾Ð²ÐµÑ€Ð¸Ðµ",
-            "Ð”Ð¾Ð²ÐµÑ€ÐµÐ½Ð¸ Ð¿Ð°Ñ€Ñ‚Ð½ÑŒÐ¾Ñ€Ð¸",
-            "Ð ÐµÑÑƒÑ€ÑÐ¸",
-            "SEO ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ð¸Ñ‚Ðµ",
+            "Жив преглед на мрежата",
+            "Какво покрива",
+            "Ниво на доверие",
+            "Доверени партньори",
+            "Ресурси",
+            "SEO страниците",
         ]:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, html)
@@ -3236,9 +3236,9 @@ class OwnerPortalTests(unittest.TestCase):
 
         expectations = {
             "bg": {
-                "homeTitle": "ÐžÐ¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¸ÑÑ‚ ÐºÐ¾ÐºÐ¿Ð¸Ñ‚ Ð·Ð° ÑÐ¾Ð±ÑÑ‚Ð²ÐµÐ½Ð¸Ñ†Ð¸ Ð¸ ÐºÑ€Ð°Ð¹Ð±Ñ€ÐµÐ¶Ð½Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¸.",
-                "homePrimaryCta": "Ð’Ð¸Ð¶ Ð¿Ð»Ð°Ñ‚Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ð°",
-                "navApply": "ÐšÐ°Ð½Ð´Ð¸Ð´Ð°Ñ‚ÑÑ‚Ð²Ð°Ð½Ðµ",
+                "homeTitle": "Оперативният кокпит за собственици и крайбрежни оператори.",
+                "homePrimaryCta": "Виж платформата",
+                "navApply": "Кандидатстване",
             },
             "en": {
                 "homeTitle": "The operational cockpit for owners and coastal operators.",
@@ -3246,14 +3246,14 @@ class OwnerPortalTests(unittest.TestCase):
                 "navApply": "Apply",
             },
             "fr": {
-                "homeTitle": "Le cockpit opÃ©rationnel pour les propriÃ©taires et les opÃ©rateurs cÃ´tiers.",
+                "homeTitle": "Le cockpit opérationnel pour les propriétaires et les opérateurs côtiers.",
                 "homePrimaryCta": "Voir la plateforme",
                 "navApply": "Candidature",
             },
             "ru": {
-                "homeTitle": "ÐžÐ¿ÐµÑ€Ð°Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¹ ÐºÐ¾ÐºÐ¿Ð¸Ñ‚ Ð´Ð»Ñ Ð²Ð»Ð°Ð´ÐµÐ»ÑŒÑ†ÐµÐ² Ð¸ Ð¿Ñ€Ð¸Ð±Ñ€ÐµÐ¶Ð½Ñ‹Ñ… Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¾Ð².",
-                "homePrimaryCta": "ÐŸÐ¾ÑÐ¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ð¿Ð»Ð°Ñ‚Ñ„Ð¾Ñ€Ð¼Ñƒ",
-                "navApply": "Ð—Ð°ÑÐ²ÐºÐ°",
+                "homeTitle": "Операционный кокпит для владельцев и прибрежных операторов.",
+                "homePrimaryCta": "Посмотреть платформу",
+                "navApply": "Заявка",
             },
         }
 
