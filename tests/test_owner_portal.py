@@ -2172,6 +2172,79 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertRegex(completed_board_html, r"Assigned Tasks</span>\s*<strong>1</strong>")
         self.assertRegex(completed_board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
 
+
+    def test_admin_operations_detail_localizes_source_request_ai_triage(self):
+        request_record = self._demo_owner_request(
+            id="owner-request-ai-operations",
+            service_category="Airport Transfer",
+            urgency="Standard",
+            ai_triage={
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "English operations summary.",
+                "suggested_next_action": "English operations action.",
+                "summary_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e operations \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+                "suggested_next_action_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e operations \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+                "summary_fr": "Resume operations francais.",
+                "suggested_next_action_fr": "Action operations francaise.",
+                "confidence": 0.8,
+                "needs_human_review": True,
+            },
+        )
+        self._seed_jsonl("service_requests.jsonl", [request_record])
+
+        app_module._upsert_operations_task({
+            "id": "owner-request-ai-operations",
+            "request_id": "owner-request-ai-operations",
+            "source_id": "owner-request-ai-operations",
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "property_id": "",
+            "property": request_record.get("property", ""),
+            "owner": request_record.get("name", ""),
+            "owner_email": request_record.get("email", ""),
+            "category": "SERVICE",
+            "title": "Owner service request",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+        })
+
+        expectations = {
+            "en": ("English operations summary.", "English operations action."),
+            "bg": (
+                "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e operations \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+                "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e operations \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+            ),
+            "fr": (
+                "Resume operations francais.",
+                "Action operations francaise.",
+            ),
+        }
+
+        for language, (expected_summary, expected_action) in expectations.items():
+            with self.subTest(language=language):
+                with patch.dict(
+                    os.environ,
+                    {**self.ADMIN_ENV, **self.SMTP_ENV},
+                    clear=True,
+                ):
+                    response = self.client.get(
+                        f"/admin/operations/owner-request-ai-operations?lang={language}",
+                        headers=self._auth_headers(),
+                    )
+
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+
+                self.assertIn("admin-operations-ai", html)
+                self.assertIn(expected_summary, html)
+                self.assertIn(expected_action, html)
+                self.assertIn("Maintenance", html)
+                self.assertIn("High", html)
+
     def test_admin_owner_finance_payment_and_payout_persist_with_valid_forms(self):
         class FormAuditParser(HTMLParser):
             def __init__(self):
@@ -3198,6 +3271,126 @@ class OwnerPortalTests(unittest.TestCase):
             html_without_ai,
         )
         self.assertNotIn("AI recommendation for human review", html_without_ai)
+
+
+    def test_admin_service_request_detail_localizes_ai_triage_by_language(self):
+        request_record = self._demo_owner_request(
+            service_category="Airport Transfer",
+            urgency="Standard",
+            ai_triage={
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "English AI summary.",
+                "suggested_next_action": "English AI action.",
+                "summary_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e AI \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+                "suggested_next_action_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e AI \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+                "summary_fr": "Resume AI francais.",
+                "suggested_next_action_fr": "Action AI francaise.",
+                "confidence": 0.8,
+                "needs_human_review": True,
+            },
+        )
+        self._seed_jsonl("service_requests.jsonl", [request_record])
+
+        expectations = {
+            "en": ("English AI summary.", "English AI action."),
+            "bg": (
+                "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e AI \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+                "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e AI \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+            ),
+            "fr": ("Resume AI francais.", "Action AI francaise."),
+        }
+
+        for language, (expected_summary, expected_action) in expectations.items():
+            with self.subTest(language=language):
+                with patch.dict(
+                    os.environ,
+                    {**self.ADMIN_ENV, **self.SMTP_ENV},
+                    clear=True,
+                ):
+                    response = self.client.get(
+                        f"/admin/service-requests/owner-request-1?lang={language}",
+                        headers=self._auth_headers(),
+                    )
+
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+                self.assertIn(expected_summary, html)
+                self.assertIn(expected_action, html)
+
+    def test_admin_service_request_detail_ai_triage_legacy_falls_back_to_english(self):
+        request_record = self._demo_owner_request(
+            ai_triage={
+                "category": "Maintenance",
+                "urgency": "High",
+                "summary": "Legacy English summary.",
+                "suggested_next_action": "Legacy English action.",
+                "confidence": 0.7,
+                "needs_human_review": True,
+            },
+        )
+        self._seed_jsonl("service_requests.jsonl", [request_record])
+
+        for language in ("bg", "fr"):
+            with self.subTest(language=language):
+                with patch.dict(
+                    os.environ,
+                    {**self.ADMIN_ENV, **self.SMTP_ENV},
+                    clear=True,
+                ):
+                    response = self.client.get(
+                        f"/admin/service-requests/owner-request-1?lang={language}",
+                        headers=self._auth_headers(),
+                    )
+
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+                self.assertIn("Legacy English summary.", html)
+                self.assertIn("Legacy English action.", html)
+
+    def test_localize_ai_service_request_triage_selects_expected_language_and_fallback(self):
+        payload = {
+            "category": "Maintenance",
+            "urgency": "High",
+            "summary": "English summary.",
+            "suggested_next_action": "English action.",
+            "summary_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+            "suggested_next_action_bg": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+            "summary_fr": "Resume francais.",
+            "suggested_next_action_fr": "Action francaise.",
+            "confidence": 0.9,
+            "needs_human_review": True,
+        }
+
+        english = app_module._localize_ai_service_request_triage(payload, "en")
+        bulgarian = app_module._localize_ai_service_request_triage(payload, "bg")
+        french = app_module._localize_ai_service_request_triage(payload, "fr")
+
+        self.assertEqual(english["summary"], "English summary.")
+        self.assertEqual(english["suggested_next_action"], "English action.")
+        self.assertEqual(
+            bulgarian["summary"],
+            "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e \u043e\u0431\u043e\u0431\u0449\u0435\u043d\u0438\u0435.",
+        )
+        self.assertEqual(
+            bulgarian["suggested_next_action"],
+            "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u043e \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435.",
+        )
+        self.assertEqual(french["summary"], "Resume francais.")
+        self.assertEqual(french["suggested_next_action"], "Action francaise.")
+
+        legacy = {
+            "summary": "Legacy summary.",
+            "suggested_next_action": "Legacy action.",
+        }
+
+        legacy_bg = app_module._localize_ai_service_request_triage(legacy, "bg")
+        legacy_fr = app_module._localize_ai_service_request_triage(legacy, "fr")
+
+        self.assertEqual(legacy_bg["summary"], "Legacy summary.")
+        self.assertEqual(legacy_bg["suggested_next_action"], "Legacy action.")
+        self.assertEqual(legacy_fr["summary"], "Legacy summary.")
+        self.assertEqual(legacy_fr["suggested_next_action"], "Legacy action.")
 
     def test_public_owner_ctas_are_visible(self):
         response_home = self.client.get("/")

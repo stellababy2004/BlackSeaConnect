@@ -2762,6 +2762,116 @@
     'COMPLETED': 'Завършена',
     'ARCHIVED': 'Архивирана'
   } %}
+  <style>
+    .admin-operations-ai {
+      margin: 24px 0;
+      padding: 24px;
+      border: 1px solid rgba(17, 58, 95, 0.12);
+      border-radius: 22px;
+      background: rgba(247, 250, 252, 0.96);
+      box-shadow: 0 16px 40px rgba(17, 58, 95, 0.08);
+    }
+
+    .admin-operations-ai__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .admin-operations-ai__header h2 {
+      margin: 5px 0 0;
+    }
+
+    .admin-operations-ai__eyebrow,
+    .admin-operations-ai__body small,
+    .admin-operations-ai__comparison small {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.68;
+    }
+
+    .admin-operations-ai__review {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(180, 83, 9, 0.10);
+      color: #92400e;
+    }
+
+    .admin-operations-ai__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .admin-operations-ai__meta span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid rgba(17, 58, 95, 0.10);
+      font-weight: 700;
+    }
+
+    .admin-operations-ai__comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .admin-operations-ai__comparison > div,
+    .admin-operations-ai__body > div {
+      padding: 16px;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid rgba(17, 58, 95, 0.08);
+    }
+
+    .admin-operations-ai__comparison strong {
+      display: block;
+      margin-top: 7px;
+    }
+
+    .admin-operations-ai__body {
+      display: grid;
+      gap: 12px;
+    }
+
+    .admin-operations-ai__body p {
+      margin: 7px 0 0;
+      line-height: 1.55;
+    }
+
+    .admin-operations-ai__notice {
+      margin: 16px 0 0;
+      font-size: 13px;
+      opacity: 0.72;
+    }
+
+    @media (max-width: 760px) {
+      .admin-operations-ai__header {
+        display: block;
+      }
+
+      .admin-operations-ai__review {
+        margin-top: 12px;
+      }
+
+      .admin-operations-ai__comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
   {% set priority_labels = {
     'LOW': 'Нисък',
     'NORMAL': 'Нормален',
@@ -3024,6 +3134,52 @@
           <span style="width: {{ checklist_percentage }}%;"></span>
         </div>
       </div>
+      {% if ai_triage %}
+      <section class="admin-operations-ai" aria-label="AI triage recommendation">
+        <div class="admin-operations-ai__header">
+          <div>
+            <span class="admin-operations-ai__eyebrow">AI АНАЛИЗ</span>
+            <h2>Препоръка за човешки преглед</h2>
+          </div>
+          {% if ai_triage.needs_human_review %}
+          <span class="admin-operations-ai__review">Изисква човешки преглед</span>
+          {% endif %}
+        </div>
+
+        <div class="admin-operations-ai__meta">
+          <span>{{ ai_triage.category|e }}</span>
+          <span>{{ ai_triage.urgency|e }}</span>
+          <span>{{ (ai_triage.confidence * 100)|round|int }}% увереност</span>
+        </div>
+
+        <div class="admin-operations-ai__comparison">
+          <div>
+            <small>Текуща задача</small>
+            <strong>{{ task.category|e }} · {{ task_priority_label|e }}</strong>
+          </div>
+          <div>
+            <small>AI препоръка</small>
+            <strong>{{ ai_triage.category|e }} · {{ ai_triage.urgency|e }}</strong>
+          </div>
+        </div>
+
+        <div class="admin-operations-ai__body">
+          <div>
+            <small>AI обобщение</small>
+            <p>{{ ai_triage.summary|e }}</p>
+          </div>
+          <div>
+            <small>Препоръчано следващо действие</small>
+            <p>{{ ai_triage.suggested_next_action|e }}</p>
+          </div>
+        </div>
+
+        <p class="admin-operations-ai__notice">
+          AI не променя автоматично приоритета и не възлага професионалист. Решението остава при администратора.
+        </p>
+      </section>
+      {% endif %}
+
       <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
         <input type="hidden" name="task_action" value="checklist">
         <div class="admin-operations-checklist">
