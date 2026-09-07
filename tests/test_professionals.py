@@ -1145,6 +1145,61 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
 
+    def test_professional_checklist_button_remains_interactive_after_two_completed_items(self):
+        self._seed_professional_account(
+            full_name="Checklist Professional",
+            email="checklist-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-checklist-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("checklist-pro@example.com")
+        checklist = [
+            {"key": key, "label": label, "checked": index < 2}
+            for index, (key, label) in enumerate(app_module.OPERATIONS_TASK_CHECKLIST_ITEMS)
+        ]
+        self._seed_operations_task(
+            "task-checklist-interaction",
+            title="Inspection task",
+            category="Inspection",
+            status="IN_PROGRESS",
+            assigned_professional_id=account["id"],
+            assigned_to="Checklist Professional",
+            checklist_json=json.dumps(checklist),
+        )
+        self._login_professional_via_magic("checklist-pro@example.com")
+
+        detail_html = self.client.get("/professionals/tasks/task-checklist-interaction?lang=en").get_data(as_text=True)
+        self.assertIn("data-check-progress-count>2/9</strong>", detail_html)
+        keys_form = re.search(
+            r'<form class="[^"]*is-active-check[^"]*"[^>]*data-checklist-key="keys".*?</form>',
+            detail_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(keys_form)
+        self.assertRegex(keys_form.group(0), r'aria-pressed="false"\s*>')
+        self.assertIn('if (!submit.matches(".professional-check-toggle")) {', detail_html)
+        self.assertNotIn("built-in method copy", detail_html)
+        self.assertIn(">Copy</button>", detail_html)
+
+        evidence_select = re.search(
+            r'<select name="attachment_category" required>(.*?)</select>',
+            detail_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(evidence_select)
+        evidence_labels = re.findall(r'<option value="[^"]+">([^<]+)</option>', evidence_select.group(1))
+        self.assertEqual(len(evidence_labels), len(set(evidence_labels)))
+
+        checklist_response = self.client.post(
+            "/professionals/tasks/task-checklist-interaction",
+            data={"task_action": "checklist", "checklist_key": "keys", "checked": "1"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+        self.assertEqual(checklist_response.status_code, 200)
+        self.assertEqual(checklist_response.get_json()["checked_count"], 3)
+        self.assertEqual(checklist_response.get_json()["progress"], 33)
+
     def test_professional_issue_validation_and_timeline(self):
         self._seed_professional_account(
             full_name="Issue Professional",
