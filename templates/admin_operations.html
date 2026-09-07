@@ -1277,7 +1277,8 @@
           <div class="admin-live-timeline">
             {% for task in tasks[:7] %}
               <article class="admin-live-event">
-                <time>{{ task.updated_at|default(task.created_at, true)|e }}</time>
+                {% set task_activity_at = task.updated_at|default(task.created_at, true) %}
+                <time datetime="{{ task_activity_at|e }}">{{ format_local_datetime(task_activity_at, page_lang) }}</time>
                 <strong>{{ task_title_catalog.get(task.title, task.title or 'Оперативна задача')|e }}</strong>
                 <p>{{ operation_status_labels.get(task.status_label, task.status_label)|e }} · {{ task.property_label|e }}</p>
               </article>

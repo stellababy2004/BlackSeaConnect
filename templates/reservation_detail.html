@@ -321,7 +321,7 @@
                 <div class="reservation-detail-item">
                   <div class="reservation-detail-item__topline">
                     <strong>{{ item.title|e }}</strong>
-                    <time data-owner-datetime="{{ item.created_at|e }}">{{ item.created_at|e }}</time>
+                    <time datetime="{{ item.created_at|e }}">{{ format_local_datetime(item.created_at, page_lang) }}</time>
                   </div>
                   <div class="reservation-detail-meta u-mt-12">
                     <span class="reservation-detail-chip">{{ item.type|replace('_', ' ')|title }}</span>
@@ -367,7 +367,7 @@
                 <div class="reservation-detail-comment">
                   <div class="reservation-detail-comment__meta">
                     <strong>{{ comment.author|e }}</strong>
-                    <time>{{ comment.created_at|e }}</time>
+                    <time datetime="{{ comment.created_at|e }}">{{ format_local_datetime(comment.created_at, page_lang) }}</time>
                   </div>
                   <p class="reservation-detail-empty u-mb-0">{{ comment.body|e }}</p>
                 </div>

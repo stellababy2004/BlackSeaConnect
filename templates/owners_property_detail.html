@@ -528,9 +528,9 @@
             <div><dt>{{ public_i18n('common', 'dashboardElevator', 'Elevator') }}</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardParking', 'Parking') }}</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanation', 'Status explanation') }}</dt><dd>{{ localized_property_status }}. {{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanationCopy', 'We use this to decide whether the local team should monitor, prepare, or pause work.') }}</dd></div>
-            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyAddedPortal', 'Added to portal') }}</dt><dd data-owner-datetime="{{ property_context.property.created_at|e }}">{{ property_context.property.created_at|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyAddedPortal', 'Added to portal') }}</dt><dd><time datetime="{{ property_context.property.created_at|e }}">{{ format_local_datetime(property_context.property.created_at, page_lang) }}</time></dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness') }}</dt><dd>{{ property_context.property.readiness_percent }}%</dd></div>
-            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyLastUpdate', 'Last update') }}</dt><dd data-owner-datetime="{{ property_context.property.last_updated_at|e }}">{{ property_context.property.last_updated_at|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyLastUpdate', 'Last update') }}</dt><dd><time datetime="{{ property_context.property.last_updated_at|e }}">{{ format_local_datetime(property_context.property.last_updated_at, page_lang) }}</time></dd></div>
           </dl>
         </article>
 
@@ -1013,7 +1013,7 @@
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
                     <strong>{{ public_i18n('owners', request_category_key, request.service_category) }} — {{ public_i18n('ownersDashboard', 'ownerActivityRequestReceived', 'request received') }}</strong>
-                    <time data-owner-datetime="{{ request.created_at|e }}">{{ request.created_at|e }}</time>
+                    <time datetime="{{ request.created_at|e }}">{{ format_local_datetime(request.created_at, page_lang) }}</time>
                   </div>
                   <p>
                     {{ public_i18n('ownersDashboard', 'ownerActivityCurrentStep', 'Current step') }}: <span data-owner-status="{{ request.status|e }}">{{ public_i18n('owners', request_status_translation_keys.get(request.status|lower, ''), request.status|replace('_', ' ')|title) }}</span> {{ public_i18n('ownersDashboard', 'ownerActivityFor', 'for') }} {{ request.property|e }}.
@@ -1060,7 +1060,7 @@
                         {{ event.title|e }}
                       {% endif %}
                     </strong>
-                    <time data-owner-datetime="{{ event.created_at|e }}">{{ event.created_at|e }}</time>
+                    <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                   </div>
                   {% if event.detail %}
                     <p>

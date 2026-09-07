@@ -3427,7 +3427,8 @@
                   <div class="admin-evidence-card__body">
                     <strong title="{{ attachment.original_filename|e }}">{{ attachment.name|e }}</strong>
                     <span class="admin-operations-chip">{{ evidence_copy.categories.get(attachment.category, attachment.category|replace('_', ' ')|title) }}</span>
-                    <p>{{ evidence_copy.uploaded_by }} {{ attachment.uploaded_by|e }}<br>{{ bg_datetime(attachment.upload_timestamp or attachment.created_at) }} · {{ format_evidence_file_size(attachment.file_size) }}</p>
+                    {% set attachment_created_at = attachment.upload_timestamp or attachment.created_at %}
+                    <p>{{ evidence_copy.uploaded_by }} {{ attachment.uploaded_by|e }}<br><time datetime="{{ attachment_created_at|e }}">{{ format_local_datetime(attachment_created_at, page_lang) }}</time> · {{ format_evidence_file_size(attachment.file_size) }}</p>
                     <div class="admin-evidence-card__actions">
                       <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ evidence_copy.preview }}</a>
                       <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ evidence_copy.download }}</a>
@@ -3833,7 +3834,7 @@
                     <td><span class="admin-operations-table__title" title="{{ request_title|e }}">{{ request_title_display|e }}</span></td>
                     <td>{{ category_labels.get(request.service_category|upper, 'Друга задача') }}</td>
                     <td>{{ request_status_labels.get(request.status|upper, 'Друг статус') }}</td>
-                    <td>{{ bg_datetime(request.created_at) }}</td>
+                    <td><time datetime="{{ request.created_at|e }}">{{ format_local_datetime(request.created_at, page_lang) }}</time></td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -3870,7 +3871,7 @@
                 <div class="admin-operations-comment">
                   <div class="admin-operations-comment__meta">
                     <strong>{{ comment.operator|e or 'Админ' }}</strong>
-                    <time>{{ bg_datetime(comment.created_at) }}</time>
+                    <time datetime="{{ comment.created_at|e }}">{{ format_local_datetime(comment.created_at, page_lang) }}</time>
                   </div>
                   <div class="admin-operations-comment-types">
                     <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ note_type_labels.get(comment.type, 'Друга бележка') }}</span>
@@ -3898,7 +3899,7 @@
                         <span class="admin-operations-timeline-item__icon">↗</span>
                         <strong>{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</strong>
                       </div>
-                      <time>{{ bg_datetime(event.created_at) }}</time>
+                      <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                     </div>
                     <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
                       <span class="admin-operations-chip"><span class="admin-operations-chip__icon">↗</span>Възлагане</span>
@@ -3917,7 +3918,7 @@
                       </span>
                       <strong>{% if event.event_type in ['attachment_added', 'attachment_deleted'] %}{{ event.title|e }}{% else %}{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}{% endif %}</strong>
                     </div>
-                    <time>{{ bg_datetime(event.created_at) }}</time>
+                    <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                   </div>
                   <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
                     <span class="admin-operations-chip">{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</span>

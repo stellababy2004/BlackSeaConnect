@@ -1272,6 +1272,58 @@ class ApplicationWorkflowTests(unittest.TestCase):
         utilities_item = next(item for item in updated_task["checklist_items"] if item["key"] == "utilities")
         self.assertTrue(utilities_item["checked"])
 
+    def test_local_datetime_formatter_uses_sofia_dst_and_bulgarian_format(self):
+        self.assertEqual(
+            app_module._format_local_datetime("2026-07-15T20:49:12Z", "bg"),
+            "15.07.2026, 23:49",
+        )
+        self.assertEqual(
+            app_module._format_local_datetime("2026-01-15T20:49:12Z", "bg"),
+            "15.01.2026, 22:49",
+        )
+
+    def test_professional_history_formats_sofia_time_without_changing_utc_storage(self):
+        self._seed_professional_account(
+            full_name="Timestamp Professional",
+            email="timestamp-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-timestamp-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("timestamp-pro@example.com")
+        self._seed_operations_task(
+            "task-timestamp-presentation",
+            title="Timestamp presentation task",
+            category="Inspection",
+            status="IN_PROGRESS",
+            assigned_professional_id=account["id"],
+            assigned_to="Timestamp Professional",
+        )
+        canonical_timestamp = "2026-07-15T20:49:12Z"
+        with patch("app._utc_now_iso", return_value=canonical_timestamp):
+            app_module._append_operations_task_event(
+                "task-timestamp-presentation",
+                "checklist_updated",
+                "Checklist updated",
+                status="IN_PROGRESS",
+            )
+
+        stored_event = next(
+            event
+            for event in app_module._load_operations_task_events("task-timestamp-presentation")
+            if event["event_type"] == "checklist_updated"
+        )
+        self.assertEqual(stored_event["created_at"], canonical_timestamp)
+
+        self._login_professional_via_magic("timestamp-pro@example.com")
+        detail_html = self.client.get(
+            "/professionals/tasks/task-timestamp-presentation?lang=bg"
+        ).get_data(as_text=True)
+        self.assertIn(
+            f'<time datetime="{canonical_timestamp}">15.07.2026, 23:49</time>',
+            detail_html,
+        )
+
     def test_professional_issue_validation_and_timeline(self):
         self._seed_professional_account(
             full_name="Issue Professional",

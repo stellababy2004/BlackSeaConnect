@@ -708,9 +708,9 @@
               <div class="professional-chat-item">
                 <span class="professional-chat-avatar" aria-hidden="true">{{ comment.operator|default('?', true)|first|upper }}</span>
                 <div class="professional-chat-bubble">
-                  <div class="professional-list-item__topline"><strong>{{ comment.operator|e }}</strong><time>{{ comment.created_at|e }}</time></div>
+                  <div class="professional-list-item__topline"><strong>{{ comment.operator|e }}</strong><time datetime="{{ comment.created_at|e }}">{{ format_local_datetime(comment.created_at, page_lang) }}</time></div>
                   <p class="professional-preserve-format">{{ comment.comment|e }}</p>
-                  {% if comment.edited_at %}<small>{{ labels.edited }} · {{ comment.edited_at|e }}</small>{% endif %}
+                  {% if comment.edited_at %}<small>{{ labels.edited }} · <time datetime="{{ comment.edited_at|e }}">{{ format_local_datetime(comment.edited_at, page_lang) }}</time></small>{% endif %}
                 </div>
               </div>
             {% else %}
@@ -762,7 +762,7 @@
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
                   {% if attachment.url %}<a href="{{ attachment.url|e }}" target="_blank" rel="noopener"><strong>{{ attachment.name|e }}</strong></a>{% else %}<strong>{{ attachment.name|e }}</strong>{% endif %}
-                  <time>{{ attachment.created_at|e }}</time>
+                  <time datetime="{{ attachment.created_at|e }}">{{ format_local_datetime(attachment.created_at, page_lang) }}</time>
                 </div>
                 <p>
                   {% if attachment.slot %}
@@ -840,7 +840,7 @@
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
                   <span style="display:flex;align-items:center;gap:9px;"><span class="professional-timeline-icon" aria-hidden="true">{{ event_icons.get(event_type, "•") }}</span><strong>{{ timeline_labels.get(event_type, labels.task_event_unknown) }}</strong></span>
-                  <time>{{ event.created_at|e }}</time>
+                  <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                 </div>
                 <div class="professional-meta" style="margin-top:8px;">
                   <span class="professional-badge">{% if event_type.startswith('professional_') or event_type in ['attachment_added', 'comment_added_internal', 'checklist_updated', 'completion_report_updated'] %}{{ task.assigned_professional_label|e or labels.professional_actor }}{% else %}{{ labels.operations_actor }}{% endif %}</span>

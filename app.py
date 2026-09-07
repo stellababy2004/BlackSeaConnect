@@ -23,6 +23,7 @@ import urllib.request
 import urllib.parse
 from threading import RLock, Thread
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import click
 try:
@@ -12402,6 +12403,32 @@ def _parse_iso_datetime(value):
         return datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
     except ValueError:
         return None
+
+
+OPERATIONS_TIMEZONE = ZoneInfo("Europe/Sofia")
+
+
+@app.template_global("format_local_datetime")
+def _format_local_datetime(value, language=None, fallback=""):
+    raw_value = str(value or "").strip()
+    parsed_value = value if isinstance(value, datetime) else _parse_iso_datetime(raw_value)
+    if not parsed_value:
+        return str(fallback or raw_value)
+
+    if parsed_value.tzinfo is None:
+        parsed_value = parsed_value.replace(tzinfo=timezone.utc)
+
+    normalized_language = _normalize_site_language(language)
+    if not normalized_language and has_request_context():
+        normalized_language = _resolve_current_language()
+    normalized_language = normalized_language or "bg"
+    formats = {
+        "bg": "%d.%m.%Y, %H:%M",
+        "en": "%d/%m/%Y, %H:%M",
+        "fr": "%d/%m/%Y %H:%M",
+        "ru": "%d.%m.%Y, %H:%M",
+    }
+    return parsed_value.astimezone(OPERATIONS_TIMEZONE).strftime(formats[normalized_language])
 
 
 def _owner_portal_response_minutes(record):

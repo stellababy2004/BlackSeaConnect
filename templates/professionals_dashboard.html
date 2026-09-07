@@ -391,7 +391,7 @@
             <div class="professional-notification">
               <div class="professional-notification__topline">
                 <strong>{{ notification_labels.get(notification.event_type|default('', true), notification.title|e) }}</strong>
-                <time>{{ notification.created_at|e }}</time>
+                <time datetime="{{ notification.created_at|e }}">{{ format_local_datetime(notification.created_at, page_lang) }}</time>
               </div>
               {% if notification.detail %}<p>{{ notification.detail|e }}</p>{% endif %}
             </div>
