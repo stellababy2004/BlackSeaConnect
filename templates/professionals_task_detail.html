@@ -203,16 +203,6 @@
   "Seasonal Preparation": public_i18n("owners", "ownerCategorySeasonalPreparation", "Seasonal Preparation"),
   "Other": public_i18n("owners", "ownerCategoryOther", "Other")
 } %}
-{% set attachment_labels = {
-  "before_photos": public_i18n("professionals", "detailBeforeWork", "Before work"),
-  "after_photos": public_i18n("professionals", "detailAfterWork", "After work"),
-  "invoice": public_i18n("professionals", "detailReceipts", "Receipts"),
-  "receipt": public_i18n("professionals", "detailReceipts", "Receipts"),
-  "inspection_report": public_i18n("professionals", "detailOtherFiles", "Other files"),
-  "damage_evidence": public_i18n("professionals", "detailOtherFiles", "Other files"),
-  "completion_report_attachment": public_i18n("professionals", "detailOtherFiles", "Other files"),
-  "other": public_i18n("professionals", "detailOtherFiles", "Other files")
-} %}
 {% set timeline_labels = {
   "task_created": labels.task_event_task_created,
   "assigned": labels.task_event_assigned,
@@ -593,12 +583,12 @@
             <div><dt>{{ public_i18n('professionals', 'detailGuest', 'Guest') }}</dt><dd>{{ task.guest_name|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailArrival', 'Arrival') }}</dt><dd>{{ task.arrival_date|default('', true)|e or task.check_in|default('', true)|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}</dt><dd>{{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ property_snapshot.door_code|e or labels.not_recorded }}{% if property_snapshot.door_code %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.door_code|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
+            <div><dt>{{ public_i18n('professionals', 'detailDoorCode', 'Door code') }}</dt><dd>{{ property_snapshot.door_code|e or labels.not_recorded }}{% if property_snapshot.door_code %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.door_code|e }}">{{ labels["copy"] }}</button>{% endif %}</dd></div>
             <div><dt>{{ labels.wifi_name }}</dt><dd>{{ property_snapshot.wifi_name|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ labels.wifi_password }}</dt><dd>{{ property_snapshot.wifi_password|e or labels.not_recorded }}{% if property_snapshot.wifi_password %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.wifi_password|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
+            <div><dt>{{ labels.wifi_password }}</dt><dd>{{ property_snapshot.wifi_password|e or labels.not_recorded }}{% if property_snapshot.wifi_password %}<br><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.wifi_password|e }}">{{ labels["copy"] }}</button>{% endif %}</dd></div>
             <div><dt>{{ public_i18n('professionals', 'detailParking', 'Parking') }}</dt><dd>{{ property_snapshot.parking|e or labels.not_recorded }}</dd></div>
             <div><dt>{{ labels.emergency_contact }}</dt><dd>{{ property_snapshot.emergency_contact|e or labels.not_recorded }}</dd></div>
-            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions">{% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_email|e }}">{{ labels.copy }}</button>{% endif %}{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_phone|e }}">{{ labels.copy }}</button>{% endif %}{% if property_snapshot.address %}<button class="button button--ghost" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ labels.maps }}</button><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.address|e }}">{{ labels.copy }}</button>{% endif %}</dd></div>
+            <div><dt>{{ labels.contact_buttons }}</dt><dd class="professional-task-actions">{% if owner_email %}<a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ labels.email_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_email|e }}">{{ labels["copy"] }}</button>{% endif %}{% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a><button class="button button--ghost" type="button" data-copy-value="{{ owner_phone|e }}">{{ labels["copy"] }}</button>{% endif %}{% if property_snapshot.address %}<button class="button button--ghost" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ labels.maps }}</button><button class="button button--ghost" type="button" data-copy-value="{{ property_snapshot.address|e }}">{{ labels["copy"] }}</button>{% endif %}</dd></div>
             <div><dt>{{ labels.open_operations }}</dt><dd class="professional-task-actions"><a class="button button--secondary" href="{{ localized_url('/admin/operations/' ~ task.id|e) }}">{{ labels.open_operations }}</a><a class="button button--ghost" href="mailto:concierge@blackseaconnect.com?subject={{ ('Professional task ' ~ task.id)|urlencode }}">{{ labels.support }}</a></dd></div>
           </dl>
         </article>
@@ -658,7 +648,7 @@
             <label><span>{{ labels.evidence_category }}</span>
               <select name="attachment_category" required>
                 <option value="">{{ labels.no_evidence_category }}</option>
-                {% for slot_key, slot_label in attachment_labels.items() %}
+                {% for slot_key, slot_label in evidence_category_labels.items() %}
                   <option value="{{ slot_key }}">{{ slot_label }}</option>
                 {% endfor %}
               </select>
@@ -776,9 +766,9 @@
                 </div>
                 <p>
                   {% if attachment.slot %}
-                    {{ attachment_labels.get(attachment.slot|default('', true)|trim, attachment.slot|default('', true)|replace('_', ' ')|title) }}
+                    {{ evidence_category_labels.get(attachment.slot|default('', true)|trim, attachment.slot|default('', true)|replace('_', ' ')|title) }}
                   {% elif attachment.category %}
-                    {{ attachment_labels.get(attachment.category, attachment.category|replace('_', ' ')|title) }}
+                    {{ evidence_category_labels.get(attachment.category, attachment.category|replace('_', ' ')|title) }}
                   {% else %}
                     {{ labels.attachment }}
                   {% endif %}
@@ -894,9 +884,11 @@
         });
         const submit = form.querySelector('[type="submit"]');
         if (!submit) return;
-        if (!submit.dataset.label) submit.dataset.label = submit.textContent;
         submit.classList.toggle("is-loading", loading);
-        submit.textContent = loading ? messages.loading : submit.dataset.label;
+        if (!submit.matches(".professional-check-toggle")) {
+          if (!submit.dataset.label) submit.dataset.label = submit.textContent;
+          submit.textContent = loading ? messages.loading : submit.dataset.label;
+        }
       };
       const parseActionResponse = async (response) => {
         try {

@@ -1145,6 +1145,133 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
 
+    def test_professional_checklist_button_remains_interactive_after_two_completed_items(self):
+        self._seed_professional_account(
+            full_name="Checklist Professional",
+            email="checklist-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-checklist-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("checklist-pro@example.com")
+        checklist = [
+            {"key": key, "label": label, "checked": index < 2}
+            for index, (key, label) in enumerate(app_module.OPERATIONS_TASK_CHECKLIST_ITEMS)
+        ]
+        self._seed_operations_task(
+            "task-checklist-interaction",
+            title="Inspection task",
+            category="Inspection",
+            status="IN_PROGRESS",
+            assigned_professional_id=account["id"],
+            assigned_to="Checklist Professional",
+            checklist_json=json.dumps(checklist),
+        )
+        self._login_professional_via_magic("checklist-pro@example.com")
+
+        detail_html = self.client.get("/professionals/tasks/task-checklist-interaction?lang=en").get_data(as_text=True)
+        self.assertIn("data-check-progress-count>2/9</strong>", detail_html)
+        keys_form = re.search(
+            r'<form class="[^"]*is-active-check[^"]*"[^>]*data-checklist-key="keys".*?</form>',
+            detail_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(keys_form)
+        self.assertRegex(keys_form.group(0), r'aria-pressed="false"\s*>')
+        self.assertIn('if (!submit.matches(".professional-check-toggle")) {', detail_html)
+        self.assertNotIn("built-in method copy", detail_html)
+        self.assertIn(">Copy</button>", detail_html)
+
+        evidence_select = re.search(
+            r'<select name="attachment_category" required>(.*?)</select>',
+            detail_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(evidence_select)
+        evidence_labels = re.findall(r'<option value="[^"]+">([^<]+)</option>', evidence_select.group(1))
+        self.assertEqual(len(evidence_labels), len(set(evidence_labels)))
+
+        checklist_response = self.client.post(
+            "/professionals/tasks/task-checklist-interaction",
+            data={"task_action": "checklist", "checklist_key": "keys", "checked": "1"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+        self.assertEqual(checklist_response.status_code, 200)
+        self.assertEqual(checklist_response.get_json()["checked_count"], 3)
+        self.assertEqual(checklist_response.get_json()["progress"], 33)
+
+    def test_professional_utilities_checklist_advances_from_five_to_six_items(self):
+        self._seed_professional_account(
+            full_name="Utilities Professional",
+            email="utilities-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-utilities-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("utilities-pro@example.com")
+        checklist = [
+            {"key": key, "label": label, "checked": index < 5}
+            for index, (key, label) in enumerate(app_module.OPERATIONS_TASK_CHECKLIST_ITEMS)
+        ]
+        self._seed_operations_task(
+            "task-utilities-interaction",
+            title="Utilities checklist task",
+            category="Inspection",
+            status="IN_PROGRESS",
+            assigned_professional_id=account["id"],
+            assigned_to="Utilities Professional",
+            checklist_json=json.dumps(checklist),
+        )
+        self._login_professional_via_magic("utilities-pro@example.com")
+
+        detail_html = self.client.get("/professionals/tasks/task-utilities-interaction?lang=en").get_data(as_text=True)
+        self.assertIn("data-check-progress-count>5/9</strong>", detail_html)
+        utilities_form = re.search(
+            r'<form class="[^"]*is-active-check[^"]*"[^>]*data-checklist-key="utilities".*?</form>',
+            detail_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(utilities_form)
+        utilities_html = utilities_form.group(0)
+        self.assertIn('method="post"', utilities_html)
+        self.assertIn('action="/professionals/tasks/task-utilities-interaction?lang=en"', utilities_html)
+        self.assertIn('<input type="hidden" name="task_action" value="checklist">', utilities_html)
+        self.assertIn('<input type="hidden" name="checklist_key" value="utilities">', utilities_html)
+        self.assertIn('<input type="hidden" name="checked" value="1">', utilities_html)
+        self.assertRegex(utilities_html, r'<button class="professional-check-toggle" type="submit" aria-pressed="false"\s*>')
+        self.assertNotIn("disabled", utilities_html)
+        self.assertIn('class="professional-check-mark"', utilities_html)
+        self.assertIn('class="professional-list-item__topline"', utilities_html)
+        self.assertIn('form.addEventListener("submit", async (event) => {', detail_html)
+        self.assertIn('if (!submit.matches(".professional-check-toggle")) {', detail_html)
+
+        checklist_response = self.client.post(
+            "/professionals/tasks/task-utilities-interaction",
+            data={"task_action": "checklist", "checklist_key": "utilities", "checked": "1"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+        self.assertEqual(checklist_response.status_code, 200)
+        result = checklist_response.get_json()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["checklist_key"], "utilities")
+        self.assertTrue(result["checked"])
+        self.assertEqual(result["checked_count"], 6)
+        self.assertEqual(result["total_count"], 9)
+        self.assertEqual(result["progress"], 67)
+
+        refreshed_html = self.client.get("/professionals/tasks/task-utilities-interaction?lang=en").get_data(as_text=True)
+        self.assertIn("data-check-progress-count>6/9</strong>", refreshed_html)
+        wifi_form = re.search(
+            r'<form class="[^"]*is-active-check[^"]*"[^>]*data-checklist-key="wifi".*?</form>',
+            refreshed_html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(wifi_form)
+        self.assertRegex(wifi_form.group(0), r'aria-pressed="false"\s*>')
+        updated_task = app_module._find_operations_task("task-utilities-interaction")
+        utilities_item = next(item for item in updated_task["checklist_items"] if item["key"] == "utilities")
+        self.assertTrue(utilities_item["checked"])
+
     def test_professional_issue_validation_and_timeline(self):
         self._seed_professional_account(
             full_name="Issue Professional",

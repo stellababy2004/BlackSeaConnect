@@ -17214,6 +17214,7 @@ def professionals_task_detail(task_id):
             "longitude": str(property_profile.get("longitude", "")).strip(),
         },
         latest_editable_comment=latest_editable_comment,
+        evidence_category_labels=_operations_evidence_copy(_resolve_current_language())["categories"],
         action_notice=str(request.args.get("notice", "")).strip(),
         action_error=str(request.args.get("error", "")).strip(),
     )
