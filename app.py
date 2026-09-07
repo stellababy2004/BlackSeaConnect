@@ -1152,7 +1152,7 @@ def _normalize_ai_service_request_triage(payload):
     if not summary or not suggested_next_action:
         return None
 
-    return {
+    normalized = {
         "category": category,
         "urgency": urgency,
         "summary": summary[:500],
@@ -1160,6 +1160,47 @@ def _normalize_ai_service_request_triage(payload):
         "confidence": confidence,
         "needs_human_review": True,
     }
+
+    for key, limit in (
+        ("summary_bg", 500),
+        ("summary_fr", 500),
+        ("suggested_next_action_bg", 1000),
+        ("suggested_next_action_fr", 1000),
+    ):
+        value = str(payload.get(key, "")).strip()
+        if value:
+            normalized[key] = value[:limit]
+
+    return normalized
+
+
+def _localize_ai_service_request_triage(payload, language):
+    if not isinstance(payload, dict):
+        return None
+
+    localized = dict(payload)
+    language = str(language or "en").strip().lower()
+
+    if language == "bg":
+        localized["summary"] = (
+            str(payload.get("summary_bg", "")).strip()
+            or str(payload.get("summary", "")).strip()
+        )
+        localized["suggested_next_action"] = (
+            str(payload.get("suggested_next_action_bg", "")).strip()
+            or str(payload.get("suggested_next_action", "")).strip()
+        )
+    elif language == "fr":
+        localized["summary"] = (
+            str(payload.get("summary_fr", "")).strip()
+            or str(payload.get("summary", "")).strip()
+        )
+        localized["suggested_next_action"] = (
+            str(payload.get("suggested_next_action_fr", "")).strip()
+            or str(payload.get("suggested_next_action", "")).strip()
+        )
+
+    return localized
 
 
 def _ai_service_request_triage(description, current_category="", current_urgency="Standard"):
@@ -1197,6 +1238,18 @@ def _ai_service_request_triage(description, current_category="", current_urgency
             "suggested_next_action": {
                 "type": "string",
             },
+            "summary_bg": {
+                "type": "string",
+            },
+            "suggested_next_action_bg": {
+                "type": "string",
+            },
+            "summary_fr": {
+                "type": "string",
+            },
+            "suggested_next_action_fr": {
+                "type": "string",
+            },
             "confidence": {
                 "type": "number",
                 "minimum": 0,
@@ -1208,6 +1261,10 @@ def _ai_service_request_triage(description, current_category="", current_urgency
             "urgency",
             "summary",
             "suggested_next_action",
+            "summary_bg",
+            "suggested_next_action_bg",
+            "summary_fr",
+            "suggested_next_action_fr",
             "confidence",
         ],
         "additionalProperties": False,
@@ -1219,6 +1276,18 @@ def _ai_service_request_triage(description, current_category="", current_urgency
         "Your role is advisory only. Do not claim that a provider has been dispatched, "
         "contacted, booked, paid, approved, or assigned.\n"
         "Suggested actions must be recommendations for human review.\n"
+        "Language requirements:\n"
+        "- summary and suggested_next_action must be written in clear, natural English.\n"
+        "- summary_bg and suggested_next_action_bg must be natural professional Bulgarian "
+        "used in property maintenance, not a literal word-for-word translation.\n"
+        "- In Bulgarian, distinguish correctly between a sink and a faucet/tap; "
+        "do not use the word for faucet when the source only says sink.\n"
+        "- summary_fr and suggested_next_action_fr must be natural professional French "
+        "used in property maintenance, not a literal word-for-word translation.\n"
+        "- Avoid awkward literal phrasing in Bulgarian and French.\n"
+        "- Preserve the same factual meaning, urgency, and safety level across all three languages.\n"
+        "- Do not add facts that are not present or reasonably implied by the owner's description.\n"
+        "- Do not translate category or urgency values; those must remain schema values.\n"
         "Urgency rules:\n"
         "- Same day: immediate safety risk, uncontrolled flooding, loss of essential service, "
         "or a problem requiring action today to prevent serious damage.\n"
@@ -1249,7 +1318,19 @@ def _ai_service_request_triage(description, current_category="", current_urgency
             method="POST",
         )
 
-        with urllib_request.urlopen(http_request, timeout=15) as response:
+        try:
+            ollama_timeout = float(
+                os.getenv("OLLAMA_TIMEOUT_SECONDS", "60")
+            )
+        except (TypeError, ValueError):
+            ollama_timeout = 60.0
+
+        ollama_timeout = max(5.0, min(120.0, ollama_timeout))
+
+        with urllib_request.urlopen(
+            http_request,
+            timeout=ollama_timeout,
+        ) as response:
             response_payload = json.loads(
                 response.read().decode("utf-8")
             )
@@ -24313,6 +24394,16 @@ def admin_service_request_detail(request_id):
 
     backing_task = _find_operations_task(request_id)
     display_record = dict(record)
+
+    display_ai_triage = _normalize_ai_service_request_triage(
+        record.get("ai_triage")
+    )
+    if display_ai_triage:
+        display_record["ai_triage"] = _localize_ai_service_request_triage(
+            display_ai_triage,
+            _resolve_current_language(),
+        )
+
     if backing_task:
         display_record["assigned_provider_id"] = str(display_record.get("assigned_provider_id", "")).strip() or str(backing_task.get("assigned_professional_id", "")).strip()
         display_record["assigned_provider_name"] = str(display_record.get("assigned_provider_name", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
@@ -24994,6 +25085,30 @@ def admin_operations_detail(task_id):
         return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
     context = _admin_operations_task_context(task_record)
+
+    source_request = None
+    if str(task_record.get("source_type", "")).strip().upper() == "OWNER_SERVICE_REQUEST":
+        source_request_id = (
+            str(task_record.get("request_id", "")).strip()
+            or str(task_record.get("source_id", "")).strip()
+            or str(task_record.get("id", "")).strip()
+        )
+        if source_request_id:
+            source_request = _find_service_request(source_request_id)
+
+    operations_ai_triage = None
+    if source_request:
+        operations_ai_triage = _normalize_ai_service_request_triage(
+            source_request.get("ai_triage")
+        )
+        operations_ai_triage = _localize_ai_service_request_triage(
+            operations_ai_triage,
+            _resolve_current_language(),
+        )
+
+    context["source_service_request"] = source_request
+    context["ai_triage"] = operations_ai_triage
+
     return render_template(
         "admin_operations_detail.html",
         **context,
