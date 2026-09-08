@@ -889,6 +889,12 @@ class OwnerPortalTests(unittest.TestCase):
         property_rows = self._read_owner_db_rows("owner_properties")
         self.assertEqual(len(property_rows), 1)
         property_id = property_rows[0]["id"]
+        existing_assets = app_module._owner_property_merge_assets(app_module._find_owner_property(property_id))["assets"]
+        existing_assets["general"]["description"] = "Preserve this detailed description."
+        existing_assets["access"]["smart_lock"] = "Lobby keypad"
+        existing_assets["wifi"]["router_location"] = "Hall cabinet"
+        existing_assets["appliances"]["washing_machine"]["brand"] = "Bosch"
+        app_module._owner_property_save_assets(property_id, existing_assets)
 
         step_two_response = self.client.post(
             "/owners/property/new?lang=en",
@@ -915,6 +921,10 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(assets["photos"][0]["filename"], "cover.jpg")
         self.assertTrue(assets["amenities"]["wifi"])
         self.assertEqual(assets["welcome_instructions"], "Please enjoy your stay.")
+        self.assertEqual(assets["general"]["description"], "Preserve this detailed description.")
+        self.assertEqual(assets["access"]["smart_lock"], "Lobby keypad")
+        self.assertEqual(assets["wifi"]["router_location"], "Hall cabinet")
+        self.assertEqual(assets["appliances"]["washing_machine"]["brand"], "Bosch")
 
         detail_response = self.client.get(f"/owners/properties/{property_id}?lang=en")
         self.assertEqual(detail_response.status_code, 200)
@@ -1007,8 +1017,18 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(french_journey["categories"][0]["label"], "Informations sur le bien")
         self.assertTrue(all(step["href"] == f"/owners/properties/property-1#{step['target_id']}" for step in journey["steps"]))
         self.assertEqual(len({step["target_id"] for step in journey["steps"]}), journey["total"])
+        steps_by_key = {step["key"]: step for step in journey["steps"]}
+        self.assertEqual(steps_by_key["photo_gallery"]["action_href"], "/owners/property/new?step=photos&property_id=property-1#property-editor-photos")
+        self.assertEqual(steps_by_key["parking_access"]["action_href"], "/owners/properties/property-1#property-editor-access")
+        self.assertEqual(steps_by_key["airbnb_calendar"]["action_href"], "/owners/properties/property-1#property-editor-integration-airbnb")
+        self.assertEqual(steps_by_key["booking_calendar"]["action_href"], "/owners/properties/property-1#property-editor-integration-booking")
+        self.assertEqual({step["key"] for step in journey["steps"] if not step["action_available"]}, {"airbnb_calendar", "booking_calendar"})
+        self.assertEqual(steps_by_key["airbnb_calendar"]["action_label"], "View status")
+        self.assertEqual(steps_by_key["booking_calendar"]["action_label"], "View status")
+        self.assertEqual(steps_by_key["photo_gallery"]["action_label"], "Open step")
+        self.assertTrue(all(step["action_href"] != step["navigation_href"] for step in journey["steps"]))
 
-    def test_property_setup_airbnb_and_booking_actions_target_unique_cards(self):
+    def test_property_setup_actions_reach_existing_editors_without_targeting_own_cards(self):
         self._login_owner_via_magic()
 
         response = self.client.get("/owners/properties/property-1?lang=en")
@@ -1019,33 +1039,68 @@ class OwnerPortalTests(unittest.TestCase):
         ids = re.findall(r'\bid="([^"]+)"', html)
         for card in re.findall(r'<article class="owner-setup-card[^>]*>.*?</article>', html, flags=re.DOTALL):
             card_id = re.search(r'\bid="([^"]+)"', card)
-            card_href = re.search(r'<a\b[^>]*\bhref="([^"]+)"[^>]*>Open step</a>', card)
+            card_href = re.search(
+                r'<a\b[^>]*\bhref="([^"]+)"[^>]*>(?:Open step|View status)</a>',
+                card,
+            )
             if card_id and card_href:
-                setup_steps[card_id.group(1)] = card_href.group(1)
+                setup_steps[card_id.group(1)] = html_lib.unescape(card_href.group(1))
 
         expected = {
-            "property-step-airbnb-calendar": ("Connect Airbnb", "/owners/properties/property-1?lang=en#property-step-airbnb-calendar"),
-            "property-step-booking-calendar": ("Connect Booking.com", "/owners/properties/property-1?lang=en#property-step-booking-calendar"),
+            "property-step-photo-gallery": ("Build a complete photo gallery", "knowledge", "/owners/property/new?step=photos&property_id=property-1&lang=en#property-editor-photos"),
+            "property-step-entry-instructions": ("Add entry instructions", "knowledge", "/owners/properties/property-1?lang=en#property-editor-access"),
+            "property-step-airbnb-calendar": ("Connect Airbnb", "calendar", "/owners/properties/property-1?lang=en#property-editor-integration-airbnb"),
+            "property-step-booking-calendar": ("Connect Booking.com", "calendar", "/owners/properties/property-1?lang=en#property-editor-integration-booking"),
         }
-        for target_id, (title, href) in expected.items():
+        for target_id, (title, setup_tab, href) in expected.items():
             with self.subTest(target_id=target_id):
                 self.assertEqual(setup_steps.get(target_id), href)
                 self.assertEqual(ids.count(target_id), 1)
-                self.assertIn(f'id="{target_id}" data-property-setup-tab="calendar" tabindex="-1"', html)
+                self.assertIn(f'id="{target_id}" data-property-setup-tab="{setup_tab}" tabindex="-1"', html)
                 self.assertRegex(html, rf'(?s:id="{re.escape(target_id)}"[^>]*>.*?{re.escape(title)}.*?</article>)')
 
         setup_target_ids = [item for item in ids if item.startswith("property-step-")]
         self.assertEqual(len(setup_target_ids), len(set(setup_target_ids)))
+        for card_id, href in setup_steps.items():
+            self.assertNotEqual(href.rsplit("#", 1)[-1], card_id)
+        self.assertIn('id="property-editor-access" data-property-action-tab="knowledge" tabindex="-1"', html)
+        self.assertIn('id="property-editor-integration-airbnb" data-property-action-tab="integrations" tabindex="-1"', html)
+        self.assertIn('id="property-editor-integration-booking" data-property-action-tab="integrations" tabindex="-1"', html)
+        self.assertRegex(html, r'data-owner-setup-action="airbnb_calendar" data-action-available="false"')
+        self.assertRegex(html, r'data-owner-setup-action="booking_calendar" data-action-available="false"')
+
+        wizard_response = self.client.get("/owners/property/new?step=photos&property_id=property-1&lang=en")
+        self.assertEqual(wizard_response.status_code, 200)
+        wizard_html = wizard_response.get_data(as_text=True)
+        self.assertIn('id="property-editor-photos"', wizard_html)
+        self.assertIn('id="property-editor-amenities"', wizard_html)
+        self.assertIn('id="property-editor-house-rules"', wizard_html)
+        self.assertIn('id="property-editor-welcome"', wizard_html)
+        wizard_ids = set(re.findall(r'\bid="([^"]+)"', wizard_html))
+
+        calendar_response = self.client.get("/owners/calendar?property=property-1&lang=en")
+        self.assertEqual(calendar_response.status_code, 200)
+        calendar_ids = set(re.findall(r'\bid="([^"]+)"', calendar_response.get_data(as_text=True)))
+        self.assertIn("owner-calendar-actions", calendar_ids)
+
+        editor_ids = [item for item in ids if item.startswith("property-editor-")]
+        self.assertEqual(len(editor_ids), len(set(editor_ids)))
         for href in setup_steps.values():
-            target_id = href.rsplit("#", 1)[-1]
-            self.assertIn(target_id, setup_target_ids)
+            fragment = href.rsplit("#", 1)[-1] if "#" in href else ""
+            if href.startswith("/owners/properties/property-1?"):
+                self.assertIn(fragment, ids)
+            elif href.startswith("/owners/property/new?") and fragment:
+                self.assertIn(fragment, wizard_ids)
+            elif href.startswith("/owners/calendar?"):
+                self.assertIn(fragment, calendar_ids)
         owner_experience_js = (Path(app_module.app.root_path) / "static" / "js" / "owner-experience.js").read_text(encoding="utf-8")
-        self.assertIn('target?.dataset.propertySetupTab', owner_experience_js)
+        self.assertIn('target?.dataset.propertySetupTab || target?.dataset.propertyActionTab', owner_experience_js)
+        self.assertIn('disclosureSection.classList.add("is-open")', owner_experience_js)
         self.assertIn('propertyPage.addEventListener("click"', owner_experience_js)
         self.assertIn('window.addEventListener("hashchange"', owner_experience_js)
         self.assertIn('target.scrollIntoView', owner_experience_js)
         self.assertIn('target.focus({ preventScroll: true })', owner_experience_js)
-        self.assertIn('/static/js/owner-experience.js?v=20260908-owner-setup-1', html)
+        self.assertIn('/static/js/owner-experience.js?v=20260908-owner-actions-1', html)
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()

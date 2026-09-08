@@ -34,7 +34,7 @@
             {% if step.ready %}
               <span class="owner-setup-card__complete" data-i18n="ownersDashboard.ownerSetupCompleteState">{{ property_setup_ui.complete_state|e }}</span>
             {% else %}
-              <a class="button button--secondary" href="{{ localized_url(step.href) }}" data-i18n="ownersDashboard.ownerSetupAction">{{ step.action_label|e }}</a>
+              <a class="button button--secondary" href="{{ localized_url(step.action_href) }}" data-owner-setup-action="{{ step.key|e }}" data-action-available="{{ 'true' if step.action_available else 'false' }}" data-i18n="ownersDashboard.ownerSetupAction">{{ step.action_label|e }}</a>
             {% endif %}
           </article>
         {% endfor %}
@@ -46,7 +46,7 @@
           {% if setup.next_action %}
             <h3 data-i18n="ownersDashboard.{{ setup.next_action.title_key|e }}">{{ setup.next_action.title|e }}</h3>
             <p data-i18n="ownersDashboard.{{ setup.next_action.description_key|e }}">{{ setup.next_action.description|e }}</p>
-            <a class="button button--primary" href="{{ localized_url(setup.next_action.href) }}" data-i18n="ownersDashboard.ownerSetupAction">{{ setup.next_action.action_label|e }}</a>
+            <a class="button button--primary" href="{{ localized_url(setup.next_action.action_href) }}" data-owner-setup-action="{{ setup.next_action.key|e }}" data-action-available="{{ 'true' if setup.next_action.action_available else 'false' }}" data-i18n="ownersDashboard.ownerSetupAction">{{ setup.next_action.action_label|e }}</a>
           {% else %}
             <h3 data-i18n="ownersDashboard.ownerSetupAllComplete">{{ property_setup_ui.all_complete|e }}</h3>
             <span class="owner-setup-card__complete" data-i18n="ownersDashboard.ownerSetupCompleteState">{{ property_setup_ui.complete_state|e }}</span>
@@ -71,7 +71,7 @@
           <strong>{{ setup.remaining_count }} <span data-i18n="ownersDashboard.ownerSetupStepsLeft">{{ property_setup_ui.steps_left|e }}</span></strong>
           <div>
             {% for step in setup.remaining_steps[:3] %}
-              <a href="{{ localized_url(step.href) }}">
+              <a href="{{ localized_url(step.navigation_href) }}">
                 <span data-i18n="ownersDashboard.{{ step.title_key|e }}">{{ step.title|e }}</span>
                 <small data-i18n="ownersDashboard.{{ step.category_key|e }}">{{ step.category_label|e }}</small>
               </a>

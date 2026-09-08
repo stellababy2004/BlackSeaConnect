@@ -10093,6 +10093,46 @@ def _owner_property_setup_journey(property_record, language=None):
         "booking_calendar": "booking" in reservation_sources,
         "calendar_activity": bool(calendar_events or reservations),
     }
+    basic_editor_steps = {"property_name", "property_type", "property_location", "guest_capacity", "rooms", "operating_mode"}
+    wizard_editor_targets = {
+        "first_photo": "property-editor-photos",
+        "cover_photo": "property-editor-photos",
+        "photo_gallery": "property-editor-photos",
+        "amenities_selected": "property-editor-amenities",
+        "internet_amenity": "property-editor-amenities",
+        "climate_amenity": "property-editor-amenities",
+        "guest_amenities": "property-editor-amenities",
+        "welcome_message": "property-editor-welcome",
+        "house_rules": "property-editor-house-rules",
+    }
+    detail_editor_targets = {
+        "entry_instructions": "property-editor-access",
+        "key_handover": "property-editor-access",
+        "parking_access": "property-editor-access",
+        "intercom": "property-editor-access",
+        "wifi_network": "property-editor-wifi",
+        "wifi_password": "property-editor-wifi",
+        "router_details": "property-editor-wifi",
+        "emergency_contact": "property-editor-emergency",
+        "property_contact": "property-editor-emergency",
+        "trade_contacts": "property-editor-emergency",
+        "equipment_register": "property-editor-appliances",
+        "washing_machine": "property-editor-appliance-washing-machine",
+        "kitchen_equipment": "property-editor-appliances",
+        "climate_equipment": "property-editor-appliance-air-conditioner",
+        "entertainment_equipment": "property-editor-appliance-tv",
+        "arrival_guide": "property-editor-house-manual",
+        "departure_guide": "property-editor-house-manual",
+        "local_recommendations": "property-editor-house-manual",
+        "first_document": "property-editor-documents",
+        "property_documents": "property-editor-documents",
+        "appliance_manuals": "property-editor-appliances",
+        "cleaning_preference": "property-editor-provider-cleaning-company",
+        "preferred_provider": "property-editor-service-providers",
+        "seasonal_preferences": "property-editor-seasonal-tasks",
+        "airbnb_calendar": "property-editor-integration-airbnb",
+        "booking_calendar": "property-editor-integration-booking",
+    }
     steps = []
     for position, section in enumerate(raw_sections, start=1):
         if section["key"] in calendar_states:
@@ -10104,6 +10144,32 @@ def _owner_property_setup_journey(property_record, language=None):
         category_key = f"ownerSetupCategory{''.join(part.title() for part in category.split('_'))}"
         description_key = f"ownerSetupDescription{''.join(part.title() for part in category.split('_'))}"
         target_id = f"property-step-{key.replace('_', '-')}"
+        navigation_href = f"/owners/properties/{property_id}#{target_id}"
+        action_available = key not in {"airbnb_calendar", "booking_calendar"}
+        if key in basic_editor_steps:
+            action_href = f"/owners/property/new?step=basic&property_id={property_id}"
+        elif key in wizard_editor_targets:
+            action_href = f"/owners/property/new?step=photos&property_id={property_id}#{wizard_editor_targets[key]}"
+        elif key == "calendar_activity":
+            action_href = f"/owners/calendar?property={property_id}#owner-calendar-actions"
+        else:
+            action_target = detail_editor_targets.get(key, f"property-{tab}")
+            action_href = f"/owners/properties/{property_id}#{action_target}"
+        action_label = _load_public_i18n_value(
+            "ownersDashboard",
+            language,
+            "ownerSetupAction",
+            "Open step",
+        )
+        if not action_available:
+            action_language = _normalize_site_language(language) or "bg"
+            action_label = {
+                "bg": "\u0412\u0438\u0436 \u0441\u0442\u0430\u0442\u0443\u0441\u0430",
+                "en": "View status",
+                "fr": "Voir le statut",
+                "ru": "\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0441\u0442\u0430\u0442\u0443\u0441",
+            }.get(action_language, "View status")
+
         steps.append({
             **section,
             "position": position,
@@ -10113,9 +10179,12 @@ def _owner_property_setup_journey(property_record, language=None):
             "title": _load_public_i18n_value("ownersDashboard", language, title_key, key.replace("_", " ").title()),
             "category_label": _load_public_i18n_value("ownersDashboard", language, category_key, category.replace("_", " ").title()),
             "description": _load_public_i18n_value("ownersDashboard", language, description_key, ""),
-            "action_label": _load_public_i18n_value("ownersDashboard", language, "ownerSetupAction", "Open step"),
+            "action_label": action_label,
             "target_id": target_id,
-            "href": f"/owners/properties/{property_id}#{target_id}",
+            "navigation_href": navigation_href,
+            "action_href": action_href,
+            "action_available": action_available,
+            "href": navigation_href,
             "completed_at": str(completed_at_map.get(key, "")).strip(),
         })
     completed = [step for step in steps if step["ready"]]
@@ -14933,34 +15002,24 @@ def owners_property_new():
                 "parking_instructions": str(request.form.get("access_parking_instructions", "")).strip(),
                 "emergency_contact": str(request.form.get("access_emergency_contact", "")).strip(),
             }
-            access = {
+            access = dict(existing_assets.get("access", {})) if isinstance(existing_assets.get("access", {}), dict) else {}
+            access.update({
                 "building_entrance_code": access_information["building_code"],
                 "apartment_code": access_information["apartment_code"],
                 "key_safe_code": access_information["key_safe_code"],
-                "smart_lock": "",
-                "garage_access": "",
-                "parking_space": "",
                 "gate_instructions": access_information["parking_instructions"],
-                "intercom": "",
-            }
-            wifi = {
+            })
+            wifi = dict(existing_assets.get("wifi", {})) if isinstance(existing_assets.get("wifi", {}), dict) else {}
+            wifi.update({
                 "network_name": access_information["wifi_name"],
                 "password": access_information["wifi_password"],
-                "router_location": "",
-                "backup_router": "",
-                "troubleshooting_notes": "",
-            }
-            general = {
-                "description": "",
-                "building": "",
-                "apartment": "",
-                "neighbourhood": "",
-                "languages_spoken": "",
-                "emergency_contacts": access_information["emergency_contact"],
-            }
+            })
+            general = dict(existing_assets.get("general", {})) if isinstance(existing_assets.get("general", {}), dict) else {}
+            general["emergency_contacts"] = access_information["emergency_contact"]
             welcome_instructions = str(request.form.get("welcome_instructions", "")).strip()
 
             _owner_property_save_assets(property_id, {
+                **existing_assets,
                 "profile": profile,
                 "photos": photos,
                 "documents": documents,

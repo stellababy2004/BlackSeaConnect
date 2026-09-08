@@ -112,16 +112,31 @@
         const normalizedHash = String(hash || "");
         let tabId = "";
         let target = null;
-        if (normalizedHash.startsWith("#property-step-")) {
+        if (normalizedHash.startsWith("#property-")) {
           target = document.getElementById(normalizedHash.slice(1));
-          tabId = target?.dataset.propertySetupTab || "";
-        } else if (normalizedHash.startsWith("#property-")) {
+          tabId = target?.dataset.propertySetupTab || target?.dataset.propertyActionTab || "";
+        }
+        if (!tabId && normalizedHash.startsWith("#property-")) {
           tabId = normalizedHash.slice("#property-".length);
           target = panels[tabId] || null;
         }
         if (!target || !panels[tabId] || !propertyPage.contains(target)) return false;
         activateTab(tabId, false);
         window.requestAnimationFrame(function () {
+          const disclosureSection = target.matches(".owner-property-knowledge-section")
+            ? target
+            : target.closest(".owner-property-knowledge-section");
+          if (disclosureSection) {
+            disclosureSection.classList.add("is-open");
+            disclosureSection.querySelector(":scope > h3")?.setAttribute("aria-expanded", "true");
+          }
+          const disclosureCard = target.matches(".owner-property-knowledge-card")
+            ? target
+            : target.closest(".owner-property-knowledge-card");
+          if (disclosureCard) {
+            disclosureCard.classList.add("is-open");
+            disclosureCard.querySelector(":scope > h4")?.setAttribute("aria-expanded", "true");
+          }
           target.scrollIntoView({ behavior: "smooth", block: "start" });
           if (focusTarget) target.focus({ preventScroll: true });
         });
