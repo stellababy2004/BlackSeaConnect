@@ -9558,7 +9558,7 @@ def _owner_property_upload_dir(property_id):
     target_property_id = str(property_id or "").strip()
     if not target_property_id:
         return None
-    return OWNER_PROPERTY_UPLOADS_DIR / target_property_id
+    return _owner_db_path().parent / OWNER_PROPERTY_UPLOADS_DIR.name / target_property_id
 
 
 def _owner_property_default_assets():
