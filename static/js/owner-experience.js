@@ -121,6 +121,10 @@
           target = panels[tabId] || null;
         }
         if (!target || !panels[tabId] || !propertyPage.contains(target)) return false;
+
+        if (target.closest("form.owner-property-detail-form")) {
+          propertyPage.classList.add("is-editing");
+        }
         activateTab(tabId, false);
         window.requestAnimationFrame(function () {
           const disclosureSection = target.matches(".owner-property-knowledge-section")

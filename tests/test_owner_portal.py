@@ -1069,6 +1069,19 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertRegex(html, r'data-owner-setup-action="airbnb_calendar" data-action-available="false"')
         self.assertRegex(html, r'data-owner-setup-action="booking_calendar" data-action-available="false"')
 
+        owner_experience_path = Path(__file__).resolve().parents[1] / "static" / "js" / "owner-experience.js"
+        owner_experience_js = owner_experience_path.read_text(encoding="utf-8")
+        editor_visibility_guard = 'if (target.closest("form.owner-property-detail-form")) {'
+        editor_visibility_action = 'propertyPage.classList.add("is-editing");'
+        target_activation = 'activateTab(tabId, false);'
+        self.assertIn(editor_visibility_guard, owner_experience_js)
+        self.assertIn(editor_visibility_action, owner_experience_js)
+        guard_position = owner_experience_js.index(editor_visibility_guard)
+        action_position = owner_experience_js.index(editor_visibility_action, guard_position)
+        activation_position = owner_experience_js.index(target_activation, action_position)
+        self.assertLess(guard_position, action_position)
+        self.assertLess(action_position, activation_position)
+
         wizard_response = self.client.get("/owners/property/new?step=photos&property_id=property-1&lang=en")
         self.assertEqual(wizard_response.status_code, 200)
         wizard_html = wizard_response.get_data(as_text=True)
