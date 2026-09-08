@@ -1005,7 +1005,47 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(journey["remaining_count"], 42 - journey["completed"])
         self.assertEqual(journey["next_action"]["title"], journey["remaining_steps"][0]["title"])
         self.assertEqual(french_journey["categories"][0]["label"], "Informations sur le bien")
-        self.assertTrue(all(step["href"].startswith("/owners/properties/property-1#property-") for step in journey["steps"]))
+        self.assertTrue(all(step["href"] == f"/owners/properties/property-1#{step['target_id']}" for step in journey["steps"]))
+        self.assertEqual(len({step["target_id"] for step in journey["steps"]}), journey["total"])
+
+    def test_property_setup_airbnb_and_booking_actions_target_unique_cards(self):
+        self._login_owner_via_magic()
+
+        response = self.client.get("/owners/properties/property-1?lang=en")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        setup_steps = {}
+        ids = re.findall(r'\bid="([^"]+)"', html)
+        for card in re.findall(r'<article class="owner-setup-card[^>]*>.*?</article>', html, flags=re.DOTALL):
+            card_id = re.search(r'\bid="([^"]+)"', card)
+            card_href = re.search(r'<a\b[^>]*\bhref="([^"]+)"[^>]*>Open step</a>', card)
+            if card_id and card_href:
+                setup_steps[card_id.group(1)] = card_href.group(1)
+
+        expected = {
+            "property-step-airbnb-calendar": ("Connect Airbnb", "/owners/properties/property-1?lang=en#property-step-airbnb-calendar"),
+            "property-step-booking-calendar": ("Connect Booking.com", "/owners/properties/property-1?lang=en#property-step-booking-calendar"),
+        }
+        for target_id, (title, href) in expected.items():
+            with self.subTest(target_id=target_id):
+                self.assertEqual(setup_steps.get(target_id), href)
+                self.assertEqual(ids.count(target_id), 1)
+                self.assertIn(f'id="{target_id}" data-property-setup-tab="calendar" tabindex="-1"', html)
+                self.assertRegex(html, rf'(?s:id="{re.escape(target_id)}"[^>]*>.*?{re.escape(title)}.*?</article>)')
+
+        setup_target_ids = [item for item in ids if item.startswith("property-step-")]
+        self.assertEqual(len(setup_target_ids), len(set(setup_target_ids)))
+        for href in setup_steps.values():
+            target_id = href.rsplit("#", 1)[-1]
+            self.assertIn(target_id, setup_target_ids)
+        owner_experience_js = (Path(app_module.app.root_path) / "static" / "js" / "owner-experience.js").read_text(encoding="utf-8")
+        self.assertIn('target?.dataset.propertySetupTab', owner_experience_js)
+        self.assertIn('propertyPage.addEventListener("click"', owner_experience_js)
+        self.assertIn('window.addEventListener("hashchange"', owner_experience_js)
+        self.assertIn('target.scrollIntoView', owner_experience_js)
+        self.assertIn('target.focus({ preventScroll: true })', owner_experience_js)
+        self.assertIn('/static/js/owner-experience.js?v=20260908-owner-setup-1', html)
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()

@@ -24,7 +24,7 @@
       </div>
       <div class="owner-setup__cards">
         {% for step in setup.steps if step.tab == setup_tab %}
-          <article class="owner-setup-card {% if step.ready %}is-complete{% endif %}">
+          <article class="owner-setup-card {% if step.ready %}is-complete{% endif %}" id="{{ step.target_id|e }}" data-property-setup-tab="{{ step.tab|e }}" tabindex="-1">
             <span class="owner-setup-card__state" aria-hidden="true">{% if step.ready %}&#10003;{% else %}{{ loop.index }}{% endif %}</span>
             <div>
               <small data-i18n="ownersDashboard.{{ step.category_key|e }}">{{ step.category_label|e }}</small>
