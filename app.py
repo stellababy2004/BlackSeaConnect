@@ -10103,6 +10103,7 @@ def _owner_property_setup_journey(property_record, language=None):
         title_key = f"ownerSetupStep{''.join(part.title() for part in key.split('_'))}"
         category_key = f"ownerSetupCategory{''.join(part.title() for part in category.split('_'))}"
         description_key = f"ownerSetupDescription{''.join(part.title() for part in category.split('_'))}"
+        target_id = f"property-step-{key.replace('_', '-')}"
         steps.append({
             **section,
             "position": position,
@@ -10113,7 +10114,8 @@ def _owner_property_setup_journey(property_record, language=None):
             "category_label": _load_public_i18n_value("ownersDashboard", language, category_key, category.replace("_", " ").title()),
             "description": _load_public_i18n_value("ownersDashboard", language, description_key, ""),
             "action_label": _load_public_i18n_value("ownersDashboard", language, "ownerSetupAction", "Open step"),
-            "href": f"/owners/properties/{property_id}#property-{tab}",
+            "target_id": target_id,
+            "href": f"/owners/properties/{property_id}#{target_id}",
             "completed_at": str(completed_at_map.get(key, "")).strip(),
         })
     completed = [step for step in steps if step["ready"]]

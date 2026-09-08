@@ -69,6 +69,7 @@
         panel.id = "property-panel-" + tabId;
         panel.setAttribute("role", "tabpanel");
         panel.setAttribute("aria-labelledby", "property-tab-" + tabId);
+        panel.tabIndex = -1;
         panel.hidden = tabId !== "overview";
         panels[tabId] = panel;
         panelContainer.appendChild(panel);
@@ -107,6 +108,26 @@
         activeButton?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       };
 
+      const openPropertyHashTarget = function (hash, focusTarget) {
+        const normalizedHash = String(hash || "");
+        let tabId = "";
+        let target = null;
+        if (normalizedHash.startsWith("#property-step-")) {
+          target = document.getElementById(normalizedHash.slice(1));
+          tabId = target?.dataset.propertySetupTab || "";
+        } else if (normalizedHash.startsWith("#property-")) {
+          tabId = normalizedHash.slice("#property-".length);
+          target = panels[tabId] || null;
+        }
+        if (!target || !panels[tabId] || !propertyPage.contains(target)) return false;
+        activateTab(tabId, false);
+        window.requestAnimationFrame(function () {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (focusTarget) target.focus({ preventScroll: true });
+        });
+        return true;
+      };
+
       tabButtons.forEach(function (button, index) {
         button.addEventListener("click", function () {
           activateTab(button.dataset.propertyWorkspaceTab, true);
@@ -124,8 +145,23 @@
         });
       });
 
-      const hashTab = window.location.hash.replace("#property-", "");
-      activateTab(tabOrder.includes(hashTab) ? hashTab : "overview", false);
+      if (!openPropertyHashTarget(window.location.hash, true)) {
+        activateTab("overview", false);
+      }
+      propertyPage.addEventListener("click", function (event) {
+        const link = event.target.closest('a[href*="#property-"]');
+        if (!link) return;
+        const targetUrl = new URL(link.href, window.location.href);
+        if (targetUrl.origin !== window.location.origin || targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search) return;
+        if (!openPropertyHashTarget(targetUrl.hash, true)) return;
+        event.preventDefault();
+        if (targetUrl.hash !== window.location.hash) {
+          window.history.pushState(null, "", targetUrl.hash);
+        }
+      });
+      window.addEventListener("hashchange", function () {
+        openPropertyHashTarget(window.location.hash, true);
+      });
       propertyPage.classList.add("has-workspace-tabs");
       propertyPage._activatePropertyTab = activateTab;
     }
