@@ -1113,7 +1113,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn('window.addEventListener("hashchange"', owner_experience_js)
         self.assertIn('target.scrollIntoView', owner_experience_js)
         self.assertIn('target.focus({ preventScroll: true })', owner_experience_js)
-        self.assertIn('/static/js/owner-experience.js?v=20260908-owner-actions-1', html)
+        self.assertIn('/static/js/owner-experience.js?v=20260908-owner-actions-2', html)
 
     def test_owner_dashboard_lists_properties(self):
         self._seed_owner_account()
