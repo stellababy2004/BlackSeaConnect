@@ -762,8 +762,14 @@
                 <div class="owner-property-knowledge-documents">
                   {% for document in property_context.documents %}
                     <article class="owner-property-knowledge-document">
-                      <strong>{{ document.filename|default(document.name, true)|e }}</strong>
+                      <strong>
+                        <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ document.filename|default(document.name, true)|e }}</a>
+                      </strong>
                       <p>{{ document.kind|default(document.content_type, true)|e }}</p>
+                      <div class="owner-property-document-actions">
+                        <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ public_i18n('ownersDashboard', 'ownerKnowledgePreviewDocument', 'Preview') }}</a>
+                        <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id ~ '?download=1') }}">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDownloadDocument', 'Download') }}</a>
+                      </div>
                     </article>
                   {% endfor %}
                 </div>
@@ -876,6 +882,10 @@
                     <time>{{ document.uploaded_at|e }}</time>
                   </div>
                   <p>{{ document.kind|e }}{% if document.uploaded_by %} &middot; {{ public_i18n('ownersDashboard', 'ownerActivityUploadedBy', 'Uploaded by') }} {{ document.uploaded_by|e }}{% endif %}</p>
+                  <div class="owner-property-document-actions">
+                    <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ public_i18n('ownersDashboard', 'ownerKnowledgePreviewDocument', 'Preview') }}</a>
+                    <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id ~ '?download=1') }}">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDownloadDocument', 'Download') }}</a>
+                  </div>
                 </div>
               {% endfor %}
             </div>
