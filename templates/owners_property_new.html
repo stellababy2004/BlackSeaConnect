@@ -187,7 +187,7 @@
               <span class="owner-property-wizard__pill is-active">2. {{ public_i18n('common', 'dashboardPropertyPhotos', 'Photos') }}</span>
             </div>
 
-            <div class="owner-property-upload-zone" data-owner-upload-zone>
+            <div class="owner-property-upload-zone" id="property-editor-photos" data-owner-upload-zone tabindex="-1">
               <div class="owner-property-upload-zone__copy">
                 <p class="owner-portal-card__eyebrow">{{ public_i18n('common', 'dashboardPhotoUpload', 'Photo upload') }}</p>
                 <h3>{{ public_i18n('common', 'dashboardDragDropPhotos', 'Drag, drop, and curate the gallery') }}</h3>
@@ -225,13 +225,13 @@
                 <input type="file" name="documents" accept="application/pdf,image/*" multiple>
                 <small>{{ public_i18n('common', 'dashboardDocumentsCopy', 'PDF manuals, instructions, inventories, and emergency procedures.') }}</small>
               </label>
-              <label class="owner-property-upload-card">
+              <label class="owner-property-upload-card" id="property-editor-welcome" tabindex="-1">
                 <span>{{ public_i18n('common', 'dashboardWelcomeInstructions', 'Welcome instructions') }}</span>
                 <textarea name="welcome_instructions" rows="4" placeholder="{{ public_i18n('common', 'dashboardWelcomeInstructionsPlaceholder', 'Add the welcome note guests should see first.') }}">{{ wizard_assets.welcome_instructions|e }}</textarea>
               </label>
             </div>
 
-            <section class="owner-property-section">
+            <section class="owner-property-section" id="property-editor-amenities" tabindex="-1">
               <h3>{{ public_i18n('common', 'dashboardAmenities', 'Amenities') }}</h3>
               <div class="owner-property-toggle-grid">
                 {% set amenities = [
@@ -260,7 +260,7 @@
               </div>
             </section>
 
-            <section class="owner-property-section">
+            <section class="owner-property-section" id="property-editor-house-rules" tabindex="-1">
               <h3>{{ public_i18n('common', 'dashboardHouseRules', 'House rules') }}</h3>
               <div class="owner-property-form__fields">
                 <label class="owner-property-field">

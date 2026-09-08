@@ -577,7 +577,7 @@
               <input type="hidden" name="{{ field }}" value="{% if property_context.property[field] %}1{% endif %}">
             {% endfor %}
 
-            <section class="owner-property-knowledge-section" id="property-photo-upload">
+            <section class="owner-property-knowledge-section" id="property-photo-upload" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerSetupStepFirstPhoto', 'Upload a property photo') }}</h3>
               <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
                 <span>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionPhotos', 'Add current property photos.') }}</span>
@@ -603,7 +603,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-access" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAccess', 'Access') }}</h3>
               <div class="owner-property-knowledge-grid">
                 <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeBuildingEntranceCode', 'Building entrance code') }}</span><input type="text" name="access_building_entrance_code" value="{{ knowledge.access.building_entrance_code|e }}"></label>
@@ -617,7 +617,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-wifi" data-property-action-tab="knowledge" tabindex="-1">
               <h3>WiFi</h3>
               <div class="owner-property-knowledge-grid">
                 <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeNetworkName', 'Network name') }}</span><input type="text" name="wifi_network_name" value="{{ knowledge.wifi.network_name|e }}"></label>
@@ -628,7 +628,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-appliances" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeAppliances', 'Appliances') }}</h3>
               {% set appliance_items = [
                 ('coffee_machine', public_i18n('ownersDashboard', 'ownerKnowledgeCoffeeMachine', 'Coffee machine')),
@@ -643,7 +643,7 @@
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in appliance_items %}
                   {% set item = knowledge.appliances[key] if knowledge.appliances and knowledge.appliances[key] else {} %}
-                  <article class="owner-property-knowledge-card">
+                  <article class="owner-property-knowledge-card" id="property-editor-appliance-{{ key|replace('_', '-') }}" data-property-action-tab="knowledge" tabindex="-1">
                     <h4>{{ label }}</h4>
                     <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerPropertyBrand', 'Brand') }}</span><input type="text" name="appliance_{{ key }}_brand" value="{{ item.brand|e }}"></label>
                     <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerPropertyModel', 'Model') }}</span><input type="text" name="appliance_{{ key }}_model" value="{{ item.model|e }}"></label>
@@ -657,7 +657,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-house-manual" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeHouseManual', 'House manual') }}</h3>
               <div class="owner-property-knowledge-grid">
                 <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeArrival', 'Arrival') }}</span><textarea name="manual_arrival" rows="3">{{ knowledge.house_manual.arrival|e }}</textarea></label>
@@ -673,7 +673,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-emergency" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeEmergency', 'Emergency') }}</h3>
               {% set emergency_items = [
                 ('police', public_i18n('ownersDashboard', 'ownerKnowledgePolice', 'Police')),
@@ -698,7 +698,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-service-providers" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeServiceProviders', 'Service providers') }}</h3>
               {% set provider_items = [
                 ('cleaning_company', public_i18n('ownersDashboard', 'ownerKnowledgeCleaningCompany', 'Cleaning company')),
@@ -713,7 +713,7 @@
               <div class="owner-property-knowledge-grid owner-property-knowledge-grid--cards">
                 {% for key, label in provider_items %}
                   {% set item = knowledge.service_providers[key] if knowledge.service_providers and knowledge.service_providers[key] else {} %}
-                  <article class="owner-property-knowledge-card">
+                  <article class="owner-property-knowledge-card" id="property-editor-provider-{{ key|replace('_', '-') }}" data-property-action-tab="knowledge" tabindex="-1">
                     <h4>{{ label }}</h4>
                     <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeName', 'Name') }}</span><input type="text" name="provider_{{ key }}_name" value="{{ item.name|e }}"></label>
                     <label class="owner-property-knowledge-field"><span>{{ public_i18n('ownersDashboard', 'ownerKnowledgePhone', 'Phone') }}</span><input type="text" name="provider_{{ key }}_phone" value="{{ item.phone|e }}"></label>
@@ -727,7 +727,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-seasonal-tasks" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeSeasonalTasks', 'Seasonal tasks') }}</h3>
               {% set seasonal_items = [
                 ('open_pool', public_i18n('ownersDashboard', 'ownerKnowledgeOpenPool', 'Open pool')),
@@ -752,7 +752,7 @@
               </div>
             </section>
 
-            <section class="owner-property-knowledge-section">
+            <section class="owner-property-knowledge-section" id="property-editor-documents" data-property-action-tab="knowledge" tabindex="-1">
               <h3>{{ public_i18n('ownersDashboard', 'ownerKnowledgeDocumentCenter', 'Document center') }}</h3>
               <label class="owner-property-knowledge-field owner-property-knowledge-field--full">
                 <span>{{ public_i18n('ownersDashboard', 'ownerKnowledgeUploadDocuments', 'Upload documents') }}</span>
@@ -841,7 +841,7 @@
           <h2 class="owner-property-detail-section-title" data-canonical-label="Future integrations">{{ public_i18n('ownersDashboard', 'ownerPropertyFutureIntegrations', 'Future integrations') }}</h2>
           <div class="owner-property-integration-grid">
             {% for provider, mark in [('Airbnb', 'A'), ('Booking.com', 'B'), ('Google Calendar', 'G'), ('Apple Calendar', ''), ('VRBO', 'V')] %}
-              <article class="owner-property-integration-card">
+              <article class="owner-property-integration-card" id="property-editor-integration-{% if provider == 'Booking.com' %}booking{% else %}{{ provider|lower|replace(' calendar', '')|replace(' ', '-') }}{% endif %}" data-property-action-tab="integrations" tabindex="-1">
                 <span class="owner-property-integration-card__logo">{{ mark }}</span>
                 <div><strong>{{ provider }}</strong><small>{{ public_i18n('ownersDashboard', 'ownerPropertyNotConnected', 'Not connected · Never synced') }}</small></div>
                 <a class="button button--ghost" href="{{ localized_url('/owners/reservations?source=' ~ provider) }}">{{ property_setup_ui.open_action|e }}</a>
@@ -1107,6 +1107,6 @@
   </main>
   <script src="/static/js/translations.js?v=20260726f"></script>
   <script src="/static/js/i18n.js?v=20260726f"></script>
-  <script src="/static/js/owner-experience.js?v=20260908-owner-setup-1"></script>
+  <script src="/static/js/owner-experience.js?v=20260908-owner-actions-1"></script>
 </body>
 </html>
