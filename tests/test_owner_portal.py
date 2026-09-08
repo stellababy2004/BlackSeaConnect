@@ -987,6 +987,75 @@ class OwnerPortalTests(unittest.TestCase):
         calendar_rows = self._read_owner_db_rows("calendar_events")
         self.assertTrue(any(row["created_by"] == "owner-knowledge-hub" and row["property_id"] == "property-1" for row in calendar_rows))
 
+    def test_owner_property_document_preview_and_download(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(
+            owner_id="owner-1",
+            owner_email="owner@example.com",
+            name="Sea View Villa",
+            location="Varna",
+        )
+
+        document = {
+            "id": "document-1",
+            "kind": "document",
+            "filename": "property-manual.pdf",
+            "stored_filename": "document-1.pdf",
+            "content_type": "application/pdf",
+            "size": 17,
+            "uploaded_at": "2026-09-08T12:00:00Z",
+            "is_cover": False,
+        }
+        self._seed_owner_property_assets(documents=[document])
+
+        media_path = app_module._owner_property_media_path(
+            "property-1",
+            document["stored_filename"],
+        )
+        self.assertIsNotNone(media_path)
+        media_path.parent.mkdir(parents=True, exist_ok=True)
+        media_path.write_bytes(b"%PDF-1.4 test-pdf")
+
+        self._login_owner_via_magic(
+            email="owner@example.com",
+            seed_property=False,
+        )
+
+        detail_response = self.client.get("/owners/properties/property-1?lang=en")
+        self.assertEqual(detail_response.status_code, 200)
+        html = detail_response.get_data(as_text=True)
+        media_url = "/owners/properties/property-1/media/document-1"
+
+        self.assertIn(media_url, html)
+        self.assertIn("property-manual.pdf", html)
+        self.assertIn("Preview", html)
+        self.assertIn("Download", html)
+        self.assertIn("download=1", html)
+
+        preview_response = self.client.get(media_url)
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertEqual(preview_response.mimetype, "application/pdf")
+        self.assertEqual(preview_response.data, b"%PDF-1.4 test-pdf")
+        preview_disposition = preview_response.headers.get(
+            "Content-Disposition",
+            "",
+        ).lower()
+        self.assertIn("inline", preview_disposition)
+        self.assertNotIn("attachment", preview_disposition)
+
+        download_response = self.client.get(
+            media_url + "?download=1"
+        )
+        self.assertEqual(download_response.status_code, 200)
+        self.assertEqual(download_response.mimetype, "application/pdf")
+        self.assertEqual(download_response.data, b"%PDF-1.4 test-pdf")
+        download_disposition = download_response.headers.get(
+            "Content-Disposition",
+            "",
+        ).lower()
+        self.assertIn("attachment", download_disposition)
+        self.assertIn("property-manual.pdf", download_disposition)
+
     def test_owner_properties_dashboard_shows_cover_photo_and_readiness(self):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")

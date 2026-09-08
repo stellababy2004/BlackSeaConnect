@@ -15389,7 +15389,13 @@ def owner_property_media(property_id, asset_id):
     if not media_path or not media_path.exists():
         return Response("Media not found.", status=404, mimetype="text/plain")
 
-    return send_file(media_path, mimetype=asset_record.get("content_type") or None, as_attachment=False, download_name=asset_record.get("filename") or media_path.name)
+    download_requested = str(request.args.get("download", "")).strip().lower() in {"1", "true", "yes"}
+    return send_file(
+        media_path.resolve(),
+        mimetype=asset_record.get("content_type") or None,
+        as_attachment=download_requested,
+        download_name=asset_record.get("filename") or media_path.name,
+    )
 
 
 @app.route("/owners/request-service", methods=["GET", "POST"])
