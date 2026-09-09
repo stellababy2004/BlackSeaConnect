@@ -203,10 +203,12 @@
             <div class="owner-property-gallery" data-owner-gallery>
               {% for photo in gallery_photos %}
                 <article class="owner-property-gallery__item" data-owner-gallery-item data-photo-id="{{ photo.id|e }}">
+                  {% if photo in wizard_property.photos %}
                   <img src="{{ localized_url('/owners/properties/' ~ wizard_property_id ~ '/media/' ~ photo.id) }}" alt="{{ wizard_property.name|e }} photo {{ loop.index }}" loading="lazy">
+                  {% else %}<p>File missing: {{ photo.filename|e }}</p>{% endif %}
                   <div class="owner-property-gallery__item-meta">
                     <label>
-                      <input type="radio" name="cover_photo_id" value="{{ photo.id|e }}" {% if photo.is_cover %}checked{% endif %}>
+                      <input type="radio" name="cover_photo_id" value="{{ photo.id|e }}" {% if photo.id == wizard_property.cover_photo_id %}checked{% endif %} {% if photo not in wizard_property.photos %}disabled{% endif %}>
                       <span>{{ public_i18n('common', 'dashboardCoverPhoto', 'Cover photo') }}</span>
                     </label>
                     <div class="owner-property-gallery__actions">

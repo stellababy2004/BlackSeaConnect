@@ -987,6 +987,160 @@ class OwnerPortalTests(unittest.TestCase):
         calendar_rows = self._read_owner_db_rows("calendar_events")
         self.assertTrue(any(row["created_by"] == "owner-knowledge-hub" and row["property_id"] == "property-1" for row in calendar_rows))
 
+    def test_owner_knowledge_photo_upload_serves_cover_gallery_and_document(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")
+        self._login_owner_via_magic(email="owner@example.com", seed_property=False)
+        # A valid 1x1 PNG, so this checks actual image bytes rather than fake text.
+        image_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8"
+            "/x8AAwMCAO+aX1sAAAAASUVORK5CYII="
+        )
+        document_bytes = b"%PDF-1.4 property manual"
+        response = self.client.post(
+            "/owners/properties/property-1?lang=en",
+            data={
+                "knowledge_photos": (io.BytesIO(image_bytes), "living-room.png", "image/png"),
+                "knowledge_documents": (io.BytesIO(document_bytes), "manual.pdf", "application/pdf"),
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        assets = json.loads(self._read_owner_db_rows("owner_properties")[0]["knowledge_json"])
+        self.assertEqual(len(assets["photos"]), 1)
+        photo = assets["photos"][0]
+        self.assertEqual(photo["filename"], "living-room.png")
+        self.assertEqual(photo["kind"], "photo")
+        self.assertTrue(photo["is_cover"])
+        photo_path = self.owner_db_path.parent / app_module.OWNER_PROPERTY_UPLOADS_DIR.name / "property-1" / photo["stored_filename"]
+        self.assertTrue(photo_path.is_file())
+        self.assertEqual(photo_path.read_bytes(), image_bytes)
+        media_url = f"/owners/properties/property-1/media/{photo['id']}"
+        html = response.get_data(as_text=True)
+        image_urls = [html_lib.unescape(url) for url in re.findall(r'<img[^>]+src="([^"]+)"', html)]
+        # Hero, gallery cover, gallery thumbnail, and edit thumbnail reference this image.
+        self.assertEqual(sum(url.split("?")[0] == media_url for url in image_urls), 4)
+        for url in image_urls:
+            if url.split("?")[0] == media_url:
+                with self.client.get(url) as preview:
+                    self.assertEqual(preview.status_code, 200)
+                    self.assertEqual(preview.mimetype, "image/png")
+                    self.assertEqual(preview.data, image_bytes)
+        with app.test_request_context("/owners/properties/property-1"):
+            property_record = app_module._find_owner_property("property-1")
+            self.assertEqual(property_record["photos"], assets["photos"])
+            self.assertEqual(property_record["cover_photo_url"], media_url)
+
+        document = assets["documents"][0]
+        document_url = f"/owners/properties/property-1/media/{document['id']}"
+        for suffix, disposition in [("", "inline"), ("?download=1", "attachment")]:
+            with self.client.get(document_url + suffix) as preview:
+                self.assertEqual(preview.status_code, 200)
+                self.assertEqual(preview.mimetype, "application/pdf")
+                self.assertEqual(preview.data, document_bytes)
+                self.assertIn(disposition, preview.headers["Content-Disposition"])
+        deleted = self.client.post(f"/owners/properties/property-1/documents/{document['id']}/delete")
+        self.assertEqual(deleted.status_code, 302)
+        self.assertEqual(self.client.get(document_url).status_code, 404)
+        remaining = json.loads(self._read_owner_db_rows("owner_properties")[0]["knowledge_json"])
+        self.assertEqual(remaining["documents"], [])
+        self.assertEqual(remaining["photos"], assets["photos"])
+        with self.client.get(media_url) as preview:
+            self.assertEqual(preview.data, image_bytes)
+
+    def test_owner_orphan_photo_metadata_falls_back_after_new_upload(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")
+        self._seed_owner_property_assets()
+        self._login_owner_via_magic(email="owner@example.com", seed_property=False)
+        # Historical metadata survives even when its physical upload is absent.
+        old_path = app_module._owner_property_media_path("property-1", "photo-1.jpg")
+        self.assertFalse(old_path.exists())
+        response = self.client.post(
+            "/owners/properties/property-1?lang=en",
+            data={"knowledge_photos": (io.BytesIO(b"new-photo"), "new.jpg", "image/jpeg")},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        assets = json.loads(self._read_owner_db_rows("owner_properties")[0]["knowledge_json"])
+        self.assertEqual(len(assets["photos"]), 2)
+        self.assertFalse(assets["photos"][0]["is_cover"])
+        self.assertTrue(assets["photos"][1]["is_cover"])
+        old_url = "/owners/properties/property-1/media/photo-1"
+        self.assertNotIn(f'<img src="{old_url}"', response.get_data(as_text=True))
+        self.assertEqual(self.client.get(old_url).status_code, 404)
+        new_url = f"/owners/properties/property-1/media/{assets['photos'][1]['id']}"
+        with self.client.get(new_url) as preview:
+            self.assertEqual(preview.status_code, 200)
+            self.assertEqual(preview.mimetype, "image/jpeg")
+            self.assertEqual(preview.data, b"new-photo")
+
+    def test_photo_gallery_threshold_uses_five_physical_files(self):
+        photos = [dict(id=f"photo-{i}", stored_filename=f"photo-{i}.jpg") for i in range(6)]
+        record = {"id": "property-1", "assets": {"photos": photos}, "cover_photo": photos[5]}
+        for photo in photos[:5]:
+            path = app_module._owner_property_media_path("property-1", photo["stored_filename"])
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"photo")
+        steps = {step["key"]: step["ready"] for step in app_module._owner_property_readiness_sections(record)}
+        self.assertTrue(steps["photo_gallery"])
+        app_module._owner_property_media_path("property-1", "photo-4.jpg").unlink()
+        steps = {step["key"]: step["ready"] for step in app_module._owner_property_readiness_sections(record)}
+        self.assertFalse(steps["photo_gallery"])
+        self.assertTrue(steps["cover_photo"])
+        self.assertEqual(len(record["assets"]["photos"]), 6)
+
+    def test_owner_photo_management_cover_delete_and_orphan_readiness(self):
+        self._seed_owner_account(email="owner@example.com")
+        self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")
+        photos = [dict(id=f"photo-{i}", stored_filename=f"photo-{i}.jpg",
+                       filename=f"photo-{i}.jpg", is_cover=i == 0) for i in range(6)]
+        self._seed_owner_property_assets(photos=photos)
+        for photo in photos[1:3]:
+            path = app_module._owner_property_media_path("property-1", photo["stored_filename"])
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"photo")
+        self._login_owner_via_magic(email="owner@example.com", seed_property=False)
+        before = self._read_owner_db_rows("owner_properties")[0]["knowledge_json"]
+        for url in ["/owners/properties/property-1?lang=en", "/owners/property/new?step=photos&property_id=property-1&lang=en"]:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            image_urls = re.findall(r'<img[^>]+src="([^"]+)"', response.get_data(as_text=True))
+            self.assertTrue(any("/media/photo-1" in url for url in image_urls))
+            self.assertFalse(any(f"/media/photo-{i}" in url for url in image_urls for i in [0, 3, 4, 5]))
+            self.assertIn('name="delete_photo_ids"', response.get_data(as_text=True))
+        self.assertEqual(self._read_owner_db_rows("owner_properties")[0]["knowledge_json"], before)
+        record = app_module._find_owner_property("property-1")
+        self.assertEqual(record["cover_photo_id"], "photo-1")
+        steps = {item["key"]: item["ready"] for item in app_module._owner_property_readiness_sections(record)}
+        self.assertTrue(steps["first_photo"])
+        self.assertTrue(steps["cover_photo"])
+        self.assertFalse(steps["photo_gallery"])
+        response = self.client.post("/owners/properties/property-1", data={"cover_photo_id": "photo-2"})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(app_module._find_owner_property("property-1")["cover_photo_id"], "photo-2")
+        response = self.client.post("/owners/properties/property-1", data={"delete_photo_ids": ["photo-2", "photo-0"]})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(app_module._owner_property_media_path("property-1", "photo-2.jpg").exists())
+        record = app_module._find_owner_property("property-1")
+        self.assertEqual(record["cover_photo_id"], "photo-1")
+        self.assertEqual({photo["id"] for photo in record["assets"]["photos"]}, {"photo-1", "photo-3", "photo-4", "photo-5"})
+        # The wizard uses the same explicit deletion and valid-cover fallback.
+        response = self.client.post("/owners/property/new", data={"wizard_step": "photos", "property_id": "property-1", "delete_photo_ids": "photo-1,photo-3"})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(app_module._owner_property_media_path("property-1", "photo-1.jpg").exists())
+        record = app_module._find_owner_property("property-1")
+        self.assertEqual(record["photos"], [])
+        self.assertEqual(record["cover_photo_id"], "")
+        steps = {item["key"]: item["ready"] for item in app_module._owner_property_readiness_sections(record)}
+        self.assertTrue(all(not steps[key] for key in ["first_photo", "cover_photo", "photo_gallery"]))
+        response = self.client.get("/owners/properties/property-1")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(any("/media/photo-" in url for url in re.findall(r'<img[^>]+src="([^"]+)"', response.get_data(as_text=True))))
+        response = self.client.post("/owners/properties/property-1", data={"delete_photo_ids": "photo-4,photo-5"}, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(app_module._find_owner_property("property-1")["assets"]["photos"], [])
+
     def test_owner_property_document_preview_and_download(self):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(
@@ -1063,6 +1217,9 @@ class OwnerPortalTests(unittest.TestCase):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")
         self._seed_owner_property_assets()
+        photo_path = app_module._owner_property_media_path("property-1", "photo-1.jpg")
+        photo_path.parent.mkdir(parents=True, exist_ok=True)
+        photo_path.write_bytes(b"photo")
         self._login_owner_via_magic(email="owner@example.com")
 
         response = self.client.get("/owners/properties")

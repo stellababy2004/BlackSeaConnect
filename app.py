@@ -9680,7 +9680,7 @@ def _owner_property_knowledge_health(knowledge, property_record=None):
     service_providers = knowledge.get("service_providers", {}) if isinstance(knowledge.get("service_providers", {}), dict) else {}
     seasonal_tasks = knowledge.get("seasonal_tasks", {}) if isinstance(knowledge.get("seasonal_tasks", {}), dict) else {}
     documents = knowledge.get("documents", []) if isinstance(knowledge.get("documents", []), list) else []
-    photos = knowledge.get("photos", []) if isinstance(knowledge.get("photos", []), list) else []
+    photos = _owner_property_valid_photos(property_record.get("id", ""), knowledge.get("photos", []))
 
     score_groups = [
         (
@@ -10005,7 +10005,7 @@ def _owner_property_readiness_sections(property_record):
     )
     knowledge = merged_property.get("assets", {}) if isinstance(merged_property.get("assets", {}), dict) else {}
     profile = knowledge.get("profile", {}) if isinstance(knowledge.get("profile", {}), dict) else {}
-    photos = knowledge.get("photos", []) if isinstance(knowledge.get("photos", []), list) else []
+    photos = _owner_property_valid_photos(merged_property.get("id", ""), knowledge.get("photos", []))
     documents = knowledge.get("documents", []) if isinstance(knowledge.get("documents", []), list) else []
     amenities = knowledge.get("amenities", {}) if isinstance(knowledge.get("amenities", {}), dict) else {}
     house_rules = knowledge.get("house_rules", {}) if isinstance(knowledge.get("house_rules", {}), dict) else {}
@@ -10034,7 +10034,7 @@ def _owner_property_readiness_sections(property_record):
         {"key": "guest_capacity", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("guest_capacity") or profile.get("capacity"))},
         {"key": "rooms", "category": "property_information", "tab": "property", "ready": has_value(merged_property.get("bedrooms") or profile.get("bedrooms")) and has_value(merged_property.get("bathrooms") or profile.get("bathrooms"))},
         {"key": "first_photo", "category": "photos", "tab": "knowledge", "ready": len(photos) >= 1},
-        {"key": "cover_photo", "category": "photos", "tab": "knowledge", "ready": bool(merged_property.get("cover_photo")) or any(bool(item.get("is_cover")) for item in photos if isinstance(item, dict))},
+        {"key": "cover_photo", "category": "photos", "tab": "knowledge", "ready": bool(photos)},
         {"key": "photo_gallery", "category": "photos", "tab": "knowledge", "ready": len(photos) >= 5},
         {"key": "amenities_selected", "category": "amenities", "tab": "knowledge", "ready": any(bool(value) for value in amenities.values())},
         {"key": "internet_amenity", "category": "amenities", "tab": "knowledge", "ready": bool(amenities.get("wifi"))},
@@ -10342,7 +10342,7 @@ def _owner_property_merge_assets(property_record):
             "emergency_contacts": str(legacy_access.get("emergency_contact", "")).strip(),
         }
 
-    photos = assets.get("photos", []) if isinstance(assets.get("photos", []), list) else []
+    photos = _owner_property_valid_photos(property_id, assets.get("photos", []))
     documents = assets.get("documents", []) if isinstance(assets.get("documents", []), list) else []
     cover_photo = next((item for item in photos if item.get("is_cover")), photos[0] if photos else {})
     readiness_completed, readiness_total, readiness_percent = _owner_property_assets_readiness({**property_record, "assets": assets})
@@ -10420,6 +10420,46 @@ def _owner_property_media_path(property_id, stored_filename):
     if not upload_dir:
         return None
     return upload_dir / stored_filename
+
+
+def _owner_property_valid_photos(property_id, photos):
+    valid = []
+    for photo in photos if isinstance(photos, list) else []:
+        if not isinstance(photo, dict) or not str(photo.get("id", "")).strip():
+            continue
+        filename = str(photo.get("stored_filename", "")).strip()
+        if not filename or Path(filename).name != filename:
+            continue
+        path = _owner_property_media_path(property_id, filename)
+        if path and path.is_file():
+            valid.append(photo)
+    return valid
+
+
+def _owner_property_edit_photos(property_id, photos, form):
+    delete_ids = {value.strip() for field in form.getlist("delete_photo_ids") for value in field.split(",") if value.strip()}
+    deleted = [photo for photo in photos if str(photo.get("id", "")).strip() in delete_ids]
+    remaining = [photo for photo in photos if photo not in deleted]
+    valid = _owner_property_valid_photos(property_id, remaining)
+    requested_cover = str(form.get("cover_photo_id", "")).strip()
+    cover = next((photo for photo in valid if str(photo.get("id", "")).strip() == requested_cover), None)
+    if cover is None:
+        cover = next((photo for photo in valid if photo.get("is_cover")), valid[0] if valid else None)
+    for photo in remaining:
+        photo["is_cover"] = photo is cover
+    return remaining, deleted
+
+
+def _owner_property_delete_photo_files(property_id, deleted, remaining):
+    retained_filenames = {photo.get("stored_filename") for photo in remaining}
+    for photo in _owner_property_valid_photos(property_id, deleted):
+        if photo.get("stored_filename") in retained_filenames:
+            continue
+        path = _owner_property_media_path(property_id, photo["stored_filename"])
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            app.logger.warning("Owner photo file cleanup failed for %s/%s: %s", property_id, photo.get("id"), type(exc).__name__)
 
 
 def _owner_property_form_flag(value):
@@ -14931,9 +14971,8 @@ def owners_property_new():
             photos = list(existing_assets.get("photos", [])) if isinstance(existing_assets.get("photos", []), list) else []
             documents = list(existing_assets.get("documents", [])) if isinstance(existing_assets.get("documents", []), list) else []
 
-            delete_photo_ids = {item_id for item_id in str(request.form.get("delete_photo_ids", "")).split(",") if item_id.strip()}
             delete_document_ids = {item_id for item_id in str(request.form.get("delete_document_ids", "")).split(",") if item_id.strip()}
-            photos = [item for item in photos if str(item.get("id", "")).strip() not in delete_photo_ids]
+            photos, deleted_photos = _owner_property_edit_photos(property_id, photos, request.form)
             documents = [item for item in documents if str(item.get("id", "")).strip() not in delete_document_ids]
 
             upload_dir = _owner_property_upload_dir(property_id)
@@ -14960,14 +14999,7 @@ def owners_property_new():
                 documents.append(media_record)
 
             photos = _owner_property_reorder_media(photos, request.form.get("gallery_order", ""))
-            cover_photo_id = str(request.form.get("cover_photo_id", "")).strip()
-            if cover_photo_id:
-                for photo in photos:
-                    photo["is_cover"] = str(photo.get("id", "")).strip() == cover_photo_id
-            elif photos:
-                photos[0]["is_cover"] = True
-            if not any(bool(photo.get("is_cover")) for photo in photos) and photos:
-                photos[0]["is_cover"] = True
+            photos, _ = _owner_property_edit_photos(property_id, photos, request.form)
 
             amenities = {
                 "wifi": _owner_property_form_flag(request.form.get("amenity_wifi")),
@@ -15018,7 +15050,7 @@ def owners_property_new():
             general["emergency_contacts"] = access_information["emergency_contact"]
             welcome_instructions = str(request.form.get("welcome_instructions", "")).strip()
 
-            _owner_property_save_assets(property_id, {
+            assets_saved = _owner_property_save_assets(property_id, {
                 **existing_assets,
                 "profile": profile,
                 "photos": photos,
@@ -15032,6 +15064,9 @@ def owners_property_new():
                 "welcome_instructions": welcome_instructions,
                 "last_updated_at": _utc_now_iso(),
             })
+            if not assets_saved:
+                return Response("Unable to save property photos.", status=500, mimetype="text/plain")
+            _owner_property_delete_photo_files(property_id, deleted_photos, photos)
             return redirect(url_for("owners_property_detail", property_id=property_id, lang=current_lang))
 
     return render_template(
@@ -15249,7 +15284,7 @@ def owners_property_detail(property_id):
     if request.method == "POST":
         previous_status = _normalize_owner_property_status(property_record.get("status", OWNER_PROPERTY_STATUS_DEFAULT))
         previous_notes = str(property_record.get("notes", "")).strip()
-        current_knowledge = _owner_property_parse_json(property_record.get("knowledge_json", ""), {})
+        current_knowledge = property_record.get("assets", {})
         updated_knowledge = _owner_property_knowledge_from_form(request.form, current_knowledge)
         photo_records = [
             item
@@ -15285,6 +15320,7 @@ def owners_property_detail(property_id):
                 continue
             file_storage.save(str(media_path))
             photo_records.append(media_record)
+        photo_records, deleted_photos = _owner_property_edit_photos(property_id, photo_records, request.form)
         updated_knowledge["photos"] = photo_records
         updated_knowledge["documents"] = document_records
         previous_setup_steps = {
@@ -15319,6 +15355,7 @@ def owners_property_detail(property_id):
         }
         saved_property = _append_owner_property(updated_property)
         if saved_property:
+            _owner_property_delete_photo_files(property_id, deleted_photos, photo_records)
             if saved_property["status"] != previous_status:
                 _append_owner_activity_event(
                     owner_account["id"],

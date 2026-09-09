@@ -583,6 +583,25 @@
                 <span>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionPhotos', 'Add current property photos.') }}</span>
                 <input type="file" name="knowledge_photos" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
               </label>
+              <p>Choose a cover or mark photos for deletion, then save changes.</p>
+              <div class="owner-property-gallery">
+                {% for photo in knowledge.photos %}
+                  <article class="owner-property-gallery__item">
+                    {% if photo in property_context.photos %}
+                      <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" alt="{{ photo.filename|e }}" loading="lazy">
+                    {% else %}
+                      <p>File missing: {{ photo.filename|e }}</p>
+                    {% endif %}
+                    <div class="owner-property-gallery__item-meta">
+                      {% if photo in property_context.photos %}
+                        <label><input type="radio" name="cover_photo_id" value="{{ photo.id|e }}" {% if photo.id == property_context.property.cover_photo_id %}checked{% endif %}> Set as cover</label>
+                        {% if photo.id == property_context.property.cover_photo_id %}<strong>Current cover</strong>{% endif %}
+                      {% endif %}
+                      <label><input type="checkbox" name="delete_photo_ids" value="{{ photo.id|e }}"> {{ public_i18n('common', 'dashboardDelete', 'Delete') }}</label>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
             </section>
 
             <section class="owner-property-knowledge-section">
