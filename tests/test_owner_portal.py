@@ -1030,6 +1030,9 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("property-manual.pdf", html)
         self.assertIn("Preview", html)
         self.assertIn("Download", html)
+        self.assertIn("Delete", html)
+        self.assertIn("Delete this document?", html)
+        self.assertIn("08/09/2026, 15:00", html)
         self.assertIn("download=1", html)
 
         preview_response = self.client.get(media_url)

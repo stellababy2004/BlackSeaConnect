@@ -15398,6 +15398,60 @@ def owner_property_media(property_id, asset_id):
     )
 
 
+@app.post("/owners/properties/<property_id>/documents/<document_id>/delete")
+@owner_required
+def owner_property_document_delete(property_id, document_id):
+    owner_account = _current_owner_account()
+    property_record = _find_owner_property(property_id)
+    if not property_record or str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
+        return Response("Property not found.", status=404, mimetype="text/plain")
+
+    property_record = _owner_property_merge_assets(property_record)
+    assets = property_record.get("assets", {}) if isinstance(property_record.get("assets", {}), dict) else {}
+    document_records = assets.get("documents", []) if isinstance(assets.get("documents", []), list) else []
+    target_document_id = str(document_id or "").strip()
+    document_record = next(
+        (
+            item
+            for item in document_records
+            if str(item.get("id", "")).strip() == target_document_id
+        ),
+        None,
+    )
+    if not document_record:
+        return Response("Document not found.", status=404, mimetype="text/plain")
+
+    updated_assets = dict(assets)
+    updated_assets["documents"] = [
+        item
+        for item in document_records
+        if str(item.get("id", "")).strip() != target_document_id
+    ]
+    if not _owner_property_save_assets(property_id, updated_assets):
+        return Response("Unable to delete document.", status=500, mimetype="text/plain")
+
+    media_path = _owner_property_media_path(
+        property_id,
+        document_record.get("stored_filename", ""),
+    )
+    if media_path and media_path.exists():
+        try:
+            media_path.unlink()
+        except OSError as exc:
+            app.logger.warning(
+                "Owner document file cleanup failed for %s/%s: %s",
+                property_id,
+                target_document_id,
+                type(exc).__name__,
+            )
+
+    current_lang = _resolve_current_language()
+    return redirect(
+        f"/owners/properties/{property_id}?lang={current_lang}"
+        "#property-editor-documents"
+    )
+
+
 @app.route("/owners/request-service", methods=["GET", "POST"])
 @owner_required
 def owners_request_service():
