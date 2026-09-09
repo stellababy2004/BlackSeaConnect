@@ -769,6 +769,14 @@
                       <div class="owner-property-document-actions">
                         <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ public_i18n('ownersDashboard', 'ownerKnowledgePreviewDocument', 'Preview') }}</a>
                         <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id ~ '?download=1') }}">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDownloadDocument', 'Download') }}</a>
+                        <button
+                          class="button button--ghost"
+                          type="submit"
+                          formaction="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/documents/' ~ document.id ~ '/delete') }}"
+                          formmethod="post"
+                          formnovalidate
+                          onclick="return confirm('{{ public_i18n('ownersDashboard', 'ownerKnowledgeConfirmDeleteDocument', 'Delete this document?')|e }}');"
+                        >{{ public_i18n('ownersDashboard', 'ownerKnowledgeDeleteDocument', 'Delete') }}</button>
                       </div>
                     </article>
                   {% endfor %}
@@ -879,12 +887,15 @@
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
                     <strong>{{ document.filename|e }}</strong>
-                    <time>{{ document.uploaded_at|e }}</time>
+                    <time datetime="{{ document.uploaded_at|e }}">{{ format_local_datetime(document.uploaded_at, page_lang) }}</time>
                   </div>
                   <p>{{ document.kind|e }}{% if document.uploaded_by %} &middot; {{ public_i18n('ownersDashboard', 'ownerActivityUploadedBy', 'Uploaded by') }} {{ document.uploaded_by|e }}{% endif %}</p>
                   <div class="owner-property-document-actions">
                     <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ public_i18n('ownersDashboard', 'ownerKnowledgePreviewDocument', 'Preview') }}</a>
                     <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id ~ '?download=1') }}">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDownloadDocument', 'Download') }}</a>
+                    <form method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/documents/' ~ document.id ~ '/delete') }}" onsubmit="return confirm('{{ public_i18n('ownersDashboard', 'ownerKnowledgeConfirmDeleteDocument', 'Delete this document?')|e }}');">
+                      <button class="button button--ghost" type="submit">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDeleteDocument', 'Delete') }}</button>
+                    </form>
                   </div>
                 </div>
               {% endfor %}
