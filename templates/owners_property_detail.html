@@ -822,14 +822,13 @@
           {% if property_context.photos %}
             <h2>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailGallery', 'Gallery') }}</h2>
             <div class="owner-property-detail-gallery">
-              <div class="owner-property-detail-gallery__cover">
-                {% set cover_photo = property_context.property.cover_photo if property_context.property.cover_photo else property_context.photos[0] %}
-                <img src="{{ property_context.property.cover_photo_url or localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ cover_photo.id) }}" alt="{{ property_context.property.name|e }}" loading="lazy">
-              </div>
               <div class="owner-property-detail-gallery__grid">
                 {% for photo in property_context.photos %}
-                  <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" class="owner-property-detail-gallery__thumb">
-                    <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" alt="{{ property_context.property.name|e }} photo {{ loop.index }}" loading="lazy">
+                  <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}"
+                     class="owner-property-detail-gallery__thumb{% if photo.id == property_context.property.cover_photo_id %} is-cover{% endif %}">
+                    <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}"
+                         alt="{{ property_context.property.name|e }} photo {{ loop.index }}"
+                         loading="lazy">
                   </a>
                 {% endfor %}
               </div>

@@ -1019,7 +1019,7 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         image_urls = [html_lib.unescape(url) for url in re.findall(r'<img[^>]+src="([^"]+)"', html)]
         # Hero, gallery cover, gallery thumbnail, and edit thumbnail reference this image.
-        self.assertEqual(sum(url.split("?")[0] == media_url for url in image_urls), 4)
+        self.assertEqual(sum(url.split("?")[0] == media_url for url in image_urls), 3)
         for url in image_urls:
             if url.split("?")[0] == media_url:
                 with self.client.get(url) as preview:

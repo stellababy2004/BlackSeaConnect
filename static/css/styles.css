@@ -40061,3 +40061,55 @@ body.reservations-page--owner .owner-setup.owner-portal-card {
     font-size: 0.75rem;
   }
 }
+
+
+/* Owner property uniform gallery layout */
+body.owner-property-detail-page .owner-property-detail-panel {
+  min-width: 0;
+}
+
+body.owner-property-detail-page .owner-property-detail-gallery {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+body.owner-property-detail-page .owner-property-detail-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+body.owner-property-detail-page .owner-property-detail-gallery__thumb {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(19, 44, 61, 0.06);
+}
+
+body.owner-property-detail-page .owner-property-detail-gallery__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+body.owner-property-detail-page .owner-property-detail-gallery__thumb.is-cover {
+  outline: 2px solid rgba(91, 160, 160, 0.45);
+  outline-offset: -2px;
+}
+
+@media (max-width: 760px) {
+  body.owner-property-detail-page .owner-property-detail-gallery__grid {
+    grid-template-columns: 1fr;
+  }
+}
