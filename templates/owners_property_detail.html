@@ -1102,6 +1102,94 @@
                         {% endfor %}
                       </div>
                     {% endif %}
+
+                    {% if request.review %}
+                      <div
+                        class="owner-property-detail-history__review owner-property-detail-history__review--submitted"
+                        data-owner-review-rating="{{ request.review.rating|int }}"
+                      >
+                        <strong>
+                          {{ public_i18n('ownersDashboard', 'ownerReviewSubmitted', 'Your review') }}
+                        </strong>
+
+                        <div
+                          class="owner-review-stars__display"
+                          aria-label="{{ request.review.rating|int }} / 5"
+                        >
+                          {% for score in [1, 2, 3, 4, 5] %}
+                            {% if score <= request.review.rating|int %}
+                              &#9733;
+                            {% else %}
+                              &#9734;
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+
+                        {% if request.review.comment %}
+                          <p>{{ request.review.comment|e }}</p>
+                        {% endif %}
+                      </div>
+
+                    {% elif request.assigned_professional_id %}
+                      <form
+                        class="owner-property-detail-history__review"
+                        method="post"
+                        action="{{ url_for('owners_task_review', task_id=request.operation_task.id, lang=page_lang) }}"
+                      >
+                        <strong>
+                          {{ public_i18n('ownersDashboard', 'ownerReviewTitle', 'Rate this service') }}
+                        </strong>
+
+                        <p>
+                          {{ public_i18n('ownersDashboard', 'ownerReviewPrompt', 'Your review helps build a trusted local network.') }}
+                        </p>
+
+                        <fieldset class="owner-review-fieldset">
+                          <legend>
+                            {{ public_i18n('ownersDashboard', 'ownerReviewRating', 'Rating') }}
+                          </legend>
+
+                          <div class="owner-review-stars">
+                            {% for score in [5, 4, 3, 2, 1] %}
+                              <input
+                                id="owner-review-{{ request.operation_task.id|e }}-{{ score }}"
+                                type="radio"
+                                name="rating"
+                                value="{{ score }}"
+                                required
+                              >
+                              <label
+                                for="owner-review-{{ request.operation_task.id|e }}-{{ score }}"
+                                title="{{ score }} / 5"
+                              >
+                                <span aria-hidden="true">&#9733;</span>
+                                <span class="sr-only">{{ score }} / 5</span>
+                              </label>
+                            {% endfor %}
+                          </div>
+                        </fieldset>
+
+                        <label
+                          class="owner-review-comment-label"
+                          for="owner-review-comment-{{ request.operation_task.id|e }}"
+                        >
+                          {{ public_i18n('ownersDashboard', 'ownerReviewComment', 'Comment') }}
+                        </label>
+
+                        <textarea
+                          id="owner-review-comment-{{ request.operation_task.id|e }}"
+                          name="comment"
+                          maxlength="1000"
+                          rows="3"
+                          required
+                          placeholder="{{ public_i18n('ownersDashboard', 'ownerReviewCommentPlaceholder', 'What went well?') }}"
+                        ></textarea>
+
+                        <button class="button button--primary" type="submit">
+                          {{ public_i18n('ownersDashboard', 'ownerReviewSubmit', 'Submit review') }}
+                        </button>
+                      </form>
+                    {% endif %}
                   </div>
                 {% endif %}
                 </div>
