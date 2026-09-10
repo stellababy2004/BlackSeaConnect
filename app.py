@@ -16513,9 +16513,24 @@ def network_provider_detail(provider_id):
     if not provider:
         return jsonify({"ok": False, "error": "not_found"}), 404
 
+    provider_email = str(provider.get("email", "")).strip()
+    professional_account = (
+        _find_professional_account_by_email(provider_email)
+        if provider_email
+        else None
+    )
+    reliability = (
+        _professional_reliability_profile(
+            professional_account.get("id", "")
+        )
+        if professional_account
+        else None
+    )
+
     return render_template(
         "network_detail.html",
         provider=provider,
+        reliability=reliability,
         service_categories=_network_service_category_items(),
     )
 

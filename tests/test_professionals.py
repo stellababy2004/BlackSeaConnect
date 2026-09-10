@@ -1039,6 +1039,107 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(reassigned_task["assigned_to"], "Other Professional")
         self.assertEqual(self.client.get("/professionals/tasks/task-assignable").status_code, 404)
 
+    def test_public_network_profile_shows_verified_reliability(self):
+        self._seed_professional_application(
+            full_name="Public Verified Professional",
+            email="public-verified@example.com",
+            status="converted",
+            professional_category="Cleaning",
+            company="Verified Cleaning Co",
+        )
+
+        account = app_module._find_professional_account_by_email(
+            "public-verified@example.com"
+        )
+
+        self.assertIsNotNone(account)
+
+        for index in range(3):
+            self._seed_operations_task(
+                f"task-public-verified-{index + 1}",
+                title=f"Public completed task {index + 1}",
+                status="COMPLETED",
+                assigned_professional_id=account["id"],
+                assigned_to="Public Verified Professional",
+                completed_at=f"2026-09-{index + 1:02d}T12:00:00+00:00",
+                attachments_json=json.dumps([
+                    {
+                        "id": f"public-evidence-{index + 1}",
+                        "filename": f"after-{index + 1}.jpg",
+                        "original_filename": f"after-{index + 1}.jpg",
+                        "category": "after_photos",
+                    }
+                ]),
+            )
+
+        with app.app_context():
+            with app_module._owner_db_connection() as connection:
+                app_module._ensure_operations_task_schema(connection)
+
+                connection.executemany(
+                    """
+                    INSERT INTO owner_task_reviews (
+                        task_id,
+                        owner_id,
+                        professional_id,
+                        rating,
+                        comment,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            "task-public-verified-1",
+                            "owner-public-1",
+                            account["id"],
+                            5,
+                            "Excellent service.",
+                            "2026-09-01T13:00:00+00:00",
+                        ),
+                        (
+                            "task-public-verified-2",
+                            "owner-public-2",
+                            account["id"],
+                            4,
+                            "Very good service.",
+                            "2026-09-02T13:00:00+00:00",
+                        ),
+                    ],
+                )
+
+                connection.commit()
+
+        providers = app_module._load_network_providers()
+
+        provider = next(
+            item
+            for item in providers
+            if str(item.get("email", "")).lower()
+            == "public-verified@example.com"
+        )
+
+        response = self.client.get(
+            f"/network/{provider['id']}?lang=en"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        html = response.get_data(as_text=True)
+
+        self.assertIn("BlackSea Verified", html)
+        self.assertIn(
+            'data-public-blacksea-verified="true"',
+            html,
+        )
+        self.assertIn(
+            'data-public-reliability-score="83"',
+            html,
+        )
+        self.assertIn("4.5 / 5", html)
+        self.assertIn("100%", html)
+        self.assertIn("Completed jobs", html)
+
     def test_professional_reliability_profile_becomes_verified(self):
         self._seed_professional_account(
             full_name="Verified Professional",
