@@ -72,7 +72,16 @@
   "task_event_checklist_updated": public_i18n("professionals", "taskEventChecklistUpdated", "Checklist updated"),
   "task_event_workflow_transitioned": public_i18n("professionals", "taskEventWorkflowTransitioned", "Workflow updated"),
   "task_event_audit_logged": public_i18n("professionals", "taskEventAuditLogged", "Audit logged"),
-  "task_event_unknown": public_i18n("professionals", "taskEventUnknown", "Update")
+  "task_event_unknown": public_i18n("professionals", "taskEventUnknown", "Update"),
+  "reliability_title": public_i18n("professionals", "reliabilityTitle", "BlackSea reliability"),
+  "reliability_verified": public_i18n("professionals", "reliabilityVerified", "BlackSea Verified"),
+  "reliability_building": public_i18n("professionals", "reliabilityBuilding", "Building your track record"),
+  "reliability_score": public_i18n("professionals", "reliabilityScore", "Reliability score"),
+  "reliability_completed": public_i18n("professionals", "reliabilityCompleted", "Completed tasks"),
+  "reliability_rating": public_i18n("professionals", "reliabilityRating", "Owner rating"),
+  "reliability_reviews": public_i18n("professionals", "reliabilityReviews", "reviews"),
+  "reliability_evidence": public_i18n("professionals", "reliabilityEvidence", "Evidence-backed"),
+  "reliability_pending": public_i18n("professionals", "reliabilityPending", "Score appears after 3 completed tasks and 2 owner reviews.")
 } %}
 {% set status_labels = {
   "NEW": labels.task_status_new,
@@ -273,6 +282,97 @@
       .professional-grid-two-up > .professional-panel:last-child { order:2; }
       .professional-notification-list .professional-notification:nth-child(n+3) { display:none; }
     }
+    .professional-reliability {
+      display:grid;
+      gap:18px;
+      border:1px solid rgba(150,119,46,.28);
+      background:linear-gradient(145deg,#fffdf7,#ffffff);
+    }
+
+    .professional-reliability__heading {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .professional-reliability__heading h2 {
+      margin:5px 0 0;
+      font-size:clamp(1.35rem,4vw,2rem);
+    }
+
+    .professional-reliability__verified {
+      color:#16624c;
+    }
+
+    .professional-reliability__verified span {
+      display:inline-grid;
+      place-items:center;
+      width:30px;
+      height:30px;
+      margin-right:6px;
+      border-radius:50%;
+      background:#e8f3ef;
+    }
+
+    .professional-reliability__score {
+      min-width:100px;
+      text-align:right;
+    }
+
+    .professional-reliability__score strong {
+      font-size:2.4rem;
+      line-height:1;
+      letter-spacing:-.05em;
+    }
+
+    .professional-reliability__score span {
+      color:#5b6d84;
+      font-size:.9rem;
+    }
+
+    .professional-reliability__metrics {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .professional-reliability__metrics > div {
+      padding:14px;
+      border-radius:16px;
+      background:rgba(247,244,238,.92);
+      border:1px solid rgba(15,35,69,.08);
+    }
+
+    .professional-reliability__metrics span,
+    .professional-reliability__metrics small {
+      display:block;
+      color:#5b6d84;
+      font-size:11px;
+    }
+
+    .professional-reliability__metrics strong {
+      display:block;
+      margin:5px 0 2px;
+      font-size:1.35rem;
+    }
+
+    .professional-reliability__pending {
+      margin:0;
+      color:#5b6d84;
+      font-size:.9rem;
+    }
+
+    @media (max-width:640px) {
+      .professional-reliability__metrics {
+        grid-template-columns:1fr;
+      }
+
+      .professional-reliability__score strong {
+        font-size:2rem;
+      }
+    }
+
   </style>
 </head>
 <body class="professional-dashboard-page">
@@ -346,6 +446,76 @@
         {% endif %}
       </div>
     </details>
+
+    <section
+      class="professional-panel professional-reliability"
+      data-blacksea-reliability
+      {% if reliability.score is not none %}data-reliability-score="{{ reliability.score }}"{% endif %}
+      data-blacksea-verified="{{ 'true' if reliability.verified else 'false' }}"
+    >
+      <div class="professional-reliability__heading">
+        <div>
+          <p class="professional-kicker">{{ labels.reliability_title }}</p>
+
+          {% if reliability.verified %}
+            <h2 class="professional-reliability__verified">
+              <span aria-hidden="true">&#10003;</span>
+              {{ labels.reliability_verified }}
+            </h2>
+          {% else %}
+            <h2>{{ labels.reliability_building }}</h2>
+          {% endif %}
+        </div>
+
+        <div class="professional-reliability__score">
+          {% if reliability.score is not none %}
+            <strong>{{ reliability.score }}</strong>
+            <span>/100</span>
+          {% else %}
+            <strong>--</strong>
+            <span>/100</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="professional-reliability__metrics">
+        <div>
+          <span>{{ labels.reliability_completed }}</span>
+          <strong>{{ reliability.completed_count }}</strong>
+        </div>
+
+        <div>
+          <span>{{ labels.reliability_rating }}</span>
+          <strong>
+            {% if reliability.average_rating is not none %}
+              {{ reliability.average_rating }} / 5
+            {% else %}
+              --
+            {% endif %}
+          </strong>
+          <small>
+            {{ reliability.review_count }}
+            {{ labels.reliability_reviews }}
+          </small>
+        </div>
+
+        <div>
+          <span>{{ labels.reliability_evidence }}</span>
+          <strong>{{ reliability.evidence_rate }}%</strong>
+          <small>
+            {{ reliability.evidence_completed_count }}
+            /
+            {{ reliability.completed_count }}
+          </small>
+        </div>
+      </div>
+
+      {% if reliability.score is none %}
+        <p class="professional-reliability__pending">
+          {{ labels.reliability_pending }}
+        </p>
+      {% endif %}
+    </section>
 
     <section class="professional-dashboard-grid">
       <article class="professional-kpi"><span>{{ labels.today }}</span><strong>{{ today_count }}</strong><small>{{ labels.todays_jobs }} · {{ labels.assigned_today_detail }}</small></article>

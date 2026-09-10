@@ -1039,6 +1039,117 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(reassigned_task["assigned_to"], "Other Professional")
         self.assertEqual(self.client.get("/professionals/tasks/task-assignable").status_code, 404)
 
+    def test_professional_reliability_profile_becomes_verified(self):
+        self._seed_professional_account(
+            full_name="Verified Professional",
+            email="verified-pro@example.com",
+            status="ACTIVE",
+            professional_category="Cleaning",
+            account_id="professional-verified-pro",
+        )
+
+        account = app_module._find_professional_account_by_email(
+            "verified-pro@example.com"
+        )
+
+        self.assertIsNotNone(account)
+
+        for index in range(3):
+            self._seed_operations_task(
+                f"task-verified-{index + 1}",
+                title=f"Completed task {index + 1}",
+                status="COMPLETED",
+                assigned_professional_id=account["id"],
+                assigned_to="Verified Professional",
+                completed_at=f"2026-09-{index + 1:02d}T12:00:00+00:00",
+                attachments_json=json.dumps([
+                    {
+                        "id": f"evidence-{index + 1}",
+                        "filename": f"after-{index + 1}.jpg",
+                        "original_filename": f"after-{index + 1}.jpg",
+                        "category": "after_photos",
+                    }
+                ]),
+            )
+
+        with app.app_context():
+            with app_module._owner_db_connection() as connection:
+                app_module._ensure_operations_task_schema(connection)
+
+                connection.executemany(
+                    """
+                    INSERT INTO owner_task_reviews (
+                        task_id,
+                        owner_id,
+                        professional_id,
+                        rating,
+                        comment,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            "task-verified-1",
+                            "owner-1",
+                            account["id"],
+                            5,
+                            "Excellent work.",
+                            "2026-09-01T13:00:00+00:00",
+                        ),
+                        (
+                            "task-verified-2",
+                            "owner-2",
+                            account["id"],
+                            4,
+                            "Very good service.",
+                            "2026-09-02T13:00:00+00:00",
+                        ),
+                    ],
+                )
+
+                connection.commit()
+
+        profile = app_module._professional_reliability_profile(
+            account["id"]
+        )
+
+        self.assertEqual(profile["completed_count"], 3)
+        self.assertEqual(
+            profile["evidence_completed_count"],
+            3,
+        )
+        self.assertEqual(profile["evidence_rate"], 100)
+        self.assertEqual(profile["review_count"], 2)
+        self.assertEqual(profile["average_rating"], 4.5)
+        self.assertEqual(profile["score"], 83)
+        self.assertTrue(profile["verified"])
+        self.assertEqual(profile["status"], "VERIFIED")
+
+        self._login_professional_via_magic(
+            "verified-pro@example.com"
+        )
+
+        response = self.client.get(
+            "/professionals/dashboard?lang=en"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        html = response.get_data(as_text=True)
+
+        self.assertIn("BlackSea Verified", html)
+        self.assertIn(
+            'data-blacksea-verified="true"',
+            html,
+        )
+        self.assertIn(
+            'data-reliability-score="83"',
+            html,
+        )
+        self.assertIn("4.5 / 5", html)
+        self.assertIn("100%", html)
+
     def test_professional_lifecycle_updates_timeline_calendar_and_admin_notifications(self):
         self._seed_professional_account(
             full_name="Lifecycle Professional",

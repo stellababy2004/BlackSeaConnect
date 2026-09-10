@@ -22517,6 +22517,127 @@ def _professional_average_completion_minutes(tasks):
     return int(round(sum(durations) / len(durations)))
 
 
+def _professional_reliability_profile(professional_id):
+    professional_id = str(professional_id or "").strip()
+
+    empty_profile = {
+        "completed_count": 0,
+        "evidence_completed_count": 0,
+        "evidence_rate": 0,
+        "review_count": 0,
+        "average_rating": None,
+        "score": None,
+        "verified": False,
+        "status": "BUILDING",
+    }
+
+    if not professional_id:
+        return empty_profile
+
+    with _owner_db_connection() as connection:
+        _ensure_operations_task_schema(connection)
+
+        task_rows = connection.execute(
+            """
+            SELECT status, attachments_json
+            FROM operations_tasks
+            WHERE assigned_professional_id = ?
+            """,
+            (professional_id,),
+        ).fetchall()
+
+        review_rows = connection.execute(
+            """
+            SELECT rating
+            FROM owner_task_reviews
+            WHERE professional_id = ?
+            ORDER BY created_at DESC
+            """,
+            (professional_id,),
+        ).fetchall()
+
+    completed_rows = [
+        row
+        for row in task_rows
+        if _normalize_operations_task_status(row["status"]) == "COMPLETED"
+    ]
+
+    completed_count = len(completed_rows)
+    evidence_completed_count = 0
+
+    for row in completed_rows:
+        try:
+            attachments = json.loads(
+                str(row["attachments_json"] or "[]")
+            )
+        except (TypeError, ValueError, json.JSONDecodeError):
+            attachments = []
+
+        if isinstance(attachments, list) and attachments:
+            evidence_completed_count += 1
+
+    ratings = []
+
+    for row in review_rows:
+        try:
+            rating = int(row["rating"])
+        except (TypeError, ValueError):
+            continue
+
+        if 1 <= rating <= 5:
+            ratings.append(rating)
+
+    review_count = len(ratings)
+
+    average_rating = (
+        round(sum(ratings) / review_count, 1)
+        if review_count
+        else None
+    )
+
+    evidence_rate = (
+        round((evidence_completed_count / completed_count) * 100)
+        if completed_count
+        else 0
+    )
+
+    score = None
+
+    if completed_count >= 3 and review_count >= 2:
+        rating_points = (average_rating / 5) * 50
+        volume_points = min(completed_count / 5, 1) * 30
+        evidence_points = (
+            evidence_completed_count / completed_count
+        ) * 20
+
+        score = round(
+            rating_points
+            + volume_points
+            + evidence_points
+        )
+
+    verified = bool(
+        score is not None
+        and completed_count >= 3
+        and review_count >= 2
+        and average_rating is not None
+        and average_rating >= 4.5
+        and evidence_rate >= 80
+        and score >= 80
+    )
+
+    return {
+        "completed_count": completed_count,
+        "evidence_completed_count": evidence_completed_count,
+        "evidence_rate": evidence_rate,
+        "review_count": review_count,
+        "average_rating": average_rating,
+        "score": score,
+        "verified": verified,
+        "status": "VERIFIED" if verified else "BUILDING",
+    }
+
+
 def _professional_dashboard_context(professional_account):
     tasks = _professional_tasks_for_account(professional_account)
     today = datetime.now(timezone.utc).date()
@@ -22561,6 +22682,7 @@ def _professional_dashboard_context(professional_account):
 
     assigned_tasks = [task for task in tasks if _normalize_operations_task_status(task.get("status", "NEW")) not in {"COMPLETED", "ARCHIVED"}]
     return {
+        "reliability": _professional_reliability_profile(professional_account.get("id", "")),
         "professional_account": professional_account,
         "assigned_tasks": assigned_tasks,
         "upcoming_tasks": upcoming_tasks,
