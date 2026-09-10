@@ -16493,6 +16493,22 @@ def network_directory():
     category = str(request.args.get("category", "")).strip()
     valid_category = category if category in NETWORK_SERVICE_CATEGORIES else ""
     providers = _filter_network_providers(_load_network_providers(), city=city, category=valid_category)
+
+    for provider in providers:
+        provider_email = str(provider.get("email", "")).strip()
+        professional_account = (
+            _find_professional_account_by_email(provider_email)
+            if provider_email
+            else None
+        )
+        provider["reliability"] = (
+            _professional_reliability_profile(
+                professional_account.get("id", "")
+            )
+            if professional_account
+            else None
+        )
+
     featured_providers = [provider for provider in providers if provider.get("featured")]
     grouped_providers = _group_network_providers(providers)
     return render_template(
