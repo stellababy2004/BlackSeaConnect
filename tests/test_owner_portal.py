@@ -1019,7 +1019,7 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         image_urls = [html_lib.unescape(url) for url in re.findall(r'<img[^>]+src="([^"]+)"', html)]
         # Hero, gallery cover, gallery thumbnail, and edit thumbnail reference this image.
-        self.assertEqual(sum(url.split("?")[0] == media_url for url in image_urls), 4)
+        self.assertEqual(sum(url.split("?")[0] == media_url for url in image_urls), 3)
         for url in image_urls:
             if url.split("?")[0] == media_url:
                 with self.client.get(url) as preview:
@@ -1472,6 +1472,76 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertNotIn('<footer class="site-footer"', html)
         self.assertIn("owner-request-1", html)
         self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+
+    def test_owner_property_detail_shows_completed_work_and_evidence(self):
+        self._login_owner_via_magic(email="owner@example.com")
+
+        service_request = self._demo_owner_request(
+            id="owner-request-closeout-1",
+            owner_id="owner-1",
+            owner_email="owner@example.com",
+            property_id="property-1",
+            property="Sea View Villa",
+            property_city="Varna",
+            status="completed",
+            service_category="Cleaning",
+            description="Turnover cleaning after checkout.",
+        )
+
+        self._insert_owner_db_rows("operations_tasks", [{
+            "id": "operation-closeout-1",
+            "request_id": "owner-request-closeout-1",
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "source_id": "owner-request-closeout-1",
+            "owner_id": "owner-1",
+            "property_id": "property-1",
+            "created_at": "2026-09-09T08:00:00+00:00",
+            "updated_at": "2026-09-09T10:30:00+00:00",
+            "title": "Turnover cleaning",
+            "category": "CLEANING",
+            "property_name": "Sea View Villa",
+            "property_location": "Varna",
+            "owner_name": "Elena Petrova",
+            "owner_email": "owner@example.com",
+            "assigned_to": "Mira Ivanova",
+            "assigned_professional_id": "pro-closeout-1",
+            "priority": "NORMAL",
+            "status": "COMPLETED",
+            "due_date": "2026-09-09",
+            "notes": "Owner requested turnover cleaning.",
+            "completed_at": "2026-09-09T10:30:00+00:00",
+            "completion_report_json": json.dumps({
+                "completed_work": "Apartment cleaned and prepared for the next guest.",
+                "notes": "Fresh linen installed and supplies replenished.",
+            }),
+            "admin_notes": "Internal note must not be shown to owner.",
+            "request_status": "completed",
+            "checklist_json": "[]",
+            "attachments_json": json.dumps([{
+                "id": "evidence-after-1",
+                "filename": "after-cleaning.jpg",
+                "original_filename": "after-cleaning.jpg",
+                "category": "after_photos",
+            }]),
+            "comments_json": "[]",
+        }])
+
+        app_module._save_service_requests([service_request])
+
+        response = self.client.get("/owners/properties/property-1?lang=en")
+        self.assertEqual(response.status_code, 200)
+
+        html = response.get_data(as_text=True)
+        self.assertIn("Completed work", html)
+        self.assertIn("Mira Ivanova", html)
+        self.assertIn("Apartment cleaned and prepared for the next guest.", html)
+        self.assertIn("Fresh linen installed and supplies replenished.", html)
+        self.assertIn("after-cleaning.jpg", html)
+        self.assertIn(
+            "/operations/tasks/operation-closeout-1/attachments/evidence-after-1",
+            html,
+        )
+        self.assertNotIn("Internal note must not be shown to owner.", html)
 
     def test_owner_property_management_lists_detail_and_persists_updates(self):
         self._seed_owner_account(email="owner@example.com")

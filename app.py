@@ -14242,14 +14242,24 @@ def _owner_property_service_requests(owner_account, property_record):
         request_property_name = str(record.get("property", "")).strip().lower()
         request_location = str(record.get("property_city", "")).strip().lower()
 
-        if request_property_id and request_property_id == property_id:
-            matched_requests.append(record)
-            continue
-        if property_name and request_property_name == property_name:
-            matched_requests.append(record)
-            continue
-        if property_location and request_location and request_location == property_location:
-            matched_requests.append(record)
+        request_matches = (
+            (request_property_id and request_property_id == property_id)
+            or (property_name and request_property_name == property_name)
+            or (property_location and request_location and request_location == property_location)
+        )
+
+        if request_matches:
+            request_id = str(record.get("id", "")).strip()
+            operation_task = _find_operations_task(request_id) if request_id else None
+            matched_requests.append({
+                **record,
+                "operation_task": operation_task or {},
+                "assigned_to": str((operation_task or {}).get("assigned_to", "")).strip(),
+                "assigned_professional_id": str((operation_task or {}).get("assigned_professional_id", "")).strip(),
+                "completed_at": str((operation_task or {}).get("completed_at", "")).strip(),
+                "completion_report": (operation_task or {}).get("completion_report", {}),
+                "attachments": (operation_task or {}).get("attachments", []),
+            })
     matched_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return matched_requests
 

@@ -822,14 +822,13 @@
           {% if property_context.photos %}
             <h2>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailGallery', 'Gallery') }}</h2>
             <div class="owner-property-detail-gallery">
-              <div class="owner-property-detail-gallery__cover">
-                {% set cover_photo = property_context.property.cover_photo if property_context.property.cover_photo else property_context.photos[0] %}
-                <img src="{{ property_context.property.cover_photo_url or localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ cover_photo.id) }}" alt="{{ property_context.property.name|e }}" loading="lazy">
-              </div>
               <div class="owner-property-detail-gallery__grid">
                 {% for photo in property_context.photos %}
-                  <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" class="owner-property-detail-gallery__thumb">
-                    <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}" alt="{{ property_context.property.name|e }} photo {{ loop.index }}" loading="lazy">
+                  <a href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}"
+                     class="owner-property-detail-gallery__thumb{% if photo.id == property_context.property.cover_photo_id %} is-cover{% endif %}">
+                    <img src="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ photo.id) }}"
+                         alt="{{ property_context.property.name|e }} photo {{ loop.index }}"
+                         loading="lazy">
                   </a>
                 {% endfor %}
               </div>
@@ -1069,6 +1068,42 @@
                       {{ public_i18n('ownersDashboard', 'ownerActivityNewNext', 'We will assign the right local contractor and keep the timeline updated.') }}
                     {% endif %}
                   </p>
+
+                {% if request.status|lower == 'completed' and request.operation_task %}
+                  <div class="owner-property-detail-history__closeout">
+                    <strong>{{ public_i18n('ownersDashboard', 'ownerWorkCompletedTitle', 'Completed work') }}</strong>
+
+                    {% if request.assigned_to %}
+                      <p>{{ public_i18n('ownersDashboard', 'ownerWorkCompletedBy', 'Completed by') }}: {{ request.assigned_to|e }}</p>
+                    {% endif %}
+
+                    {% if request.completed_at %}
+                      <p>{{ public_i18n('ownersDashboard', 'ownerWorkCompletedAt', 'Completed at') }}: {{ format_local_datetime(request.completed_at, page_lang) }}</p>
+                    {% endif %}
+
+                    {% if request.completion_report.completed_work %}
+                      <p><strong>{{ public_i18n('ownersDashboard', 'ownerWorkSummary', 'Work summary') }}:</strong> {{ request.completion_report.completed_work|e }}</p>
+                    {% endif %}
+
+                    {% if request.completion_report.notes %}
+                      <p><strong>{{ public_i18n('ownersDashboard', 'ownerWorkCompletionNotes', 'Completion notes') }}:</strong> {{ request.completion_report.notes|e }}</p>
+                    {% endif %}
+
+                    {% if request.attachments %}
+                      <div class="owner-property-detail-history__evidence">
+                        <strong>{{ public_i18n('ownersDashboard', 'ownerWorkEvidence', 'Evidence') }}</strong>
+                        {% for attachment in request.attachments %}
+                          <div>
+                            <span>{{ attachment.original_filename|default(attachment.name, true)|e }}</span>
+                            <a class="button button--ghost" href="/operations/tasks/{{ request.operation_task.id|e }}/attachments/{{ attachment.id|e }}" target="_blank" rel="noopener">
+                              {{ public_i18n('ownersDashboard', 'ownerWorkEvidencePreview', 'Preview') }}
+                            </a>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endif %}
                 </div>
               {% endfor %}
             </div>
