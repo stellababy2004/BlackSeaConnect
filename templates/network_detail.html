@@ -85,12 +85,118 @@
           {% if provider.featured %}
             <span class="trust-strip__chip" data-i18n="featuredBadge">Препоръчано</span>
           {% endif %}
-        </div>
+                  {% if reliability %}
+            {% if reliability.verified %}
+              <span
+                class="trust-strip__chip"
+                data-public-blacksea-verified="true"
+                data-i18n="reliabilityVerified"
+              >BlackSea Verified</span>
+            {% else %}
+              <span
+                class="trust-strip__chip"
+                data-public-blacksea-verified="false"
+                data-i18n="reliabilityBuilding"
+              >Building verified track record</span>
+            {% endif %}
+
+            {% if reliability.average_rating is not none %}
+              <span class="trust-strip__chip">
+                &#9733; {{ reliability.average_rating }} / 5
+              </span>
+            {% endif %}
+
+            {% if reliability.completed_count %}
+              <span class="trust-strip__chip">
+                {{ reliability.completed_count }}
+                <span data-i18n="reliabilityCompletedShort">completed jobs</span>
+              </span>
+
+              <span class="trust-strip__chip">
+                {{ reliability.evidence_rate }}%
+                <span data-i18n="reliabilityEvidenceShort">evidence-backed</span>
+              </span>
+            {% endif %}
+          {% endif %}
+</div>
       </div>
     </div>
   </header>
 
   <main>
+    {% if reliability %}
+      <section
+        class="cta-panel"
+        aria-labelledby="public-reliability-title"
+        data-public-reliability-profile
+        data-public-blacksea-verified="{{ 'true' if reliability.verified else 'false' }}"
+        {% if reliability.score is not none %}data-public-reliability-score="{{ reliability.score }}"{% endif %}
+      >
+        <div class="cta-panel__content">
+          <p class="section-heading__eyebrow" data-i18n="reliabilityEyebrow">
+            Verified performance
+          </p>
+
+          {% if reliability.verified %}
+            <h2 id="public-reliability-title" data-i18n="reliabilityVerified">
+              BlackSea Verified
+            </h2>
+            <p class="cta-panel__copy" data-i18n="reliabilityVerifiedCopy">
+              Verified through completed work, owner reviews and evidence-backed service history.
+            </p>
+          {% else %}
+            <h2 id="public-reliability-title" data-i18n="reliabilityBuilding">
+              Building verified track record
+            </h2>
+            <p class="cta-panel__copy" data-i18n="reliabilityBuildingCopy">
+              This provider is building enough verified service history for a public reliability score.
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="trust-grid">
+          <article class="trust-card">
+            <h3 data-i18n="reliabilityScore">Reliability score</h3>
+            <p>
+              {% if reliability.score is not none %}
+                <strong>{{ reliability.score }} / 100</strong>
+              {% else %}
+                &mdash;
+              {% endif %}
+            </p>
+          </article>
+
+          <article class="trust-card">
+            <h3 data-i18n="reliabilityOwnerRating">Owner rating</h3>
+            <p>
+              {% if reliability.average_rating is not none %}
+                <strong>{{ reliability.average_rating }} / 5</strong>
+                &middot;
+                {{ reliability.review_count }}
+                <span data-i18n="reliabilityReviews">reviews</span>
+              {% else %}
+                &mdash;
+              {% endif %}
+            </p>
+          </article>
+
+          <article class="trust-card">
+            <h3 data-i18n="reliabilityCompleted">Completed jobs</h3>
+            <p>
+              <strong>{{ reliability.completed_count }}</strong>
+            </p>
+          </article>
+
+          <article class="trust-card">
+            <h3 data-i18n="reliabilityEvidence">Evidence-backed</h3>
+            <p>
+              <strong>{{ reliability.evidence_rate }}%</strong>
+            </p>
+          </article>
+        </div>
+      </section>
+    {% endif %}
+
     <section class="cta-panel" aria-labelledby="network-detail-title">
       <div class="cta-panel__content">
         <p class="section-heading__eyebrow" data-i18n="detailEyebrow">Provider details</p>
