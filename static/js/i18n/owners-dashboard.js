@@ -376,7 +376,15 @@
       "ownerDashboardRequestCta": "Заяви услуга",
       "ownerDashboardEmptyTitle": "Все още няма заявки за услуги.",
       "ownerDashboardEmptyCopy": "Подайте първата си заявка, за да следите какво се случва и кой работи по нея."
-    }
+    ,
+      "ownerWorkCompletedTitle": "????????? ??????",
+      "ownerWorkCompletedBy": "????????? ??",
+      "ownerWorkCompletedAt": "????????? ??",
+      "ownerWorkSummary": "????????? ?? ????????",
+      "ownerWorkCompletionNotes": "??????? ??? ??????????",
+      "ownerWorkEvidence": "?????????????",
+      "ownerWorkEvidencePreview": "???????"
+}
   },
   "en": {
     "ownersDashboard": {
@@ -752,7 +760,15 @@
       "ownerDashboardRequestCta": "Request a service",
       "ownerDashboardEmptyTitle": "No service requests yet.",
       "ownerDashboardEmptyCopy": "Submit your first request to start tracking timelines, assignments, and status updates."
-    }
+    ,
+      "ownerWorkCompletedTitle": "Completed work",
+      "ownerWorkCompletedBy": "Completed by",
+      "ownerWorkCompletedAt": "Completed at",
+      "ownerWorkSummary": "Work summary",
+      "ownerWorkCompletionNotes": "Completion notes",
+      "ownerWorkEvidence": "Evidence",
+      "ownerWorkEvidencePreview": "Preview"
+}
   },
   "fr": {
     "ownersDashboard": {
@@ -1128,7 +1144,15 @@
       "ownerDashboardRequestCta": "Demander un service",
       "ownerDashboardEmptyTitle": "Aucune demande de service pour le moment.",
       "ownerDashboardEmptyCopy": "Soumettez votre première demande pour commencer à suivre les chronologies, les affectations et les mises à jour."
-    }
+    ,
+      "ownerWorkCompletedTitle": "Travail termin?",
+      "ownerWorkCompletedBy": "R?alis? par",
+      "ownerWorkCompletedAt": "Termin? le",
+      "ownerWorkSummary": "R?sum? des travaux",
+      "ownerWorkCompletionNotes": "Notes de fin d?intervention",
+      "ownerWorkEvidence": "Preuves",
+      "ownerWorkEvidencePreview": "Aper?u"
+}
   },
   "ru": {
     "ownersDashboard": {
@@ -1504,7 +1528,15 @@
       "ownerDashboardRequestCta": "Запросить услугу",
       "ownerDashboardEmptyTitle": "Пока нет запросов на услуги.",
       "ownerDashboardEmptyCopy": "Отправьте первый запрос, чтобы начать отслеживать временные линии, назначения и обновления статуса."
-    }
+    ,
+      "ownerWorkCompletedTitle": "??????????? ??????",
+      "ownerWorkCompletedBy": "???????????",
+      "ownerWorkCompletedAt": "?????????",
+      "ownerWorkSummary": "????? ? ??????",
+      "ownerWorkCompletionNotes": "?????????? ? ??????????",
+      "ownerWorkEvidence": "?????????????",
+      "ownerWorkEvidencePreview": "????????"
+}
   }
 };
 })();
