@@ -1543,6 +1543,118 @@ class OwnerPortalTests(unittest.TestCase):
         )
         self.assertNotIn("Internal note must not be shown to owner.", html)
 
+    def test_owner_can_review_completed_task_once(self):
+        self._login_owner_via_magic(email="owner@example.com")
+
+        service_request = self._demo_owner_request(
+            id="owner-request-review-1",
+            owner_id="owner-1",
+            owner_email="owner@example.com",
+            property_id="property-1",
+            property="Sea View Villa",
+            property_city="Varna",
+            status="completed",
+            service_category="Cleaning",
+            description="Turnover cleaning after checkout.",
+        )
+
+        completed_task = {
+            "id": "operation-review-1",
+            "request_id": "owner-request-review-1",
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "source_id": "owner-request-review-1",
+            "owner_id": "owner-1",
+            "property_id": "property-1",
+            "created_at": "2026-09-10T08:00:00+00:00",
+            "updated_at": "2026-09-10T10:30:00+00:00",
+            "title": "Turnover cleaning",
+            "category": "CLEANING",
+            "property_name": "Sea View Villa",
+            "property_location": "Varna",
+            "owner_name": "Elena Petrova",
+            "owner_email": "owner@example.com",
+            "assigned_to": "Mira Ivanova",
+            "assigned_professional_id": "pro-review-1",
+            "priority": "NORMAL",
+            "status": "COMPLETED",
+            "due_date": "2026-09-10",
+            "notes": "Owner requested turnover cleaning.",
+            "completed_at": "2026-09-10T10:30:00+00:00",
+            "completion_report_json": json.dumps({
+                "completed_work": "Apartment cleaned and prepared.",
+                "notes": "Fresh linen installed.",
+            }),
+            "admin_notes": "",
+            "request_status": "completed",
+            "checklist_json": "[]",
+            "attachments_json": "[]",
+            "comments_json": "[]",
+        }
+
+        in_progress_task = {
+            **completed_task,
+            "id": "operation-review-open-1",
+            "request_id": "owner-request-review-open-1",
+            "source_id": "owner-request-review-open-1",
+            "status": "IN_PROGRESS",
+            "completed_at": "",
+            "completion_report_json": "",
+        }
+
+        self._insert_owner_db_rows(
+            "operations_tasks",
+            [completed_task, in_progress_task],
+        )
+
+        app_module._save_service_requests([service_request])
+
+        response = self.client.post(
+            "/owners/tasks/operation-review-1/review?lang=en",
+            data={
+                "rating": "5",
+                "comment": "Excellent cleaning and clear photos.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        detail = self.client.get(
+            "/owners/properties/property-1?lang=en"
+        )
+
+        self.assertEqual(detail.status_code, 200)
+
+        html = detail.get_data(as_text=True)
+
+        self.assertIn(
+            'data-owner-review-rating="5"',
+            html,
+        )
+        self.assertIn(
+            "Excellent cleaning and clear photos.",
+            html,
+        )
+
+        duplicate = self.client.post(
+            "/owners/tasks/operation-review-1/review?lang=en",
+            data={
+                "rating": "4",
+                "comment": "Trying to submit twice.",
+            },
+        )
+
+        self.assertEqual(duplicate.status_code, 409)
+
+        unfinished = self.client.post(
+            "/owners/tasks/operation-review-open-1/review?lang=en",
+            data={
+                "rating": "5",
+                "comment": "This task is not completed.",
+            },
+        )
+
+        self.assertEqual(unfinished.status_code, 409)
+
     def test_owner_property_management_lists_detail_and_persists_updates(self):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com", name="Sea View Villa", location="Varna")

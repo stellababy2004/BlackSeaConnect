@@ -2862,6 +2862,19 @@ def _ensure_operations_task_schema(conn):
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS owner_task_reviews (
+            task_id TEXT PRIMARY KEY,
+            owner_id TEXT NOT NULL,
+            professional_id TEXT NOT NULL,
+            rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+            comment TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
     required_columns = {
         "id": "TEXT NOT NULL DEFAULT ''",
         "request_id": "TEXT NOT NULL DEFAULT ''",
@@ -14223,6 +14236,32 @@ def _property_calendar_context(property_record, owner_account=None):
     return _calendar_property_sections(enriched_events)
 
 
+def _owner_task_review(task_id):
+    task_id = str(task_id or "").strip()
+    if not task_id:
+        return {}
+
+    with _owner_db_connection() as connection:
+        _ensure_operations_task_schema(connection)
+        row = connection.execute(
+            """
+            SELECT
+                task_id,
+                owner_id,
+                professional_id,
+                rating,
+                comment,
+                created_at
+            FROM owner_task_reviews
+            WHERE task_id = ?
+            LIMIT 1
+            """,
+            (task_id,),
+        ).fetchone()
+
+    return dict(row) if row else {}
+
+
 def _owner_property_service_requests(owner_account, property_record):
     owner_id = str((owner_account or {}).get("id", "")).strip()
     property_id = str((property_record or {}).get("id", "")).strip()
@@ -14251,6 +14290,11 @@ def _owner_property_service_requests(owner_account, property_record):
         if request_matches:
             request_id = str(record.get("id", "")).strip()
             operation_task = _find_operations_task(request_id) if request_id else None
+            owner_review = (
+                _owner_task_review((operation_task or {}).get("id", ""))
+                if operation_task
+                else {}
+            )
             matched_requests.append({
                 **record,
                 "operation_task": operation_task or {},
@@ -14259,6 +14303,7 @@ def _owner_property_service_requests(owner_account, property_record):
                 "completed_at": str((operation_task or {}).get("completed_at", "")).strip(),
                 "completion_report": (operation_task or {}).get("completion_report", {}),
                 "attachments": (operation_task or {}).get("attachments", []),
+                "review": owner_review,
             })
     matched_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return matched_requests
@@ -15279,6 +15324,140 @@ def owners_properties():
         current_lang=current_lang,
         property_cards=property_cards,
         property_count=len(property_cards),
+    )
+
+
+@app.post("/owners/tasks/<task_id>/review")
+@owner_required
+def owners_task_review(task_id):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    task_id = str(task_id or "").strip()
+    task = _find_operations_task(task_id)
+
+    if (
+        not task
+        or str(task.get("id", "")).strip() != task_id
+        or not _owner_can_view_operations_task(task, owner_account)
+    ):
+        return Response(
+            "Task not found.",
+            status=404,
+            mimetype="text/plain",
+        )
+
+    if _normalize_operations_task_status(task.get("status", "")) != "COMPLETED":
+        return Response(
+            "Only completed tasks can be reviewed.",
+            status=409,
+            mimetype="text/plain",
+        )
+
+    professional_id = str(
+        task.get("assigned_professional_id", "")
+    ).strip()
+
+    if not professional_id:
+        return Response(
+            "This task has no assigned professional.",
+            status=409,
+            mimetype="text/plain",
+        )
+
+    try:
+        rating = int(str(request.form.get("rating", "")).strip())
+    except (TypeError, ValueError):
+        rating = 0
+
+    if rating not in {1, 2, 3, 4, 5}:
+        return Response(
+            "Rating must be between 1 and 5.",
+            status=400,
+            mimetype="text/plain",
+        )
+
+    comment = str(request.form.get("comment", "") or "").strip()
+
+    if not comment:
+        return Response(
+            "A short review comment is required.",
+            status=400,
+            mimetype="text/plain",
+        )
+
+    if len(comment) > 1000:
+        return Response(
+            "Review comment is too long.",
+            status=400,
+            mimetype="text/plain",
+        )
+
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+
+    with _owner_db_connection() as connection:
+        _ensure_operations_task_schema(connection)
+
+        existing = connection.execute(
+            """
+            SELECT task_id
+            FROM owner_task_reviews
+            WHERE task_id = ?
+            LIMIT 1
+            """,
+            (task_id,),
+        ).fetchone()
+
+        if existing:
+            return Response(
+                "A review has already been submitted for this task.",
+                status=409,
+                mimetype="text/plain",
+            )
+
+        try:
+            connection.execute(
+                """
+                INSERT INTO owner_task_reviews (
+                    task_id,
+                    owner_id,
+                    professional_id,
+                    rating,
+                    comment,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    task_id,
+                    owner_id,
+                    professional_id,
+                    rating,
+                    comment,
+                    datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+            connection.commit()
+        except sqlite3.IntegrityError:
+            return Response(
+                "A review has already been submitted for this task.",
+                status=409,
+                mimetype="text/plain",
+            )
+
+    property_id = str(task.get("property_id", "")).strip()
+    if not property_id:
+        return Response(
+            "Property not found.",
+            status=404,
+            mimetype="text/plain",
+        )
+
+    return redirect(
+        url_for(
+            "owners_property_detail",
+            property_id=property_id,
+            lang=current_lang,
+        )
     )
 
 
