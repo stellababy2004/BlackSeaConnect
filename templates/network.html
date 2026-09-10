@@ -137,6 +137,30 @@
                     {% else %}
                       <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
                     {% endif %}
+                    {% if provider.reliability and provider.reliability.verified %}
+                      <span
+                        class="trust-strip__chip"
+                        data-network-blacksea-verified="true"
+                        data-i18n="reliabilityVerified"
+                      >BlackSea Verified</span>
+
+                      {% if provider.reliability.average_rating is not none %}
+                        <span
+                          class="trust-strip__chip"
+                          data-network-owner-rating="{{ provider.reliability.average_rating }}"
+                        >
+                          &#9733; {{ provider.reliability.average_rating }} / 5
+                        </span>
+                      {% endif %}
+
+                      <span
+                        class="trust-strip__chip"
+                        data-network-completed-jobs="{{ provider.reliability.completed_count }}"
+                      >
+                        {{ provider.reliability.completed_count }}
+                        <span data-i18n="reliabilityCompletedShort">completed jobs</span>
+                      </span>
+                    {% endif %}
                     {% for badge in provider.display_badges %}
                       <span class="trust-strip__chip">{{ badge|e }}</span>
                     {% endfor %}
@@ -179,6 +203,30 @@
                       <span class="trust-strip__chip" data-i18n="availableBadge">Наличен за заявки</span>
                     {% else %}
                       <span class="trust-strip__chip" data-i18n="requestsPausedBadge">Заявките са паузирани</span>
+                      {% endif %}
+                      {% if provider.reliability and provider.reliability.verified %}
+                        <span
+                          class="trust-strip__chip"
+                          data-network-blacksea-verified="true"
+                          data-i18n="reliabilityVerified"
+                        >BlackSea Verified</span>
+
+                        {% if provider.reliability.average_rating is not none %}
+                          <span
+                            class="trust-strip__chip"
+                            data-network-owner-rating="{{ provider.reliability.average_rating }}"
+                          >
+                            &#9733; {{ provider.reliability.average_rating }} / 5
+                          </span>
+                        {% endif %}
+
+                        <span
+                          class="trust-strip__chip"
+                          data-network-completed-jobs="{{ provider.reliability.completed_count }}"
+                        >
+                          {{ provider.reliability.completed_count }}
+                          <span data-i18n="reliabilityCompletedShort">completed jobs</span>
+                        </span>
                       {% endif %}
                       {% for badge in provider.display_badges %}
                         <span class="trust-strip__chip">{{ badge|e }}</span>

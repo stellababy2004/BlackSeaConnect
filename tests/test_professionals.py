@@ -1039,6 +1039,99 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(reassigned_task["assigned_to"], "Other Professional")
         self.assertEqual(self.client.get("/professionals/tasks/task-assignable").status_code, 404)
 
+    def test_network_directory_shows_verified_provider_badge(self):
+        self._seed_professional_application(
+            full_name="Directory Verified Professional",
+            email="directory-verified@example.com",
+            status="converted",
+            professional_category="Cleaning",
+            company="Directory Verified Cleaning",
+        )
+
+        account = app_module._find_professional_account_by_email(
+            "directory-verified@example.com"
+        )
+
+        self.assertIsNotNone(account)
+
+        for index in range(3):
+            self._seed_operations_task(
+                f"task-directory-verified-{index + 1}",
+                title=f"Directory completed task {index + 1}",
+                status="COMPLETED",
+                assigned_professional_id=account["id"],
+                assigned_to="Directory Verified Professional",
+                completed_at=f"2026-09-{index + 1:02d}T12:00:00+00:00",
+                attachments_json=json.dumps([
+                    {
+                        "id": f"directory-evidence-{index + 1}",
+                        "filename": f"after-{index + 1}.jpg",
+                        "original_filename": f"after-{index + 1}.jpg",
+                        "category": "after_photos",
+                    }
+                ]),
+            )
+
+        with app.app_context():
+            with app_module._owner_db_connection() as connection:
+                app_module._ensure_operations_task_schema(connection)
+
+                connection.executemany(
+                    """
+                    INSERT INTO owner_task_reviews (
+                        task_id,
+                        owner_id,
+                        professional_id,
+                        rating,
+                        comment,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            "task-directory-verified-1",
+                            "owner-directory-1",
+                            account["id"],
+                            5,
+                            "Excellent service.",
+                            "2026-09-01T13:00:00+00:00",
+                        ),
+                        (
+                            "task-directory-verified-2",
+                            "owner-directory-2",
+                            account["id"],
+                            4,
+                            "Very good service.",
+                            "2026-09-02T13:00:00+00:00",
+                        ),
+                    ],
+                )
+
+                connection.commit()
+
+        response = self.client.get("/network?lang=en")
+
+        self.assertEqual(response.status_code, 200)
+
+        html = response.get_data(as_text=True)
+
+        self.assertIn("Directory Verified Cleaning", html)
+        self.assertIn("BlackSea Verified", html)
+        self.assertIn(
+            'data-network-blacksea-verified="true"',
+            html,
+        )
+        self.assertIn(
+            'data-network-owner-rating="4.5"',
+            html,
+        )
+        self.assertIn(
+            'data-network-completed-jobs="3"',
+            html,
+        )
+        self.assertIn("4.5 / 5", html)
+
     def test_public_network_profile_shows_verified_reliability(self):
         self._seed_professional_application(
             full_name="Public Verified Professional",
