@@ -4191,6 +4191,7 @@ class OwnerPortalTests(unittest.TestCase):
                 const common = locale.common;
                 console.log(JSON.stringify({
                   homeTitle: home.homeTitle,
+                  homePilotAreas: home.homePilotAreas,
                   homePrimaryCta: home.homePrimaryCta,
                   navApply: common.navApply
                 }));
@@ -4208,22 +4209,26 @@ class OwnerPortalTests(unittest.TestCase):
 
         expectations = {
             "bg": {
-                "homeTitle": "Оперативният кокпит за собственици и крайбрежни оператори.",
+                "homeTitle": "Дистанционен контрол и проверени услуги за имоти в България.",
+                "homePilotAreas": "Пилотни зони: София • Пловдив • Българското Черноморие",
                 "homePrimaryCta": "Виж платформата",
                 "navApply": "Кандидатстване",
             },
             "en": {
-                "homeTitle": "The operational cockpit for owners and coastal operators.",
+                "homeTitle": "Remote oversight and verified property services in Bulgaria.",
+                "homePilotAreas": "Pilot areas: Sofia • Plovdiv • Bulgarian Black Sea coast",
                 "homePrimaryCta": "View platform",
                 "navApply": "Apply",
             },
             "fr": {
-                "homeTitle": "Le cockpit opérationnel pour les propriétaires et les opérateurs côtiers.",
+                "homeTitle": "Suivi à distance et services vérifiés pour les biens en Bulgarie.",
+                "homePilotAreas": "Zones pilotes : Sofia • Plovdiv • Littoral bulgare de la mer Noire",
                 "homePrimaryCta": "Voir la plateforme",
                 "navApply": "Candidature",
             },
             "ru": {
-                "homeTitle": "Операционный кокпит для владельцев и прибрежных операторов.",
+                "homeTitle": "Удалённый контроль и проверенные услуги для недвижимости в Болгарии.",
+                "homePilotAreas": "Пилотные зоны: София • Пловдив • Болгарское Черноморье",
                 "homePrimaryCta": "Посмотреть платформу",
                 "navApply": "Заявка",
             },
@@ -4233,6 +4238,7 @@ class OwnerPortalTests(unittest.TestCase):
             with self.subTest(lang=lang):
                 actual = load_home_translation(lang)
                 self.assertEqual(actual["homeTitle"], expected["homeTitle"])
+                self.assertEqual(actual["homePilotAreas"], expected["homePilotAreas"])
                 self.assertEqual(actual["homePrimaryCta"], expected["homePrimaryCta"])
                 self.assertEqual(actual["navApply"], expected["navApply"])
 

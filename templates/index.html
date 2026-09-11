@@ -38,13 +38,13 @@
           "alternateName": "BlackSeaConnect",
           "url": site_url ~ "/",
           "logo": site_url ~ "/static/favicon-512x512.png",
-          "description": "BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.",
-          "areaServed": "Black Sea coast",
+          "description": home_seo.description,
+          "areaServed": {"@type": "Country", "name": "Bulgaria"},
           "serviceType": [
-            "Coastal property operations",
-            "guest concierge",
+            "Remote property oversight",
+            "Property services from verified professionals",
             "housekeeping coordination",
-            "guest arrival coordination"
+            "Property maintenance and repairs"
           ]
         },
         {
@@ -53,7 +53,7 @@
           "name": "BlackSea Connect",
           "alternateName": "BlackSeaConnect.com",
           "url": site_url ~ "/",
-          "description": "BlackSea Connect is an operations platform for coastal property teams, combining guest arrivals, housekeeping, transfers, concierge support, service requests and trusted local partners.",
+          "description": home_seo.description,
           "publisher": {
             "@id": site_url ~ "/#organization"
           }
@@ -113,7 +113,7 @@
             <span data-i18n="homePremiumTitle">{{ public_i18n('home', 'homePremiumTitle') }}</span>
             <span class="ds-title__accent" data-i18n="homePremiumTitleAccent">{{ public_i18n('home', 'homePremiumTitleAccent') }}</span>
           </h1>
-          <p class="ds-lead" data-i18n="homePremiumIntro">{{ public_i18n('home', 'homePremiumIntro') }}</p>
+          <p class="ds-lead"><span data-i18n="homePremiumIntro">{{ public_i18n('home', 'homePremiumIntro') }}</span> <span data-i18n="homePilotAreas">{{ public_i18n('home', 'homePilotAreas') }}</span></p>
 
           <div class="ds-hero__actions" aria-label="Primary actions">
             <a class="button button--accent ds-button ds-button--accent" href="{{ localized_url('/owners/register') }}" data-i18n="homeCreateAccountCta">{{ public_i18n('home', 'homeCreateAccountCta') }}</a>
@@ -501,9 +501,9 @@
         <div class="ds-section__header ds-section__header--split ds-reveal" data-reveal>
           <div>
             <span class="ds-section__eyebrow" data-i18n="homeShowcaseEyebrow">{{ public_i18n('home', 'homeShowcaseEyebrow', 'Property showcase') }}</span>
-            <h2 id="showcase-title" class="ds-title" data-i18n="homeShowcaseTitle">{{ public_i18n('home', 'homeShowcaseTitle', 'A panoramic coastal moment with a luxury operating atmosphere.') }}</h2>
+            <h2 id="showcase-title" class="ds-title" data-i18n="homeShowcaseTitle">{{ public_i18n('home', 'homeShowcaseTitle', 'Remote property care: examples from the Black Sea coast.') }}</h2>
           </div>
-          <p class="ds-lead" data-i18n="homeShowcaseIntro">{{ public_i18n('home', 'homeShowcaseIntro', 'Six curated coastal properties connect a luxury atmosphere with live operational status.') }}</p>
+          <p class="ds-lead" data-i18n="homeShowcaseIntro">{{ public_i18n('home', 'homeShowcaseIntro', 'Every home has its own story, and you always know what is happening there.') }}</p>
         </div>
 
         <div
@@ -624,7 +624,7 @@
     <div class="site-footer" aria-label="Site footer" data-i18n-attr="aria-label:homeFooterLabel">
       <div class="site-footer__brand">
         <strong>BlackSea Connect</strong>
-        <p data-i18n="homeFooterCopy">{{ public_i18n('home', 'homeFooterCopy', 'Luxury-grade coastal operations for owners, managers and trusted partners.') }}</p>
+        <p data-i18n="homeFooterCopy">{{ public_i18n('home', 'homeFooterCopy', 'Care for properties in Bulgaria when their owners are away.') }}</p>
       </div>
 
       <nav class="site-footer__links" aria-label="Footer links" data-i18n-attr="aria-label:homeFooterLinksLabel">
@@ -637,7 +637,7 @@
 
       <div class="site-footer__meta">
         <a href="mailto:concierge@blackseaconnect.com">concierge@blackseaconnect.com</a>
-        <p data-i18n="homeFooterMeta">{{ public_i18n('home', 'homeFooterMeta', 'Operational software for calm, premium hospitality and property coordination.') }}</p>
+        <p data-i18n="homeFooterMeta">{{ public_i18n('home', 'homeFooterMeta', 'Remote oversight, verified professionals and evidence of completed work.') }}</p>
       </div>
     </div>
   </div>
@@ -652,7 +652,7 @@
   <section class="owner-fit-section home-light-section" hidden aria-hidden="true"></section>
   <section class="cta-panel home-light-section" hidden aria-hidden="true"></section>
 
-  <script src="/static/js/translations.js?v=20260724"></script>
+  <script src="/static/js/translations.js?v=20260910-property-care"></script>
   <script src="/static/js/i18n.js?v=20260724"></script>
   <script>
     (() => {

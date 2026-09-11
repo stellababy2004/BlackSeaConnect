@@ -90,20 +90,20 @@ NOINDEX_EXACT_PATHS = {
 }
 HOME_SEO_METADATA = {
     "bg": {
-        "title": "BlackSea Connect | Платформа за имотни и хотелски операции",
-        "description": "BlackSea Connect е платформа за имотни и хотелски операции за собственици, управители, екипи по гостоприемство и местни професионалисти по българското Черноморие.",
+        "title": "BlackSea Connect | Дистанционен контрол и услуги за имоти в България",
+        "description": "Грижа за имота, когато не сте там: дистанционен контрол, услуги от проверени професионалисти, снимки и доказателства. Пилотни зони в България: София, Пловдив и Българското Черноморие.",
     },
     "en": {
-        "title": "BlackSea Connect | Property & hospitality operations platform",
-        "description": "BlackSea Connect is the property and hospitality operations platform for owners, property managers, hospitality teams and local service professionals on Bulgaria’s Black Sea coast.",
+        "title": "BlackSea Connect | Remote property care and services in Bulgaria",
+        "description": "Care for your property when you are away: remote oversight, services from verified professionals, photos and evidence. Pilot areas in Bulgaria: Sofia, Plovdiv and the Bulgarian Black Sea coast.",
     },
     "fr": {
-        "title": "BlackSea Connect | Plateforme d’opérations immobilières et hôtelières",
-        "description": "BlackSea Connect est la plateforme d’opérations immobilières et hôtelières pour propriétaires, gestionnaires, équipes d’accueil et professionnels locaux sur la côte bulgare de la mer Noire.",
+        "title": "BlackSea Connect | Suivi à distance et services immobiliers en Bulgarie",
+        "description": "Prenez soin de votre bien à distance : suivi des travaux, professionnels vérifiés, photos et preuves. Zones pilotes en Bulgarie : Sofia, Plovdiv et le littoral bulgare de la mer Noire.",
     },
     "ru": {
-        "title": "BlackSea Connect | Платформа управления недвижимостью и гостеприимством",
-        "description": "BlackSea Connect — платформа для владельцев, управляющих, команд гостеприимства и местных специалистов, обслуживающих недвижимость на болгарском побережье Чёрного моря.",
+        "title": "BlackSea Connect | Удалённый контроль и услуги для недвижимости в Болгарии",
+        "description": "Забота о недвижимости, когда вы далеко: удалённый контроль, услуги проверенных специалистов, фотографии и подтверждения. Пилотные зоны в Болгарии: София, Пловдив и болгарское Черноморье.",
     },
 }
 PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
