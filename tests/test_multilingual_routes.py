@@ -1583,6 +1583,24 @@ class MultilingualRouteTests(unittest.TestCase):
                     self.assertNotIn(foreign_text, visible_text)
                 self.assertNotIn("`n", html)
 
+    def test_homepage_positioning_and_pilot_areas_are_localized(self):
+        expected = {
+            "bg": ("За собственици на имоти в България", "дори когато сте далеч от имота", "снимки и доказателства", "Пилотни зони: София • Пловдив • Българското Черноморие", "Винаги знаете какво се случва."),
+            "en": ("For property owners in Bulgaria", "even when you are far from your property", "photos and evidence", "Pilot areas: Sofia • Plovdiv • Bulgarian Black Sea coast", "You always know what’s happening."),
+            "fr": ("Pour les propriétaires de biens en Bulgarie", "même lorsque vous êtes loin de votre bien", "photos et des preuves", "Zones pilotes : Sofia • Plovdiv • Littoral bulgare de la mer Noire", "Vous savez toujours ce qui s’y passe."),
+            "ru": ("Для владельцев недвижимости в Болгарии", "даже когда вы далеко от своей недвижимости", "фотографии и подтверждения", "Пилотные зоны: София • Пловдив • Болгарское Черноморье", "Вы всегда знаете, что происходит."),
+        }
+        for lang, fragments in expected.items():
+            with self.subTest(lang=lang):
+                response = self.client.get(f"/?lang={lang}")
+                self.assertEqual(response.status_code, 200)
+                body = response.get_data(as_text=True)
+                hero = body.split('<div class="ds-hero__copy', 1)[1].split('<aside', 1)[0]
+                visible = self._visible_text(hero)
+                for fragment in fragments:
+                    self.assertIn(fragment, visible)
+                self.assertNotIn("[MISSING:", visible)
+
     def test_homepage_carousel_dataset_contains_keys_not_localized_sentences(self):
         source = (Path(__file__).resolve().parents[1] / "templates" / "index.html").read_text(encoding="utf-8")
         match = re.search(r"const slides\s*=\s*\[(.*?)\];", source, re.DOTALL)

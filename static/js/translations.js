@@ -75,7 +75,8 @@
 
   if (typeof document !== 'undefined' && typeof document.write === 'function') {
     document.write(moduleFiles.map(function (file) {
-      return '<script src="' + base + file + '?v=' + moduleVersion + '"></script>';
+      var version = file === 'home.js' ? '20260910-property-care' : moduleVersion;
+      return '<script src="' + base + file + '?v=' + version + '"></script>';
     }).join(''));
   }
 })();

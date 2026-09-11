@@ -61,11 +61,12 @@ class SeoRoutesTests(unittest.TestCase):
         self.assertNotIn("noindex", body.lower())
         self.assertNotIn("X-Robots-Tag", response.headers)
 
-    def test_homepage_metadata_is_localized_for_bg_en_fr(self):
+    def test_homepage_metadata_is_localized_for_all_supported_languages(self):
         expected = {
-            "bg": "Платформа за имотни и хотелски операции",
-            "en": "Property &amp; hospitality operations platform",
-            "fr": "Plateforme d’opérations immobilières et hôtelières",
+            "bg": "Дистанционен контрол и услуги за имоти в България",
+            "en": "Remote property care and services in Bulgaria",
+            "fr": "Suivi à distance et services immobiliers en Bulgarie",
+            "ru": "Удалённый контроль и услуги для недвижимости в Болгарии",
         }
         for lang, title_fragment in expected.items():
             with self.subTest(lang=lang):
@@ -77,6 +78,30 @@ class SeoRoutesTests(unittest.TestCase):
                 self.assertIn(f'<link rel="canonical" href="{canonical}">', body)
                 self.assertIn('<link rel="alternate" hreflang="bg" href="https://blackseaconnect.com/">', body)
                 self.assertIn('<link rel="alternate" hreflang="x-default" href="https://blackseaconnect.com/">', body)
+
+    def test_homepage_metadata_and_schema_describe_bulgaria_and_pilot_areas(self):
+        expected = {
+            "bg": ("дистанционен контрол", "проверени професионалисти", "Пилотни зони в България", "София", "Пловдив", "Българското Черноморие"),
+            "en": ("remote oversight", "verified professionals", "Pilot areas in Bulgaria", "Sofia", "Plovdiv", "Bulgarian Black Sea coast"),
+            "fr": ("à distance", "professionnels vérifiés", "Zones pilotes en Bulgarie", "Sofia", "Plovdiv", "littoral bulgare de la mer Noire"),
+            "ru": ("удалённый контроль", "проверенных специалистов", "Пилотные зоны в Болгарии", "София", "Пловдив", "болгарское Черноморье"),
+        }
+        for lang, fragments in expected.items():
+            with self.subTest(lang=lang):
+                body = self.client.get(f"/?lang={lang}").get_data(as_text=True)
+                description = html.unescape(re.search(r'<meta name="description" content="(.*?)">', body).group(1))
+                for fragment in fragments:
+                    self.assertIn(fragment, description)
+                for attribute in ('property="og:description"', 'name="twitter:description"'):
+                    social_description = re.search(r'<meta ' + attribute + r' content="(.*?)">', body).group(1)
+                    self.assertEqual(html.unescape(social_description), description)
+                schema = json.loads(re.search(r'<script type="application/ld\+json">\s*(.*?)\s*</script>', body, re.DOTALL).group(1))
+                organization, website = schema["@graph"]
+                self.assertEqual(organization["areaServed"], {"@type": "Country", "name": "Bulgaria"})
+                self.assertEqual(organization["description"], description)
+                self.assertEqual(website["description"], description)
+                self.assertIn("Remote property oversight", organization["serviceType"])
+                self.assertIn("Property services from verified professionals", organization["serviceType"])
 
     def test_homepage_redirects_bare_url_to_stored_non_bulgarian_language(self):
         for lang in ("en", "fr", "ru"):
