@@ -2967,6 +2967,327 @@ class OwnerPortalTests(unittest.TestCase):
         # A GET that only computes recommendations must not send email.
         self.assertEqual(FakeSMTP.sent_messages, [])
 
+    def test_admin_ai_assignment_revalidation_blocks_stale_unavailable_professional(self):
+        request_id = "owner-request-ai-revalidation"
+        professional_id = "pro-ai-revalidation"
+
+        self._seed_jsonl("service_requests.jsonl", [{
+            "id": request_id,
+            "owner_id": "owner-ai-revalidation",
+            "owner_email": "owner.revalidation@example.com",
+            "email": "owner.revalidation@example.com",
+            "name": "Revalidation Owner",
+            "service_category": "Maintenance",
+            "description": "Water leak under the kitchen sink.",
+            "property_city": "Sveti Vlas",
+            "preferred_date": "2026-09-20",
+            "status": "new",
+            "organization_id": "org-global",
+        }])
+
+        self._insert_owner_db_rows("professional_accounts", [{
+            "id": professional_id,
+            "email": "revalidation@example.com",
+            "created_at": "2026-09-01T08:00:00Z",
+            "full_name": "Revalidation Professional",
+            "phone": "+359888100099",
+            "company": "Revalidation Maintenance",
+            "service_categories": "Maintenance",
+            "status": "ACTIVE",
+            "last_login_at": "",
+        }])
+
+        application = {
+            "id": professional_id,
+            "email": "revalidation@example.com",
+            "full_name": "Revalidation Professional",
+            "professional_category": "Maintenance",
+            "service_type": "Maintenance",
+            "status": "qualified",
+            "available_for_requests": True,
+            "city": "Sveti Vlas",
+            "country": "Bulgaria",
+        }
+        self._seed_jsonl("professional_applications.jsonl", [application])
+
+        app_module._upsert_operations_task({
+            "id": request_id,
+            "request_id": request_id,
+            "source_id": request_id,
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "property_id": "",
+            "property": "Revalidation Property",
+            "property_location": "Sveti Vlas",
+            "owner": "Revalidation Owner",
+            "owner_email": "owner.revalidation@example.com",
+            "category": "SERVICE",
+            "title": "Water leak under the kitchen sink",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+            "organization_id": "org-global",
+        })
+
+        # Simulate the recommendation becoming stale after the admin saw it.
+        application["available_for_requests"] = False
+        self._seed_jsonl("professional_applications.jsonl", [application])
+
+        with patch.dict(
+            os.environ,
+            {**self.ADMIN_ENV, **self.SMTP_ENV},
+            clear=True,
+        ):
+            response = self.client.post(
+                f"/admin/operations/{request_id}",
+                data={
+                    "task_action": "details",
+                    "assignment_source": "ai_recommendation",
+                    "status": "NEW",
+                    "assigned_professional_id": professional_id,
+                    "priority": "NORMAL",
+                    "due_date": "",
+                    "admin_notes": "",
+                },
+                headers=self._auth_headers(),
+                follow_redirects=False,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            "assignment_error=ai_recommendation_stale",
+            response.headers["Location"],
+        )
+
+        with app_module._owner_db_connection() as conn:
+            row = conn.execute(
+                """
+                SELECT status, assigned_professional_id
+                FROM operations_tasks
+                WHERE id = ?
+                """,
+                (request_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(str(row["status"]).upper(), "NEW")
+        self.assertEqual(str(row["assigned_professional_id"] or ""), "")
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
+        with patch.dict(
+            os.environ,
+            {**self.ADMIN_ENV, **self.SMTP_ENV},
+            clear=True,
+        ):
+            refresh = self.client.get(
+                response.headers["Location"] + "&lang=en",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(refresh.status_code, 200)
+        html = refresh.get_data(as_text=True)
+        self.assertIn(
+            "The AI recommendation is no longer current.",
+            html,
+        )
+
+
+    def test_admin_ai_assignment_revalidation_allows_still_eligible_professional(self):
+        request_id = "owner-request-ai-revalidation-eligible"
+        professional_id = "pro-ai-revalidation-eligible"
+
+        self._seed_jsonl("service_requests.jsonl", [{
+            "id": request_id,
+            "owner_id": "owner-ai-revalidation-eligible",
+            "owner_email": "owner.revalidation.eligible@example.com",
+            "email": "owner.revalidation.eligible@example.com",
+            "name": "Eligible Revalidation Owner",
+            "service_category": "Maintenance",
+            "description": "Water leak under the kitchen sink.",
+            "property_city": "Sveti Vlas",
+            "preferred_date": "2026-09-20",
+            "status": "new",
+            "organization_id": "org-global",
+        }])
+
+        self._insert_owner_db_rows("professional_accounts", [{
+            "id": professional_id,
+            "email": "eligible.revalidation@example.com",
+            "created_at": "2026-09-01T08:00:00Z",
+            "full_name": "Eligible Revalidation Professional",
+            "phone": "+359888100098",
+            "company": "Eligible Maintenance",
+            "service_categories": "Maintenance",
+            "status": "ACTIVE",
+            "last_login_at": "",
+        }])
+
+        self._seed_jsonl("professional_applications.jsonl", [{
+            "id": professional_id,
+            "email": "eligible.revalidation@example.com",
+            "full_name": "Eligible Revalidation Professional",
+            "professional_category": "Maintenance",
+            "service_type": "Maintenance",
+            "status": "qualified",
+            "available_for_requests": True,
+            "city": "Sveti Vlas",
+            "country": "Bulgaria",
+        }])
+
+        app_module._upsert_operations_task({
+            "id": request_id,
+            "request_id": request_id,
+            "source_id": request_id,
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "property_id": "",
+            "property": "Eligible Revalidation Property",
+            "property_location": "Sveti Vlas",
+            "owner": "Eligible Revalidation Owner",
+            "owner_email": "owner.revalidation.eligible@example.com",
+            "category": "SERVICE",
+            "title": "Water leak under the kitchen sink",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+            "organization_id": "org-global",
+        })
+
+        with patch.dict(
+            os.environ,
+            {**self.ADMIN_ENV, **self.SMTP_ENV},
+            clear=True,
+        ):
+            response = self.client.post(
+                f"/admin/operations/{request_id}",
+                data={
+                    "task_action": "details",
+                    "assignment_source": "ai_recommendation",
+                    "status": "NEW",
+                    "assigned_professional_id": professional_id,
+                    "priority": "NORMAL",
+                    "due_date": "",
+                    "admin_notes": "",
+                },
+                headers=self._auth_headers(),
+                follow_redirects=False,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("assignment_error=", response.headers["Location"])
+
+        with app_module._owner_db_connection() as conn:
+            row = conn.execute(
+                """
+                SELECT status, assigned_to, assigned_professional_id
+                FROM operations_tasks
+                WHERE id = ?
+                """,
+                (request_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(str(row["status"]).upper(), "ASSIGNED")
+        self.assertEqual(
+            str(row["assigned_professional_id"] or ""),
+            professional_id,
+        )
+        self.assertIn(
+            "Eligible Revalidation Professional",
+            str(row["assigned_to"] or ""),
+        )
+
+
+    def test_admin_manual_assignment_does_not_invoke_ai_revalidation(self):
+        task_id = "manual-assignment-no-ai"
+        professional_id = "pro-manual-no-ai"
+
+        self._insert_owner_db_rows("professional_accounts", [{
+            "id": professional_id,
+            "email": "manual.no.ai@example.com",
+            "created_at": "2026-09-01T08:00:00Z",
+            "full_name": "Manual Assignment Professional",
+            "phone": "+359888100097",
+            "company": "Manual Maintenance",
+            "service_categories": "Maintenance",
+            "status": "ACTIVE",
+            "last_login_at": "",
+        }])
+
+        app_module._upsert_operations_task({
+            "id": task_id,
+            "request_id": task_id,
+            "source_id": task_id,
+            "source_type": "MANUAL",
+            "property_id": "",
+            "property": "Manual Assignment Property",
+            "property_location": "Sveti Vlas",
+            "owner": "Manual Owner",
+            "owner_email": "manual.owner@example.com",
+            "category": "SERVICE",
+            "title": "Manual maintenance task",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+            "organization_id": "org-global",
+        })
+
+        with patch(
+            "services.ai_agent.context_builder.build_recommendation_context",
+            side_effect=AssertionError(
+                "Manual assignment must not invoke AI revalidation"
+            ),
+        ):
+            with patch.dict(
+                os.environ,
+                {**self.ADMIN_ENV, **self.SMTP_ENV},
+                clear=True,
+            ):
+                response = self.client.post(
+                    f"/admin/operations/{task_id}",
+                    data={
+                        "task_action": "details",
+                        "status": "NEW",
+                        "assigned_professional_id": professional_id,
+                        "priority": "NORMAL",
+                        "due_date": "",
+                        "admin_notes": "",
+                    },
+                    headers=self._auth_headers(),
+                    follow_redirects=False,
+                )
+
+        self.assertEqual(response.status_code, 302)
+
+        with app_module._owner_db_connection() as conn:
+            row = conn.execute(
+                """
+                SELECT status, assigned_to, assigned_professional_id
+                FROM operations_tasks
+                WHERE id = ?
+                """,
+                (task_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(str(row["status"]).upper(), "ASSIGNED")
+        self.assertEqual(
+            str(row["assigned_professional_id"] or ""),
+            professional_id,
+        )
+        self.assertIn(
+            "Manual Assignment Professional",
+            str(row["assigned_to"] or ""),
+        )
+
+
     def test_admin_owner_finance_payment_and_payout_persist_with_valid_forms(self):
         class FormAuditParser(HTMLParser):
             def __init__(self):

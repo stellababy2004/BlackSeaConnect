@@ -3267,6 +3267,7 @@
           <p class="eyebrow">Оперативни контроли</p>
           <h2 class="admin-operations-section-title">Панел за възлагане</h2>
           {% if status_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ status_error|e }}</p>{% endif %}
+          {% if assignment_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ assignment_error|e }}</p>{% endif %}
           <div class="admin-operations-control-grid u-mb-14">
             <div class="admin-operations-control-card">
               <span>Налични професионалисти</span>
@@ -3495,6 +3496,7 @@
           {% if not task.is_assigned and assignment_recommendation.professional %}
             <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="details">
+              <input type="hidden" name="assignment_source" value="ai_recommendation">
               <input type="hidden" name="status" value="{{ task.status|e }}">
               <input type="hidden" name="assigned_professional_id" value="{{ assignment_recommendation.professional.id|e }}">
               <input type="hidden" name="priority" value="{{ task.priority|e }}">

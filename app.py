@@ -1542,6 +1542,36 @@ def _operations_task_transition_error_copy(error_code, language=None):
     return selected.get(str(error_code or "").strip(), selected["transition_invalid"])
 
 
+def _operations_ai_assignment_error_copy(error_code, language=None):
+    messages = {
+        "bg": {
+            "ai_recommendation_stale": "AI \u043f\u0440\u0435\u043f\u043e\u0440\u044a\u043a\u0430\u0442\u0430 \u0432\u0435\u0447\u0435 \u043d\u0435 \u0435 \u0430\u043a\u0442\u0443\u0430\u043b\u043d\u0430. \u0421\u043f\u0438\u0441\u044a\u043a\u044a\u0442 \u0435 \u043f\u0440\u0435\u0438\u0437\u0447\u0438\u0441\u043b\u0435\u043d \u2014 \u043f\u0440\u0435\u0433\u043b\u0435\u0434\u0430\u0439\u0442\u0435 \u0433\u043e \u0438 \u043f\u043e\u0442\u0432\u044a\u0440\u0434\u0435\u0442\u0435 \u043e\u0442\u043d\u043e\u0432\u043e.",
+            "ai_revalidation_unavailable": "AI \u043f\u0440\u0435\u043f\u043e\u0440\u044a\u043a\u0430\u0442\u0430 \u043d\u0435 \u043c\u043e\u0436\u0435 \u0434\u0430 \u0431\u044a\u0434\u0435 \u043f\u043e\u0442\u0432\u044a\u0440\u0434\u0435\u043d\u0430 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e \u0432 \u043c\u043e\u043c\u0435\u043d\u0442\u0430. \u041d\u0435 \u0435 \u0438\u0437\u0432\u044a\u0440\u0448\u0435\u043d\u043e \u0432\u044a\u0437\u043b\u0430\u0433\u0430\u043d\u0435.",
+            "ai_revalidation_failed": "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430\u0442\u0430 \u043d\u0430 AI \u043f\u0440\u0435\u043f\u043e\u0440\u044a\u043a\u0430\u0442\u0430 \u043d\u0435 \u0443\u0441\u043f\u044f. \u041d\u0435 \u0435 \u0438\u0437\u0432\u044a\u0440\u0448\u0435\u043d\u043e \u0432\u044a\u0437\u043b\u0430\u0433\u0430\u043d\u0435.",
+        },
+        "en": {
+            "ai_recommendation_stale": "The AI recommendation is no longer current. The list has been recalculated; review it and confirm again.",
+            "ai_revalidation_unavailable": "The AI recommendation cannot be safely confirmed right now. No assignment was made.",
+            "ai_revalidation_failed": "The AI recommendation check failed. No assignment was made.",
+        },
+        "fr": {
+            "ai_recommendation_stale": "La recommandation IA n\u2019est plus \u00e0 jour. La liste a \u00e9t\u00e9 recalcul\u00e9e ; v\u00e9rifiez-la puis confirmez \u00e0 nouveau.",
+            "ai_revalidation_unavailable": "La recommandation IA ne peut pas \u00eatre confirm\u00e9e en toute s\u00e9curit\u00e9 pour le moment. Aucune attribution n\u2019a \u00e9t\u00e9 effectu\u00e9e.",
+            "ai_revalidation_failed": "La v\u00e9rification de la recommandation IA a \u00e9chou\u00e9. Aucune attribution n\u2019a \u00e9t\u00e9 effectu\u00e9e.",
+        },
+        "ru": {
+            "ai_recommendation_stale": "\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044f \u0418\u0418 \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u0430. \u0421\u043f\u0438\u0441\u043e\u043a \u043f\u0435\u0440\u0435\u0441\u0447\u0438\u0442\u0430\u043d; \u043f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0435\u0433\u043e \u0438 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u0441\u043d\u043e\u0432\u0430.",
+            "ai_revalidation_unavailable": "\u0421\u0435\u0439\u0447\u0430\u0441 \u043d\u0435\u043b\u044c\u0437\u044f \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044e \u0418\u0418. \u041d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e.",
+            "ai_revalidation_failed": "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438 \u0418\u0418 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043b\u0430\u0441\u044c \u043e\u0448\u0438\u0431\u043a\u043e\u0439. \u041d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e.",
+        },
+    }
+    selected = messages.get(
+        str(language or _resolve_current_language()).strip().lower(),
+        messages["en"],
+    )
+    return selected.get(str(error_code or "").strip(), "")
+
+
 def _normalize_operations_task_priority(priority):
     normalized = str(priority or "").strip().lower()
     normalized = OPERATIONS_TASK_PRIORITY_ALIASES.get(normalized, normalized.upper())
@@ -18135,6 +18165,10 @@ def _admin_operations_task_context(task_record):
         "evidence_notice": evidence_copy.get(str(request.args.get("evidence_notice", "")).strip(), ""),
         "status_error": _operations_task_transition_error_copy(request.args.get("status_error", "transition_invalid"), current_language)
             if request.args.get("status_error") else "",
+        "assignment_error": _operations_ai_assignment_error_copy(
+            request.args.get("assignment_error", ""),
+            current_language,
+        ) if request.args.get("assignment_error") else "",
         "format_evidence_file_size": _format_evidence_file_size,
         "comments": task_record.get("comments", _operations_task_comments(task_record.get("comments_json", ""))),
         "completion_report": task_record.get("completion_report", _operations_task_completion_report(task_record.get("completion_report_json", ""))),
@@ -25806,18 +25840,90 @@ def admin_operations_detail(task_id):
             due_date_value = str(request.form.get("due_date", task_record.get("due_date", ""))).strip()
             priority_value = str(request.form.get("priority", task_record.get("priority", "NORMAL"))).strip() or task_record.get("priority", "NORMAL")
             notes_value = str(request.form.get("admin_notes", task_record.get("admin_notes", ""))).strip()
-            updated_task = _update_operations_task_details(
-                task_id,
-                status=status_value,
-                assigned_to=assigned_to_value,
-                assigned_professional_id=assigned_professional_id_value,
-                notes=notes_value,
-                due_date=due_date_value,
-                priority=priority_value,
-                source="detail",
-            )
-            if not updated_task:
-                redirect_args["status_error"] = "transition_invalid"
+            assignment_source = str(request.form.get("assignment_source", "")).strip().lower()
+
+            assignment_allowed = True
+            if (
+                assignment_source == "ai_recommendation"
+                and assigned_professional_id_value
+                and assigned_professional_id_value
+                != str(task_record.get("assigned_professional_id", "")).strip()
+            ):
+                task_source_type = str(task_record.get("source_type", "")).strip().upper()
+                source_request_id = (
+                    str(task_record.get("request_id", "")).strip()
+                    or str(task_record.get("source_id", "")).strip()
+                    or str(task_record.get("id", "")).strip()
+                )
+                task_organization_id = str(
+                    task_record.get("organization_id", "")
+                ).strip()
+
+                if (
+                    task_source_type not in {"OWNER_SERVICE_REQUEST", "CONCIERGE_REQUEST"}
+                    or not source_request_id
+                    or not task_organization_id
+                ):
+                    assignment_allowed = False
+                    redirect_args["assignment_error"] = "ai_revalidation_unavailable"
+                else:
+                    try:
+                        from services.ai_agent.context_builder import (
+                            build_recommendation_context,
+                        )
+
+                        fresh_context = build_recommendation_context(
+                            source_request_id,
+                            organization_id=task_organization_id,
+                        )
+                        if fresh_context is None:
+                            assignment_allowed = False
+                            redirect_args["assignment_error"] = "ai_recommendation_stale"
+                        else:
+                            from services.ai_agent.tools import evaluate_professional
+
+                            selected_professional = next(
+                                (
+                                    professional
+                                    for professional in fresh_context.professionals
+                                    if str(professional.professional_id).strip()
+                                    == assigned_professional_id_value
+                                ),
+                                None,
+                            )
+
+                            if selected_professional is None:
+                                assignment_allowed = False
+                                redirect_args["assignment_error"] = "ai_recommendation_stale"
+                            else:
+                                candidate = evaluate_professional(
+                                    fresh_context,
+                                    selected_professional,
+                                )
+                                if not candidate.eligible:
+                                    assignment_allowed = False
+                                    redirect_args["assignment_error"] = "ai_recommendation_stale"
+                    except Exception:
+                        assignment_allowed = False
+                        redirect_args["assignment_error"] = "ai_revalidation_failed"
+                        app.logger.exception(
+                            "AI assignment revalidation failed for task %s",
+                            task_id,
+                        )
+
+            if assignment_allowed:
+                updated_task = _update_operations_task_details(
+                    task_id,
+                    status=status_value,
+                    assigned_to=assigned_to_value,
+                    assigned_professional_id=assigned_professional_id_value,
+                    notes=notes_value,
+                    due_date=due_date_value,
+                    priority=priority_value,
+                    source="detail",
+                )
+                if not updated_task:
+                    redirect_args["status_error"] = "transition_invalid"
         redirect_anchor = "operations-finance" if task_action in {"finance", "finance_send", "finance_reopen", "finance_payment", "finance_release"} else ("evidence" if task_action == "attachment" else None)
         return redirect(url_for("admin_operations_detail", **redirect_args, _anchor=redirect_anchor))
 
