@@ -3246,10 +3246,16 @@
       {% if professional_status in ['APPROVED', 'ACTIVE'] %}
         {% set assignment_recommendation.available_count = assignment_recommendation.available_count + 1 %}
       {% endif %}
-      {% if not assignment_recommendation.professional and professional_status in ['APPROVED', 'ACTIVE'] and task.category and task.category|lower in professional.service_categories|default('')|lower %}
-        {% set assignment_recommendation.professional = professional %}
-      {% endif %}
     {% endfor %}
+
+    {% if ai_recommendation_cards %}
+      {% set top_ai_recommendation = ai_recommendation_cards[0] %}
+      {% for professional in professional_accounts %}
+        {% if professional.id == top_ai_recommendation.professional_id %}
+          {% set assignment_recommendation.professional = professional %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
 
     <section class="admin-operations-workspace">
       <div class="admin-operations-stack">
@@ -3262,21 +3268,6 @@
           <h2 class="admin-operations-section-title">Панел за възлагане</h2>
           {% if status_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ status_error|e }}</p>{% endif %}
           <div class="admin-operations-control-grid u-mb-14">
-            <div class="admin-operations-control-card admin-operations-control-card--current">
-              {% if task.is_assigned %}
-                <span><span class="admin-operations-chip__icon">↗</span>Current Professional</span>
-                <strong>{{ task_assignee_label|e }}</strong>
-                <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') or 'Свързан професионален профил' }}{% else %}Текущото възлагане е записано{% endif %}</small>
-              {% elif assignment_recommendation.professional %}
-                <span><span class="admin-operations-chip__icon">↗</span>Recommended Professional</span>
-                <strong>{{ assignment_recommendation.professional.full_name|e }}</strong>
-                <small>{{ assignment_recommendation.professional.company|e or category_labels.get(assignment_recommendation.professional.service_categories|upper, 'Друга услуга') or 'Одобрен професионалист' }}</small>
-              {% else %}
-                <span><span class="admin-operations-chip__icon">↗</span>No recommendation available</span>
-                <strong>Няма точно съвпадение</strong>
-                <small>Използвайте списъка с налични професионалисти или ръчния избор.</small>
-              {% endif %}
-            </div>
             <div class="admin-operations-control-card">
               <span>Налични професионалисти</span>
               <strong>{{ assignment_recommendation.available_count }}</strong>
@@ -3288,6 +3279,219 @@
               <small>{% if not task.is_assigned %}Възлагането ще премести новите задачи в статус възложена.{% else %}Текущият статус се запазва при бързо възлагане.{% endif %}</small>
             </div>
           </div>
+
+          <div class="u-mb-14">
+            {% set ai_copy = {
+              'bg': {
+                'eyebrow': 'AI препоръки за възлагане',
+                'top': 'подходящи професионалисти',
+                'notice_1': 'AI препоръчва, но не възлага автоматично.',
+                'notice_2': 'Крайното решение е на администратора.',
+                'why': 'Защо е подходящ:',
+                'check': 'Данни за проверка',
+                'unconfirmed': 'Непотвърдени:',
+                'workload': 'Текущо натоварване:',
+                'empty_title': 'Няма допустима AI препоръка.',
+                'empty_text': 'Няма професионалист, който в момента да покрива задължителните критерии, или липсват достатъчно проверени данни.'
+              },
+              'en': {
+                'eyebrow': 'AI assignment recommendations',
+                'top': 'matching professionals',
+                'notice_1': 'AI recommends, but does not assign automatically.',
+                'notice_2': 'The final decision remains with the administrator.',
+                'why': 'Why this professional fits:',
+                'check': 'Data to verify',
+                'unconfirmed': 'Unconfirmed:',
+                'workload': 'Current workload:',
+                'empty_title': 'No eligible AI recommendation.',
+                'empty_text': 'No professional currently meets the mandatory criteria, or there is not enough verified data.'
+              },
+              'fr': {
+                'eyebrow': 'Recommandations IA d’attribution',
+                'top': 'professionnels correspondants',
+                'notice_1': 'L’IA recommande, mais n’attribue pas automatiquement les tâches.',
+                'notice_2': 'La décision finale revient à l’administrateur.',
+                'why': 'Pourquoi ce professionnel convient :',
+                'check': 'Données à vérifier',
+                'unconfirmed': 'Non confirmées :',
+                'workload': 'Charge actuelle :',
+                'empty_title': 'Aucune recommandation IA éligible.',
+                'empty_text': 'Aucun professionnel ne remplit actuellement les critères obligatoires, ou les données vérifiées sont insuffisantes.'
+              },
+              'ru': {
+                'eyebrow': 'Рекомендации ИИ по назначению',
+                'top': 'подходящих специалистов',
+                'notice_1': 'ИИ рекомендует, но не назначает задачи автоматически.',
+                'notice_2': 'Окончательное решение принимает администратор.',
+                'why': 'Почему этот специалист подходит:',
+                'check': 'Данные для проверки',
+                'unconfirmed': 'Не подтверждено:',
+                'workload': 'Текущая загрузка:',
+                'empty_title': 'Нет подходящей рекомендации ИИ.',
+                'empty_text': 'Сейчас нет специалиста, который соответствует обязательным критериям, либо недостаточно подтвержденных данных.'
+              }
+            } %}
+
+            {% set ai_text_catalogs = {
+              'bg': {
+                'Account is approved or active.': 'Профилът е одобрен или активен.',
+                'Service category matches (+20).': 'Услугата съвпада със заявката (+20).',
+                'Location matches (+10).': 'Местоположението съвпада (+10).',
+                'No known calendar conflict; availability is not guaranteed.': 'Няма известен конфликт в календара.',
+                'Insufficient review data; rating has a neutral contribution.': 'Няма достатъчно оценки от клиенти; този фактор е неутрален.',
+                'Some input facts are unknown; human review is required.': 'Липсват някои данни; необходима е проверка от администратор.',
+                'Location compatibility requires human verification.': 'Местоположението трябва да бъде потвърдено.',
+                'Location does not exactly match; service coverage requires human verification.': 'Местоположението не съвпада точно; обхватът трябва да се потвърди.'
+              },
+              'en': {},
+              'fr': {
+                'Account is approved or active.': 'Le profil est approuvé ou actif.',
+                'Service category matches (+20).': 'Le service correspond à la demande (+20).',
+                'Location matches (+10).': 'La localisation correspond (+10).',
+                'No known calendar conflict; availability is not guaranteed.': 'Aucun conflit connu dans le calendrier.',
+                'Insufficient review data; rating has a neutral contribution.': 'Pas assez d’avis clients ; ce facteur est neutre.',
+                'Some input facts are unknown; human review is required.': 'Certaines données manquent ; une vérification humaine est nécessaire.',
+                'Location compatibility requires human verification.': 'La compatibilité géographique doit être vérifiée.',
+                'Location does not exactly match; service coverage requires human verification.': 'La localisation ne correspond pas exactement ; la zone de service doit être vérifiée.'
+              },
+              'ru': {
+                'Account is approved or active.': 'Профиль одобрен или активен.',
+                'Service category matches (+20).': 'Категория услуги соответствует заявке (+20).',
+                'Location matches (+10).': 'Местоположение совпадает (+10).',
+                'No known calendar conflict; availability is not guaranteed.': 'Известных конфликтов в календаре нет.',
+                'Insufficient review data; rating has a neutral contribution.': 'Недостаточно отзывов клиентов; фактор нейтральный.',
+                'Some input facts are unknown; human review is required.': 'Некоторые данные отсутствуют; требуется проверка администратором.',
+                'Location compatibility requires human verification.': 'Совместимость по местоположению требует проверки.',
+                'Location does not exactly match; service coverage requires human verification.': 'Местоположение не совпадает точно; зону обслуживания нужно проверить.'
+              }
+            } %}
+
+            {% set ai_field_catalogs = {
+              'bg': {
+                'location': 'местоположение',
+                'average_rating': 'оценка от клиенти',
+                'review_count': 'брой оценки',
+                'reliability_score': 'оценка за надеждност',
+                'known_calendar_conflicts': 'календарна заетост',
+                'workload': 'текущо натоварване'
+              },
+              'en': {
+                'location': 'location',
+                'average_rating': 'customer rating',
+                'review_count': 'review count',
+                'reliability_score': 'reliability score',
+                'known_calendar_conflicts': 'calendar availability',
+                'workload': 'current workload'
+              },
+              'fr': {
+                'location': 'localisation',
+                'average_rating': 'note client',
+                'review_count': 'nombre d’avis',
+                'reliability_score': 'score de fiabilité',
+                'known_calendar_conflicts': 'disponibilité calendrier',
+                'workload': 'charge actuelle'
+              },
+              'ru': {
+                'location': 'местоположение',
+                'average_rating': 'оценка клиентов',
+                'review_count': 'количество отзывов',
+                'reliability_score': 'оценка надежности',
+                'known_calendar_conflicts': 'занятость по календарю',
+                'workload': 'текущая загрузка'
+              }
+            } %}
+
+            {% set ai_lang = ai_copy.get(page_lang, ai_copy['bg']) %}
+            {% set ai_text = ai_text_catalogs.get(page_lang, ai_text_catalogs['bg']) %}
+            {% set ai_fields = ai_field_catalogs.get(page_lang, ai_field_catalogs['bg']) %}
+
+            <p class="eyebrow">{{ ai_lang.eyebrow }}</p>
+
+            {% if ai_recommendation_cards %}
+              <h3 class="admin-operations-section-title">
+                Top {{ ai_recommendation_cards|length }} {{ ai_lang.top }}
+              </h3>
+
+              <p class="admin-operations-ai__notice">
+                {{ ai_lang.notice_1 }}
+                {{ ai_lang.notice_2 }}
+              </p>
+
+              <div class="admin-operations-pro-grid">
+                {% for recommendation in ai_recommendation_cards %}
+                  <div class="admin-operations-pro-row">
+                    <div>
+                      <strong>#{{ loop.index }} {{ recommendation.professional_name|e }}</strong>
+
+                      <div class="admin-operations-pro-row__meta">
+                        <span class="admin-operations-chip">
+                          {{ '%.0f'|format(recommendation.score) }}/100
+                        </span>
+
+                        {% if recommendation.company %}
+                          <span class="admin-operations-chip">
+                            {{ recommendation.company|e }}
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      {% if recommendation.reasons %}
+                        <div class="u-mt-14">
+                          <small><strong>{{ ai_lang.why }}</strong></small>
+
+                          {% for reason in recommendation.reasons %}
+                            <small style="display:block;">
+                              +
+                              {% if reason.startswith('Known active workload:') %}
+                                {{ ai_lang.workload }}
+                                {{ reason.replace('Known active workload:', '').strip()|e }}
+                              {% else %}
+                                {{ ai_text.get(reason, reason)|e }}
+                              {% endif %}
+                            </small>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+
+                      {% if recommendation.warnings %}
+                        <details class="u-mt-14">
+                          <summary>
+                            <small>
+                              <strong>{{ ai_lang.check }} ({{ recommendation.warnings|length }})</strong>
+                            </small>
+                          </summary>
+
+                          <div class="u-mt-14">
+                            {% for warning in recommendation.warnings %}
+                              <small style="display:block;">
+                                ! {{ ai_text.get(warning, warning)|e }}
+                              </small>
+                            {% endfor %}
+                          </div>
+                        </details>
+                      {% endif %}
+
+                      {% if recommendation.unknown_fields %}
+                        <small style="display:block;" class="u-mt-14">
+                          <strong>{{ ai_lang.unconfirmed }}</strong>
+                          {% for field in recommendation.unknown_fields %}
+                            {{ ai_fields.get(field, field)|e }}{% if not loop.last %}, {% endif %}
+                          {% endfor %}
+                        </small>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+            {% else %}
+              <div class="admin-operations-empty">
+                <strong>{{ ai_lang.empty_title }}</strong>
+                <p>{{ ai_lang.empty_text }}</p>
+              </div>
+            {% endif %}
+          </div>
+
           {% if not task.is_assigned and assignment_recommendation.professional %}
             <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="details">
@@ -3296,7 +3500,7 @@
               <input type="hidden" name="priority" value="{{ task.priority|e }}">
               <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
               <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
-              <button class="button button--primary" type="submit">Възложи на препоръчания професионалист</button>
+              <button class="button button--primary" type="submit">Потвърди и възложи на AI препоръка #1</button>
             </form>
           {% endif %}
           <p class="eyebrow">Налични професионалисти</p>

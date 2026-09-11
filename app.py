@@ -25824,13 +25824,18 @@ def admin_operations_detail(task_id):
     context = _admin_operations_task_context(task_record)
 
     source_request = None
-    if str(task_record.get("source_type", "")).strip().upper() == "OWNER_SERVICE_REQUEST":
+    task_source_type = str(task_record.get("source_type", "")).strip().upper()
+
+    if task_source_type in {"OWNER_SERVICE_REQUEST", "CONCIERGE_REQUEST"}:
         source_request_id = (
             str(task_record.get("request_id", "")).strip()
             or str(task_record.get("source_id", "")).strip()
             or str(task_record.get("id", "")).strip()
         )
         if source_request_id:
+            # CONCIERGE_REQUEST is also used by the public service-request flow.
+            # Only enable AI recommendation when this task really has a matching
+            # record in service_requests.jsonl.
             source_request = _find_service_request(source_request_id)
 
     operations_ai_triage = None
@@ -25846,9 +25851,81 @@ def admin_operations_detail(task_id):
     context["source_service_request"] = source_request
     context["ai_triage"] = operations_ai_triage
 
+    ai_recommendations = ()
+
+    if request.method == "GET" and source_request:
+        source_request_id = str(
+            source_request.get("id", "")
+        ).strip()
+
+        task_organization_id = str(
+            task_record.get("organization_id", "")
+        ).strip()
+
+        if source_request_id and task_organization_id:
+            try:
+                from services.ai_agent import recommend_professionals
+                from services.ai_agent.context_builder import (
+                    build_recommendation_context,
+                )
+
+                recommendation_context = build_recommendation_context(
+                    source_request_id,
+                    organization_id=task_organization_id,
+                )
+
+                if recommendation_context is not None:
+                    ai_recommendations = recommend_professionals(
+                        recommendation_context
+                    )
+            except Exception:
+                app.logger.exception(
+                    "AI professional recommendation failed for task %s",
+                    task_id,
+                )
+
+    context["ai_recommendations"] = ai_recommendations
+
+    ai_recommendation_cards = []
+    if ai_recommendations:
+        professional_lookup = {
+            str(professional.get("id", "")).strip(): professional
+            for professional in context.get("professional_accounts", [])
+            if str(professional.get("id", "")).strip()
+        }
+
+        for recommendation in ai_recommendations:
+            professional = professional_lookup.get(
+                str(recommendation.professional_id).strip()
+            )
+
+            ai_recommendation_cards.append(
+                {
+                    "professional_id": recommendation.professional_id,
+                    "professional_name": (
+                        str(professional.get("full_name", "")).strip()
+                        if professional
+                        else ""
+                    )
+                    or "Professional",
+                    "company": (
+                        str(professional.get("company", "")).strip()
+                        if professional
+                        else ""
+                    ),
+                    "score": recommendation.score,
+                    "reasons": recommendation.reasons,
+                    "warnings": recommendation.warnings,
+                    "unknown_fields": recommendation.unknown_fields,
+                }
+            )
+
+    context["ai_recommendation_cards"] = ai_recommendation_cards
+
     return render_template(
         "admin_operations_detail.html",
         **context,
+        page_lang=_resolve_current_language(),
         status_options=[
             {"value": status, "label": _operations_task_status_label(status)}
             for status in _operations_task_admin_status_options(task_record)

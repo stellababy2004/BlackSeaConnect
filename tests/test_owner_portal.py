@@ -2764,6 +2764,209 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertIn("Maintenance", html)
                 self.assertIn("High", html)
 
+
+    def test_admin_operations_detail_renders_top_three_ai_assignment_recommendations(self):
+        request_id = "owner-request-ai-top3"
+
+        self._seed_jsonl("service_requests.jsonl", [{
+            "id": request_id,
+            "owner_id": "owner-real-top3",
+            "owner_email": "owner.top3@example.com",
+            "email": "owner.top3@example.com",
+            "name": "Top 3 Owner",
+            "service_category": "Maintenance",
+            "description": "Water leak under the kitchen sink.",
+            "property_city": "Sveti Vlas",
+            "preferred_date": "2026-09-20",
+            "status": "new",
+            "organization_id": "org-global",
+        }])
+
+        professionals = [
+            {
+                "id": "pro-ai-alpha",
+                "email": "alpha@example.com",
+                "created_at": "2026-09-01T08:00:00Z",
+                "full_name": "Maintenance Alpha",
+                "phone": "+359888100001",
+                "company": "Alpha Maintenance",
+                "service_categories": "Maintenance",
+                "status": "ACTIVE",
+                "last_login_at": "",
+            },
+            {
+                "id": "pro-ai-gamma",
+                "email": "gamma@example.com",
+                "created_at": "2026-09-01T08:00:00Z",
+                "full_name": "Maintenance Gamma",
+                "phone": "+359888100002",
+                "company": "Gamma Maintenance",
+                "service_categories": "Maintenance",
+                "status": "ACTIVE",
+                "last_login_at": "",
+            },
+            {
+                "id": "pro-ai-beta",
+                "email": "beta@example.com",
+                "created_at": "2026-09-01T08:00:00Z",
+                "full_name": "Maintenance Beta",
+                "phone": "+359888100003",
+                "company": "Beta Maintenance",
+                "service_categories": "Maintenance",
+                "status": "ACTIVE",
+                "last_login_at": "",
+            },
+        ]
+
+        self._insert_owner_db_rows("professional_accounts", professionals)
+
+        self._seed_jsonl("professional_applications.jsonl", [
+            {
+                "id": "pro-ai-alpha",
+                "email": "alpha@example.com",
+                "full_name": "Maintenance Alpha",
+                "professional_category": "Maintenance",
+                "service_type": "Maintenance",
+                "status": "qualified",
+                "available_for_requests": True,
+                "city": "Sveti Vlas",
+                "country": "Bulgaria",
+            },
+            {
+                "id": "pro-ai-gamma",
+                "email": "gamma@example.com",
+                "full_name": "Maintenance Gamma",
+                "professional_category": "Maintenance",
+                "service_type": "Maintenance",
+                "status": "qualified",
+                "available_for_requests": True,
+                "city": "Sveti Vlas",
+                "country": "Bulgaria",
+            },
+            {
+                "id": "pro-ai-beta",
+                "email": "beta@example.com",
+                "full_name": "Maintenance Beta",
+                "professional_category": "Maintenance",
+                "service_type": "Maintenance",
+                "status": "qualified",
+                "available_for_requests": True,
+                "city": "Varna",
+                "country": "Bulgaria",
+            },
+        ])
+
+        app_module._upsert_operations_task({
+            "id": request_id,
+            "request_id": request_id,
+            "source_id": request_id,
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "property_id": "",
+            "property": "Top 3 Property",
+            "property_location": "Sveti Vlas",
+            "owner": "Top 3 Owner",
+            "owner_email": "owner.top3@example.com",
+            "category": "SERVICE",
+            "title": "Water leak under the kitchen sink",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+            "organization_id": "org-global",
+        })
+
+        # Give Gamma five active tasks. The deterministic scorer applies
+        # a two-point workload penalty per active task:
+        # Alpha = 80, Gamma = 70, Beta = 65.
+        for index in range(5):
+            app_module._upsert_operations_task({
+                "id": f"gamma-workload-{index}",
+                "request_id": f"gamma-workload-{index}",
+                "source_id": f"gamma-workload-{index}",
+                "source_type": "MANUAL",
+                "property_id": "",
+                "property": "Workload Property",
+                "property_location": "Sveti Vlas",
+                "owner": "Workload Owner",
+                "owner_email": "workload@example.com",
+                "category": "SERVICE",
+                "title": f"Existing maintenance task {index}",
+                "priority": "NORMAL",
+                "status": "IN_PROGRESS",
+                "assigned_to": "Maintenance Gamma",
+                "assigned_professional_id": "pro-ai-gamma",
+                "due_date": "",
+                "notes": "",
+                "organization_id": "org-global",
+            })
+
+        language_headings = {
+            "en": "AI assignment recommendations",
+            "fr": "Recommandations IA d\u2019attribution",
+            "ru": "\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438 \u0418\u0418 \u043f\u043e \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044e",
+            "bg": "AI",
+        }
+
+        for language, expected_heading in language_headings.items():
+            with self.subTest(language=language):
+                with patch.dict(
+                    os.environ,
+                    {**self.ADMIN_ENV, **self.SMTP_ENV},
+                    clear=True,
+                ):
+                    response = self.client.get(
+                        f"/admin/operations/{request_id}?lang={language}",
+                        headers=self._auth_headers(),
+                    )
+
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+
+                self.assertIn(expected_heading, html)
+                self.assertIn("Maintenance Alpha", html)
+                self.assertIn("Maintenance Gamma", html)
+                self.assertIn("Maintenance Beta", html)
+
+                alpha_position = html.index("Maintenance Alpha")
+                gamma_position = html.index("Maintenance Gamma")
+                beta_position = html.index("Maintenance Beta")
+
+                self.assertLess(alpha_position, gamma_position)
+                self.assertLess(gamma_position, beta_position)
+
+                self.assertRegex(
+                    html,
+                    r"Maintenance Alpha[\s\S]{0,2500}80(?:\.0+)?",
+                )
+                self.assertRegex(
+                    html,
+                    r"Maintenance Gamma[\s\S]{0,2500}70(?:\.0+)?",
+                )
+                self.assertRegex(
+                    html,
+                    r"Maintenance Beta[\s\S]{0,2500}65(?:\.0+)?",
+                )
+
+        # Rendering recommendations must not assign anyone.
+        with app_module._owner_db_connection() as conn:
+            row = conn.execute(
+                """
+                SELECT status, assigned_professional_id
+                FROM operations_tasks
+                WHERE id = ?
+                """,
+                (request_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(str(row["status"]).upper(), "NEW")
+        self.assertEqual(str(row["assigned_professional_id"] or ""), "")
+
+        # A GET that only computes recommendations must not send email.
+        self.assertEqual(FakeSMTP.sent_messages, [])
+
     def test_admin_owner_finance_payment_and_payout_persist_with_valid_forms(self):
         class FormAuditParser(HTMLParser):
             def __init__(self):
