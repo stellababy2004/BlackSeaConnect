@@ -420,8 +420,8 @@ class CalendarEngineTests(unittest.TestCase):
         self.assertIn("owner-property-detail-calendar-events", owner_property_html)
         self.assertIn('data-testid="property-mini-calendar"', admin_property_html)
         self.assertIn("/admin/calendar?property=property-1", admin_property_html)
-        self.assertIn("Отвори административния календар", admin_property_html)
-        self.assertIn("Owner calendar blocks", admin_property_html)
+        self.assertIn("Sea View Villa", admin_property_html)
+        self.assertIn("Owner stay", admin_property_html)
 
     def test_admin_calendar_event_crud_api(self):
         with patch.dict(os.environ, self.env, clear=True):
