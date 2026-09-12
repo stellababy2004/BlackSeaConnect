@@ -7,22 +7,52 @@
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
+
+{% set professional_detail_ui = {
+'bg': {
+'eyebrow':'Детайли за кандидатурата','title':'Преглед на кандидатурата',
+'intro':'{{ prdetail.intro }}',
+'back':'Назад към кандидатурите','export':'Експорт CSV',
+'save':'Запази кандидатурата','activity':'История на активността','latest':'Най-новите първо',
+'status':'Статус','owner':'Отговорник','email':'Имейл','phone':'Телефон','category':'Категория',
+'location':'Местоположение','languages':'Езици','experience':'Опит','bio':'Кратко представяне','unassigned':'Не е възложено'
+},
+'en': {
+'eyebrow':'Application details','title':'Application review',
+'intro':'Change the status, assign an owner and add internal notes.',
+'back':'Back to applications','export':'Export CSV',
+'save':'Save application','activity':'Activity history','latest':'Newest first',
+'status':'Status','owner':'Owner','email':'Email','phone':'Phone','category':'Category',
+'location':'Location','languages':'Languages','experience':'Experience','bio':'Short Bio','unassigned':'Unassigned'
+},
+'fr': {
+'eyebrow':'Détails de la candidature','title':'Examen de la candidature',
+'intro':'Modifiez le statut, attribuez un responsable et ajoutez des notes internes.',
+'back':'Retour aux candidatures','export':'Exporter CSV',
+'save':'Enregistrer la candidature','activity':'Historique de l’activité','latest':'Plus récentes en premier',
+'status':'Statut','owner':'Responsable','email':'E-mail','phone':'Téléphone','category':'Catégorie',
+'location':'Localisation','languages':'Langues','experience':'Expérience','bio':'Présentation courte','unassigned':'Non attribué'
+}
+} %}
+{% set prdetail = professional_detail_ui.get(page_lang|default('en'), professional_detail_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Детайли за кандидатурата</p>
-        <h1>Преглед на кандидатурата</h1>
-        <p>Променете статуса, задайте отговорник и добавете вътрешни бележки.</p>
+        <p class="eyebrow">{{ prdetail.eyebrow }}</p>
+        <h1>{{ prdetail.title }}</h1>
+        <p>{{ prdetail.intro }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="butнаn butнаn--secondary" href="/admin/professionals">Назад към кандидатурите</a>
-        <a class="butнаn butнаn--ghost" href="/admin/professionals/export">Експорт CSV</a>
+        <a class="button button--secondary" href="/admin/professionals">{{ prdetail.back }}</a>
+        <a class="button button--ghost" href="/admin/professionals/export">{{ prdetail.export }}</a>
       </div>
     </section>
 
     <article class="admin-pilot-card">
-      <div class="admin-pilot-card__наpline">
+      <div class="admin-pilot-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
         <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
       </div>
@@ -31,15 +61,15 @@
 
       <dl class="admin-pilot-details">
         <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
-        <div><dt>Status</dt><dd>{{ item.status|upper|e }}</dd></div>
-        <div><dt>Owner</dt><dd>{{ item.owner|e if item.owner else "Unassigned" }}</dd></div>
-        <div><dt>Email</dt><dd>{{ item.email|e }}</dd></div>
-        <div><dt>Phone</dt><dd>{{ item.phone|e }}</dd></div>
-        <div><dt>Category</dt><dd>{{ item.professional_category|e }}</dd></div>
-        <div><dt>Location</dt><dd>{{ item.city|e }}, {{ item.country|e }}</dd></div>
-        <div><dt>Languages</dt><dd>{{ item.languages|e }}</dd></div>
-        <div><dt>Experience</dt><dd>{{ item.experience|e }}</dd></div>
-        <div><dt>Short Bio</dt><dd>{{ item.short_bio|e }}</dd></div>
+        <div><dt>{{ prdetail.status }}</dt><dd>{{ item.status|upper|e }}</dd></div>
+        <div><dt>{{ prdetail.owner }}</dt><dd>{{ item.owner|e if item.owner else prdetail.unassigned }}</dd></div>
+        <div><dt>{{ prdetail.email }}</dt><dd>{{ item.email|e }}</dd></div>
+        <div><dt>{{ prdetail.phone }}</dt><dd>{{ item.phone|e }}</dd></div>
+        <div><dt>{{ prdetail.category }}</dt><dd>{{ item.professional_category|e }}</dd></div>
+        <div><dt>{{ prdetail.location }}</dt><dd>{{ item.city|e }}, {{ item.country|e }}</dd></div>
+        <div><dt>{{ prdetail.languages }}</dt><dd>{{ item.languages|e }}</dd></div>
+        <div><dt>{{ prdetail.experience }}</dt><dd>{{ item.experience|e }}</dd></div>
+        <div><dt>{{ prdetail.bio }}</dt><dd>{{ item.short_bio|e }}</dd></div>
       </dl>
 
       <section class="admin-pilot-card" aria-labelledby="stripe-connect-title">
@@ -48,8 +78,8 @@
         <p>Configuration: {% if stripe_diagnostics.checkout_ready %}ready{% else %}incomplete{% endif %}; webhook: {% if stripe_diagnostics.webhook_ready %}ready{% else %}incomplete{% endif %}. No secret values are displayed.</p>
         {% if professional_account and professional_account.stripe_account_status != 'READY' %}
           <form method="post" action="/admin/professionals/{{ item.id|e }}/stripe/connect">
-            <input type="hidden" name="csrf_наken" value="{{ admin_csrf_наken() }}">
-            <butнаn class="butнаn butнаn--primary" type="submit" {% if not stripe_diagnostics.checkout_ready %}disabled{% endif %}>{{ stripe_ui.connect }}</butнаn>
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
+            <button class="button button--primary" type="submit" {% if not stripe_diagnostics.checkout_ready %}disabled{% endif %}>{{ stripe_ui.connect }}</button>
           </form>
         {% elif professional_account %}
           <strong>{{ stripe_ui.ready }}</strong>
@@ -73,14 +103,14 @@
           <span>Internal notes</span>
           <textarea name="notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
         </label>
-        <butнаn class="butнаn butнаn--primary" type="submit">Запази кандидатурата</butнаn>
+        <button class="button button--primary" type="submit">{{ prdetail.save }}</button>
       </form>
 
       <div class="admin-pilot-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Activity hisнаry</p>
-            <h3>Най-новите първо</h3>
+            <p class="eyebrow">{{ prdetail.activity }}</p>
+            <h3>{{ prdetail.latest }}</h3>
           </div>
         </div>
 
@@ -88,7 +118,7 @@
           <div class="admin-timeline-list">
             {% for event in timeline %}
               <article class="admin-timeline-item">
-                <div class="admin-pilot-card__наpline">
+                <div class="admin-pilot-card__topline">
                   <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
                   <time>{{ event.created_at|e }}</time>
                 </div>

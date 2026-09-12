@@ -952,6 +952,135 @@
   </style>
 </head>
 <body class="admin-operations-page bsc-admin-workspace">
+
+{% set operations_ui = {
+  'bg': {
+    'dashboard': 'Оперативен център',
+    'title': 'Операции',
+    'intro': 'Управлявайте задачите, приоритетите и текущото натоварване.',
+    'new_operation': 'Нова операция',
+    'operator_console': 'Операторска конзола',
+    'all_tasks': 'Всички задачи',
+    'search': 'Търсене',
+    'search_placeholder': 'Търсене по задача, имот или собственик',
+    'status': 'Статус',
+    'priority': 'Приоритет',
+    'category': 'Категория',
+    'professional': 'Професионалист',
+    'property': 'Имот',
+    'owner': 'Собственик',
+    'due_date': 'Краен срок',
+    'created': 'Създадена',
+    'updated': 'Обновена',
+    'actions': 'Действия',
+    'open': 'Отвори',
+    'assign': 'Възложи',
+    'unassigned': 'Не е възложена',
+    'no_due_date': 'Без срок',
+    'no_tasks': 'Няма задачи за избраните филтри.',
+    'clear_filters': 'Изчисти филтрите',
+    'active': 'Активни',
+    'urgent': 'Спешни',
+    'overdue': 'Просрочени',
+    'unassigned_count': 'Невъзложени',
+    'completed': 'Завършени',
+    'workload': 'Натоварване',
+    'timeline': 'Последна активност',
+    'board': 'Оперативен борд',
+    'filters': 'Филтри',
+    'today': 'Днес',
+    'task': 'Задача',
+    'details': 'Детайли',
+    'close': 'Затвори',
+    'save': 'Запази',
+    'cancel': 'Отказ'
+  },
+  'en': {
+    'dashboard': 'Operations center',
+    'title': 'Operations',
+    'intro': 'Manage tasks, priorities and current workload.',
+    'new_operation': 'New operation',
+    'operator_console': 'Operator console',
+    'all_tasks': 'All tasks',
+    'search': 'Search',
+    'search_placeholder': 'Search by task, property or owner',
+    'status': 'Status',
+    'priority': 'Priority',
+    'category': 'Category',
+    'professional': 'Professional',
+    'property': 'Property',
+    'owner': 'Owner',
+    'due_date': 'Due date',
+    'created': 'Created',
+    'updated': 'Updated',
+    'actions': 'Actions',
+    'open': 'Open',
+    'assign': 'Assign',
+    'unassigned': 'Unassigned',
+    'no_due_date': 'No due date',
+    'no_tasks': 'No tasks match the selected filters.',
+    'clear_filters': 'Clear filters',
+    'active': 'Active',
+    'urgent': 'Urgent',
+    'overdue': 'Overdue',
+    'unassigned_count': 'Unassigned',
+    'completed': 'Completed',
+    'workload': 'Workload',
+    'timeline': 'Recent activity',
+    'board': 'Operations board',
+    'filters': 'Filters',
+    'today': 'Today',
+    'task': 'Task',
+    'details': 'Details',
+    'close': 'Close',
+    'save': 'Save',
+    'cancel': 'Cancel'
+  },
+  'fr': {
+    'dashboard': 'Centre des opérations',
+    'title': 'Opérations',
+    'intro': 'Gérez les tâches, les priorités et la charge de travail actuelle.',
+    'new_operation': 'Nouvelle opération',
+    'operator_console': 'Console opérateur',
+    'all_tasks': 'Toutes les tâches',
+    'search': 'Rechercher',
+    'search_placeholder': 'Rechercher par tâche, bien ou propriétaire',
+    'status': 'Statut',
+    'priority': 'Priorité',
+    'category': 'Catégorie',
+    'professional': 'Prestataire',
+    'property': 'Bien',
+    'owner': 'Propriétaire',
+    'due_date': 'Échéance',
+    'created': 'Créée',
+    'updated': 'Mise à jour',
+    'actions': 'Actions',
+    'open': 'Ouvrir',
+    'assign': 'Attribuer',
+    'unassigned': 'Non attribuée',
+    'no_due_date': 'Sans échéance',
+    'no_tasks': 'Aucune tâche ne correspond aux filtres sélectionnés.',
+    'clear_filters': 'Effacer les filtres',
+    'active': 'Actives',
+    'urgent': 'Urgentes',
+    'overdue': 'En retard',
+    'unassigned_count': 'Non attribuées',
+    'completed': 'Terminées',
+    'workload': 'Charge de travail',
+    'timeline': 'Activité récente',
+    'board': 'Tableau des opérations',
+    'filters': 'Filtres',
+    'today': "Aujourd’hui",
+    'task': 'Tâche',
+    'details': 'Détails',
+    'close': 'Fermer',
+    'save': 'Enregistrer',
+    'cancel': 'Annuler'
+  }
+} %}
+{% set op_ui = operations_ui.get(page_lang, operations_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-operations-shell">
     {% set task_title_catalog = {
@@ -982,7 +1111,7 @@
         <h1>Днешни операции</h1>
         <p class="admin-operations-copy">Работен изглед за гости, имоти, професионалисти и изпълнение на услуги.</p>
         <div class="admin-operations-actions">
-          <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
+          <a class="button button--primary" href="/admin/operator">{{ op_ui.operator_console }}</a>
           <a class="button button--secondary" href="/admin">Назад към управленския панел</a>
           <a class="button button--ghost" href="/admin/service-requests">Заявки</a>
           <a class="button button--ghost" href="/admin/properties">Имоти</a>
@@ -1004,7 +1133,7 @@
         <article class="admin-mission-metric"><span>Заминавания</span><strong>{{ mission.departures }}</strong></article>
         <article class="admin-mission-metric admin-mission-metric--good"><span>Почистване</span><strong>{{ mission.cleaning }}</strong></article>
         <article class="admin-mission-metric admin-mission-metric--warn"><span>Поддръжка</span><strong>{{ mission.maintenance }}</strong></article>
-        <article class="admin-mission-metric admin-mission-metric--danger"><span>Спешни</span><strong>{{ mission.urgent }}</strong></article>
+        <article class="admin-mission-metric admin-mission-metric--danger"><span>{{ op_ui.urgent }}</span><strong>{{ mission.urgent }}</strong></article>
         <article class="admin-mission-metric admin-mission-metric--warn"><span>SLA в риск</span><strong>{{ mission.risk }}</strong></article>
         <article class="admin-mission-metric"><span>Среден отговор</span><strong>—</strong></article>
       </div>
@@ -1013,11 +1142,11 @@
     <section class="admin-operations-panel admin-operations-filters-panel">
       <form class="admin-operations-filters" method="get" action="/admin/operations">
         <label class="admin-operations-filter {% if filters.search_query %}is-active{% endif %}">
-          <span>Търсене</span>
+          <span>{{ op_ui.search }}</span>
           <input type="search" name="q" value="{{ filters.search_query|e }}" placeholder="Заглавие, имот, собственик, категория">
         </label>
         <label class="admin-operations-filter {% if filters.property_filter %}is-active{% endif %}">
-          <span>Имот</span>
+          <span>{{ op_ui.property }}</span>
           <select name="property">
             <option value="">Всички имоти</option>
             {% for option in property_options %}
@@ -1026,7 +1155,7 @@
           </select>
         </label>
         <label class="admin-operations-filter {% if filters.owner_filter %}is-active{% endif %}">
-          <span>Собственик</span>
+          <span>{{ op_ui.owner }}</span>
           <select name="owner">
             <option value="">Всички собственици</option>
             {% for option in owner_options %}
@@ -1035,7 +1164,7 @@
           </select>
         </label>
         <label class="admin-operations-filter {% if filters.professional_filter %}is-active{% endif %}">
-          <span>Професионалист</span>
+          <span>{{ op_ui.professional }}</span>
           <select name="professional">
             <option value="">Всички професионалисти</option>
             {% for option in professional_options %}
@@ -1044,7 +1173,7 @@
           </select>
         </label>
         <label class="admin-operations-filter {% if filters.category_filter %}is-active{% endif %}">
-          <span>Категория</span>
+          <span>{{ op_ui.category }}</span>
           <select name="category">
             <option value="">Всички категории</option>
             {% for option in category_options %}
@@ -1053,7 +1182,7 @@
           </select>
         </label>
         <label class="admin-operations-filter {% if filters.priority_filter %}is-active{% endif %}">
-          <span>Приоритет</span>
+          <span>{{ op_ui.priority }}</span>
           <select name="priority">
             <option value="">Всички приоритети</option>
             {% for option, label in priority_options %}
@@ -1062,7 +1191,7 @@
           </select>
         </label>
         <label class="admin-operations-filter {% if filters.status_filter %}is-active{% endif %}">
-          <span>Статус</span>
+          <span>{{ op_ui.status }}</span>
           <select name="status">
             <option value="">Всички статуси</option>
             {% for option in status_options %}
@@ -1103,7 +1232,7 @@
         <span class="admin-operations-kpi__hint">Филтър по приоритет →</span>
       </a>
       <a class="admin-operations-kpi admin-operations-kpi--{% if counts.overdue_tasks > 0 %}critical{% else %}healthy{% endif %}" href="/admin/operations" title="Отваря активното табло с видими просрочия." aria-label="Отвори таблото и прегледай просрочените операции">
-        <span>Просрочени</span>
+        <span>{{ op_ui.overdue }}</span>
         <strong>{{ counts.overdue_tasks }}</strong>
         <small>Задачи извън срока</small>
         <span class="admin-operations-kpi__hint">Отвори таблото →</span>
@@ -1166,7 +1295,7 @@
           </div>
           <div class="admin-property-ops__metrics">
             <div><span>Отвори задачатаs</span><strong>{{ property_state.open }}</strong></div>
-            <div><span>Спешни</span><strong>{{ property_urgent_count }}</strong></div>
+            <div><span>{{ op_ui.urgent }}</span><strong>{{ property_urgent_count }}</strong></div>
             <div><span>Възложени</span><strong>{{ first_task.assigned_professional_label|default(first_task.assigned_to, true)|default('—', true)|e }}</strong></div>
           </div>
           <span class="admin-operations-card__quick">Отвори операцията <span>→</span></span>
@@ -1339,7 +1468,7 @@
         <button class="admin-task-drawer__close" type="button" data-task-drawer-close aria-label="Затвори задачата">×</button>
       </div>
       <div class="admin-task-drawer__tabs" aria-label="Секции на задачата">
-        <span>Хронология</span><span>Прикачени файлове</span><span>Контролен списък</span><span>Бележки</span><span>Собственик</span><span>Професионалист</span><span>Съобщения</span><span>История</span>
+        <span>Хронология</span><span>Прикачени файлове</span><span>Контролен списък</span><span>Бележки</span><span>{{ op_ui.owner }}</span><span>{{ op_ui.professional }}</span><span>Съобщения</span><span>История</span>
       </div>
       <iframe title="Детайли за задачата" data-task-drawer-frame></iframe>
     </dialog>
@@ -1354,7 +1483,7 @@
       const drawerClose = document.querySelector('[data-task-drawer-close]');
       let cardWasDragged = false;
 
-      const updateTaskСтатус = async (taskId, status) => {
+      const updateTaskStatus = async (taskId, status) => {
         const response = await fetch(`/admin/operations/${encodeURIComponent(taskId)}/status`, {
           method: 'POST',
           headers: {
@@ -1428,7 +1557,7 @@
           }
 
           try {
-            await updateTaskСтатус(taskId, status);
+            await updateTaskStatus(taskId, status);
             window.location.reload();
           } catch (error) {
             window.alert(error.message || 'Статусът на задачата не бе обновен. Опитайте отново.');

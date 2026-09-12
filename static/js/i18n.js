@@ -474,6 +474,13 @@
         return;
       }
 
+      if (
+        window.location.pathname === "/admin" ||
+        window.location.pathname.startsWith("/admin/")
+      ) {
+        return;
+      }
+
       if (normalizeLanguage(document.documentElement.lang) === selectedLanguage) {
         event.preventDefault();
         return;

@@ -565,3 +565,70 @@ def test_nearby_locations_do_not_become_exact_matches():
         "Location does not exactly match; service coverage requires human verification."
         in result.warnings
     )
+
+
+def test_build_operations_monitor_groups_and_counts():
+    from services.ai_agent.tools import build_operations_monitor
+
+    result = build_operations_monitor([
+        {
+            "severity": "critical",
+            "category": "overdue_operations",
+            "property_label": "Vlas Apartment",
+            "operation_label": "Repair leak",
+            "detail": "Operation is past due",
+            "recommended_action": "Complete overdue operation",
+            "link": "/admin/operations/1",
+            "created_at": "2026-09-12T07:00:00+00:00",
+        },
+        {
+            "severity": "warning",
+            "category": "owner_requests_waiting",
+            "property_label": "Sofia Flat",
+            "detail": "Owner request has been waiting longer than 48 hours",
+            "recommended_action": "Follow up the owner request",
+            "link": "/admin/service-requests",
+            "created_at": "2026-09-12T06:00:00+00:00",
+        },
+        {
+            "severity": "warning",
+            "category": "calendar_conflicts",
+            "property_label": "Nessebar Studio",
+            "detail": "Calendar event overlaps with a reservation",
+            "recommended_action": "Resolve calendar overlap",
+            "link": "/admin/calendar",
+            "created_at": "2026-09-12T05:00:00+00:00",
+        },
+    ])
+
+    assert result["counts"] == {
+        "critical": 1,
+        "needs_attention": 1,
+        "waiting": 1,
+        "ready_to_close": 0,
+    }
+    assert result["attention_count"] == 3
+    assert result["has_attention"] is True
+    assert result["items"][0]["bucket"] == "critical"
+    assert result["items"][1]["bucket"] == "needs_attention"
+    assert result["items"][2]["bucket"] == "waiting"
+
+
+def test_build_operations_monitor_is_read_only_shape():
+    from services.ai_agent.tools import build_operations_monitor
+
+    source = {
+        "severity": "high",
+        "category": "unassigned_operations",
+        "property_label": "Plovdiv Apartment",
+        "detail": "Operation has no assigned professional",
+        "recommended_action": "Assign a professional",
+        "link": "/admin/operations/2",
+    }
+    original = dict(source)
+
+    result = build_operations_monitor([source])
+
+    assert source == original
+    assert result["items"][0]["next_best_action"] == "Assign a professional"
+    assert result["items"][0]["bucket"] == "critical"

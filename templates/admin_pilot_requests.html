@@ -12,28 +12,55 @@
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page">
+
+{% set pilot_ui = {
+'bg': {
+'eyebrow':'Пилотен достъп','title':'Заявки за пилотен достъп',
+'intro':'{{ pilotui.intro }}',
+'back':'Назад към таблото','export':'Експорт на заявките',
+'lead_search':'Търсене на заявки','filter':'Филтриране на заявките',
+'search':'Търсене','placeholder':'Име, имейл, град или тип имот'
+},
+'en': {
+'eyebrow':'Pilot access','title':'Pilot access requests',
+'intro':'Manage requests from owners, agencies and operators.',
+'back':'Back to dashboard','export':'Export requests',
+'lead_search':'Lead search','filter':'Filter requests',
+'search':'Search','placeholder':'Name, email, city or property type'
+},
+'fr': {
+'eyebrow':'Accès pilote','title':'Demandes d’accès pilote',
+'intro':'Gérez les demandes des propriétaires, agences et opérateurs.',
+'back':'Retour au tableau de bord','export':'Exporter les demandes',
+'lead_search':'Recherche de demandes','filter':'Filtrer les demandes',
+'search':'Recherche','placeholder':'Nom, e-mail, ville ou type de bien'
+}
+} %}
+{% set pilotui = pilot_ui.get(page_lang|default('en'), pilot_ui['en']) %}
+
+
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">Пилотен достъп</p>
-        <h1>Заявки за пилотен достъп</h1>
-        <p>Управление на заявки от собственици, агенции и оператори.</p>
+        <p class="eyebrow">{{ pilotui.eyebrow }}</p>
+        <h1>{{ pilotui.title }}</h1>
+        <p>{{ pilotui.intro }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin">Назад към таблото</a>
-        <a class="button button--ghost" href="/admin/pilot-requests/export">Експорт на заявките</a>
+        <a class="button button--secondary" href="/admin">{{ pilotui.back }}</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export">{{ pilotui.export }}</a>
       </div>
     </section>
 
     <section class="admin-cockpit-panel">
       <div class="admin-panel-header admin-panel-header--stack">
         <div>
-          <p class="eyebrow">Lead search</p>
-          <h2>Филтриране на заявките</h2>
+          <p class="eyebrow">{{ pilotui.lead_search }}</p>
+          <h2>{{ pilotui.filter }}</h2>
         </div>
         <label class="admin-search">
-          <span>Search</span>
-          <input type="search" id="pilot-request-search" placeholder="Име, имейл, град или тип имот">
+          <span>{{ pilotui.search }}</span>
+          <input type="search" id="pilot-request-search" placeholder="{{ pilotui.placeholder }}">
         </label>
       </div>
     </section>

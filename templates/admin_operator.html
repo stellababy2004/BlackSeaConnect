@@ -8,6 +8,87 @@
   <title data-i18n="operatorPageTitle">Операторска конзола · BlackSea Connect</title>
 </head>
 <body class="admin-operator-page admin-light-page bsc-admin-workspace">
+
+{% set operator_ui = {
+  'bg': {
+    'kicker': 'ОПЕРАТОРСКА КОНЗОЛА',
+    'title': 'Оперативен контрол',
+    'intro': 'Приоритизирайте спешните задачи и управлявайте ежедневната работа.',
+    'back': 'Към операциите',
+    'new_operation': 'Нова операция',
+    'urgent_now': 'Спешно сега',
+    'owner_requests': 'Заявки от собственици',
+    'quick_actions': 'Бързи действия',
+    'assign': 'Възложи',
+    'open': 'Отвори',
+    'property': 'Имот',
+    'owner': 'Собственик',
+    'professional': 'Професионалист',
+    'status': 'Статус',
+    'priority': 'Приоритет',
+    'due_date': 'Краен срок',
+    'unassigned': 'Не е възложена',
+    'no_due_date': 'Без срок',
+    'no_items': 'Няма елементи, които изискват действие.',
+    'active_tasks': 'Активни задачи',
+    'urgent_tasks': 'Спешни задачи',
+    'overdue_tasks': 'Просрочени задачи',
+    'unassigned_tasks': 'Невъзложени задачи'
+  },
+  'en': {
+    'kicker': 'OPERATOR CONSOLE',
+    'title': 'Operations control',
+    'intro': 'Prioritize urgent tasks and manage daily operations.',
+    'back': 'Back to operations',
+    'new_operation': 'New operation',
+    'urgent_now': 'Urgent now',
+    'owner_requests': 'Owner requests',
+    'quick_actions': 'Quick actions',
+    'assign': 'Assign',
+    'open': 'Open',
+    'property': 'Property',
+    'owner': 'Owner',
+    'professional': 'Professional',
+    'status': 'Status',
+    'priority': 'Priority',
+    'due_date': 'Due date',
+    'unassigned': 'Unassigned',
+    'no_due_date': 'No due date',
+    'no_items': 'Nothing currently requires action.',
+    'active_tasks': 'Active tasks',
+    'urgent_tasks': 'Urgent tasks',
+    'overdue_tasks': 'Overdue tasks',
+    'unassigned_tasks': 'Unassigned tasks'
+  },
+  'fr': {
+    'kicker': 'CONSOLE OPÉRATEUR',
+    'title': 'Contrôle des opérations',
+    'intro': 'Priorisez les tâches urgentes et gérez les opérations quotidiennes.',
+    'back': 'Retour aux opérations',
+    'new_operation': 'Nouvelle opération',
+    'urgent_now': 'Urgent maintenant',
+    'owner_requests': 'Demandes des propriétaires',
+    'quick_actions': 'Actions rapides',
+    'assign': 'Attribuer',
+    'open': 'Ouvrir',
+    'property': 'Bien',
+    'owner': 'Propriétaire',
+    'professional': 'Prestataire',
+    'status': 'Statut',
+    'priority': 'Priorité',
+    'due_date': 'Échéance',
+    'unassigned': 'Non attribuée',
+    'no_due_date': 'Sans échéance',
+    'no_items': 'Aucun élément ne nécessite une action.',
+    'active_tasks': 'Tâches actives',
+    'urgent_tasks': 'Tâches urgentes',
+    'overdue_tasks': 'Tâches en retard',
+    'unassigned_tasks': 'Tâches non attribuées'
+  }
+} %}
+{% set operator_copy = operator_ui.get(page_lang, operator_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-light-shell operator-console-shell">
     <section class="admin-light-hero operator-console-hero bsc-page-header">
@@ -26,12 +107,12 @@
 
     <section class="admin-light-kpi-grid operator-summary" aria-label="Днешен обзор">
       <article class="admin-light-kpi" data-tone="danger">
-        <span>Просрочени задачи</span>
+        <span>{{ operator_copy.overdue_tasks }}</span>
         <strong>{{ summary.late_tasks }}</strong>
         <small>Изисква внимание</small>
       </article>
       <article class="admin-light-kpi" data-tone="warning">
-        <span>Невъзложени задачи</span>
+        <span>{{ operator_copy.unassigned_tasks }}</span>
         <strong>{{ summary.unassigned_tasks }}</strong>
         <small>Необходимо възлагане</small>
       </article>
@@ -57,7 +138,7 @@
         <div class="admin-light-panel__header">
           <div>
             <p class="admin-light-kicker">Приоритетна опашка</p>
-            <h2>Спешно сега</h2>
+            <h2>{{ operator_copy.urgent_now }}</h2>
           </div>
         </div>
         {% if critical_items %}
@@ -70,7 +151,7 @@
                   <small>{{ item.kind|e }} · {{ item.title|e }}</small>
                 </span>
                 <time>{{ item.time|e }}</time>
-                <em>Отвори</em>
+                <em>{{ operator_copy.open }}</em>
               </a>
             {% endfor %}
           </div>
@@ -98,7 +179,7 @@
                   <strong>{{ item.property|e }}</strong>
                   <small>{{ item.title|e }} · {{ item.time|e }}</small>
                 </span>
-                <em>Възложи</em>
+                <em>{{ operator_copy.assign }}</em>
               </a>
             {% endfor %}
           </div>
@@ -111,7 +192,7 @@
         <div class="admin-light-panel__header">
           <div>
             <p class="admin-light-kicker">Заявки</p>
-            <h2>Заявки от собственици</h2>
+            <h2>{{ operator_copy.owner_requests }}</h2>
           </div>
           <a class="admin-light-link" href="{{ url_for('admin_service_requests') }}">Виж всички</a>
         </div>
@@ -161,7 +242,7 @@
         <div class="admin-light-panel__header">
           <div>
             <p class="admin-light-kicker">Преки действия</p>
-            <h2>Бързи действия</h2>
+            <h2>{{ operator_copy.quick_actions }}</h2>
           </div>
         </div>
         <div class="operator-quick-actions">

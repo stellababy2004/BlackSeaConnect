@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang|default('en') }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Заявки за услуги</title>
+  <title>BlackSea Connect | {{ requi.title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-request-list-actions {
@@ -278,20 +278,68 @@
 </style>
 </head>
 <body class="admin-cockpit-page admin-service-requests-page bsc-admin-workspace">
+
+{% set requests_ui = {
+'bg': {
+'title':'Заявки за услуги','eyebrow':'ЗАЯВКИ ЗА УСЛУГИ',
+'heading':'Заявки от собственици и публичната форма',
+'intro':'{{ requi.intro }}',
+'operator':'Операторска конзола','dashboard':'Управленски панел','requests':'Заявки','trash':'Кошче','public_form':'Публична форма',
+'metrics':'Показатели за заявки','total':'Общо заявки','new':'Нови','assigned':'Възложени','progress':'В процес','completed':'Приключени','cancelled':'Отказани',
+'source':'Източник','owner_portal':requi.owner_portal,'city':'Град','type':'Тип имот','property':'Имот','category':'Категория',
+'preferred':'Предпочитана дата','professional':'Възложен професионалист','open':'Отвори заявката','delete':'Изтрий заявката',
+'confirm':'Потвърждение','delete_q':'Да се изтрие ли тази заявка?',
+'delete_copy':'{{ requi.delete_copy }}',
+'client':'Клиент','request_id':'ID на заявка','created':'Дата на създаване','cancel':'Отказ',
+'empty':'Все още няма заявки за услуги.','empty_copy':'{{ requi.empty_copy }}',
+'NEW':'Нова','ASSIGNED':'Възложена','IN_PROGRESS':'В процес','COMPLETED':'Приключена','CANCELLED':'Отказана'
+},
+'en': {
+'title':'Service requests','eyebrow':'SERVICE REQUESTS',
+'heading':'Requests from owners and the public form',
+'intro':'Requests from the owner portal and public form are tracked in one operations workflow.',
+'operator':'Operator console','dashboard':'Management dashboard','requests':'Requests','trash':'Recycle bin','public_form':'Public form',
+'metrics':'Request metrics','total':'Total requests','new':'New','assigned':'Assigned','progress':'In progress','completed':'Completed','cancelled':'Cancelled',
+'source':'Source','owner_portal':'Owner portal','city':'City','type':'Property type','property':'Property','category':'Category',
+'preferred':'Preferred date','professional':'Assigned professional','open':'Open request','delete':'Delete request',
+'confirm':'Confirmation','delete_q':'Delete this request?',
+'delete_copy':'The request will be removed from active workflows and kept in the recycle bin for 30 days.',
+'client':'Client','request_id':'Request ID','created':'Created date','cancel':'Cancel',
+'empty':'No service requests yet.','empty_copy':'When an owner or public visitor submits a request, it will appear here.',
+'NEW':'New','ASSIGNED':'Assigned','IN_PROGRESS':'In progress','COMPLETED':'Completed','CANCELLED':'Cancelled'
+},
+'fr': {
+'title':'Demandes de service','eyebrow':'DEMANDES DE SERVICE',
+'heading':'Demandes des propriétaires et du formulaire public',
+'intro':'Les demandes du portail propriétaire et du formulaire public sont suivies dans un même flux opérationnel.',
+'operator':'Console opérateur','dashboard':'Tableau de gestion','requests':'Demandes','trash':'Corbeille','public_form':'Formulaire public',
+'metrics':'Indicateurs des demandes','total':'Total des demandes','new':'Nouvelles','assigned':'Attribuées','progress':'En cours','completed':'Terminées','cancelled':'Annulées',
+'source':'Source','owner_portal':'Portail propriétaire','city':'Ville','type':'Type de bien','property':'Bien','category':'Catégorie',
+'preferred':'Date souhaitée','professional':'Prestataire attribué','open':'Ouvrir la demande','delete':'Supprimer la demande',
+'confirm':'Confirmation','delete_q':'Supprimer cette demande ?',
+'delete_copy':'La demande sera retirée des flux actifs et conservée dans la corbeille pendant 30 jours.',
+'client':'Client','request_id':'ID de la demande','created':'Date de création','cancel':'Annuler',
+'empty':'Aucune demande de service pour le moment.','empty_copy':'Lorsqu’un propriétaire ou un visiteur envoie une demande, elle apparaîtra ici.',
+'NEW':'Nouvelle','ASSIGNED':'Attribuée','IN_PROGRESS':'En cours','COMPLETED':'Terminée','CANCELLED':'Annulée'
+}
+} %}
+{% set requi = requests_ui.get(page_lang|default('en'), requests_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact bsc-page-header">
       <div>
-        <p class="eyebrow">ЗАЯВКИ ЗА УСЛУГИ</p>
-        <h1>Заявки от собственици и публичната форма</h1>
-        <p>Заявките от портала за собственици и публичната форма се проследяват в общ оперативен поток.</p>
+        <p class="eyebrow">{{ requi.eyebrow }}</p>
+        <h1>{{ requi.heading }}</h1>
+        <p>{{ requi.intro }}</p>
       </div>
       <div class="admin-compact-nav">
-        <a href="/admin/operator">Операторска конзола</a>
-        <a class="is-secondary" href="/admin">Управленски панел</a>
-        <a class="is-active" href="/admin/service-requests">Заявки</a>
-        <a href="/admin/recycle-bin">Кошче</a>
-        <a href="/request-service">Публична форма</a>
+        <a href="/admin/operator">{{ requi.operator }}</a>
+        <a class="is-secondary" href="/admin">{{ requi.dashboard }}</a>
+        <a class="is-active" href="/admin/service-requests">{{ requi.requests }}</a>
+        <a href="/admin/recycle-bin">{{ requi.trash }}</a>
+        <a href="/request-service">{{ requi.public_form }}</a>
       </div>
     </section>
 
@@ -305,29 +353,29 @@
       {% endif %}
     {% endwith %}
 
-    <section class="admin-kpi-grid" aria-label="Показатели за заявки">
+    <section class="admin-kpi-grid" aria-label="{{ requi.metrics }}">
       <article class="admin-kpi-card">
-        <span>Общо заявки</span>
+        <span>{{ requi.total }}</span>
         <strong>{{ requests|length }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Нови</span>
+        <span>{{ requi.new }}</span>
         <strong>{{ counts.new }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Възложени</span>
+        <span>{{ requi.assigned }}</span>
         <strong>{{ counts.assigned }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>В процес</span>
+        <span>{{ requi.progress }}</span>
         <strong>{{ counts.in_progress }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Приключени</span>
+        <span>{{ requi.completed }}</span>
         <strong>{{ counts.completed }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Отказани</span>
+        <span>{{ requi.cancelled }}</span>
         <strong>{{ counts.cancelled }}</strong>
       </article>
     </section>
@@ -335,7 +383,7 @@
     {% if requests %}
       <section class="admin-pilot-list">
         {% for item in requests %}
-          {% set request_status_labels = {'NEW': 'Нова', 'ASSIGNED': 'Възложена', 'IN_PROGRESS': 'В процес', 'COMPLETED': 'Приключена', 'CANCELLED': 'Отказана'} %}
+          {% set request_status_labels = {'NEW': requi.NEW, 'ASSIGNED': requi.ASSIGNED, 'IN_PROGRESS': requi.IN_PROGRESS, 'COMPLETED': requi.COMPLETED, 'CANCELLED': requi.CANCELLED} %}
           {% set request_status_key = item.status|upper %}
           <article class="admin-pilot-card" style="background: rgba(255, 255, 255, 0.96) !important; background-image: none !important; border: 1px solid rgba(20, 35, 52, 0.12) !important; box-shadow: 0 18px 44px rgba(20, 35, 52, 0.1) !important; color: #142334 !important;" data-search="{{ (item.name ~ ' ' ~ item.property_city ~ ' ' ~ item.property_type ~ ' ' ~ item.property ~ ' ' ~ item.service_category ~ ' ' ~ item.status ~ ' ' ~ item.request_source)|lower|e }}">
             <div class="admin-pilot-card__topline">
@@ -343,47 +391,47 @@
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ request_status_labels.get(request_status_key, item.status|replace('_', ' ')|title)|e }}</span>
             </div>
             <h2>{{ item.name|e }}</h2>
-            <p><strong>Източник:</strong> {{ 'Портал за собственици' if item.request_source == 'owner' else 'Публична форма' }}</p>
-            <p><strong>Град:</strong> {{ item.property_city|e }}</p>
-            <p><strong>Тип имот:</strong> {{ item.property_type|e }}</p>
-            <p><strong>Имот:</strong> {% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</p>
-            <p><strong>Категория:</strong> {{ item.service_category|e }}</p>
-            <p><strong>Предпочитана дата:</strong> {{ item.preferred_date|e }}</p>
-            <p><strong>Възложен професионалист:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}няма{% endif %}</p>
+            <p><strong>{{ requi.source }}:</strong> {{ requi.owner_portal if item.request_source == 'owner' else 'Публична форма' }}</p>
+            <p><strong>{{ requi.city }}:</strong> {{ item.property_city|e }}</p>
+            <p><strong>{{ requi.type }}:</strong> {{ item.property_type|e }}</p>
+            <p><strong>{{ requi.property }}:</strong> {% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</p>
+            <p><strong>{{ requi.category }}:</strong> {{ item.service_category|e }}</p>
+            <p><strong>{{ requi.preferred }}:</strong> {{ item.preferred_date|e }}</p>
+            <p><strong>{{ requi.professional }}:</strong> {% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}няма{% endif %}</p>
             <div class="admin-request-list-actions">
-              <a class="admin-request-list-button" href="/admin/service-requests/{{ item.id|e }}">Отвори заявката</a>
+              <a class="admin-request-list-button" href="/admin/service-requests/{{ item.id|e }}">{{ requi.open }}</a>
               <form method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                 <input type="hidden" name="next" value="{{ request.full_path }}">
-                <button class="admin-request-list-button admin-request-list-button--danger" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">Изтрий заявката</button>
+                <button class="admin-request-list-button admin-request-list-button--danger" type="button" data-open-delete-modal="delete-request-{{ item.id|e }}">{{ requi.delete }}</button>
                 <dialog id="delete-request-{{ item.id|e }}" class="admin-request-list-delete-dialog">
                   <div class="admin-request-list-delete-dialog__body">
                     <div>
-                      <p class="eyebrow">Потвърждение</p>
-                      <h2>Да се изтрие ли тази заявка?</h2>
-                      <p>Заявката ще бъде премахната от активните потоци и запазена в кошчето за 30 дни.</p>
+                      <p class="eyebrow">{{ requi.confirm }}</p>
+                      <h2>{{ requi.delete_q }}</h2>
+                      <p>{{ requi.delete_copy }}</p>
                     </div>
                     <dl class="admin-request-list-delete-dialog__meta">
                       <div>
-                        <dt>Имот</dt>
+                        <dt>{{ requi.property }}</dt>
                         <dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd>
                       </div>
                       <div>
-                        <dt>Клиент</dt>
+                        <dt>{{ requi.client }}</dt>
                         <dd>{{ item.name|e }}</dd>
                       </div>
                       <div>
-                        <dt>ID на заявка</dt>
+                        <dt>{{ requi.request_id }}</dt>
                         <dd>{{ item.id|e }}</dd>
                       </div>
                       <div>
-                        <dt>Дата на създаване</dt>
+                        <dt>{{ requi.created }}</dt>
                         <dd>{{ item.created_at|e }}</dd>
                       </div>
                     </dl>
                     <div class="admin-request-list-delete-dialog__actions">
-                      <button class="admin-request-list-button" type="button" data-close-delete-modal>Отказ</button>
-                      <button class="admin-request-list-button admin-request-list-button--danger" type="submit">Изтрий заявката</button>
+                      <button class="admin-request-list-button" type="button" data-close-delete-modal>{{ requi.cancel }}</button>
+                      <button class="admin-request-list-button admin-request-list-button--danger" type="submit">{{ requi.delete }}</button>
                     </div>
                   </div>
                 </dialog>
@@ -394,8 +442,8 @@
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>Все още няма заявки за услуги.</h2>
-        <p>Когато собственик или публичен посетител изпрати заявка, тя ще се появи тук.</p>
+        <h2>{{ requi.empty }}</h2>
+        <p>{{ requi.empty_copy }}</p>
       </section>
     {% endif %}
   </main>

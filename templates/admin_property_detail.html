@@ -311,63 +311,207 @@
 </head>
 <body class="admin-property-detail-page">
   {% include '_admin_sidebar.html' %}
+
+  {% set admin_lang = page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' %}
+
+  {% if admin_lang == 'bg' %}
+    {% set c = {
+      'property_ops': '???????? ?? ?????',
+      'intro': '??????????? ??????? ?? ?????, ???????? ??? ???????????, ?????????? ??????? ? ???????????? ?? ???? ?????.',
+      'back': '????? ??? ???????',
+      'profile': '?????? ?? ?????',
+      'details': '??????? ?? ?????',
+      'type': '???',
+      'location': '??????????????',
+      'capacity': '?????????',
+      'status': '??????',
+      'created': '???????? ??',
+      'readiness': '?????????',
+      'current_readiness': '?????? ?????????',
+      'checklist': '????????? ??????',
+      'progress': '????????',
+      'latest_requests': '???????? ??????',
+      'ready': '??????',
+      'pending': '????????',
+      'calendar': '????????',
+      'mini_calendar': '???? ????????',
+      'open_calendar': '?????? ???????????????? ????????',
+      'events': '???????',
+      'upcoming_events': '?????????? ???????',
+      'cleaning_schedule': '?????? ?? ??????????',
+      'maintenance_schedule': '?????? ?? ?????????',
+      'service_history': '??????? ?? ????????',
+      'latest_linked': '???????? ???????? ??????',
+      'no_requests': '??? ??? ???? ???????? ?????? ?? ??????.',
+      'blocked_dates': '????????? ????',
+      'owner_blocks': '????????? ???? ?? ???????????',
+      'no_blocks': '??? ??? ???? ????????? ???? ??? ????? ???????.',
+      'owner_info': '?????????? ?? ???????????',
+      'full_name': '??? ? ???????',
+      'email': '?????',
+      'phone': '???????',
+      'language': '????',
+      'registered': '???? ?? ???????????',
+      'last_login': '???????? ???????',
+      'never': '???? ?????',
+      'admin_notes': '??????????????? ???????',
+      'internal_notes': '???????? ???????',
+      'notes_placeholder': '???????? ?????????? ??????? ?? ?????',
+      'save_notes': '?????? ?????????',
+      'timeline': '??????????',
+      'property_timeline': '?????????? ?? ?????',
+      'no_timeline': '??? ??? ???? ?????? ? ????????????.'
+    } %}
+  {% elif admin_lang == 'fr' %}
+    {% set c = {
+      'property_ops': 'Op?rations du bien',
+      'intro': 'Consultez le profil du bien, le propri?taire, les notes internes et l?historique au m?me endroit.',
+      'back': 'Retour aux biens',
+      'profile': 'Profil du bien',
+      'details': 'D?tails du bien',
+      'type': 'Type',
+      'location': 'Localisation',
+      'capacity': 'Capacit?',
+      'status': 'Statut',
+      'created': 'Cr?? le',
+      'readiness': 'Pr?paration',
+      'current_readiness': '?tat de pr?paration',
+      'checklist': 'Liste de contr?le',
+      'progress': 'Progression',
+      'latest_requests': 'Demandes r?centes',
+      'ready': 'Pr?t',
+      'pending': '? faire',
+      'calendar': 'Calendrier',
+      'mini_calendar': 'Mini calendrier',
+      'open_calendar': 'Ouvrir le calendrier administratif',
+      'events': '?v?nements',
+      'upcoming_events': '?v?nements ? venir',
+      'cleaning_schedule': 'Planning de nettoyage',
+      'maintenance_schedule': 'Planning de maintenance',
+      'service_history': 'Historique des demandes',
+      'latest_linked': 'Derni?res demandes li?es',
+      'no_requests': 'Aucune demande de service li?e pour le moment.',
+      'blocked_dates': 'Dates bloqu?es',
+      'owner_blocks': 'Blocages du calendrier propri?taire',
+      'no_blocks': 'Aucune date bloqu?e ni s?jour personnel pr?vu.',
+      'owner_info': 'Informations propri?taire',
+      'full_name': 'Nom complet',
+      'email': 'E-mail',
+      'phone': 'T?l?phone',
+      'language': 'Langue',
+      'registered': 'Date d?inscription',
+      'last_login': 'Derni?re connexion',
+      'never': 'Aucune donn?e',
+      'admin_notes': 'Notes administratives',
+      'internal_notes': 'Notes internes',
+      'notes_placeholder': 'Notes op?rationnelles internes pour l??quipe',
+      'save_notes': 'Enregistrer les notes',
+      'timeline': 'Historique',
+      'property_timeline': 'Historique du bien',
+      'no_timeline': 'Aucune entr?e dans l?historique pour le moment.'
+    } %}
+  {% else %}
+    {% set c = {
+      'property_ops': 'Property operations',
+      'intro': 'Review the property profile, owner relationship, internal notes and activity history in one place.',
+      'back': 'Back to properties',
+      'profile': 'Property profile',
+      'details': 'Property details',
+      'type': 'Type',
+      'location': 'Location',
+      'capacity': 'Capacity',
+      'status': 'Status',
+      'created': 'Created at',
+      'readiness': 'Readiness',
+      'current_readiness': 'Current readiness',
+      'checklist': 'Checklist',
+      'progress': 'Progress',
+      'latest_requests': 'Latest requests',
+      'ready': 'Ready',
+      'pending': 'Pending',
+      'calendar': 'Calendar',
+      'mini_calendar': 'Mini calendar',
+      'open_calendar': 'Open admin calendar',
+      'events': 'events',
+      'upcoming_events': 'Upcoming events',
+      'cleaning_schedule': 'Cleaning schedule',
+      'maintenance_schedule': 'Maintenance schedule',
+      'service_history': 'Service request history',
+      'latest_linked': 'Latest linked requests',
+      'no_requests': 'No linked service requests are available yet.',
+      'blocked_dates': 'Blocked dates',
+      'owner_blocks': 'Owner calendar blocks',
+      'no_blocks': 'No blocked dates or personal stays are scheduled yet.',
+      'owner_info': 'Owner information',
+      'full_name': 'Full name',
+      'email': 'Email',
+      'phone': 'Phone',
+      'language': 'Language',
+      'registered': 'Registered at',
+      'last_login': 'Last login',
+      'never': 'No data',
+      'admin_notes': 'Admin notes',
+      'internal_notes': 'Internal notes',
+      'notes_placeholder': 'Internal operational notes for the team',
+      'save_notes': 'Save notes',
+      'timeline': 'Timeline',
+      'property_timeline': 'Property timeline',
+      'no_timeline': 'No timeline entries yet.'
+    } %}
+  {% endif %}
+
   <main class="admin-property-detail-shell">
     <section class="admin-property-detail-hero">
       <div>
         <div class="admin-property-detail-meta">
           <span class="admin-property-detail-chip">Admin</span>
-          <span class="admin-property-detail-chip">Property operations</span>
+          <span class="admin-property-detail-chip">{{ c.property_ops }}</span>
           <span class="admin-property-detail-chip admin-property-detail-chip--status">{{ property.status_label|e }}</span>
         </div>
         <h1>{{ property.name|e }}</h1>
-        <p class="admin-property-detail-copy">
-          Прегледайте профила на имота, връзката със собственика, вътрешните бележки и хронологията на едно място.
-        </p>
+        <p class="admin-property-detail-copy">{{ c.intro }}</p>
       </div>
       <div class="admin-property-detail-actions">
-        <a class="button button--secondary" href="/admin/properties">Назад към имотите</a>
-        <a class="button button--ghost admin-property-active-tasks-link" href="{{ url_for('admin_operations', property=property.name) }}">Отвори активните задачи</a>
-        <a class="button button--ghost" href="/admin">Назад към управленския панел</a>
+        <a class="button button--secondary" href="/admin/properties?lang={{ admin_lang }}">{{ c.back }}</a>
       </div>
     </section>
 
     <section class="admin-property-detail-grid">
       <div class="admin-property-detail-stack">
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">ПРОФИЛ НА ИМОТА</p>
-          <h2 class="admin-property-detail-section-title">Детайли за имота</h2>
+          <p class="eyebrow">{{ c.profile }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.details }}</h2>
           <dl class="admin-property-detail-dl">
-            <div><dt>Име на имота</dt><dd>{{ property.name|e }}</dd></div>
-            <div><dt>Тип имот</dt><dd>{{ property.property_type|e }}</dd></div>
-            <div><dt>Град / местоположение</dt><dd>{{ property.location|e }}</dd></div>
-            <div><dt>Капацитет</dt><dd>{{ property.guest_capacity }}</dd></div>
-            <div><dt>Статус</dt><dd>{{ property.status_label|e }}</dd></div>
-            <div><dt>Created at</dt><dd>{{ property.created_at|e }}</dd></div>
+            <div><dt>{{ c.type }}</dt><dd>{{ property.property_type|e }}</dd></div>
+            <div><dt>{{ c.location }}</dt><dd>{{ property.location|e }}</dd></div>
+            <div><dt>{{ c.capacity }}</dt><dd>{{ property.guest_capacity }}</dd></div>
+            <div><dt>{{ c.status }}</dt><dd>{{ property.status_label|e }}</dd></div>
+            <div><dt>{{ c.created }}</dt><dd>{{ property.created_at|e }}</dd></div>
           </dl>
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Readiness Checklist</p>
-          <h2 class="admin-property-detail-section-title">Current readiness</h2>
+          <p class="eyebrow">{{ c.readiness }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.current_readiness }}</h2>
           <div class="admin-property-detail-card-grid">
             <div class="admin-property-detail-stat">
-              <span>Checklist</span>
+              <span>{{ c.checklist }}</span>
               <strong>{{ property.checklist_completed }}/{{ property.checklist_total }}</strong>
             </div>
             <div class="admin-property-detail-stat">
-              <span>Progress</span>
+              <span>{{ c.progress }}</span>
               <strong>{{ property.checklist_percent }}%</strong>
             </div>
             <div class="admin-property-detail-stat">
-              <span>Latest requests</span>
+              <span>{{ c.latest_requests }}</span>
               <strong>{{ service_request_count }}</strong>
             </div>
           </div>
-          <div class="admin-property-detail-checklist" style="margin-top: 16px;">
+          <div class="admin-property-detail-checklist" style="margin-top:16px;">
             {% for item in checklist_items %}
               <div class="admin-property-detail-checklist__item">
                 <span>{{ item.label }}</span>
-                <strong>{% if item.ready %}Готово{% else %}Предстои{% endif %}</strong>
+                <strong>{% if item.ready %}{{ c.ready }}{% else %}{{ c.pending }}{% endif %}</strong>
               </div>
             {% endfor %}
           </div>
@@ -376,32 +520,34 @@
         <article class="admin-property-detail-panel">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
             <div>
-              <p class="eyebrow">КАЛЕНДАР</p>
-              <h2 class="admin-property-detail-section-title" data-testid="property-mini-calendar">Мини календар</h2>
+              <p class="eyebrow">{{ c.calendar }}</p>
+              <h2 class="admin-property-detail-section-title" data-testid="property-mini-calendar">{{ c.mini_calendar }}</h2>
             </div>
-            <a class="button button--ghost" href="/admin/calendar?property={{ property.id|urlencode }}">Отвори административния календар</a>
+            <a class="button button--ghost" href="/admin/calendar?property={{ property.id|urlencode }}&lang={{ admin_lang }}">{{ c.open_calendar }}</a>
           </div>
+
           <div class="admin-property-detail-calendar">
             <div class="admin-property-detail-calendar-grid">
               {% for day in calendar.mini_calendar %}
                 <div class="admin-property-detail-calendar-day">
                   <span>{{ day.label|e }}</span>
                   <strong>{{ day.day }}</strong>
-                  <p class="admin-property-detail-empty">{{ day.count }} събития</p>
+                  <p class="admin-property-detail-empty">{{ day.count }} {{ c.events }}</p>
                 </div>
               {% endfor %}
             </div>
-            <div class="admin-property-detail-card-grid" style="margin-top: 0;">
+
+            <div class="admin-property-detail-card-grid">
               <div class="admin-property-detail-stat">
-                <span>Предстоящи събития</span>
+                <span>{{ c.upcoming_events }}</span>
                 <strong>{{ calendar.upcoming_events|length }}</strong>
               </div>
               <div class="admin-property-detail-stat">
-                <span>График за почистване</span>
+                <span>{{ c.cleaning_schedule }}</span>
                 <strong>{{ calendar.cleaning_schedule|length }}</strong>
               </div>
               <div class="admin-property-detail-stat">
-                <span>График за поддръжка</span>
+                <span>{{ c.maintenance_schedule }}</span>
                 <strong>{{ calendar.maintenance_schedule|length }}</strong>
               </div>
             </div>
@@ -409,8 +555,8 @@
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Service Request History</p>
-          <h2 class="admin-property-detail-section-title">Latest linked requests</h2>
+          <p class="eyebrow">{{ c.service_history }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.latest_linked }}</h2>
           {% if service_requests %}
             <div class="admin-property-detail-history">
               {% for request in service_requests %}
@@ -420,20 +566,20 @@
                     <time>{{ request.created_at|e }}</time>
                   </div>
                   <p>
-                    {{ request.status|upper|e }} · {{ request.property|e }}
+                    {{ request.status|upper|e }} ? {{ request.property|e }}
                     {% if request.description %}<br>{{ request.description|e }}{% endif %}
                   </p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-property-detail-empty">No linked service requests are available yet.</p>
+            <p class="admin-property-detail-empty">{{ c.no_requests }}</p>
           {% endif %}
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Blocked Dates</p>
-          <h2 class="admin-property-detail-section-title">Owner calendar blocks</h2>
+          <p class="eyebrow">{{ c.blocked_dates }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.owner_blocks }}</h2>
           {% if calendar.blocked_dates %}
             <div class="admin-property-detail-calendar-events">
               {% for event in calendar.blocked_dates %}
@@ -442,49 +588,50 @@
                     <strong>{{ event.title|e }}</strong>
                     <time>{{ event.display_label|e }}</time>
                   </div>
-                  <p class="admin-property-detail-empty">{{ event.event_type|e }} · {{ event.status|e }}</p>
+                  <p class="admin-property-detail-empty">{{ event.event_type|e }} ? {{ event.status|e }}</p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-property-detail-empty">No blocked dates or personal stays are scheduled yet.</p>
+            <p class="admin-property-detail-empty">{{ c.no_blocks }}</p>
           {% endif %}
         </article>
       </div>
 
       <div class="admin-property-detail-stack">
         <article class="admin-property-detail-panel">
-          <p class="eyebrow" data-testid="property-owner-information">ИНФОРМАЦИЯ ЗА СОБСТВЕНИКА</p>
-          <h2 class="admin-property-detail-section-title">Профил на собственика</h2>
+          <p class="eyebrow" data-testid="property-owner-information">{{ c.owner_info }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.owner_info }}</h2>
+
           {% if owner_account %}
             <dl class="admin-property-detail-dl">
-              <div><dt>Име и фамилия</dt><dd>{{ owner_account.full_name|e }}</dd></div>
-              <div><dt>Имейл</dt><dd>{{ owner_account.email|e }}</dd></div>
-              <div><dt>Телефон</dt><dd>{{ owner_account.phone|e }}</dd></div>
-              <div><dt>Език</dt><dd>{{ owner_account.language|upper|e }}</dd></div>
-              <div><dt>Дата на регистрация</dt><dd>{{ owner_account.created_at|e }}</dd></div>
-              <div><dt>Последно влизане</dt><dd>{% if owner_account.last_login_at %}{{ owner_account.last_login_at|e }}{% else %}Никога{% endif %}</dd></div>
+              <div><dt>{{ c.full_name }}</dt><dd>{{ owner_account.full_name|e }}</dd></div>
+              <div><dt>{{ c.email }}</dt><dd>{{ owner_account.email|e }}</dd></div>
+              <div><dt>{{ c.phone }}</dt><dd>{{ owner_account.phone|e }}</dd></div>
+              <div><dt>{{ c.language }}</dt><dd>{{ owner_account.language|upper|e }}</dd></div>
+              <div><dt>{{ c.registered }}</dt><dd>{{ owner_account.created_at|e }}</dd></div>
+              <div><dt>{{ c.last_login }}</dt><dd>{{ owner_account.last_login_at|e if owner_account.last_login_at else c.never }}</dd></div>
             </dl>
           {% else %}
-            <p class="admin-property-detail-empty">No owner account is linked to this property.</p>
+            <p class="admin-property-detail-empty">{{ c.never }}</p>
           {% endif %}
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow">Internal Notes</p>
-          <h2 class="admin-property-detail-section-title">Административни бележки</h2>
-          <form class="admin-property-detail-form" method="post" action="/admin/properties/{{ property.id|e }}">
+          <p class="eyebrow">{{ c.admin_notes }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.internal_notes }}</h2>
+          <form class="admin-property-detail-form" method="post" action="/admin/properties/{{ property.id|e }}?lang={{ admin_lang }}">
             <label>
-              <span>Вътрешни бележки</span>
-              <textarea name="admin_notes" placeholder="Вътрешни оперативни бележки за екипа">{{ property.admin_notes|e }}</textarea>
+              <span>{{ c.internal_notes }}</span>
+              <textarea name="admin_notes" placeholder="{{ c.notes_placeholder }}">{{ property.admin_notes|e }}</textarea>
             </label>
-            <button class="button button--primary" type="submit">Запази бележките</button>
+            <button class="button button--primary" type="submit">{{ c.save_notes }}</button>
           </form>
         </article>
 
         <article class="admin-property-detail-panel">
-          <p class="eyebrow" data-testid="property-timeline">ХРОНОЛОГИЯ</p>
-          <h2 class="admin-property-detail-section-title">Хронология на имота</h2>
+          <p class="eyebrow" data-testid="property-timeline">{{ c.timeline }}</p>
+          <h2 class="admin-property-detail-section-title">{{ c.property_timeline }}</h2>
           {% if timeline %}
             <div class="admin-property-detail-timeline">
               {% for event in timeline %}
@@ -500,7 +647,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-property-detail-empty">No timeline entries yet.</p>
+            <p class="admin-property-detail-empty">{{ c.no_timeline }}</p>
           {% endif %}
         </article>
       </div>

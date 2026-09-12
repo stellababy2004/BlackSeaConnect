@@ -1,57 +1,90 @@
 <!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang|default('en') }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Професионалисти</title>
+  <title>BlackSea Connect | {{ proui.title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page admin-professionals-page bsc-admin-workspace">
+
+{% set professionals_ui = {
+'bg': {
+'title':'Професионалисти','heading':'Кандидатури на професионалисти',
+'intro':'{{ proui.intro }}',
+'dashboard':'Към таблото','export':'Експорт CSV','metrics':'Показатели за кандидатурите',
+'total':'Общо кандидатури','new':'Нови','contacted':'Свързани','qualified':'Квалифицирани','converted':'Конвертирани','lost':'Отпаднали',
+'email':'Имейл','category':'Категория','location':'Местоположение','languages':'Езици','owner':'Отговорник',
+'empty':'Все още няма кандидатури.','empty_copy':'{{ proui.empty_copy }}',
+'NEW':'НОВА','CONTACTED':'СВЪРЗАНА','QUALIFIED':'КВАЛИФИЦИРАНА','CONVERTED':'КОНВЕРТИРАНА','LOST':'ОТПАДНАЛА'
+},
+'en': {
+'title':'Professionals','heading':'Professional applications',
+'intro':'Review, qualify and manage professional applications.',
+'dashboard':'Back to dashboard','export':'Export CSV','metrics':'Application metrics',
+'total':'Total applications','new':'New','contacted':'Contacted','qualified':'Qualified','converted':'Converted','lost':'Lost',
+'email':'Email','category':'Category','location':'Location','languages':'Languages','owner':'Owner',
+'empty':'No applications yet.','empty_copy':'New applications will appear here as soon as they are submitted.',
+'NEW':'NEW','CONTACTED':'CONTACTED','QUALIFIED':'QUALIFIED','CONVERTED':'CONVERTED','LOST':'LOST'
+},
+'fr': {
+'title':'Prestataires','heading':'Candidatures des prestataires',
+'intro':'Examinez, qualifiez et gérez les candidatures.',
+'dashboard':'Retour au tableau de bord','export':'Exporter CSV','metrics':'Indicateurs des candidatures',
+'total':'Total des candidatures','new':'Nouvelles','contacted':'Contactées','qualified':'Qualifiées','converted':'Converties','lost':'Écartées',
+'email':'E-mail','category':'Catégorie','location':'Localisation','languages':'Langues','owner':'Responsable',
+'empty':'Aucune candidature pour le moment.','empty_copy':'Les nouvelles candidatures apparaîtront ici dès leur envoi.',
+'NEW':'NOUVELLE','CONTACTED':'CONTACTÉE','QUALIFIED':'QUALIFIÉE','CONVERTED':'CONVERTIE','LOST':'ÉCARTÉE'
+}
+} %}
+{% set proui = professionals_ui.get(page_lang|default('en'), professionals_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact bsc-page-header">
       <div>
-        <p class="eyebrow">Професионалисти</p>
-        <h1>Кандидатури на професионалисти</h1>
-        <p>Преглед, квалифициране и управление на кандидатурите.</p>
+        <p class="eyebrow">{{ proui.title }}</p>
+        <h1>{{ proui.heading }}</h1>
+        <p>{{ proui.intro }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin">Към таблото</a>
-        <a class="button button--ghost" href="/admin/professionals/export">Експорт CSV</a>
+        <a class="button button--secondary" href="/admin">{{ proui.dashboard }}</a>
+        <a class="button button--ghost" href="/admin/professionals/export">{{ proui.export }}</a>
       </div>
     </section>
 
-    <section class="admin-kpi-grid bsc-compact-kpis" aria-label="Показатели за кандидатурите">
-      <article class="admin-kpi-card"><span>Общо кандидатури</span><strong>{{ applications|length }}</strong></article>
-      <article class="admin-kpi-card"><span>Нови</span><strong>{{ counts.new }}</strong></article>
-      <article class="admin-kpi-card"><span>Свързани</span><strong>{{ counts.contacted }}</strong></article>
-      <article class="admin-kpi-card"><span>Квалифицирани</span><strong>{{ counts.qualified }}</strong></article>
-      <article class="admin-kpi-card"><span>Конвертирани</span><strong>{{ counts.converted }}</strong></article>
-      <article class="admin-kpi-card"><span>Отпаднали</span><strong>{{ counts.lost }}</strong></article>
+    <section class="admin-kpi-grid bsc-compact-kpis" aria-label="{{ proui.metrics }}">
+      <article class="admin-kpi-card"><span>{{ proui.total }}</span><strong>{{ applications|length }}</strong></article>
+      <article class="admin-kpi-card"><span>{{ proui.new }}</span><strong>{{ counts.new }}</strong></article>
+      <article class="admin-kpi-card"><span>{{ proui.contacted }}</span><strong>{{ counts.contacted }}</strong></article>
+      <article class="admin-kpi-card"><span>{{ proui.qualified }}</span><strong>{{ counts.qualified }}</strong></article>
+      <article class="admin-kpi-card"><span>{{ proui.converted }}</span><strong>{{ counts.converted }}</strong></article>
+      <article class="admin-kpi-card"><span>{{ proui.lost }}</span><strong>{{ counts.lost }}</strong></article>
     </section>
 
     {% if applications %}
       <section class="admin-pilot-list">
         {% for item in applications %}
-          {% set professional_status_labels = {'NEW': 'НОВА', 'CONTACTED': 'СВЪРЗАНА', 'QUALIFIED': 'КВАЛИФИЦИРАНА', 'CONVERTED': 'КОНВЕРТИРАНА', 'LOST': 'ОТПАДНАЛА'} %}
+          {% set professional_status_labels = {'NEW': proui.NEW, 'CONTACTED': proui.CONTACTED, 'QUALIFIED': proui.QUALIFIED, 'CONVERTED': proui.CONVERTED, 'LOST': proui.LOST} %}
           <a class="admin-pilot-card admin-pilot-card--link" href="/admin/professionals/{{ item.id|e }}" data-search="{{ (item.full_name ~ ' ' ~ item.email ~ ' ' ~ item.professional_category ~ ' ' ~ item.city ~ ' ' ~ item.country ~ ' ' ~ item.languages ~ ' ' ~ item.status ~ ' ' ~ item.owner)|lower|e }}">
             <div class="admin-pilot-card__topline">
               <p class="eyebrow">{{ item.created_at|e }}</p>
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ professional_status_labels.get(item.status|upper, item.status|upper)|e }}</span>
             </div>
             <h2>{{ item.full_name|e }}</h2>
-            <p><strong>Имейл:</strong> {{ item.email|e }}</p>
-            <p><strong>Категория:</strong> {{ item.professional_category|e }}</p>
-            <p><strong>Местоположение:</strong> {{ item.city|e }}, {{ item.country|e }}</p>
-            <p><strong>Езици:</strong> {{ item.languages|e }}</p>
-            {% if item.owner %}<p><strong>Отговорник:</strong> {{ item.owner|e }}</p>{% endif %}
+            <p><strong>{{ proui.email }}:</strong> {{ item.email|e }}</p>
+            <p><strong>{{ proui.category }}:</strong> {{ item.professional_category|e }}</p>
+            <p><strong>{{ proui.location }}:</strong> {{ item.city|e }}, {{ item.country|e }}</p>
+            <p><strong>{{ proui.languages }}:</strong> {{ item.languages|e }}</p>
+            {% if item.owner %}<p><strong>{{ proui.owner }}:</strong> {{ item.owner|e }}</p>{% endif %}
           </a>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>Все още няма кандидатури.</h2>
-        <p>Новите кандидатури ще се покажат тук веднага след записването им.</p>
+        <h2>{{ proui.empty }}</h2>
+        <p>{{ proui.empty_copy }}</p>
       </section>
     {% endif %}
   </main>
