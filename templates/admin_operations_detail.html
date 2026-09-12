@@ -3088,7 +3088,7 @@
   {% elif task_is_closed %}
     {% set sla_label = 'Завършена в срок' if task_sla_has_due else 'Завършена' %}
     {% set sla_tone = 'green' %}
-    {% set sla_detail = 'Задачата е приключена.' %}
+    {% set sla_detail = '{{ od.task_completed }}' %}
   {% elif task_open_overdue %}
     {% set sla_label = 'Просрочена' %}
     {% set sla_tone = 'red' %}
@@ -3104,78 +3104,766 @@
   {% endif %}
   {% set sla_overdue_label = 'Да' if task_open_overdue or task_sla_late else 'Не' %}
   {% set severity_tone = 'neutral' if not task_sla_has_due else ('red' if task_open_overdue or task_sla_late or task.priority == 'URGENT' else ('yellow' if task.priority == 'HIGH' or task.status in ['WAITING_OWNER', 'WAITING_OPERATIONS', 'PAUSED'] or not task.is_assigned else 'green')) %}
-  {% set severity_label = 'Критично' if severity_tone == 'red' else ('За внимание' if severity_tone == 'yellow' else ('Неутрално' if severity_tone == 'neutral' else 'Стабилно')) %}
+  {% set work_order_copy_catalogs = {
+    'bg': {
+      'severity_red': 'Критично',
+      'severity_yellow': 'За внимание',
+      'severity_neutral': 'Неутрално',
+      'severity_green': 'Стабилно',
+      'work_order': 'Работна задача',
+      'system_name': 'Системно име',
+      'brief_aria': 'Най-важното за задачата',
+      'where': 'Къде',
+      'due': 'До',
+      'no_due': 'Няма зададен срок',
+      'urgency': 'Спешност',
+      'objective_eyebrow': 'Какво трябва да се направи',
+      'objective_title': 'Цел на задачата',
+      'main_work': 'Основна работа',
+      'checklist_title': 'Чеклист / Стъпки за изпълнение',
+      'steps_completed': 'стъпки са изпълнени',
+      'checklist_progress': 'Завършеност на чеклиста',
+      'ai_analysis': 'AI АНАЛИЗ',
+      'ai_review_title': 'Препоръка за човешки преглед',
+      'human_review': 'Изисква човешки преглед',
+      'confidence': 'увереност',
+      'current_task': 'Текуща задача',
+      'ai_recommendation': 'AI препоръка',
+      'ai_summary': 'AI обобщение',
+      'next_action': 'Препоръчано следващо действие',
+      'ai_notice': 'AI не променя автоматично приоритета и не възлага професионалист. Решението остава при администратора.'
+    },
+    'en': {
+      'severity_red': 'Critical',
+      'severity_yellow': 'Needs attention',
+      'severity_neutral': 'Neutral',
+      'severity_green': 'Stable',
+      'work_order': 'Work order',
+      'system_name': 'System name',
+      'brief_aria': 'Key task information',
+      'where': 'Where',
+      'due': 'Due',
+      'no_due': 'No due date set',
+      'urgency': 'Urgency',
+      'objective_eyebrow': 'What needs to be done',
+      'objective_title': 'Task objective',
+      'main_work': 'Main work',
+      'checklist_title': 'Checklist / Execution steps',
+      'steps_completed': 'steps completed',
+      'checklist_progress': 'Checklist completion',
+      'ai_analysis': 'AI ANALYSIS',
+      'ai_review_title': 'Recommendation for human review',
+      'human_review': 'Human review required',
+      'confidence': 'confidence',
+      'current_task': 'Current task',
+      'ai_recommendation': 'AI recommendation',
+      'ai_summary': 'AI summary',
+      'next_action': 'Recommended next action',
+      'ai_notice': 'AI does not automatically change priority or assign a professional. The final decision remains with the administrator.'
+    },
+    'fr': {
+      'severity_red': 'Critique',
+      'severity_yellow': 'À surveiller',
+      'severity_neutral': 'Neutre',
+      'severity_green': 'Stable',
+      'work_order': 'Ordre de travail',
+      'system_name': 'Nom système',
+      'brief_aria': 'Informations essentielles sur la tâche',
+      'where': 'Où',
+      'due': 'Échéance',
+      'no_due': 'Aucune échéance définie',
+      'urgency': 'Urgence',
+      'objective_eyebrow': 'Ce qui doit être fait',
+      'objective_title': 'Objectif de la tâche',
+      'main_work': 'Travail principal',
+      'checklist_title': 'Checklist / Étapes d’exécution',
+      'steps_completed': 'étapes terminées',
+      'checklist_progress': 'Avancement de la checklist',
+      'ai_analysis': 'ANALYSE IA',
+      'ai_review_title': 'Recommandation pour validation humaine',
+      'human_review': 'Validation humaine requise',
+      'confidence': 'de confiance',
+      'current_task': 'Tâche actuelle',
+      'ai_recommendation': 'Recommandation IA',
+      'ai_summary': 'Résumé IA',
+      'next_action': 'Prochaine action recommandée',
+      'ai_notice': 'L’IA ne modifie pas automatiquement la priorité et n’attribue pas de prestataire. La décision finale reste à l’administrateur.'
+    }
+  } %}
+  {% set work_order_copy = work_order_copy_catalogs.get(page_lang, work_order_copy_catalogs['bg']) %}
+
+{% set operations_detail_ui = {
+  'bg': {
+    'done': 'Готово',
+    'pending': 'Предстои',
+    'save_progress': 'Запази напредъка',
+    'context_aria': 'Имот, гост и професионалист',
+    'property': 'Имот',
+    'guest': 'Гост',
+    'professional': 'Професионалист',
+    'location_missing': '{{ od.location_missing }}',
+    'not_set': 'Не е зададен',
+    'no_guest': '{{ od.no_guest }}',
+    'no_reservation': '{{ od.no_reservation }}',
+    'linked_profile': 'Свързан професионален профил',
+    'assignment_required': '{{ od.assignment_required }}',
+    'task_actions': 'Действия за задачата',
+    'next_action': 'Следващо действие',
+    'review_evidence': '{{ od.review_evidence }}',
+    'update_progress': '{{ od.update_progress }}',
+    'assign_professional': '{{ od.assign_professional }}',
+    'save_changes': 'Запази промените',
+    'to_checklist': 'Към чеклиста',
+    'open_calendar': 'Отвори календар',
+    'open_request': 'Отвори заявката',
+
+    'controls': 'Оперативни контроли',
+    'assignment_panel': 'Панел за възлагане',
+    'available_professionals': 'Налични професионалисти',
+    'one_available': '{{ od.one_available }}',
+    'many_available': '{{ od.many_available }}',
+    'state': 'Състояние',
+    'assigned_state': 'Възложена',
+    'open_state': 'Отворена',
+    'assignment_moves_status': '{{ od.assignment_moves_status }}',
+    'assignment_keeps_status': '{{ od.assignment_keeps_status }}',
+    'confirm_ai': 'Потвърди и възложи на AI препоръка #1',
+    'no_professionals': '{{ od.no_professionals }}',
+    'assigned': 'Възложен',
+    'reassign': 'Превъзложи',
+    'assign': 'Възложи',
+    'status': 'Статус',
+    'assigned_professional': 'Възложен професионалист',
+    'unassigned': 'Не е възложена',
+    'priority': 'Приоритет',
+    'due_date': 'Краен срок',
+    'admin_notes': 'Админ бележки',
+    'admin_notes_placeholder': 'Частни бележки за оперативния екип',
+    'other_service': 'Друга услуга',
+
+    'finance': 'Финанси',
+    'finance_title': 'Оферта и плащане през платформата',
+    'finance_notice_title': 'Плащането минава само през BlackSea Connect',
+    'finance_notice_text': 'Сумите ще бъдат заключени след одобрение и плащане от собственика.',
+    'professional_quote': 'Оферта на професионалиста',
+    'currency': 'Валута',
+    'professional_quote_help': 'Цената, която професионалистът иска да получи.',
+    'fee_type': 'Тип комисиона',
+    'fixed_amount': 'Фиксирана сума',
+    'percent': 'Процент',
+    'fee_type_help': 'Определя се само от администрацията.',
+    'fee_value': 'Стойност на комисионата',
+    'fixed_fee_help': 'Фиксирана комисиона към офертата.',
+    'professional_receives': 'Професионалистът получава',
+    'platform_fee': 'Комисиона BlackSea Connect',
+    'owner_price': 'Цена към собственика',
+    'quote': 'Оферта',
+    'owner_approval': 'Одобрение от собственик',
+    'payment': 'Плащане',
+    'payout': 'Изплащане',
+    'quote_locked': 'Офертата е заключена',
+    'locked_help': 'След плащане стойностите не могат да се редактират.',
+    'save_quote': 'Запази офертата',
+    'automatic_total': 'Крайната цена се изчислява автоматично от системата.',
+    'send_quote': '{{ od.send_quote }}',
+    'send_quote_help': 'След изпращане цената ще бъде заключена.',
+    'return_draft': '{{ od.return_draft }}',
+    'return_draft_help': 'Използвайте само когато офертата трябва да бъде коригирана.',
+
+    'completion': 'Отчет за завършване',
+    'completion_title': 'Финално потвърждение от професионалиста',
+    'work_done': 'Извършена работа',
+    'materials': 'Използвани материали',
+    'time_spent': 'Отделено време',
+    'recommendations': 'Препоръки',
+    'follow_up': 'Нужни последващи действия',
+    'evidence': 'Доказателства',
+    'not_recorded': 'Не е записано',
+    'evidence_available': '{{ od.evidence_available }}',
+    'no_completion': '{{ od.no_completion }}',
+    'no_assigned_professional': 'Все още няма възложен професионалист.',
+    'completion_after_assignment': '{{ od.completion_after_assignment }}',
+
+    'assignment_card': 'Карта на възлагането',
+    'name': 'Име',
+    'company': 'Компания',
+    'phone': 'Телефон',
+    'email': 'Имейл',
+    'service_category': 'Категория услуга',
+    'not_defined': 'Не е зададено',
+    'not_defined_f': 'Не е зададена',
+    'copy_email': 'Копирай имейл',
+    'email_missing': 'Имейл липсва',
+    'copy_phone': 'Копирай телефон',
+    'phone_missing': 'Телефон липсва',
+    'no_assignee': '{{ od.no_assignee }}',
+
+    'linked_reservation': 'Свързана резервация',
+    'reservation_reference': 'Референция към резервация',
+    'stay': 'Престой',
+    'other_status': 'Друг статус',
+    'open_reservation': 'Отвори резервацията',
+    'task_not_linked': '{{ od.task_not_linked }}',
+
+    'property_context': 'Контекст на имота',
+    'property_profile': 'Оперативен профил на имота',
+    'task_label': 'Задача',
+    'location': 'Локация',
+    'dispatch_context': '{{ od.dispatch_context }}',
+    'configuration': 'Конфигурация',
+    'bedrooms': 'спални',
+    'bathrooms': 'бани',
+    'no_link': '{{ od.no_link }}',
+    'capacity': 'Капацитет',
+    'guests': 'гости',
+    'capacity_missing': '{{ od.capacity_missing }}',
+    'reservation': 'Резервация',
+    'no_stay': '{{ od.no_stay }}',
+    'standalone_operation': '{{ od.standalone_operation }}',
+    'owner_channel': 'Канал със собственика',
+    'no_contact': '{{ od.no_contact }}',
+    'readiness': 'Готовност',
+    'ready': 'Готов',
+    'partial': 'Частично',
+    'unknown': 'Неизвестно',
+    'guide': 'Наръчник',
+    'access': 'Достъп',
+    'emergency_contact': 'Спешен контакт',
+    'yes': 'да',
+    'no': 'не',
+    'no_property_record': '{{ od.no_property_record }}',
+
+    'related_requests': 'Свързани заявки',
+    'recent_requests': 'Последни сервизни заявки за този имот',
+    'related_requests_aria': 'Свързани сервизни заявки',
+    'title': 'Заглавие',
+    'category': 'Категория',
+    'created': 'Създадена',
+    'other_task': 'Друга задача',
+    'no_related_requests': '{{ od.no_related_requests }}',
+
+    'internal_notes': 'Вътрешни бележки',
+    'admin_only_notes': 'Бележки само за админ екипа',
+    'note_type': 'Тип бележка',
+    'general': 'Обща',
+    'urgent_note': 'Спешна',
+    'owner': 'Собственик',
+    'completion_note': 'Завършване',
+    'add_comment': 'Добави коментар',
+    'comment_placeholder': 'Добавете частен коментар за оперативния екип',
+    'admin': 'Админ',
+    'other_note': 'Друга бележка',
+    'operations': 'Операции',
+    'no_comments': '{{ od.no_comments }}',
+
+    'timeline': 'Хронология',
+    'operational_activity': 'Оперативна активност',
+    'task_updated': 'Обновена е задачата',
+    'assignment': 'Възлагане',
+    'assignment_change': 'Записана е промяна по възлагането за',
+    'created_board': '{{ od.created_board }}',
+    'overdue_detected': '{{ od.overdue_detected }}',
+    'internal_note_added': '{{ od.internal_note_added }}',
+    'note_added': '{{ od.note_added }}',
+    'checklist_updated': '{{ od.checklist_updated }}',
+    'professional_assigned': '{{ od.professional_assigned }}',
+    'status_changed': 'Променен е статусът на задачата на',
+    'task_completed': '{{ od.task_completed }}',
+    'task_archived': '{{ od.task_archived }}',
+    'no_timeline': '{{ od.no_timeline }}',
+
+    'no_due': 'Без срок',
+    'due_missing': 'Няма зададен краен срок.',
+    'completed_on_time': 'Завършена в срок',
+    'completed_before_due': 'Задачата е приключена преди крайния срок.',
+    'completed_late': 'Завършена със закъснение',
+    'overdue': 'Просрочена',
+    'due_not_reached': 'Крайният срок още не е достигнат.',
+    'remaining': 'Остават',
+    'late_word': 'закъснение',
+    'day': 'ден',
+    'days': 'дни',
+    'hour': 'час',
+    'hours': 'часа',
+    'copied': 'Копирано',
+    'copy_failed': 'Копирането в клипборда е неуспешно',
+    'hide': 'Скрий',
+    'show': 'Покажи'
+  },
+
+  'en': {
+    'done': 'Done',
+    'pending': 'Pending',
+    'save_progress': 'Save progress',
+    'context_aria': 'Property, guest and professional',
+    'property': 'Property',
+    'guest': 'Guest',
+    'professional': 'Professional',
+    'location_missing': 'Location not specified',
+    'not_set': 'Not specified',
+    'no_guest': 'No linked guest',
+    'no_reservation': 'This task is not linked to a reservation',
+    'linked_profile': 'Linked professional profile',
+    'assignment_required': 'Assignment required',
+    'task_actions': 'Task actions',
+    'next_action': 'Next action',
+    'review_evidence': 'Review the evidence',
+    'update_progress': 'Update progress',
+    'assign_professional': 'Assign a professional',
+    'save_changes': 'Save changes',
+    'to_checklist': 'Go to checklist',
+    'open_calendar': 'Open calendar',
+    'open_request': 'Open request',
+
+    'controls': 'Operations controls',
+    'assignment_panel': 'Assignment panel',
+    'available_professionals': 'Available professionals',
+    'one_available': 'One approved professional is available.',
+    'many_available': 'Approved or active professionals are available.',
+    'state': 'State',
+    'assigned_state': 'Assigned',
+    'open_state': 'Open',
+    'assignment_moves_status': 'Assignment will move new tasks to assigned status.',
+    'assignment_keeps_status': 'The current status is preserved during quick assignment.',
+    'confirm_ai': 'Confirm and assign AI recommendation #1',
+    'no_professionals': 'No approved or active professionals are available.',
+    'assigned': 'Assigned',
+    'reassign': 'Reassign',
+    'assign': 'Assign',
+    'status': 'Status',
+    'assigned_professional': 'Assigned professional',
+    'unassigned': 'Unassigned',
+    'priority': 'Priority',
+    'due_date': 'Due date',
+    'admin_notes': 'Admin notes',
+    'admin_notes_placeholder': 'Private notes for the operations team',
+    'other_service': 'Other service',
+
+    'finance': 'Finance',
+    'finance_title': 'Quote and payment through the platform',
+    'finance_notice_title': 'Payment is processed only through BlackSea Connect',
+    'finance_notice_text': 'Amounts will be locked after owner approval and payment.',
+    'professional_quote': 'Professional quote',
+    'currency': 'Currency',
+    'professional_quote_help': 'The amount the professional expects to receive.',
+    'fee_type': 'Commission type',
+    'fixed_amount': 'Fixed amount',
+    'percent': 'Percentage',
+    'fee_type_help': 'Defined only by the administration.',
+    'fee_value': 'Commission value',
+    'fixed_fee_help': 'Fixed commission added to the quote.',
+    'professional_receives': 'Professional receives',
+    'platform_fee': 'BlackSea Connect commission',
+    'owner_price': 'Owner price',
+    'quote': 'Quote',
+    'owner_approval': 'Owner approval',
+    'payment': 'Payment',
+    'payout': 'Payout',
+    'quote_locked': 'Quote is locked',
+    'locked_help': 'Values cannot be edited after payment.',
+    'save_quote': 'Save quote',
+    'automatic_total': 'The final price is calculated automatically.',
+    'send_quote': 'Send quote to owner',
+    'send_quote_help': 'The price will be locked after sending.',
+    'return_draft': 'Return to draft',
+    'return_draft_help': 'Use only when the quote needs to be corrected.',
+
+    'completion': 'Completion report',
+    'completion_title': 'Final confirmation from the professional',
+    'work_done': 'Work completed',
+    'materials': 'Materials used',
+    'time_spent': 'Time spent',
+    'recommendations': 'Recommendations',
+    'follow_up': 'Follow-up required',
+    'evidence': 'Evidence',
+    'not_recorded': 'Not recorded',
+    'evidence_available': 'Evidence is available in the files section.',
+    'no_completion': 'No completion report has been submitted yet.',
+    'no_assigned_professional': 'No professional has been assigned yet.',
+    'completion_after_assignment': 'The completion report will appear here after assignment.',
+
+    'assignment_card': 'Assignment card',
+    'name': 'Name',
+    'company': 'Company',
+    'phone': 'Phone',
+    'email': 'Email',
+    'service_category': 'Service category',
+    'not_defined': 'Not specified',
+    'not_defined_f': 'Not specified',
+    'copy_email': 'Copy email',
+    'email_missing': 'Email missing',
+    'copy_phone': 'Copy phone',
+    'phone_missing': 'Phone missing',
+    'no_assignee': 'No professional has been assigned yet.',
+
+    'linked_reservation': 'Linked reservation',
+    'reservation_reference': 'Reservation reference',
+    'stay': 'Stay',
+    'other_status': 'Other status',
+    'open_reservation': 'Open reservation',
+    'task_not_linked': 'This task is not linked to a reservation.',
+
+    'property_context': 'Property context',
+    'property_profile': 'Property operations profile',
+    'task_label': 'Task',
+    'location': 'Location',
+    'dispatch_context': 'Used for dispatch context.',
+    'configuration': 'Configuration',
+    'bedrooms': 'bedrooms',
+    'bathrooms': 'bathrooms',
+    'no_link': 'No link',
+    'capacity': 'Capacity',
+    'guests': 'guests',
+    'capacity_missing': 'Capacity is not recorded',
+    'reservation': 'Reservation',
+    'no_stay': 'No linked stay',
+    'standalone_operation': 'Standalone operation',
+    'owner_channel': 'Owner channel',
+    'no_contact': 'No visible contact',
+    'readiness': 'Readiness',
+    'ready': 'Ready',
+    'partial': 'Partial',
+    'unknown': 'Unknown',
+    'guide': 'Guide',
+    'access': 'Access',
+    'emergency_contact': 'Emergency contact',
+    'yes': 'yes',
+    'no': 'no',
+    'no_property_record': 'No linked property record',
+
+    'related_requests': 'Related requests',
+    'recent_requests': 'Recent service requests for this property',
+    'related_requests_aria': 'Related service requests',
+    'title': 'Title',
+    'category': 'Category',
+    'created': 'Created',
+    'other_task': 'Other task',
+    'no_related_requests': 'No related service requests yet.',
+
+    'internal_notes': 'Internal notes',
+    'admin_only_notes': 'Notes visible only to the admin team',
+    'note_type': 'Note type',
+    'general': 'General',
+    'urgent_note': 'Urgent',
+    'owner': 'Owner',
+    'completion_note': 'Completion',
+    'add_comment': 'Add comment',
+    'comment_placeholder': 'Add a private comment for the operations team',
+    'admin': 'Admin',
+    'other_note': 'Other note',
+    'operations': 'Operations',
+    'no_comments': 'No internal comments yet.',
+
+    'timeline': 'Timeline',
+    'operational_activity': 'Operations activity',
+    'task_updated': 'Task updated',
+    'assignment': 'Assignment',
+    'assignment_change': 'Assignment change recorded for',
+    'created_board': 'The request was created and added to the operations board.',
+    'overdue_detected': 'An SLA breach was detected and the task requires attention.',
+    'internal_note_added': 'An internal operations note was added.',
+    'note_added': 'A note was added to the task.',
+    'checklist_updated': 'The execution checklist was updated.',
+    'professional_assigned': 'A professional was assigned.',
+    'status_changed': 'Task status changed to',
+    'task_completed': 'The task was completed.',
+    'task_archived': 'The task was archived.',
+    'no_timeline': 'No timeline entries yet.',
+
+    'no_due': 'No due date',
+    'due_missing': 'No due date is set.',
+    'completed_on_time': 'Completed on time',
+    'completed_before_due': 'The task was completed before the deadline.',
+    'completed_late': 'Completed late',
+    'overdue': 'Overdue',
+    'due_not_reached': 'The deadline has not been reached yet.',
+    'remaining': 'Remaining',
+    'late_word': 'late',
+    'day': 'day',
+    'days': 'days',
+    'hour': 'hour',
+    'hours': 'hours',
+    'copied': 'Copied',
+    'copy_failed': 'Clipboard copy failed',
+    'hide': 'Hide',
+    'show': 'Show'
+  },
+
+  'fr': {
+    'done': 'Terminé',
+    'pending': 'À faire',
+    'save_progress': 'Enregistrer l’avancement',
+    'context_aria': 'Bien, voyageur et prestataire',
+    'property': 'Bien',
+    'guest': 'Voyageur',
+    'professional': 'Prestataire',
+    'location_missing': 'Localisation non renseignée',
+    'not_set': 'Non renseigné',
+    'no_guest': 'Aucun voyageur associé',
+    'no_reservation': 'Cette tâche n’est liée à aucune réservation',
+    'linked_profile': 'Profil prestataire associé',
+    'assignment_required': 'Attribution nécessaire',
+    'task_actions': 'Actions de la tâche',
+    'next_action': 'Prochaine action',
+    'review_evidence': 'Vérifier les justificatifs',
+    'update_progress': 'Mettre à jour l’avancement',
+    'assign_professional': 'Attribuer un prestataire',
+    'save_changes': 'Enregistrer les modifications',
+    'to_checklist': 'Voir la checklist',
+    'open_calendar': 'Ouvrir le calendrier',
+    'open_request': 'Ouvrir la demande',
+
+    'controls': 'Contrôles opérationnels',
+    'assignment_panel': 'Attribution',
+    'available_professionals': 'Prestataires disponibles',
+    'one_available': 'Un prestataire approuvé est disponible.',
+    'many_available': 'Des prestataires approuvés ou actifs sont disponibles.',
+    'state': 'État',
+    'assigned_state': 'Attribuée',
+    'open_state': 'Ouverte',
+    'assignment_moves_status': 'L’attribution fera passer les nouvelles tâches au statut attribué.',
+    'assignment_keeps_status': 'Le statut actuel est conservé lors d’une attribution rapide.',
+    'confirm_ai': 'Confirmer et attribuer la recommandation IA n°1',
+    'no_professionals': 'Aucun prestataire approuvé ou actif n’est disponible.',
+    'assigned': 'Attribué',
+    'reassign': 'Réattribuer',
+    'assign': 'Attribuer',
+    'status': 'Statut',
+    'assigned_professional': 'Prestataire attribué',
+    'unassigned': 'Non attribuée',
+    'priority': 'Priorité',
+    'due_date': 'Échéance',
+    'admin_notes': 'Notes admin',
+    'admin_notes_placeholder': 'Notes privées pour l’équipe des opérations',
+    'other_service': 'Autre service',
+
+    'finance': 'Finance',
+    'finance_title': 'Devis et paiement via la plateforme',
+    'finance_notice_title': 'Le paiement passe uniquement par BlackSea Connect',
+    'finance_notice_text': 'Les montants seront verrouillés après approbation et paiement du propriétaire.',
+    'professional_quote': 'Devis du prestataire',
+    'currency': 'Devise',
+    'professional_quote_help': 'Le montant que le prestataire souhaite recevoir.',
+    'fee_type': 'Type de commission',
+    'fixed_amount': 'Montant fixe',
+    'percent': 'Pourcentage',
+    'fee_type_help': 'Défini uniquement par l’administration.',
+    'fee_value': 'Valeur de la commission',
+    'fixed_fee_help': 'Commission fixe ajoutée au devis.',
+    'professional_receives': 'Le prestataire reçoit',
+    'platform_fee': 'Commission BlackSea Connect',
+    'owner_price': 'Prix propriétaire',
+    'quote': 'Devis',
+    'owner_approval': 'Approbation du propriétaire',
+    'payment': 'Paiement',
+    'payout': 'Versement',
+    'quote_locked': 'Le devis est verrouillé',
+    'locked_help': 'Les montants ne peuvent plus être modifiés après paiement.',
+    'save_quote': 'Enregistrer le devis',
+    'automatic_total': 'Le prix final est calculé automatiquement.',
+    'send_quote': 'Envoyer le devis au propriétaire',
+    'send_quote_help': 'Le prix sera verrouillé après l’envoi.',
+    'return_draft': 'Repasser en brouillon',
+    'return_draft_help': 'À utiliser uniquement si le devis doit être corrigé.',
+
+    'completion': 'Rapport de fin d’intervention',
+    'completion_title': 'Confirmation finale du prestataire',
+    'work_done': 'Travail effectué',
+    'materials': 'Matériaux utilisés',
+    'time_spent': 'Temps consacré',
+    'recommendations': 'Recommandations',
+    'follow_up': 'Suivi nécessaire',
+    'evidence': 'Justificatifs',
+    'not_recorded': 'Non renseigné',
+    'evidence_available': 'Les justificatifs sont disponibles dans la section des fichiers.',
+    'no_completion': 'Aucun rapport de fin d’intervention n’a encore été envoyé.',
+    'no_assigned_professional': 'Aucun prestataire n’est encore attribué.',
+    'completion_after_assignment': 'Le rapport de fin d’intervention apparaîtra ici après attribution.',
+
+    'assignment_card': 'Fiche d’attribution',
+    'name': 'Nom',
+    'company': 'Entreprise',
+    'phone': 'Téléphone',
+    'email': 'E-mail',
+    'service_category': 'Catégorie de service',
+    'not_defined': 'Non renseigné',
+    'not_defined_f': 'Non renseignée',
+    'copy_email': 'Copier l’e-mail',
+    'email_missing': 'E-mail manquant',
+    'copy_phone': 'Copier le téléphone',
+    'phone_missing': 'Téléphone manquant',
+    'no_assignee': 'Aucun prestataire n’est encore attribué.',
+
+    'linked_reservation': 'Réservation associée',
+    'reservation_reference': 'Référence de réservation',
+    'stay': 'Séjour',
+    'other_status': 'Autre statut',
+    'open_reservation': 'Ouvrir la réservation',
+    'task_not_linked': 'Cette tâche n’est liée à aucune réservation.',
+
+    'property_context': 'Contexte du bien',
+    'property_profile': 'Profil opérationnel du bien',
+    'task_label': 'Tâche',
+    'location': 'Localisation',
+    'dispatch_context': 'Utilisée pour le contexte de dispatch.',
+    'configuration': 'Configuration',
+    'bedrooms': 'chambres',
+    'bathrooms': 'salles de bain',
+    'no_link': 'Aucun lien',
+    'capacity': 'Capacité',
+    'guests': 'voyageurs',
+    'capacity_missing': 'Capacité non renseignée',
+    'reservation': 'Réservation',
+    'no_stay': 'Aucun séjour associé',
+    'standalone_operation': 'Opération indépendante',
+    'owner_channel': 'Contact propriétaire',
+    'no_contact': 'Aucun contact visible',
+    'readiness': 'Préparation',
+    'ready': 'Prêt',
+    'partial': 'Partiel',
+    'unknown': 'Inconnu',
+    'guide': 'Guide',
+    'access': 'Accès',
+    'emergency_contact': 'Contact d’urgence',
+    'yes': 'oui',
+    'no': 'non',
+    'no_property_record': 'Aucune fiche de bien associée',
+
+    'related_requests': 'Demandes associées',
+    'recent_requests': 'Dernières demandes de service pour ce bien',
+    'related_requests_aria': 'Demandes de service associées',
+    'title': 'Titre',
+    'category': 'Catégorie',
+    'created': 'Créée',
+    'other_task': 'Autre tâche',
+    'no_related_requests': 'Aucune demande de service associée.',
+
+    'internal_notes': 'Notes internes',
+    'admin_only_notes': 'Notes réservées à l’équipe admin',
+    'note_type': 'Type de note',
+    'general': 'Générale',
+    'urgent_note': 'Urgente',
+    'owner': 'Propriétaire',
+    'completion_note': 'Clôture',
+    'add_comment': 'Ajouter un commentaire',
+    'comment_placeholder': 'Ajouter un commentaire privé pour l’équipe des opérations',
+    'admin': 'Admin',
+    'other_note': 'Autre note',
+    'operations': 'Opérations',
+    'no_comments': 'Aucun commentaire interne.',
+
+    'timeline': 'Historique',
+    'operational_activity': 'Activité opérationnelle',
+    'task_updated': 'Tâche mise à jour',
+    'assignment': 'Attribution',
+    'assignment_change': 'Modification d’attribution enregistrée pour',
+    'created_board': 'La demande a été créée et ajoutée au tableau des opérations.',
+    'overdue_detected': 'Un dépassement SLA a été détecté et la tâche nécessite une attention.',
+    'internal_note_added': 'Une note opérationnelle interne a été ajoutée.',
+    'note_added': 'Une note a été ajoutée à la tâche.',
+    'checklist_updated': 'La checklist d’exécution a été mise à jour.',
+    'professional_assigned': 'Un prestataire a été attribué.',
+    'status_changed': 'Le statut de la tâche est passé à',
+    'task_completed': 'La tâche est terminée.',
+    'task_archived': 'La tâche est archivée.',
+    'no_timeline': 'Aucune entrée dans l’historique.',
+
+    'no_due': 'Sans échéance',
+    'due_missing': 'Aucune échéance définie.',
+    'completed_on_time': 'Terminée dans les délais',
+    'completed_before_due': 'La tâche a été terminée avant l’échéance.',
+    'completed_late': 'Terminée en retard',
+    'overdue': 'En retard',
+    'due_not_reached': 'L’échéance n’est pas encore atteinte.',
+    'remaining': 'Reste',
+    'late_word': 'de retard',
+    'day': 'jour',
+    'days': 'jours',
+    'hour': 'heure',
+    'hours': 'heures',
+    'copied': 'Copié',
+    'copy_failed': 'Échec de la copie dans le presse-papiers',
+    'hide': 'Masquer',
+    'show': 'Afficher'
+  }
+} %}
+{% set od = operations_detail_ui.get(page_lang, operations_detail_ui['en']) %}
+
+  {% set severity_label = work_order_copy.severity_red if severity_tone == 'red' else (work_order_copy.severity_yellow if severity_tone == 'yellow' else (work_order_copy.severity_neutral if severity_tone == 'neutral' else work_order_copy.severity_green)) %}
+
   <main class="admin-operations-detail-shell">
     <section class="admin-operations-detail-hero bsc-page-header">
       <div>
-        <p class="eyebrow">Работна задача</p>
+        <p class="eyebrow">{{ work_order_copy.work_order }}</p>
         <h1>{{ task_display_title|e }}</h1>
-        {% if task.title and task_display_title != task.title %}<small class="admin-work-order-technical-name">Системно име: {{ task.title|e }}</small>{% endif %}
-        <div class="admin-work-order-brief" aria-label="Най-важното за задачата">
-          <span class="admin-work-order-brief__item"><strong>Къде:</strong> {{ task_property_label|e }}</span>
-          <span class="admin-work-order-brief__item{% if task_open_overdue or task.priority == 'URGENT' %} admin-work-order-brief__item--urgent{% endif %}"><strong>До:</strong> {{ bg_datetime(task.due_date) if task_sla_has_due else 'Няма зададен срок' }}</span>
-          <span class="admin-work-order-brief__item{% if severity_tone == 'red' %} admin-work-order-brief__item--urgent{% endif %}"><strong>Спешност:</strong> {{ task_priority_label|e }}</span>
+        {% if task.title and task_display_title != task.title %}<small class="admin-work-order-technical-name">{{ work_order_copy.system_name }}: {{ task.title|e }}</small>{% endif %}
+        <div class="admin-work-order-brief" aria-label="{{ work_order_copy.brief_aria }}">
+          <span class="admin-work-order-brief__item"><strong>{{ work_order_copy.where }}:</strong> {{ task_property_label|e }}</span>
+          <span class="admin-work-order-brief__item{% if task_open_overdue or task.priority == 'URGENT' %} admin-work-order-brief__item--urgent{% endif %}"><strong>{{ work_order_copy.due }}:</strong> {{ bg_datetime(task.due_date) if task_sla_has_due else work_order_copy.no_due }}</span>
+          <span class="admin-work-order-brief__item{% if severity_tone == 'red' %} admin-work-order-brief__item--urgent{% endif %}"><strong>{{ work_order_copy.urgency }}:</strong> {{ task_priority_label|e }}</span>
         </div>
       </div>
     </section>
 
     <section class="admin-work-order-objective" aria-labelledby="task-objective-title">
-      <p class="eyebrow">Какво трябва да се направи</p>
-      <h2 id="task-objective-title">Цел на задачата</h2>
+      <p class="eyebrow">{{ work_order_copy.objective_eyebrow }}</p>
+      <h2 id="task-objective-title">{{ work_order_copy.objective_title }}</h2>
       <p>{{ task_objective|e }}</p>
     </section>
 
     <article class="admin-operations-detail-panel admin-work-order-checklist" id="operations-checklist">
-      <p class="eyebrow">Основна работа</p>
-      <h2 class="admin-operations-section-title">Чеклист / Стъпки за изпълнение</h2>
+      <p class="eyebrow">{{ work_order_copy.main_work }}</p>
+      <h2 class="admin-operations-section-title">{{ work_order_copy.checklist_title }}</h2>
+
       <div class="admin-operations-progress">
-        <strong>{{ checklist_completed_count }} от {{ checklist_total_count }} стъпки са изпълнени · {{ checklist_percentage }}%</strong>
-        <div class="admin-operations-progress__bar" aria-label="Завършеност на чеклиста">
+        <strong>{{ checklist_completed_count }} / {{ checklist_total_count }} {{ work_order_copy.steps_completed }} · {{ checklist_percentage }}%</strong>
+        <div class="admin-operations-progress__bar" aria-label="{{ work_order_copy.checklist_progress }}">
           <span style="width: {{ checklist_percentage }}%;"></span>
         </div>
       </div>
+
       {% if ai_triage %}
-      <section class="admin-operations-ai" aria-label="AI triage recommendation">
+      <section class="admin-operations-ai" aria-label="{{ work_order_copy.ai_review_title }}">
         <div class="admin-operations-ai__header">
           <div>
-            <span class="admin-operations-ai__eyebrow">AI АНАЛИЗ</span>
-            <h2>Препоръка за човешки преглед</h2>
+            <span class="admin-operations-ai__eyebrow">{{ work_order_copy.ai_analysis }}</span>
+            <h2>{{ work_order_copy.ai_review_title }}</h2>
           </div>
           {% if ai_triage.needs_human_review %}
-          <span class="admin-operations-ai__review">Изисква човешки преглед</span>
+          <span class="admin-operations-ai__review">{{ work_order_copy.human_review }}</span>
           {% endif %}
         </div>
 
         <div class="admin-operations-ai__meta">
           <span>{{ ai_triage.category|e }}</span>
           <span>{{ ai_triage.urgency|e }}</span>
-          <span>{{ (ai_triage.confidence * 100)|round|int }}% увереност</span>
+          <span>{{ (ai_triage.confidence * 100)|round|int }}% {{ work_order_copy.confidence }}</span>
         </div>
 
         <div class="admin-operations-ai__comparison">
           <div>
-            <small>Текуща задача</small>
+            <small>{{ work_order_copy.current_task }}</small>
             <strong>{{ task.category|e }} · {{ task_priority_label|e }}</strong>
           </div>
           <div>
-            <small>AI препоръка</small>
+            <small>{{ work_order_copy.ai_recommendation }}</small>
             <strong>{{ ai_triage.category|e }} · {{ ai_triage.urgency|e }}</strong>
           </div>
         </div>
 
         <div class="admin-operations-ai__body">
           <div>
-            <small>AI обобщение</small>
+            <small>{{ work_order_copy.ai_summary }}</small>
             <p>{{ ai_triage.summary|e }}</p>
           </div>
           <div>
-            <small>Препоръчано следващо действие</small>
+            <small>{{ work_order_copy.next_action }}</small>
             <p>{{ ai_triage.suggested_next_action|e }}</p>
           </div>
         </div>
 
         <p class="admin-operations-ai__notice">
-          AI не променя автоматично приоритета и не възлага професионалист. Решението остава при администратора.
+          {{ work_order_copy.ai_notice }}
         </p>
       </section>
       {% endif %}
@@ -3190,47 +3878,47 @@
                 <span>{{ checklist_labels.get(item.key, item.label)|e }}</span>
               </label>
               {% if item.checked %}
-                <span class="admin-operations-severity-chip admin-operations-severity-chip--green">Готово</span>
+                <span class="admin-operations-severity-chip admin-operations-severity-chip--green">{{ od.done }}</span>
               {% else %}
-                <span class="admin-operations-severity-chip admin-operations-severity-chip--yellow">Предстои</span>
+                <span class="admin-operations-severity-chip admin-operations-severity-chip--yellow">{{ od.pending }}</span>
               {% endif %}
             </div>
           {% endfor %}
         </div>
-        <button class="button button--primary" type="submit">Запази напредъка</button>
+        <button class="button button--primary" type="submit">{{ od.save_progress }}</button>
       </form>
     </article>
 
-    <section class="admin-work-order-context" aria-label="Имот, гост и професионалист">
+    <section class="admin-work-order-context" aria-label="{{ od.context_aria }}">
       <article class="admin-work-order-context__card">
-        <span>Имот</span>
+        <span>{{ od.property }}</span>
         <strong>{{ task_property_label|e }}</strong>
-        <small>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Локацията не е зададена{% endif %}</small>
+        <small>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}{{ od.location_missing }}{% endif %}</small>
       </article>
       <article class="admin-work-order-context__card">
-        <span>Гост</span>
-        <strong>{% if linked_reservation %}{{ linked_reservation.guest_name|e or 'Не е зададен' }}{% else %}Няма свързан гост{% endif %}</strong>
-        <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} – {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}Задачата не е свързана с резервация{% endif %}</small>
+        <span>{{ od.guest }}</span>
+        <strong>{% if linked_reservation %}{{ linked_reservation.guest_name|e or od.not_set }}{% else %}{{ od.no_guest }}{% endif %}</strong>
+        <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} – {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}{{ od.no_reservation }}{% endif %}</small>
       </article>
       <article class="admin-work-order-context__card">
-        <span>Професионалист</span>
+        <span>{{ od.professional }}</span>
         <strong>{{ task_assignee_label|e }}</strong>
-        <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or 'Свързан професионален профил' }}{% else %}Необходимо е възлагане{% endif %}</small>
+        <small>{% if assigned_professional_account %}{{ assigned_professional_account.company|e or od.linked_profile }}{% else %}{{ od.assignment_required }}{% endif %}</small>
       </article>
     </section>
 
-    <section class="admin-operations-sticky-bar" aria-label="Действия за задачата">
+    <section class="admin-operations-sticky-bar" aria-label="{{ od.task_actions }}">
       <div class="admin-operations-sticky-bar__grid">
         <div class="admin-operations-sticky-bar__meta">
-          <span>Следващо действие</span>
-          <strong>{% if task_is_closed %}Прегледайте доказателствата{% elif task.is_assigned %}Обновете напредъка{% else %}Възложете професионалист{% endif %}</strong>
+          <span>{{ od.next_action }}</span>
+          <strong>{% if task_is_closed %}{{ od.review_evidence }}{% elif task.is_assigned %}{{ od.update_progress }}{% else %}{{ od.assign_professional }}{% endif %}</strong>
         </div>
         <div class="admin-operations-sticky-bar__actions">
-          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">Запази промените</button>
-          <a class="button button--secondary" href="#operations-checklist">Към чеклиста</a>
-          <a class="button button--ghost" href="/admin/calendar">Отвори календар</a>
+          <button class="button button--primary" type="submit" form="admin-operations-assignment-form">{{ od.save_changes }}</button>
+          <a class="button button--secondary" href="#operations-checklist">{{ od.to_checklist }}</a>
+          <a class="button button--ghost" href="/admin/calendar">{{ od.open_calendar }}</a>
           {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
-            <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">Отвори заявката</a>
+            <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">{{ od.open_request }}</a>
           {% endif %}
         </div>
       </div>
@@ -3264,20 +3952,20 @@
 
 
         <article class="admin-operations-detail-panel" id="operations-assignment">
-          <p class="eyebrow">Оперативни контроли</p>
-          <h2 class="admin-operations-section-title">Панел за възлагане</h2>
+          <p class="eyebrow">{{ od.controls }}</p>
+          <h2 class="admin-operations-section-title">{{ od.assignment_panel }}</h2>
           {% if status_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ status_error|e }}</p>{% endif %}
           {% if assignment_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ assignment_error|e }}</p>{% endif %}
           <div class="admin-operations-control-grid u-mb-14">
             <div class="admin-operations-control-card">
-              <span>Налични професионалисти</span>
+              <span>{{ od.available_professionals }}</span>
               <strong>{{ assignment_recommendation.available_count }}</strong>
-              <small>{% if assignment_recommendation.available_count == 1 %}Наличен е един одобрен изпълнител.{% else %}Налични са одобрени или активни изпълнители.{% endif %}</small>
+              <small>{% if assignment_recommendation.available_count == 1 %}{{ od.one_available }}{% else %}{{ od.many_available }}{% endif %}</small>
             </div>
             <div class="admin-operations-control-card">
-              <span>Състояние</span>
+              <span>{{ od.state }}</span>
               <strong>{% if task.is_assigned %}Възложена{% else %}Отворена{% endif %}</strong>
-              <small>{% if not task.is_assigned %}Възлагането ще премести новите задачи в статус възложена.{% else %}Текущият статус се запазва при бързо възлагане.{% endif %}</small>
+              <small>{% if not task.is_assigned %}{{ od.assignment_moves_status }}{% else %}{{ od.assignment_keeps_status }}{% endif %}</small>
             </div>
           </div>
 
@@ -3502,13 +4190,13 @@
               <input type="hidden" name="priority" value="{{ task.priority|e }}">
               <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
               <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
-              <button class="button button--primary" type="submit">Потвърди и възложи на AI препоръка #1</button>
+              <button class="button button--primary" type="submit">{{ od.confirm_ai }}</button>
             </form>
           {% endif %}
-          <p class="eyebrow">Налични професионалисти</p>
+          <p class="eyebrow">{{ od.available_professionals }}</p>
           <div class="admin-operations-pro-grid u-mb-14">
             {% if assignment_recommendation.available_count == 0 %}
-              <p class="admin-operations-empty">Няма одобрени или активни професионалисти в текущия списък.</p>
+              <p class="admin-operations-empty">{{ od.no_professionals }}</p>
             {% endif %}
             {% for professional in professional_accounts %}
               {% set professional_status = professional.status|default('')|upper %}
@@ -3520,11 +4208,11 @@
                       <span class="admin-operations-chip">{{ professional_status_labels.get(professional_status, professional_status)|e }}</span>
                       {% if professional.company %}<span class="admin-operations-chip">{{ professional.company|e }}</span>{% endif %}
                       {% if professional.city %}<span class="admin-operations-chip">{{ professional.city|e }}</span>{% endif %}
-                      {% if professional.service_categories %}<span class="admin-operations-chip">{{ category_labels.get(professional.service_categories|upper, 'Друга услуга') }}</span>{% endif %}
+                      {% if professional.service_categories %}<span class="admin-operations-chip">{{ category_labels.get(professional.service_categories|upper, od.other_service) }}</span>{% endif %}
                     </div>
                   </div>
                   {% if task.is_assigned and task.assigned_professional_id == professional.id %}
-                    <span class="admin-operations-chip">Възложен</span>
+                    <span class="admin-operations-chip">{{ od.assigned }}</span>
                   {% else %}
                     <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.id|e }}">
                       <input type="hidden" name="task_action" value="details">
@@ -3533,7 +4221,7 @@
                       <input type="hidden" name="priority" value="{{ task.priority|e }}">
                       <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
                       <textarea name="admin_notes" hidden>{{ task.admin_notes|e }}</textarea>
-                      <button class="button button--secondary" type="submit">{% if task.is_assigned %}Превъзложи{% else %}Възложи{% endif %}</button>
+                      <button class="button button--secondary" type="submit">{% if task.is_assigned %}{{ od.reassign }}{% else %}{{ od.assign }}{% endif %}</button>
                     </form>
                   {% endif %}
                 </div>
@@ -3543,7 +4231,7 @@
           <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="details">
             <label>
-              <span>Статус</span>
+              <span>{{ od.status }}</span>
               <select name="status" required>
                 {% for option in status_options %}
                   <option value="{{ option.value|e }}" {% if task.status == option.value %}selected{% endif %}>{{ status_labels.get(option.value, option.label)|e }}</option>
@@ -3551,16 +4239,16 @@
               </select>
             </label>
             <label>
-              <span>Възложен професионалист</span>
+              <span>{{ od.assigned_professional }}</span>
               <select name="assigned_professional_id">
-                <option value="">Не е възложена</option>
+                <option value="">{{ od.unassigned }}</option>
                 {% for professional in professional_accounts %}
                   <option value="{{ professional.id|e }}" {% if task.assigned_professional_id == professional.id %}selected{% endif %}>{{ professional.full_name|e }}{% if professional.company %} / {{ professional.company|e }}{% endif %}</option>
                 {% endfor %}
               </select>
             </label>
             <label>
-              <span>Приоритет</span>
+              <span>{{ od.priority }}</span>
               <select name="priority">
                 {% for option in ["LOW", "NORMAL", "HIGH", "URGENT"] %}
                   <option value="{{ option|e }}" {% if task.priority == option %}selected{% endif %}>{{ priority_labels.get(option, option)|e }}</option>
@@ -3568,12 +4256,12 @@
               </select>
             </label>
             <label>
-              <span>Краен срок</span>
+              <span>{{ od.due_date }}</span>
               <input type="date" name="due_date" value="{{ task.due_date|e }}">
             </label>
             <label>
-              <span>Админ бележки</span>
-              <textarea name="admin_notes" placeholder="Частни бележки за оперативния екип">{{ task.admin_notes|e }}</textarea>
+              <span>{{ od.admin_notes }}</span>
+              <textarea name="admin_notes" placeholder="{{ od.admin_notes_placeholder }}">{{ task.admin_notes|e }}</textarea>
             </label>
           </form>
         </article>
@@ -3656,12 +4344,12 @@
 
                 <!-- BSC_FINANCE_UI_V1 -->
         <article class="admin-operations-detail-panel bsc-finance-panel" id="operations-finance">
-          <p class="eyebrow">Финанси</p>
-          <h2 class="admin-operations-section-title">Оферта и плащане през платформата</h2>
+          <p class="eyebrow">{{ od.finance }}</p>
+          <h2 class="admin-operations-section-title">{{ od.finance_title }}</h2>
 
           <div class="bsc-finance-notice">
-            <strong>Плащането минава само през BlackSea Connect</strong>
-            <span>Сумите ще бъдат заключени след одобрение и плащане от собственика.</span>
+            <strong>{{ od.finance_notice_title }}</strong>
+            <span>{{ od.finance_notice_text }}</span>
           </div>
 
           <dl class="admin-operations-dl">
@@ -3687,51 +4375,51 @@
 
           <div class="bsc-finance-form-grid">
             <label>
-              <span>Оферта на професионалиста</span>
+              <span>{{ od.professional_quote }}</span>
               <div class="bsc-finance-money-input">
                 <input type="number" name="professional_quote_amount" min="0" step="0.01" value="{{ '%.2f'|format(task.professional_quote_amount or 0) }}" data-finance-quote {% if task.quote_locked %}disabled{% endif %}>
-                <select name="currency" data-finance-currency aria-label="Валута" {% if task.quote_locked %}disabled{% endif %}>
+                <select name="currency" data-finance-currency aria-label="{{ od.currency }}" {% if task.quote_locked %}disabled{% endif %}>
                   <option value="EUR" {% if task.currency == 'EUR' %}selected{% endif %}>EUR</option>
                   <option value="BGN" {% if task.currency == 'BGN' %}selected{% endif %}>BGN</option>
                 </select>
               </div>
-              <small>Цената, която професионалистът иска да получи.</small>
+              <small>{{ od.professional_quote_help }}</small>
             </label>
 
             <label>
-              <span>Тип комисиона</span>
+              <span>{{ od.fee_type }}</span>
               <select name="platform_fee_type" data-finance-fee-type {% if task.quote_locked %}disabled{% endif %}>
-                <option value="FIXED" {% if task.platform_fee_type == 'FIXED' %}selected{% endif %}>Фиксирана сума</option>
-                <option value="PERCENT" {% if task.platform_fee_type == 'PERCENT' %}selected{% endif %}>Процент</option>
+                <option value="FIXED" {% if task.platform_fee_type == 'FIXED' %}selected{% endif %}>{{ od.fixed_amount }}</option>
+                <option value="PERCENT" {% if task.platform_fee_type == 'PERCENT' %}selected{% endif %}>{{ od.percent }}</option>
               </select>
-              <small>Определя се само от администрацията.</small>
+              <small>{{ od.fee_type_help }}</small>
             </label>
 
             <label>
-              <span>Стойност на комисионата</span>
+              <span>{{ od.fee_value }}</span>
               <input type="number" name="platform_fee_value" min="0" step="0.01" value="{{ '%.2f'|format(task.platform_fee_value or 0) }}" data-finance-fee {% if task.quote_locked %}disabled{% endif %}>
-              <small data-finance-fee-hint>Фиксирана комисиона към офертата.</small>
+              <small data-finance-fee-hint>{{ od.fixed_fee_help }}</small>
             </label>
           </div>
 
           <div class="bsc-finance-summary">
             <div>
-              <span>Професионалистът получава</span>
+              <span>{{ od.professional_receives }}</span>
               <strong data-finance-professional-total>{{ '%.2f'|format(task.professional_quote_amount or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
             <div>
-              <span>Комисиона BlackSea Connect</span>
+              <span>{{ od.platform_fee }}</span>
               <strong data-finance-platform-fee>{{ '%.2f'|format(task.platform_fee_value or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
             <div class="bsc-finance-summary__owner">
-              <span>Цена към собственика</span>
+              <span>{{ od.owner_price }}</span>
               <strong data-finance-owner-total>{{ '%.2f'|format(task.owner_total_amount or 0) }} {{ task.currency or 'EUR' }}</strong>
             </div>
           </div>
 
           <div class="bsc-finance-status-grid">
             <div>
-              <span>Оферта</span>
+              <span>{{ od.quote }}</span>
               <strong class="admin-operations-severity-chip admin-operations-severity-chip--yellow">
   {% if task.quote_status == 'SENT' %}
     {{ finance_copy.quote_sent }}
@@ -3747,7 +4435,7 @@
 </strong>
             </div>
             <div>
-  <span>Одобрение от собственик</span>
+  <span>{{ od.owner_approval }}</span>
 
   {% if task.owner_approval_status == 'APPROVED' %}
     <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
@@ -3769,7 +4457,7 @@
 </div>
 
 <div>
-  <span>Плащане</span>
+  <span>{{ od.payment }}</span>
 
   {% if task.payment_status == 'PAID' %}
     <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
@@ -3783,7 +4471,7 @@
 </div>
 
 <div>
-  <span>Изплащане</span>
+  <span>{{ od.payout }}</span>
 
   {% if task.payout_status == 'PAID' %}
     <strong class="admin-operations-severity-chip admin-operations-severity-chip--green">
@@ -3803,11 +4491,11 @@
 
           <div class="bsc-finance-actions">
             {% if task.quote_locked %}
-              <button class="button button--primary" type="button" disabled>Офертата е заключена</button>
-              <small>След плащане стойностите не могат да се редактират.</small>
+              <button class="button button--primary" type="button" disabled>{{ od.quote_locked }}</button>
+              <small>{{ od.locked_help }}</small>
             {% else %}
-              <button class="button button--primary" type="submit">Запази офертата</button>
-              <small>Крайната цена се изчислява автоматично от системата.</small>
+              <button class="button button--primary" type="submit">{{ od.save_quote }}</button>
+              <small>{{ od.automatic_total }}</small>
             {% endif %}
           </div>
           </form>
@@ -3815,17 +4503,17 @@
             <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_send">
               <button class="button button--primary" type="submit">
-                Изпрати офертата към собственика
+                {{ od.send_quote }}
               </button>
-              <small>След изпращане цената ще бъде заключена.</small>
+              <small>{{ od.send_quote_help }}</small>
             </form>
           {% elif task.quote_status == 'SENT' %}
             <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_reopen">
               <button class="button" type="submit">
-                Върни в чернова
+                {{ od.return_draft }}
               </button>
-              <small>Използвайте само когато офертата трябва да бъде коригирана.</small>
+              <small>{{ od.return_draft_help }}</small>
             </form>
           {% endif %}
 
@@ -3890,146 +4578,146 @@
           {% endif %}
 </article>
 <article class="admin-operations-detail-panel admin-operations-completion-highlight">
-          <p class="eyebrow">Отчет за завършване</p>
+          <p class="eyebrow">{{ od.completion }}</p>
           {% if task.is_assigned %}
-            <h2 class="admin-operations-section-title">Финално потвърждение от професионалиста</h2>
+            <h2 class="admin-operations-section-title">{{ od.completion_title }}</h2>
             {% if completion_report and (completion_report.completed_work or completion_report.materials_used or completion_report.recommendations or completion_report.follow_up_needed or completion_report.notes) %}
               <dl class="admin-operations-dl">
-                <div><dt>Извършена работа</dt><dd>{{ completion_report.completed_work|e or 'Не е записано' }}</dd></div>
-                <div><dt>Използвани материали</dt><dd>{{ completion_report.materials_used|e or 'Не е записано' }}</dd></div>
-                <div><dt>Отделено време</dt><dd>{{ completion_report.time_spent_minutes|e or 'Не е записано' }}</dd></div>
-                <div><dt>Препоръки</dt><dd>{{ completion_report.recommendations|e or 'Не е записано' }}</dd></div>
-                <div><dt>Нужни последващи действия</dt><dd>{{ completion_report.follow_up_needed|e or 'Не е записано' }}</dd></div>
-                <div><dt>Доказателства</dt><dd>Полето за доказателства е налично в секцията с файлове.</dd></div>
+                <div><dt>{{ od.work_done }}</dt><dd>{{ completion_report.completed_work|e or od.not_recorded }}</dd></div>
+                <div><dt>{{ od.materials }}</dt><dd>{{ completion_report.materials_used|e or od.not_recorded }}</dd></div>
+                <div><dt>{{ od.time_spent }}</dt><dd>{{ completion_report.time_spent_minutes|e or od.not_recorded }}</dd></div>
+                <div><dt>{{ od.recommendations }}</dt><dd>{{ completion_report.recommendations|e or od.not_recorded }}</dd></div>
+                <div><dt>{{ od.follow_up }}</dt><dd>{{ completion_report.follow_up_needed|e or od.not_recorded }}</dd></div>
+                <div><dt>{{ od.evidence }}</dt><dd>{{ od.evidence_available }}</dd></div>
               </dl>
             {% else %}
-              <p class="admin-operations-empty">Още няма подаден отчет за завършване.</p>
+              <p class="admin-operations-empty">{{ od.no_completion }}</p>
             {% endif %}
           {% else %}
-            <h2 class="admin-operations-section-title">Все още няма възложен професионалист.</h2>
-            <p class="admin-operations-empty">След възлагане тук ще се появи отчетът за приключване.</p>
+            <h2 class="admin-operations-section-title">{{ od.no_assigned_professional }}</h2>
+            <p class="admin-operations-empty">{{ od.completion_after_assignment }}</p>
           {% endif %}
         </article>
       </div>
 
       <aside class="admin-operations-sidebar">
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Карта на възлагането</p>
-          <h2 class="admin-operations-section-title">Възложен професионалист</h2>
+          <p class="eyebrow">{{ od.assignment_card }}</p>
+          <h2 class="admin-operations-section-title">{{ od.assigned_professional }}</h2>
           {% if assigned_professional_account %}
             <dl class="admin-operations-dl">
-              <div><dt>Име</dt><dd>{{ assigned_professional_account.full_name|e }}</dd></div>
-              <div><dt>Компания</dt><dd>{{ assigned_professional_account.company|e or 'Не е зададено' }}</dd></div>
-              <div><dt>Телефон</dt><dd>{{ assigned_professional_account.phone|e or 'Не е зададен' }}</dd></div>
-              <div><dt>Имейл</dt><dd>{{ assigned_professional_account.email|e or 'Не е зададен' }}</dd></div>
-              <div><dt>Категория услуга</dt><dd>{{ category_labels.get(assigned_professional_account.service_categories|upper, 'Друга услуга') if assigned_professional_account.service_categories else 'Не е зададена' }}</dd></div>
-              <div><dt>Статус</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ task_status_label|e }}</span></dd></div>
+              <div><dt>{{ od.name }}</dt><dd>{{ assigned_professional_account.full_name|e }}</dd></div>
+              <div><dt>{{ od.company }}</dt><dd>{{ assigned_professional_account.company|e or od.not_defined }}</dd></div>
+              <div><dt>{{ od.phone }}</dt><dd>{{ assigned_professional_account.phone|e or od.not_set }}</dd></div>
+              <div><dt>{{ od.email }}</dt><dd>{{ assigned_professional_account.email|e or od.not_set }}</dd></div>
+              <div><dt>{{ od.service_category }}</dt><dd>{{ category_labels.get(assigned_professional_account.service_categories|upper, od.other_service) if assigned_professional_account.service_categories else od.not_defined_f }}</dd></div>
+              <div><dt>{{ od.status }}</dt><dd><span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ task_status_label|e }}</span></dd></div>
             </dl>
             <div class="admin-operations-contact-actions u-mt-14">
               {% if assigned_professional_account.email %}
                 <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Имейл</a>
-                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">Копирай имейл</button>
+                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">{{ od.copy_email }}</button>
               {% else %}
-                <span class="button button--ghost is-disabled" aria-disabled="true">Имейл липсва</span>
-                <button class="button button--ghost" type="button" disabled>Копирай имейл</button>
+                <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.email_missing }}</span>
+                <button class="button button--ghost" type="button" disabled>{{ od.copy_email }}</button>
               {% endif %}
               {% if assigned_professional_account.phone %}
                 <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Телефон</a>
-                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">Копирай телефон</button>
+                <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">{{ od.copy_phone }}</button>
               {% else %}
-                <span class="button button--ghost is-disabled" aria-disabled="true">Телефон липсва</span>
-                <button class="button button--ghost" type="button" disabled>Копирай телефон</button>
+                <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.phone_missing }}</span>
+                <button class="button button--ghost" type="button" disabled>{{ od.copy_phone }}</button>
               {% endif %}
             </div>
           {% else %}
-            <p class="admin-operations-empty">Още няма възложен професионалист.</p>
+            <p class="admin-operations-empty">{{ od.no_assignee }}</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Свързана резервация</p>
-          <h2 class="admin-operations-section-title">Референция към резервация</h2>
+          <p class="eyebrow">{{ od.linked_reservation }}</p>
+          <h2 class="admin-operations-section-title">{{ od.reservation_reference }}</h2>
           {% if linked_reservation %}
             <dl class="admin-operations-dl">
-              <div><dt>Гост</dt><dd>{{ linked_reservation.guest_name|e }}</dd></div>
-              <div><dt>Имот</dt><dd>{{ linked_reservation.property_name|e }}</dd></div>
-              <div><dt>Статус</dt><dd>{{ request_status_labels.get(linked_reservation.status|upper, 'Друг статус') }}</dd></div>
-              <div><dt>Престой</dt><dd>{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}</dd></div>
+              <div><dt>{{ od.guest }}</dt><dd>{{ linked_reservation.guest_name|e }}</dd></div>
+              <div><dt>{{ od.property }}</dt><dd>{{ linked_reservation.property_name|e }}</dd></div>
+              <div><dt>{{ od.status }}</dt><dd>{{ request_status_labels.get(linked_reservation.status|upper, od.other_status) }}</dd></div>
+              <div><dt>{{ od.stay }}</dt><dd>{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}</dd></div>
             </dl>
             <div class="u-mt-14">
-              <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">Отвори резервацията</a>
+              <a class="button button--ghost" href="{{ localized_url('/admin/reservations/' ~ linked_reservation.id) }}">{{ od.open_reservation }}</a>
             </div>
           {% else %}
-            <p class="admin-operations-empty">Тази задача не е свързана с резервация.</p>
+            <p class="admin-operations-empty">{{ od.task_not_linked }}</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Контекст на имота</p>
-          <h2 class="admin-operations-section-title">Оперативен профил на имота</h2>
+          <p class="eyebrow">{{ od.property_context }}</p>
+          <h2 class="admin-operations-section-title">{{ od.property_profile }}</h2>
           {% set owner_email = owner_account.email if owner_account else task.owner_email %}
           {% set owner_phone = owner_account.phone if owner_account else task.owner_phone %}
           <div class="admin-operations-property-grid">
             <div class="admin-operations-property-tile">
-              <span>Имот</span>
-              <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or 'Не е зададен' }}{% endif %}</strong>
-              <small>{% if property_record and property_record.property_type %}{{ property_record.property_type|e }}{% else %}Задача: {{ task_category_label|e }}{% endif %}</small>
+              <span>{{ od.property }}</span>
+              <strong>{% if property_record %}{{ property_record.name|e }}{% else %}{{ task.property_name|e or od.not_set }}{% endif %}</strong>
+              <small>{% if property_record and property_record.property_type %}{{ property_record.property_type|e }}{% else %}{{ od.task_label }}: {{ task_category_label|e }}{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Локация</span>
+              <span>{{ od.location }}</span>
               <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Не е зададена{% endif %}</strong>
-              <small>Използва се за диспечерски контекст.</small>
+              <small>{{ od.dispatch_context }}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Конфигурация</span>
-              <strong>{% if property_record %}{{ property_record.bedrooms|e or '0' }} спални / {{ property_record.bathrooms|e or '0' }} бани{% else %}Няма връзка{% endif %}</strong>
-              <small>{% if property_record and property_record.guest_capacity %}Капацитет {{ property_record.guest_capacity|e }} гости{% else %}Капацитетът не е записан{% endif %}</small>
+              <span>{{ od.configuration }}</span>
+              <strong>{% if property_record %}{{ property_record.bedrooms|e or '0' }} {{ od.bedrooms }} / {{ property_record.bathrooms|e or '0' }} {{ od.bathrooms }}{% else %}{{ od.no_link }}{% endif %}</strong>
+              <small>{% if property_record and property_record.guest_capacity %}{{ od.capacity }} {{ property_record.guest_capacity|e }} {{ od.guests }}{% else %}{{ od.capacity_missing }}{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Резервация</span>
-              <strong>{% if linked_reservation %}{{ request_status_labels.get(linked_reservation.status|upper, 'Друг статус') }}{% else %}Няма свързан престой{% endif %}</strong>
-              <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}Самостоятелна операция{% endif %}</small>
+              <span>{{ od.reservation }}</span>
+              <strong>{% if linked_reservation %}{{ request_status_labels.get(linked_reservation.status|upper, od.other_status) }}{% else %}{{ od.no_stay }}{% endif %}</strong>
+              <small>{% if linked_reservation %}{{ bg_datetime(linked_reservation.arrival_datetime) }} - {{ bg_datetime(linked_reservation.departure_datetime) }}{% else %}{{ od.standalone_operation }}{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Канал със собственика</span>
+              <span>{{ od.owner_channel }}</span>
               <strong>{{ task_owner_label|e }}</strong>
-              <small>{% if owner_email %}{{ owner_email|e }}{% elif owner_phone %}{{ owner_phone|e }}{% else %}Няма видим контакт{% endif %}</small>
+              <small>{% if owner_email %}{{ owner_email|e }}{% elif owner_phone %}{{ owner_phone|e }}{% else %}{{ od.no_contact }}{% endif %}</small>
             </div>
             <div class="admin-operations-property-tile">
-              <span>Готовност</span>
-              <strong>{% if property_record and property_record.guest_guide_ready and property_record.access_instructions_ready and property_record.emergency_contact_ready %}Готов{% elif property_record %}Частично{% else %}Неизвестно{% endif %}</strong>
-              <small>{% if property_record %}Наръчник {{ 'да' if property_record.guest_guide_ready else 'не' }} / Достъп {{ 'да' if property_record.access_instructions_ready else 'не' }} / Спешен контакт {{ 'да' if property_record.emergency_contact_ready else 'не' }}{% else %}Няма свързан имотен запис{% endif %}</small>
+              <span>{{ od.readiness }}</span>
+              <strong>{% if property_record and property_record.guest_guide_ready and property_record.access_instructions_ready and property_record.emergency_contact_ready %}{{ od.ready }}{% elif property_record %}{{ od.partial }}{% else %}{{ od.unknown }}{% endif %}</strong>
+              <small>{% if property_record %}{{ od.guide }} {{ od.yes if property_record.guest_guide_ready else od.no }} / {{ od.access }} {{ od.yes if property_record.access_instructions_ready else od.no }} / {{ od.emergency_contact }} {{ od.yes if property_record.emergency_contact_ready else od.no }}{% else %}{{ od.no_property_record }}{% endif %}</small>
             </div>
           </div>
           <div class="admin-operations-contact-actions u-mt-14">
             {% if owner_email %}
               <a class="button button--ghost" href="mailto:{{ owner_email|e }}">Имейл</a>
-              <button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">Копирай имейл</button>
+              <button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">{{ od.copy_email }}</button>
             {% else %}
-              <span class="button button--ghost is-disabled" aria-disabled="true">Имейл липсва</span>
-              <button class="button button--ghost" type="button" disabled>Копирай имейл</button>
+              <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.email_missing }}</span>
+              <button class="button button--ghost" type="button" disabled>{{ od.copy_email }}</button>
             {% endif %}
             {% if owner_phone %}
               <a class="button button--ghost" href="tel:{{ owner_phone|e }}">Телефон</a>
-              <button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">Копирай телефон</button>
+              <button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">{{ od.copy_phone }}</button>
             {% else %}
-              <span class="button button--ghost is-disabled" aria-disabled="true">Телефон липсва</span>
-              <button class="button button--ghost" type="button" disabled>Копирай телефон</button>
+              <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.phone_missing }}</span>
+              <button class="button button--ghost" type="button" disabled>{{ od.copy_phone }}</button>
             {% endif %}
           </div>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Свързани заявки</p>
-          <h2 class="admin-operations-section-title">Последни сервизни заявки за този имот</h2>
+          <p class="eyebrow">{{ od.related_requests }}</p>
+          <h2 class="admin-operations-section-title">{{ od.recent_requests }}</h2>
           {% if related_requests %}
-            <table class="admin-operations-table" aria-label="Свързани сервизни заявки">
+            <table class="admin-operations-table" aria-label="{{ od.related_requests_aria }}">
               <thead>
                 <tr>
-                  <th>Заглавие</th>
-                  <th>Категория</th>
-                  <th>Статус</th>
-                  <th>Създадена</th>
+                  <th>{{ od.title }}</th>
+                  <th>{{ od.category }}</th>
+                  <th>{{ od.status }}</th>
+                  <th>{{ od.created }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -4038,63 +4726,63 @@
                   {% set request_title_display = request_title[:57] ~ '...' if request_title|length > 60 else request_title %}
                   <tr>
                     <td><span class="admin-operations-table__title" title="{{ request_title|e }}">{{ request_title_display|e }}</span></td>
-                    <td>{{ category_labels.get(request.service_category|upper, 'Друга задача') }}</td>
-                    <td>{{ request_status_labels.get(request.status|upper, 'Друг статус') }}</td>
+                    <td>{{ category_labels.get(request.service_category|upper, od.other_task) }}</td>
+                    <td>{{ request_status_labels.get(request.status|upper, od.other_status) }}</td>
                     <td><time datetime="{{ request.created_at|e }}">{{ format_local_datetime(request.created_at, page_lang) }}</time></td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           {% else %}
-            <p class="admin-operations-empty">Още няма свързани сервизни заявки.</p>
+            <p class="admin-operations-empty">{{ od.no_related_requests }}</p>
           {% endif %}
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Вътрешни бележки</p>
-          <h2 class="admin-operations-section-title">Бележки само за админ екипа</h2>
+          <p class="eyebrow">{{ od.internal_notes }}</p>
+          <h2 class="admin-operations-section-title">{{ od.admin_only_notes }}</h2>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="comment">
             <label>
-              <span>Тип бележка</span>
+              <span>{{ od.note_type }}</span>
               <select name="comment_type">
-                <option value="General">Обща</option>
-                <option value="Urgent">Спешна</option>
-                <option value="Owner">Собственик</option>
-                <option value="Professional">Професионалист</option>
-                <option value="Completion">Завършване</option>
+                <option value="General">{{ od.general }}</option>
+                <option value="Urgent">{{ od.urgent_note }}</option>
+                <option value="Owner">{{ od.owner }}</option>
+                <option value="Professional">{{ od.professional }}</option>
+                <option value="Completion">{{ od.completion_note }}</option>
               </select>
             </label>
             <label>
-              <span>Добави коментар</span>
-              <textarea name="comment" placeholder="Добавете частен коментар за оперативния екип"></textarea>
+              <span>{{ od.add_comment }}</span>
+              <textarea name="comment" placeholder="{{ od.comment_placeholder }}"></textarea>
             </label>
-            <button class="button button--primary" type="submit">Добави коментар</button>
+            <button class="button button--primary" type="submit">{{ od.add_comment }}</button>
           </form>
           <div class="admin-operations-comment-box u-mt-14">
             {% if comments %}
               {% for comment in comments %}
                 <div class="admin-operations-comment">
                   <div class="admin-operations-comment__meta">
-                    <strong>{{ comment.operator|e or 'Админ' }}</strong>
+                    <strong>{{ comment.operator|e or od.admin }}</strong>
                     <time datetime="{{ comment.created_at|e }}">{{ format_local_datetime(comment.created_at, page_lang) }}</time>
                   </div>
                   <div class="admin-operations-comment-types">
-                    <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ note_type_labels.get(comment.type, 'Друга бележка') }}</span>
-                    <span class="admin-operations-note-type admin-operations-note-type--general">{{ note_type_labels.get(comment.author_role, 'Операции') }}</span>
+                    <span class="admin-operations-note-type admin-operations-note-type--{{ comment.type|lower|replace(' ', '-')|e }}">{{ note_type_labels.get(comment.type, od.other_note) }}</span>
+                    <span class="admin-operations-note-type admin-operations-note-type--general">{{ note_type_labels.get(comment.author_role, od.operations) }}</span>
                   </div>
                   <p class="admin-operations-comment-body">{{ comment.comment|e }}</p>
                 </div>
               {% endfor %}
             {% else %}
-              <p class="admin-operations-attachment-empty">Още няма вътрешни коментари.</p>
+              <p class="admin-operations-attachment-empty">{{ od.no_comments }}</p>
             {% endif %}
           </div>
         </article>
 
         <article class="admin-operations-detail-panel">
-          <p class="eyebrow">Хронология</p>
-          <h2 class="admin-operations-section-title">Оперативна активност</h2>
+          <p class="eyebrow">{{ od.timeline }}</p>
+          <h2 class="admin-operations-section-title">{{ od.operational_activity }}</h2>
           {% if timeline or assignment_history %}
             <div class="admin-operations-timeline-rail">
               {% if assignment_history %}
@@ -4103,15 +4791,15 @@
                     <div class="admin-operations-timeline-item__header">
                       <div class="admin-operations-timeline-item__title">
                         <span class="admin-operations-timeline-item__icon">↗</span>
-                        <strong>{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</strong>
+                        <strong>{{ event_labels.get(event.event_type, od.task_updated)|e }}</strong>
                       </div>
                       <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                     </div>
                     <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
-                      <span class="admin-operations-chip"><span class="admin-operations-chip__icon">↗</span>Възлагане</span>
+                      <span class="admin-operations-chip"><span class="admin-operations-chip__icon">↗</span>{{ od.assignment }}</span>
                       <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ task_status_label|e }}</span>
                     </div>
-                    <p>Записана е промяна по възлагането за {{ task_operational_ref|e }}.</p>
+                    <p>{{ od.assignment_change }} {{ task_operational_ref|e }}.</p>
                   </div>
                 {% endfor %}
               {% endif %}
@@ -4122,46 +4810,46 @@
                       <span class="admin-operations-timeline-item__icon">
                         {% if event.event_type in ['completed', 'professional_completed'] %}✓{% elif event.event_type == 'task_created' %}+{% elif event.event_type == 'overdue_detected' %}!{% elif event.event_type == 'professional_accepted' %}П{% elif event.event_type == 'professional_started' %}▶{% elif event.event_type == 'professional_paused' %}Ⅱ{% elif event.event_type == 'professional_resumed' %}↻{% elif event.event_type in ['attachment_added', 'attachment_deleted'] %}□{% elif event.event_type in ['comment_added_internal', 'note_added', 'comment_added'] %}Б{% elif event.event_type in ['assigned', 'professional_assigned'] %}↗{% elif event.event_type == 'status_changed' %}С{% elif event.status == 'ARCHIVED' %}А{% else %}•{% endif %}
                       </span>
-                      <strong>{% if event.event_type in ['attachment_added', 'attachment_deleted'] %}{{ event.title|e }}{% else %}{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}{% endif %}</strong>
+                      <strong>{% if event.event_type in ['attachment_added', 'attachment_deleted'] %}{{ event.title|e }}{% else %}{{ event_labels.get(event.event_type, od.task_updated)|e }}{% endif %}</strong>
                     </div>
                     <time datetime="{{ event.created_at|e }}">{{ format_local_datetime(event.created_at, page_lang) }}</time>
                   </div>
                   <div class="admin-operations-detail-meta admin-operations-detail-meta--spaced">
-                    <span class="admin-operations-chip">{{ event_labels.get(event.event_type, 'Обновена е задачата')|e }}</span>
+                    <span class="admin-operations-chip">{{ event_labels.get(event.event_type, od.task_updated)|e }}</span>
                     <span class="admin-operations-severity-chip admin-operations-severity-chip--{{ severity_tone }}">{{ status_labels.get(event.status, task_status_label)|e }}</span>
                   </div>
                   <p>
                     {% if event.event_type == 'task_created' %}
-                      Заявката е създадена и е добавена към оперативния борд.
+                      {{ od.created_board }}
                     {% elif event.event_type == 'overdue_detected' %}
-                      Засечено е просрочване по SLA и задачата изисква внимание.
+                      {{ od.overdue_detected }}
                     {% elif event.event_type == 'attachment_added' %}
                       {{ event.title|e }} · {{ event.detail|e }}
                     {% elif event.event_type == 'attachment_deleted' %}
                       {{ event.title|e }} · {{ event.detail|e }}
                     {% elif event.event_type == 'comment_added_internal' %}
-                      Добавена е вътрешна оперативна бележка.
+                      {{ od.internal_note_added }}
                     {% elif event.event_type in ['note_added', 'comment_added'] %}
-                      Добавена е бележка към задачата.
+                      {{ od.note_added }}
                     {% elif event.event_type == 'checklist_updated' %}
-                      Обновен е чеклистът за изпълнение.
+                      {{ od.checklist_updated }}
                     {% elif event.event_type in ['assigned', 'professional_assigned'] %}
-                      Възложен е професионалист.
+                      {{ od.professional_assigned }}
                     {% elif event.event_type == 'status_changed' %}
-                      Променен е статусът на задачата на {{ status_labels.get(event.status, task_status_label)|e }}.
+                      {{ od.status_changed }} {{ status_labels.get(event.status, task_status_label)|e }}.
                     {% elif event.event_type in ['completed', 'professional_completed'] %}
-                      Задачата е приключена.
+                      {{ od.task_completed }}
                     {% elif event.event_type == 'archived' or event.status == 'ARCHIVED' %}
-                      Задачата е архивирана.
+                      {{ od.task_archived }}
                     {% else %}
-                      Обновена е задачата.
+                      {{ od.task_updated }}
                     {% endif %}
                   </p>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-operations-empty">Още няма записи в хронологията.</p>
+            <p class="admin-operations-empty">{{ od.no_timeline }}</p>
           {% endif %}
         </article>
       </aside>
@@ -4169,6 +4857,25 @@
   </main>
   <script>
     (function () {
+      const odCopy = {
+        noDue: {{ od.no_due|tojson }},
+        dueMissing: {{ od.due_missing|tojson }},
+        completedOnTime: {{ od.completed_on_time|tojson }},
+        completedBeforeDue: {{ od.completed_before_due|tojson }},
+        completedLate: {{ od.completed_late|tojson }},
+        overdue: {{ od.overdue|tojson }},
+        dueNotReached: {{ od.due_not_reached|tojson }},
+        remaining: {{ od.remaining|tojson }},
+        lateWord: {{ od.late_word|tojson }},
+        day: {{ od.day|tojson }},
+        days: {{ od.days|tojson }},
+        hour: {{ od.hour|tojson }},
+        hours: {{ od.hours|tojson }},
+        copied: {{ od.copied|tojson }},
+        copyFailed: {{ od.copy_failed|tojson }},
+        hide: {{ od.hide|tojson }},
+        show: {{ od.show|tojson }}
+      };
       const closedStatuses = new Set(['COMPLETED', 'ARCHIVED']);
       const parseDate = (value, endOfDay) => {
         if (!value) return null;
@@ -4184,12 +4891,12 @@
         const hours = Math.max(1, Math.round(totalMinutes / 60));
         if (days >= 1) {
           return mode === 'late'
-            ? `${days} ${days === 1 ? 'ден' : 'дни'} закъснение`
-            : `Остават ${days} ${days === 1 ? 'ден' : 'дни'}`;
+            ? `${days} ${days === 1 ? odCopy.day : odCopy.days} ${odCopy.lateWord}`
+            : `${odCopy.remaining} ${days} ${days === 1 ? odCopy.day : odCopy.days}`;
         }
         return mode === 'late'
-          ? `${hours} ${hours === 1 ? 'час' : 'часа'} закъснение`
-          : `Остават ${hours} ${hours === 1 ? 'час' : 'часа'}`;
+          ? `${hours} ${hours === 1 ? odCopy.hour : odCopy.hours} ${odCopy.lateWord}`
+          : `${odCopy.remaining} ${hours} ${hours === 1 ? odCopy.hour : odCopy.hours}`;
       };
       const setSlaTone = (element, tone) => {
         element.classList.remove('admin-operations-sla-badge--green', 'admin-operations-sla-badge--yellow', 'admin-operations-sla-badge--red', 'admin-operations-sla-badge--neutral');
@@ -4201,18 +4908,18 @@
         const status = element.dataset.status || '';
         const isClosed = closedStatuses.has(status);
         const now = new Date();
-        if (!due) return { label: 'Без срок', detail: 'Няма зададен краен срок.', tone: 'neutral' };
+        if (!due) return { label: odCopy.noDue, detail: odCopy.dueMissing, tone: 'neutral' };
         if (isClosed) {
           const finished = completed || now;
           if (finished.getTime() <= due.getTime()) {
-            return { label: 'Завършена в срок', detail: 'Задачата е приключена преди крайния срок.', tone: 'green' };
+            return { label: odCopy.completedOnTime, detail: odCopy.completedBeforeDue, tone: 'green' };
           }
-          return { label: 'Завършена със закъснение', detail: durationText(finished.getTime() - due.getTime(), 'late'), tone: 'red' };
+          return { label: odCopy.completedLate, detail: durationText(finished.getTime() - due.getTime(), 'late'), tone: 'red' };
         }
         if (now.getTime() > due.getTime()) {
-          return { label: 'Просрочена', detail: durationText(now.getTime() - due.getTime(), 'late'), tone: 'red' };
+          return { label: odCopy.overdue, detail: durationText(now.getTime() - due.getTime(), 'late'), tone: 'red' };
         }
-        return { label: durationText(due.getTime() - now.getTime(), 'remaining'), detail: 'Крайният срок още не е достигнат.', tone: 'green' };
+        return { label: durationText(due.getTime() - now.getTime(), 'remaining'), detail: odCopy.dueNotReached, tone: 'green' };
       };
       document.querySelectorAll('[data-sla-label]').forEach((label) => {
         const state = resolveSla(label);
@@ -4231,10 +4938,10 @@
           try {
             await navigator.clipboard.writeText(value);
             const original = button.textContent;
-            button.textContent = 'Копирано';
+            button.textContent = odCopy.copied;
             window.setTimeout(() => { button.textContent = original; }, 1200);
           } catch (error) {
-            console.warn('Копирането в клипборда е неуспешно', error);
+            console.warn(odCopy.copyFailed, error);
           }
         });
       });
@@ -4291,7 +4998,7 @@
         if (!button) return;
         button.setAttribute('aria-expanded', String(expanded));
         const state = button.querySelector('.admin-operations-collapse-toggle__state');
-        if (state) state.textContent = expanded ? 'Скрий' : 'Покажи';
+        if (state) state.textContent = expanded ? odCopy.hide : odCopy.show;
       };
 
       ['operations-checklist', 'evidence', 'operations-assignment'].forEach((id) => setPanelExpanded(id, true));

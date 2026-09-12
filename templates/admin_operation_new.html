@@ -9,6 +9,24 @@
 
 <body class="bsc-admin-workspace admin-operations-page">
 
+{% set operation_new_extra_ui = {
+  'bg': {
+    'required_hint': '{{ operation_new_extra.required_hint }}',
+    'cancel': 'Отказ'
+  },
+  'en': {
+    'required_hint': 'Fields marked with * are required.',
+    'cancel': 'Cancel'
+  },
+  'fr': {
+    'required_hint': 'Les champs marqués d’un * sont obligatoires.',
+    'cancel': 'Annuler'
+  }
+} %}
+{% set operation_new_extra = operation_new_extra_ui.get(page_lang, operation_new_extra_ui['en']) %}
+
+
+
 {% include "_admin_sidebar.html" %}
 
 <main class="admin-cockpit-shell">
@@ -133,7 +151,7 @@
 
         <a class="button button--secondary"
            href="{{ url_for('admin_operations') }}">
-          <span data-i18n="cancel">Отказ</span>
+          <span data-i18n="cancel">{{ operation_new_extra.cancel }}</span>
         </a>
       </div>
 

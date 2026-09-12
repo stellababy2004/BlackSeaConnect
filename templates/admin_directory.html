@@ -1,8 +1,8 @@
-﻿<!doctype html>
-<html lang="bg">
+<!doctype html>
+<html lang="{{ page_lang|default('en') }}">
 <head>
   <meta charset="utf-8">
-  <title>Потребители и роли · BlackSea Connect</title>
+  <title>{{ dirui.title }} · BlackSea Connect</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     body { margin:0; background:#f4f7fb; color:#0b1730; font-family: Inter, system-ui, sans-serif; }
@@ -30,35 +30,77 @@
   </style>
 </head>
 <body class="admin-directory-page">
+
+{% set directory_ui = {
+'bg': {
+'title':'Потребители и роли','eyebrow':'BlackSea Connect · Потребители и роли',
+'heading':'Потребители, роли и достъп',
+'intro':'{{ dirui.intro }}',
+'operator':'Операторска конзола','dashboard':'Управленски панел','owners':'Профили на собственици','professionals':'Професионалисти','invite':'Покани потребител',
+'users':'Потребители','active':'Активни','roles':'Роли','mode':'Режим','plan':'План',
+'name':'Име','type':'Тип','role':'Роля','status':'Статус','scope':'Обхват',
+'role_matrix':'Матрица на ролите','access':'Достъп','edit':'Редакция','delete':'Изтриване',
+'active_status':'Активен','planned':'Планиран',
+'Super Admin':'Главен администратор','Operations Manager':'Мениджър операции','Dispatcher':'Диспечер',
+'Owner Success':'Обслужване на собственици','Professional':'Професионалист','Owner':'Собственик','Auditor':'Одитор'
+},
+'en': {
+'title':'Users and roles','eyebrow':'BlackSea Connect · Users and roles',
+'heading':'Users, roles and access',
+'intro':'Centralized management of administrators, operators, owners and professionals.',
+'operator':'Operator console','dashboard':'Management dashboard','owners':'Owner profiles','professionals':'Professionals','invite':'Invite user',
+'users':'Users','active':'Active','roles':'Roles','mode':'Mode','plan':'Plan',
+'name':'Name','type':'Type','role':'Role','status':'Status','scope':'Scope',
+'role_matrix':'Role matrix','access':'Access','edit':'Edit','delete':'Delete',
+'active_status':'Active','planned':'Planned',
+'Super Admin':'Super Admin','Operations Manager':'Operations Manager','Dispatcher':'Dispatcher',
+'Owner Success':'Owner Success','Professional':'Professional','Owner':'Owner','Auditor':'Auditor'
+},
+'fr': {
+'title':'Utilisateurs et rôles','eyebrow':'BlackSea Connect · Utilisateurs et rôles',
+'heading':'Utilisateurs, rôles et accès',
+'intro':'Gestion centralisée des administrateurs, opérateurs, propriétaires et prestataires.',
+'operator':'Console opérateur','dashboard':'Tableau de gestion','owners':'Profils propriétaires','professionals':'Prestataires','invite':'Inviter un utilisateur',
+'users':'Utilisateurs','active':'Actifs','roles':'Rôles','mode':'Mode','plan':'Plan',
+'name':'Nom','type':'Type','role':'Rôle','status':'Statut','scope':'Périmètre',
+'role_matrix':'Matrice des rôles','access':'Accès','edit':'Modification','delete':'Suppression',
+'active_status':'Actif','planned':'Planifié',
+'Super Admin':'Super administrateur','Operations Manager':'Responsable des opérations','Dispatcher':'Dispatcher',
+'Owner Success':'Relation propriétaires','Professional':'Prestataire','Owner':'Propriétaire','Auditor':'Auditeur'
+}
+} %}
+{% set dirui = directory_ui.get(page_lang|default('en'), directory_ui['en']) %}
+
+
   {% include '_admin_sidebar.html' %}
   <main class="dir-shell">
     <section class="dir-hero">
       <div>
-        <div class="eyebrow">BlackSea Connect · Потребители и роли</div>
-        <h1>Потребители, роли и достъп</h1>
-        <p>Централизирано управление на администратори, оператори, собственици и професионалисти.</p>
+        <div class="eyebrow">{{ dirui.eyebrow }}</div>
+        <h1>{{ dirui.heading }}</h1>
+        <p>{{ dirui.intro }}</p>
       </div>
       <div class="dir-actions">
-        <a class="btn btn-primary" href="{{ url_for('admin_operator_console') }}">Операторска конзола</a>
-        <a class="btn" href="{{ url_for('admin_home') }}">Управленски панел</a>
-        <a class="btn" href="{{ url_for('admin_owner_accounts') }}">Профили на собственици</a>
-        <a class="btn" href="{{ url_for('admin_professionals') }}">Професионалисти</a>
-        <a class="btn btn-primary" href="#">Покани потребител</a>
+        <a class="btn btn-primary" href="{{ url_for('admin_operator_console') }}">{{ dirui.operator }}</a>
+        <a class="btn" href="{{ url_for('admin_home') }}">{{ dirui.dashboard }}</a>
+        <a class="btn" href="{{ url_for('admin_owner_accounts') }}">{{ dirui.owners }}</a>
+        <a class="btn" href="{{ url_for('admin_professionals') }}">{{ dirui.professionals }}</a>
+        <a class="btn btn-primary" href="#">{{ dirui.invite }}</a>
       </div>
     </section>
 
     <section class="dir-grid">
-      <div class="metric"><span class="eyebrow">Потребители</span><strong>{{ directory_users|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Активни</span><strong>{{ directory_users|selectattr("status","equalto","Active")|list|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Роли</span><strong>{{ role_matrix|length }}</strong></div>
-      <div class="metric"><span class="eyebrow">Режим</span><strong>План</strong></div>
+      <div class="metric"><span class="eyebrow">{{ dirui.users }}</span><strong>{{ directory_users|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">{{ dirui.active }}</span><strong>{{ directory_users|selectattr("status","equalto","Active")|list|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">{{ dirui.roles }}</span><strong>{{ role_matrix|length }}</strong></div>
+      <div class="metric"><span class="eyebrow">{{ dirui.mode }}</span><strong>{{ dirui.plan }}</strong></div>
     </section>
 
     <section class="dir-panel">
-      <h2>Потребители и роли</h2>
+      <h2>{{ dirui.title }}</h2>
       <table>
         <thead>
-          <tr><th>Име</th><th>Тип</th><th>Роля</th><th>Статус</th><th>Обхват</th></tr>
+          <tr><th>{{ dirui.name }}</th><th>{{ dirui.type }}</th><th>{{ dirui.role }}</th><th>{{ dirui.status }}</th><th>{{ dirui.scope }}</th></tr>
         </thead>
         <tbody>
           {% for user in directory_users %}
@@ -66,15 +108,15 @@
             <td><strong>{{ user.name }}</strong></td>
             <td>{{ user.type }}</td>
             <td>{{ {
-              'Super Admin': 'Главен администратор',
-              'Operations Manager': 'Мениджър операции',
-              'Dispatcher': 'Диспечер',
-              'Owner Success': 'Обслужване на собственици',
-              'Professional': 'Професионалист',
-              'Owner': 'Собственик',
-              'Auditor': 'Одитор'
+              'Super Admin': dirui['Super Admin'],
+              'Operations Manager': dirui['Operations Manager'],
+              'Dispatcher': dirui['Dispatcher'],
+              'Owner Success': dirui['Owner Success'],
+              'Professional': dirui['Professional'],
+              'Owner': dirui['Owner'],
+              'Auditor': dirui['Auditor']
             }.get(user.role, user.role) }}</td>
-            <td><span class="pill {{ 'active' if user.status == 'Active' else 'planned' }}">{{ 'Активен' if user.status == 'Active' else 'Планиран' }}</span></td>
+            <td><span class="pill {{ 'active' if user.status == 'Active' else 'planned' }}">{{ dirui.active_status if user.status == 'Active' else dirui.planned }}</span></td>
             <td>{{ user.scope }}</td>
           </tr>
           {% endfor %}
@@ -82,22 +124,22 @@
       </table>
 
       <div class="matrix">
-        <h2>Матрица на ролите</h2>
+        <h2>{{ dirui.role_matrix }}</h2>
         <table>
           <thead>
-            <tr><th>Роля</th><th>Достъп</th><th>Редакция</th><th>Изтриване</th></tr>
+            <tr><th>{{ dirui.role }}</th><th>{{ dirui.access }}</th><th>{{ dirui.edit }}</th><th>{{ dirui.delete }}</th></tr>
           </thead>
           <tbody>
             {% for role in role_matrix %}
             <tr>
               <td><strong>{{ {
-                'Super Admin': 'Главен администратор',
-                'Operations Manager': 'Мениджър операции',
-                'Dispatcher': 'Диспечер',
-                'Owner Success': 'Обслужване на собственици',
-                'Professional': 'Професионалист',
-                'Owner': 'Собственик',
-                'Auditor': 'Одитор'
+                'Super Admin': dirui['Super Admin'],
+                'Operations Manager': dirui['Operations Manager'],
+                'Dispatcher': dirui['Dispatcher'],
+                'Owner Success': dirui['Owner Success'],
+                'Professional': dirui['Professional'],
+                'Owner': dirui['Owner'],
+                'Auditor': dirui['Auditor']
               }.get(role.role, role.role) }}</strong></td>
               <td>{{ role.access }}</td>
               <td>{{ role.can_edit }}</td>

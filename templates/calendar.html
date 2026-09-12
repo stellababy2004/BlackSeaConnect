@@ -1,6 +1,335 @@
 <!doctype html>
 <html lang="{{ page_lang }}">
 <head>
+
+  {% set calendar_ui = {
+    'bg': {
+      'calendar_title': 'Календар на задачите',
+      'today': 'Днес',
+      'this_week': 'Тази седмица',
+      'overdue_plural': 'Просрочени',
+      'overdue': 'Просрочено',
+      'operator_console': 'Операторска конзола',
+      'dashboard': 'Управленски панел',
+      'task_board': 'Табло със задачи',
+      'no_events': 'Няма събития в този период',
+      'change_filters': 'Променете филтрите, за да видите други събития.',
+      'integrations': 'Интеграции',
+      'connect': 'Свържи',
+      'control_center': 'Контролен център',
+      'filters': 'Филтри',
+      'close_filters': 'Затвори филтрите',
+      'search': 'Търсене',
+      'search_placeholder': 'Търсете задача, имот или изпълнител',
+      'search_placeholder_full': 'Търсете задача, имот, собственик или изпълнител',
+      'search_button': 'Търси',
+      'clear': 'Изчисти',
+      'no_active_filters': 'Няма активни филтри',
+      'clear_all': 'Изчисти всички',
+      'saved_views': 'Запазени изгледи',
+      'tasks_today': 'Задачи за днес',
+      'late_urgent': 'Закъснели и спешни',
+      'without_professional': 'Без избран изпълнител',
+      'properties': 'Имоти',
+      'professionals': 'Изпълнители',
+      'owners': 'Собственици',
+      'state': 'Състояние',
+      'urgency': 'Спешност',
+      'categories': 'Категории',
+      'all_properties': 'Всички имоти',
+      'overview_copy': 'Вижте какво трябва да се направи, кога и от кого.',
+      'refresh': 'Обнови',
+      'export': 'Експорт',
+      'notifications': 'Известия',
+      'property': 'Имот',
+      'owner': 'Собственик',
+      'professional': 'Изпълнител',
+      'category': 'Категория',
+      'status': 'Статус',
+      'city': 'Град',
+      'priority': 'Приоритет',
+      'from_date': 'От дата',
+      'to_date': 'До дата',
+      'all_owners': 'Всички собственици',
+      'all_professionals': 'Всички професионалисти',
+      'all_categories': 'Всички категории',
+      'all_statuses': 'Всички статуси',
+      'all_cities': 'Всички градове',
+      'all_priorities': 'Всички приоритети',
+      'next_action': 'Следващо действие',
+      'select_event': 'Изберете събитие',
+      'suggest_action': 'Ще предложим най-подходящото действие.',
+      'deadline': 'Срок',
+      'risk_low': 'Риск 0 · Нисък',
+      'prepare_action': 'Подготви действие',
+      'choose_another': 'Избери друг',
+      'no_warnings': 'Няма активни предупреждения.',
+      'on_schedule': 'Задачите са в график.',
+      'technical_diagnostics': 'Техническа диагностика',
+      'assign': 'Възложи',
+      'complete': 'Завърши',
+      'more': 'Още',
+      'read_only': 'Само за четене',
+      'files_unavailable': 'Информацията за файловете не е налична в този изглед.',
+      'notes_unavailable': 'Информацията за бележките не е налична в този изглед.',
+      'missing_task_id': 'Липсва валиден идентификатор на задачата.',
+      'new_event': 'Ново събитие',
+      'add_to_schedule': 'Добавяне към графика',
+      'choose_date_time': 'Изберете дата и час.',
+      'choose_property': 'Изберете имот',
+      'choose_valid_property': 'Изберете валиден имот.',
+      'choose_property_first': 'Първо изберете имот',
+      'unassigned': 'Не е възложено',
+      'start': 'Начало',
+      'end': 'Край',
+      'notes': 'Бележки',
+      'notes_placeholder': 'Вътрешна оперативна бележка',
+      'cancel': 'Отказ',
+      'add_event': 'Добави събитие',
+      'assignment': 'Професионално възлагане',
+      'choose_professional': 'Изберете професионалист',
+      'override_conflict': 'Потвърждавам възлагане въпреки конфликт в графика',
+      'assign_now': 'Възложи сега',
+      'time_correction': 'Корекция на часа',
+      'start_end': 'Начало и край',
+      'save_time': 'Запази часа',
+      'daily_briefing': 'Дневен оперативен брифинг',
+      'good_morning': 'Добро утро.',
+      'highest_risk': 'Най-висок риск',
+      'back_calendar': 'Към календара',
+      'review_recommendation': 'Прегледай препоръката',
+      'command_placeholder': 'Напишете команда… например: възложи почистване',
+      'free': 'Свободно',
+      'no_properties': 'Няма имоти в този филтриран изглед.',
+      'no_day_events': 'Няма събития за този ден.',
+      'no_deadline_breaches': 'Няма нарушени срокове.',
+      'no_filtered_tasks': 'Няма задачи с текущите филтри.',
+      'open_details': 'Отвори детайли',
+      'operational_map': 'Оперативна карта',
+      'map_requires_coordinates': 'Картата изисква валидни координати на имотите.',
+      'open_task': 'Отвори задачата',
+      'visual_only': 'Само за визуализация',
+      'automatic_unavailable': 'Автоматичните действия са недостъпни'
+    },
+    'en': {
+      'calendar_title': 'Task Calendar',
+      'today': 'Today',
+      'this_week': 'This week',
+      'overdue_plural': 'Overdue',
+      'overdue': 'Overdue',
+      'operator_console': 'Operator console',
+      'dashboard': 'Management dashboard',
+      'task_board': 'Task board',
+      'no_events': 'No events in this period',
+      'change_filters': 'Change the filters to see other events.',
+      'integrations': 'Integrations',
+      'connect': 'Connect',
+      'control_center': 'Control center',
+      'filters': 'Filters',
+      'close_filters': 'Close filters',
+      'search': 'Search',
+      'search_placeholder': 'Search task, property or professional',
+      'search_placeholder_full': 'Search task, property, owner or professional',
+      'search_button': 'Search',
+      'clear': 'Clear',
+      'no_active_filters': 'No active filters',
+      'clear_all': 'Clear all',
+      'saved_views': 'Saved views',
+      'tasks_today': 'Tasks for today',
+      'late_urgent': 'Late and urgent',
+      'without_professional': 'Without assigned professional',
+      'properties': 'Properties',
+      'professionals': 'Professionals',
+      'owners': 'Owners',
+      'state': 'State',
+      'urgency': 'Urgency',
+      'categories': 'Categories',
+      'all_properties': 'All properties',
+      'overview_copy': 'See what needs to be done, when, and by whom.',
+      'refresh': 'Refresh',
+      'export': 'Export',
+      'notifications': 'Notifications',
+      'property': 'Property',
+      'owner': 'Owner',
+      'professional': 'Professional',
+      'category': 'Category',
+      'status': 'Status',
+      'city': 'City',
+      'priority': 'Priority',
+      'from_date': 'From date',
+      'to_date': 'To date',
+      'all_owners': 'All owners',
+      'all_professionals': 'All professionals',
+      'all_categories': 'All categories',
+      'all_statuses': 'All statuses',
+      'all_cities': 'All cities',
+      'all_priorities': 'All priorities',
+      'next_action': 'Next action',
+      'select_event': 'Select an event',
+      'suggest_action': 'We will suggest the most appropriate action.',
+      'deadline': 'Deadline',
+      'risk_low': 'Risk 0 · Low',
+      'prepare_action': 'Prepare action',
+      'choose_another': 'Choose another',
+      'no_warnings': 'No active warnings.',
+      'on_schedule': 'Tasks are on schedule.',
+      'technical_diagnostics': 'Technical diagnostics',
+      'assign': 'Assign',
+      'complete': 'Complete',
+      'more': 'More',
+      'read_only': 'Read only',
+      'files_unavailable': 'File information is not available in this view.',
+      'notes_unavailable': 'Note information is not available in this view.',
+      'missing_task_id': 'A valid task identifier is missing.',
+      'new_event': 'New event',
+      'add_to_schedule': 'Add to schedule',
+      'choose_date_time': 'Choose date and time.',
+      'choose_property': 'Choose property',
+      'choose_valid_property': 'Choose a valid property.',
+      'choose_property_first': 'Choose a property first',
+      'unassigned': 'Unassigned',
+      'start': 'Start',
+      'end': 'End',
+      'notes': 'Notes',
+      'notes_placeholder': 'Internal operations note',
+      'cancel': 'Cancel',
+      'add_event': 'Add event',
+      'assignment': 'Professional assignment',
+      'choose_professional': 'Choose professional',
+      'override_conflict': 'Confirm assignment despite a schedule conflict',
+      'assign_now': 'Assign now',
+      'time_correction': 'Time correction',
+      'start_end': 'Start and end',
+      'save_time': 'Save time',
+      'daily_briefing': 'Daily operations briefing',
+      'good_morning': 'Good morning.',
+      'highest_risk': 'Highest risk',
+      'back_calendar': 'Back to calendar',
+      'review_recommendation': 'Review recommendation',
+      'command_placeholder': 'Type a command… for example: assign cleaning',
+      'free': 'Free',
+      'no_properties': 'No properties in this filtered view.',
+      'no_day_events': 'No events for this day.',
+      'no_deadline_breaches': 'No breached deadlines.',
+      'no_filtered_tasks': 'No tasks match the current filters.',
+      'open_details': 'Open details',
+      'operational_map': 'Operations map',
+      'map_requires_coordinates': 'The map requires valid property coordinates.',
+      'open_task': 'Open task',
+      'visual_only': 'View only',
+      'automatic_unavailable': 'Automatic actions are unavailable'
+    },
+    'fr': {
+      'calendar_title': 'Calendrier des tâches',
+      'today': "Aujourd’hui",
+      'this_week': 'Cette semaine',
+      'overdue_plural': 'En retard',
+      'overdue': 'En retard',
+      'operator_console': 'Console opérateur',
+      'dashboard': 'Tableau de gestion',
+      'task_board': 'Tableau des tâches',
+      'no_events': 'Aucun événement sur cette période',
+      'change_filters': 'Modifiez les filtres pour afficher d’autres événements.',
+      'integrations': 'Intégrations',
+      'connect': 'Connecter',
+      'control_center': 'Centre de contrôle',
+      'filters': 'Filtres',
+      'close_filters': 'Fermer les filtres',
+      'search': 'Recherche',
+      'search_placeholder': 'Rechercher une tâche, un bien ou un prestataire',
+      'search_placeholder_full': 'Rechercher une tâche, un bien, un propriétaire ou un prestataire',
+      'search_button': 'Rechercher',
+      'clear': 'Effacer',
+      'no_active_filters': 'Aucun filtre actif',
+      'clear_all': 'Tout effacer',
+      'saved_views': 'Vues enregistrées',
+      'tasks_today': "Tâches d’aujourd’hui",
+      'late_urgent': 'En retard et urgentes',
+      'without_professional': 'Sans prestataire attribué',
+      'properties': 'Biens',
+      'professionals': 'Prestataires',
+      'owners': 'Propriétaires',
+      'state': 'État',
+      'urgency': 'Urgence',
+      'categories': 'Catégories',
+      'all_properties': 'Tous les biens',
+      'overview_copy': 'Visualisez ce qui doit être fait, quand et par qui.',
+      'refresh': 'Actualiser',
+      'export': 'Exporter',
+      'notifications': 'Notifications',
+      'property': 'Bien',
+      'owner': 'Propriétaire',
+      'professional': 'Prestataire',
+      'category': 'Catégorie',
+      'status': 'Statut',
+      'city': 'Ville',
+      'priority': 'Priorité',
+      'from_date': 'Du',
+      'to_date': 'Au',
+      'all_owners': 'Tous les propriétaires',
+      'all_professionals': 'Tous les prestataires',
+      'all_categories': 'Toutes les catégories',
+      'all_statuses': 'Tous les statuts',
+      'all_cities': 'Toutes les villes',
+      'all_priorities': 'Toutes les priorités',
+      'next_action': 'Prochaine action',
+      'select_event': 'Sélectionnez un événement',
+      'suggest_action': 'Nous proposerons l’action la plus adaptée.',
+      'deadline': 'Échéance',
+      'risk_low': 'Risque 0 · Faible',
+      'prepare_action': 'Préparer l’action',
+      'choose_another': 'Choisir un autre',
+      'no_warnings': 'Aucun avertissement actif.',
+      'on_schedule': 'Les tâches sont dans les délais.',
+      'technical_diagnostics': 'Diagnostic technique',
+      'assign': 'Attribuer',
+      'complete': 'Terminer',
+      'more': 'Plus',
+      'read_only': 'Lecture seule',
+      'files_unavailable': 'Les informations sur les fichiers ne sont pas disponibles dans cette vue.',
+      'notes_unavailable': 'Les informations sur les notes ne sont pas disponibles dans cette vue.',
+      'missing_task_id': 'Identifiant de tâche valide manquant.',
+      'new_event': 'Nouvel événement',
+      'add_to_schedule': 'Ajouter au planning',
+      'choose_date_time': 'Choisissez une date et une heure.',
+      'choose_property': 'Choisissez un bien',
+      'choose_valid_property': 'Choisissez un bien valide.',
+      'choose_property_first': 'Choisissez d’abord un bien',
+      'unassigned': 'Non attribué',
+      'start': 'Début',
+      'end': 'Fin',
+      'notes': 'Notes',
+      'notes_placeholder': 'Note opérationnelle interne',
+      'cancel': 'Annuler',
+      'add_event': 'Ajouter l’événement',
+      'assignment': 'Attribution professionnelle',
+      'choose_professional': 'Choisissez un prestataire',
+      'override_conflict': 'Confirmer l’attribution malgré un conflit de planning',
+      'assign_now': 'Attribuer maintenant',
+      'time_correction': 'Correction horaire',
+      'start_end': 'Début et fin',
+      'save_time': 'Enregistrer l’horaire',
+      'daily_briefing': 'Briefing opérationnel quotidien',
+      'good_morning': 'Bonjour.',
+      'highest_risk': 'Risque le plus élevé',
+      'back_calendar': 'Retour au calendrier',
+      'review_recommendation': 'Examiner la recommandation',
+      'command_placeholder': 'Saisissez une commande… par exemple : attribuer le ménage',
+      'free': 'Libre',
+      'no_properties': 'Aucun bien dans cette vue filtrée.',
+      'no_day_events': 'Aucun événement pour cette journée.',
+      'no_deadline_breaches': 'Aucune échéance dépassée.',
+      'no_filtered_tasks': 'Aucune tâche avec les filtres actuels.',
+      'open_details': 'Ouvrir les détails',
+      'operational_map': 'Carte opérationnelle',
+      'map_requires_coordinates': 'La carte nécessite des coordonnées valides pour les biens.',
+      'open_task': 'Ouvrir la tâche',
+      'visual_only': 'Visualisation uniquement',
+      'automatic_unavailable': 'Les actions automatiques sont indisponibles'
+    }
+  } %}
+  {% set cal = calendar_ui.get(page_lang, calendar_ui['en']) %}
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
@@ -8,7 +337,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title{% if calendar_scope == 'admin' %} data-i18n="calendarPageTitle"{% endif %}>BlackSea Connect | {% if calendar_scope == 'admin' %}Календар на задачите{% else %}{{ calendar_scope_label }}{% endif %}</title>
+  <title{% if calendar_scope == 'admin' %} data-i18n="calendarPageTitle"{% endif %}>BlackSea Connect | {% if calendar_scope == 'admin' %}{{ cal.calendar_title }}{% else %}{{ calendar_scope_label }}{% endif %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .calendar-page {
@@ -3389,9 +3718,9 @@
             <div><span>{{ public_i18n('common', 'dashboardNextCleaning', 'Next cleaning') }}</span><strong>{{ owner_calendar_snapshot.next_cleaning }}</strong></div>
             <div><span>{{ public_i18n('ownersDashboard', 'ownerDashboardOccupancyLabel', 'Occupancy') }}</span><strong>{{ owner_calendar_snapshot.occupancy }}</strong></div>
           {% else %}
-            <div><span>Днес</span><strong>{{ calendar_summary.today }}</strong></div>
-            <div><span>Тази седмица</span><strong>{{ calendar_summary.this_week }}</strong></div>
-            <div><span>Просрочени</span><strong>{{ calendar_summary.overdue }}</strong></div>
+            <div><span>{{ cal.today }}</span><strong>{{ calendar_summary.today }}</strong></div>
+            <div><span>{{ cal.this_week }}</span><strong>{{ calendar_summary.this_week }}</strong></div>
+            <div><span>{{ cal.overdue_plural }}</span><strong>{{ calendar_summary.overdue }}</strong></div>
           {% endif %}
         </div>
       </div>
@@ -3400,9 +3729,9 @@
           <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
           <a class="button button--secondary" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'navOwnerPortal', 'Dashboard') }}</a>
         {% else %}
-          <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
-          <a class="button button--secondary" href="/admin">Управленски панел</a>
-          <a class="button button--secondary" href="/admin/operations">Табло със задачи</a>
+          <a class="button button--primary" href="/admin/operator">{{ cal.operator_console }}</a>
+          <a class="button button--secondary" href="/admin">{{ cal.dashboard }}</a>
+          <a class="button button--secondary" href="/admin/operations">{{ cal.task_board }}</a>
         {% endif %}
       </div>
     </section>
@@ -3539,7 +3868,7 @@
                           <div class="calendar-event__flag">
                             <span class="calendar-event__badge calendar-event__badge--{{ event.color|e }}">{{ localized_owner_event_type(event.event_type) }}</span>
                             {% if event.is_overdue %}
-                              <span>Просрочено</span>
+                              <span>{{ cal.overdue }}</span>
                             {% endif %}
                           </div>
                           <time>{{ event.display_label|e }}</time>
@@ -3561,8 +3890,8 @@
                   </div>
                 {% else %}
                   <div class="calendar-note {% if calendar_scope == 'owner' %}owner-premium-empty{% endif %}">
-                    <h3>Няма събития в този период</h3>
-                    <p>Променете филтрите, за да видите други събития.</p>
+                    <h3>{{ cal.no_events }}</h3>
+                    <p>{{ cal.change_filters }}</p>
                   </div>
                 {% endif %}
               </section>
@@ -3645,15 +3974,15 @@
 
         <details class="calendar-panel">
           <summary class="section-heading">
-            <p class="section-heading__eyebrow">Интеграции</p>
-            <h2>Интеграции</h2>
+            <p class="section-heading__eyebrow">{{ cal.integrations }}</p>
+            <h2>{{ cal.integrations }}</h2>
           </summary>
           <div class="calendar-integration-grid">
             {% for provider in calendar_external_integration_points %}
               <article class="calendar-integration-card">
                 <span class="calendar-integration-card__logo">{{ provider[:1] }}</span>
                 <div><strong>{{ provider }}</strong><small>{{ public_i18n('ownersDashboard', 'ownerCalendarNotConnected', 'Not connected · Never synced') }}</small></div>
-                <button class="button button--ghost" type="button" disabled>Свържи</button>
+                <button class="button button--ghost" type="button" disabled>{{ cal.connect }}</button>
               </article>
             {% endfor %}
           </div>
@@ -3665,34 +3994,34 @@
     <div class="admin-ops-calendar calendar-workspace--full-width" data-admin-calendar-app data-admin-csrf="{{ admin_csrf_token()|e }}">
       <aside class="admin-mission-sidebar" id="adminCalendarFilters" aria-label="Филтри за контролния център" aria-hidden="true" data-admin-filters-panel tabindex="-1">
         <section class="admin-mission-panel">
-          <p class="admin-ops-label">Контролен център</p>
+          <p class="admin-ops-label">{{ cal.control_center }}</p>
           <div class="admin-mission-drawer-head">
-            <h2>Филтри</h2>
-            <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-filter-close aria-label="Затвори филтрите">×</button>
+            <h2>{{ cal.filters }}</h2>
+            <button class="admin-ops-button admin-ops-button--icon" type="button" data-admin-filter-close aria-label="{{ cal.close_filters }}">×</button>
           </div>
           <label class="admin-mission-filter-group">
-            <span class="admin-ops-label">Търсене</span>
-            <input class="admin-ops-input" type="search" data-mission-search placeholder="Търсете задача, имот или изпълнител">
+            <span class="admin-ops-label">{{ cal.search }}</span>
+            <input class="admin-ops-input" type="search" data-mission-search placeholder="{{ cal.search_placeholder }}">
           </label>
           <div class="admin-mission-search-actions">
-            <button class="admin-ops-button admin-ops-button--primary" type="button" data-mission-search-apply>Търси</button>
-            <button class="admin-ops-button" type="button" data-mission-search-clear aria-label="Изчисти търсенето">Изчисти</button>
+            <button class="admin-ops-button admin-ops-button--primary" type="button" data-mission-search-apply>{{ cal.search_button }}</button>
+            <button class="admin-ops-button" type="button" data-mission-search-clear aria-label="{{ cal.clear }}">{{ cal.clear }}</button>
           </div>
           <div class="admin-mission-chip-row" data-mission-filter-chips>
-            <span class="admin-mission-empty">Няма активни филтри</span>
+            <span class="admin-mission-empty">{{ cal.no_active_filters }}</span>
           </div>
-          <button class="admin-ops-button" type="button" data-mission-clear>Изчисти всички</button>
+          <button class="admin-ops-button" type="button" data-mission-clear>{{ cal.clear_all }}</button>
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Запазени изгледи</h3>
-          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="today"><span>Задачи за днес</span></button>
-          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="overdue"><span>Закъснели и спешни</span></button>
-          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="unassigned"><span>Без избран изпълнител</span></button>
+          <h3>{{ cal.saved_views }}</h3>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="today"><span>{{ cal.tasks_today }}</span></button>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="overdue"><span>{{ cal.late_urgent }}</span></button>
+          <button class="admin-mission-filter admin-mission-filter--preset" type="button" data-mission-preset="unassigned"><span>{{ cal.without_professional }}</span></button>
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Имоти</h3>
+          <h3>{{ cal.properties }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_property_options[:12] %}
               <button class="admin-mission-filter" type="button" data-mission-filter="property" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="property:{{ option|e }}">0</strong></button>
@@ -3701,7 +4030,7 @@
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Изпълнители</h3>
+          <h3>{{ cal.professionals }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_professional_options[:10] %}
               <button class="admin-mission-filter" type="button" data-mission-filter="professional" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="professional:{{ option|e }}">0</strong></button>
@@ -3710,7 +4039,7 @@
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Собственици</h3>
+          <h3>{{ cal.owners }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_owner_options[:10] %}
               <button class="admin-mission-filter" type="button" data-mission-filter="owner" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="owner:{{ option|e }}">0</strong></button>
@@ -3719,7 +4048,7 @@
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Състояние</h3>
+          <h3>{{ cal.state }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_status_options %}
               <button class="admin-mission-filter" type="button" data-mission-filter="status" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="status:{{ option|e }}">0</strong></button>
@@ -3728,7 +4057,7 @@
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Спешност</h3>
+          <h3>{{ cal.urgency }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_priority_options %}
               <button class="admin-mission-filter" type="button" data-mission-filter="priority" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="priority:{{ option|e }}">0</strong></button>
@@ -3737,7 +4066,7 @@
         </section>
 
         <section class="admin-mission-panel">
-          <h3>Категории</h3>
+          <h3>{{ cal.categories }}</h3>
           <div class="admin-mission-filter-list">
             {% for option in calendar_category_options %}
               <button class="admin-mission-filter" type="button" data-mission-filter="category" data-mission-value="{{ option|e }}"><span>{{ option|e }}</span><strong data-mission-count="category:{{ option|e }}">0</strong></button>
@@ -3773,9 +4102,9 @@
           </section>
           <div class="admin-ops-toolbar__top">
             <div class="admin-ops-heading">
-              <p class="admin-ops-label">Всички имоти</p>
+              <p class="admin-ops-label">{{ cal.all_properties }}</p>
               <h1 data-i18n="calendarPageTitleShort">Календар на задачите</h1>
-              <p id="adminOpsDateRange">Вижте какво трябва да се направи, кога и от кого.</p>
+              <p id="adminOpsDateRange">{{ cal.overview_copy }}</p>
             </div>
             <div class="admin-ops-control-group">
               <button class="admin-ops-button" type="button" data-admin-calendar-today data-i18n="calendarToday">Днес</button>
@@ -3785,11 +4114,11 @@
             </div>
             <label class="admin-ops-global-search">
               <span class="sr-only">Търсене</span>
-              <input class="admin-ops-input" type="search" data-mission-search-top placeholder="Търсете задача, имот, собственик или изпълнител">
+              <input class="admin-ops-input" type="search" data-mission-search-top placeholder="{{ cal.search_placeholder_full }}">
             </label>
             <div class="admin-ops-search-actions">
-              <button class="admin-ops-button admin-ops-button--primary" type="button" data-mission-search-apply>Търси</button>
-              <button class="admin-ops-button admin-ops-button--icon" type="button" data-mission-search-clear aria-label="Изчисти търсенето">×</button>
+              <button class="admin-ops-button admin-ops-button--primary" type="button" data-mission-search-apply>{{ cal.search_button }}</button>
+              <button class="admin-ops-button admin-ops-button--icon" type="button" data-mission-search-clear aria-label="{{ cal.clear }}">×</button>
             </div>
             <div class="admin-ops-meta">
               <span data-admin-timezone>Timezone</span>
@@ -3844,9 +4173,9 @@
               </div>
             </details>
             <button class="admin-ops-button admin-ops-button--primary" type="button" data-admin-create-event data-i18n="calendarCreateEvent">Създай събитие</button>
-            <button class="admin-ops-button" type="button" data-admin-refresh>Обнови</button>
-            <button class="admin-ops-button" type="button" data-admin-export>Експорт</button>
-            <button class="admin-ops-button" type="button" data-admin-notifications>Известия <strong data-admin-urgent-count>0</strong></button>
+            <button class="admin-ops-button" type="button" data-admin-refresh>{{ cal.refresh }}</button>
+            <button class="admin-ops-button" type="button" data-admin-export>{{ cal.export }}</button>
+            <button class="admin-ops-button" type="button" data-admin-notifications>{{ cal.notifications }} <strong data-admin-urgent-count>0</strong></button>
           </div>
         </header>
 
@@ -3866,31 +4195,31 @@
         <form class="admin-ops-filters" id="adminCalendarFiltersForm" method="get" action="{{ request.path }}" hidden aria-hidden="true">
           <input type="hidden" name="view" value="{{ calendar_view }}">
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Търсене</span>
+            <span class="admin-ops-label">{{ cal.search }}</span>
             <input class="admin-ops-input" type="search" name="q" value="{{ calendar_filters.search|e }}" placeholder="Търсене в събития">
           </label>
           <label class="admin-ops-filter">
             <span class="admin-ops-label">Имот</span>
             <select class="admin-ops-select" name="property">
-              <option value="">Всички имоти</option>
+              <option value="">{{ cal.all_properties }}</option>
               {% for option in calendar_property_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.property %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Собственик</span>
+            <span class="admin-ops-label">{{ cal.owner }}</span>
             <select class="admin-ops-select" name="owner">
-              <option value="">Всички собственици</option>
+              <option value="">{{ cal.all_owners }}</option>
               {% for option in calendar_owner_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.owner %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Изпълнител</span>
+            <span class="admin-ops-label">{{ cal.professional }}</span>
             <select class="admin-ops-select" name="professional">
-              <option value="">Всички професионалисти</option>
+              <option value="">{{ cal.all_professionals }}</option>
               {% for option in calendar_professional_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.professional %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
@@ -3899,45 +4228,45 @@
           <label class="admin-ops-filter">
             <span class="admin-ops-label">Категория</span>
             <select class="admin-ops-select" name="category" data-admin-filter-kind="category">
-              <option value="">Всички категории</option>
+              <option value="">{{ cal.all_categories }}</option>
               {% for option in calendar_category_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.category %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Статус</span>
+            <span class="admin-ops-label">{{ cal.status }}</span>
             <select class="admin-ops-select" name="status" data-admin-filter-kind="status">
-              <option value="">Всички статуси</option>
+              <option value="">{{ cal.all_statuses }}</option>
               {% for option in calendar_status_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.status %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Град</span>
+            <span class="admin-ops-label">{{ cal.city }}</span>
             <select class="admin-ops-select" name="city">
-              <option value="">Всички градове</option>
+              <option value="">{{ cal.all_cities }}</option>
               {% for option in calendar_city_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.city %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">Приоритет</span>
+            <span class="admin-ops-label">{{ cal.priority }}</span>
             <select class="admin-ops-select" name="priority" data-admin-filter-kind="priority">
-              <option value="">Всички приоритети</option>
+              <option value="">{{ cal.all_priorities }}</option>
               {% for option in calendar_priority_options %}
                 <option value="{{ option|e }}" {% if option == calendar_filters.priority %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">От дата</span>
+            <span class="admin-ops-label">{{ cal.from_date }}</span>
             <input class="admin-ops-input" type="date" name="date_from" value="{{ request.args.get('date_from', '')|e }}">
           </label>
           <label class="admin-ops-filter">
-            <span class="admin-ops-label">До дата</span>
+            <span class="admin-ops-label">{{ cal.to_date }}</span>
             <input class="admin-ops-input" type="date" name="date_to" value="{{ request.args.get('date_to', '')|e }}">
           </label>
           <div class="admin-ops-control-group">
@@ -3972,27 +4301,27 @@
 
         <section class="admin-command-dock" aria-label="Оперативна командна карта">
           <section class="admin-smart-card admin-next-command">
-            <span class="admin-ops-detail-label">Следващо действие</span>
-            <h3 data-admin-next-action>Изберете събитие</h3>
-            <p class="admin-next-command__reason" data-admin-next-action-copy>Ще предложим най-подходящото действие.</p>
+            <span class="admin-ops-detail-label">{{ cal.next_action }}</span>
+            <h3 data-admin-next-action>{{ cal.select_event }}</h3>
+            <p class="admin-next-command__reason" data-admin-next-action-copy>{{ cal.suggest_action }}</p>
             <div class="admin-next-command__meta">
               <span>Имот <strong data-next-property>—</strong></span>
               <span>Изпълнител <strong data-next-professional>—</strong></span>
               <span>Спешност <strong data-next-urgency>—</strong></span>
-              <span>Срок <strong data-next-sla>—</strong></span>
+              <span>{{ cal.deadline }} <strong data-next-sla>—</strong></span>
             </div>
             <p class="admin-next-command__reason" data-next-recommendation></p>
-            <span class="admin-risk-badge admin-risk-badge--low" data-next-risk>Риск 0 · Нисък</span>
+            <span class="admin-risk-badge admin-risk-badge--low" data-next-risk>{{ cal.risk_low }}</span>
             <div class="admin-next-command__actions">
-              <button class="admin-ops-button admin-ops-button--primary" type="button" data-next-primary>Подготви действие</button>
-              <button class="admin-ops-button" type="button" data-next-secondary>Избери друг</button>
+              <button class="admin-ops-button admin-ops-button--primary" type="button" data-next-primary>{{ cal.prepare_action }}</button>
+              <button class="admin-ops-button" type="button" data-next-secondary>{{ cal.choose_another }}</button>
             </div>
           </section>
           <details class="admin-smart-card admin-smart-card--warning">
-            <summary><strong data-admin-warning>Няма активни предупреждения.</strong></summary>
-            <p data-admin-suggestion>Задачите са в график.</p>
+            <summary><strong data-admin-warning>{{ cal.no_warnings }}</strong></summary>
+            <p data-admin-suggestion>{{ cal.on_schedule }}</p>
             <details class="admin-technical-details">
-              <summary>Техническа диагностика</summary>
+              <summary>{{ cal.technical_diagnostics }}</summary>
               <div data-admin-technical-diagnostics></div>
             </details>
           </details>
@@ -4012,7 +4341,7 @@
             <div class="admin-ops-detail__heading">
               <div class="admin-ops-detail__badges">
                 <span class="admin-ops-detail-pill admin-event-arrival" data-admin-detail-type data-i18n="calendarSelectedEvent">Избрано събитие</span>
-                <span class="admin-persistence-badge" data-admin-persistence-badge>Само за четене</span>
+                <span class="admin-persistence-badge" data-admin-persistence-badge>{{ cal.read_only }}</span>
               </div>
               <h2 id="calendarDetailTitle" data-admin-detail-title data-i18n="calendarChooseEvent">Изберете събитие</h2>
               <p class="admin-ops-detail__subtitle" data-admin-detail-subtitle data-i18n="calendarDetailSubtitleEmpty">Изберете запис от календара, за да прегледате оперативните подробности.</p>
@@ -4060,14 +4389,14 @@
               <section class="admin-ops-detail-section" data-admin-detail-section="attachments" aria-labelledby="calendarDetailAttachmentsHeading">
                 <h3 id="calendarDetailAttachmentsHeading" data-i18n="calendarDetailAttachments">Прикачени файлове</h3>
                 <div class="admin-ops-detail__data-block" data-admin-detail-attachments aria-live="polite">
-                  <p class="admin-ops-detail__state" data-state="unavailable">Информацията за файловете не е налична в този изглед.</p>
+                  <p class="admin-ops-detail__state" data-state="unavailable">{{ cal.files_unavailable }}</p>
                 </div>
               </section>
 
               <section class="admin-ops-detail-section" data-admin-detail-section="notes" aria-labelledby="calendarDetailNotesHeading">
                 <h3 id="calendarDetailNotesHeading" data-i18n="calendarDetailNotes">Бележки</h3>
                 <div class="admin-ops-detail__data-block" data-admin-detail-notes aria-live="polite">
-                  <p class="admin-ops-detail__state" data-state="unavailable">Информацията за бележките не е налична в този изглед.</p>
+                  <p class="admin-ops-detail__state" data-state="unavailable">{{ cal.notes_unavailable }}</p>
                 </div>
               </section>
 
@@ -4075,11 +4404,11 @@
                 <h3 id="calendarDetailActionsHeading" data-i18n="calendarQuickActions">Бързи действия</h3>
                 <div class="admin-ops-detail__actions">
                   <a class="admin-ops-button admin-ops-button--primary" href="/admin/operations" data-admin-detail-operation hidden data-i18n="calendarDetailOpenOperation">Отвори задачата</a>
-                  <p class="admin-ops-detail__empty" data-admin-detail-operation-missing hidden>Липсва валиден идентификатор на задачата.</p>
-                  <button class="admin-ops-button" type="button" data-admin-detail-assign>Възложи</button>
-                  <button class="admin-ops-button" type="button" data-admin-detail-complete>Завърши</button>
+                  <p class="admin-ops-detail__empty" data-admin-detail-operation-missing hidden>{{ cal.missing_task_id }}</p>
+                  <button class="admin-ops-button" type="button" data-admin-detail-assign>{{ cal.assign }}</button>
+                  <button class="admin-ops-button" type="button" data-admin-detail-complete>{{ cal.complete }}</button>
                   <details>
-                    <summary class="admin-ops-button">Още</summary>
+                    <summary class="admin-ops-button">{{ cal.more }}</summary>
                     <div class="admin-ops-detail__actions">
                       <a class="admin-ops-button" href="{{ localized_url('/admin/properties') }}" data-admin-detail-property-link data-i18n="calendarDetailOpenProperty">Отвори имота</a>
                       <button class="admin-ops-button" type="button" data-admin-edit-event data-i18n="calendarDetailEdit">Редактирай</button>
@@ -4142,24 +4471,24 @@
       <dialog class="admin-ops-create" data-admin-create-dialog>
         <form class="admin-ops-detail-card" data-admin-create-form>
           <div class="admin-ops-detail-header">
-            <span class="admin-ops-label">Ново събитие</span>
-            <h2>Добавяне към графика</h2>
-            <p data-admin-create-slot>Изберете дата и час.</p>
+            <span class="admin-ops-label">{{ cal.new_event }}</span>
+            <h2>{{ cal.add_to_schedule }}</h2>
+            <p data-admin-create-slot>{{ cal.choose_date_time }}</p>
           </div>
           <div class="admin-ops-create-grid">
             <label class="admin-ops-filter"><span class="admin-ops-label" data-i18n="calendarCategory">Категория</span><select class="admin-ops-select" name="category" required data-admin-display-select="category">{% for option in calendar_category_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="Cleaning">Почистване</option><option value="Check-in">Пристигане</option><option value="Check-out">Заминаване</option><option value="Maintenance">Поддръжка</option><option value="Repair">Ремонт</option><option value="Emergency">Спешен случай</option><option value="Inspection">Инспекция</option><option value="Transfer">Трансфер</option></select></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Имот</span><select class="admin-ops-select" name="property_id" required aria-describedby="adminCreatePropertyError"><option value="">Изберете имот</option>{% for property in calendar_property_records %}<option value="{{ property.id|e }}" data-owner-id="{{ property.owner_id|e }}" data-owner-name="{{ property.owner_display_name|e }}">{{ property.display_name|e }}</option>{% endfor %}</select><span class="admin-inline-error" id="adminCreatePropertyError" data-admin-property-error hidden>Изберете валиден имот.</span></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label" data-i18n="calendarOwner">Собственик</span><input class="admin-ops-input" type="text" data-admin-owner-display readonly placeholder="Първо изберете имот" aria-describedby="adminCreateOwnerMessage"><input type="hidden" name="owner_id" value=""><span id="adminCreateOwnerMessage" data-admin-owner-message role="status">Първо изберете имот.</span></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Изпълнител</span><select class="admin-ops-select" name="professional"><option value="">Не е възложено</option>{% for option in calendar_professional_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Начало</span><input class="admin-ops-input" type="datetime-local" name="start" required></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Край</span><input class="admin-ops-input" type="datetime-local" name="end" required></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Спешност</span><select class="admin-ops-select" name="priority" data-admin-display-select="priority">{% for option in calendar_priority_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="NORMAL">Нормален</option><option value="HIGH">Висок</option><option value="URGENT">Спешен</option></select></label>
-            <label class="admin-ops-filter"><span class="admin-ops-label">Статус</span><select class="admin-ops-select" name="status" data-admin-display-select="status">{% for option in calendar_status_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="SCHEDULED">Планирано</option><option value="ASSIGNED">Възложено</option><option value="IN_PROGRESS">В процес</option></select></label>
-            <label class="admin-ops-filter admin-ops-create-notes"><span class="admin-ops-label">Бележки</span><textarea class="admin-ops-input" name="notes" rows="3" placeholder="Вътрешна оперативна бележка"></textarea></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.property }}</span><select class="admin-ops-select" name="property_id" required aria-describedby="adminCreatePropertyError"><option value="">{{ cal.choose_property }}</option>{% for property in calendar_property_records %}<option value="{{ property.id|e }}" data-owner-id="{{ property.owner_id|e }}" data-owner-name="{{ property.owner_display_name|e }}">{{ property.display_name|e }}</option>{% endfor %}</select><span class="admin-inline-error" id="adminCreatePropertyError" data-admin-property-error hidden>{{ cal.choose_valid_property }}</span></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label" data-i18n="calendarOwner">Собственик</span><input class="admin-ops-input" type="text" data-admin-owner-display readonly placeholder="{{ cal.choose_property_first }}" aria-describedby="adminCreateOwnerMessage"><input type="hidden" name="owner_id" value=""><span id="adminCreateOwnerMessage" data-admin-owner-message role="status">{{ cal.choose_property_first }}.</span></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.professional }}</span><select class="admin-ops-select" name="professional"><option value="">{{ cal.unassigned }}</option>{% for option in calendar_professional_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}</select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.start }}</span><input class="admin-ops-input" type="datetime-local" name="start" required></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.end }}</span><input class="admin-ops-input" type="datetime-local" name="end" required></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.urgency }}</span><select class="admin-ops-select" name="priority" data-admin-display-select="priority">{% for option in calendar_priority_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="NORMAL">Нормален</option><option value="HIGH">Висок</option><option value="URGENT">Спешен</option></select></label>
+            <label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.status }}</span><select class="admin-ops-select" name="status" data-admin-display-select="status">{% for option in calendar_status_options %}<option value="{{ option|e }}">{{ option|e }}</option>{% endfor %}<option value="SCHEDULED">Планирано</option><option value="ASSIGNED">Възложено</option><option value="IN_PROGRESS">В процес</option></select></label>
+            <label class="admin-ops-filter admin-ops-create-notes"><span class="admin-ops-label">{{ cal.notes }}</span><textarea class="admin-ops-input" name="notes" rows="3" placeholder="{{ cal.notes_placeholder }}"></textarea></label>
           </div>
           <div class="admin-ops-actions-grid">
-            <button class="admin-ops-button" type="button" data-admin-create-cancel>Отказ</button>
-            <button class="admin-ops-button admin-ops-button--primary" type="submit">Добави събитие</button>
+            <button class="admin-ops-button" type="button" data-admin-create-cancel>{{ cal.cancel }}</button>
+            <button class="admin-ops-button admin-ops-button--primary" type="submit">{{ cal.add_event }}</button>
           </div>
         </form>
       </dialog>
@@ -4174,31 +4503,31 @@
       </dialog>
       <dialog class="admin-ops-create" data-assignment-dialog>
         <form class="admin-ops-detail-card" data-assignment-form>
-          <div class="admin-ops-detail-header"><span class="admin-ops-label">Професионално възлагане</span><h2>Изберете професионалист</h2><p data-assignment-context></p></div>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label">{{ cal.assignment }}</span><h2>{{ cal.choose_professional }}</h2><p data-assignment-context></p></div>
           <div class="admin-dispatch-list" data-assignment-options></div>
           <p class="admin-inline-error" data-assignment-error role="alert" hidden></p>
-          <label class="calendar-owner-form__check"><input type="checkbox" name="override_conflict" data-assignment-override> Потвърждавам възлагане въпреки конфликт в графика</label>
-          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-assignment-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit" data-assignment-submit disabled>Възложи сега</button></div>
+          <label class="calendar-owner-form__check"><input type="checkbox" name="override_conflict" data-assignment-override> {{ cal.override_conflict }}</label>
+          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-assignment-cancel>{{ cal.cancel }}</button><button class="admin-ops-button admin-ops-button--primary" type="submit" data-assignment-submit disabled>{{ cal.assign_now }}</button></div>
         </form>
       </dialog>
       <dialog class="admin-ops-create" data-time-dialog>
         <form class="admin-ops-detail-card" data-time-form>
-          <div class="admin-ops-detail-header"><span class="admin-ops-label">Корекция на часа</span><h2>Начало и край</h2><p data-time-context></p></div>
-          <div class="admin-ops-create-grid"><label class="admin-ops-filter"><span class="admin-ops-label">Начало</span><input class="admin-ops-input" type="datetime-local" name="start_datetime" required></label><label class="admin-ops-filter"><span class="admin-ops-label">Край</span><input class="admin-ops-input" type="datetime-local" name="end_datetime" required></label></div>
+          <div class="admin-ops-detail-header"><span class="admin-ops-label">{{ cal.time_correction }}</span><h2>{{ cal.start_end }}</h2><p data-time-context></p></div>
+          <div class="admin-ops-create-grid"><label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.start }}</span><input class="admin-ops-input" type="datetime-local" name="start_datetime" required></label><label class="admin-ops-filter"><span class="admin-ops-label">{{ cal.end }}</span><input class="admin-ops-input" type="datetime-local" name="end_datetime" required></label></div>
           <div class="admin-smart-card admin-smart-card--warning" data-time-warning hidden></div>
-          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-time-cancel>Отказ</button><button class="admin-ops-button admin-ops-button--primary" type="submit">Запази часа</button></div>
+          <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-time-cancel>{{ cal.cancel }}</button><button class="admin-ops-button admin-ops-button--primary" type="submit">{{ cal.save_time }}</button></div>
         </form>
       </dialog>
       <div class="admin-ops-toast" role="status" aria-live="polite" data-admin-toast></div>
       <dialog class="admin-briefing" data-admin-briefing>
-        <span class="admin-ops-label">Дневен оперативен брифинг</span>
-        <h2 data-briefing-greeting>Добро утро.</h2>
+        <span class="admin-ops-label">{{ cal.daily_briefing }}</span>
+        <h2 data-briefing-greeting>{{ cal.good_morning }}</h2>
         <p data-briefing-summary></p>
-        <div class="admin-smart-card admin-smart-card--warning"><strong>Най-висок риск</strong><p data-briefing-risk></p></div>
-        <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-briefing-close>Към календара</button><button class="admin-ops-button admin-ops-button--primary" type="button" data-briefing-action>Прегледай препоръката</button></div>
+        <div class="admin-smart-card admin-smart-card--warning"><strong>{{ cal.highest_risk }}</strong><p data-briefing-risk></p></div>
+        <div class="admin-ops-actions-grid"><button class="admin-ops-button" type="button" data-briefing-close>{{ cal.back_calendar }}</button><button class="admin-ops-button admin-ops-button--primary" type="button" data-briefing-action>{{ cal.review_recommendation }}</button></div>
       </dialog>
       <dialog class="admin-command-palette" data-admin-command-palette>
-        <input class="admin-command-input" type="search" placeholder="Напишете команда… например: възложи почистване" data-admin-command-input>
+        <input class="admin-command-input" type="search" placeholder="{{ cal.command_placeholder }}" data-admin-command-input>
         <div class="admin-command-results" data-admin-command-results></div>
       </dialog>
     </div>
@@ -4207,6 +4536,7 @@
       (() => {
         const app = document.querySelector("[data-admin-calendar-app]");
         if (!app) return;
+        const calCopy = {{ cal|tojson }};
 
         const hourHeight = 64;
         const localeByLanguage = { bg: "bg-BG", en: "en-GB", fr: "fr-FR" };
@@ -5593,7 +5923,7 @@
               <span class="admin-ops-event__footer">
                 <span class="admin-event-initials">${escapeHtml(eventInitials(event.property))}</span>
                 <span class="admin-event-avatar">${escapeHtml(eventInitials(event.professional))}</span>
-                <span class="admin-ops-event__status">${escapeHtml(tracksOperations(event) && event.overdue ? "Просрочено" : statusLabel(event.status))}</span>
+                <span class="admin-ops-event__status">${escapeHtml(tracksOperations(event) && event.overdue ? calCopy.overdue : statusLabel(event.status))}</span>
                 <span class="admin-event-sla" data-sla-event="${event.id}" data-sla-compact></span>
               </span>
               <span class="admin-ops-event__resize" aria-hidden="true"></span>
@@ -5891,10 +6221,10 @@
                   const dayEnd = new Date(date);
                   dayEnd.setHours(23, 59, 59, 999);
                   const items = currentEvents.filter((event) => event.property === property && eventInRange(event, dayStart, dayEnd));
-                  return `<div class="admin-property-cell">${items.length ? items.map((event) => propertyChip(event, date)).join("") : '<span class="admin-ops-empty">Свободно</span>'}</div>`;
+                  return `<div class="admin-property-cell">${items.length ? items.map((event) => propertyChip(event, date)).join("") : '\x3cspan class="admin-ops-empty">' + calCopy.free + '\x3c/span>'}</div>`;
                 }).join("")}
               </div>
-            `).join("") || '<div class="admin-ops-empty" style="padding: 18px;">Няма имоти в този филтриран изглед.</div>'}
+            `).join("") || '\x3cdiv class="admin-ops-empty" style="padding: 18px;">' + calCopy.no_properties + '\x3c/div>'}
           `;
           bindBoardEvents(board);
         }
@@ -5909,7 +6239,7 @@
         function renderTimeline() {
           const board = app.querySelector('[data-admin-board="timeline"]');
           const sorted = [...visibleEvents()].sort((a, b) => a.start - b.start);
-          const empty = filterState.kpi === "sla" ? "Няма нарушени срокове." : "Няма задачи с текущите филтри.";
+          const empty = filterState.kpi === "sla" ? calCopy.no_deadline_breaches : calCopy.no_filtered_tasks;
           board.innerHTML = `<div class="admin-timeline-list">${sorted.map((event) => `
             <button type="button" class="admin-timeline-event ${tone(event)}" data-event-id="${event.id}" data-preview="${escapeHtml(event.property)} · ${escapeHtml(event.professional)} · ${escapeHtml(statusLabel(event.status))}">
               <span>${formatDate(event.start, { weekday: "short", day: "2-digit", month: "short" })} · ${getSafeDisplayTime(event)} - ${event.end ? formatTime(event.end) : "—"}</span>
@@ -5930,7 +6260,7 @@
               <strong>${escapeHtml(humanEventTitle(event))}</strong>
               <span>${escapeHtml(event.property)}</span>
             </button>
-          `).join("") || '<p class="admin-ops-empty">Няма събития за този ден.</p>'}</div>`;
+          `).join("") || '\x3cp class="admin-ops-empty">' + calCopy.no_day_events + '\x3c/p>'}</div>`;
           bindBoardEvents(board);
         }
 
@@ -6186,7 +6516,7 @@
             : adminLabel("calendarDetailNoIssues", "Няма нерешени проблеми");
           const operationLink = app.querySelector("[data-admin-detail-operation]");
           const operationMissing = app.querySelector("[data-admin-detail-operation-missing]");
-          operationLink.textContent = "Отвори задачата";
+          operationLink.textContent = calCopy.open_task;
           // Compatibility note for older drawer tests: operationLink.hidden = !event.operationHref
           operationLink.hidden = false;
           operationLink.href = taskId ? `/admin/operations/${encodeURIComponent(taskId)}` : "#";
@@ -6219,13 +6549,13 @@
           riskBadge.className = `admin-risk-badge admin-risk-badge--${band.tone}`;
           const primaryButton = app.querySelector("[data-next-primary]");
           const primaryAllowed = Boolean(event.rawId) && (primaryAction === "Свържи с имот" || primaryAction === "Коригирай часа" || persistence.canPersist);
-          primaryButton.textContent = primaryAllowed ? primaryAction : "Само за визуализация";
+          primaryButton.textContent = primaryAllowed ? primaryAction : calCopy.visual_only;
           primaryButton.dataset.action = primaryAction;
           primaryButton.disabled = !primaryAllowed;
           app.querySelector("[data-next-secondary]").disabled = !event.propertyId;
           app.querySelectorAll("[data-quick-action]").forEach((button) => { button.disabled = !operational || !persistence.canPersist; });
-          app.querySelector("[data-admin-detail-assign]").textContent = "Възложи";
-          app.querySelector("[data-admin-detail-complete]").textContent = "Завърши";
+          app.querySelector("[data-admin-detail-assign]").textContent = calCopy.assign;
+          app.querySelector("[data-admin-detail-complete]").textContent = calCopy.complete;
           app.querySelector("[data-admin-detail-property-link]").textContent = "Отвори имота";
           app.querySelector("[data-admin-detail-assign]").disabled = !taskId || !operational;
           app.querySelector("[data-admin-detail-complete]").disabled = !taskId || !operational;
@@ -6234,7 +6564,7 @@
           app.querySelector("[data-admin-edit-event]").disabled = !taskId || !persistence.canPersist;
           app.querySelector("[data-admin-delete-event]").disabled = !taskId || !persistence.canPersist;
           if (!primaryAllowed) {
-            app.querySelector("[data-admin-next-action]").textContent = "Автоматичните действия са недостъпни";
+            app.querySelector("[data-admin-next-action]").textContent = calCopy.automatic_unavailable;
             app.querySelector("[data-admin-next-action-copy]").textContent = "Това събитие е само за визуализация и не поддържа автоматични действия.";
             app.querySelector("[data-next-recommendation]").textContent = `Липсващи полета за надежден запис: ${persistence.missing.join(", ") || "неизвестен източник"}.`;
           }

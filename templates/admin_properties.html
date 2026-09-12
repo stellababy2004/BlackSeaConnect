@@ -187,6 +187,63 @@
   </style>
 </head>
 <body class="admin-properties-page bsc-admin-workspace">
+
+{% set properties_ui = {
+'bg': {
+'title':'Операции по имоти',
+'intro':'{{ propui.intro }}',
+'dashboard':'Към таблото','owners':'Собственици',
+'metrics':'Показатели за имотите',
+'total':'Общо имоти','active':'Активни имоти','seasonal':'Сезонни имоти','inactive':'Неактивни имоти',
+'shown':'показани','overall':'общо',
+'search':'Търсене','search_ph':'Имот, собственик, град',
+'status':'Статус','all_statuses':'Всички статуси',
+'type':'Тип имот','all_types':'Всички типове',
+'apply':'Приложи филтрите','clear':'Изчисти',
+'property':'Имот','owner':'Собственик','location':'Град / местоположение',
+'capacity':'Капацитет','created':'Създаден',
+'linked':'свързани заявки',
+'empty':'Няма имоти, които отговарят на филтрите.',
+'ACTIVE':'Активен','INACTIVE':'Неактивен','SEASONAL':'Сезонен','SETUP':'Настройване'
+},
+'en': {
+'title':'Property operations',
+'intro':'Search properties, verify owner links and monitor operational readiness.',
+'dashboard':'Back to dashboard','owners':'Owners',
+'metrics':'Property metrics',
+'total':'Total properties','active':'Active properties','seasonal':'Seasonal properties','inactive':'Inactive properties',
+'shown':'shown','overall':'total',
+'search':'Search','search_ph':'Property, owner, city',
+'status':'Status','all_statuses':'All statuses',
+'type':'Property type','all_types':'All types',
+'apply':'Apply filters','clear':'Clear',
+'property':'Property','owner':'Owner','location':'City / location',
+'capacity':'Capacity','created':'Created',
+'linked':'linked requests',
+'empty':'No properties match the selected filters.',
+'ACTIVE':'Active','INACTIVE':'Inactive','SEASONAL':'Seasonal','SETUP':'Setup'
+},
+'fr': {
+'title':'Opérations des biens',
+'intro':'Recherchez les biens, vérifiez le lien avec le propriétaire et suivez leur préparation opérationnelle.',
+'dashboard':'Retour au tableau de bord','owners':'Propriétaires',
+'metrics':'Indicateurs des biens',
+'total':'Total des biens','active':'Biens actifs','seasonal':'Biens saisonniers','inactive':'Biens inactifs',
+'shown':'affichés','overall':'au total',
+'search':'Recherche','search_ph':'Bien, propriétaire, ville',
+'status':'Statut','all_statuses':'Tous les statuts',
+'type':'Type de bien','all_types':'Tous les types',
+'apply':'Appliquer les filtres','clear':'Effacer',
+'property':'Bien','owner':'Propriétaire','location':'Ville / localisation',
+'capacity':'Capacité','created':'Créé',
+'linked':'demandes associées',
+'empty':'Aucun bien ne correspond aux filtres sélectionnés.',
+'ACTIVE':'Actif','INACTIVE':'Inactif','SEASONAL':'Saisonnier','SETUP':'Configuration'
+}
+} %}
+{% set propui = properties_ui.get(page_lang|default('en'), properties_ui['en']) %}
+
+
   <div hidden>Property Operations Setup <strong>{{ properties_count }}</strong> filtered</div>
   {% include '_admin_sidebar.html' %}
   <main class="admin-properties-shell">
@@ -194,49 +251,49 @@
       <div class="admin-properties-hero bsc-page-header">
         <div>
           <p class="eyebrow">BLACKSEA CONNECT</p>
-          <h1>Операции по имоти</h1>
+          <h1>{{ propui.title }}</h1>
           <p class="admin-properties-copy">
-            Търсете имоти, проверявайте връзката със собственика и следете оперативната готовност.
+            {{ propui.intro }}
           </p>
         </div>
         <div class="admin-properties-actions">
-          <a class="button button--secondary" href="/admin">Към таблото</a>
-          <a class="button button--primary" href="/admin/owner-accounts">Собственици</a>
+          <a class="button button--secondary" href="/admin">{{ propui.dashboard }}</a>
+          <a class="button button--primary" href="/admin/owner-accounts">{{ propui.owners }}</a>
         </div>
       </div>
 
-      <div class="admin-properties-stats" aria-label="Показатели за имотите">
-        <article class="admin-properties-stat"><span>Общо имоти</span><strong>{{ total_properties }}</strong></article>
-        <article class="admin-properties-stat"><span>Активни имоти</span><strong>{{ active_properties }}</strong></article>
-        <article class="admin-properties-stat"><span>Сезонни имоти</span><strong>{{ seasonal_properties }}</strong></article>
-        <article class="admin-properties-stat"><span>Неактивни имоти</span><strong>{{ inactive_properties }}</strong></article>
+      <div class="admin-properties-stats" aria-label="{{ propui.metrics }}">
+        <article class="admin-properties-stat"><span>{{ propui.total }}</span><strong>{{ total_properties }}</strong></article>
+        <article class="admin-properties-stat"><span>{{ propui.active }}</span><strong>{{ active_properties }}</strong></article>
+        <article class="admin-properties-stat"><span>{{ propui.seasonal }}</span><strong>{{ seasonal_properties }}</strong></article>
+        <article class="admin-properties-stat"><span>{{ propui.inactive }}</span><strong>{{ inactive_properties }}</strong></article>
       </div>
 
       <p class="admin-properties-summary">
-        <span><strong>{{ properties_count }}</strong> показани</span>
-        <span><strong>{{ properties_total_count }}</strong> общо</span>
+        <span><strong>{{ properties_count }}</strong> {{ propui.shown }}</span>
+        <span><strong>{{ properties_total_count }}</strong> {{ propui.overall }}</span>
       </p>
 
       <form method="get" action="{{ url_for('admin_properties') }}">
         <div class="admin-properties-filters">
           <label class="admin-properties-field">
-            <span>Търсене</span>
-            <input type="search" name="q" value="{{ search_query|e }}" placeholder="Имот, собственик, град">
+            <span>{{ propui.search }}</span>
+            <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ propui.search_ph }}">
           </label>
           <label class="admin-properties-field">
-            <span>Статус</span>
-            {% set property_filter_status_labels = {'ACTIVE': 'Активен', 'INACTIVE': 'Неактивен', 'SEASONAL': 'Сезонен', 'SETUP': 'Настройване'} %}
+            <span>{{ propui.status }}</span>
+            {% set property_filter_status_labels = {'ACTIVE': propui.ACTIVE, 'INACTIVE': propui.INACTIVE, 'SEASONAL': propui.SEASONAL, 'SETUP': propui.SETUP} %}
             <select name="status">
-              <option value="">Всички статуси</option>
+              <option value="">{{ propui.all_statuses }}</option>
               {% for option in status_options %}
                 <option value="{{ option|lower|e }}" {% if status_filter|upper == option %}selected{% endif %}>{{ property_filter_status_labels.get(option|upper, option|title)|e }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="admin-properties-field">
-            <span>Тип имот</span>
+            <span>{{ propui.type }}</span>
             <select name="property_type">
-              <option value="">Всички типове</option>
+              <option value="">{{ propui.all_types }}</option>
               {% for option in property_type_options %}
                 <option value="{{ option|e }}" {% if property_type_filter|lower == option|lower %}selected{% endif %}>{{ option|e }}</option>
               {% endfor %}
@@ -244,8 +301,8 @@
           </label>
         </div>
         <div class="admin-properties-filter-actions">
-          <button class="button button--primary" type="submit">Приложи филтрите</button>
-          <a class="button button--ghost" href="{{ url_for('admin_properties') }}">Изчисти</a>
+          <button class="button button--primary" type="submit">{{ propui.apply }}</button>
+          <a class="button button--ghost" href="{{ url_for('admin_properties') }}">{{ propui.clear }}</a>
         </div>
       </form>
 
@@ -254,13 +311,13 @@
         <table class="admin-properties-table" aria-label="Property list">
           <thead>
             <tr>
-              <th>Имот</th>
-              <th>Собственик</th>
-              <th>Град / местоположение</th>
-              <th>Тип имот</th>
-              <th>Капацитет</th>
-              <th>Статус</th>
-              <th>Създаден</th>
+              <th>{{ propui.property }}</th>
+              <th>{{ propui.owner }}</th>
+              <th>{{ propui.location }}</th>
+              <th>{{ propui.type }}</th>
+              <th>{{ propui.capacity }}</th>
+              <th>{{ propui.status }}</th>
+              <th>{{ propui.created }}</th>
             </tr>
           </thead>
           <tbody>
@@ -270,14 +327,14 @@
                   <a class="admin-properties-link" href="/admin/properties/{{ property.id }}">{{ property.name|e }}</a>
                   <div class="admin-properties-row__meta">
                     <span>{{ property.owner_email|e }}</span>
-                    <span>{{ property.service_request_count }} свързани заявки</span>
+                    <span>{{ property.service_request_count }} {{ propui.linked }}</span>
                   </div>
                 </td>
                 <td>{{ property.owner_label|e }}</td>
                 <td>{{ property.location|e }}</td>
                 <td>{{ property.property_type|e }}</td>
                 <td>{{ property.guest_capacity }}</td>
-                {% set property_status_labels = {'ACTIVE': 'Активен', 'SEASONAL': 'Сезонен', 'INACTIVE': 'Неактивен', 'SETUP': 'Настройване'} %}
+                {% set property_status_labels = {'ACTIVE': propui.ACTIVE, 'SEASONAL': propui.SEASONAL, 'INACTIVE': propui.INACTIVE, 'SETUP': propui.SETUP} %}
                 <td><span class="admin-properties-chip admin-properties-chip--{{ property.status_tone|e }}">{{ property_status_labels.get(property.status|upper, property.status_label)|e }}</span></td>
                 <td>{{ property.created_at|e }}</td>
               </tr>
@@ -286,7 +343,7 @@
         </table>
         </div>
       {% else %}
-        <p class="admin-properties-empty">Няма имоти, които отговарят на филтрите.</p>
+        <p class="admin-properties-empty">{{ propui.empty }}</p>
       {% endif %}
     </section>
   </main>

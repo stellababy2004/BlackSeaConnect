@@ -195,3 +195,118 @@ for their diagnostics. Inputs are immutable and remain unchanged.
         (item for item in candidates if item.eligible),
         key=lambda item: (-item.score, item.professional_id.strip().casefold()),
     )[:3])
+
+
+# ---------------------------------------------------------------------------
+# AI Operations Monitor
+# ---------------------------------------------------------------------------
+
+_OPERATIONS_MONITOR_BUCKET_ORDER = {
+    "critical": 0,
+    "needs_attention": 1,
+    "waiting": 2,
+    "ready_to_close": 3,
+}
+
+_OPERATIONS_MONITOR_SEVERITY_ORDER = {
+    "critical": 0,
+    "high": 1,
+    "medium": 2,
+    "warning": 2,
+    "low": 3,
+    "info": 4,
+}
+
+_OPERATIONS_MONITOR_WAITING_CATEGORIES = {
+    "owner_requests_waiting",
+}
+
+_OPERATIONS_MONITOR_READY_CATEGORIES = {
+    "ready_to_close",
+}
+
+
+def build_operations_monitor(alerts) -> dict:
+    """Build a deterministic, read-only operations attention summary.
+
+    The caller supplies already-authorized operational alerts. This function
+    performs no persistence, assignment, notification, email, payment, or
+    status changes. Existing deterministic alert facts remain authoritative.
+    """
+    items = []
+
+    for alert in alerts or ():
+        if not isinstance(alert, dict):
+            continue
+
+        severity = str(alert.get("severity", "medium") or "medium").strip().lower()
+        category = str(alert.get("category", "") or "").strip().lower()
+
+        if category in _OPERATIONS_MONITOR_READY_CATEGORIES:
+            bucket = "ready_to_close"
+        elif category in _OPERATIONS_MONITOR_WAITING_CATEGORIES:
+            bucket = "waiting"
+        elif severity in {"critical", "high"}:
+            bucket = "critical"
+        else:
+            bucket = "needs_attention"
+
+        property_label = str(alert.get("property_label", "") or "").strip()
+        operation_label = str(alert.get("operation_label", "") or "").strip()
+        reservation_label = str(alert.get("reservation_label", "") or "").strip()
+        detail = str(alert.get("detail", "") or "").strip()
+        next_action = str(alert.get("recommended_action", "") or "").strip()
+        link = str(alert.get("link", "") or "").strip()
+        created_at = str(alert.get("created_at", "") or "").strip()
+
+        reasons = tuple(
+            value
+            for value in (
+                detail,
+                f"Property: {property_label}" if property_label else "",
+                f"Operation: {operation_label}" if operation_label else "",
+                f"Reservation: {reservation_label}" if reservation_label else "",
+            )
+            if value
+        )
+
+        items.append({
+            "bucket": bucket,
+            "severity": severity,
+            "category": category,
+            "property_label": property_label,
+            "operation_label": operation_label,
+            "reservation_label": reservation_label,
+            "created_at": created_at,
+            "next_best_action": next_action,
+            "reasons": reasons,
+            "link": link,
+        })
+
+    items.sort(
+        key=lambda item: (
+            _OPERATIONS_MONITOR_BUCKET_ORDER.get(item["bucket"], 99),
+            _OPERATIONS_MONITOR_SEVERITY_ORDER.get(item["severity"], 99),
+            item["created_at"],
+            item["property_label"].casefold(),
+            item["operation_label"].casefold(),
+        )
+    )
+
+    counts = {
+        bucket: sum(1 for item in items if item["bucket"] == bucket)
+        for bucket in _OPERATIONS_MONITOR_BUCKET_ORDER
+    }
+
+    attention_count = (
+        counts["critical"]
+        + counts["needs_attention"]
+        + counts["waiting"]
+    )
+
+    return {
+        "items": tuple(items),
+        "counts": counts,
+        "attention_count": attention_count,
+        "has_attention": attention_count > 0,
+    }

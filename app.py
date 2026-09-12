@@ -18581,6 +18581,11 @@ def _admin_executive_risk_band(score):
     return {"label": t("riskBandCritical", "Critical"), "tone": "danger"}
 
 
+def _build_ai_operations_monitor(executive_alerts):
+    from services.ai_agent.tools import build_operations_monitor
+
+    return build_operations_monitor(executive_alerts)
+
 def _admin_executive_timestamp_display(value):
     dt = value if isinstance(value, datetime) else _parse_iso_datetime(value)
     if not dt:
@@ -19535,8 +19540,11 @@ def admin_property_detail(property_id):
         return redirect(url_for("admin_property_detail", property_id=property_id))
 
     context = _admin_property_detail_context(property_record)
+    current_lang = _resolve_current_language()
     return render_template(
         "admin_property_detail.html",
+        page_lang=current_lang,
+        current_lang=current_lang,
         **context,
     )
 
@@ -24488,6 +24496,7 @@ def _build_admin_dashboard():
         "executive_summary_lines": executive_summary_lines,
         "executive_kpis": executive_kpis,
         "executive_alerts": executive_alerts,
+        "ai_operations_monitor": _build_ai_operations_monitor(executive_alerts),
         "property_risk_cards": property_risk_cards,
         "executive_timeline": executive_timeline,
         "workload_distribution": workload_distribution,

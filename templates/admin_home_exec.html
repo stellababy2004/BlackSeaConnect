@@ -3154,13 +3154,13 @@
       <header class="dashboard-v3-hero">
         <div>
           <p>{{ dash.kicker }}</p>
-          <h1>{{ public_i18n('adminHome', 'greeting', 'Добро утро, Стела') }} <span aria-hidden="true">👋</span></h1>
+          <h1>{{ 'Добро утро, Стела' if admin_lang == 'bg' else 'Bonjour, Stella' if admin_lang == 'fr' else 'Good morning, Stella' }} <span aria-hidden="true">👋</span></h1>
           <small>{{ dash.subtitle }}</small>
         </div>
 
         <nav class="dashboard-v3-actions" aria-label="{{ dash.kicker }}">
           <a class="dashboard-v3-action dashboard-v3-action--primary" href="/admin/operations/new">
-            + {{ public_i18n('adminHome', 'newOperation', 'Нова операция') }}
+            + {{ 'Нова операция' if admin_lang == 'bg' else 'Nouvelle opération' if admin_lang == 'fr' else 'New operation' }}
           </a>
           <a class="dashboard-v3-action" href="/admin/operator">{{ dash.operator }}</a>
           <a class="dashboard-v3-action" href="/admin/calendar">{{ dash.calendar }}</a>
@@ -3203,6 +3203,327 @@
         </a>
       </section>
 
+      {% if admin_lang == 'bg' %}
+        {% set ai_ops_labels = {
+          'kicker': 'AI ОПЕРАТИВЕН АСИСТЕНТ',
+          'title': 'AI оперативен обзор',
+          'attention': 'за действие',
+          'critical': 'Критични',
+          'needs_attention': 'За внимание',
+          'waiting': 'Изчакване',
+          'ready': 'За приключване',
+          'why': 'Сигнал',
+          'open': 'Отвори',
+          'clear': 'Няма оперативни проблеми.',
+          'overdue_operations': 'Просрочени операции',
+          'unassigned_operations': 'Неразпределени операции',
+          'owner_requests_waiting': 'Чакащи заявки',
+          'reservation_conflicts': 'Конфликти',
+          'ready_to_close': 'Готови за приключване',
+          'action_overdue': 'Обработи просрочената операция',
+          'action_assign': 'Назначи изпълнител',
+          'action_review': 'Прегледай заявката',
+          'action_conflict': 'Провери конфликта',
+          'action_close': 'Прегледай и приключи'
+        } %}
+      {% elif admin_lang == 'fr' %}
+        {% set ai_ops_labels = {
+          'kicker': 'ASSISTANT OPÉRATIONNEL IA',
+          'title': 'Brief opérations IA',
+          'attention': 'à traiter',
+          'critical': 'Critiques',
+          'needs_attention': 'À surveiller',
+          'waiting': 'En attente',
+          'ready': 'À clôturer',
+          'why': 'Signal',
+          'open': 'Ouvrir',
+          'clear': 'Aucun problème opérationnel ne nécessite une action.',
+          'overdue_operations': 'Opérations en retard',
+          'unassigned_operations': 'Opérations non attribuées',
+          'owner_requests_waiting': 'Demandes en attente',
+          'reservation_conflicts': 'Conflits de réservation',
+          'ready_to_close': 'Prêtes à clôturer',
+          'action_overdue': 'Traiter l’opération en retard',
+          'action_assign': 'Attribuer un prestataire',
+          'action_review': 'Examiner la demande',
+          'action_conflict': 'Examiner le conflit',
+          'action_close': 'Vérifier et clôturer'
+        } %}
+      {% else %}
+        {% set ai_ops_labels = {
+          'kicker': 'AI OPERATIONS ASSISTANT',
+          'title': 'AI Operations Brief',
+          'attention': 'require action',
+          'critical': 'Critical',
+          'needs_attention': 'Needs attention',
+          'waiting': 'Waiting',
+          'ready': 'Ready to close',
+          'why': 'Signal',
+          'open': 'Open',
+          'clear': 'No operational issues currently require action.',
+          'overdue_operations': 'Overdue operations',
+          'unassigned_operations': 'Unassigned operations',
+          'owner_requests_waiting': 'Requests waiting',
+          'reservation_conflicts': 'Reservation conflicts',
+          'ready_to_close': 'Ready to close',
+          'action_overdue': 'Handle overdue operation',
+          'action_assign': 'Assign a professional',
+          'action_review': 'Review request',
+          'action_conflict': 'Review conflict',
+          'action_close': 'Review and close'
+        } %}
+      {% endif %}
+
+      <style>
+        .dashboard-v3-ai-brief {
+          overflow: hidden;
+        }
+
+        .dashboard-v3-ai-brief > header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          padding: 22px 24px 18px;
+          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .dashboard-v3-ai-brief > header small {
+          display: block;
+          margin-bottom: 6px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .1em;
+        }
+
+        .dashboard-v3-ai-brief > header h2 {
+          margin: 0;
+        }
+
+        .dashboard-v3-ai-attention {
+          white-space: nowrap;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: #fff1f2;
+          color: #9f1239;
+          font-size: 13px;
+        }
+
+        .dashboard-v3-ai-summary {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+          padding: 16px 24px;
+        }
+
+        .dashboard-v3-ai-summary span {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          padding: 10px 12px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 12px;
+          background: #f8fafc;
+          font-size: 13px;
+        }
+
+        .dashboard-v3-ai-summary span strong {
+          font-size: 18px;
+          line-height: 1;
+        }
+
+        .dashboard-v3-ai-list {
+          display: grid;
+          gap: 10px;
+          padding: 0 24px 24px;
+        }
+
+        .dashboard-v3-ai-item {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+          gap: 20px;
+          align-items: center;
+          padding: 14px 16px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-left: 4px solid #f59e0b;
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .dashboard-v3-ai-item[data-severity="critical"] {
+          border-left-color: #ef4444;
+        }
+
+        .dashboard-v3-ai-item-category {
+          display: inline-flex;
+          width: fit-content;
+          margin-bottom: 7px;
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: #f1f5f9;
+          color: #475569;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .03em;
+        }
+
+        .dashboard-v3-ai-item-main > strong {
+          display: block;
+          font-size: 15px;
+          color: #0f2747;
+        }
+
+        .dashboard-v3-ai-item-main > small {
+          display: block;
+          margin-top: 3px;
+          color: #64748b;
+        }
+
+        .dashboard-v3-ai-item-main p {
+          margin: 8px 0 0;
+          color: #475569;
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .dashboard-v3-ai-action {
+          display: grid;
+          gap: 5px;
+          justify-items: start;
+        }
+
+        .dashboard-v3-ai-action small {
+          color: #64748b;
+        }
+
+        .dashboard-v3-ai-action strong {
+          line-height: 1.35;
+          color: #0f2747;
+        }
+
+        .dashboard-v3-ai-action a {
+          display: inline-flex;
+          margin-top: 4px;
+          font-weight: 800;
+          text-decoration: none;
+        }
+
+        .dashboard-v3-ai-clear {
+          margin: 0;
+          padding: 22px 24px;
+        }
+
+        @media (max-width: 900px) {
+          .dashboard-v3-ai-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .dashboard-v3-ai-item {
+            grid-template-columns: 1fr;
+          }
+
+          .dashboard-v3-ai-brief > header {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+        }
+      </style>
+
+      <article class="dashboard-v3-card dashboard-v3-ai-brief" data-admin-no-i18n>
+        <header>
+          <div>
+            <small>{{ ai_ops_labels.kicker }}</small>
+            <h2>{{ ai_ops_labels.title }}</h2>
+          </div>
+
+          {% if ai_operations_monitor.attention_count %}
+            <strong class="dashboard-v3-ai-attention">
+              {{ ai_operations_monitor.attention_count }} {{ ai_ops_labels.attention }}
+            </strong>
+          {% endif %}
+        </header>
+
+        <div class="dashboard-v3-ai-summary">
+          <span>
+            <strong>{{ ai_operations_monitor.counts.critical }}</strong>
+            {{ ai_ops_labels.critical }}
+          </span>
+          <span>
+            <strong>{{ ai_operations_monitor.counts.needs_attention }}</strong>
+            {{ ai_ops_labels.needs_attention }}
+          </span>
+          <span>
+            <strong>{{ ai_operations_monitor.counts.waiting }}</strong>
+            {{ ai_ops_labels.waiting }}
+          </span>
+          <span>
+            <strong>{{ ai_operations_monitor.counts.ready_to_close }}</strong>
+            {{ ai_ops_labels.ready }}
+          </span>
+        </div>
+
+        {% if ai_operations_monitor['items'] %}
+          <div class="dashboard-v3-ai-list">
+            {% for item in ai_operations_monitor['items'][:3] %}
+
+              {% if item.category == 'overdue_operations' %}
+                {% set category_label = ai_ops_labels.overdue_operations %}
+                {% set action_label = ai_ops_labels.action_overdue %}
+              {% elif item.category == 'unassigned_operations' %}
+                {% set category_label = ai_ops_labels.unassigned_operations %}
+                {% set action_label = ai_ops_labels.action_assign %}
+              {% elif item.category == 'owner_requests_waiting' %}
+                {% set category_label = ai_ops_labels.owner_requests_waiting %}
+                {% set action_label = ai_ops_labels.action_review %}
+              {% elif item.category == 'reservation_conflicts' %}
+                {% set category_label = ai_ops_labels.reservation_conflicts %}
+                {% set action_label = ai_ops_labels.action_conflict %}
+              {% elif item.category == 'ready_to_close' %}
+                {% set category_label = ai_ops_labels.ready_to_close %}
+                {% set action_label = ai_ops_labels.action_close %}
+              {% else %}
+                {% set category_label = item.category|replace('_', ' ')|title %}
+                {% set action_label = item.next_best_action %}
+              {% endif %}
+
+              <div class="dashboard-v3-ai-item" data-severity="{{ item.severity|e }}">
+                <div class="dashboard-v3-ai-item-main">
+                  <span class="dashboard-v3-ai-item-category">{{ category_label }}</span>
+
+                  <strong>
+                    {{ item.property_label or item.operation_label or item.reservation_label or category_label }}
+                  </strong>
+
+                  {% if item.operation_label and item.property_label %}
+                    <small>{{ item.operation_label }}</small>
+                  {% elif item.reservation_label and item.property_label %}
+                    <small>{{ item.reservation_label }}</small>
+                  {% endif %}
+
+                  {% if item.reasons %}
+                    <p><b>{{ ai_ops_labels.why }}:</b> {{ item.reasons[0] }}</p>
+                  {% endif %}
+                </div>
+
+                <div class="dashboard-v3-ai-action">
+                  <small>{{ ai_ops_labels.action if ai_ops_labels.action is defined else '' }}</small>
+                  <strong>{{ action_label }}</strong>
+
+                  {% if item.link %}
+                    <a href="{{ item.link|e }}">{{ ai_ops_labels.open }} ?</a>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="dashboard-v3-ai-clear">{{ ai_ops_labels.clear }}</p>
+        {% endif %}
+      </article>
       <section class="dashboard-v3-main">
         <article class="dashboard-v3-card dashboard-v3-operations">
           <header>
