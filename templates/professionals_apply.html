@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="pageTitle">BlackSea Connect | Професионална регистрация</title>
-  <meta name="description" data-i18n-attr="content:heroIntro" content="Споделете вашите данни и ще прегледаме заявлението ви за пилотната фаза по българското Черноморие.">
+  <title data-i18n="pageTitle">{{ public_i18n('professionalsApply', 'pageTitle', 'BlackSea Connect | Professional registration') }}</title>
+  <meta name="description" data-i18n-attr="content:heroIntro" content="{{ public_i18n('professionalsApply', 'heroIntro', 'Share your details and we will review your application for the pilot phase.')|e }}">
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="professionals-apply-page">
@@ -13,10 +13,10 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="Site">
-          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">Партньори</a>
-          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">Професионалисти</a>
-          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">Пилотен достъп</a>
-          <a class="site-nav__link is-active" href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">Кандидатстване</a>
+          <a class="site-nav__link" href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('professionalsApply', 'navPartners', 'Partners') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/professionals') }}" data-i18n="navProfessionals">{{ public_i18n('professionalsApply', 'navProfessionals', 'Professionals') }}</a>
+          <a class="site-nav__link" href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('professionalsApply', 'navPilotAccess', 'Pilot access') }}</a>
+          <a class="site-nav__link is-active" href="{{ localized_url('/professionals/apply') }}" data-i18n="navApply">{{ public_i18n('professionalsApply', 'navApply', 'Apply') }}</a>
         </nav>
         <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg" data-lang="bg">BG</a>
@@ -27,7 +27,7 @@
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if request.args.get('lang', 'fr')|lower == 'ru' %}is-active{% endif %}" href="{{ language_switch_url('ru') }}" data-lang-switch="ru" data-lang="ru">RU</a>
         </div>
-        <a class="button button--ghost topbar__portal" href="{{ localized_url('/professionals') }}" data-i18n="backToProfessionals">Обратно към професионалистите</a>
+        <a class="button button--ghost topbar__portal" href="{{ localized_url('/professionals') }}" data-i18n="backToProfessionals">{{ public_i18n('professionalsApply', 'backToProfessionals', 'Back to professionals') }}</a>
       </div>
     </nav>
 
@@ -72,35 +72,35 @@
         </div>
       {% endif %}
 
-      <form class="pilot-form" method="post" action="/professionals/apply">
+      <form class="pilot-form" method="post" action="{{ localized_url('/professionals/apply') }}">
         <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
           <input name="website" type="text" autocomplete="off" tabindex="-1" aria-hidden="true">
         </div>
         <div class="pilot-form__grid">
           <label class="pilot-form__field">
             <span data-i18n="fullNameLabel">{{ public_i18n('professionalsApply', 'fullNameLabel', 'Full name') }}</span>
-            <input name="full_name" type="text" required value="{{ form_values.full_name|e }}" placeholder="Вашето пълно име" data-i18n-attr="placeholder:fullNamePlaceholder">
-            {% if errors.full_name %}<p class="form-error" data-i18n="fullNameRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="full_name" type="text" required value="{{ form_values.full_name|e }}" placeholder="{{ public_i18n('professionalsApply', 'fullNamePlaceholder', 'Your full name')|e }}" data-i18n-attr="placeholder:fullNamePlaceholder">
+            {% if errors.full_name %}<p class="form-error" data-i18n="fullNameRequiredError">{{ public_i18n('professionalsApply', 'fullNameRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="emailLabel">{{ public_i18n('professionalsApply', 'emailLabel', 'Email') }}</span>
-            <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="name@example.com" data-i18n-attr="placeholder:emailPlaceholder">
-            {% if errors.email %}<p class="form-error" data-i18n="emailRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="email" type="email" required value="{{ form_values.email|e }}" placeholder="{{ public_i18n('professionalsApply', 'emailPlaceholder', 'name@example.com')|e }}" data-i18n-attr="placeholder:emailPlaceholder">
+            {% if errors.email %}<p class="form-error" data-i18n="emailRequiredError">{{ public_i18n('professionalsApply', 'emailRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="phoneLabel">{{ public_i18n('professionalsApply', 'phoneLabel', 'Phone') }}</span>
-            <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="+359..." data-i18n-attr="placeholder:phonePlaceholder">
-            {% if errors.phone %}<p class="form-error" data-i18n="phoneRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="phone" type="tel" required value="{{ form_values.phone|e }}" placeholder="{{ public_i18n('professionalsApply', 'phonePlaceholder', '+359...')|e }}" data-i18n-attr="placeholder:phonePlaceholder">
+            {% if errors.phone %}<p class="form-error" data-i18n="phoneRequiredError">{{ public_i18n('professionalsApply', 'phoneRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="cityLabel">{{ public_i18n('professionalsApply', 'cityLabel', 'City') }}</span>
-            <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="Варна, Бургас..." data-i18n-attr="placeholder:cityPlaceholder">
-            {% if errors.city %}<p class="form-error" data-i18n="cityRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="city" type="text" required value="{{ form_values.city|e }}" placeholder="{{ public_i18n('professionalsApply', 'cityPlaceholder', 'Varna, Burgas...')|e }}" data-i18n-attr="placeholder:cityPlaceholder">
+            {% if errors.city %}<p class="form-error" data-i18n="cityRequiredError">{{ public_i18n('professionalsApply', 'cityRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="countryLabel">{{ public_i18n('professionalsApply', 'countryLabel', 'Country') }}</span>
-            <input name="country" type="text" required value="{{ form_values.country|e }}" placeholder="България" data-i18n-attr="placeholder:countryPlaceholder">
-            {% if errors.country %}<p class="form-error" data-i18n="countryRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="country" type="text" required value="{{ form_values.country|e }}" placeholder="{{ public_i18n('professionalsApply', 'countryPlaceholder', 'Bulgaria')|e }}" data-i18n-attr="placeholder:countryPlaceholder">
+            {% if errors.country %}<p class="form-error" data-i18n="countryRequiredError">{{ public_i18n('professionalsApply', 'countryRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="professionalCategoryLabel">{{ public_i18n('professionalsApply', 'professionalCategoryLabel', 'Professional category') }}</span>
@@ -110,22 +110,22 @@
                 <option value="{{ category.value|e }}" {% if form_values.professional_category == category.value %}selected{% endif %} data-i18n="{{ category.key }}">{{ category.label|e }}</option>
               {% endfor %}
             </select>
-            {% if errors.professional_category %}<p class="form-error" data-i18n="serviceTypeRequiredError">Това поле е задължително.</p>{% endif %}
+            {% if errors.professional_category %}<p class="form-error" data-i18n="serviceTypeRequiredError">{{ public_i18n('professionalsApply', 'serviceTypeRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="languagesLabel">{{ public_i18n('professionalsApply', 'languagesLabel', 'Languages') }}</span>
-            <input name="languages" type="text" required value="{{ form_values.languages|e }}" placeholder="Български, английски..." data-i18n-attr="placeholder:languagesPlaceholder">
-            {% if errors.languages %}<p class="form-error" data-i18n="languagesRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="languages" type="text" required value="{{ form_values.languages|e }}" placeholder="{{ public_i18n('professionalsApply', 'languagesPlaceholder', 'Bulgarian, English...')|e }}" data-i18n-attr="placeholder:languagesPlaceholder">
+            {% if errors.languages %}<p class="form-error" data-i18n="languagesRequiredError">{{ public_i18n('professionalsApply', 'languagesRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field">
             <span data-i18n="experienceLabel">{{ public_i18n('professionalsApply', 'experienceLabel', 'Experience years') }}</span>
-            <input name="experience" type="text" required value="{{ form_values.experience|e }}" placeholder="5" data-i18n-attr="placeholder:experiencePlaceholder">
-            {% if errors.experience %}<p class="form-error" data-i18n="experienceRequiredError">Това поле е задължително.</p>{% endif %}
+            <input name="experience" type="text" required value="{{ form_values.experience|e }}" placeholder="{{ public_i18n('professionalsApply', 'experiencePlaceholder', '5')|e }}" data-i18n-attr="placeholder:experiencePlaceholder">
+            {% if errors.experience %}<p class="form-error" data-i18n="experienceRequiredError">{{ public_i18n('professionalsApply', 'experienceRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
           <label class="pilot-form__field pilot-form__field--full">
             <span data-i18n="shortBioLabel">{{ public_i18n('professionalsApply', 'shortBioLabel', 'Short bio') }}</span>
-            <textarea name="short_bio" rows="5" required placeholder="Разкажете ни за опита си и как подкрепяте гости или имоти." data-i18n-attr="placeholder:shortBioPlaceholder">{{ form_values.short_bio|e }}</textarea>
-            {% if errors.short_bio %}<p class="form-error" data-i18n="shortBioRequiredError">Това поле е задължително.</p>{% endif %}
+            <textarea name="short_bio" rows="5" required placeholder="{{ public_i18n('professionalsApply', 'shortBioPlaceholder', 'Tell us about your experience and how you support guests or properties.')|e }}" data-i18n-attr="placeholder:shortBioPlaceholder">{{ form_values.short_bio|e }}</textarea>
+            {% if errors.short_bio %}<p class="form-error" data-i18n="shortBioRequiredError">{{ public_i18n('professionalsApply', 'shortBioRequiredError', 'This field is required.') }}</p>{% endif %}
           </label>
         </div>
 

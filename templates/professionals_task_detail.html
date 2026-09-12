@@ -23,6 +23,8 @@
   "status_controls": public_i18n("professionals", "detailStatusControls", "Status controls"),
   "arrival_workflow": public_i18n("professionals", "detailArrivalWorkflow", "Arrival workflow"),
   "accept_task": public_i18n("professionals", "detailAcceptTask", "Accept task"),
+  "decline_task": public_i18n("professionals", "detailDeclineTask", "Decline task"),
+  "decline_confirm": public_i18n("professionals", "detailDeclineConfirm", "Are you sure you want to decline this task?"),
   "on_my_way": public_i18n("professionals", "detailOnMyWay", "On my way"),
   "arrived": public_i18n("professionals", "detailArrived", "Arrived"),
   "start_work": public_i18n("professionals", "detailStartWork", "Start work"),
@@ -119,6 +121,7 @@
   "task_priority_urgent": public_i18n("professionals", "taskPriorityUrgent", "Urgent"),
   "task_event_professional_assigned": public_i18n("professionals", "taskEventProfessionalAssigned", "Professional assigned"),
   "task_event_professional_accepted": public_i18n("professionals", "taskEventProfessionalAccepted", "Professional accepted task"),
+  "task_event_professional_declined": public_i18n("professionals", "taskEventProfessionalDeclined", "Professional declined task"),
   "task_event_professional_on_the_way": public_i18n("professionals", "taskEventProfessionalOnTheWay", "Professional on the way"),
   "task_event_professional_arrived": public_i18n("professionals", "taskEventProfessionalArrived", "Professional arrived"),
   "task_event_professional_started": public_i18n("professionals", "taskEventProfessionalStarted", "Professional started task"),
@@ -216,6 +219,7 @@
   "completion_report_updated": labels.task_event_completion_report_updated,
   "professional_assigned": labels.task_event_professional_assigned,
   "professional_accepted": labels.task_event_professional_accepted,
+  "professional_declined": labels.task_event_professional_declined,
   "professional_on_the_way": labels.task_event_professional_on_the_way,
   "professional_arrived": labels.task_event_professional_arrived,
   "professional_started": labels.task_event_professional_started,
@@ -506,13 +510,14 @@
       <span class="professional-live">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
       <div class="professional-status-controls">
         {% if current_status in ['NEW', 'ASSIGNED'] %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+<form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" onsubmit="return confirm('{{ labels.decline_confirm|e }}');"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="decline"><button class="button button--ghost" type="submit">{{ labels.decline_task }}</button></form>
         {% elif current_status == 'ACCEPTED' %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
         {% elif current_status == 'ON_THE_WAY' %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
         {% elif current_status == 'ARRIVED' %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
         {% elif current_status == 'IN_PROGRESS' %}
           {% set checklist = task.checklist_items or [] %}
           {% set checked_count = checklist|selectattr('checked')|list|length %}
@@ -524,7 +529,7 @@
             <a class="button button--primary" href="#completion-report">{{ public_i18n('professionals', 'detailFinishTask', 'Finish task') }}</a>
           {% endif %}
         {% elif current_status == 'PAUSED' %}
-          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
+          <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
         {% elif current_status in ['COMPLETED', 'ARCHIVED'] %}
           <a class="button button--primary" href="#completion-summary">{{ public_i18n('professionals', 'detailViewSummary', 'View summary') }}</a>
         {% endif %}
@@ -548,7 +553,7 @@
         <a class="button button--ghost" href="{{ localized_url('/professionals/dashboard') }}">{{ labels.dashboard }}</a>
         {% if owner_phone %}<a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ labels.call_owner }}</a>{% endif %}
         <a class="button button--ghost" href="#issue-report">{{ labels.report_issue }}</a>
-        {% if current_status == 'IN_PROGRESS' %}<form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--ghost" type="submit">{{ labels.pause }}</button></form>{% endif %}
+        {% if current_status == 'IN_PROGRESS' %}<form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="pause"><button class="button button--ghost" type="submit">{{ labels.pause }}</button></form>{% endif %}
         <a class="button button--ghost" href="mailto:concierge@blackseaconnect.com">{{ labels.support }}</a>
       </div>
     </details>
@@ -598,17 +603,18 @@
           <h2>{{ labels.arrival_workflow }}</h2>
           <div class="professional-status-controls">
             {% if current_status in ['NEW', 'ASSIGNED'] %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
+<form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" onsubmit="return confirm('{{ labels.decline_confirm|e }}');"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="decline"><button class="button button--ghost" type="submit">{{ labels.decline_task }}</button></form>
             {% elif current_status == 'ACCEPTED' %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="on_the_way"><button class="button button--primary" type="submit">{{ labels.on_my_way }}</button></form>
             {% elif current_status == 'ON_THE_WAY' %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="arrived"><button class="button button--primary" type="submit">{{ labels.arrived }}</button></form>
             {% elif current_status == 'ARRIVED' %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="start"><button class="button button--primary" type="submit">{{ labels.start_work }}</button></form>
             {% elif current_status == 'IN_PROGRESS' %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="pause"><button class="button button--primary" type="submit">{{ labels.pause }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="pause"><button class="button button--primary" type="submit">{{ labels.pause }}</button></form>
             {% elif current_status == 'PAUSED' %}
-              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
+              <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="resume"><button class="button button--primary" type="submit">{{ labels.resume }}</button></form>
             {% else %}
               <span class="professional-badge">{{ status_labels.get(task.status|upper, labels.task_status_unknown) }}</span>
             {% endif %}
@@ -621,7 +627,7 @@
           <h2>{{ labels.report_and_closeout }}</h2>
           {% if current_status == 'IN_PROGRESS' %}
             <p><small>{{ labels.completion_requirements }}</small></p>
-            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-pwa-completion-form>
+            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-pwa-completion-form><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
               <input type="hidden" name="task_action" value="complete">
               <label><span>{{ labels.completed_work }}</span><textarea name="completed_work" required placeholder="{{ public_i18n('professionals', 'detailCompletedWorkPlaceholder', 'Summarize what was completed.') }}"></textarea></label>
               <label><span>{{ labels.materials_used }}</span><textarea name="materials_used" placeholder="{{ public_i18n('professionals', 'detailMaterialsUsedPlaceholder', 'List materials, parts, or supplies used.') }}"></textarea></label>
@@ -643,7 +649,7 @@
           <h2>{{ public_i18n('professionals', 'detailWorkPhotos', 'Work photos') }}</h2>
           <p><small>{{ public_i18n('professionals', 'detailEvidenceTrustCopy', 'Photos are proof for Operations and the owner. Group uploads as before photos, after photos, documents, receipts, or reports.') }}</small></p>
           {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
-          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form>
+          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data" data-evidence-form><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
             <input type="hidden" name="task_action" value="attachment">
             <label><span>{{ labels.evidence_category }}</span>
               <select name="attachment_category" required>
@@ -669,7 +675,7 @@
         <article class="professional-panel" id="issue-report">
           <p class="professional-kicker">{{ labels.report_issue }}</p>
           <h2>{{ labels.report_issue }}</h2>
-          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data">
+          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
             <input type="hidden" name="task_action" value="issue">
             <input type="hidden" name="issue_category" value="other">
             <input type="hidden" name="issue_severity" value="medium">
@@ -684,7 +690,7 @@
           <p class="professional-kicker">{{ labels.internal_comments }}</p>
           <h2>{{ labels.operations_discussion }}</h2>
           {% if current_status not in ['COMPLETED', 'ARCHIVED'] %}
-          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}">
+          <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
             <input type="hidden" name="task_action" value="comment">
             <label>
               <span>{{ labels.add_internal_comment }}</span>
@@ -695,7 +701,7 @@
           {% if latest_editable_comment %}
           <details style="margin-top:16px;">
             <summary>{{ labels.edit_comment }}</summary>
-            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" style="margin-top:12px;">
+            <form class="professional-form" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" style="margin-top:12px;"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
               <input type="hidden" name="task_action" value="edit_comment">
               <label><span>{{ labels.edit_comment }}</span><textarea name="note" required>{{ latest_editable_comment.comment|e }}</textarea></label>
               <button class="button button--secondary" type="submit">{{ labels.save_comment }}</button>
@@ -735,7 +741,7 @@
             {% set checklist_state = namespace(active_shown=false) %}
             {% for item in task.checklist_items or [] %}
               {% set is_active_check = (not item.checked and not checklist_state.active_shown) %}
-              <form class="professional-list-item professional-check-item professional-check-form{% if is_active_check %} is-active-check{% endif %}" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-checklist-form data-checklist-key="{{ item.key|e }}">
+              <form class="professional-list-item professional-check-item professional-check-form{% if is_active_check %} is-active-check{% endif %}" method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}" data-checklist-form data-checklist-key="{{ item.key|e }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
                 {% if is_active_check %}{% set checklist_state.active_shown = true %}{% endif %}
                 <input type="hidden" name="task_action" value="checklist">
                 <input type="hidden" name="checklist_key" value="{{ item.key|e }}">
@@ -785,7 +791,7 @@
                     <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
                     <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ labels.download_evidence }}</a>
                     {% if current_status not in ['COMPLETED', 'ARCHIVED'] and attachment.id and attachment.uploader_role == 'professional' and attachment.uploader_id == professional_account.id %}
-                      <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ labels.delete_evidence }}?');">
+                      <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ labels.delete_evidence }}?');"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
                         <button class="button button--ghost" type="submit">{{ labels.delete_evidence }}</button>
                       </form>
                     {% endif %}
