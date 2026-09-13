@@ -8,7 +8,11 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Оперативна задача</title>
+  <title>BlackSea Connect | {{ {
+  'bg': 'Оперативна задача',
+  'en': 'Operational task',
+  'fr': 'Tâche opérationnelle'
+}.get(page_lang|default('en'), 'Operational task') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <link rel="stylesheet" href="/static/css/admin-operations-collapsible.css">
   <style>
@@ -3269,6 +3273,7 @@
     'send_quote_help': 'След изпращане цената ще бъде заключена.',
     'return_draft': '{{ od.return_draft }}',
     'return_draft_help': 'Използвайте само когато офертата трябва да бъде коригирана.',
+    'finance_exception': 'Финансово изключение в Stripe: необходим е ръчен преглед.',
 
     'completion': 'Отчет за завършване',
     'completion_title': 'Финално потвърждение от професионалиста',
@@ -3467,6 +3472,7 @@
     'send_quote_help': 'The price will be locked after sending.',
     'return_draft': 'Return to draft',
     'return_draft_help': 'Use only when the quote needs to be corrected.',
+    'finance_exception': 'Stripe finance exception: manual review is required.',
 
     'completion': 'Completion report',
     'completion_title': 'Final confirmation from the professional',
@@ -3665,6 +3671,7 @@
     'send_quote_help': 'Le prix sera verrouillé après l’envoi.',
     'return_draft': 'Repasser en brouillon',
     'return_draft_help': 'À utiliser uniquement si le devis doit être corrigé.',
+    'finance_exception': 'Exception financière Stripe : une vérification manuelle est requise.',
 
     'completion': 'Rapport de fin d’intervention',
     'completion_title': 'Confirmation finale du prestataire',
@@ -4360,7 +4367,7 @@
             <div><dt>Professional Stripe</dt><dd>{{ assigned_professional_stripe_status_label }}</dd></div>
           </dl>
           {% if task.payout_status in ['PAYOUT_FROZEN', 'REQUIRES_REVIEW'] or task.payment_status in ['REFUND_PENDING', 'REFUNDED', 'DISPUTED'] %}
-            <div class="admin-evidence__message admin-evidence__message--error" role="alert">Stripe finance exception: {{ task.payment_status }} / {{ task.payout_status }}. Manual review is required.</div>
+            <div class="admin-evidence__message admin-evidence__message--error" role="alert">{{ od.finance_exception }} {{ task.payment_status }} / {{ task.payout_status }}.</div>
           {% endif %}
 
           {% if request.args.get("finance_notice") in ["saved", "payment_recorded", "payout_released", "already_processed"] %}
@@ -4615,14 +4622,14 @@
             </dl>
             <div class="admin-operations-contact-actions u-mt-14">
               {% if assigned_professional_account.email %}
-                <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">Имейл</a>
+                <a class="button button--ghost" href="mailto:{{ assigned_professional_account.email|e }}">{{ od.email }}</a>
                 <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.email|e }}">{{ od.copy_email }}</button>
               {% else %}
                 <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.email_missing }}</span>
                 <button class="button button--ghost" type="button" disabled>{{ od.copy_email }}</button>
               {% endif %}
               {% if assigned_professional_account.phone %}
-                <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">Телефон</a>
+                <a class="button button--ghost" href="tel:{{ assigned_professional_account.phone|e }}">{{ od.phone }}</a>
                 <button class="button button--ghost" type="button" data-copy="{{ assigned_professional_account.phone|e }}">{{ od.copy_phone }}</button>
               {% else %}
                 <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.phone_missing }}</span>
@@ -4691,14 +4698,14 @@
           </div>
           <div class="admin-operations-contact-actions u-mt-14">
             {% if owner_email %}
-              <a class="button button--ghost" href="mailto:{{ owner_email|e }}">Имейл</a>
+              <a class="button button--ghost" href="mailto:{{ owner_email|e }}">{{ od.email }}</a>
               <button class="button button--ghost" type="button" data-copy="{{ owner_email|e }}">{{ od.copy_email }}</button>
             {% else %}
               <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.email_missing }}</span>
               <button class="button button--ghost" type="button" disabled>{{ od.copy_email }}</button>
             {% endif %}
             {% if owner_phone %}
-              <a class="button button--ghost" href="tel:{{ owner_phone|e }}">Телефон</a>
+              <a class="button button--ghost" href="tel:{{ owner_phone|e }}">{{ od.phone }}</a>
               <button class="button button--ghost" type="button" data-copy="{{ owner_phone|e }}">{{ od.copy_phone }}</button>
             {% else %}
               <span class="button button--ghost is-disabled" aria-disabled="true">{{ od.phone_missing }}</span>
