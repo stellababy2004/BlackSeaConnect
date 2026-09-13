@@ -70,10 +70,25 @@ class ProfessionalOfflineOperationsTests(unittest.TestCase):
         headers.update(extra)
         return headers
 
+    def _csrf_token(self):
+        response = self.client.get("/professionals/tasks/offline-task")
+        self.assertEqual(response.status_code, 200)
+        match = re.search(
+            r'name="csrf_token"\s+value="([^"]+)"',
+            response.get_data(as_text=True),
+        )
+        self.assertIsNotNone(match)
+        return match.group(1)
+
+    def _post(self, url, *, data=None, headers=None):
+        payload = dict(data or {})
+        payload["csrf_token"] = self._csrf_token()
+        return self.client.post(url, data=payload, headers=headers)
+
     def test_idempotent_replay_does_not_duplicate_transition(self):
         headers = self._headers("offline-accept-0001")
-        first = self.client.post("/professionals/tasks/offline-task", data={"task_action": "accept"}, headers=headers)
-        replay = self.client.post("/professionals/tasks/offline-task", data={"task_action": "accept"}, headers=headers)
+        first = self._post("/professionals/tasks/offline-task", data={"task_action": "accept"}, headers=headers)
+        replay = self._post("/professionals/tasks/offline-task", data={"task_action": "accept"}, headers=headers)
 
         self.assertEqual(first.status_code, 200)
         self.assertEqual(replay.status_code, 200)
@@ -85,7 +100,7 @@ class ProfessionalOfflineOperationsTests(unittest.TestCase):
 
     def test_version_conflict_is_reported_without_overwrite(self):
         app_module._operations_task_update_json_fields("offline-task", updated_at="2026-07-19T09:00:00Z")
-        response = self.client.post(
+        response = self._post(
             "/professionals/tasks/offline-task",
             data={"task_action": "accept"},
             headers=self._headers("offline-conflict-0001"),
@@ -100,7 +115,7 @@ class ProfessionalOfflineOperationsTests(unittest.TestCase):
 
     def test_keep_local_resolution_replays_with_idempotency(self):
         app_module._operations_task_update_json_fields("offline-task", updated_at="2026-07-19T09:00:00Z")
-        response = self.client.post(
+        response = self._post(
             "/professionals/tasks/offline-task",
             data={"task_action": "accept"},
             headers=self._headers("offline-resolution-0001", **{"X-Conflict-Resolution": "keep-local"}),
@@ -111,7 +126,7 @@ class ProfessionalOfflineOperationsTests(unittest.TestCase):
         self.assertTrue(response.get_json()["server_version"])
 
     def test_invalid_idempotency_key_is_rejected(self):
-        response = self.client.post(
+        response = self._post(
             "/professionals/tasks/offline-task",
             data={"task_action": "accept"},
             headers=self._headers("bad"),
@@ -126,7 +141,7 @@ class ProfessionalOfflineOperationsTests(unittest.TestCase):
         receipt_id = f"pwa-{app_module.hashlib.sha256(receipt_seed).hexdigest()}"
         self.assertTrue(app_module._reserve_professional_pwa_mutation("offline-task", receipt_id, key, "ASSIGNED"))
 
-        response = self.client.post(
+        response = self._post(
             "/professionals/tasks/offline-task",
             data={"task_action": "accept"},
             headers=self._headers(key),

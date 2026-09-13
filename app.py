@@ -6630,8 +6630,15 @@ def _professional_task_transition(task, professional_account, action, *, note_te
     event_type = None
     event_title = None
     event_detail = ""
+    clear_assignment = False
 
-    if action == "accept" and current_status in {"NEW", "ASSIGNED"}:
+    if action == "decline" and current_status in {"NEW", "ASSIGNED"}:
+        target_status = "NEW"
+        event_type = "professional_declined"
+        event_title = "Professional declined task"
+        event_detail = _professional_account_display_label(professional_account)
+        clear_assignment = True
+    elif action == "accept" and current_status in {"NEW", "ASSIGNED"}:
         target_status = "ACCEPTED"
         event_type = "professional_accepted"
         event_title = "Professional accepted task"
@@ -6684,8 +6691,8 @@ def _professional_task_transition(task, professional_account, action, *, note_te
     updated_task = _update_operations_task_details(
         task_id,
         status=target_status,
-        assigned_to=(task or {}).get("assigned_to", ""),
-        assigned_professional_id=(professional_account or {}).get("id", ""),
+        assigned_to="" if clear_assignment else (task or {}).get("assigned_to", ""),
+        assigned_professional_id="" if clear_assignment else (professional_account or {}).get("id", ""),
         source="professional",
         append_status_event=False,
     )
@@ -15898,6 +15905,23 @@ def _owner_finance_csrf_valid(submitted_token):
     return bool(expected and submitted and hmac.compare_digest(expected, submitted))
 
 
+def _professional_task_csrf_token():
+    token = str(session.get("_professional_task_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_professional_task_csrf_token"] = token
+    return token
+
+
+def _professional_task_csrf_valid(submitted_token):
+    expected = str(session.get("_professional_task_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and submitted == expected)
+
+
+app.jinja_env.globals["professional_task_csrf_token"] = _professional_task_csrf_token
+
+
 def _professional_stripe_csrf_token():
     token = str(session.get("_professional_stripe_csrf_token", "")).strip()
     if not token:
@@ -17249,6 +17273,8 @@ def professional_task_evidence(task_id, filename):
 @app.post("/professionals/tasks/<task_id>/attachments/<attachment_id>/delete")
 @professional_required
 def professional_task_attachment_delete(task_id, attachment_id):
+    if not _professional_task_csrf_valid(request.form.get("csrf_token")):
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
     professional_account = _current_professional_account()
     task_record = _find_operations_task_by_canonical_id(task_id)
     if not task_record or not _professional_task_matches_account(task_record, professional_account):
@@ -17277,6 +17303,9 @@ def professionals_task_detail(task_id):
         return Response(status=404)
 
     if request.method == "POST":
+        if not _professional_task_csrf_valid(request.form.get("csrf_token")):
+            return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+
         idempotency_key = str(request.headers.get("X-Idempotency-Key", "") or "").strip()
         base_version = str(request.headers.get("X-Task-Version", "") or "").strip()
         conflict_resolution = str(request.headers.get("X-Conflict-Resolution", "") or "").strip().lower()
@@ -17353,7 +17382,31 @@ def professionals_task_detail(task_id):
                 return _professional_task_redirect(task_id, notice="task_completed")
             if action in {"checklist", "comment", "edit_comment", "attachment", "issue"}:
                 return _professional_task_redirect(task_id, error="action_invalid")
-        if action == "accept":
+        if action == "decline":
+            updated_task = _professional_task_transition(
+                task_record,
+                professional_account,
+                "decline",
+            )
+            if not updated_task:
+                return _professional_task_redirect(task_id, error="transition_invalid")
+
+            decline_redirect = url_for(
+                "professionals_tasks",
+                lang=_resolve_current_language(),
+                declined="1",
+            )
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({
+                    "ok": True,
+                    "redirect": decline_redirect,
+                    "status": _normalize_operations_task_status(
+                        updated_task.get("status", "NEW")
+                    ),
+                })
+
+            return redirect(decline_redirect)
+        elif action == "accept":
             updated_task = _professional_task_transition(task_record, professional_account, "accept")
         elif action in {"on_the_way", "ontheway"}:
             updated_task = _professional_task_transition(task_record, professional_account, "on_the_way")

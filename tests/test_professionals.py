@@ -219,6 +219,87 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("/professionals/dashboard", login_response.headers["Location"])
         return login_response
 
+    def _professional_task_csrf_token(self):
+        with self.client.session_transaction() as session_data:
+            token = str(session_data.get("_professional_task_csrf_token", "")).strip()
+            if not token:
+                token = uuid.uuid4().hex
+                session_data["_professional_task_csrf_token"] = token
+            return token
+
+    def _professional_task_post(self, url, data=None, **kwargs):
+        payload = dict(data or {})
+        payload["csrf_token"] = self._professional_task_csrf_token()
+        return self.client.post(url, data=payload, **kwargs)
+
+    def test_professional_task_post_rejects_missing_csrf(self):
+        self._seed_professional_account(
+            full_name="CSRF Professional",
+            email="csrf-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-csrf-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email("csrf-pro@example.com")
+        self._seed_operations_task(
+            "task-csrf-protection",
+            title="CSRF protection task",
+            category="Inspection",
+            status="ASSIGNED",
+            assigned_professional_id=account["id"],
+            assigned_to="CSRF Professional",
+        )
+        self._login_professional_via_magic("csrf-pro@example.com")
+
+        response = self.client.post(
+            "/professionals/tasks/task-csrf-protection",
+            data={"task_action": "accept"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            app_module._find_operations_task("task-csrf-protection")["status"],
+            "ASSIGNED",
+        )
+
+    def test_professional_decline_ajax_returns_list_redirect(self):
+        self._seed_professional_account(
+            full_name="Decline Professional",
+            email="decline-pro@example.com",
+            status="ACTIVE",
+            professional_category="Inspection",
+            account_id="professional-decline-pro-example-com",
+        )
+        account = app_module._find_professional_account_by_email(
+            "decline-pro@example.com"
+        )
+        self._seed_operations_task(
+            "task-decline-ajax",
+            title="Decline AJAX task",
+            category="Inspection",
+            status="ASSIGNED",
+            assigned_professional_id=account["id"],
+            assigned_to="Decline Professional",
+        )
+        self._login_professional_via_magic("decline-pro@example.com")
+
+        response = self._professional_task_post(
+            "/professionals/tasks/task-decline-ajax",
+            data={"task_action": "decline"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["ok"])
+        self.assertIn("/professionals/tasks", payload["redirect"])
+        self.assertIn("declined=1", payload["redirect"])
+
+        task = app_module._find_operations_task("task-decline-ajax")
+        self.assertEqual(task["status"], "NEW")
+        self.assertEqual(task["assigned_to"], "")
+        self.assertEqual(task["assigned_professional_id"], "")
+
     def test_partner_application_submission_saves_and_emails(self):
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             response = self.client.post("/partners/apply", data=self._partner_payload())
@@ -1368,15 +1449,15 @@ class ApplicationWorkflowTests(unittest.TestCase):
         FakeSMTP.sent_messages.clear()
 
         with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "accept"}).status_code, 302)
-            invalid_start = self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "start"})
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "accept"}).status_code, 302)
+            invalid_start = self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "start"})
             self.assertIn("error=transition_invalid", invalid_start.headers["Location"])
             self.assertEqual(app_module._find_operations_task("task-lifecycle")["status"], "ACCEPTED")
-            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "on_the_way"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "arrived"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "start"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "on_the_way"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "arrived"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "start"}).status_code, 302)
             for index, (checklist_key, _label) in enumerate(app_module.OPERATIONS_TASK_CHECKLIST_ITEMS):
-                checklist_response = self.client.post(
+                checklist_response = self._professional_task_post(
                     "/professionals/tasks/task-lifecycle",
                     data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
                     headers={"X-Requested-With": "XMLHttpRequest"} if index == 0 else {},
@@ -1389,7 +1470,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                         event for event in app_module._load_operations_task_events("task-lifecycle")
                         if event["event_type"] == "checklist_updated"
                     ])
-                    duplicate_response = self.client.post(
+                    duplicate_response = self._professional_task_post(
                         "/professionals/tasks/task-lifecycle",
                         data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
                         headers={"X-Requested-With": "XMLHttpRequest"},
@@ -1401,7 +1482,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                     ]), checklist_events)
                 else:
                     self.assertEqual(checklist_response.status_code, 302)
-            evidence_response = self.client.post(
+            evidence_response = self._professional_task_post(
                 "/professionals/tasks/task-lifecycle",
                 data={
                     "task_action": "attachment",
@@ -1411,19 +1492,19 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 content_type="multipart/form-data",
             )
             self.assertIn("notice=evidence_uploaded", evidence_response.headers["Location"])
-            self.assertEqual(self.client.post("/professionals/tasks/task-lifecycle", data={"task_action": "comment", "note": "Checked keys and refreshed access."}).status_code, 302)
-            edited_comment = self.client.post(
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-lifecycle", data={"task_action": "comment", "note": "Checked keys and refreshed access."}).status_code, 302)
+            edited_comment = self._professional_task_post(
                 "/professionals/tasks/task-lifecycle",
                 data={"task_action": "edit_comment", "note": "Checked keys, refreshed access, and verified the lock."},
             )
             self.assertIn("notice=comment_edited", edited_comment.headers["Location"])
-            missing_note = self.client.post(
+            missing_note = self._professional_task_post(
                 "/professionals/tasks/task-lifecycle",
                 data={"task_action": "complete", "completed_work": "Guest-ready and cleaned."},
             )
             self.assertIn("error=completion_note_required", missing_note.headers["Location"])
             self.assertEqual(app_module._find_operations_task("task-lifecycle")["status"], "IN_PROGRESS")
-            complete_response = self.client.post("/professionals/tasks/task-lifecycle", data={
+            complete_response = self._professional_task_post("/professionals/tasks/task-lifecycle", data={
                 "task_action": "complete",
                 "completed_work": "Guest-ready and cleaned.",
                 "completion_notes": "Guest-ready and cleaned.",
@@ -1496,7 +1577,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         evidence_labels = re.findall(r'<option value="[^"]+">([^<]+)</option>', evidence_select.group(1))
         self.assertEqual(len(evidence_labels), len(set(evidence_labels)))
 
-        checklist_response = self.client.post(
+        checklist_response = self._professional_task_post(
             "/professionals/tasks/task-checklist-interaction",
             data={"task_action": "checklist", "checklist_key": "keys", "checked": "1"},
             headers={"X-Requested-With": "XMLHttpRequest"},
@@ -1550,7 +1631,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn('form.addEventListener("submit", async (event) => {', detail_html)
         self.assertIn('if (!submit.matches(".professional-check-toggle")) {', detail_html)
 
-        checklist_response = self.client.post(
+        checklist_response = self._professional_task_post(
             "/professionals/tasks/task-utilities-interaction",
             data={"task_action": "checklist", "checklist_key": "utilities", "checked": "1"},
             headers={"X-Requested-With": "XMLHttpRequest"},
@@ -1647,24 +1728,24 @@ class ApplicationWorkflowTests(unittest.TestCase):
         )
         self._login_professional_via_magic("issue-pro@example.com")
 
-        empty_comment = self.client.post("/professionals/tasks/task-issue", data={"task_action": "comment", "note": "   "})
+        empty_comment = self._professional_task_post("/professionals/tasks/task-issue", data={"task_action": "comment", "note": "   "})
         self.assertIn("error=comment_required", empty_comment.headers["Location"])
         self.assertEqual(app_module._find_operations_task("task-issue")["comments"], [])
 
-        blocked_completion = self.client.post(
+        blocked_completion = self._professional_task_post(
             "/professionals/tasks/task-issue",
             data={"task_action": "complete", "completed_work": "Done"},
         )
         self.assertIn("error=completion_checklist_required", blocked_completion.headers["Location"])
         self.assertEqual(app_module._find_operations_task("task-issue")["status"], "IN_PROGRESS")
 
-        missing_category = self.client.post(
+        missing_category = self._professional_task_post(
             "/professionals/tasks/task-issue",
             data={"task_action": "issue", "issue_description": "The supply valve is leaking."},
         )
         self.assertIn("error=issue_category_required", missing_category.headers["Location"])
 
-        reported = self.client.post(
+        reported = self._professional_task_post(
             "/professionals/tasks/task-issue",
             data={
                 "task_action": "issue",
@@ -1706,18 +1787,18 @@ class ApplicationWorkflowTests(unittest.TestCase):
         FakeSMTP.sent_messages.clear()
 
         with patch.dict(os.environ, {**self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com"}, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "accept"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "on_the_way"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "arrived"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "start"}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "pause", "note": "Waiting for a spare key."}).status_code, 302)
-            self.assertEqual(self.client.post("/professionals/tasks/task-workflow", data={"task_action": "resume"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "accept"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "on_the_way"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "arrived"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "start"}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "pause", "note": "Waiting for a spare key."}).status_code, 302)
+            self.assertEqual(self._professional_task_post("/professionals/tasks/task-workflow", data={"task_action": "resume"}).status_code, 302)
             for checklist_key, _label in app_module.OPERATIONS_TASK_CHECKLIST_ITEMS:
-                self.assertEqual(self.client.post(
+                self.assertEqual(self._professional_task_post(
                     "/professionals/tasks/task-workflow",
                     data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
                 ).status_code, 302)
-            upload_response = self.client.post(
+            upload_response = self._professional_task_post(
                 "/professionals/tasks/task-workflow",
                 data={
                     "task_action": "attachment",
@@ -1730,7 +1811,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 content_type="multipart/form-data",
             )
             self.assertIn("notice=evidence_uploaded", upload_response.headers["Location"])
-            self.assertEqual(self.client.post(
+            self.assertEqual(self._professional_task_post(
                 "/professionals/tasks/task-workflow",
                 data={
                     "task_action": "complete",
@@ -1876,7 +1957,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
             session_data[app_module.PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
             session_data[app_module.PROFESSIONAL_SESSION_ID_KEY] = other_professional["id"]
             session_data[app_module.PROFESSIONAL_SESSION_EMAIL_KEY] = other_professional["email"]
-        unauthorized = self.client.post(
+        unauthorized = self._professional_task_post(
             f"/professionals/tasks/{task_id}",
             data={"task_action": "accept"},
         )
@@ -1886,20 +1967,20 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self._login_professional_via_magic(professional["email"])
         visible_tasks = self.client.get("/professionals/tasks?lang=en").get_data(as_text=True)
         self.assertIn("Canonical lifecycle operation", visible_tasks)
-        invalid_transition = self.client.post(
+        invalid_transition = self._professional_task_post(
             f"/professionals/tasks/{task_id}",
             data={"task_action": "start"},
         )
         self.assertIn("error=transition_invalid", invalid_transition.headers["Location"])
 
         for action in ("accept", "on_the_way", "arrived", "start"):
-            response = self.client.post(
+            response = self._professional_task_post(
                 f"/professionals/tasks/{task_id}",
                 data={"task_action": action},
             )
             self.assertEqual(response.status_code, 302)
 
-        incomplete = self.client.post(
+        incomplete = self._professional_task_post(
             f"/professionals/tasks/{task_id}",
             data={
                 "task_action": "complete",
@@ -1911,11 +1992,11 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(app_module._find_operations_task(task_id)["status"], "IN_PROGRESS")
 
         for checklist_key, _label in app_module.OPERATIONS_TASK_CHECKLIST_ITEMS:
-            self.client.post(
+            self._professional_task_post(
                 f"/professionals/tasks/{task_id}",
                 data={"task_action": "checklist", "checklist_key": checklist_key, "checked": "1"},
             )
-        upload = self.client.post(
+        upload = self._professional_task_post(
             f"/professionals/tasks/{task_id}",
             data={
                 "task_action": "attachment",
@@ -1937,7 +2018,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
             "follow_up_needed": "None",
             "completion_notes": "Verified safe operation.",
         }
-        completed = self.client.post(f"/professionals/tasks/{task_id}", data=completion_payload)
+        completed = self._professional_task_post(f"/professionals/tasks/{task_id}", data=completion_payload)
         self.assertIn("notice=task_completed", completed.headers["Location"])
         task = app_module._find_operations_task(task_id)
         self.assertEqual(task["status"], "COMPLETED")
@@ -1956,7 +2037,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
 
         event_count = len(event_types)
         notification_count = len(app_module._load_operations_notifications())
-        duplicate = self.client.post(f"/professionals/tasks/{task_id}", data=completion_payload)
+        duplicate = self._professional_task_post(f"/professionals/tasks/{task_id}", data=completion_payload)
         self.assertIn("notice=task_completed", duplicate.headers["Location"])
         self.assertEqual(len(app_module._load_operations_task_events(task_id)), event_count)
         self.assertEqual(len(app_module._load_operations_notifications()), notification_count)
@@ -2126,10 +2207,10 @@ class ApplicationWorkflowTests(unittest.TestCase):
             session_data[app_module.PROFESSIONAL_SESSION_LOGGED_IN_KEY] = True
             session_data[app_module.PROFESSIONAL_SESSION_ID_KEY] = professional["id"]
             session_data[app_module.PROFESSIONAL_SESSION_EMAIL_KEY] = professional["email"]
-        forbidden = self.client.post(f"/professionals/tasks/task-evidence-permissions/attachments/{admin_attachment['id']}/delete")
+        forbidden = self._professional_task_post(f"/professionals/tasks/task-evidence-permissions/attachments/{admin_attachment['id']}/delete")
         self.assertEqual(forbidden.status_code, 403)
 
-        own_upload = self.client.post(
+        own_upload = self._professional_task_post(
             "/professionals/tasks/task-evidence-permissions",
             data={"task_action": "attachment", "attachment_category": "after_photos", "attachment_file": (io.BytesIO(png_bytes), "professional.png")},
             content_type="multipart/form-data",
@@ -2137,7 +2218,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertIn("notice=evidence_uploaded", own_upload.headers["Location"])
         task = app_module._find_operations_task("task-evidence-permissions")
         own_attachment = next(item for item in task["attachments"] if item["uploader_id"] == professional["id"])
-        own_delete = self.client.post(f"/professionals/tasks/task-evidence-permissions/attachments/{own_attachment['id']}/delete")
+        own_delete = self._professional_task_post(f"/professionals/tasks/task-evidence-permissions/attachments/{own_attachment['id']}/delete")
         self.assertIn("notice=evidence_deleted", own_delete.headers["Location"])
         remaining_ids = {item["id"] for item in app_module._find_operations_task("task-evidence-permissions")["attachments"]}
         self.assertNotIn(own_attachment["id"], remaining_ids)
