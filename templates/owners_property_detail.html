@@ -1219,6 +1219,10 @@
                         {{ public_i18n('ownersDashboard', 'ownerActivityChecklistUpdated', 'Readiness checklist updated') }}
                       {% elif event.event_type == 'operation_completed' %}
                         {{ property_context.activity_copy.operation_completed|e }}
+                      {% elif event.event_type == 'service_request_submitted' %}
+                        {{ public_i18n('ownersDashboard', 'ownerActivityServiceRequestSubmitted', 'Service request submitted') }}
+                      {% elif event.event_type == 'service_request_completed' %}
+                        {{ public_i18n('ownersDashboard', 'ownerActivityServiceRequestCompleted', 'Service request completed') }}
                       {% else %}
                         {{ event.title|e }}
                       {% endif %}
@@ -1229,6 +1233,17 @@
                     <p>
                       {% if event.event_type == 'checklist_updated' %}
                         {{ event.detail|replace('Readiness', public_i18n('ownersDashboard', 'ownerPropertiesReadiness', 'Readiness'))|e }}
+                      {% elif event.event_type in ['service_request_submitted', 'service_request_completed'] %}
+                        {% set activity_detail = event.detail %}
+                        {% set activity_detail = activity_detail|replace('Cleaning', public_i18n('owners', 'ownerCategoryCleaning', 'Cleaning')) %}
+                        {% set activity_detail = activity_detail|replace('Inspection', public_i18n('owners', 'ownerCategoryInspection', 'Inspection')) %}
+                        {% set activity_detail = activity_detail|replace('Maintenance', public_i18n('owners', 'ownerCategoryMaintenance', 'Maintenance')) %}
+                        {% set activity_detail = activity_detail|replace('Airport Transfer', public_i18n('owners', 'ownerCategoryAirportTransfer', 'Airport Transfer')) %}
+                        {% set activity_detail = activity_detail|replace('Concierge Support', public_i18n('owners', 'ownerCategoryConciergeSupport', 'Concierge Support')) %}
+                        {% set activity_detail = activity_detail|replace('Guest Issue', public_i18n('owners', 'ownerCategoryGuestIssue', 'Guest Issue')) %}
+                        {% set activity_detail = activity_detail|replace('Seasonal Preparation', public_i18n('owners', 'ownerCategorySeasonalPreparation', 'Seasonal Preparation')) %}
+                        {% set activity_detail = activity_detail|replace('Other', public_i18n('owners', 'ownerCategoryOther', 'Other')) %}
+                        {{ activity_detail|e }}
                       {% else %}
                         {{ event.detail|e }}
                       {% endif %}

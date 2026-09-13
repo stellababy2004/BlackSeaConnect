@@ -156,52 +156,147 @@
   </style>
 </head>
 <body class="admin-notifications-page">
+
+{% set notifications_ui = {
+  'bg': {
+    'title': 'Център за оперативни известия',
+    'copy': 'Следете известията за задачи, просрочени операции и проблеми при доставката. Настройките за известия се съхраняват отделно за всеки оператор.',
+    'back_admin': 'Към администрацията',
+    'view_operations': 'Преглед на операциите',
+    'settings': 'Настройки',
+    'preferences_for': 'Настройки за известия за',
+    'email_enabled': 'Имейл известията са включени',
+    'telegram_enabled': 'Telegram известията са включени',
+    'save_preferences': 'Запази настройките',
+    'recent_alerts': 'Последни известия',
+    'overdue_alerts': 'Просрочени известия',
+    'failed_notifications': 'Неуспешни известия',
+    'alerts': 'Известия',
+    'overdue': 'Просрочени',
+    'failures': 'Неуспешни',
+    'created': 'Създаден',
+    'event': 'Събитие',
+    'title_label': 'Заглавие',
+    'detail': 'Детайл',
+    'task': 'Задача',
+    'channel': 'Канал',
+    'system': 'Система',
+    'no_failed': 'Все още няма неуспешни известия.',
+    'professional_completed': 'Професионалистът завърши задачата',
+    'attachment_added': 'Добавен е файл',
+    'overdue_detected': 'Открита е просрочена задача',
+    'due_date': 'Краен срок:',
+    'attachment_count': 'Брой файлове:'
+  },
+  'en': {
+    'title': 'Operations Notification Center',
+    'copy': 'Monitor task alerts, overdue detections, and delivery failures. Notification preferences are stored per operator in SQLite.',
+    'back_admin': 'Back to Admin',
+    'view_operations': 'View Operations',
+    'settings': 'Settings',
+    'preferences_for': 'Notification preferences for',
+    'email_enabled': 'Email notifications enabled',
+    'telegram_enabled': 'Telegram notifications enabled',
+    'save_preferences': 'Save preferences',
+    'recent_alerts': 'Recent alerts',
+    'overdue_alerts': 'Overdue alerts',
+    'failed_notifications': 'Failed notifications',
+    'alerts': 'Alerts',
+    'overdue': 'Overdue',
+    'failures': 'Failures',
+    'created': 'Created',
+    'event': 'Event',
+    'title_label': 'Title',
+    'detail': 'Detail',
+    'task': 'Task',
+    'channel': 'Channel',
+    'system': 'System',
+    'no_failed': 'No failed notifications yet.',
+    'professional_completed': 'Professional completed task',
+    'attachment_added': 'Attachment added',
+    'overdue_detected': 'Task overdue detected',
+    'due_date': 'Due date:',
+    'attachment_count': 'Attachment count:'
+  },
+  'fr': {
+    'title': 'Centre des notifications opérationnelles',
+    'copy': 'Suivez les alertes de tâches, les opérations en retard et les échecs de livraison. Les préférences de notification sont enregistrées séparément pour chaque opérateur.',
+    'back_admin': 'Retour à l’administration',
+    'view_operations': 'Voir les opérations',
+    'settings': 'Paramètres',
+    'preferences_for': 'Préférences de notification pour',
+    'email_enabled': 'Notifications e-mail activées',
+    'telegram_enabled': 'Notifications Telegram activées',
+    'save_preferences': 'Enregistrer les préférences',
+    'recent_alerts': 'Alertes récentes',
+    'overdue_alerts': 'Alertes en retard',
+    'failed_notifications': 'Notifications échouées',
+    'alerts': 'Alertes',
+    'overdue': 'En retard',
+    'failures': 'Échecs',
+    'created': 'Créé',
+    'event': 'Événement',
+    'title_label': 'Titre',
+    'detail': 'Détail',
+    'task': 'Tâche',
+    'channel': 'Canal',
+    'system': 'Système',
+    'no_failed': 'Aucune notification échouée pour le moment.',
+    'professional_completed': 'Le prestataire a terminé la tâche',
+    'attachment_added': 'Pièce jointe ajoutée',
+    'overdue_detected': 'Tâche en retard détectée',
+    'due_date': 'Échéance :',
+    'attachment_count': 'Nombre de pièces jointes :'
+  }
+} %}
+{% set nui = notifications_ui.get(page_lang|default('en'), notifications_ui['en']) %}
+
   {% include '_admin_sidebar.html' %}
   <main class="admin-notifications-shell">
     <section class="admin-notifications-hero">
       <div>
         <p class="eyebrow">BLACKSEA CONNECT</p>
-        <h1>Operations Notification Center</h1>
-        <p class="admin-notifications-copy">Monitor task alerts, overdue detections, and delivery failures. Notification preferences are stored per operator in SQLite.</p>
+        <h1>{{ nui['title'] }}</h1>
+        <p class="admin-notifications-copy">{{ nui['copy'] }}</p>
       </div>
       <div class="admin-notifications-actions">
-        <a class="button button--secondary" href="/admin">Back to Admin</a>
-        <a class="button button--secondary" href="/admin/operations">View Operations</a>
+        <a class="button button--secondary" href="{{ localized_url('/admin') }}">{{ nui.back_admin }}</a>
+        <a class="button button--secondary" href="{{ localized_url('/admin/operations') }}">{{ nui.view_operations }}</a>
       </div>
     </section>
 
     <section class="admin-notifications-panel">
       <div class="admin-panel-header">
         <div>
-          <p class="eyebrow">Settings</p>
-          <h2>Notification preferences for {{ current_operator_key|e }}</h2>
+          <p class="eyebrow">{{ nui.settings }}</p>
+          <h2>{{ nui.preferences_for }} {{ current_operator_key|e }}</h2>
         </div>
       </div>
       {% set preference = preferences[0] if preferences else None %}
-      <form class="admin-notifications-form" method="post" action="/admin/notifications">
+      <form class="admin-notifications-form" method="post" action="{{ localized_url('/admin/notifications') }}">
         <label class="admin-notifications-toggle">
           <input type="checkbox" name="email_enabled" {% if preference is none or preference.email_enabled %}checked{% endif %}>
-          <span>Email notifications enabled</span>
+          <span>{{ nui['email_enabled'] }}</span>
         </label>
         <label class="admin-notifications-toggle">
           <input type="checkbox" name="telegram_enabled" {% if preference is none or preference.telegram_enabled %}checked{% endif %}>
-          <span>Telegram notifications enabled</span>
+          <span>{{ nui['telegram_enabled'] }}</span>
         </label>
-        <button class="button button--primary" type="submit">Save preferences</button>
+        <button class="button button--primary" type="submit">{{ nui['save_preferences'] }}</button>
       </form>
     </section>
 
     <section class="admin-notifications-grid" aria-label="Notification summary">
       <article class="admin-notifications-card">
-        <span>Recent alerts</span>
+        <span>{{ nui['recent_alerts'] }}</span>
         <strong>{{ recent_alerts|length }}</strong>
       </article>
       <article class="admin-notifications-card">
-        <span>Overdue alerts</span>
+        <span>{{ nui['overdue_alerts'] }}</span>
         <strong>{{ overdue_alerts|length }}</strong>
       </article>
       <article class="admin-notifications-card">
-        <span>Failed notifications</span>
+        <span>{{ nui['failed_notifications'] }}</span>
         <strong>{{ failed_notifications|length }}</strong>
       </article>
     </section>
@@ -209,29 +304,42 @@
     <section class="admin-notifications-panel">
       <div class="admin-panel-header">
         <div>
-          <p class="eyebrow">Alerts</p>
-          <h2>Recent alerts</h2>
+          <p class="eyebrow">{{ nui['alerts'] }}</p>
+          <h2>{{ nui['recent_alerts'] }}</h2>
         </div>
       </div>
       {% if recent_alerts %}
-        <table class="admin-notifications-table" aria-label="Recent alerts">
+        <table class="admin-notifications-table" aria-label="{{ nui['recent_alerts'] }}">
           <thead>
             <tr>
-              <th>Created</th>
-              <th>Event</th>
-              <th>Title</th>
-              <th>Detail</th>
-              <th>Task</th>
+              <th>{{ nui['created'] }}</th>
+              <th>{{ nui['event'] }}</th>
+              <th>{{ nui['title_label'] }}</th>
+              <th>{{ nui['detail'] }}</th>
+              <th>{{ nui['task'] }}</th>
             </tr>
           </thead>
           <tbody>
             {% for notification in recent_alerts %}
               <tr>
                 <td><time>{{ notification.created_at|e }}</time></td>
-                <td><span class="admin-notifications-badge admin-notifications-badge--{{ notification.event_type|e }}">{{ notification.event_type|replace('_', ' ')|title }}</span></td>
-                <td>{{ notification.title|e }}</td>
-                <td>{{ notification.detail|e }}</td>
-                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ notification.title|e }}</a>{% else %}System{% endif %}</td>
+                <td><span class="admin-notifications-badge admin-notifications-badge--{{ notification.event_type|e }}">{{ {
+  'professional_completed': nui['professional_completed'],
+  'attachment_added': nui['attachment_added'],
+  'overdue_detected': nui['overdue_detected']
+}.get(notification.event_type, notification.event_type|replace('_', ' ')|title) }}</span></td>
+                <td>{{ {
+  'Professional completed task': nui['professional_completed'],
+  'Task overdue detected': nui['overdue_detected']
+}.get(notification.title, notification.title)|e }}</td>
+                <td>{{ notification.detail
+  |replace('Due date:', nui['due_date'])
+  |replace('Attachment count:', nui['attachment_count'])
+  |e }}</td>
+                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ {
+  'Professional completed task': nui['professional_completed'],
+  'Task overdue detected': nui['overdue_detected']
+}.get(notification.title, notification.title)|e }}</a>{% else %}{{ nui['system'] }}{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -244,25 +352,31 @@
     <section class="admin-notifications-panel">
       <div class="admin-panel-header">
         <div>
-          <p class="eyebrow">Overdue</p>
-          <h2>Overdue alerts</h2>
+          <p class="eyebrow">{{ nui['overdue'] }}</p>
+          <h2>{{ nui['overdue_alerts'] }}</h2>
         </div>
       </div>
       {% if overdue_alerts %}
-        <table class="admin-notifications-table" aria-label="Overdue alerts">
+        <table class="admin-notifications-table" aria-label="{{ nui['overdue_alerts'] }}">
           <thead>
             <tr>
-              <th>Created</th>
-              <th>Task</th>
-              <th>Detail</th>
+              <th>{{ nui['created'] }}</th>
+              <th>{{ nui['task'] }}</th>
+              <th>{{ nui['detail'] }}</th>
             </tr>
           </thead>
           <tbody>
             {% for notification in overdue_alerts %}
               <tr>
                 <td><time>{{ notification.created_at|e }}</time></td>
-                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ notification.title|e }}</a>{% else %}System{% endif %}</td>
-                <td>{{ notification.detail|e }}</td>
+                <td>{% if notification.operation_navigation.is_clickable %}<a href="{{ notification.operation_navigation.href|e }}">{{ {
+  'Professional completed task': nui['professional_completed'],
+  'Task overdue detected': nui['overdue_detected']
+}.get(notification.title, notification.title)|e }}</a>{% else %}{{ nui['system'] }}{% endif %}</td>
+                <td>{{ notification.detail
+  |replace('Due date:', nui['due_date'])
+  |replace('Attachment count:', nui['attachment_count'])
+  |e }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -275,18 +389,18 @@
     <section class="admin-notifications-panel">
       <div class="admin-panel-header">
         <div>
-          <p class="eyebrow">Failures</p>
-          <h2>Failed notifications</h2>
+          <p class="eyebrow">{{ nui['failures'] }}</p>
+          <h2>{{ nui['failed_notifications'] }}</h2>
         </div>
       </div>
       {% if failed_notifications %}
-        <table class="admin-notifications-table" aria-label="Failed notifications">
+        <table class="admin-notifications-table" aria-label="{{ nui['failed_notifications'] }}">
           <thead>
             <tr>
-              <th>Created</th>
-              <th>Channel</th>
-              <th>Title</th>
-              <th>Detail</th>
+              <th>{{ nui['created'] }}</th>
+              <th>{{ nui['channel'] }}</th>
+              <th>{{ nui['title_label'] }}</th>
+              <th>{{ nui['detail'] }}</th>
             </tr>
           </thead>
           <tbody>
@@ -294,14 +408,20 @@
               <tr>
                 <td><time>{{ notification.created_at|e }}</time></td>
                 <td>{{ notification.channel|e or 'System' }}</td>
-                <td>{{ notification.title|e }}</td>
-                <td>{{ notification.detail|e }}</td>
+                <td>{{ {
+  'Professional completed task': nui['professional_completed'],
+  'Task overdue detected': nui['overdue_detected']
+}.get(notification.title, notification.title)|e }}</td>
+                <td>{{ notification.detail
+  |replace('Due date:', nui['due_date'])
+  |replace('Attachment count:', nui['attachment_count'])
+  |e }}</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       {% else %}
-        <p class="admin-notifications-empty">No failed notifications yet.</p>
+        <p class="admin-notifications-empty">{{ nui['no_failed'] }}</p>
       {% endif %}
     </section>
   </main>

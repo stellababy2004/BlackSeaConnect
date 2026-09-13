@@ -6232,8 +6232,32 @@ def _load_owner_activity_events(owner_id=None):
     events.extend(_demo_records("owner_activity_events"))
     if target_owner_id:
         events = [event for event in events if str(event.get("owner_id", "")).strip() == target_owner_id]
-    events.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
-    return events
+    events.sort(
+        key=lambda item: (
+            str(item.get("created_at", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=True,
+    )
+
+    # Hide legacy backfill rows exposing internal owner IDs.
+    filtered_events = []
+    seen_owner_assignment = False
+
+    for event in events:
+        event_type = str(event.get("event_type", "")).strip()
+        detail = str(event.get("detail", "")).strip()
+
+        if event_type == "owner_assigned":
+            if detail.startswith("owner-"):
+                continue
+            if seen_owner_assignment:
+                continue
+            seen_owner_assignment = True
+
+        filtered_events.append(event)
+
+    return filtered_events
 
 
 def _append_owner_activity_event(owner_id, event_type, title, detail=""):
@@ -6295,7 +6319,14 @@ def _load_property_activity_events(property_id=None):
     events.extend(_demo_records("property_activity_events"))
     if target_property_id:
         events = [event for event in events if str(event.get("property_id", "")).strip() == target_property_id]
-    events.sort(key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))), reverse=True)
+    events.sort(
+        key=lambda item: (
+            str(item.get("created_at", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=True,
+    )
+
     return events
 
 
@@ -8041,15 +8072,24 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
 
     created_at = str(record.get("created_at", "")).strip() or _utc_now_iso()
     updated_at = str(record.get("updated_at", "")).strip() or str(record.get("last_update_at", "")).strip() or created_at
-    source_category = {
-        "PILOT_REQUEST": "LEAD",
-        "OWNER_REGISTRATION": "OWNER",
-        "PROFESSIONAL_APPLICATION": "PROFESSIONAL",
-        "PARTNER_APPLICATION": "PARTNER",
-        "CONCIERGE_REQUEST": "CONCIERGE",
-        "SERVICE_REQUEST": "SERVICE",
-        "OWNER_SERVICE_REQUEST": "SERVICE",
-    }.get(normalized_source_type, str(record.get("service_category", "")).strip() or str(record.get("category", "")).strip())
+    if normalized_source_type in {"SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"}:
+        source_category = (
+            str(record.get("service_category", "")).strip()
+            or str(record.get("category", "")).strip()
+            or "SERVICE"
+        )
+    else:
+        source_category = {
+            "PILOT_REQUEST": "LEAD",
+            "OWNER_REGISTRATION": "OWNER",
+            "PROFESSIONAL_APPLICATION": "PROFESSIONAL",
+            "PARTNER_APPLICATION": "PARTNER",
+            "CONCIERGE_REQUEST": "CONCIERGE",
+        }.get(
+            normalized_source_type,
+            str(record.get("service_category", "")).strip()
+            or str(record.get("category", "")).strip(),
+        )
     title = {
         "PILOT_REQUEST": str(record.get("name", "")).strip() or str(record.get("email", "")).strip() or "Pilot request",
         "OWNER_REGISTRATION": str(record.get("full_name", "")).strip() or str(record.get("email", "")).strip() or "Owner registration",
@@ -14455,7 +14495,26 @@ def _owner_property_detail_context(owner_account, property_record):
         }
         for event in _load_property_activity_events(property_record.get("id", ""))
         if str(event.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
+        and not (
+            str(event.get("event_type", "")).strip() == "owner_assigned"
+            and str(event.get("detail", "")).strip().startswith("owner-")
+        )
     ]
+
+    deduped_property_activity = []
+    seen_property_activity_types = set()
+
+    for event in property_activity:
+        event_type = str(event.get("event_type", "")).strip()
+
+        if event_type in {"property_created", "owner_assigned"}:
+            if event_type in seen_property_activity_types:
+                continue
+            seen_property_activity_types.add(event_type)
+
+        deduped_property_activity.append(event)
+
+    property_activity = deduped_property_activity
     return {
         "property": {
             **property_record,

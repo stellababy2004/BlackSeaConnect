@@ -40172,10 +40172,200 @@ body.owner-property-detail-page .owner-property-detail-gallery__thumb.is-cover {
   font-weight: 600;
 }
 
+.owner-property-detail-history__review {
+  color: #f8fafc;
+}
+
+.owner-property-detail-history__review > strong {
+  color: #f8fafc;
+}
+
+.owner-property-detail-history__review > p {
+  color: #cbd5e1;
+}
+
+.owner-property-detail-history__review .owner-review-fieldset legend,
+.owner-property-detail-history__review .owner-review-comment-label {
+  color: #e2e8f0;
+}
+
+.owner-property-detail-history__review .owner-review-stars label {
+  color: #f6d365;
+  opacity: 0.6;
+}
+
+.owner-property-detail-history__review .owner-review-stars input:checked ~ label,
+.owner-property-detail-history__review .owner-review-stars label:hover,
+.owner-property-detail-history__review .owner-review-stars label:hover ~ label {
+  opacity: 1;
+}
+
+.owner-property-detail-history__review textarea {
+  background: #ffffff;
+  color: #172033;
+}
+
+.owner-property-detail-history__review textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
 .owner-property-detail-history__review textarea {
   display: block;
   width: 100%;
   max-width: 560px;
   margin-bottom: 12px;
   resize: vertical;
+}
+
+/* Owner review form - final contrast override */
+.owner-property-detail-history__review {
+  color: #f8fafc !important;
+}
+
+.owner-property-detail-history__review > strong {
+  color: #ffffff !important;
+}
+
+.owner-property-detail-history__review > p {
+  color: #dbe4ee !important;
+}
+
+.owner-property-detail-history__review .owner-review-fieldset,
+.owner-property-detail-history__review .owner-review-fieldset legend,
+.owner-property-detail-history__review .owner-review-comment-label {
+  color: #f1f5f9 !important;
+}
+
+.owner-property-detail-history__review .owner-review-stars label {
+  color: #f6d365 !important;
+  opacity: 0.65 !important;
+}
+
+.owner-property-detail-history__review .owner-review-stars input:checked ~ label,
+.owner-property-detail-history__review .owner-review-stars label:hover,
+.owner-property-detail-history__review .owner-review-stars label:hover ~ label {
+  color: #ffd95a !important;
+  opacity: 1 !important;
+}
+
+.owner-property-detail-history__review textarea {
+  background: #ffffff !important;
+  color: #172033 !important;
+}
+
+.owner-property-detail-history__review textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Owner review form - Chromium text fill fix */
+body.owner-property-detail-page .owner-property-detail-history__review > strong {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+body.owner-property-detail-page .owner-property-detail-history__review > p {
+  color: #dbe4ee !important;
+  -webkit-text-fill-color: #dbe4ee !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-fieldset legend,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-comment-label {
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label span {
+  color: #f6d365 !important;
+  -webkit-text-fill-color: #f6d365 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars input:checked ~ label,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label:hover,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label:hover ~ label {
+  color: #ffd95a !important;
+  -webkit-text-fill-color: #ffd95a !important;
+  opacity: 1 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review textarea {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review textarea::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* FINAL Owner review form */
+body.owner-property-detail-page .owner-property-detail-history__review {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 35, 69, 0.12) !important;
+  border-radius: 20px !important;
+  padding: 22px !important;
+  color: #172033 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+:is(strong, p, legend, label, span) {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  opacity: 1 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-stars label span {
+  color: #b88618 !important;
+  -webkit-text-fill-color: #b88618 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review textarea {
+  background: #f8fafc !important;
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  border: 1px solid rgba(15, 35, 69, 0.18) !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review textarea::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-fieldset legend,
+body.owner-property-detail-page
+.owner-property-detail-history__review
+.owner-review-comment-label {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  opacity: 1 !important;
 }
