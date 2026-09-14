@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bg">
+<html lang="{{ page_lang|default('en')|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -312,7 +312,7 @@
 <body class="admin-property-detail-page">
   {% include '_admin_sidebar.html' %}
 
-  {% set admin_lang = page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' %}
+  {% set admin_lang = page_lang if page_lang in ['bg', 'en', 'fr', 'ru'] else 'en' %}
 
   {% if admin_lang == 'bg' %}
     {% set c = {
@@ -409,6 +409,54 @@
       'timeline': 'Historique',
       'property_timeline': 'Historique du bien',
       'no_timeline': 'Aucune entrée dans l’historique pour le moment.'
+    } %}
+  {% elif admin_lang == 'ru' %}
+    {% set c = {
+      'property_ops': 'Операции объекта',
+      'intro': 'Просматривайте профиль объекта, владельца, внутренние заметки и историю активности в одном месте.',
+      'back': 'Назад к объектам',
+      'profile': 'Профиль объекта',
+      'details': 'Данные объекта',
+      'type': 'Тип',
+      'location': 'Местоположение',
+      'capacity': 'Вместимость',
+      'status': 'Статус',
+      'created': 'Создано',
+      'readiness': 'Готовность',
+      'current_readiness': 'Текущая готовность',
+      'checklist': 'Чек-лист',
+      'progress': 'Прогресс',
+      'latest_requests': 'Последние заявки',
+      'ready': 'Готово',
+      'pending': 'Ожидает',
+      'calendar': 'Календарь',
+      'mini_calendar': 'Мини-календарь',
+      'open_calendar': 'Открыть календарь администратора',
+      'events': 'событий',
+      'upcoming_events': 'Предстоящие события',
+      'cleaning_schedule': 'График уборки',
+      'maintenance_schedule': 'График обслуживания',
+      'service_history': 'История заявок',
+      'latest_linked': 'Последние связанные заявки',
+      'no_requests': 'Связанных заявок на услуги пока нет.',
+      'blocked_dates': 'Заблокированные даты',
+      'owner_blocks': 'Блокировки календаря владельца',
+      'no_blocks': 'Заблокированных дат или личных проживаний пока нет.',
+      'owner_info': 'Информация о владельце',
+      'full_name': 'Имя и фамилия',
+      'email': 'Эл. почта',
+      'phone': 'Телефон',
+      'language': 'Язык',
+      'registered': 'Дата регистрации',
+      'last_login': 'Последний вход',
+      'never': 'Нет данных',
+      'admin_notes': 'Заметки администратора',
+      'internal_notes': 'Внутренние заметки',
+      'notes_placeholder': 'Внутренние операционные заметки для команды',
+      'save_notes': 'Сохранить заметки',
+      'timeline': 'История',
+      'property_timeline': 'История объекта',
+      'no_timeline': 'Записей в истории пока нет.'
     } %}
   {% else %}
     {% set c = {

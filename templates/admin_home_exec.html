@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="{{ page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' }}">
+{% set dashboard_lang = request.args.get('lang', '')|lower %}
+{% if dashboard_lang not in ['bg', 'en', 'fr', 'ru'] %}
+  {% set dashboard_lang = page_lang if page_lang in ['bg', 'en', 'fr', 'ru'] else 'en' %}
+{% endif %}
+<html lang="{{ dashboard_lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -3069,41 +3073,422 @@
 <body class="admin-cockpit-page admin-exec-page bsc-admin-workspace">
   {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
-    {% set admin_lang = page_lang if page_lang in ['bg', 'en', 'fr'] else 'bg' %}
+    {% set requested_admin_lang = request.args.get('lang', '')|lower %}
+    {% if requested_admin_lang in ['bg', 'en', 'fr', 'ru'] %}
+      {% set admin_lang = requested_admin_lang %}
+    {% else %}
+      {% set admin_lang = current_lang|default(page_lang|default('en'))|lower %}
+    {% endif %}
+    {% if admin_lang not in ['bg', 'en', 'fr', 'ru'] %}
+      {% set admin_lang = 'en' %}
+    {% endif %}
     {% if admin_lang == 'bg' %}
-      {% set tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'info': 'ИНФО', 'neutral': 'ИНФО', 'primary': 'ОСНОВНО'} %}
-      {% set severity_labels = {'critical': 'Критично', 'high': 'Високо', 'medium': 'Средно', 'low': 'Ниско', 'info': 'Инфо'} %}
-      {% set category_labels = {'overdue operations': 'Просрочени операции', 'unassigned operations': 'Невъзложени операции', 'operations without due dates': 'Операции без срок', 'owner requests waiting': 'Чакащи заявки от собственици', 'properties without readiness': 'Имоти без готовност', 'reservations arriving within 24h without completed preparation': 'Пристигания без завършена подготовка', 'reservations missing assigned cleaning': 'Резервации без възложено почистване', 'calendar conflicts': 'Календарни конфликти', 'overlapping reservations': 'Застъпващи се резервации', 'professionals overloaded': 'Претоварени професионалисти', 'operation': 'Операция', 'reservation': 'Резервация', 'professional': 'Професионалист', 'owner': 'Собственик'} %}
-      {% set value_labels = {'Operation': 'Операция', 'Reservation': 'Резервация', 'Professional': 'Професионалист', 'Owner': 'Собственик', 'Operations': 'Операции', 'Inspection': 'Инспекция', 'Check-in': 'Настаняване', 'Check-out': 'Освобождаване', 'Scheduled': 'Планирани', 'Completed': 'Приключени', 'Waiting': 'Чакащи', 'Assigned': 'Възложени', 'Unassigned': 'Невъзложени', 'In Progress': 'В процес', 'Pending': 'Чакащи', 'Confirmed': 'Потвърдени', 'Checked In': 'Настанени', 'Checked Out': 'Освободени', 'Available': 'Свободни', 'Occupied': 'Заети', 'Preparing': 'Подготовка', 'Cleaning': 'Почистване', 'Maintenance': 'Поддръжка', 'Blocked': 'Блокирани', 'Ready': 'Готови', 'None': 'Няма'} %}
-      {% set detail_labels = {'operation is past due': 'Операцията е просрочена.', 'operation has no assigned professional': 'Операцията няма възложен професионалист.', 'open operation is missing a due date': 'Отворената операция няма краен срок.', 'owner request has been waiting longer than 48 hours': 'Заявката от собственик чака повече от 48 часа.', 'upcoming arrival still needs preparation': 'Предстоящо пристигане все още изисква подготовка.', 'reservation is approaching without an assigned cleaning task': 'Резервацията наближава без възложено почистване.', 'calendar event overlaps with a reservation': 'Календарно събитие се застъпва с резервация.', 'reservations share overlapping occupancy windows': 'Резервациите имат застъпващи се периоди.'} %}
+      {% set tone_labels = {
+        'success':'ЗДРАВО','warning':'ВНИМАНИЕ','danger':'КРИТИЧНО',
+        'info':'ИНФО','neutral':'ИНФО','primary':'ОСНОВНО'
+      } %}
+      {% set severity_labels = {
+        'critical':'Критично','high':'Високо','medium':'Средно',
+        'low':'Ниско','info':'Инфо'
+      } %}
+      {% set category_labels = {
+        'overdue operations':'Просрочени операции',
+        'unassigned operations':'Невъзложени операции',
+        'operations without due dates':'Операции без срок',
+        'owner requests waiting':'Чакащи заявки от собственици',
+        'properties without readiness':'Имоти без готовност',
+        'reservations arriving within 24h without completed preparation':'Пристигания без завършена подготовка',
+        'reservations missing assigned cleaning':'Резервации без възложено почистване',
+        'calendar conflicts':'Календарни конфликти',
+        'overlapping reservations':'Застъпващи се резервации',
+        'professionals overloaded':'Претоварени професионалисти',
+        'operation':'Операция','reservation':'Резервация',
+        'professional':'Професионалист','owner':'Собственик'
+      } %}
+      {% set value_labels = {
+        'Operation':'Операция','Reservation':'Резервация',
+        'Professional':'Професионалист','Owner':'Собственик',
+        'Operations':'Операции','Inspection':'Инспекция',
+        'Check-in':'Настаняване','Check-out':'Освобождаване',
+        'Scheduled':'Планирани','Completed':'Приключени',
+        'Waiting':'Чакащи','Assigned':'Възложени',
+        'Unassigned':'Невъзложени','In Progress':'В процес',
+        'Pending':'Чакащи','Confirmed':'Потвърдени',
+        'Checked In':'Настанени','Checked Out':'Освободени',
+        'Available':'Свободни','Occupied':'Заети',
+        'Preparing':'Подготовка','Cleaning':'Почистване',
+        'Maintenance':'Поддръжка','Blocked':'Блокирани',
+        'Ready':'Готови','None':'Няма'
+      } %}
+      {% set detail_labels = {
+        'operation is past due':'Операцията е просрочена.',
+        'operation has no assigned professional':'Операцията няма възложен професионалист.',
+        'open operation is missing a due date':'Отворената операция няма краен срок.',
+        'owner request has been waiting longer than 48 hours':'Заявката от собственик чака повече от 48 часа.',
+        'upcoming arrival still needs preparation':'Предстоящо пристигане все още изисква подготовка.',
+        'reservation is approaching without an assigned cleaning task':'Резервацията наближава без възложено почистване.',
+        'calendar event overlaps with a reservation':'Календарно събитие се застъпва с резервация.',
+        'reservations share overlapping occupancy windows':'Резервациите имат застъпващи се периоди.'
+      } %}
+
     {% elif admin_lang == 'fr' %}
-      {% set tone_labels = {'success': 'SAIN', 'warning': 'ATTENTION', 'danger': 'CRITIQUE', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRINCIPAL'} %}
-      {% set severity_labels = {'critical': 'Critique', 'high': 'Haute', 'medium': 'Moyenne', 'low': 'Basse', 'info': 'Info'} %}
-      {% set category_labels = {'overdue operations': 'Opérations en retard', 'unassigned operations': 'Opérations non attribuées', 'operations without due dates': 'Opérations sans échéance', 'owner requests waiting': 'Demandes propriétaires en attente', 'properties without readiness': 'Biens non prêts', 'reservations arriving within 24h without completed preparation': 'Arrivées sans préparation terminée', 'reservations missing assigned cleaning': 'Réservations sans nettoyage attribué', 'calendar conflicts': 'Conflits de calendrier', 'overlapping reservations': 'Réservations qui se chevauchent', 'professionals overloaded': 'Professionnels surchargés', 'operation': 'Opération', 'reservation': 'Réservation', 'professional': 'Professionnel', 'owner': 'Propriétaire'} %}
-      {% set value_labels = {'Operation': 'Opération', 'Reservation': 'Réservation', 'Professional': 'Professionnel', 'Owner': 'Propriétaire', 'Operations': 'Opérations', 'Inspection': 'Inspection', 'Check-in': 'Arrivée', 'Check-out': 'Départ', 'Scheduled': 'Planifiée', 'Completed': 'Terminée', 'Waiting': 'En attente', 'Assigned': 'Attribuée', 'Unassigned': 'Non attribuée', 'In Progress': 'En cours', 'Pending': 'En attente', 'Confirmed': 'Confirmée', 'Checked In': 'Arrivée', 'Checked Out': 'Partie', 'Available': 'Disponible', 'Occupied': 'Occupé', 'Preparing': 'Préparation', 'Cleaning': 'Nettoyage', 'Maintenance': 'Maintenance', 'Blocked': 'Bloqué', 'Ready': 'Prêt', 'None': 'Aucun'} %}
+      {% set tone_labels = {
+        'success':'SAIN','warning':'ATTENTION','danger':'CRITIQUE',
+        'info':'INFO','neutral':'INFO','primary':'PRINCIPAL'
+      } %}
+      {% set severity_labels = {
+        'critical':'Critique','high':'Haute','medium':'Moyenne',
+        'low':'Basse','info':'Info'
+      } %}
+      {% set category_labels = {
+        'overdue operations':'Opérations en retard',
+        'unassigned operations':'Opérations non attribuées',
+        'operations without due dates':'Opérations sans échéance',
+        'owner requests waiting':'Demandes propriétaires en attente',
+        'properties without readiness':'Biens non prêts',
+        'reservations arriving within 24h without completed preparation':'Arrivées sans préparation terminée',
+        'reservations missing assigned cleaning':'Réservations sans nettoyage attribué',
+        'calendar conflicts':'Conflits de calendrier',
+        'overlapping reservations':'Réservations qui se chevauchent',
+        'professionals overloaded':'Professionnels surchargés',
+        'operation':'Opération','reservation':'Réservation',
+        'professional':'Professionnel','owner':'Propriétaire'
+      } %}
+      {% set value_labels = {
+        'Operation':'Opération','Reservation':'Réservation',
+        'Professional':'Professionnel','Owner':'Propriétaire',
+        'Operations':'Opérations','Inspection':'Inspection',
+        'Check-in':'Arrivée','Check-out':'Départ',
+        'Scheduled':'Planifiée','Completed':'Terminée',
+        'Waiting':'En attente','Assigned':'Attribuée',
+        'Unassigned':'Non attribuée','In Progress':'En cours',
+        'Pending':'En attente','Confirmed':'Confirmée',
+        'Checked In':'Arrivée','Checked Out':'Partie',
+        'Available':'Disponible','Occupied':'Occupé',
+        'Preparing':'Préparation','Cleaning':'Nettoyage',
+        'Maintenance':'Maintenance','Blocked':'Bloqué',
+        'Ready':'Prêt','None':'Aucun'
+      } %}
       {% set detail_labels = {} %}
+
+    {% elif admin_lang == 'ru' %}
+      {% set tone_labels = {
+        'success':'НОРМА','warning':'ВНИМАНИЕ','danger':'КРИТИЧНО',
+        'info':'ИНФО','neutral':'ИНФО','primary':'ОСНОВНОЕ'
+      } %}
+      {% set severity_labels = {
+        'critical':'Критично','high':'Высокий','medium':'Средний',
+        'low':'Низкий','info':'Инфо'
+      } %}
+      {% set category_labels = {
+        'overdue operations':'Просроченные операции',
+        'unassigned operations':'Неназначенные операции',
+        'operations without due dates':'Операции без срока',
+        'owner requests waiting':'Ожидающие заявки владельцев',
+        'properties without readiness':'Объекты не готовы',
+        'reservations arriving within 24h without completed preparation':'Прибытия без завершённой подготовки',
+        'reservations missing assigned cleaning':'Бронирования без назначенной уборки',
+        'calendar conflicts':'Конфликты календаря',
+        'overlapping reservations':'Пересекающиеся бронирования',
+        'professionals overloaded':'Перегруженные исполнители',
+        'operation':'Операция','reservation':'Бронирование',
+        'professional':'Исполнитель','owner':'Владелец'
+      } %}
+      {% set value_labels = {
+        'Operation':'Операция','Reservation':'Бронирование',
+        'Professional':'Исполнитель','Owner':'Владелец',
+        'Operations':'Операции','Inspection':'Проверка',
+        'Check-in':'Заезд','Check-out':'Выезд',
+        'Scheduled':'Запланировано','Completed':'Завершено',
+        'Waiting':'Ожидание','Assigned':'Назначено',
+        'Unassigned':'Не назначено','In Progress':'В работе',
+        'Pending':'Ожидание','Confirmed':'Подтверждено',
+        'Checked In':'Заселён','Checked Out':'Выселен',
+        'Available':'Свободно','Occupied':'Занято',
+        'Preparing':'Подготовка','Cleaning':'Уборка',
+        'Maintenance':'Обслуживание','Blocked':'Заблокировано',
+        'Ready':'Готово','None':'Нет'
+      } %}
+      {% set detail_labels = {
+        'operation is past due':'Операция просрочена.',
+        'operation has no assigned professional':'Для операции не назначен исполнитель.',
+        'open operation is missing a due date':'У открытой операции нет срока.',
+        'owner request has been waiting longer than 48 hours':'Заявка владельца ожидает более 48 часов.',
+        'upcoming arrival still needs preparation':'Предстоящее прибытие требует подготовки.',
+        'reservation is approaching without an assigned cleaning task':'Приближается бронирование без назначенной уборки.',
+        'calendar event overlaps with a reservation':'Событие календаря пересекается с бронированием.',
+        'reservations share overlapping occupancy windows':'Периоды бронирований пересекаются.'
+      } %}
+
     {% else %}
-      {% set tone_labels = {'success': 'HEALTHY', 'warning': 'ATTENTION', 'danger': 'CRITICAL', 'info': 'INFO', 'neutral': 'INFO', 'primary': 'PRIMARY'} %}
-      {% set severity_labels = {'critical': 'Critical', 'high': 'High', 'medium': 'Medium', 'low': 'Low', 'info': 'Info'} %}
-      {% set category_labels = {'overdue operations': 'Overdue operations', 'unassigned operations': 'Unassigned operations', 'operations without due dates': 'Operations without due dates', 'owner requests waiting': 'Owner requests waiting', 'properties without readiness': 'Properties without readiness', 'reservations arriving within 24h without completed preparation': 'Arrivals without completed preparation', 'reservations missing assigned cleaning': 'Reservations missing cleaning assignment', 'calendar conflicts': 'Calendar conflicts', 'overlapping reservations': 'Overlapping reservations', 'professionals overloaded': 'Professionals overloaded', 'operation': 'Operation', 'reservation': 'Reservation', 'professional': 'Professional', 'owner': 'Owner'} %}
-      {% set value_labels = {'Operation': 'Operation', 'Reservation': 'Reservation', 'Professional': 'Professional', 'Owner': 'Owner', 'Operations': 'Operations', 'Scheduled': 'Scheduled', 'Completed': 'Completed', 'Waiting': 'Waiting', 'Assigned': 'Assigned', 'In Progress': 'In progress', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Checked In': 'Checked in', 'Checked Out': 'Checked out', 'Available': 'Available', 'Occupied': 'Occupied', 'Preparing': 'Preparing', 'Cleaning': 'Cleaning', 'Maintenance': 'Maintenance', 'Blocked': 'Blocked', 'Ready': 'Ready', 'None': 'None'} %}
+      {% set tone_labels = {
+        'success':'HEALTHY','warning':'ATTENTION','danger':'CRITICAL',
+        'info':'INFO','neutral':'INFO','primary':'PRIMARY'
+      } %}
+      {% set severity_labels = {
+        'critical':'Critical','high':'High','medium':'Medium',
+        'low':'Low','info':'Info'
+      } %}
+      {% set category_labels = {
+        'overdue operations':'Overdue operations',
+        'unassigned operations':'Unassigned operations',
+        'operations without due dates':'Operations without due dates',
+        'owner requests waiting':'Owner requests waiting',
+        'properties without readiness':'Properties without readiness',
+        'reservations arriving within 24h without completed preparation':'Arrivals without completed preparation',
+        'reservations missing assigned cleaning':'Reservations missing cleaning assignment',
+        'calendar conflicts':'Calendar conflicts',
+        'overlapping reservations':'Overlapping reservations',
+        'professionals overloaded':'Professionals overloaded',
+        'operation':'Operation','reservation':'Reservation',
+        'professional':'Professional','owner':'Owner'
+      } %}
+      {% set value_labels = {
+        'Operation':'Operation','Reservation':'Reservation',
+        'Professional':'Professional','Owner':'Owner',
+        'Operations':'Operations','Inspection':'Inspection',
+        'Check-in':'Check-in','Check-out':'Check-out',
+        'Scheduled':'Scheduled','Completed':'Completed',
+        'Waiting':'Waiting','Assigned':'Assigned',
+        'Unassigned':'Unassigned','In Progress':'In progress',
+        'Pending':'Pending','Confirmed':'Confirmed',
+        'Checked In':'Checked in','Checked Out':'Checked out',
+        'Available':'Available','Occupied':'Occupied',
+        'Preparing':'Preparing','Cleaning':'Cleaning',
+        'Maintenance':'Maintenance','Blocked':'Blocked',
+        'Ready':'Ready','None':'None'
+      } %}
       {% set detail_labels = {} %}
     {% endif %}
-    {% set semantic_tone_labels = {'success': 'ЗДРАВО', 'warning': 'ВНИМАНИЕ', 'danger': 'КРИТИЧНО', 'neutral': 'ЗДРАВО', 'info': 'ЗДРАВО'} %}
+    {% set semantic_tone_labels = tone_labels %}
+{% set dashboard_status_labels_all = {
+  'bg': {
+    'NEW': 'НОВА',
+    'ASSIGNED': 'ВЪЗЛОЖЕНА',
+    'IN_PROGRESS': 'В ПРОЦЕС',
+    'COMPLETED': 'ЗАВЪРШЕНА',
+    'CANCELLED': 'ОТКАЗАНА',
+  },
+  'en': {
+    'NEW': 'NEW',
+    'ASSIGNED': 'ASSIGNED',
+    'IN_PROGRESS': 'IN PROGRESS',
+    'COMPLETED': 'COMPLETED',
+    'CANCELLED': 'CANCELLED',
+  },
+  'fr': {
+    'NEW': 'NOUVELLE',
+    'ASSIGNED': 'ATTRIBUÉE',
+    'IN_PROGRESS': 'EN COURS',
+    'COMPLETED': 'TERMINÉE',
+    'CANCELLED': 'ANNULÉE',
+  },
+  'ru': {
+    'NEW': 'НОВАЯ',
+    'ASSIGNED': 'НАЗНАЧЕНА',
+    'IN_PROGRESS': 'В РАБОТЕ',
+    'COMPLETED': 'ЗАВЕРШЕНА',
+    'CANCELLED': 'ОТМЕНЕНА',
+  },
+} %}
+{% set dashboard_status_labels = dashboard_status_labels_all.get(admin_lang, dashboard_status_labels_all['en']) %}
+
     {% if admin_lang == 'bg' %}
-      {% set dash = {'kicker': 'Оперативно табло', 'title': 'Табло', 'subtitle': 'Преглед на операциите към днешна дата', 'operator': 'Операторска конзола', 'calendar': 'Отвори календара', 'late': 'Просрочени', 'attention': 'Изискват внимание', 'unassigned': 'Невъзложени', 'assign': 'За възлагане', 'requests': 'Заявки', 'owners': 'От собственици', 'conflicts': 'Конфликти', 'review': 'За преглед', 'sla': 'SLA', 'current': 'Текущо състояние', 'today': 'Днес', 'today_ops': 'Операции за днес', 'all_ops': 'Виж всички', 'time': 'Час', 'operation': 'Операция', 'property': 'Имот', 'status': 'Статус', 'no_ops': 'Няма планирани операции за днес.', 'priority': 'Приоритет', 'tasks': 'Задачи', 'open_tasks': 'Виж всички задачи', 'no_tasks': 'Няма активни задачи за действие.', 'team': 'Екип', 'workload': 'Натовареност на екипа', 'professionals': 'Виж всички', 'active_tasks': 'активни задачи', 'capacity': 'свободен капацитет', 'unassigned_name': 'Невъзложени', 'no_workload': 'Няма налични данни за натоварване.', 'schedule': 'График', 'calendar_title': 'Календар', 'full_calendar': 'Виж пълен календар', 'tomorrow': 'Утре', 'week': 'Тази седмица', 'no_events': 'Няма предстоящи събития.'} %}
+      {% set dash = {
+        'kicker':'Оперативно табло','title':'Табло',
+        'greeting':'Добро утро, Стела','new_operation':'Нова операция',
+        'subtitle':'Преглед на операциите към днешна дата',
+        'operator':'Операторска конзола','calendar':'Отвори календара',
+        'late':'Просрочени','attention':'Изискват внимание',
+        'unassigned':'Невъзложени','assign':'За възлагане',
+        'requests':'Заявки','owners':'От собственици',
+        'conflicts':'Конфликти','review':'За преглед',
+        'sla':'SLA','current':'Текущо състояние',
+        'today':'Днес','today_ops':'Операции за днес',
+        'all_ops':'Виж всички','time':'Час',
+        'operation':'Операция','property':'Имот','status':'Статус',
+        'no_ops':'Няма планирани операции за днес.',
+        'priority':'Приоритет','tasks':'Задачи',
+        'open_tasks':'Виж всички задачи',
+        'no_tasks':'Няма активни задачи за действие.',
+        'team':'Екип','workload':'Натовареност на екипа',
+        'professionals':'Виж всички','active_tasks':'активни задачи',
+        'capacity':'свободен капацитет','unassigned_name':'Невъзложени',
+        'no_workload':'Няма налични данни за натоварване.',
+        'schedule':'График','calendar_title':'Календар',
+        'full_calendar':'Виж пълен календар',
+        'tomorrow':'Утре','week':'Тази седмица',
+        'no_events':'Няма предстоящи събития.',
+        'completed_today':'Приключени днес'
+      } %}
+
     {% elif admin_lang == 'fr' %}
-      {% set dash = {'kicker': 'Tableau opérationnel', 'title': 'Tableau de bord', 'subtitle': 'Aperçu des opérations à ce jour', 'operator': 'Console opérateur', 'calendar': 'Ouvrir le calendrier', 'late': 'En retard', 'attention': 'Nécessitent une attention', 'unassigned': 'Non attribuées', 'assign': 'À attribuer', 'requests': 'Demandes', 'owners': 'Des propriétaires', 'conflicts': 'Conflits', 'review': 'À examiner', 'sla': 'SLA', 'current': 'État actuel', 'today': "Aujourd’hui", 'today_ops': "Opérations du jour", 'all_ops': 'Voir toutes', 'time': 'Heure', 'operation': 'Opération', 'property': 'Bien', 'status': 'Statut', 'no_ops': "Aucune opération prévue aujourd’hui.", 'priority': 'Priorité', 'tasks': 'Tâches', 'open_tasks': 'Voir toutes les tâches', 'no_tasks': "Aucune tâche active nécessitant une action.", 'team': 'Équipe', 'workload': "Charge de l’équipe", 'professionals': 'Voir tous', 'active_tasks': 'tâches actives', 'capacity': 'de capacité disponible', 'unassigned_name': 'Non attribuées', 'no_workload': 'Aucune donnée de charge disponible.', 'schedule': 'Planning', 'calendar_title': 'Calendrier', 'full_calendar': 'Voir le calendrier complet', 'tomorrow': 'Demain', 'week': 'Cette semaine', 'no_events': 'Aucun événement à venir.'} %}
+      {% set dash = {
+        'kicker':'Tableau opérationnel','title':'Tableau de bord',
+        'greeting':'Bonjour, Stella','new_operation':'Nouvelle opération',
+        'subtitle':'Aperçu des opérations à ce jour',
+        'operator':'Console opérateur','calendar':'Ouvrir le calendrier',
+        'late':'En retard','attention':'Nécessitent une attention',
+        'unassigned':'Non attribuées','assign':'À attribuer',
+        'requests':'Demandes','owners':'Des propriétaires',
+        'conflicts':'Conflits','review':'À examiner',
+        'sla':'SLA','current':'État actuel',
+        'today':'Aujourd’hui','today_ops':'Opérations du jour',
+        'all_ops':'Voir toutes','time':'Heure',
+        'operation':'Opération','property':'Bien','status':'Statut',
+        'no_ops':'Aucune opération prévue aujourd’hui.',
+        'priority':'Priorité','tasks':'Tâches',
+        'open_tasks':'Voir toutes les tâches',
+        'no_tasks':'Aucune tâche active nécessitant une action.',
+        'team':'Équipe','workload':'Charge de l’équipe',
+        'professionals':'Voir tous','active_tasks':'tâches actives',
+        'capacity':'de capacité disponible','unassigned_name':'Non attribuées',
+        'no_workload':'Aucune donnée de charge disponible.',
+        'schedule':'Planning','calendar_title':'Calendrier',
+        'full_calendar':'Voir le calendrier complet',
+        'tomorrow':'Demain','week':'Cette semaine',
+        'no_events':'Aucun événement à venir.',
+        'completed_today':'Terminées aujourd’hui'
+      } %}
+
+    {% elif admin_lang == 'ru' %}
+      {% set dash = {
+        'kicker':'Оперативная панель','title':'Панель управления',
+        'greeting':'Доброе утро, Стелла','new_operation':'Новая операция',
+        'subtitle':'Обзор операций на сегодня',
+        'operator':'Операторская консоль','calendar':'Открыть календарь',
+        'late':'Просрочено','attention':'Требуют внимания',
+        'unassigned':'Не назначено','assign':'Требуют назначения',
+        'requests':'Заявки','owners':'От владельцев',
+        'conflicts':'Конфликты','review':'На проверку',
+        'sla':'SLA','current':'Текущее состояние',
+        'today':'Сегодня','today_ops':'Операции на сегодня',
+        'all_ops':'Показать все','time':'Время',
+        'operation':'Операция','property':'Объект','status':'Статус',
+        'no_ops':'На сегодня нет запланированных операций.',
+        'priority':'Приоритет','tasks':'Задачи',
+        'open_tasks':'Показать все задачи',
+        'no_tasks':'Нет активных задач, требующих действий.',
+        'team':'Команда','workload':'Загрузка команды',
+        'professionals':'Показать всех','active_tasks':'активных задач',
+        'capacity':'свободной мощности','unassigned_name':'Не назначено',
+        'no_workload':'Нет данных о загрузке.',
+        'schedule':'Расписание','calendar_title':'Календарь',
+        'full_calendar':'Открыть полный календарь',
+        'tomorrow':'Завтра','week':'На этой неделе',
+        'no_events':'Нет предстоящих событий.',
+        'completed_today':'Завершено сегодня'
+      } %}
+
     {% else %}
-      {% set dash = {'kicker': 'Operations dashboard', 'title': 'Dashboard', 'subtitle': 'Overview of operations as of today', 'operator': 'Operator console', 'calendar': 'Open calendar', 'late': 'Overdue', 'attention': 'Require attention', 'unassigned': 'Unassigned', 'assign': 'Ready to assign', 'requests': 'Requests', 'owners': 'From owners', 'conflicts': 'Conflicts', 'review': 'Needs review', 'sla': 'SLA', 'current': 'Current status', 'today': 'Today', 'today_ops': "Today's operations", 'all_ops': 'View all', 'time': 'Time', 'operation': 'Operation', 'property': 'Property', 'status': 'Status', 'no_ops': 'No operations scheduled for today.', 'priority': 'Priority', 'tasks': 'Tasks', 'open_tasks': 'View all tasks', 'no_tasks': 'No active tasks require action.', 'team': 'Team', 'workload': 'Team workload', 'professionals': 'View all', 'active_tasks': 'active tasks', 'capacity': 'capacity available', 'unassigned_name': 'Unassigned', 'no_workload': 'No workload data available.', 'schedule': 'Schedule', 'calendar_title': 'Calendar', 'full_calendar': 'View full calendar', 'tomorrow': 'Tomorrow', 'week': 'This week', 'no_events': 'No upcoming events.'} %}
+      {% set dash = {
+        'kicker':'Operations dashboard','title':'Dashboard',
+        'greeting':'Good morning, Stella','new_operation':'New operation',
+        'subtitle':'Overview of operations as of today',
+        'operator':'Operator console','calendar':'Open calendar',
+        'late':'Overdue','attention':'Require attention',
+        'unassigned':'Unassigned','assign':'Ready to assign',
+        'requests':'Requests','owners':'From owners',
+        'conflicts':'Conflicts','review':'Needs review',
+        'sla':'SLA','current':'Current status',
+        'today':'Today','today_ops':"Today's operations",
+        'all_ops':'View all','time':'Time',
+        'operation':'Operation','property':'Property','status':'Status',
+        'no_ops':'No operations scheduled for today.',
+        'priority':'Priority','tasks':'Tasks',
+        'open_tasks':'View all tasks',
+        'no_tasks':'No active tasks require action.',
+        'team':'Team','workload':'Team workload',
+        'professionals':'View all','active_tasks':'active tasks',
+        'capacity':'capacity available','unassigned_name':'Unassigned',
+        'no_workload':'No workload data available.',
+        'schedule':'Schedule','calendar_title':'Calendar',
+        'full_calendar':'View full calendar',
+        'tomorrow':'Tomorrow','week':'This week',
+        'no_events':'No upcoming events.',
+        'completed_today':'Completed today'
+      } %}
     {% endif %}
     {% if admin_lang == 'bg' %}
-      {% set human_operation_titles = {'Guest Inspection': 'Инспекция преди пристигане', 'Arrival Cleaning': 'Почистване преди настаняване', 'Check-in Preparation': 'Подготовка за настаняване', 'Welcome Pack': 'Подготовка на пакет за посрещане', 'Pool Safety Check': 'Проверка на басейна', 'Pool safety and equipment check': 'Проверка на басейна и безопасността', 'Check-in': 'Настаняване', 'Check-out': 'Освобождаване', 'Cleaning': 'Почистване', 'Inspection': 'Инспекция'} %}
+      {% set human_operation_titles = {
+        'Guest Inspection':'Инспекция преди пристигане',
+        'Arrival Cleaning':'Почистване преди настаняване',
+        'Check-in Preparation':'Подготовка за настаняване',
+        'Welcome Pack':'Подготовка на пакет за посрещане',
+        'Pool Safety Check':'Проверка на басейна',
+        'Pool safety and equipment check':'Проверка на басейна и безопасността',
+        'Check-in':'Настаняване','Check-out':'Освобождаване',
+        'Cleaning':'Почистване','Inspection':'Инспекция'
+      } %}
     {% elif admin_lang == 'fr' %}
-      {% set human_operation_titles = {'Guest Inspection': "Inspection avant l’arrivée", 'Arrival Cleaning': "Nettoyage avant l’arrivée", 'Check-in Preparation': "Préparation de l’arrivée", 'Welcome Pack': "Préparation du kit d’accueil", 'Pool Safety Check': 'Contrôle de la piscine', 'Pool safety and equipment check': 'Contrôle de la piscine et de la sécurité', 'Check-in': 'Arrivée', 'Check-out': 'Départ', 'Cleaning': 'Nettoyage', 'Inspection': 'Inspection'} %}
+      {% set human_operation_titles = {
+        'Guest Inspection':'Inspection avant l’arrivée',
+        'Arrival Cleaning':'Nettoyage avant l’arrivée',
+        'Check-in Preparation':'Préparation de l’arrivée',
+        'Welcome Pack':'Préparation du kit d’accueil',
+        'Pool Safety Check':'Contrôle de la piscine',
+        'Pool safety and equipment check':'Contrôle de la piscine et de la sécurité',
+        'Check-in':'Arrivée','Check-out':'Départ',
+        'Cleaning':'Nettoyage','Inspection':'Inspection'
+      } %}
+    {% elif admin_lang == 'ru' %}
+      {% set human_operation_titles = {
+        'Guest Inspection':'Проверка перед прибытием',
+        'Arrival Cleaning':'Уборка перед прибытием',
+        'Check-in Preparation':'Подготовка к заселению',
+        'Welcome Pack':'Подготовка приветственного набора',
+        'Pool Safety Check':'Проверка бассейна',
+        'Pool safety and equipment check':'Проверка бассейна и оборудования безопасности',
+        'Check-in':'Заезд','Check-out':'Выезд',
+        'Cleaning':'Уборка','Inspection':'Проверка'
+      } %}
     {% else %}
-      {% set human_operation_titles = {'Guest Inspection': 'Pre-arrival inspection', 'Arrival Cleaning': 'Pre-arrival cleaning', 'Check-in Preparation': 'Check-in preparation', 'Welcome Pack': 'Welcome pack preparation', 'Pool Safety Check': 'Pool safety check', 'Pool safety and equipment check': 'Pool and safety equipment check', 'Check-in': 'Guest arrival', 'Check-out': 'Guest departure', 'Cleaning': 'Cleaning', 'Inspection': 'Inspection'} %}
+      {% set human_operation_titles = {
+        'Guest Inspection':'Pre-arrival inspection',
+        'Arrival Cleaning':'Pre-arrival cleaning',
+        'Check-in Preparation':'Check-in preparation',
+        'Welcome Pack':'Welcome pack preparation',
+        'Pool Safety Check':'Pool safety check',
+        'Pool safety and equipment check':'Pool and safety equipment check',
+        'Check-in':'Guest arrival','Check-out':'Guest departure',
+        'Cleaning':'Cleaning','Inspection':'Inspection'
+      } %}
     {% endif %}
+
+    {# Unified localized display values for dashboard data.
+       Stored/raw values remain untouched. #}
+    {% macro dashboard_value(value) -%}
+      {%- set raw = (value|string)|trim -%}
+      {{- value_labels.get(raw, human_operation_titles.get(raw, raw)) -}}
+    {%- endmacro %}
+
+    {% macro dashboard_status(value) -%}
+      {%- set raw = (value|string)|trim -%}
+      {%- set normalized = raw|lower|replace('_', ' ')|trim -%}
+      {%- set status_map = {
+        'scheduled':'Scheduled',
+        'completed':'Completed',
+        'waiting':'Waiting',
+        'assigned':'Assigned',
+        'unassigned':'Unassigned',
+        'in progress':'In Progress',
+        'pending':'Pending',
+        'confirmed':'Confirmed',
+        'checked in':'Checked In',
+        'checked out':'Checked Out',
+        'available':'Available',
+        'occupied':'Occupied',
+        'preparing':'Preparing',
+        'cleaning':'Cleaning',
+        'maintenance':'Maintenance',
+        'blocked':'Blocked',
+        'ready':'Ready',
+        'none':'None'
+      } -%}
+      {%- set canonical = status_map.get(normalized, raw) -%}
+      {{- value_labels.get(canonical, canonical) -}}
+    {%- endmacro %}
+
     {% set actionable_alert_categories = ['overdue_operations', 'unassigned_operations', 'calendar_conflicts', 'overlapping_reservations', 'reservations_missing_assigned_cleaning', 'owner_requests_waiting'] %}
     {% set critical_alert_count = namespace(value=0) %}
     {% set snapshot_counts = namespace(unassigned=0, owner_waiting=0, calendar_conflicts=0) %}
@@ -3119,80 +3504,50 @@
         {% set snapshot_counts.calendar_conflicts = snapshot_counts.calendar_conflicts + 1 %}
       {% endif %}
     {% endfor %}
-    <div class="admin-legacy-anchors" aria-hidden="true" style="display:none">
-      Calendar engine View calendar Today's Operations Upcoming Check-ins Upcoming Check-outs Today's Cleaning Overdue Events Reservation engine Booking and availability Today's check-ins Today's check-outs
-      Изпълнителни сигнали Оперативен риск Единна хронология Разпределение на живото натоварване SLA наблюдение Умни препоръки
-      Overdue Operations Properties Without Readiness Operations Without Due Dates Professionals Overloaded
-      Средно време за завършване Средно време за възлагане Средно време за отговор
-    </div>
-    <div class="admin-legacy-metrics" aria-hidden="true" style="display:none">
-      {% for property in property_risk_cards %}<span>Risk {{ property.score }}/100</span>{% endfor %}
-      <span>{{ sla_monitoring.average_completion_time }}</span>
-      <span>{{ sla_monitoring.average_assignment_time }}</span>
-      <span>{{ sla_monitoring.average_response_time }}</span>
-      <span>Occupancy</span>
-      <span>Total Leads</span><strong>{{ total_leads }}</strong>
-      <span>New Leads</span><strong>{{ new_leads }}</strong>
-      <span>Contacted</span><strong>{{ contacted_leads }}</strong>
-      <span>Qualified Leads</span><strong>{{ qualified_leads }}</strong>
-      <span>Converted Leads</span><strong>{{ converted_leads }}</strong>
-      <span>Lost Leads</span><strong>{{ lost_leads }}</strong>
-      <span>Owner Accounts</span><strong>{{ owner_accounts }}</strong>
-      <span>Total Properties</span><strong>{{ property_total_count }}</strong>
-      <span>Active Properties</span><strong>{{ active_properties }}</strong>
-      <span>Seasonal Properties</span><strong>{{ seasonal_properties }}</strong>
-      <span>Inactive Properties</span><strong>{{ inactive_properties }}</strong>
-      <span>Active Requests</span><strong>{{ active_service_requests }}</strong>
-      <span>Completed Requests</span><strong>{{ completed_service_requests }}</strong>
-      <span>Requests This Month</span><strong>{{ service_requests_this_month }}</strong>
-      <span>Concierge Requests</span><strong>{{ concierge_requests }}</strong>
-      <span>Partner Applications</span><strong>{{ partner_applications }}</strong>
-      <span>Professional Applications</span><strong>{{ professional_applications }}</strong>
-    </div>
-    <section class="dashboard-v3">
+    <section class="dashboard-v3" data-admin-no-i18n>
 
       <header class="dashboard-v3-hero">
         <div>
           <p>{{ dash.kicker }}</p>
-          <h1>{{ 'Добро утро, Стела' if admin_lang == 'bg' else 'Bonjour, Stella' if admin_lang == 'fr' else 'Good morning, Stella' }} <span aria-hidden="true">👋</span></h1>
+          <h1>{{ dash.greeting }} <span aria-hidden="true">👋</span></h1>
           <small>{{ dash.subtitle }}</small>
         </div>
 
         <nav class="dashboard-v3-actions" aria-label="{{ dash.kicker }}">
-          <a class="dashboard-v3-action dashboard-v3-action--primary" href="/admin/operations/new">
-            + {{ 'Нова операция' if admin_lang == 'bg' else 'Nouvelle opération' if admin_lang == 'fr' else 'New operation' }}
+          <a class="dashboard-v3-action dashboard-v3-action--primary" href="{{ url_for('admin_operation_create', lang=page_lang) }}">
+            + {{ dash.new_operation }}
           </a>
-          <a class="dashboard-v3-action" href="/admin/operator">{{ dash.operator }}</a>
-          <a class="dashboard-v3-action" href="/admin/calendar">{{ dash.calendar }}</a>
+          <a class="dashboard-v3-action" href="/admin/operator?lang={{ page_lang }}">{{ dash.operator }}</a>
+          <a class="dashboard-v3-action" href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ dash.calendar }}</a>
         </nav>
       </header>
 
       <section class="dashboard-v3-kpis" aria-label="{{ dash.kicker }}">
-        <a href="/admin/operations" data-tone="danger">
+        <a href="{{ url_for('admin_operations', lang=page_lang) }}" data-tone="danger">
           <i aria-hidden="true">!</i>
           <div><span>{{ dash.late }}</span><strong>{{ operations_summary.late_operations }}</strong><small>{{ dash.attention }}</small></div>
           <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,28 18,23 34,26 49,16 65,21 81,10 98,15 118,7"/></svg>
         </a>
 
-        <a href="/admin/operations" data-tone="warning">
+        <a href="{{ url_for('admin_operations', lang=page_lang) }}" data-tone="warning">
           <i aria-hidden="true">⌁</i>
           <div><span>{{ dash.unassigned }}</span><strong>{{ snapshot_counts.unassigned }}</strong><small>{{ dash.assign }}</small></div>
           <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,27 18,25 34,18 49,22 65,13 81,17 98,9 118,12"/></svg>
         </a>
 
-        <a href="/admin/service-requests" data-tone="info">
+        <a href="{{ url_for('admin_service_requests', lang=page_lang) }}" data-tone="info">
           <i aria-hidden="true">≡</i>
           <div><span>{{ dash.requests }}</span><strong>{{ snapshot_counts.owner_waiting }}</strong><small>{{ dash.owners }}</small></div>
           <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,27 18,20 34,24 49,13 65,21 81,15 98,18 118,11"/></svg>
         </a>
 
-        <a href="/admin/calendar" data-tone="warning">
+        <a href="{{ url_for('admin_calendar', lang=page_lang) }}" data-tone="warning">
           <i aria-hidden="true">◇</i>
           <div><span>{{ dash.conflicts }}</span><strong>{{ snapshot_counts.calendar_conflicts }}</strong><small>{{ dash.review }}</small></div>
           <svg viewBox="0 0 120 34" aria-hidden="true"><polyline points="2,28 18,24 34,28 49,18 65,22 81,14 98,8 118,15"/></svg>
         </a>
 
-        <a href="/admin/operations" data-tone="success">
+        <a href="{{ url_for('admin_operations', lang=page_lang) }}" data-tone="success">
           <i aria-hidden="true">✓</i>
           <div>
             <span>{{ dash.sla }}</span>
@@ -3248,6 +3603,29 @@
           'action_review': 'Examiner la demande',
           'action_conflict': 'Examiner le conflit',
           'action_close': 'Vérifier et clôturer'
+        } %}
+      {% elif admin_lang == 'ru' %}
+        {% set ai_ops_labels = {
+          'kicker':'ОПЕРАЦИОННЫЙ ИИ-АССИСТЕНТ',
+          'title':'Оперативный обзор ИИ',
+          'attention':'требуют действий',
+          'critical':'Критично',
+          'needs_attention':'Требует внимания',
+          'waiting':'Ожидание',
+          'ready':'К завершению',
+          'why':'Сигнал',
+          'open':'Открыть',
+          'clear':'Операционных проблем нет.',
+          'overdue_operations':'Просроченные операции',
+          'unassigned_operations':'Неназначенные операции',
+          'owner_requests_waiting':'Ожидающие заявки',
+          'reservation_conflicts':'Конфликты бронирований',
+          'ready_to_close':'Готово к завершению',
+          'action_overdue':'Обработать просроченную операцию',
+          'action_assign':'Назначить исполнителя',
+          'action_review':'Проверить заявку',
+          'action_conflict':'Проверить конфликт',
+          'action_close':'Проверить и завершить'
         } %}
       {% else %}
         {% set ai_ops_labels = {
@@ -3528,7 +3906,7 @@
         <article class="dashboard-v3-card dashboard-v3-operations">
           <header>
             <div><small>{{ dash.today }}</small><h2>{{ dash.today_ops }}</h2></div>
-            <a href="/admin/operations">{{ dash.all_ops }}</a>
+            <a href="{{ url_for('admin_operations', lang=page_lang) }}">{{ dash.all_ops }}</a>
           </header>
 
           <div class="dashboard-v3-table">
@@ -3581,7 +3959,7 @@
         <article class="dashboard-v3-card dashboard-v3-calendar">
           <header>
             <div><small>{{ dash.schedule }}</small><h2>{{ dash.calendar_title }}</h2></div>
-            <a href="/admin/calendar">{{ dash.full_calendar }}</a>
+            <a href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ dash.full_calendar }}</a>
           </header>
 
           <div class="dashboard-v3-calendar-summary">
@@ -3634,7 +4012,7 @@
         <article class="dashboard-v3-card dashboard-v3-priority">
           <header>
             <div><small>{{ dash.priority }}</small><h2>{{ dash.tasks }}</h2></div>
-            <a href="/admin/operator">{{ dash.open_tasks }}</a>
+            <a href="/admin/operator?lang={{ page_lang }}">{{ dash.open_tasks }}</a>
           </header>
 
           <div>
@@ -3656,7 +4034,7 @@
         <article class="dashboard-v3-card dashboard-v3-health">
           <header>
             <div><small>{{ dash.current }}</small><h2>{{ dash.sla }}</h2></div>
-            <a href="/admin/operations">{{ dash.all_ops }}</a>
+            <a href="{{ url_for('admin_operations', lang=page_lang) }}">{{ dash.all_ops }}</a>
           </header>
 
           <div class="dashboard-v3-health-body">
@@ -3665,7 +4043,7 @@
             </div>
 
             <ul>
-              <li><span>{{ public_i18n('adminHome', 'completedToday', 'Приключени днес') }}</span><strong>{{ operations_summary.completed_today }}</strong></li>
+              <li><span>{{ dash.completed_today }}</span><strong>{{ operations_summary.completed_today }}</strong></li>
               <li><span>{{ dash.late }}</span><strong>{{ operations_summary.late_operations }}</strong></li>
               <li><span>{{ dash.unassigned }}</span><strong>{{ snapshot_counts.unassigned }}</strong></li>
             </ul>
@@ -3693,7 +4071,7 @@
         <div class="admin-hero-summary">
           <span class="admin-pill admin-pill--primary">{{ public_i18n('adminHome', 'dispatchBriefTitle', 'Dispatch brief') }}</span>
         </div>
-        <div class="admin-hero-stat-row" aria-label="Executive health snapshot">
+        <div class="admin-hero-stat-row" aria-label="{{ public_i18n('adminHome', 'executiveHealthSnapshot', 'Executive health snapshot') }}">
           <div class="admin-hero-stat" data-tone="success">
             <span class="admin-kpi-symbol">OK</span>
             <span>{{ public_i18n('adminHome', 'operationsCompletedToday', 'Operations completed today') }}</span>
@@ -3716,9 +4094,9 @@
           </div>
         </div>
         <div class="admin-cockpit-actions">
-          <a class="button button--primary" href="/admin/operator">Операторска конзола</a>
-          <a class="button button--primary" href="/admin/operations">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
-          <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
+          <a class="button button--primary" href="/admin/operator?lang={{ page_lang }}">Операторска конзола</a>
+          <a class="button button--primary" href="{{ url_for('admin_operations', lang=page_lang) }}">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
+          <a class="button button--secondary" href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
           <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
           <a class="button button--secondary" href="/admin/properties">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
           <a class="button button--secondary" href="/admin/directory">Потребители и роли</a>
@@ -3734,31 +4112,31 @@
         </div>
       </div>
       <div class="admin-dispatch-kpi-grid admin-snapshot-grid" aria-label="{{ public_i18n('adminHome', 'commandCenterTitle', 'Executive snapshot') }}">
-        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="danger" href="/admin/operations">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="danger" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span class="admin-kpi-symbol">LA</span>
           <span>{{ public_i18n('adminHome', 'lateOperations', 'Late operations') }}</span>
           <strong>{{ operations_summary.late_operations }}</strong>
           <small>{{ public_i18n('adminHome', 'needAttention', 'Need attention') }}</small>
         </a>
-        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="/admin/operations">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span class="admin-kpi-symbol">UN</span>
           <span>{{ public_i18n('adminHome', 'unassignedOperations', 'Unassigned operations') }}</span>
           <strong>{{ snapshot_counts.unassigned }}</strong>
           <small>{{ public_i18n('adminHome', 'requireAssignment', 'Require assignment') }}</small>
         </a>
-        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="/admin/service-requests">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="warning" href="{{ url_for('admin_service_requests', lang=page_lang) }}">
           <span class="admin-kpi-symbol">OW</span>
           <span>{{ public_i18n('adminHome', 'ownerRequestsWaiting', 'Owner requests waiting') }}</span>
           <strong>{{ snapshot_counts.owner_waiting }}</strong>
           <small>{{ public_i18n('adminHome', 'awaitingResponse', 'Awaiting response') }}</small>
         </a>
-        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="info" href="/admin/calendar">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="info" href="{{ url_for('admin_calendar', lang=page_lang) }}">
           <span class="admin-kpi-symbol">CA</span>
           <span>{{ public_i18n('adminHome', 'calendarConflicts', 'Calendar conflicts') }}</span>
           <strong>{{ snapshot_counts.calendar_conflicts }}</strong>
           <small>{{ public_i18n('adminHome', 'needResolution', 'Need resolution') }}</small>
         </a>
-        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="{{ system_health_tone }}" href="/admin/operations">
+        <a class="admin-dispatch-kpi admin-snapshot-kpi" data-tone="{{ system_health_tone }}" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span class="admin-kpi-symbol">SL</span>
           <span>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</span>
           <strong>{{ 100 - sla_monitoring.late_percent }}%</strong>
@@ -3767,7 +4145,7 @@
       </div>
       {% if false %}
       <div class="admin-kpi-grid">
-        <a class="admin-kpi-card" data-tone="warning" href="/admin/operations">
+        <a class="admin-kpi-card" data-tone="warning" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">OP</span>
             <span class="admin-badge admin-badge--warning">{{ tone_labels.get('warning', 'ATTENTION') }}</span>
@@ -3776,7 +4154,7 @@
           <div class="admin-kpi-value">{{ operations_summary.late_operations + operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</div>
           <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'openBoard', 'Open board') }}</div>
         </a>
-        <a class="admin-kpi-card" data-tone="{{ system_health_tone }}" href="/admin/operations">
+        <a class="admin-kpi-card" data-tone="{{ system_health_tone }}" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">SL</span>
             <span class="admin-badge admin-badge--{{ system_health_tone }}">{{ tone_labels.get(system_health_tone, system_health_tone|title) }}</span>
@@ -3785,7 +4163,7 @@
           <div class="admin-kpi-value">{{ 100 - sla_monitoring.late_percent }}%</div>
           <div class="admin-kpi-trend">{{ sla_monitoring.late_percent }}% {{ public_i18n('adminHome', 'late', 'Late')|lower }}</div>
         </a>
-        <a class="admin-kpi-card" data-tone="warning" href="/admin/operations">
+        <a class="admin-kpi-card" data-tone="warning" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">QU</span>
             <span class="admin-badge admin-badge--warning">{{ tone_labels.get('warning', 'ATTENTION') }}</span>
@@ -3841,12 +4219,12 @@
         {% endfor %}
       </div>
       <div class="admin-exec-action-row" aria-label="Executive next actions">
-        <a class="admin-exec-action" data-tone="danger" href="/admin/operations">
+        <a class="admin-exec-action" data-tone="danger" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span>{{ public_i18n('adminHome', 'lateOperations', 'Late operations') }}</span>
           <strong>{{ operations_summary.late_operations }}</strong>
           <small>{{ public_i18n('adminHome', 'openBoard', 'Open board') }}</small>
         </a>
-        <a class="admin-exec-action" data-tone="warning" href="/admin/operations">
+        <a class="admin-exec-action" data-tone="warning" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span>{{ public_i18n('adminHome', 'currentQueue', 'Current queue') }}</span>
           <strong>{{ operations_summary.waiting_operations + operations_summary.waiting_owner + operations_summary.waiting_professional }}</strong>
           <small>{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</small>
@@ -3856,7 +4234,7 @@
           <strong>{{ critical_alert_count.value }}</strong>
           <small>{{ public_i18n('adminHome', 'openContext', 'Open context') }}</small>
         </a>
-        <a class="admin-exec-action" data-tone="neutral" href="/admin/calendar">
+        <a class="admin-exec-action" data-tone="neutral" href="{{ url_for('admin_calendar', lang=page_lang) }}">
           <span>{{ public_i18n('adminHome', 'slaHealth', 'SLA health') }}</span>
           <strong>{{ sla_monitoring.late_percent }}%</strong>
           <small>{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</small>
@@ -3871,7 +4249,7 @@
           <span class="admin-pill admin-pill--danger">{{ public_i18n('adminHome', 'criticalAlertsPill', 'Critical alerts') }}</span>
           <h2>{{ public_i18n('adminHome', 'criticalAlertsHeading', 'Critical alerts') }}</h2>
         </div>
-        <a class="admin-section-link" href="/admin/operations">{{ public_i18n('adminHome', 'viewAllAlerts', 'View all alerts') }}</a>
+        <a class="admin-section-link" href="{{ url_for('admin_operations', lang=page_lang) }}">{{ public_i18n('adminHome', 'viewAllAlerts', 'View all alerts') }}</a>
       </div>
       {% if critical_alert_count.value %}
         <div class="admin-alert-grid admin-alert-feed">
@@ -3881,7 +4259,7 @@
             {% set alert_limit.shown = alert_limit.shown + 1 %}
             {% set alert_category_key = alert.category|lower|replace('_', ' ') %}
             {% set alert_detail_key = alert.detail|lower if alert.detail else '' %}
-            <article class="admin-alert-card admin-alert-row admin-alert-feed__item" data-severity="{{ alert.severity }}" data-kind="{{ alert.category|lower }}" style="order: {{ 0 if alert.severity == 'critical' else 1 }};">
+            <article class="admin-alert-card admin-alert-row admin-alert-feed__item" data-severity="{{ severity_labels.get((alert.severity|string)|lower, alert.severity) }}" data-kind="{{ alert.category|lower }}" style="order: {{ 0 if alert.severity == 'critical' else 1 }};">
               <span class="admin-alert-feed__icon" aria-hidden="true"></span>
               <div class="admin-alert-feed__title">
                 <strong>{{ category_labels.get(alert_category_key, alert.category|replace('_', ' ')|title) }}</strong>
@@ -4448,7 +4826,7 @@
                       <div class="admin-submeta">{{ item.property }}{% if item.owner %} - {{ item.owner }}{% endif %}</div>
                       <div class="admin-sla-pill-row">
                         {% if item.is_clickable %}<a class="button button--secondary" href="{{ item.href|e }}">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</a>{% endif %}
-                        <a class="button button--secondary" href="/admin/calendar">{{ public_i18n('adminHome', 'calendar', 'Calendar') }}</a>
+                        <a class="button button--secondary" href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ public_i18n('adminHome', 'calendar', 'Calendar') }}</a>
                       </div>
                     </div>
                   </div>
@@ -4598,7 +4976,7 @@
               <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ semantic_tone_labels.get(health_status.tone, 'HEALTHY') }}</span>
             </div>
             <div class="admin-health-stack">
-              <div class="admin-health-gauge" style="--gauge: {{ property.health }};" aria-label="Readiness {{ property.health }} percent">
+              <div class="admin-health-gauge" style="--gauge: {{ property.health }};" aria-label="{{ public_i18n('adminHome', 'readiness', 'Readiness') }} {{ property.health }}%">
                 <div>
                   <div class="admin-health-gauge__value">{{ property.health }}%</div>
                   <span class="admin-health-gauge__label">{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</span>
@@ -4610,7 +4988,7 @@
                   <span class="admin-badge {% if property.maintenance_required %}admin-badge--warning{% else %}admin-badge--success{% endif %}">{{ public_i18n('adminHome', 'maintenance', 'Maintenance') }} {% if property.maintenance_required %}{{ public_i18n('adminHome', 'flagged', 'flagged') }}{% else %}{{ public_i18n('adminHome', 'clear', 'clear') }}{% endif %}</span>
                   <span class="admin-badge admin-badge--info">{{ public_i18n('adminHome', 'availability', 'Availability') }} {{ property.availability }}%</span>
                   {% if property.risk_score is defined %}
-                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ 'Risk' }} {{ property.risk_score }}/100</span>
+                    <span class="admin-badge admin-badge--{{ health_status.tone }}">{{ public_i18n('adminHome', 'risk', 'Risk') }} {{ property.risk_score }}/100</span>
                     <span class="admin-submeta">{{ public_i18n('adminHome', 'riskScore', 'Risk score') }} {{ property.risk_score }}/100</span>
                   {% endif %}
                 </div>
@@ -4737,7 +5115,7 @@
                 </div>
                 <div class="admin-submeta admin-activity-meta">
                   {% set activity_type = event.type|replace('_', ' ')|title %}
-                  <span class="admin-badge admin-badge--{{ event.status }}">{{ value_labels.get(activity_type, activity_type) }}</span>
+                  <span class="admin-badge admin-badge--{{ dashboard_status(event.status) }}">{{ value_labels.get(activity_type, activity_type) }}</span>
                   <time data-relative-time>{{ event.created_at }}</time>
                 </div>
               </div>

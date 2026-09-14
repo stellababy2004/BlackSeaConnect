@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ page_lang|default('en')|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,59 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Service Request Detail</title>
+  {% set sr_detail_lang = page_lang|default('en') %}
+{% set sr_detail_i18n = {
+  'bg': {
+    'page_title': 'Детайли за заявката',
+    'eyebrow': 'ЗАЯВКА ЗА УСЛУГА',
+    'title': 'Детайли за заявката',
+    'subtitle': 'Актуализирайте статуса, назначете одобрен изпълнител и поддържайте вътрешната хронология актуална.',
+    'back': 'Назад към заявките',
+    'recycle': 'Кошче',
+    'operations': 'Отвори в Операции',
+    'public_form': 'Отвори публичната форма',
+    'actions_aria': 'Действия за заявката',
+    'ai_aria': 'AI анализ на заявката'
+  },
+  'en': {
+    'page_title': 'Service Request Detail',
+    'eyebrow': 'SERVICE REQUEST',
+    'title': 'Request details',
+    'subtitle': 'Update the status, assign an approved professional, and keep the internal timeline current.',
+    'back': 'Back to requests',
+    'recycle': 'Recycle bin',
+    'operations': 'Open in Operations',
+    'public_form': 'Open public form',
+    'actions_aria': 'Service request actions',
+    'ai_aria': 'AI service request triage'
+  },
+  'fr': {
+    'page_title': 'Détails de la demande',
+    'eyebrow': 'DEMANDE DE SERVICE',
+    'title': 'Détails de la demande',
+    'subtitle': 'Mettez à jour le statut, assignez un prestataire approuvé et maintenez la chronologie interne à jour.',
+    'back': 'Retour aux demandes',
+    'recycle': 'Corbeille',
+    'operations': 'Ouvrir dans Opérations',
+    'public_form': 'Ouvrir le formulaire public',
+    'actions_aria': 'Actions de la demande',
+    'ai_aria': 'Analyse IA de la demande'
+  },
+  'ru': {
+    'page_title': 'Детали заявки',
+    'eyebrow': 'ЗАЯВКА НА УСЛУГУ',
+    'title': 'Детали заявки',
+    'subtitle': 'Обновите статус, назначьте одобренного исполнителя и поддерживайте внутреннюю хронологию в актуальном состоянии.',
+    'back': 'Назад к заявкам',
+    'recycle': 'Корзина',
+    'operations': 'Открыть в операциях',
+    'public_form': 'Открыть публичную форму',
+    'actions_aria': 'Действия с заявкой',
+    'ai_aria': 'AI-анализ заявки'
+  }
+} %}
+{% set sr_detail = sr_detail_i18n.get(sr_detail_lang, sr_detail_i18n['en']) %}
+<title>BlackSea Connect | {{ sr_detail.page_title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-request-actions-panel {
@@ -535,21 +587,295 @@
     background: rgba(15,23,42,.38) !important;
   }
 </style>
+
+{% set sr_lang = page_lang|default('en') %}
+{% set srui_all = {
+  'bg': {
+    'page_title':'Детайли на заявката',
+    'source':'Източник',
+    'owner_portal':'Портал на собственика',
+    'public_form':'Публична форма',
+    'request_actions':'Действия по заявката',
+    'operational_controls':'Оперативни действия',
+    'actions_help':'Затворете, архивирайте или дублирайте заявката, без да променяте възлагането.',
+    'close_request':'Затвори заявката',
+    'archive_request':'Архивирай заявката',
+    'duplicate_request':'Дублирай заявката',
+    'danger_zone':'Опасна зона',
+    'delete_request':'Изтрий заявката',
+    'delete_help':'Изтриването премества заявката в кошчето, където може да бъде възстановена в срок от 30 дни.',
+    'confirm_deletion':'Потвърждение на изтриването',
+    'delete_question':'Да се изтрие ли тази заявка?',
+    'delete_confirm_help':'Заявката ще бъде премахната от активните процеси и ще остане в кошчето 30 дни.',
+    'property':'Имот',
+    'guest':'Клиент',
+    'request_id':'ID на заявката',
+    'creation_date':'Дата на създаване',
+    'cancel':'Отказ',
+    'status':'Статус',
+    'email':'Имейл',
+    'phone':'Телефон',
+    'city':'Град',
+    'property_type':'Тип имот',
+    'category':'Категория',
+    'preferred_date':'Предпочитана дата',
+    'assigned_professional':'Избран изпълнител',
+    'assign_professional':'Избери изпълнител',
+    'assigned':'Възложено',
+    'no_professional':'Няма избран изпълнител',
+    'request_description':'Описание на заявката',
+    'what_owner_asked':'Какво поиска собственикът',
+    'ai_triage':'AI анализ',
+    'ai_review':'AI препоръка за човешки преглед',
+    'human_review':'Необходим е човешки преглед',
+    'urgency':'спешност',
+    'confidence':'увереност',
+    'owner_selected':'Избрано от собственика',
+    'ai_recommendation':'AI препоръка',
+    'ai_summary':'AI обобщение',
+    'recommended_action':'Препоръчано следващо действие',
+    'internal_notes':'Вътрешни бележки',
+    'notes_placeholder':'Лични бележки за административния екип',
+    'save_request':'Запази заявката',
+    'matched_professionals':'Подходящи изпълнители',
+    'approved_professionals':'Одобрени изпълнители за тази категория',
+    'available_requests':'Приема заявки',
+    'featured':'Препоръчан',
+    'service':'Услуга',
+    'no_matching':'Все още няма подходящи изпълнители.',
+    'matching_help':'Одобрените изпълнители ще се появят тук, когато категорията им съвпада със заявката.',
+    'timeline':'История',
+    'recent_first':'Най-новите събития са първи',
+    'no_timeline':'Все още няма събития.',
+    'timeline_help':'Историята ще се появи след следващото запазване.',
+    'na':'няма данни',
+    'statuses': {
+      'new':'НОВА',
+      'assigned':'ВЪЗЛОЖЕНА',
+      'in_progress':'В ПРОЦЕС',
+      'completed':'ЗАВЪРШЕНА',
+      'cancelled':'ОТКАЗАНА'
+    }
+  },
+  'en': {
+    'page_title':'Service Request Detail',
+    'source':'Source',
+    'owner_portal':'Owner Portal',
+    'public_form':'Public Form',
+    'request_actions':'Request actions',
+    'operational_controls':'Operational controls',
+    'actions_help':'Close, archive, or duplicate this request without changing assignment details.',
+    'close_request':'Close request',
+    'archive_request':'Archive request',
+    'duplicate_request':'Duplicate request',
+    'danger_zone':'Danger zone',
+    'delete_request':'Delete request',
+    'delete_help':'Deleting moves this request to the recycle bin, where it remains recoverable for 30 days.',
+    'confirm_deletion':'Confirm deletion',
+    'delete_question':'Delete this request?',
+    'delete_confirm_help':'This request will be removed from active workflows and kept in the recycle bin for 30 days.',
+    'property':'Property',
+    'guest':'Guest',
+    'request_id':'Request ID',
+    'creation_date':'Creation date',
+    'cancel':'Cancel',
+    'status':'Status',
+    'email':'Email',
+    'phone':'Phone',
+    'city':'City',
+    'property_type':'Property type',
+    'category':'Category',
+    'preferred_date':'Preferred date',
+    'assigned_professional':'Assigned professional',
+    'assign_professional':'Assign professional',
+    'assigned':'Assigned',
+    'no_professional':'No professional selected',
+    'request_description':'Request description',
+    'what_owner_asked':'What the owner asked for',
+    'ai_triage':'AI TRIAGE',
+    'ai_review':'AI recommendation for human review',
+    'human_review':'Human review required',
+    'urgency':'urgency',
+    'confidence':'confidence',
+    'owner_selected':'Owner selected',
+    'ai_recommendation':'AI recommendation',
+    'ai_summary':'AI summary',
+    'recommended_action':'Recommended next action',
+    'internal_notes':'Internal notes',
+    'notes_placeholder':'Private notes for the admin team',
+    'save_request':'Save request',
+    'matched_professionals':'Matched professionals',
+    'approved_professionals':'Approved professionals for this category',
+    'available_requests':'Available for requests',
+    'featured':'Featured',
+    'service':'Service',
+    'no_matching':'No matching professionals yet.',
+    'matching_help':'Converted professionals will appear here once their category matches this request.',
+    'timeline':'Timeline',
+    'recent_first':'Most recent events first',
+    'no_timeline':'No timeline entries yet.',
+    'timeline_help':'The request timeline will appear after the next save.',
+    'na':'n/a',
+    'statuses': {
+      'new':'NEW',
+      'assigned':'ASSIGNED',
+      'in_progress':'IN PROGRESS',
+      'completed':'COMPLETED',
+      'cancelled':'CANCELLED'
+    }
+  },
+  'fr': {
+    'page_title':'Détail de la demande',
+    'source':'Source',
+    'owner_portal':'Portail propriétaire',
+    'public_form':'Formulaire public',
+    'request_actions':'Actions sur la demande',
+    'operational_controls':'Contrôles opérationnels',
+    'actions_help':'Clôturez, archivez ou dupliquez cette demande sans modifier son attribution.',
+    'close_request':'Clôturer la demande',
+    'archive_request':'Archiver la demande',
+    'duplicate_request':'Dupliquer la demande',
+    'danger_zone':'Zone sensible',
+    'delete_request':'Supprimer la demande',
+    'delete_help':'La suppression déplace la demande dans la corbeille, où elle reste récupérable pendant 30 jours.',
+    'confirm_deletion':'Confirmer la suppression',
+    'delete_question':'Supprimer cette demande ?',
+    'delete_confirm_help':'La demande sera retirée des processus actifs et conservée dans la corbeille pendant 30 jours.',
+    'property':'Bien',
+    'guest':'Client',
+    'request_id':'ID de la demande',
+    'creation_date':'Date de création',
+    'cancel':'Annuler',
+    'status':'Statut',
+    'email':'E-mail',
+    'phone':'Téléphone',
+    'city':'Ville',
+    'property_type':'Type de bien',
+    'category':'Catégorie',
+    'preferred_date':'Date souhaitée',
+    'assigned_professional':'Prestataire attribué',
+    'assign_professional':'Attribuer un prestataire',
+    'assigned':'Attribué',
+    'no_professional':'Aucun prestataire sélectionné',
+    'request_description':'Description de la demande',
+    'what_owner_asked':'Demande du propriétaire',
+    'ai_triage':'ANALYSE IA',
+    'ai_review':'Recommandation IA pour validation humaine',
+    'human_review':'Validation humaine requise',
+    'urgency':'urgence',
+    'confidence':'confiance',
+    'owner_selected':'Choix du propriétaire',
+    'ai_recommendation':'Recommandation IA',
+    'ai_summary':'Résumé IA',
+    'recommended_action':'Prochaine action recommandée',
+    'internal_notes':'Notes internes',
+    'notes_placeholder':'Notes privées pour l’équipe administrative',
+    'save_request':'Enregistrer la demande',
+    'matched_professionals':'Prestataires correspondants',
+    'approved_professionals':'Prestataires approuvés pour cette catégorie',
+    'available_requests':'Disponible pour les demandes',
+    'featured':'Recommandé',
+    'service':'Service',
+    'no_matching':'Aucun prestataire correspondant pour le moment.',
+    'matching_help':'Les prestataires approuvés apparaîtront ici lorsque leur catégorie correspondra à cette demande.',
+    'timeline':'Historique',
+    'recent_first':'Événements les plus récents en premier',
+    'no_timeline':'Aucun événement pour le moment.',
+    'timeline_help':'L’historique apparaîtra après le prochain enregistrement.',
+    'na':'n/d',
+    'statuses': {
+      'new':'NOUVELLE',
+      'assigned':'ATTRIBUÉE',
+      'in_progress':'EN COURS',
+      'completed':'TERMINÉE',
+      'cancelled':'ANNULÉE'
+    }
+  },
+  'ru': {
+    'page_title':'Детали заявки',
+    'source':'Источник',
+    'owner_portal':'Портал владельца',
+    'public_form':'Публичная форма',
+    'request_actions':'Действия с заявкой',
+    'operational_controls':'Операционные действия',
+    'actions_help':'Закройте, архивируйте или дублируйте заявку без изменения назначения.',
+    'close_request':'Закрыть заявку',
+    'archive_request':'Архивировать заявку',
+    'duplicate_request':'Дублировать заявку',
+    'danger_zone':'Опасная зона',
+    'delete_request':'Удалить заявку',
+    'delete_help':'При удалении заявка перемещается в корзину и может быть восстановлена в течение 30 дней.',
+    'confirm_deletion':'Подтверждение удаления',
+    'delete_question':'Удалить эту заявку?',
+    'delete_confirm_help':'Заявка будет удалена из активных процессов и сохранена в корзине на 30 дней.',
+    'property':'Объект',
+    'guest':'Клиент',
+    'request_id':'ID заявки',
+    'creation_date':'Дата создания',
+    'cancel':'Отмена',
+    'status':'Статус',
+    'email':'Эл. почта',
+    'phone':'Телефон',
+    'city':'Город',
+    'property_type':'Тип объекта',
+    'category':'Категория',
+    'preferred_date':'Предпочтительная дата',
+    'assigned_professional':'Назначенный исполнитель',
+    'assign_professional':'Назначить исполнителя',
+    'assigned':'Назначено',
+    'no_professional':'Исполнитель не выбран',
+    'request_description':'Описание заявки',
+    'what_owner_asked':'Что запросил владелец',
+    'ai_triage':'AI-АНАЛИЗ',
+    'ai_review':'Рекомендация AI для проверки человеком',
+    'human_review':'Требуется проверка человеком',
+    'urgency':'срочность',
+    'confidence':'уверенность',
+    'owner_selected':'Выбор владельца',
+    'ai_recommendation':'Рекомендация AI',
+    'ai_summary':'AI-резюме',
+    'recommended_action':'Рекомендуемое следующее действие',
+    'internal_notes':'Внутренние заметки',
+    'notes_placeholder':'Личные заметки для административной команды',
+    'save_request':'Сохранить заявку',
+    'matched_professionals':'Подходящие исполнители',
+    'approved_professionals':'Одобренные исполнители для этой категории',
+    'available_requests':'Принимает заявки',
+    'featured':'Рекомендуемый',
+    'service':'Услуга',
+    'no_matching':'Подходящих исполнителей пока нет.',
+    'matching_help':'Одобренные исполнители появятся здесь, когда их категория будет соответствовать заявке.',
+    'timeline':'История',
+    'recent_first':'Сначала последние события',
+    'no_timeline':'Событий пока нет.',
+    'timeline_help':'История появится после следующего сохранения.',
+    'na':'нет данных',
+    'statuses': {
+      'new':'НОВАЯ',
+      'assigned':'НАЗНАЧЕНА',
+      'in_progress':'В РАБОТЕ',
+      'completed':'ЗАВЕРШЕНА',
+      'cancelled':'ОТМЕНЕНА'
+    }
+  }
+} %}
+{% set srui = srui_all.get(sr_lang, srui_all['en']) %}
+
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
   {% include '_admin_sidebar.html' %}
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow">SERVICE REQUEST</p>
-        <h1>Request details</h1>
-        <p>Update the status, assign an approved professional, and keep the internal timeline current.</p>
+        <p class="eyebrow">{{ sr_detail.eyebrow }}</p>
+        <h1>{{ sr_detail.title }}</h1>
+        <p>{{ sr_detail.subtitle }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">Back to requests</a>
-        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
-        {% if item.operation_navigation.kind == 'operation' %}<a class="button button--ghost" href="{{ item.operation_navigation.href|e }}">Open in Operations</a>{% endif %}
-        <a class="button button--ghost" href="/request-service" data-i18n="publicFormCta">Open public form</a>
+        <a class="button button--secondary" href="/admin/service-requests" data-i18n="backToList">{{ sr_detail.back }}</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">{{ sr_detail.recycle }}</a>
+        {% if item.operation_navigation.kind == 'operation' %}<a class="button button--ghost" href="{{ item.operation_navigation.href|e }}">{{ sr_detail.operations }}</a>{% endif %}
+        <a class="button button--ghost" href="/request-service">{{ sr_detail.public_form }}</a>
       </div>
     </section>
 
@@ -566,33 +892,33 @@
     <article class="admin-pilot-card admin-request-detail-card">
       <div class="admin-pilot-card__topline admin-request-detail-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|replace('_', ' ')|upper }}</span>
+        <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ item.status|lower|e }}">{{ srui.statuses.get(item.status|lower, item.status|replace('_', ' ')|upper) }}</span>
       </div>
 
       <h2 class="admin-request-detail-card__title">{{ item.name|e }}</h2>
-      <p class="admin-request-detail-card__source"><strong>Source:</strong> {{ 'Owner Portal' if item.request_source == 'owner' else 'Public Form' }}</p>
+      <p class="admin-request-detail-card__source"><strong>{{ srui.source }}:</strong> {{ srui.owner_portal if item.request_source == 'owner' else srui.public_form }}</p>
 
-      <section class="admin-request-actions-panel" aria-label="Service request actions">
+      <section class="admin-request-actions-panel" aria-label="{{ sr_detail.actions_aria }}">
         <div class="admin-request-actions-card">
           <div class="admin-request-actions-card__header">
             <div>
-              <p class="eyebrow">Request actions</p>
-              <h3>Operational controls</h3>
-              <p>Close, archive, or duplicate this request without changing assignment details.</p>
+              <p class="eyebrow">{{ srui.request_actions }}</p>
+              <h3>{{ srui.operational_controls }}</h3>
+              <p>{{ srui.actions_help }}</p>
             </div>
           </div>
           <div class="admin-request-actions-row">
             <form method="post" action="{{ url_for('admin_service_request_close', request_id=item.id) }}">
               <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-              <button class="admin-request-action-button" type="submit">Close request</button>
+              <button class="admin-request-action-button" type="submit">{{ srui.close_request }}</button>
             </form>
             <form method="post" action="{{ url_for('admin_service_request_archive', request_id=item.id) }}">
               <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-              <button class="admin-request-action-button" type="submit">Archive request</button>
+              <button class="admin-request-action-button" type="submit">{{ srui.archive_request }}</button>
             </form>
             <form method="post" action="{{ url_for('admin_service_request_duplicate', request_id=item.id) }}">
               <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-              <button class="admin-request-action-button" type="submit">Duplicate request</button>
+              <button class="admin-request-action-button" type="submit">{{ srui.duplicate_request }}</button>
             </form>
           </div>
         </div>
@@ -600,43 +926,43 @@
         <div class="admin-request-actions-card admin-request-actions-card--danger">
           <div class="admin-request-actions-card__header">
             <div>
-              <p class="eyebrow">Danger zone</p>
-              <h3>Delete request</h3>
-              <p>Deleting moves this request to the recycle bin, where it remains recoverable for 30 days.</p>
+              <p class="eyebrow">{{ srui.danger_zone }}</p>
+              <h3>{{ srui.delete_request }}</h3>
+              <p>{{ srui.delete_help }}</p>
             </div>
           </div>
           <form class="admin-request-danger-form" method="post" action="{{ url_for('admin_service_request_delete', request_id=item.id) }}">
             <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <input type="hidden" name="next" value="{{ url_for('admin_service_requests') }}">
-            <button class="admin-request-action-button admin-request-delete-button" type="button" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;" data-open-delete-modal="delete-request-detail">Delete request</button>
+            <button class="admin-request-action-button admin-request-delete-button" type="button" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;" data-open-delete-modal="delete-request-detail">{{ srui.delete_request }}</button>
             <dialog id="delete-request-detail" class="admin-request-delete-dialog">
               <div class="admin-request-delete-dialog__body">
                 <div>
-                  <p class="eyebrow">Confirm deletion</p>
-                  <h2>Delete this request?</h2>
-                  <p>This request will be removed from active workflows and kept in the recycle bin for 30 days.</p>
+                  <p class="eyebrow">{{ srui.confirm_deletion }}</p>
+                  <h2>{{ srui.delete_question }}</h2>
+                  <p>{{ srui.delete_confirm_help }}</p>
                 </div>
                 <dl class="admin-request-delete-dialog__meta">
                   <div>
-                    <dt>Property</dt>
+                    <dt>{{ srui.property }}</dt>
                     <dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd>
                   </div>
                   <div>
-                    <dt>Guest</dt>
+                    <dt>{{ srui.guest }}</dt>
                     <dd>{{ item.name|e }}</dd>
                   </div>
                   <div>
-                    <dt>Request ID</dt>
+                    <dt>{{ srui.request_id }}</dt>
                     <dd>{{ item.id|e }}</dd>
                   </div>
                   <div>
-                    <dt>Creation date</dt>
+                    <dt>{{ srui.creation_date }}</dt>
                     <dd>{{ item.created_at|e }}</dd>
                   </div>
                 </dl>
                 <div class="admin-request-delete-dialog__actions">
-                  <button class="admin-request-action-button" type="button" data-close-delete-modal>Cancel</button>
-                  <button class="admin-request-action-button admin-request-delete-confirm" type="submit" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;">Delete request</button>
+                  <button class="admin-request-action-button" type="button" data-close-delete-modal>{{ srui.cancel }}</button>
+                  <button class="admin-request-action-button admin-request-delete-confirm" type="submit" style="color: #b42318 !important; -webkit-text-fill-color: #b42318 !important; border: 2px solid #d92d20 !important; background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important;">{{ srui.delete_request }}</button>
                 </div>
               </div>
             </dialog>
@@ -646,63 +972,63 @@
 
       <dl class="admin-pilot-details admin-request-detail-details">
         <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
-        <div><dt>Status</dt><dd>{{ item.status|replace('_', ' ')|upper }}</dd></div>
-        <div><dt>Email</dt><dd>{{ item.email|e }}</dd></div>
-        <div><dt>Phone</dt><dd>{{ item.phone|e }}</dd></div>
-        <div><dt>City</dt><dd>{{ item.property_city|e }}</dd></div>
-        <div><dt>Property type</dt><dd>{{ item.property_type|e }}</dd></div>
-        <div><dt>Property</dt><dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd></div>
-        <div><dt>Category</dt><dd>{{ item.service_category|e }}</dd></div>
-        <div><dt>Preferred date</dt><dd>{{ item.preferred_date|e }}</dd></div>
-        <div><dt>Assigned professional</dt><dd>{% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}n/a{% endif %}</dd></div>
+        <div><dt>{{ srui.status }}</dt><dd>{{ srui.statuses.get(item.status|lower, item.status|replace('_', ' ')|upper) }}</dd></div>
+        <div><dt>{{ srui.email }}</dt><dd>{{ item.email|e }}</dd></div>
+        <div><dt>{{ srui.phone }}</dt><dd>{{ item.phone|e }}</dd></div>
+        <div><dt>{{ srui.city }}</dt><dd>{{ item.property_city|e }}</dd></div>
+        <div><dt>{{ srui.property_type }}</dt><dd>{{ item.property_type|e }}</dd></div>
+        <div><dt>{{ srui.property }}</dt><dd>{% if item.property %}{{ item.property|e }}{% else %}{{ item.property_type|e }}{% endif %}</dd></div>
+        <div><dt>{{ srui.category }}</dt><dd>{{ item.service_category|e }}</dd></div>
+        <div><dt>{{ srui.preferred_date }}</dt><dd>{{ item.preferred_date|e }}</dd></div>
+        <div><dt>{{ srui.assigned_professional }}</dt><dd>{% if item.assigned_provider_company %}{{ item.assigned_provider_company|e }}{% elif item.assigned_provider_name %}{{ item.assigned_provider_name|e }}{% else %}{{ srui.na }}{% endif %}</dd></div>
       </dl>
 
       <section class="admin-cockpit-panel admin-request-detail-description">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Request description</p>
-            <h3>What the owner asked for</h3>
+            <p class="eyebrow">{{ srui.request_description }}</p>
+            <h3>{{ srui.what_owner_asked }}</h3>
           </div>
         </div>
         <p class="admin-request-detail-description__copy">{{ item.description|e }}</p>
       </section>
 
       {% if item.ai_triage %}
-      <section class="admin-request-ai-triage" aria-label="AI service request triage">
+      <section class="admin-request-ai-triage" aria-label="{{ sr_detail.ai_aria }}">
         <div class="admin-request-ai-triage__header">
           <div>
-            <p class="eyebrow">AI TRIAGE</p>
-            <h3>AI recommendation for human review</h3>
+            <p class="eyebrow">{{ srui.ai_triage }}</p>
+            <h3>{{ srui.ai_review }}</h3>
           </div>
           {% if item.ai_triage.needs_human_review %}
-          <span class="admin-request-ai-triage__review">Human review required</span>
+          <span class="admin-request-ai-triage__review">{{ srui.human_review }}</span>
           {% endif %}
         </div>
 
         <div class="admin-request-ai-triage__meta">
           <span class="admin-request-ai-triage__chip">{{ item.ai_triage.category|e }}</span>
-          <span class="admin-request-ai-triage__chip">{{ item.ai_triage.urgency|e }} urgency</span>
-          <span class="admin-request-ai-triage__chip">{{ (item.ai_triage.confidence * 100)|round|int }}% confidence</span>
+          <span class="admin-request-ai-triage__chip">{{ item.ai_triage.urgency|e }} {{ srui.urgency }}</span>
+          <span class="admin-request-ai-triage__chip">{{ (item.ai_triage.confidence * 100)|round|int }}% {{ srui.confidence }}</span>
         </div>
 
         <div class="admin-request-ai-triage__comparison">
           <div>
-            <span class="admin-request-ai-triage__label">Owner selected</span>
+            <span class="admin-request-ai-triage__label">{{ srui.owner_selected }}</span>
             <p class="admin-request-ai-triage__value">{{ item.service_category|e }} · {{ item.urgency|default('Standard', true)|e }}</p>
           </div>
           <div>
-            <span class="admin-request-ai-triage__label">AI recommendation</span>
+            <span class="admin-request-ai-triage__label">{{ srui.ai_recommendation }}</span>
             <p class="admin-request-ai-triage__value">{{ item.ai_triage.category|e }} · {{ item.ai_triage.urgency|e }}</p>
           </div>
         </div>
 
         <div class="admin-request-ai-triage__content">
-          <span class="admin-request-ai-triage__label">AI summary</span>
+          <span class="admin-request-ai-triage__label">{{ srui.ai_summary }}</span>
           <p>{{ item.ai_triage.summary|e }}</p>
         </div>
 
         <div class="admin-request-ai-triage__content">
-          <span class="admin-request-ai-triage__label">Recommended next action</span>
+          <span class="admin-request-ai-triage__label">{{ srui.recommended_action }}</span>
           <p>{{ item.ai_triage.suggested_next_action|e }}</p>
         </div>
       </section>
@@ -711,20 +1037,20 @@
       <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/service-requests/{{ item.id|e }}/update">
         <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label>
-          <span>Status</span>
+          <span>{{ srui.status }}</span>
           <select class="admin-request-detail-form__control" name="status" required>
             {% for option in status_options %}
-              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ srui.statuses.get(option.value|lower, option.label)|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span>{% if item.is_assigned %}Assigned professional{% else %}Assign professional{% endif %}</span>
+          <span>{{ srui.assigned_professional if item.is_assigned else srui.assign_professional }}</span>
           <select class="admin-request-detail-form__control" name="assigned_provider_id">
             {% if item.is_assigned and item.assigned_provider_id %}
-              <option value="{{ item.assigned_provider_id|e }}" selected>{{ item.assigned_provider_company|default(item.assigned_provider_name, true)|e }} · Assigned</option>
+              <option value="{{ item.assigned_provider_id|e }}" selected>{{ item.assigned_provider_company|default(item.assigned_provider_name, true)|e }} · {{ srui.assigned }}</option>
             {% else %}
-              <option value="">No professional selected</option>
+              <option value="">{{ srui.no_professional }}</option>
             {% endif %}
             {% for provider in matching_providers %}
               {% if provider.id != item.assigned_provider_id %}
@@ -734,35 +1060,35 @@
           </select>
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span>Internal notes</span>
-          <textarea class="admin-request-detail-form__control admin-request-detail-form__textarea" name="internal_notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+          <span>{{ srui.internal_notes }}</span>
+          <textarea class="admin-request-detail-form__control admin-request-detail-form__textarea" name="internal_notes" rows="6" placeholder="{{ srui.notes_placeholder }}">{{ item.internal_notes|e }}</textarea>
         </label>
-        <button class="button button--primary admin-request-detail-form__submit" type="submit">Save request</button>
+        <button class="button button--primary admin-request-detail-form__submit" type="submit">{{ srui.save_request }}</button>
       </form>
 
       <section class="admin-cockpit-panel admin-request-detail-matching">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Matched professionals</p>
-            <h3>Approved professionals for this category</h3>
+            <p class="eyebrow">{{ srui.matched_professionals }}</p>
+            <h3>{{ srui.approved_professionals }}</h3>
           </div>
         </div>
         {% if matching_providers %}
           <div class="partner-grid">
             {% for provider in matching_providers %}
               <a class="partner-card" href="/network/{{ provider.id|e }}">
-                <span class="trust-strip__chip">Available for requests</span>
-                {% if provider.featured %}<span class="trust-strip__chip">Featured</span>{% endif %}
+                <span class="trust-strip__chip">{{ srui.available_requests }}</span>
+                {% if provider.featured %}<span class="trust-strip__chip">{{ srui.featured }}</span>{% endif %}
                 <strong>{% if provider.company_name %}{{ provider.company_name|e }}{% else %}{{ provider.full_name|e }}{% endif %}</strong>
-                <p><strong>City:</strong> {{ provider.city|e }}</p>
-                <p><strong>Service:</strong> {{ provider.service_type|e }}</p>
+                <p><strong>{{ srui.city }}:</strong> {{ provider.city|e }}</p>
+                <p><strong>{{ srui.service }}:</strong> {{ provider.service_type|e }}</p>
               </a>
             {% endfor %}
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No matching professionals yet.</h3>
-            <p>Converted professionals will appear here once their category matches this request.</p>
+            <h3>{{ srui.no_matching }}</h3>
+            <p>{{ srui.matching_help }}</p>
           </div>
         {% endif %}
       </section>
@@ -770,8 +1096,8 @@
       <div class="admin-pilot-timeline admin-request-detail-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Timeline</p>
-            <h3>Most recent events first</h3>
+            <p class="eyebrow">{{ srui.timeline }}</p>
+            <h3>{{ srui.recent_first }}</h3>
           </div>
         </div>
 
@@ -792,8 +1118,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No timeline entries yet.</h3>
-            <p>The request timeline will appear after the next save.</p>
+            <h3>{{ srui.no_timeline }}</h3>
+            <p>{{ srui.timeline_help }}</p>
           </div>
         {% endif %}
       </div>

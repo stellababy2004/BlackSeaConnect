@@ -12258,6 +12258,20 @@ def _resolve_current_language():
     session[SITE_LANGUAGE_SESSION_KEY] = "bg"
     return "bg"
 
+@app.context_processor
+def _inject_global_language_context():
+    if not has_request_context():
+        return {}
+
+    current_lang = _resolve_current_language()
+
+    return {
+        "current_lang": current_lang,
+        "page_lang": current_lang,
+    }
+
+
+
 
 def _build_home_counters():
     providers = _load_network_providers()
@@ -19668,9 +19682,12 @@ def admin_property_detail(property_id):
 @app.route("/admin/calendar")
 @admin_required
 def admin_calendar():
+    current_lang = _resolve_current_language()
     context = _build_calendar_page_context("admin")
     return render_template(
         "calendar.html",
+        page_lang=current_lang,
+        current_lang=current_lang,
         **context,
     )
 
@@ -19742,6 +19759,134 @@ def _admin_calendar_event_payload(payload, existing=None):
         "organization_id": str(property_record.get("organization_id", "")).strip() or GLOBAL_ORGANIZATION_ID,
     }
     return record, ""
+
+
+
+def _admin_calendar_tracks_operations(record):
+    """Return True only for calendar entries that represent operational work."""
+    record = record or {}
+    combined = " ".join([
+        str(record.get("event_type", "")),
+        str(record.get("title", "")),
+    ]).strip().casefold()
+
+    non_operational_tokens = (
+        "reservation",
+        "blocked dates",
+        "personal stay",
+        "owner meeting",
+    )
+    return not any(token in combined for token in non_operational_tokens)
+
+
+def _admin_calendar_ensure_operation_task(record):
+    """Ensure an operational admin-calendar event has one canonical operations task."""
+    record = dict(record or {})
+    if not record or not _admin_calendar_tracks_operations(record):
+        return record
+
+    existing_task_id = str(record.get("operation_task_id", "")).strip()
+    if existing_task_id:
+        canonical = _find_operations_task_by_canonical_id(existing_task_id)
+        if canonical:
+            record["operation_task_id"] = str(canonical.get("id", "")).strip()
+            return record
+
+    event_id = str(record.get("id", "")).strip()
+    if not event_id:
+        return record
+
+    metadata = record.get("metadata")
+    if not isinstance(metadata, dict):
+        try:
+            metadata = json.loads(str(record.get("metadata_json", "") or "{}"))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            metadata = {}
+
+    property_id = str(record.get("property_id", "")).strip()
+    owner_id = str(record.get("owner_id", "")).strip()
+
+    property_record = next(
+        (
+            item for item in _load_owner_properties()
+            if str(item.get("id", "")).strip() == property_id
+        ),
+        {},
+    )
+    owner_account = next(
+        (
+            item for item in _load_owner_accounts()
+            if str(item.get("id", "")).strip() == owner_id
+        ),
+        {},
+    )
+
+    assigned_to = str(record.get("assigned_professional", "")).strip()
+    calendar_status = str(record.get("status", "")).strip().upper()
+
+    if calendar_status == "COMPLETED":
+        task_status = "COMPLETED"
+    elif calendar_status in {"IN_PROGRESS", "IN PROGRESS"}:
+        task_status = "IN_PROGRESS"
+    elif assigned_to:
+        task_status = "ASSIGNED"
+    else:
+        task_status = "NEW"
+
+    event_type = str(record.get("event_type", "")).strip() or "Other"
+    title = str(record.get("title", "")).strip() or event_type
+    notes = str(record.get("description", "")).strip()
+
+    task_payload = {
+        "id": event_id,
+        "request_id": event_id,
+        "source_type": "ADMIN_CALENDAR",
+        "source_id": event_id,
+        "created_at": str(record.get("created_at", "")).strip() or _utc_now_iso(),
+        "updated_at": str(record.get("updated_at", "")).strip() or _utc_now_iso(),
+        "title": title,
+        "category": event_type,
+        "owner_name": str((owner_account or {}).get("full_name", "")).strip()
+            or str(metadata.get("owner_name", "")).strip(),
+        "owner_email": str((owner_account or {}).get("email", "")).strip()
+            or str(metadata.get("owner_email", "")).strip(),
+        "owner_id": owner_id,
+        "property_id": property_id,
+        "property_name": str((property_record or {}).get("name", "")).strip()
+            or str(metadata.get("property_name", "")).strip(),
+        "property_location": str((property_record or {}).get("location", "")).strip()
+            or str(metadata.get("property_location", "")).strip(),
+        "assigned_to": assigned_to,
+        "priority": str(metadata.get("priority", "NORMAL")).strip() or "NORMAL",
+        "status": task_status,
+        "due_date": str(record.get("start_datetime", "")).strip(),
+        "notes": notes,
+        "admin_notes": notes,
+        "request_status": "completed" if task_status == "COMPLETED" else "new",
+        "organization_id": str(record.get("organization_id", "")).strip()
+            or GLOBAL_ORGANIZATION_ID,
+        "timeline_detail": f"{event_type} · {str((property_record or {}).get('name', '')).strip()}".strip(" ·"),
+    }
+
+    task = _upsert_operations_task(
+        task_payload,
+        append_created_event=True,
+        status_override=task_status,
+        notify=False,
+    )
+
+    if not task:
+        app.logger.warning(
+            "Could not create canonical operations task for calendar event %s",
+            event_id,
+        )
+        return record
+
+    canonical_id = str(task.get("id", "")).strip()
+    if canonical_id:
+        record["operation_task_id"] = canonical_id
+
+    return record
 
 
 def _admin_calendar_event_response(record, status_code=200):
@@ -20284,6 +20429,14 @@ def admin_calendar_event_create():
     record, error = _admin_calendar_event_payload(payload)
     if error:
         return jsonify({"ok": False, "error": error}), 400
+
+    record = _admin_calendar_ensure_operation_task(record)
+    if _admin_calendar_tracks_operations(record) and not str(record.get("operation_task_id", "")).strip():
+        return jsonify({
+            "ok": False,
+            "error": "The operational task could not be created.",
+        }), 500
+
     with _owner_db_connection() as conn:
         _ensure_owner_db_schema(conn)
         _migrate_owner_jsonl_backups(conn)
@@ -20303,6 +20456,14 @@ def admin_calendar_event_update(event_id):
     record, error = _admin_calendar_event_payload(payload, existing)
     if error:
         return jsonify({"ok": False, "error": error}), 400
+
+    record = _admin_calendar_ensure_operation_task(record)
+    if _admin_calendar_tracks_operations(record) and not str(record.get("operation_task_id", "")).strip():
+        return jsonify({
+            "ok": False,
+            "error": "The operational task could not be synchronized.",
+        }), 500
+
     with _owner_db_connection() as conn:
         _ensure_owner_db_schema(conn)
         _migrate_owner_jsonl_backups(conn)
@@ -26387,35 +26548,105 @@ def admin_demo_data_clear():
 @app.get("/admin/directory")
 @admin_required
 def admin_directory():
-    directory_users = [
-        {"name": "Stella", "type": "Admin", "role": "Super Admin", "status": "Active", "scope": "Full platform"},
-        {"name": "Operations Manager", "type": "Operator", "role": "Operations Manager", "status": "Planned", "scope": "Operations + dispatch"},
-        {"name": "Dispatcher", "type": "Operator", "role": "Dispatcher", "status": "Planned", "scope": "Tasks + calendar"},
-        {"name": "Owner Success", "type": "Operator", "role": "Owner Success", "status": "Planned", "scope": "Owners + requests"},
-        {"name": "Professional", "type": "Field user", "role": "Professional", "status": "Planned", "scope": "Assigned tasks only"},
-        {"name": "Owner", "type": "Owner", "role": "Owner", "status": "Planned", "scope": "Own properties only"},
-        {"name": "Auditor", "type": "Read only", "role": "Auditor", "status": "Planned", "scope": "Read-only audit"},
-    ]
-    role_matrix = [
-        {"role": "Super Admin", "access": "Everything", "can_edit": "Yes", "can_delete": "Yes"},
-        {"role": "Operations Manager", "access": "Operations, properties, calendar, owners", "can_edit": "Yes", "can_delete": "Limited"},
-        {"role": "Dispatcher", "access": "Operations and calendar", "can_edit": "Yes", "can_delete": "No"},
-        {"role": "Owner Success", "access": "Owners and service requests", "can_edit": "Yes", "can_delete": "No"},
-        {"role": "Professional", "access": "Assigned operations", "can_edit": "Status only", "can_delete": "No"},
-        {"role": "Owner", "access": "Own properties and requests", "can_edit": "Requests only", "can_delete": "No"},
-        {"role": "Auditor", "access": "Read-only cockpit and audit", "can_edit": "No", "can_delete": "No"},
-    ]
+    current_lang = _resolve_current_language()
+
+    directory_users_i18n = {
+        "bg": [
+            {"name": "Stella", "type": "\u0410\u0434\u043c\u0438\u043d", "role": "Super Admin", "status": "Active", "scope": "\u0426\u044f\u043b\u0430\u0442\u0430 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430"},
+            {"name": "\u041c\u0435\u043d\u0438\u0434\u0436\u044a\u0440 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Operations Manager", "status": "Planned", "scope": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 + \u0434\u0438\u0441\u043f\u0435\u0447\u0438\u0440\u0430\u043d\u0435"},
+            {"name": "\u0414\u0438\u0441\u043f\u0435\u0447\u0435\u0440", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Dispatcher", "status": "Planned", "scope": "\u0417\u0430\u0434\u0430\u0447\u0438 + \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440"},
+            {"name": "\u041e\u0431\u0441\u043b\u0443\u0436\u0432\u0430\u043d\u0435 \u043d\u0430 \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u0446\u0438", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Owner Success", "status": "Planned", "scope": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u0446\u0438 + \u0437\u0430\u044f\u0432\u043a\u0438"},
+            {"name": "\u041f\u0440\u043e\u0444\u0435\u0441\u0438\u043e\u043d\u0430\u043b\u0438\u0441\u0442", "type": "\u0422\u0435\u0440\u0435\u043d\u0435\u043d \u043f\u043e\u0442\u0440\u0435\u0431\u0438\u0442\u0435\u043b", "role": "Professional", "status": "Planned", "scope": "\u0421\u0430\u043c\u043e \u0432\u044a\u0437\u043b\u043e\u0436\u0435\u043d\u0438 \u0437\u0430\u0434\u0430\u0447\u0438"},
+            {"name": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u043a", "type": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u043a", "role": "Owner", "status": "Planned", "scope": "\u0421\u0430\u043c\u043e \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438 \u0438\u043c\u043e\u0442\u0438"},
+            {"name": "\u041e\u0434\u0438\u0442\u043e\u0440", "type": "\u0421\u0430\u043c\u043e \u0437\u0430 \u0447\u0435\u0442\u0435\u043d\u0435", "role": "Auditor", "status": "Planned", "scope": "\u041e\u0434\u0438\u0442 \u0441\u0430\u043c\u043e \u0437\u0430 \u0447\u0435\u0442\u0435\u043d\u0435"},
+        ],
+        "en": [
+            {"name": "Stella", "type": "Admin", "role": "Super Admin", "status": "Active", "scope": "Full platform"},
+            {"name": "Operations Manager", "type": "Operator", "role": "Operations Manager", "status": "Planned", "scope": "Operations + dispatch"},
+            {"name": "Dispatcher", "type": "Operator", "role": "Dispatcher", "status": "Planned", "scope": "Tasks + calendar"},
+            {"name": "Owner Success", "type": "Operator", "role": "Owner Success", "status": "Planned", "scope": "Owners + requests"},
+            {"name": "Professional", "type": "Field user", "role": "Professional", "status": "Planned", "scope": "Assigned tasks only"},
+            {"name": "Owner", "type": "Owner", "role": "Owner", "status": "Planned", "scope": "Own properties only"},
+            {"name": "Auditor", "type": "Read only", "role": "Auditor", "status": "Planned", "scope": "Read-only audit"},
+        ],
+        "fr": [
+            {"name": "Stella", "type": "Administrateur", "role": "Super Admin", "status": "Active", "scope": "Plateforme compl\u00e8te"},
+            {"name": "Responsable des op\u00e9rations", "type": "Op\u00e9rateur", "role": "Operations Manager", "status": "Planned", "scope": "Op\u00e9rations + r\u00e9partition"},
+            {"name": "R\u00e9partiteur", "type": "Op\u00e9rateur", "role": "Dispatcher", "status": "Planned", "scope": "T\u00e2ches + calendrier"},
+            {"name": "Relation propri\u00e9taires", "type": "Op\u00e9rateur", "role": "Owner Success", "status": "Planned", "scope": "Propri\u00e9taires + demandes"},
+            {"name": "Prestataire", "type": "Utilisateur terrain", "role": "Professional", "status": "Planned", "scope": "T\u00e2ches assign\u00e9es uniquement"},
+            {"name": "Propri\u00e9taire", "type": "Propri\u00e9taire", "role": "Owner", "status": "Planned", "scope": "Biens propres uniquement"},
+            {"name": "Auditeur", "type": "Lecture seule", "role": "Auditor", "status": "Planned", "scope": "Audit en lecture seule"},
+        ],
+        "ru": [
+            {"name": "Stella", "type": "\u0410\u0434\u043c\u0438\u043d", "role": "Super Admin", "status": "Active", "scope": "\u0412\u0441\u044f \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430"},
+            {"name": "\u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Operations Manager", "status": "Planned", "scope": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 + \u0434\u0438\u0441\u043f\u0435\u0442\u0447\u0435\u0440\u0438\u0437\u0430\u0446\u0438\u044f"},
+            {"name": "\u0414\u0438\u0441\u043f\u0435\u0442\u0447\u0435\u0440", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Dispatcher", "status": "Planned", "scope": "\u0417\u0430\u0434\u0430\u0447\u0438 + \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c"},
+            {"name": "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0432\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u0435\u0432", "type": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440", "role": "Owner Success", "status": "Planned", "scope": "\u0412\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u044b + \u0437\u0430\u044f\u0432\u043a\u0438"},
+            {"name": "\u0418\u0441\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c", "type": "\u041f\u043e\u043b\u0435\u0432\u043e\u0439 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c", "role": "Professional", "status": "Planned", "scope": "\u0422\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u043d\u044b\u0435 \u0437\u0430\u0434\u0430\u0447\u0438"},
+            {"name": "\u0412\u043b\u0430\u0434\u0435\u043b\u0435\u0446", "type": "\u0412\u043b\u0430\u0434\u0435\u043b\u0435\u0446", "role": "Owner", "status": "Planned", "scope": "\u0422\u043e\u043b\u044c\u043a\u043e \u0441\u0432\u043e\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u044b"},
+            {"name": "\u0410\u0443\u0434\u0438\u0442\u043e\u0440", "type": "\u0422\u043e\u043b\u044c\u043a\u043e \u0447\u0442\u0435\u043d\u0438\u0435", "role": "Auditor", "status": "Planned", "scope": "\u0410\u0443\u0434\u0438\u0442 \u0442\u043e\u043b\u044cк\u043e \u0434\u043b\u044f \u0447\u0442\u0435\u043d\u0438\u044f"},
+        ],
+    }
+
+    directory_users = directory_users_i18n.get(current_lang, directory_users_i18n["en"])
+
+    role_matrix_i18n = {
+        "bg": [
+            {"role": "\u0413\u043b\u0430\u0432\u0435\u043d \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440", "access": "\u041f\u044a\u043b\u0435\u043d \u0434\u043e\u0441\u0442\u044a\u043f", "can_edit": "\u0414\u0430", "can_delete": "\u0414\u0430"},
+            {"role": "\u041c\u0435\u043d\u0438\u0434\u0436\u044a\u0440 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", "access": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438, \u0438\u043c\u043e\u0442\u0438, \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440 \u0438 \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u0446\u0438", "can_edit": "\u0414\u0430", "can_delete": "\u041e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u043e"},
+            {"role": "\u0414\u0438\u0441\u043f\u0435\u0447\u0435\u0440", "access": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u0438 \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440", "can_edit": "\u0414\u0430", "can_delete": "\u041d\u0435"},
+            {"role": "\u041e\u0431\u0441\u043b\u0443\u0436\u0432\u0430\u043d\u0435 \u043d\u0430 \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u0446\u0438", "access": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u0446\u0438 \u0438 \u0437\u0430\u044f\u0432\u043a\u0438 \u0437\u0430 \u0443\u0441\u043b\u0443\u0433\u0438", "can_edit": "\u0414\u0430", "can_delete": "\u041d\u0435"},
+            {"role": "\u041f\u0440\u043e\u0444\u0435\u0441\u0438\u043e\u043d\u0430\u043b\u0438\u0441\u0442", "access": "\u0412\u044a\u0437\u043b\u043e\u0436\u0435\u043d\u0438 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", "can_edit": "\u0421\u0430\u043c\u043e \u0441\u0442\u0430\u0442\u0443\u0441", "can_delete": "\u041d\u0435"},
+            {"role": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438\u043a", "access": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u0438 \u0438\u043c\u043e\u0442\u0438 \u0438 \u0437\u0430\u044f\u0432\u043a\u0438", "can_edit": "\u0421\u0430\u043c\u043e \u0437\u0430\u044f\u0432\u043a\u0438", "can_delete": "\u041d\u0435"},
+            {"role": "\u041e\u0434\u0438\u0442\u043e\u0440", "access": "\u0421\u0430\u043c\u043e \u0437\u0430 \u0447\u0435\u0442\u0435\u043d\u0435: \u0442\u0430\u0431\u043b\u043e \u0438 \u043e\u0434\u0438\u0442", "can_edit": "\u041d\u0435", "can_delete": "\u041d\u0435"},
+        ],
+        "en": [
+            {"role": "Super Admin", "access": "Everything", "can_edit": "Yes", "can_delete": "Yes"},
+            {"role": "Operations Manager", "access": "Operations, properties, calendar, owners", "can_edit": "Yes", "can_delete": "Limited"},
+            {"role": "Dispatcher", "access": "Operations and calendar", "can_edit": "Yes", "can_delete": "No"},
+            {"role": "Owner Success", "access": "Owners and service requests", "can_edit": "Yes", "can_delete": "No"},
+            {"role": "Professional", "access": "Assigned operations", "can_edit": "Status only", "can_delete": "No"},
+            {"role": "Owner", "access": "Own properties and requests", "can_edit": "Requests only", "can_delete": "No"},
+            {"role": "Auditor", "access": "Read-only cockpit and audit", "can_edit": "No", "can_delete": "No"},
+        ],
+        "fr": [
+            {"role": "Super administrateur", "access": "Acc\u00e8s complet", "can_edit": "Oui", "can_delete": "Oui"},
+            {"role": "Responsable des op\u00e9rations", "access": "Op\u00e9rations, biens, calendrier et propri\u00e9taires", "can_edit": "Oui", "can_delete": "Limit\u00e9"},
+            {"role": "R\u00e9partiteur", "access": "Op\u00e9rations et calendrier", "can_edit": "Oui", "can_delete": "Non"},
+            {"role": "Service propri\u00e9taires", "access": "Propri\u00e9taires et demandes de service", "can_edit": "Oui", "can_delete": "Non"},
+            {"role": "Prestataire", "access": "Op\u00e9rations assign\u00e9es", "can_edit": "Statut uniquement", "can_delete": "Non"},
+            {"role": "Propri\u00e9taire", "access": "Biens et demandes propres", "can_edit": "Demandes uniquement", "can_delete": "Non"},
+            {"role": "Auditeur", "access": "Cockpit et audit en lecture seule", "can_edit": "Non", "can_delete": "Non"},
+        ],
+        "ru": [
+            {"role": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440", "access": "\u041f\u043e\u043b\u043d\u044b\u0439 \u0434\u043e\u0441\u0442\u0443\u043f", "can_edit": "\u0414\u0430", "can_delete": "\u0414\u0430"},
+            {"role": "\u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439", "access": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438, \u043e\u0431\u044a\u0435\u043a\u0442\u044b, \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u0438 \u0432\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u044b", "can_edit": "\u0414\u0430", "can_delete": "\u041e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u043e"},
+            {"role": "\u0414\u0438\u0441\u043f\u0435\u0442\u0447\u0435\u0440", "access": "\u041e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u0438 \u043a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c", "can_edit": "\u0414\u0430", "can_delete": "\u041d\u0435\u0442"},
+            {"role": "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0432\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u0435\u0432", "access": "\u0412\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u044b \u0438 \u0437\u0430\u044f\u0432\u043a\u0438 \u043d\u0430 \u0443\u0441\u043b\u0443\u0433\u0438", "can_edit": "\u0414\u0430", "can_delete": "\u041d\u0435\u0442"},
+            {"role": "\u0418\u0441\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c", "access": "\u041d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u043d\u044b\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", "can_edit": "\u0422\u043e\u043b\u044c\u043a\u043e \u0441\u0442\u0430\u0442\u0443\u0441", "can_delete": "\u041d\u0435\u0442"},
+            {"role": "\u0412\u043b\u0430\u0434\u0435\u043b\u0435\u0446", "access": "\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0435 \u043e\u0431\u044a\u0435\u043a\u0442\u044b \u0438 \u0437\u0430\u044f\u0432\u043a\u0438", "can_edit": "\u0422\u043e\u043b\u044c\u043a\u043e \u0437\u0430\u044f\u0432\u043a\u0438", "can_delete": "\u041d\u0435\u0442"},
+            {"role": "\u0410\u0443\u0434\u0438\u0442\u043e\u0440", "access": "\u041f\u0430\u043d\u0435\u043b\u044c \u0438 \u0430\u0443\u0434\u0438\u0442 \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f \u0447\u0442\u0435\u043d\u0438\u044f", "can_edit": "\u041d\u0435\u0442", "can_delete": "\u041d\u0435\u0442"},
+        ],
+    }
+
+    role_matrix = role_matrix_i18n.get(current_lang, role_matrix_i18n["en"])
     return render_template(
         "admin_directory.html",
         directory_users=directory_users,
         role_matrix=role_matrix,
+        page_lang=current_lang,
+        current_lang=current_lang,
     )
 
 
 @app.get("/admin")
 @admin_required
 def admin_home():
+    current_lang = _resolve_current_language()
     dashboard = _build_admin_dashboard()
+    dashboard["page_lang"] = current_lang
+    dashboard["current_lang"] = current_lang
     return render_template("admin_home_exec.html", **dashboard)
 
 

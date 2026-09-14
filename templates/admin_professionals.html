@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | {{ proui.title }}</title>
+  <title>BlackSea Connect | {{ page_lang|default('en')|upper }} Professionals</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page admin-professionals-page bsc-admin-workspace">
@@ -11,11 +11,11 @@
 {% set professionals_ui = {
 'bg': {
 'title':'Професионалисти','heading':'Кандидатури на професионалисти',
-'intro':'{{ proui.intro }}',
+'intro':'Преглеждайте, оценявайте и управлявайте кандидатурите на професионалисти.',
 'dashboard':'Към таблото','export':'Експорт CSV','metrics':'Показатели за кандидатурите',
 'total':'Общо кандидатури','new':'Нови','contacted':'Свързани','qualified':'Квалифицирани','converted':'Конвертирани','lost':'Отпаднали',
 'email':'Имейл','category':'Категория','location':'Местоположение','languages':'Езици','owner':'Отговорник',
-'empty':'Все още няма кандидатури.','empty_copy':'{{ proui.empty_copy }}',
+'empty':'Все още няма кандидатури.','empty_copy':'Новите кандидатури ще се появят тук веднага след изпращането им.',
 'NEW':'НОВА','CONTACTED':'СВЪРЗАНА','QUALIFIED':'КВАЛИФИЦИРАНА','CONVERTED':'КОНВЕРТИРАНА','LOST':'ОТПАДНАЛА'
 },
 'en': {
