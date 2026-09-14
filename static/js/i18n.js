@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const DEFAULT_LANG = "bg";
   const FALLBACK_LANG = "en";
   const SUPPORTED_LANGS = new Set(["bg", "en", "fr", "ru"]);
@@ -21,6 +21,16 @@
     "/admin/service-requests": "adminServiceRequests"
   };
   const LANGUAGE_CONTROL_SELECTOR = "[data-lang-switch], [data-lang]";
+
+  function isAdminPage() {
+    return Boolean(
+      window.location &&
+      (
+        window.location.pathname === "/admin" ||
+        String(window.location.pathname || "").startsWith("/admin/")
+      )
+    );
+  }
   const warnedKeys = new Set();
   const DEBUG_I18N = false;
   const STRICT_I18N = Boolean(window.BlackSeaI18NStrict) ||
@@ -340,7 +350,17 @@
 
       if (value === undefined) {
         warnMissing(key, lang);
-        value = STRICT_I18N ? `[MISSING: ${pageNamespace || "common"}.${key}]` : null;
+
+        // Admin pages are progressively server-rendered/localized by Jinja.
+        // If a JS translation key is missing, preserve the existing DOM text
+        // instead of replacing valid server text with a [MISSING: ...] marker.
+        const isAdminPage =
+          window.location &&
+          String(window.location.pathname || "").startsWith("/admin");
+
+        value = isAdminPage
+          ? null
+          : (STRICT_I18N ? `[MISSING: ${pageNamespace || "common"}.${key}]` : null);
       }
     }
     if (DEBUG_I18N && window.console && typeof window.console.log === "function") {
@@ -395,7 +415,10 @@
           if (node.tagName === "OPTION") {
             node.label = value;
           }
-        } else if (DEBUG_I18N) {
+        } else if (
+          DEBUG_I18N &&
+          !(window.location && String(window.location.pathname || "").startsWith("/admin"))
+        ) {
           node.textContent = `[i18n:${key}]`;
           node.setAttribute("data-i18n-missing", key);
         }
@@ -492,6 +515,12 @@
     }
 
     function bindLanguageControls() {
+      // Admin language controls are real server-navigation links.
+      // Do not attach SPA/client-side language handlers to them.
+      if (isAdminPage()) {
+        return;
+      }
+
       getLanguageControls().forEach((control) => {
         if (control.dataset.blackseaLangBound === "1") {
           return;
@@ -504,6 +533,14 @@
 
     document.addEventListener("click", function (event) {
       const control = event.target.closest(LANGUAGE_CONTROL_SELECTOR);
+
+      // On Admin pages the browser owns language navigation completely.
+      // No applyLanguage(), preventDefault(), persistence or delegated
+      // language handling is allowed here.
+      if (control && isAdminPage()) {
+        return;
+      }
+
       if (!control) {
         const link = event.target.closest("a[href]");
         if (link) {

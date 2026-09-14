@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ page_lang|default('en')|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +11,7 @@
 {% set professional_detail_ui = {
 'bg': {
 'eyebrow':'Детайли за кандидатурата','title':'Преглед на кандидатурата',
-'intro':'{{ prdetail.intro }}',
+'intro':'Прегледайте и управлявайте данните за кандидатурата.',
 'back':'Назад към кандидатурите','export':'Експорт CSV',
 'save':'Запази кандидатурата','activity':'История на активността','latest':'Най-новите първо',
 'status':'Статус','owner':'Отговорник','email':'Имейл','phone':'Телефон','category':'Категория',

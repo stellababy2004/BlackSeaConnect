@@ -953,7 +953,113 @@
       position: relative;
       z-index: 1;
     }
-  </style>
+
+    /* === OPERATIONS FILTER LAYOUT FINAL FIX === */
+    .admin-operations-filters {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(180px, 1fr)) !important;
+      gap: 12px !important;
+      align-items: end !important;
+      width: 100% !important;
+    }
+
+    .admin-operations-filter {
+      display: grid !important;
+      gap: 6px !important;
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+
+    .admin-operations-filter:first-child {
+      grid-column: span 2;
+    }
+
+    .admin-operations-filter span,
+    .admin-operations-filter label {
+      display: block !important;
+      width: auto !important;
+      min-width: 0 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .admin-operations-filter input,
+    .admin-operations-filter select {
+      box-sizing: border-box !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      height: 42px !important;
+    }
+
+    .admin-filter-actions {
+      grid-column: 1 / -1 !important;
+      display: flex !important;
+      flex-flow: row wrap !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+
+    .admin-filter-actions .button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: auto !important;
+      min-width: max-content !important;
+      white-space: nowrap !important;
+      writing-mode: horizontal-tb !important;
+      word-break: normal !important;
+      overflow-wrap: normal !important;
+    }
+
+    .admin-operations-filters-panel {
+      overflow: visible !important;
+    }
+
+    @media (max-width: 1350px) {
+      .admin-operations-filters {
+        grid-template-columns: repeat(3, minmax(170px, 1fr)) !important;
+      }
+
+      .admin-operations-filter:first-child {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 1050px) {
+      .admin-operations-filters {
+        grid-template-columns: repeat(2, minmax(160px, 1fr)) !important;
+      }
+
+      .admin-operations-filter:first-child {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .admin-operations-filters {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        overflow: visible !important;
+      }
+
+      .admin-operations-filter,
+      .admin-operations-filter:first-child {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+      }
+
+      .admin-filter-actions {
+        grid-column: 1 !important;
+      }
+    }
+    /* === END OPERATIONS FILTER LAYOUT FINAL FIX === */
+
+</style>
 </head>
 <body class="admin-operations-page bsc-admin-workspace">
 

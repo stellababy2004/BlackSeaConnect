@@ -2753,7 +2753,17 @@
       {{ fallback }}
     {%- endif -%}
   {%- endmacro %}
-  {% set status_labels = {
+  {% set requested_operation_lang = request.args.get('lang', '')|lower %}
+{% if requested_operation_lang in ['bg', 'en', 'fr', 'ru'] %}
+  {% set page_lang = requested_operation_lang %}
+  {% set current_lang = requested_operation_lang %}
+  {% set admin_lang = requested_operation_lang %}
+  {% set operations_lang = requested_operation_lang %}
+{% else %}
+  {% set operations_lang = page_lang|default(current_lang|default('en'))|lower %}
+{% endif %}
+
+{% set status_labels = {
     'NEW': 'Нова',
     'ASSIGNED': 'Възложена',
     'ACCEPTED': 'Приета',
@@ -2975,17 +2985,58 @@
     'PHOTOGRAPHY': 'Фотография',
     'OTHER': 'Друга задача'
   } %}
-  {% set checklist_labels = {
-    'cleaning': 'Почистване',
-    'inspection': 'Инспекция',
-    'keys': 'Ключове',
-    'welcome_pack': 'Пакет за посрещане',
-    'photos': 'Снимки',
-    'utilities': 'Комунални услуги',
-    'wifi': 'Wi-Fi',
-    'parking': 'Паркинг',
-    'inventory': 'Инвентар'
+  {% set operations_lang = request.args.get('lang', page_lang|default('en'))|lower %}
+  {% if operations_lang not in ['bg', 'en', 'fr', 'ru'] %}
+    {% set operations_lang = 'en' %}
+  {% endif %}
+
+  {% set checklist_labels_all = {
+    'bg': {
+      'cleaning': 'Почистване',
+      'inspection': 'Инспекция',
+      'keys': 'Ключове',
+      'welcome_pack': 'Пакет за посрещане',
+      'photos': 'Снимки',
+      'utilities': 'Комунални услуги',
+      'wifi': 'Wi-Fi',
+      'parking': 'Паркинг',
+      'inventory': 'Инвентар'
+    },
+    'en': {
+      'cleaning': 'Cleaning',
+      'inspection': 'Inspection',
+      'keys': 'Keys',
+      'welcome_pack': 'Welcome pack',
+      'photos': 'Photos',
+      'utilities': 'Utilities',
+      'wifi': 'Wi-Fi',
+      'parking': 'Parking',
+      'inventory': 'Inventory'
+    },
+    'fr': {
+      'cleaning': 'Ménage',
+      'inspection': 'Inspection',
+      'keys': 'Clés',
+      'welcome_pack': 'Kit d’accueil',
+      'photos': 'Photos',
+      'utilities': 'Services et équipements',
+      'wifi': 'Wi-Fi',
+      'parking': 'Parking',
+      'inventory': 'Inventaire'
+    },
+    'ru': {
+      'cleaning': 'Уборка',
+      'inspection': 'Проверка',
+      'keys': 'Ключи',
+      'welcome_pack': 'Приветственный набор',
+      'photos': 'Фотографии',
+      'utilities': 'Коммунальные услуги',
+      'wifi': 'Wi-Fi',
+      'parking': 'Парковка',
+      'inventory': 'Инвентарь'
+    }
   } %}
+  {% set checklist_labels = checklist_labels_all[operations_lang] %}
   {% set attachment_slot_labels = {
     'before': 'Преди',
     'after': 'След',
@@ -3006,6 +3057,11 @@
   {% set customer_message = task.notes or task.title or 'Няма клиентско описание.' %}
   {% set task_title_catalogs = {
     'bg': {
+    'payment_provider': 'Платежен доставчик',
+    'checkout_status': 'Статус на плащането',
+    'payment_intent': 'PaymentIntent',
+    'transfer_status': 'Статус на трансфера',
+    'professional_stripe': 'Stripe на изпълнителя',
       'Guest Inspection': 'Проверка на имота преди пристигане на гостите',
       'Pool safety and equipment check': 'Проверка на басейна и оборудването за безопасност',
       'Arrival Cleaning': 'Почистване на имота преди пристигане',
@@ -3017,6 +3073,11 @@
       'Guest welcome and key handover': 'Посрещане на гостите и предаване на ключовете'
     },
     'en': {
+    'payment_provider': 'Payment provider',
+    'checkout_status': 'Checkout status',
+    'payment_intent': 'PaymentIntent',
+    'transfer_status': 'Transfer status',
+    'professional_stripe': 'Professional Stripe',
       'Guest Inspection': 'Check the property before the guests arrive',
       'Pool safety and equipment check': 'Check the pool and safety equipment',
       'Arrival Cleaning': 'Clean the property before guest arrival',
@@ -3024,6 +3085,11 @@
       'Welcome Pack': 'Prepare the guest welcome pack'
     },
     'fr': {
+    'payment_provider': 'Prestataire de paiement',
+    'checkout_status': 'Statut du paiement',
+    'payment_intent': 'PaymentIntent',
+    'transfer_status': 'Statut du transfert',
+    'professional_stripe': 'Stripe du prestataire',
       'Guest Inspection': "Vérifier le logement avant l’arrivée des voyageurs",
       'Pool safety and equipment check': 'Vérifier la piscine et les équipements de sécurité',
       'Arrival Cleaning': "Nettoyer le logement avant l’arrivée des voyageurs",
@@ -3031,6 +3097,11 @@
       'Welcome Pack': "Préparer le kit d’accueil"
     },
     'ru': {
+    'payment_provider': 'Платёжный провайдер',
+    'checkout_status': 'Статус оплаты',
+    'payment_intent': 'PaymentIntent',
+    'transfer_status': 'Статус перевода',
+    'professional_stripe': 'Stripe исполнителя',
       'Guest Inspection': 'Проверить объект перед приездом гостей',
       'Pool safety and equipment check': 'Проверить бассейн и оборудование безопасности',
       'Arrival Cleaning': 'Убрать объект перед приездом гостей',
@@ -3038,7 +3109,7 @@
       'Welcome Pack': 'Подготовить приветственный набор'
     }
   } %}
-  {% set task_title_catalog = task_title_catalogs.get(page_lang, task_title_catalogs['bg']) %}
+  {% set task_title_catalog = task_title_catalogs.get(operations_lang, task_title_catalogs['bg']) %}
   {% set task_display_title = task_title_catalog.get(task.title, task.title or task_category_label) %}
   {% set task_objective_catalogs = {
     'bg': {
@@ -3070,7 +3141,7 @@
       'Welcome Pack': 'Соберите и разместите приветственный набор в согласованном месте до приезда гостей.'
     }
   } %}
-  {% set task_objective_catalog = task_objective_catalogs.get(page_lang, task_objective_catalogs['bg']) %}
+  {% set task_objective_catalog = task_objective_catalogs.get(operations_lang, task_objective_catalogs['bg']) %}
   {% set task_objective = task_objective_catalog.get(task.title, customer_message) %}
   {% set task_is_closed = task.status in ['COMPLETED', 'ARCHIVED'] %}
   {% set task_sla_completed_at = task.completed_at or task.updated_at %}
@@ -3092,7 +3163,7 @@
   {% elif task_is_closed %}
     {% set sla_label = 'Завършена в срок' if task_sla_has_due else 'Завършена' %}
     {% set sla_tone = 'green' %}
-    {% set sla_detail = '{{ od.task_completed }}' %}
+    {% set sla_detail = od.task_completed %}
   {% elif task_open_overdue %}
     {% set sla_label = 'Просрочена' %}
     {% set sla_tone = 'red' %}
@@ -3194,7 +3265,7 @@
       'ai_notice': 'L’IA ne modifie pas automatiquement la priorité et n’attribue pas de prestataire. La décision finale reste à l’administrateur.'
     }
   } %}
-  {% set work_order_copy = work_order_copy_catalogs.get(page_lang, work_order_copy_catalogs['bg']) %}
+  {% set work_order_copy = work_order_copy_catalogs.get(operations_lang, work_order_copy_catalogs['bg']) %}
 
 {% set operations_detail_ui = {
   'bg': {
@@ -3205,17 +3276,17 @@
     'property': 'Имот',
     'guest': 'Гост',
     'professional': 'Професионалист',
-    'location_missing': '{{ od.location_missing }}',
+    'location_missing': 'Локацията не е зададена',
     'not_set': 'Не е зададен',
-    'no_guest': '{{ od.no_guest }}',
-    'no_reservation': '{{ od.no_reservation }}',
+    'no_guest': 'Няма свързан гост',
+    'no_reservation': 'Няма свързана резервация',
     'linked_profile': 'Свързан професионален профил',
-    'assignment_required': '{{ od.assignment_required }}',
+    'assignment_required': 'Необходимо е възлагане',
     'task_actions': 'Действия за задачата',
     'next_action': 'Следващо действие',
-    'review_evidence': '{{ od.review_evidence }}',
-    'update_progress': '{{ od.update_progress }}',
-    'assign_professional': '{{ od.assign_professional }}',
+    'review_evidence': 'Прегледай доказателствата',
+    'update_progress': 'Обнови напредъка',
+    'assign_professional': 'Възложи професионалист',
     'save_changes': 'Запази промените',
     'to_checklist': 'Към чеклиста',
     'open_calendar': 'Отвори календар',
@@ -3224,15 +3295,15 @@
     'controls': 'Оперативни контроли',
     'assignment_panel': 'Панел за възлагане',
     'available_professionals': 'Налични професионалисти',
-    'one_available': '{{ od.one_available }}',
-    'many_available': '{{ od.many_available }}',
+    'one_available': '1 наличен професионалист',
+    'many_available': 'Налични професионалисти',
     'state': 'Състояние',
     'assigned_state': 'Възложена',
     'open_state': 'Отворена',
-    'assignment_moves_status': '{{ od.assignment_moves_status }}',
-    'assignment_keeps_status': '{{ od.assignment_keeps_status }}',
+    'assignment_moves_status': 'Възлагането ще промени статуса на задачата.',
+    'assignment_keeps_status': 'Текущото възлагане ще бъде запазено.',
     'confirm_ai': 'Потвърди и възложи на AI препоръка #1',
-    'no_professionals': '{{ od.no_professionals }}',
+    'no_professionals': 'Няма налични одобрени професионалисти.',
     'assigned': 'Възложен',
     'reassign': 'Превъзложи',
     'assign': 'Възложи',
@@ -3269,9 +3340,9 @@
     'locked_help': 'След плащане стойностите не могат да се редактират.',
     'save_quote': 'Запази офертата',
     'automatic_total': 'Крайната цена се изчислява автоматично от системата.',
-    'send_quote': '{{ od.send_quote }}',
+    'send_quote': 'Изпрати офертата',
     'send_quote_help': 'След изпращане цената ще бъде заключена.',
-    'return_draft': '{{ od.return_draft }}',
+    'return_draft': 'Върни в чернова',
     'return_draft_help': 'Използвайте само когато офертата трябва да бъде коригирана.',
     'finance_exception': 'Финансово изключение в Stripe: необходим е ръчен преглед.',
 
@@ -3284,10 +3355,10 @@
     'follow_up': 'Нужни последващи действия',
     'evidence': 'Доказателства',
     'not_recorded': 'Не е записано',
-    'evidence_available': '{{ od.evidence_available }}',
-    'no_completion': '{{ od.no_completion }}',
+    'evidence_available': 'Налични са доказателства.',
+    'no_completion': 'Все още няма отчет за завършване.',
     'no_assigned_professional': 'Все още няма възложен професионалист.',
-    'completion_after_assignment': '{{ od.completion_after_assignment }}',
+    'completion_after_assignment': 'Отчетът ще бъде наличен след възлагане и изпълнение.',
 
     'assignment_card': 'Карта на възлагането',
     'name': 'Име',
@@ -3301,32 +3372,32 @@
     'email_missing': 'Имейл липсва',
     'copy_phone': 'Копирай телефон',
     'phone_missing': 'Телефон липсва',
-    'no_assignee': '{{ od.no_assignee }}',
+    'no_assignee': 'Все още няма възложен професионалист.',
 
     'linked_reservation': 'Свързана резервация',
     'reservation_reference': 'Референция към резервация',
     'stay': 'Престой',
     'other_status': 'Друг статус',
     'open_reservation': 'Отвори резервацията',
-    'task_not_linked': '{{ od.task_not_linked }}',
+    'task_not_linked': 'Няма свързана резервация към тази задача.',
 
     'property_context': 'Контекст на имота',
     'property_profile': 'Оперативен профил на имота',
     'task_label': 'Задача',
     'location': 'Локация',
-    'dispatch_context': '{{ od.dispatch_context }}',
+    'dispatch_context': 'Контекст за изпълнение',
     'configuration': 'Конфигурация',
     'bedrooms': 'спални',
     'bathrooms': 'бани',
-    'no_link': '{{ od.no_link }}',
+    'no_link': 'Няма налична връзка',
     'capacity': 'Капацитет',
     'guests': 'гости',
-    'capacity_missing': '{{ od.capacity_missing }}',
+    'capacity_missing': 'Капацитетът не е зададен',
     'reservation': 'Резервация',
-    'no_stay': '{{ od.no_stay }}',
-    'standalone_operation': '{{ od.standalone_operation }}',
+    'no_stay': 'Няма свързан престой',
+    'standalone_operation': 'Самостоятелна операция',
     'owner_channel': 'Канал със собственика',
-    'no_contact': '{{ od.no_contact }}',
+    'no_contact': 'Няма наличен контакт',
     'readiness': 'Готовност',
     'ready': 'Готов',
     'partial': 'Частично',
@@ -3336,7 +3407,7 @@
     'emergency_contact': 'Спешен контакт',
     'yes': 'да',
     'no': 'не',
-    'no_property_record': '{{ od.no_property_record }}',
+    'no_property_record': 'Няма свързан запис за имота',
 
     'related_requests': 'Свързани заявки',
     'recent_requests': 'Последни сервизни заявки за този имот',
@@ -3345,7 +3416,7 @@
     'category': 'Категория',
     'created': 'Създадена',
     'other_task': 'Друга задача',
-    'no_related_requests': '{{ od.no_related_requests }}',
+    'no_related_requests': 'Няма свързани заявки',
 
     'internal_notes': 'Вътрешни бележки',
     'admin_only_notes': 'Бележки само за админ екипа',
@@ -3359,23 +3430,23 @@
     'admin': 'Админ',
     'other_note': 'Друга бележка',
     'operations': 'Операции',
-    'no_comments': '{{ od.no_comments }}',
+    'no_comments': 'Все още няма коментари.',
 
     'timeline': 'Хронология',
     'operational_activity': 'Оперативна активност',
     'task_updated': 'Обновена е задачата',
     'assignment': 'Възлагане',
     'assignment_change': 'Записана е промяна по възлагането за',
-    'created_board': '{{ od.created_board }}',
-    'overdue_detected': '{{ od.overdue_detected }}',
-    'internal_note_added': '{{ od.internal_note_added }}',
-    'note_added': '{{ od.note_added }}',
-    'checklist_updated': '{{ od.checklist_updated }}',
-    'professional_assigned': '{{ od.professional_assigned }}',
+    'created_board': 'Задачата е създадена в оперативното табло.',
+    'overdue_detected': 'Установено е просрочие.',
+    'internal_note_added': 'Добавена е вътрешна бележка.',
+    'note_added': 'Добавена е бележка.',
+    'checklist_updated': 'Чеклистът е обновен.',
+    'professional_assigned': 'Възложен е професионалист.',
     'status_changed': 'Променен е статусът на задачата на',
-    'task_completed': '{{ od.task_completed }}',
-    'task_archived': '{{ od.task_archived }}',
-    'no_timeline': '{{ od.no_timeline }}',
+    'task_completed': 'Задачата е завършена.',
+    'task_archived': 'Задачата е архивирана.',
+    'no_timeline': 'Все още няма събития в хронологията.',
 
     'no_due': 'Без срок',
     'due_missing': 'Няма зададен краен срок.',
@@ -3794,7 +3865,40 @@
     'show': 'Afficher'
   }
 } %}
-{% set od = operations_detail_ui.get(page_lang, operations_detail_ui['en']) %}
+{% set od = operations_detail_ui.get(operations_lang, operations_detail_ui['en']) %}
+
+{% set od_finance_meta_all = {
+  'bg': {
+    'provider': 'Платежен доставчик',
+    'checkout': 'Плащане',
+    'payment_intent': 'PaymentIntent',
+    'transfer': 'Трансфер',
+    'professional_stripe': 'Stripe на изпълнителя'
+  },
+  'en': {
+    'provider': 'Payment provider',
+    'checkout': 'Checkout',
+    'payment_intent': 'PaymentIntent',
+    'transfer': 'Transfer',
+    'professional_stripe': 'Professional Stripe'
+  },
+  'fr': {
+    'provider': 'Prestataire de paiement',
+    'checkout': 'Paiement',
+    'payment_intent': 'PaymentIntent',
+    'transfer': 'Transfert',
+    'professional_stripe': 'Stripe du prestataire'
+  },
+  'ru': {
+    'provider': 'Платёжный провайдер',
+    'checkout': 'Оплата',
+    'payment_intent': 'PaymentIntent',
+    'transfer': 'Перевод',
+    'professional_stripe': 'Stripe исполнителя'
+  }
+} %}
+{% set od_finance_meta = od_finance_meta_all.get(operations_lang, od_finance_meta_all['en']) %}
+
 
   {% set severity_label = work_order_copy.severity_red if severity_tone == 'red' else (work_order_copy.severity_yellow if severity_tone == 'yellow' else (work_order_copy.severity_neutral if severity_tone == 'neutral' else work_order_copy.severity_green)) %}
 
@@ -3861,16 +3965,24 @@
         <div class="admin-operations-ai__body">
           <div>
             <small>{{ work_order_copy.ai_summary }}</small>
-            <p>{{ ai_triage.summary|e }}</p>
+            <p>{% if operations_lang == 'bg' and ai_triage.summary_bg %}{{ ai_triage.summary_bg|e }}{% elif operations_lang == 'fr' and ai_triage.summary_fr %}{{ ai_triage.summary_fr|e }}{% elif operations_lang == 'ru' and ai_triage.summary_ru %}{{ ai_triage.summary_ru|e }}{% else %}{{ ai_triage.summary|e }}{% endif %}</p>
           </div>
           <div>
             <small>{{ work_order_copy.next_action }}</small>
-            <p>{{ ai_triage.suggested_next_action|e }}</p>
+            <p>{% if operations_lang == 'bg' and ai_triage.suggested_next_action_bg %}{{ ai_triage.suggested_next_action_bg|e }}{% elif operations_lang == 'fr' and ai_triage.suggested_next_action_fr %}{{ ai_triage.suggested_next_action_fr|e }}{% elif operations_lang == 'ru' and ai_triage.suggested_next_action_ru %}{{ ai_triage.suggested_next_action_ru|e }}{% else %}{{ ai_triage.suggested_next_action|e }}{% endif %}</p>
           </div>
         </div>
 
         <p class="admin-operations-ai__notice">
-          {{ work_order_copy.ai_notice }}
+          {% if operations_lang == 'bg' %}
+            AI не променя автоматично приоритета и не възлага професионалист. Решението остава при администратора.
+          {% elif operations_lang == 'fr' %}
+            L’IA ne modifie pas automatiquement la priorité et n’attribue pas de prestataire. La décision reste à l’administrateur.
+          {% elif operations_lang == 'ru' %}
+            ИИ не меняет приоритет автоматически и не назначает исполнителя. Решение остаётся за администратором.
+          {% else %}
+            AI does not automatically change priority or assign a professional. The final decision remains with the administrator.
+          {% endif %}
         </p>
       </section>
       {% endif %}
@@ -3971,7 +4083,7 @@
             </div>
             <div class="admin-operations-control-card">
               <span>{{ od.state }}</span>
-              <strong>{% if task.is_assigned %}Възложена{% else %}Отворена{% endif %}</strong>
+              <strong>{% if task.is_assigned %}{{ od.assigned_state }}{% else %}{{ od.open_state }}{% endif %}</strong>
               <small>{% if not task.is_assigned %}{{ od.assignment_moves_status }}{% else %}{{ od.assignment_keeps_status }}{% endif %}</small>
             </div>
           </div>
@@ -4097,9 +4209,9 @@
               }
             } %}
 
-            {% set ai_lang = ai_copy.get(page_lang, ai_copy['bg']) %}
-            {% set ai_text = ai_text_catalogs.get(page_lang, ai_text_catalogs['bg']) %}
-            {% set ai_fields = ai_field_catalogs.get(page_lang, ai_field_catalogs['bg']) %}
+            {% set ai_lang = ai_copy.get(operations_lang, ai_copy['bg']) %}
+            {% set ai_text = ai_text_catalogs.get(operations_lang, ai_text_catalogs['bg']) %}
+            {% set ai_fields = ai_field_catalogs.get(operations_lang, ai_field_catalogs['bg']) %}
 
             <p class="eyebrow">{{ ai_lang.eyebrow }}</p>
 
@@ -4360,11 +4472,11 @@
           </div>
 
           <dl class="admin-operations-dl">
-            <div><dt>Provider</dt><dd>{{ task.payment_provider or '—' }}</dd></div>
-            <div><dt>Checkout</dt><dd>{{ task.stripe_payment_status or '—' }}</dd></div>
-            <div><dt>PaymentIntent</dt><dd>{% if task.stripe_payment_intent_id %}…{{ task.stripe_payment_intent_id[-8:] }}{% else %}—{% endif %}</dd></div>
-            <div><dt>Transfer</dt><dd>{{ task.stripe_transfer_status or '—' }}</dd></div>
-            <div><dt>Professional Stripe</dt><dd>{{ assigned_professional_stripe_status_label }}</dd></div>
+            <div><dt>{{ od_finance_meta.provider }}</dt><dd>{{ task.payment_provider or '—' }}</dd></div>
+            <div><dt>{{ od_finance_meta.checkout }}</dt><dd>{{ task.stripe_payment_status or '—' }}</dd></div>
+            <div><dt>{{ od_finance_meta.payment_intent }}</dt><dd>{% if task.stripe_payment_intent_id %}…{{ task.stripe_payment_intent_id[-8:] }}{% else %}—{% endif %}</dd></div>
+            <div><dt>{{ od_finance_meta.transfer }}</dt><dd>{{ task.stripe_transfer_status or '—' }}</dd></div>
+            <div><dt>{{ od_finance_meta.professional_stripe }}</dt><dd>{{ assigned_professional_stripe_status_label }}</dd></div>
           </dl>
           {% if task.payout_status in ['PAYOUT_FROZEN', 'REQUIRES_REVIEW'] or task.payment_status in ['REFUND_PENDING', 'REFUNDED', 'DISPUTED'] %}
             <div class="admin-evidence__message admin-evidence__message--error" role="alert">{{ od.finance_exception }} {{ task.payment_status }} / {{ task.payout_status }}.</div>

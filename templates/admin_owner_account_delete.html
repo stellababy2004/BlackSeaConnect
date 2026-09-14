@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ page_lang|default('en')|e }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,6 +57,12 @@
       deleteButton.disabled = confirmInput.value !== 'DELETE';
     });
   </script>
+
+<script src="/static/js/i18n/admin-shell.js?v=20260914"></script>
+<script src="/static/js/i18n/admin-runtime.js?v=20260914-3"></script>
+<script src="/static/js/i18n/index.js"></script>
+<script src="/static/js/i18n.js?v=20260724"></script>
+
 </body>
 </html>
 

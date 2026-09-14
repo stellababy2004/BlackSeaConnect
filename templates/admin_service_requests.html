@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | {{ requi.title }}</title>
+  <title>BlackSea Connect | {% if page_lang == 'bg' %}Заявки за услуги{% elif page_lang == 'fr' %}Demandes de service{% elif page_lang == 'ru' %}Заявки на услуги{% else %}Service requests{% endif %}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-request-list-actions {
@@ -283,15 +283,15 @@
 'bg': {
 'title':'Заявки за услуги','eyebrow':'ЗАЯВКИ ЗА УСЛУГИ',
 'heading':'Заявки от собственици и публичната форма',
-'intro':'{{ requi.intro }}',
+'intro':'Заявките от портала на собствениците и публичната форма се управляват в един общ оперативен процес.',
 'operator':'Операторска конзола','dashboard':'Управленски панел','requests':'Заявки','trash':'Кошче','public_form':'Публична форма',
 'metrics':'Показатели за заявки','total':'Общо заявки','new':'Нови','assigned':'Възложени','progress':'В процес','completed':'Приключени','cancelled':'Отказани',
-'source':'Източник','owner_portal':requi.owner_portal,'city':'Град','type':'Тип имот','property':'Имот','category':'Категория',
+'source':'Източник','owner_portal':'Портал на собственика','city':'Град','type':'Тип имот','property':'Имот','category':'Категория',
 'preferred':'Предпочитана дата','professional':'Възложен професионалист','open':'Отвори заявката','delete':'Изтрий заявката',
 'confirm':'Потвърждение','delete_q':'Да се изтрие ли тази заявка?',
-'delete_copy':'{{ requi.delete_copy }}',
+'delete_copy':'Заявката ще бъде премахната от активните процеси и ще се пази в кошчето 30 дни.',
 'client':'Клиент','request_id':'ID на заявка','created':'Дата на създаване','cancel':'Отказ',
-'empty':'Все още няма заявки за услуги.','empty_copy':'{{ requi.empty_copy }}',
+'empty':'Все още няма заявки за услуги.','empty_copy':'Когато собственик или посетител изпрати заявка, тя ще се появи тук.',
 'NEW':'Нова','ASSIGNED':'Възложена','IN_PROGRESS':'В процес','COMPLETED':'Приключена','CANCELLED':'Отказана'
 },
 'en': {
@@ -321,6 +321,20 @@
 'client':'Client','request_id':'ID de la demande','created':'Date de création','cancel':'Annuler',
 'empty':'Aucune demande de service pour le moment.','empty_copy':'Lorsqu’un propriétaire ou un visiteur envoie une demande, elle apparaîtra ici.',
 'NEW':'Nouvelle','ASSIGNED':'Attribuée','IN_PROGRESS':'En cours','COMPLETED':'Terminée','CANCELLED':'Annulée'
+},
+'ru': {
+'title':'Заявки на услуги','eyebrow':'ЗАЯВКИ НА УСЛУГИ',
+'heading':'Заявки от владельцев и публичной формы',
+'intro':'Заявки из портала владельцев и публичной формы обрабатываются в едином операционном процессе.',
+'operator':'Операторская консоль','dashboard':'Панель управления','requests':'Заявки','trash':'Корзина','public_form':'Публичная форма',
+'metrics':'Показатели заявок','total':'Всего заявок','new':'Новые','assigned':'Назначенные','progress':'В процессе','completed':'Завершённые','cancelled':'Отменённые',
+'source':'Источник','owner_portal':'Портал владельца','city':'Город','type':'Тип объекта','property':'Объект','category':'Категория',
+'preferred':'Предпочтительная дата','professional':'Назначенный исполнитель','open':'Открыть заявку','delete':'Удалить заявку',
+'confirm':'Подтверждение','delete_q':'Удалить эту заявку?',
+'delete_copy':'Заявка будет удалена из активных процессов и сохранена в корзине в течение 30 дней.',
+'client':'Клиент','request_id':'ID заявки','created':'Дата создания','cancel':'Отмена',
+'empty':'Заявок на услуги пока нет.','empty_copy':'Когда владелец или посетитель отправит заявку, она появится здесь.',
+'NEW':'Новая','ASSIGNED':'Назначена','IN_PROGRESS':'В процессе','COMPLETED':'Завершена','CANCELLED':'Отменена'
 }
 } %}
 {% set requi = requests_ui.get(page_lang|default('en'), requests_ui['en']) %}

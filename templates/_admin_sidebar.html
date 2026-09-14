@@ -36,6 +36,7 @@
     <a href="/admin/calendar" data-i18n="shellCreateEvent">+ Събитие</a>
   </div>
 </aside>
+
 <header class="bsc-admin-topbar">
   <form class="bsc-admin-search" method="get" action="{{ request.path }}" role="search">
     <span aria-hidden="true">⌕</span>
@@ -46,6 +47,7 @@
       <a href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
       <a href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
       <a href="{{ language_switch_url('fr') }}" data-lang-switch="fr">FR</a>
+      <a href="{{ language_switch_url('ru') }}" data-lang-switch="ru">RU</a>
     </div>
     <a class="bsc-admin-icon-button" href="/admin/notifications" aria-label="Известия">
       <span aria-hidden="true">♢</span><b>{{ recent_alerts|length if recent_alerts is defined else '—' }}</b>
@@ -60,7 +62,10 @@
     </details>
   </nav>
 </header>
-<script src="/static/js/i18n/admin-shell.js"></script>
-<script src="/static/js/i18n/admin-runtime.js?v=20260724"></script>
+
+
+
+<script src="/static/js/i18n/admin-shell.js?v=20260914-2"></script>
+<script src="/static/js/i18n/admin-runtime.js?v=20260914-3"></script>
 <script src="/static/js/i18n/index.js"></script>
 <script src="/static/js/i18n.js?v=20260724"></script>
