@@ -15,6 +15,10 @@ from pathlib import Path
 import json
 import logging
 import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 import sqlite3
 import smtplib
 import time
