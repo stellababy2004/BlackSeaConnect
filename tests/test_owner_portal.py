@@ -3934,6 +3934,56 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "EMAIL" for row in task_notifications))
         self.assertTrue(any(row["event_type"] == "notification_sent" and row["channel"] == "TELEGRAM" for row in task_notifications))
 
+    def test_professional_notifications_do_not_expose_other_recipients(self):
+        professional = {"email": "pro@example.com"}
+        tasks = [{"id": "task-1"}]
+
+        sample_notifications = [
+            {
+                "id": "pro-direct",
+                "created_at": "2026-09-14T10:00:00Z",
+                "recipient": "pro@example.com",
+                "task_id": "task-1",
+                "title": "Professional notification",
+                "detail": "/professionals/tasks/task-1",
+            },
+            {
+                "id": "owner-private",
+                "created_at": "2026-09-14T09:00:00Z",
+                "recipient": "owner@example.com",
+                "task_id": "task-1",
+                "title": "Owner notification",
+                "detail": "/admin/operations/task-1",
+            },
+            {
+                "id": "task-system",
+                "created_at": "2026-09-14T08:00:00Z",
+                "recipient": "",
+                "task_id": "task-1",
+                "title": "Task system notification",
+                "detail": "System event",
+            },
+            {
+                "id": "other-task",
+                "created_at": "2026-09-14T07:00:00Z",
+                "recipient": "",
+                "task_id": "task-2",
+                "title": "Other task",
+                "detail": "Other event",
+            },
+        ]
+
+        with patch("app._load_operations_notifications", return_value=sample_notifications):
+            notifications = app_module._professional_recent_notifications(professional, tasks)
+
+        notification_ids = {item["id"] for item in notifications}
+
+        self.assertIn("pro-direct", notification_ids)
+        self.assertIn("task-system", notification_ids)
+        self.assertNotIn("owner-private", notification_ids)
+        self.assertNotIn("other-task", notification_ids)
+        self.assertFalse(any("/admin/operations/" in item.get("detail", "") for item in notifications))
+
     def test_owner_service_request_creates_notification_records(self):
         self._seed_owner_account(email="owner@example.com")
         self._seed_owner_property(owner_id="owner-1", owner_email="owner@example.com")

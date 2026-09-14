@@ -22678,10 +22678,14 @@ def _professional_recent_notifications(professional_account, tasks):
     task_ids = {str(task.get("id", "")).strip() for task in tasks if str(task.get("id", "")).strip()}
     notifications = []
     for notification in _load_operations_notifications(limit=50):
-        if recipient_email and str(notification.get("recipient", "")).strip() == recipient_email:
+        notification_recipient = str(notification.get("recipient", "")).strip()
+        notification_task_id = str(notification.get("task_id", "")).strip()
+
+        if recipient_email and notification_recipient == recipient_email:
             notifications.append(notification)
             continue
-        if str(notification.get("task_id", "")).strip() in task_ids:
+
+        if not notification_recipient and notification_task_id in task_ids:
             notifications.append(notification)
     notifications.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return notifications[:6]
