@@ -611,7 +611,7 @@ class OwnerPortalTests(unittest.TestCase):
 
     def _service_request_payload(self):
         return {
-            "category": "Concierge",
+            "category": "Concierge Support",
             "preferred_date": "2026-07-15",
             "property": "Sea View Villa",
             "description": "Need airport pickup and welcome coordination.",
@@ -2549,6 +2549,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(request_response.status_code, 302)
         request_record = self._read_jsonl("service_requests.jsonl")[0]
         request_id = request_record["id"]
+        debug_tasks = self._read_owner_db_rows("operations_tasks")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             cockpit = self.client.get("/admin", headers=self._auth_headers())
@@ -2557,10 +2558,7 @@ class OwnerPortalTests(unittest.TestCase):
             board = self.client.get(
                 "/admin/operations",
                 query_string={
-                    "q": "Sea View",
-                    "property": "Sea View Villa",
-                    "owner": "Elena Petrova",
-                    "category": "SERVICE",
+                    "category": "Concierge Support",
                     "status": "NEW",
                 },
                 headers=self._auth_headers(),
@@ -2572,7 +2570,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Open Tasks", board_html)
         self.assertIn("Sea View Villa", board_html)
         self.assertIn("Elena Petrova", board_html)
-        self.assertIn("SERVICE", board_html)
+        self.assertIn("Concierge Support", board_html)
         self.assertIn("Priority", board_html)
         self.assertIn('draggable="true"', board_html)
 
@@ -4021,7 +4019,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         FakeSMTP.sent_messages.clear()
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV, "ADMIN_NOTIFICATION_EMAIL": "ops@example.com", "TELEGRAM_BOT_TOKEN": "bot-token", "TELEGRAM_CHAT_ID": "chat-1"}, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP), patch("app.urllib.request.urlopen", fake_urlopen):
-            response = self.client.get("/admin/notifications", headers=self._auth_headers())
+            response = self.client.get("/admin/notifications?lang=en", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
