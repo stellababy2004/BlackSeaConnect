@@ -3015,9 +3015,16 @@ def _ensure_operations_task_schema(conn):
             event_type TEXT NOT NULL,
             title TEXT NOT NULL,
             detail TEXT NOT NULL DEFAULT '',
-            status TEXT NOT NULL DEFAULT 'NEW'
+            status TEXT NOT NULL DEFAULT 'NEW',
+            organization_id TEXT NOT NULL DEFAULT ''
         )
         """
+    )
+    _ensure_table_column(
+        conn,
+        "operations_task_events",
+        "organization_id",
+        f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'",
     )
     conn.execute(
         """
@@ -5965,12 +5972,6 @@ def _ensure_owner_db_schema(conn):
         )
         _ensure_owner_account_schema(conn)
         _ensure_owner_property_schema(conn)
-        # Backfill helpers use the canonical persistence functions, which open
-        # their own connections. Release schema DDL locks before they run.
-        conn.commit()
-        _seed_owner_property_activity_backfill(conn)
-        _seed_operations_task_backfill(conn)
-        _seed_calendar_event_backfill(conn)
         _ensure_enterprise_schema(conn)
     finally:
         _OWNER_DB_SCHEMA_INITIALIZING = False
@@ -6121,7 +6122,6 @@ def _ensure_enterprise_schema(conn):
     _ensure_table_column(conn, "owner_magic_email_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
     _ensure_table_column(conn, "professional_accounts", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
     _ensure_table_column(conn, "professional_magic_tokens", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
-    _ensure_table_column(conn, "operations_task_events", "organization_id", f"TEXT NOT NULL DEFAULT '{GLOBAL_ORGANIZATION_ID}'")
 
     conn.execute(
         """
@@ -7192,7 +7192,12 @@ def _append_operations_task_event(task_id, event_type, title, detail="", status=
                 ),
             )
     except Exception as exc:
-        app.logger.warning("Operations task event append failed for %s: %s", target_task_id, type(exc).__name__)
+        app.logger.warning(
+            "Operations task event append failed for %s: %s: %s",
+            target_task_id,
+            type(exc).__name__,
+            exc,
+        )
         return None
     return event
 
@@ -8057,7 +8062,12 @@ def _upsert_operations_task(task_payload, *, append_created_event=False, status_
                 ),
             )
     except Exception as exc:
-        app.logger.warning("Operations task upsert failed for %s: %s", task_id, type(exc).__name__)
+        app.logger.warning(
+            "Operations task upsert failed for %s: %s: %s",
+            task_id,
+            type(exc).__name__,
+            exc,
+        )
         return None
 
     if existing_task is None and append_created_event:
@@ -23104,19 +23114,30 @@ def _localized_operation_value(value, lang=None):
     if language not in SUPPORTED_LANGUAGES:
         language = "en"
 
-    normalized = raw.replace("-", " ").strip().casefold()
+    labels = _BSC_OPERATION_DISPLAY_LABELS.get(
+        language,
+        _BSC_OPERATION_DISPLAY_LABELS["en"],
+    )
 
-    labels = _BSC_OPERATION_DISPLAY_LABELS.get(language, _BSC_OPERATION_DISPLAY_LABELS["en"])
+    # Canonical backend values may use spaces, hyphens or underscores
+    # (for example CLEANING, CHECK_IN, CHECK-OUT). Normalize those
+    # separators for DISPLAY lookup only; stored values stay untouched.
+    candidates = (
+        raw.strip().casefold(),
+        raw.replace("_", " ").strip().casefold(),
+        raw.replace("_", "-").strip().casefold(),
+        raw.replace("-", " ").strip().casefold(),
+        raw.replace(" ", "-").strip().casefold(),
+        raw.replace("_", " ").replace("-", " ").strip().casefold(),
+    )
 
-    if normalized in labels:
-        return labels[normalized]
-
-    underscore_normalized = raw.strip().casefold()
-    if underscore_normalized in labels:
-        return labels[underscore_normalized]
+    for candidate in dict.fromkeys(candidates):
+        if candidate in labels:
+            return labels[candidate]
 
     # Unknown business/user data must never be guessed or destroyed.
     return raw
+
 
 
 @app.context_processor

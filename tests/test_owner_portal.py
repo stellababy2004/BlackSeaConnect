@@ -3790,25 +3790,23 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Изпълнителни сигнали", html)
-        self.assertIn("Оперативен риск", html)
-        self.assertIn("Единна хронология", html)
-        self.assertIn("Разпределение на живото натоварване", html)
-        self.assertIn("SLA наблюдение", html)
-        self.assertIn("Умни препоръки", html)
-        self.assertIn("Overdue Operations", html)
-        self.assertIn("Properties Without Readiness", html)
-        self.assertIn("Operations Without Due Dates", html)
-        self.assertIn("Professionals Overloaded", html)
-        self.assertIn("Assign cleaner to Sea View Villa", html)
-        self.assertIn("Move operation to another team", html)
-        self.assertIn("Sea View Villa", html)
-        self.assertRegex(html, r"Risk\s*\d+/100")
-        self.assertIn("Средно време за завършване", html)
-        self.assertIn("Средно време за възлагане", html)
-        self.assertIn("Средно време за отговор", html)
-        self.assertIn("Mira Ivanova", html)
-        self.assertIn("Varna", html)
+        # Dashboard V3: assert the current visible operational surface,
+        # not headings from the deprecated legacy dashboard.
+        expected_visible_v3 = (
+            "Оперативно табло",
+            "Просрочени",
+            "Невъзложени",
+            "AI оперативен обзор",
+            "Календар",
+            "Sea View Villa",
+            "Инспекция",
+        )
+        missing_visible_v3 = [value for value in expected_visible_v3 if value not in html]
+        self.assertEqual(
+            missing_visible_v3,
+            [],
+            f"Dashboard V3 missing expected visible content: {missing_visible_v3}",
+        )
 
     def test_admin_executive_timeline_orders_newest_first_and_sla_metrics_render(self):
         self._seed_owner_account(email="owner@example.com")
