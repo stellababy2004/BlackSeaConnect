@@ -1051,11 +1051,11 @@
                 {% set request_category_key = category_translation_keys.get(request.service_category, 'ownerCategoryOther') %}
                 <div class="owner-property-detail-history__item">
                   <div class="owner-property-detail-history__topline">
-                    <strong>{{ public_i18n('owners', request_category_key, request.service_category) }} — {{ public_i18n('ownersDashboard', 'ownerActivityRequestReceived', 'request received') }}</strong>
+                    <strong>{{ public_i18n('owners', request_category_key, localized_operation_value(request.service_category, page_lang)) }} — {{ public_i18n('ownersDashboard', 'ownerActivityRequestReceived', 'request received') }}</strong>
                     <time datetime="{{ request.created_at|e }}">{{ format_local_datetime(request.created_at, page_lang) }}</time>
                   </div>
                   <p>
-                    {{ public_i18n('ownersDashboard', 'ownerActivityCurrentStep', 'Current step') }}: <span data-owner-status="{{ request.status|e }}">{{ public_i18n('owners', request_status_translation_keys.get(request.status|lower, ''), request.status|replace('_', ' ')|title) }}</span> {{ public_i18n('ownersDashboard', 'ownerActivityFor', 'for') }} {{ request.property|e }}.
+                    {{ public_i18n('ownersDashboard', 'ownerActivityCurrentStep', 'Current step') }}: <span data-owner-status="{{ request.status|e }}">{{ public_i18n('owners', request_status_translation_keys.get(request.status|lower, ''), localized_operation_value(request.status, page_lang)) }}</span> {{ public_i18n('ownersDashboard', 'ownerActivityFor', 'for') }} {{ request.property|e }}.
                     {% if request.description %}<br>{{ public_i18n('ownersDashboard', 'ownerActivityNotesForTeam', 'Notes for the team') }}: {{ request.description|e }}{% endif %}
                     <br>{{ public_i18n('ownersDashboard', 'ownerActivityNextStep', 'Next step') }}:
                     {% if request.status|lower == 'completed' %}

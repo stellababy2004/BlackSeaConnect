@@ -497,6 +497,14 @@
         return;
       }
 
+      // Dashboard categories, dates and generated summaries are server-rendered.
+      // Reload them together instead of leaving unkeyed text in the old language.
+      if (window.location.pathname === "/owners/dashboard") {
+        event.preventDefault();
+        window.location.assign(buildLanguageUrl(selectedLanguage));
+        return;
+      }
+
       if (
         window.location.pathname === "/admin" ||
         window.location.pathname.startsWith("/admin/")

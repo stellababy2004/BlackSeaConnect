@@ -3,7 +3,8 @@
   window.BlackSeaI18NModules = window.BlackSeaI18NModules || {};
   window.BlackSeaI18NModules["ownersDashboard"] = {
   "bg": {
-    "ownersDashboard": {
+      "ownersDashboard": {
+    "ownerMetricReady": "Готово",
       "ownerDashboardPortfolioLabel": "Портфолио",
       "ownerDashboardOverallHealth": "Общо състояние",
       "ownerDashboardOperationalReadiness": "Оперативна готовност",
@@ -395,7 +396,8 @@
 }
   },
   "en": {
-    "ownersDashboard": {
+      "ownersDashboard": {
+    "ownerMetricReady": "Ready",
       "ownerDashboardPortfolioLabel": "Portfolio",
       "ownerDashboardOverallHealth": "Overall health",
       "ownerDashboardOperationalReadiness": "Operational readiness",
@@ -787,7 +789,8 @@
 }
   },
   "fr": {
-    "ownersDashboard": {
+      "ownersDashboard": {
+    "ownerMetricReady": "Prêt",
       "ownerDashboardPortfolioLabel": "Portefeuille",
       "ownerDashboardOverallHealth": "État général",
       "ownerDashboardOperationalReadiness": "Préparation opérationnelle",
@@ -1179,7 +1182,8 @@
 }
   },
   "ru": {
-    "ownersDashboard": {
+      "ownersDashboard": {
+    "ownerMetricReady": "Готово",
       "ownerDashboardPortfolioLabel": "Портфолио",
       "ownerDashboardOverallHealth": "Общее состояние",
       "ownerDashboardOperationalReadiness": "Операционная готовность",

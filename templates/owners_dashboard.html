@@ -772,7 +772,8 @@
 <body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page">
   {% set ui = owner_portal.ui %}
   {% macro owner_metric(key, fallback) -%}
-    {{ public_i18n('owners', key, fallback) if key else fallback }}
+    {% if key and key.startswith('owners.') %}{{ public_i18n('owners', key.split('.', 1)[1], fallback) }}
+    {% else %}{{ public_i18n('ownersDashboard', key, fallback) if key else fallback }}{% endif %}
   {%- endmacro %}
   {% macro owner_event_type(event_type) -%}
     {% if event_type == 'Cleaning' %}{{ public_i18n('owners', 'ownerCategoryCleaning', 'Cleaning') }}
@@ -899,7 +900,7 @@
         <div class="owner-portal-card">
           {% if owner_portal.recent_updates %}
             {% set latest = owner_portal.recent_updates[0] %}
-            <strong>{{ latest.service_category|e }}</strong>
+            <strong>{{ localized_operation_value(latest.service_category, page_lang)|e }}</strong>
             <p>{{ latest.description|default(latest.detail, true)|default(ui.recent_updates_title, true)|e }}</p>
             <small><span>{{ ui.updated_label }}</span> {{ latest.last_update_display|default(latest.last_update_at)|e }}</small>
           {% elif owner_portal.notifications %}
@@ -1099,10 +1100,14 @@
               <article class="owner-ai-event {% if item.tone in ['warning', 'urgent'] %}owner-ai-event--attention{% endif %}">
                 <span class="owner-ai-event__mark" aria-hidden="true">{% if item.tone in ['warning', 'urgent'] %}!{% else %}✓{% endif %}</span>
                 <div>
-                  <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
-                  <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
+                  <strong>{{ item.label|e }}</strong>
+                  <p>{{ item.detail|e }}</p>
                 </div>
-                <time>{{ item.time|e }}</time>
+                {% if item.time_key %}
+                  <time data-i18n="{{ item.time_key }}">{{ item.time|e }}</time>
+                {% else %}
+                  <time datetime="{{ item.datetime|e }}">{{ item.time|e }}</time>
+                {% endif %}
               </article>
             {% else %}
               <article class="owner-ai-event">
@@ -1118,7 +1123,7 @@
               <article class="owner-ai-event">
                 <span class="owner-ai-event__mark" aria-hidden="true">→</span>
                 <div>
-                  <strong>{{ event.title|e }}</strong>
+                  <strong>{{ event.title_display|e }}</strong>
                   <p>{{ event.property_label|e }}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
                 </div>
                 <time>{{ event.display_label|e }}</time>
@@ -1224,13 +1229,13 @@
                 </div>
               </div>
               <div class="owner-property-card__chips">
-                <span>{{ property.property_type|e }}</span>
+                <span>{{ localized_operation_value(property.property_type, page_lang)|e }}</span>
                 <span>{{ property.operating_mode_label|e }}</span>
               </div>
               <dl class="owner-portal-dl owner-property-card__facts">
                 <div>
                   <dt data-i18n="ownerDashboardPropertyTypeLabel">{{ ui.property_type_label }}</dt>
-                  <dd>{{ property.property_type|e }}</dd>
+                  <dd>{{ localized_operation_value(property.property_type, page_lang)|e }}</dd>
                 </div>
                 <div>
                   <dt>{{ ui.bedrooms_label }}</dt>
@@ -1315,10 +1320,10 @@
                 {% for event in owner_portal.calendar_widget.upcoming_events %}
                   <div class="owner-activity-item">
                     <div class="owner-activity-item__meta">
-                      <span class="owner-status-badge owner-status-badge--{{ event.color|e }}">{{ owner_event_type(event.event_type) }}</span>
+                      <span class="owner-status-badge owner-status-badge--{{ event.color|e }}">{{ localized_operation_value(owner_event_type(event.event_type), page_lang) }}</span>
                       <time>{{ event.display_label|e }}</time>
                     </div>
-                    <strong>{{ event.title|e }}</strong>
+                    <strong>{{ event.title_display|e }}</strong>
                     <p>{{ event.property_label|e }}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
                   </div>
                 {% endfor %}
@@ -1526,7 +1531,7 @@
     <details class="owner-dashboard-disclosure">
       <summary>
         <span data-i18n="ownerDashboardActivityTimeline">{{ ui.activity_timeline_eyebrow }}</span>
-        <strong>{{ owner_portal.activity_timeline|length }} updates</strong>
+        <strong>{{ owner_portal.activity_timeline|length }}</strong>
       </summary>
     <section class="owner-portal-section owner-portal-section--split owner-dashboard-section owner-dashboard-section--timeline" aria-labelledby="owner-activity-timeline-title">
       <article class="owner-portal-card owner-portal-card--timeline">
@@ -1543,10 +1548,18 @@
                 {% if item.time_key %}
                   <time class="owner-timeline-item__time" data-i18n="{{ item.time_key }}">{{ item.time|e }}</time>
                 {% else %}
-                  <time class="owner-timeline-item__time" datetime="{{ item.time|e }}">{{ format_local_datetime(item.time, page_lang) }}</time>
+                  <time class="owner-timeline-item__time" datetime="{{ item.datetime|e }}">{{ item.time|e }}</time>
                 {% endif %}
-                <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
-                <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
+                {% if item.label_key %}
+                  <strong data-i18n="{{ item.label_key }}">{{ item.label|e }}</strong>
+                {% else %}
+                  <strong>{{ item.label|e }}</strong>
+                {% endif %}
+                {% if item.detail_key %}
+                  <p data-i18n="{{ item.detail_key }}">{{ item.detail|e }}</p>
+                {% else %}
+                  <p>{{ item.detail|e }}</p>
+                {% endif %}
               </div>
             </article>
           {% endfor %}
@@ -1591,7 +1604,7 @@
             {% for item in owner_portal.recent_activity %}
               <article class="owner-activity-item">
                 <div class="owner-activity-item__topline">
-                  <strong data-i18n="{{ item.service_category_key }}">{{ public_i18n('owners', item.service_category_key|replace('owners.', ''), item.service_category) }}</strong>
+                  <strong>{{ item.service_category_display|e }}</strong>
                   {% if item.status|lower == "new" %}
                     <span class="owner-status-badge owner-status-badge--{{ item.status|lower|e }}" data-i18n="ownerStatusNew" data-owner-status="NEW">{{ ui.owner_status_new }}</span>
                   {% elif item.status|lower == "assigned" %}
@@ -1634,7 +1647,7 @@
   </main>
 
   <script src="/static/js/translations.js?v=20260726f"></script>
-  <script src="/static/js/i18n.js?v=20260726f"></script>
+  <script src="/static/js/i18n.js?v=20260915-owner-dashboard"></script>
   <script src="/static/js/owner-experience.js?v=20260726"></script>
   {% include 'partials/pwa_runtime.html' %}
 </body>

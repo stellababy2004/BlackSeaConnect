@@ -1471,7 +1471,114 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("/static/img/saint-vlas.jpg", html)
         self.assertNotIn('<footer class="site-footer"', html)
         self.assertIn("owner-request-1", html)
-        self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+        self.assertNotRegex(re.sub(r"<[^>]+>", "", html), r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+
+    def test_owner_dashboard_timeline_localization_all_languages(self):
+        from copy import deepcopy
+        from flask import template_rendered
+        import subprocess
+
+        class RuntimeNodeParser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                self.attrs = dict(attrs)
+
+        self._login_owner_via_magic()
+        records = [self._demo_owner_request(
+            id=f"localized-{index}", owner_id="owner-1", service_category=category,
+            status=status, property="Inspection", description="Owner service request",
+            assigned_provider_name="Cleaning", assigned_provider_company="Maintenance",
+            created_at="2026-09-14T10:00:00Z", last_update_at="2026-09-14T10:00:00Z",
+        ) for index, (category, status) in enumerate([
+            ("Inspection", "new"), ("Owner service request", "assigned"),
+            ("Cleaning", "completed"), ("Maintenance", "in_progress"),
+            ("Seasonal Preparation", "cancelled"),
+        ])]
+        records.append(self._demo_owner_request(
+            id="foreign-request", owner_id="other-owner", owner_email="other@example.com",
+            service_category="Foreign category", created_at="2026-09-15T10:00:00Z",
+        ))
+        self._seed_jsonl("service_requests.jsonl", records)
+        original_bytes = Path("data/service_requests.jsonl").read_bytes()
+        contexts = []
+
+        def capture(sender, template, context, **extra):
+            contexts.append((template.name, context))
+
+        template_rendered.connect(capture, app)
+        try:
+            expected = {
+                "bg": ("Проверка", "Заявка за услуга от собственик", "14.09.2026, 13:00"),
+                "en": ("Inspection", "Owner service request", "14/09/2026, 13:00"),
+                "fr": ("Inspection", "Demande de service du propriétaire", "14/09/2026 13:00"),
+                "ru": ("Проверка", "Заявка на услугу от владельца", "14.09.2026, 13:00"),
+            }
+            for lang, (inspection, owner_request, timestamp) in expected.items():
+                with self.subTest(lang=lang):
+                    response = self.client.get(f"/owners/dashboard?lang={lang}")
+                    self.assertEqual(response.status_code, 200)
+                    html = html_lib.unescape(response.get_data(as_text=True))
+                    template, context = contexts[-1]
+                    self.assertEqual(template, "owners_dashboard.html")
+                    self.assertEqual(len(context["owner_requests"]), 5)
+                    self.assertNotIn("foreign-request", html)
+                    items = context["owner_portal"]["activity_timeline"]
+                    self.assertEqual([item["label"] for item in items[:2]], [inspection, owner_request])
+                    for class_name in ("owner-ai-timeline", "owner-timeline-list"):
+                        section = html.split(f'class="{class_name}"', 1)[1]
+                        self.assertIn(f"<strong>{inspection}</strong>", section)
+                        self.assertIn(f"<strong>{owner_request}</strong>", section)
+                        self.assertIn(timestamp, section)
+                    self.assertIn('datetime="2026-09-14T10:00:00Z"', html)
+                    self.assertNotIn("14 Sep 2026", html)
+                    for item in items:
+                        for field in ("label", "detail"):
+                            if item[field + "_key"]:
+                                self.assertEqual(item[field], app_module._load_public_i18n_value(
+                                    "ownersDashboard", lang, item[field + "_key"], ""))
+                    for record in context["owner_requests"]:
+                        self.assertEqual(record["property"], "Inspection")
+                        self.assertEqual(record["description"], "Owner service request")
+                        self.assertEqual(record["assigned_professional"], "Maintenance")
+                    for record in records[:5]:
+                        self.assertIn(record["status"], [r["status"] for r in context["owner_requests"]])
+                    self.assertNotIn("[MISSING:", html)
+                    runtime_nodes = []
+                    for tag, attrs, text in re.findall(r"<(strong|time|span)\b([^>]*)>([^<]*)</\1>", html):
+                        parser = RuntimeNodeParser()
+                        parser.feed(f"<{tag}{attrs}>")
+                        runtime_nodes.append({"tag": tag, "attrs": parser.attrs, "text": text})
+                    result = subprocess.run(
+                        ["node", "tests/owner_dashboard_runtime.cjs"], cwd=self._cwd,
+                        input=json.dumps({"lang": lang, "nodes": runtime_nodes}),
+                        text=True, encoding="utf-8", capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(Path("data/service_requests.jsonl").read_bytes(), original_bytes)
+        finally:
+            template_rendered.disconnect(capture, app)
+
+        for lang in ("bg", "en", "fr", "ru"):
+            original = deepcopy(records)
+            for category in app_module.OWNER_SERVICE_CATEGORIES:
+                label = app_module._owner_service_category_display(category, lang)
+                self.assertTrue(label)
+                self.assertNotIn("[MISSING:", label)
+            self.assertEqual(app_module._owner_service_category_display("Inspection by Alice", lang), "Inspection by Alice")
+            items = app_module._owner_portal_activity_timeline(records, app_module._owner_dashboard_copy(lang), lang)
+            self.assertEqual(records, original)
+            self.assertEqual(items[0]["datetime"], "2026-09-14T10:00:00Z")
+
+    def test_owner_timeline_missing_and_invalid_timestamp_all_languages(self):
+        for lang in ("bg", "en", "fr", "ru"):
+            for timestamp in ("", "not-a-date"):
+                with self.subTest(lang=lang, timestamp=timestamp):
+                    ui = app_module._owner_dashboard_copy(lang)
+                    items = app_module._owner_portal_activity_timeline(
+                        [{"service_category": "Inspection", "created_at": timestamp}], ui, lang)
+                    self.assertEqual(items[0]["datetime"], "")
+                    self.assertEqual(items[0]["time"], ui["recently"])
+                    self.assertEqual(items[0]["time_key"], "ownerDashboardTimelineRecently")
+                    self.assertEqual(len(app_module._owner_portal_activity_timeline([], ui, lang)), 5)
 
     def test_owner_property_detail_shows_completed_work_and_evidence(self):
         self._login_owner_via_magic(email="owner@example.com")

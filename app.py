@@ -177,6 +177,41 @@ def _log_event(event, level=logging.INFO, **fields):
 _configure_logging()
 
 
+
+def format_sofia_datetime(value, fmt="%d.%m.%Y · %H:%M"):
+    """Render stored UTC timestamps in Europe/Sofia local time."""
+    if value in (None, ""):
+        return ""
+
+    dt = value
+
+    if isinstance(value, str):
+        raw = value.strip()
+        if not raw:
+            return ""
+
+        try:
+            if raw.endswith("Z"):
+                raw = raw[:-1] + "+00:00"
+            dt = datetime.fromisoformat(raw)
+        except (TypeError, ValueError):
+            return value
+
+    if not isinstance(dt, datetime):
+        return value
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+
+    try:
+        return dt.astimezone(ZoneInfo("Europe/Sofia")).strftime(fmt)
+    except Exception:
+        return dt.strftime(fmt)
+
+
+app.jinja_env.filters["sofia_datetime"] = format_sofia_datetime
+
+
 @app.before_request
 def _start_request_observability():
     incoming_request_id = str(request.headers.get("X-Request-ID", "") or "").strip()
@@ -12688,7 +12723,7 @@ def _format_owner_portal_timestamp(value):
     parsed_value = _parse_iso_datetime(value)
     if not parsed_value:
         return ""
-    return parsed_value.astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC")
+    return parsed_value.astimezone(ZoneInfo("Europe/Sofia")).strftime("%d.%m.%Y · %H:%M")
 
 
 def _owner_portal_metric_value(value, fallback_label):
@@ -13484,7 +13519,101 @@ def _owner_property_card_context(property_record, has_owner_requests, dashboard_
     }
 
 
-def _owner_portal_activity_timeline(owner_requests, dashboard_copy):
+def _owner_service_category_display(value, lang="en"):
+    """Localize known category values only; preserve custom/user-entered text."""
+    lang = str(lang or "en").strip().lower()
+    if lang not in SUPPORTED_LANGUAGES:
+        lang = "en"
+
+    category_labels = {
+        "bg": {
+            "owner service request": "Заявка за услуга от собственик",
+            "inspection": "Проверка",
+            "property inspection": "Проверка на имота",
+            "guest inspection": "Проверка преди гост",
+            "checkout inspection": "Проверка при напускане",
+            "cleaning": "Почистване",
+            "maintenance": "Поддръжка",
+            "airport transfer": "Летищен трансфер",
+            "transfer": "Трансфер",
+            "concierge": "Консиерж",
+        },
+        "en": {
+            "owner service request": "Owner service request",
+            "inspection": "Inspection",
+            "property inspection": "Property inspection",
+            "guest inspection": "Guest inspection",
+            "checkout inspection": "Checkout inspection",
+            "cleaning": "Cleaning",
+            "maintenance": "Maintenance",
+            "airport transfer": "Airport transfer",
+            "transfer": "Transfer",
+            "concierge": "Concierge",
+        },
+        "fr": {
+            "owner service request": "Demande de service du propriétaire",
+            "inspection": "Inspection",
+            "property inspection": "Inspection du bien",
+            "guest inspection": "Inspection avant l’arrivée",
+            "checkout inspection": "Inspection après le départ",
+            "cleaning": "Nettoyage",
+            "maintenance": "Maintenance",
+            "airport transfer": "Transfert aéroport",
+            "transfer": "Transfert",
+            "concierge": "Conciergerie",
+        },
+        "ru": {
+            "owner service request": "Заявка на услугу от владельца",
+            "inspection": "Проверка",
+            "property inspection": "Проверка объекта",
+            "guest inspection": "Проверка перед приездом гостя",
+            "checkout inspection": "Проверка после выезда",
+            "cleaning": "Уборка",
+            "maintenance": "Техническое обслуживание",
+            "airport transfer": "Трансфер из аэропорта",
+            "transfer": "Трансфер",
+            "concierge": "Консьерж",
+        },
+    }
+
+    raw_category = str(value or "").strip()
+    category_key = " ".join(raw_category.lower().replace("_", " ").replace("-", " ").split())
+    if category_key in category_labels[lang]:
+        return category_labels[lang][category_key]
+    for category, translation_key in OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.items():
+        if category_key == category.lower():
+            return _load_public_i18n_value("owners", lang, translation_key.split(".", 1)[1], raw_category)
+    return raw_category
+
+
+def _owner_dashboard_calendar_event_display(event, lang):
+    """Present generated operations/calendar labels without changing stored events."""
+    title = str(event.get("title", "")).strip()
+    event_type = str(event.get("event_type", "")).strip()
+    metadata = event.get("metadata") or {}
+    generated = metadata.get("source") == "operations_task"
+    if generated and (
+        title == event_type
+        or (metadata.get("source_type") == "OWNER_SERVICE_REQUEST" and title == "Owner service request")
+    ):
+        title = _owner_service_category_display(title, lang)
+
+    start, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
+    end, _ = _calendar_parse_datetime(event.get("end_datetime", ""))
+    if not start:
+        display_label = _owner_dashboard_copy(lang)["scheduled"]
+    elif event.get("all_day"):
+        # An all-day event is a calendar date, not an instant to shift across zones.
+        date_format = "%d.%m.%Y" if lang in {"bg", "ru"} else "%d/%m/%Y"
+        display_label = start.strftime(date_format)
+    else:
+        display_label = _format_local_datetime(start, lang)
+        if end and end.astimezone(OPERATIONS_TIMEZONE).date() != start.astimezone(OPERATIONS_TIMEZONE).date():
+            display_label += " – " + _format_local_datetime(end, lang)
+    return {**event, "title_display": title, "display_label": display_label}
+
+
+def _owner_portal_activity_timeline(owner_requests, dashboard_copy, lang="en"):
     demo_items = [
         {
             "label": dashboard_copy["timeline_cleaning_completed"],
@@ -13537,47 +13666,62 @@ def _owner_portal_activity_timeline(owner_requests, dashboard_copy):
 
     timeline_items = []
     for record in owner_requests[:5]:
-        category = str(record.get("service_category", "")).strip() or dashboard_copy["timeline_property_update"]
+        raw_category = str(record.get("service_category", "")).strip()
+        category_key = " ".join(
+            raw_category.lower().replace("_", " ").replace("-", " ").split()
+        )
+        category = (
+            _owner_service_category_display(raw_category, lang)
+            or dashboard_copy["timeline_property_update"]
+        )
         status = _normalize_service_request_status(record.get("status", "new"))
-        if "clean" in category.lower():
+        if "clean" in category_key:
             label = dashboard_copy["timeline_cleaning_completed"] if status == "completed" else dashboard_copy["timeline_cleaning_scheduled"]
             label_key = "ownerDashboardCleaningCompletedTimeline" if status == "completed" else "ownerDashboardCleaningScheduledTimeline"
             detail = dashboard_copy["timeline_cleaning_completed_detail"] if status == "completed" else dashboard_copy["timeline_cleaning_scheduled_detail"]
             detail_key = "ownerDashboardCleaningCompletedTimelineDetail" if status == "completed" else "ownerDashboardCleaningScheduledTimelineDetail"
             tone = "success"
-        elif "transfer" in category.lower():
+        elif "transfer" in category_key:
             label = dashboard_copy["timeline_airport_transfer_confirmed"]
             label_key = "ownerDashboardAirportTransferConfirmedTimeline"
             detail = dashboard_copy["timeline_airport_transfer_confirmed_detail"]
             detail_key = "ownerDashboardAirportTransferConfirmedTimelineDetail"
             tone = "arrival"
-        elif "inspect" in category.lower():
-            label = dashboard_copy["timeline_property_inspection_completed"]
-            label_key = "ownerDashboardPropertyInspectionCompletedTimeline"
+        elif "inspect" in category_key:
+            label = category
+            label_key = ""
             detail = dashboard_copy["timeline_property_inspection_completed_detail"]
             detail_key = "ownerDashboardPropertyInspectionCompletedTimelineDetail"
             tone = "inspection"
-        elif "maint" in category.lower():
+        elif "maint" in category_key:
             label = dashboard_copy["timeline_maintenance_resolved"] if status == "completed" else dashboard_copy["timeline_property_update"]
             label_key = "ownerDashboardMaintenanceRequestResolvedTimeline" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimeline"
             detail = dashboard_copy["timeline_maintenance_resolved_detail"] if status == "completed" else dashboard_copy["timeline_property_update_detail"]
             detail_key = "ownerDashboardMaintenanceRequestResolvedTimelineDetail" if status == "completed" else "ownerDashboardMaintenanceRequestInProgressTimelineDetail"
             tone = "maintenance"
         else:
-            label = dashboard_copy["timeline_property_update"]
-            label_key = "ownerDashboardPropertyUpdateTimeline"
+            label = category
+            label_key = ""
             detail = dashboard_copy["timeline_property_update_detail"]
             detail_key = "ownerDashboardPropertyUpdateTimelineDetail"
             tone = "arrival"
 
+        timestamp = str(record.get("last_update_at") or record.get("created_at") or "").strip()
+        timestamp_display = _format_local_datetime(timestamp, lang) if _parse_iso_datetime(timestamp) else ""
+        # Use the same generated copy as runtime i18n, including maintenance updates.
+        if label_key:
+            label = _load_public_i18n_value("ownersDashboard", lang, label_key, label)
+        if detail_key:
+            detail = _load_public_i18n_value("ownersDashboard", lang, detail_key, detail)
         timeline_items.append({
             "label": label,
             "label_key": label_key,
             "detail": detail,
             "detail_key": detail_key,
-            "time": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or dashboard_copy["recently"],
+            "time": timestamp_display or dashboard_copy["recently"],
+            "datetime": timestamp if timestamp_display else "",
             "request_id": str(record.get("id", "")).strip(),
-            "time_key": "",
+            "time_key": "" if timestamp_display else "ownerDashboardTimelineRecently",
             "tone": tone,
         })
 
@@ -14101,7 +14245,10 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         reverse=True,
     )
     owner_calendar_context = _build_calendar_page_context("owner", owner_account)
-    calendar_widget = _calendar_dashboard_widget(owner_calendar_context["calendar_events"], scope="owner")
+    calendar_widget = _calendar_dashboard_widget([
+        _owner_dashboard_calendar_event_display(event, current_lang)
+        for event in owner_calendar_context["calendar_events"]
+    ], scope="owner")
     reservation_widget = _reservation_dashboard_widgets(owner_reservations, scope="owner")
     has_properties = bool(owner_properties)
     property_cards = [_owner_property_card_context(property_record, bool(owner_requests), dashboard_copy) for property_record in owner_properties]
@@ -14213,8 +14360,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
     if completed_requests:
         latest_completed = max(completed_requests, key=lambda request: str(request.get("last_update_at", request.get("created_at", ""))))
         latest_category = str(latest_completed.get("service_category", "")).strip()
-        last_completed_task = latest_category or latest_completed.get("description", "") or dashboard_copy["last_completed_task_label"]
-        last_completed_task_key = OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(latest_category, "") if latest_category else ""
+        last_completed_task = _owner_service_category_display(latest_category, current_lang) or latest_completed.get("description", "") or dashboard_copy["last_completed_task_label"]
+        last_completed_task_key = ""
 
     owner_portal = {
         "empty_state": not has_properties,
@@ -14285,7 +14432,7 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
             {"label": dashboard_copy["request_maintenance"], "label_key": "ownerDashboardRequestMaintenance", "href": "/owners/request-service?category=maintenance", "support": dashboard_copy["keep_property_protected"], "support_key": "ownerDashboardKeepPropertyProtected"},
             {"label": dashboard_copy["contact_concierge"], "label_key": "ownerDashboardContactConciergeAction", "href": "mailto:concierge@blackseaconnect.com", "support": dashboard_copy["private_local_contact"], "support_key": "ownerDashboardPrivateLocalContact"},
         ],
-        "activity_timeline": _owner_portal_activity_timeline(owner_requests, dashboard_copy),
+        "activity_timeline": _owner_portal_activity_timeline(owner_requests, dashboard_copy, current_lang),
         "notifications": [
             {"label": dashboard_copy["new_arrival"], "label_key": "ownerDashboardNewArrival", "detail": dashboard_copy["welcome_coordination_ready"], "detail_key": "ownerDashboardWelcomeCoordinationReady", "tone": "arrival"},
             {"label": dashboard_copy["cleaning_completed_notification"], "label_key": "ownerDashboardCleaningCompletedNotification", "detail": dashboard_copy["housekeeping_closed_latest_turn"], "detail_key": "ownerDashboardHousekeepingClosedLatestTurn", "tone": "success"},
@@ -14295,7 +14442,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         "recent_activity": [
             {
                 **record,
-                "last_update_display": _format_owner_portal_timestamp(record.get("last_update_at", record.get("created_at", ""))) or dashboard_copy["recently"],
+                "service_category_display": _owner_service_category_display(record.get("service_category", ""), current_lang),
+                "last_update_display": _format_local_datetime(record.get("last_update_at") or record.get("created_at"), current_lang) or dashboard_copy["recently"],
             }
             for record in owner_requests[:3]
         ],
@@ -18720,7 +18868,7 @@ def _admin_executive_timestamp_display(value):
     dt = value if isinstance(value, datetime) else _parse_iso_datetime(value)
     if not dt:
         return ""
-    return dt.astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC")
+    return dt.astimezone(ZoneInfo("Europe/Sofia")).strftime("%d.%m.%Y · %H:%M")
 
 
 def _admin_executive_record_alert(*, severity, category, property_label="", reservation_label="", operation_label="", created_at=None, recommended_action="", detail="", link=""):
@@ -22812,6 +22960,171 @@ def seed_demo_professional_command(magic_link=False, base_url=None):
         login_path = f"/auth/professional-magic/{token_record['token']}?lang=en"
         click.echo(f"One-time magic link (expires in {PROFESSIONAL_MAGIC_LINK_TTL_MINUTES} minutes):")
         click.echo(f"{local_base_url}{login_path}")
+
+
+# ---------------------------------------------------------------------------
+# Shared localization for canonical operational values.
+# IMPORTANT: this changes DISPLAY TEXT only. Stored/backend values stay intact.
+# ---------------------------------------------------------------------------
+
+_BSC_OPERATION_DISPLAY_LABELS = {
+    "bg": {
+        "cleaning": "Почистване",
+        "maintenance": "Поддръжка",
+        "inspection": "Проверка",
+        "repair": "Ремонт",
+        "airport transfer": "Трансфер от летището",
+        "transfer": "Трансфер",
+        "check-in": "Настаняване",
+        "check-out": "Освобождаване",
+        "guest support": "Поддръжка за гости",
+        "owner service request": "Заявка за услуга от собственик",
+        "service request": "Заявка за услуга",
+        "other": "Друго",
+
+        "apartment": "Апартамент",
+        "house": "Къща",
+        "villa": "Вила",
+        "studio": "Студио",
+        "room": "Стая",
+
+        "new": "Нова",
+        "assigned": "Възложена",
+        "in progress": "В процес",
+        "in_progress": "В процес",
+        "completed": "Приключена",
+        "cancelled": "Отказана",
+        "canceled": "Отказана",
+        "scheduled": "Планирана",
+        "pending": "Изчакваща",
+    },
+
+    "en": {
+        "cleaning": "Cleaning",
+        "maintenance": "Maintenance",
+        "inspection": "Inspection",
+        "repair": "Repair",
+        "airport transfer": "Airport transfer",
+        "transfer": "Transfer",
+        "check-in": "Check-in",
+        "check-out": "Check-out",
+        "guest support": "Guest support",
+        "owner service request": "Owner service request",
+        "service request": "Service request",
+        "other": "Other",
+
+        "apartment": "Apartment",
+        "house": "House",
+        "villa": "Villa",
+        "studio": "Studio",
+        "room": "Room",
+
+        "new": "New",
+        "assigned": "Assigned",
+        "in progress": "In progress",
+        "in_progress": "In progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "canceled": "Cancelled",
+        "scheduled": "Scheduled",
+        "pending": "Pending",
+    },
+
+    "fr": {
+        "cleaning": "Nettoyage",
+        "maintenance": "Maintenance",
+        "inspection": "Inspection",
+        "repair": "Réparation",
+        "airport transfer": "Transfert aéroport",
+        "transfer": "Transfert",
+        "check-in": "Arrivée",
+        "check-out": "Départ",
+        "guest support": "Assistance voyageurs",
+        "owner service request": "Demande de service du propriétaire",
+        "service request": "Demande de service",
+        "other": "Autre",
+
+        "apartment": "Appartement",
+        "house": "Maison",
+        "villa": "Villa",
+        "studio": "Studio",
+        "room": "Chambre",
+
+        "new": "Nouvelle",
+        "assigned": "Attribuée",
+        "in progress": "En cours",
+        "in_progress": "En cours",
+        "completed": "Terminée",
+        "cancelled": "Annulée",
+        "canceled": "Annulée",
+        "scheduled": "Planifiée",
+        "pending": "En attente",
+    },
+
+    "ru": {
+        "cleaning": "Уборка",
+        "maintenance": "Обслуживание",
+        "inspection": "Проверка",
+        "repair": "Ремонт",
+        "airport transfer": "Трансфер из аэропорта",
+        "transfer": "Трансфер",
+        "check-in": "Заезд",
+        "check-out": "Выезд",
+        "guest support": "Поддержка гостей",
+        "owner service request": "Заявка на услугу от владельца",
+        "service request": "Заявка на услугу",
+        "other": "Другое",
+
+        "apartment": "Апартаменты",
+        "house": "Дом",
+        "villa": "Вилла",
+        "studio": "Студия",
+        "room": "Комната",
+
+        "new": "Новая",
+        "assigned": "Назначена",
+        "in progress": "В процессе",
+        "in_progress": "В процессе",
+        "completed": "Завершена",
+        "cancelled": "Отменена",
+        "canceled": "Отменена",
+        "scheduled": "Запланирована",
+        "pending": "В ожидании",
+    },
+}
+
+
+def _localized_operation_value(value, lang=None):
+    """Return a localized DISPLAY label without modifying the canonical value."""
+    raw = str(value or "").strip()
+    if not raw:
+        return raw
+
+    language = str(lang or _resolve_current_language() or "en").strip().lower()
+    if language not in SUPPORTED_LANGUAGES:
+        language = "en"
+
+    normalized = raw.replace("-", " ").strip().casefold()
+
+    labels = _BSC_OPERATION_DISPLAY_LABELS.get(language, _BSC_OPERATION_DISPLAY_LABELS["en"])
+
+    if normalized in labels:
+        return labels[normalized]
+
+    underscore_normalized = raw.strip().casefold()
+    if underscore_normalized in labels:
+        return labels[underscore_normalized]
+
+    # Unknown business/user data must never be guessed or destroyed.
+    return raw
+
+
+@app.context_processor
+def _inject_operation_display_localizer():
+    return {
+        "localized_operation_value": _localized_operation_value,
+    }
+
 
 
 def _professional_task_matches_account(task_record, professional_account):
