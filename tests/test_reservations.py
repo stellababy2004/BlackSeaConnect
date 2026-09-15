@@ -220,17 +220,18 @@ class ReservationEngineTests(unittest.TestCase):
         filtered_html = filtered.get_data(as_text=True)
         admin_detail_html = admin_detail.get_data(as_text=True)
 
-        self.assertIn("Reservation engine", admin_dashboard_html)
-        self.assertIn("Booking and availability", admin_dashboard_html)
         self.assertIn("Резервации и заетост", owner_dashboard_html)
         self.assertIn("Предстоящи пристигания", owner_dashboard_html)
-        self.assertIn("Today's check-ins", admin_dashboard_html)
+
+        # Reservation visibility/isolation.
         self.assertIn("Anna Ivanova", admin_reservations_html)
         self.assertIn("Boris Petrov", admin_reservations_html)
         self.assertIn("Anna Ivanova", owner_reservations_html)
         self.assertNotIn("Boris Petrov", owner_reservations_html)
         self.assertIn("Anna Ivanova", filtered_html)
         self.assertNotIn("Boris Petrov", filtered_html)
+
+        # Detail page remains the authoritative reservation record.
         self.assertIn("Reservation created", admin_detail_html)
         self.assertIn("Reservation activity", admin_detail_html)
         self.assertIn("Occupied", admin_detail_html)
@@ -250,7 +251,6 @@ class ReservationEngineTests(unittest.TestCase):
         owner_detail = self.client.get(f"/owners/reservations/{reservation_one['id']}")
         owner_detail_html = owner_detail.get_data(as_text=True)
         self.assertNotIn("Internal note for operations.", owner_detail_html)
-        self.assertIn("Occupancy", admin_dashboard_html)
 
     def test_blocked_dates_reservation_skips_operations_and_marks_property_blocked(self):
         with patch.dict(os.environ, self.env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):

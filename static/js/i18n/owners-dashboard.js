@@ -5,6 +5,10 @@
   "bg": {
       "ownersDashboard": {
     "ownerMetricReady": "Готово",
+      "ownerMetricPilot": "Пилотный",
+      "ownerMetricGrowing": "Развивается",
+      "ownerMetricPilot": "Пилотен",
+      "ownerMetricGrowing": "Развива се",
       "ownerDashboardPortfolioLabel": "Портфолио",
       "ownerDashboardOverallHealth": "Общо състояние",
       "ownerDashboardOperationalReadiness": "Оперативна готовност",
@@ -398,6 +402,8 @@
   "en": {
       "ownersDashboard": {
     "ownerMetricReady": "Ready",
+      "ownerMetricPilot": "Pilot",
+      "ownerMetricGrowing": "Growing",
       "ownerDashboardPortfolioLabel": "Portfolio",
       "ownerDashboardOverallHealth": "Overall health",
       "ownerDashboardOperationalReadiness": "Operational readiness",
@@ -791,6 +797,8 @@
   "fr": {
       "ownersDashboard": {
     "ownerMetricReady": "Prêt",
+      "ownerMetricPilot": "Pilote",
+      "ownerMetricGrowing": "En croissance",
       "ownerDashboardPortfolioLabel": "Portefeuille",
       "ownerDashboardOverallHealth": "État général",
       "ownerDashboardOperationalReadiness": "Préparation opérationnelle",

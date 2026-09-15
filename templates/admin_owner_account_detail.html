@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | {{ ui.owner_profile }}</title>
+  <title>BlackSea Connect | {{ {'bg':'Профил на собственик','en':'Owner profile','fr':'Profil propriétaire','ru':'Профиль владельца'}[page_lang|default(current_lang|default('en')) if page_lang|default(current_lang|default('en')) in ['bg','en','fr','ru'] else 'en'] }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-owner-detail-page {

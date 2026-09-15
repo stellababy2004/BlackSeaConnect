@@ -800,9 +800,14 @@ class ApplicationWorkflowTests(unittest.TestCase):
             response = self.client.get("/admin", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
-        html = response.get_data(as_text=True)
-        self.assertIn("Partner Applications", html)
-        self.assertIn("Professional Applications", html)
+
+        # Dashboard V3 no longer renders individual application names on /admin.
+        # Verify the actual dashboard KPI data contract instead.
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            dashboard = app_module._build_admin_dashboard()
+
+        self.assertEqual(dashboard["partner_status_counts"]["new"], 1)
+        self.assertEqual(dashboard["professional_status_counts"]["converted"], 1)
 
     def test_approved_professional_can_log_in_and_see_dashboard_counts(self):
         self._seed_professional_account(
