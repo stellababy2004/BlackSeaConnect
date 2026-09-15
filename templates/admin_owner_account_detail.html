@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Owner Account Detail</title>
+  <title>BlackSea Connect | {{ ui.owner_profile }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-owner-detail-page {
@@ -237,6 +237,10 @@
     }
   </style>
 </head>
+{% set ADMIN_UI = {"bg": {"admin": "Админ", "owner_crm": "CRM на собственици", "back_owners": "Назад към собствениците", "edit_owner": "Редактирай собственик", "archive_owner": "Архивирай собственик", "recycle_bin": "Кошче", "back_cockpit": "Назад към панела", "owner_profile": "Профил на собственика", "account_details": "Данни за акаунта", "full_name": "Име", "phone": "Телефон", "language": "Език", "registration_date": "Дата на регистрация", "last_login": "Последен вход", "properties": "Имоти", "linked_properties": "Свързани имоти", "owner_properties": "Имоти на собственика", "property_name": "Име на имота", "property_type": "Тип имот", "city_location": "Град / местоположение", "unit_count": "Брой единици", "no_properties": "Все още няма имоти, свързани с този собственик.", "activity": "Активност", "activity_summary": "Обобщение на активността", "owner_registrations": "Регистрации на собственик", "magic_logins": "Входове с magic link", "property_creations": "Създадени имоти", "service_requests": "Заявки за услуги", "owner_settings": "Настройки на собственика", "status_notes": "Статус и вътрешни бележки", "status": "Статус", "internal_notes": "Вътрешни бележки", "notes_placeholder": "Лични бележки за административния екип", "save_owner": "Запази собственика", "timeline": "Хронология", "owner_timeline": "Хронология на собственика", "no_timeline": "Все още няма събития.", "super_admin": "САМО ЗА SUPER ADMIN", "delete_owner": "Изтрий собственика окончателно", "delete_warning": "Това действие е необратимо и премахва досието на собственика и свързаните оперативни данни.", "owner_dossier": "Досие на собственика", "currently_has": "Този собственик в момента има:", "delete_all": "Изтриването на собственика ще премахне окончателно всички свързани данни.", "type_delete": "Напишете DELETE, за да продължите:", "cancel": "Отказ", "partner_detail": "Детайли за партньорска кандидатура", "review_partner": "Преглед на партньорска кандидатура", "partner_intro": "Актуализирайте статуса, определете отговорник и добавете вътрешни бележки.", "back_partners": "Назад към партньорските кандидатури", "export_csv": "Експорт CSV", "owner": "Отговорник", "unassigned": "Невъзложено", "contact_person": "Лице за контакт", "website": "Уебсайт", "category": "Категория", "location": "Местоположение", "years_business": "Години в бизнеса", "description": "Описание", "update_status": "Актуализирай статус", "assign_owner": "Определи отговорник", "save_application": "Запази кандидатурата", "activity_history": "История на активността", "newest_first": "Най-новите първо", "no_activity": "Все още няма активност.", "no_activity_copy": "След следващото запазване тук ще започнат да се записват събития.", "partner_pipeline": "Партньорски pipeline", "partner_applications": "Партньорски кандидатури", "partner_intro_list": "Преглеждайте кандидатурите, актуализирайте CRM статуса и следете отговорниците.", "partner_metrics": "Метрики на партньорските кандидатури", "total_applications": "Общо кандидатури", "new": "Нови", "contacted": "Контактирани", "qualified": "Квалифицирани", "converted": "Конвертирани", "lost": "Загубени", "contact": "Контакт", "no_partners": "Все още няма партньорски кандидатури.", "no_partners_copy": "Изпратените партньорски кандидатури ще се появят тук веднага след записването им.", "recycle_title": "АДМИН КОШЧЕ", "recoverable": "Възстановими записи", "recycle_intro": "Изтритите заявки за услуги могат да бъдат възстановени до 30 дни. Архивираните собственици остават възстановими безсрочно.", "operator_console": "Операторска конзола", "owner_accounts": "Собственици", "deleted_requests": "Изтрити или архивирани заявки", "property": "Имот", "restore_request": "Възстанови заявката", "delete_permanently": "Изтрий окончателно", "no_deleted": "Няма изтрити заявки за услуги.", "owners": "Собственици", "archived_dossiers": "Архивирани досиета на собственици", "archived": "АРХИВИРАН", "restore_owner": "Възстанови собственика", "no_archived": "Няма архивирани собственици."}, "en": {"admin": "Admin", "owner_crm": "Owner CRM", "back_owners": "Back to owner accounts", "edit_owner": "Edit owner", "archive_owner": "Archive owner", "recycle_bin": "Recycle bin", "back_cockpit": "Back to cockpit", "owner_profile": "Owner profile", "account_details": "Account details", "full_name": "Full name", "phone": "Phone", "language": "Language", "registration_date": "Registration date", "last_login": "Last login", "properties": "Properties", "linked_properties": "Linked properties", "owner_properties": "Owner properties", "property_name": "Property name", "property_type": "Property type", "city_location": "City / location", "unit_count": "Unit count", "no_properties": "No properties are linked to this owner yet.", "activity": "Activity", "activity_summary": "Account activity summary", "owner_registrations": "Owner registrations", "magic_logins": "Magic-link logins", "property_creations": "Property creations", "service_requests": "Service requests", "owner_settings": "Owner settings", "status_notes": "Status and internal notes", "status": "Status", "internal_notes": "Internal notes", "notes_placeholder": "Private notes for the admin team", "save_owner": "Save owner", "timeline": "Timeline", "owner_timeline": "Owner timeline", "no_timeline": "No timeline events yet.", "super_admin": "SUPER ADMIN ONLY", "delete_owner": "Delete owner permanently", "delete_warning": "This action is irreversible and removes the owner dossier and related operational data.", "owner_dossier": "Owner dossier", "currently_has": "This owner currently has:", "delete_all": "Deleting this owner will permanently remove all related data.", "type_delete": "Type DELETE to continue:", "cancel": "Cancel", "partner_detail": "Partner application detail", "review_partner": "Review partner application", "partner_intro": "Update status, assign ownership and capture internal notes.", "back_partners": "Back to partner applications", "export_csv": "Export CSV", "owner": "Owner", "unassigned": "Unassigned", "contact_person": "Contact Person", "website": "Website", "category": "Category", "location": "Location", "years_business": "Years in Business", "description": "Description", "update_status": "Update status", "assign_owner": "Assign owner", "save_application": "Save application", "activity_history": "Activity history", "newest_first": "Newest first", "no_activity": "No activity yet.", "no_activity_copy": "This application will start collecting timeline events after the next save.", "partner_pipeline": "Partner pipeline", "partner_applications": "Partner applications", "partner_intro_list": "Review company applications, update CRM status and keep ownership clear.", "partner_metrics": "Partner application metrics", "total_applications": "Total applications", "new": "New", "contacted": "Contacted", "qualified": "Qualified", "converted": "Converted", "lost": "Lost", "contact": "Contact", "no_partners": "No partner applications yet.", "no_partners_copy": "Submitted partner applications will appear here as soon as they are saved.", "recycle_title": "ADMIN RECYCLE BIN", "recoverable": "Recoverable records", "recycle_intro": "Deleted service requests are recoverable for 30 days. Archived owners remain recoverable indefinitely.", "operator_console": "Operator Console", "owner_accounts": "Owner accounts", "deleted_requests": "Deleted or archived requests", "property": "Property", "restore_request": "Restore request", "delete_permanently": "Delete permanently", "no_deleted": "No deleted service requests.", "owners": "Owners", "archived_dossiers": "Archived owner dossiers", "archived": "ARCHIVED", "restore_owner": "Restore owner", "no_archived": "No archived owners."}, "fr": {"admin": "Admin", "owner_crm": "CRM propriétaires", "back_owners": "Retour aux propriétaires", "edit_owner": "Modifier le propriétaire", "archive_owner": "Archiver le propriétaire", "recycle_bin": "Corbeille", "back_cockpit": "Retour au tableau de bord", "owner_profile": "Profil propriétaire", "account_details": "Détails du compte", "full_name": "Nom complet", "phone": "Téléphone", "language": "Langue", "registration_date": "Date d'inscription", "last_login": "Dernière connexion", "properties": "Biens", "linked_properties": "Biens associés", "owner_properties": "Biens du propriétaire", "property_name": "Nom du bien", "property_type": "Type de bien", "city_location": "Ville / localisation", "unit_count": "Nombre d'unités", "no_properties": "Aucun bien n'est encore associé à ce propriétaire.", "activity": "Activité", "activity_summary": "Résumé de l'activité du compte", "owner_registrations": "Inscriptions propriétaire", "magic_logins": "Connexions par lien magique", "property_creations": "Biens créés", "service_requests": "Demandes de service", "owner_settings": "Paramètres propriétaire", "status_notes": "Statut et notes internes", "status": "Statut", "internal_notes": "Notes internes", "notes_placeholder": "Notes privées pour l'équipe administrative", "save_owner": "Enregistrer le propriétaire", "timeline": "Historique", "owner_timeline": "Historique du propriétaire", "no_timeline": "Aucun événement pour le moment.", "super_admin": "SUPER ADMIN UNIQUEMENT", "delete_owner": "Supprimer définitivement le propriétaire", "delete_warning": "Cette action est irréversible et supprime le dossier du propriétaire ainsi que les données opérationnelles associées.", "owner_dossier": "Dossier propriétaire", "currently_has": "Ce propriétaire possède actuellement :", "delete_all": "La suppression de ce propriétaire supprimera définitivement toutes les données associées.", "type_delete": "Saisissez DELETE pour continuer :", "cancel": "Annuler", "partner_detail": "Détail de la candidature partenaire", "review_partner": "Examiner la candidature partenaire", "partner_intro": "Mettez à jour le statut, attribuez un responsable et ajoutez des notes internes.", "back_partners": "Retour aux candidatures partenaires", "export_csv": "Exporter CSV", "owner": "Responsable", "unassigned": "Non attribué", "contact_person": "Personne de contact", "website": "Site web", "category": "Catégorie", "location": "Localisation", "years_business": "Années d'activité", "description": "Description", "update_status": "Mettre à jour le statut", "assign_owner": "Attribuer un responsable", "save_application": "Enregistrer la candidature", "activity_history": "Historique d'activité", "newest_first": "Plus récents d'abord", "no_activity": "Aucune activité pour le moment.", "no_activity_copy": "Les événements apparaîtront ici après le prochain enregistrement.", "partner_pipeline": "Pipeline partenaires", "partner_applications": "Candidatures partenaires", "partner_intro_list": "Examinez les candidatures des entreprises, mettez à jour le statut CRM et suivez les responsables.", "partner_metrics": "Indicateurs des candidatures partenaires", "total_applications": "Total des candidatures", "new": "Nouvelles", "contacted": "Contactées", "qualified": "Qualifiées", "converted": "Converties", "lost": "Perdues", "contact": "Contact", "no_partners": "Aucune candidature partenaire pour le moment.", "no_partners_copy": "Les candidatures soumises apparaîtront ici dès leur enregistrement.", "recycle_title": "CORBEILLE ADMIN", "recoverable": "Éléments récupérables", "recycle_intro": "Les demandes de service supprimées sont récupérables pendant 30 jours. Les propriétaires archivés restent récupérables sans limite de durée.", "operator_console": "Console opérateur", "owner_accounts": "Propriétaires", "deleted_requests": "Demandes supprimées ou archivées", "property": "Bien", "restore_request": "Restaurer la demande", "delete_permanently": "Supprimer définitivement", "no_deleted": "Aucune demande de service supprimée.", "owners": "Propriétaires", "archived_dossiers": "Dossiers propriétaires archivés", "archived": "ARCHIVÉ", "restore_owner": "Restaurer le propriétaire", "no_archived": "Aucun propriétaire archivé."}, "ru": {"admin": "Админ", "owner_crm": "CRM владельцев", "back_owners": "Назад к владельцам", "edit_owner": "Редактировать владельца", "archive_owner": "Архивировать владельца", "recycle_bin": "Корзина", "back_cockpit": "Назад к панели", "owner_profile": "Профиль владельца", "account_details": "Данные аккаунта", "full_name": "Полное имя", "phone": "Телефон", "language": "Язык", "registration_date": "Дата регистрации", "last_login": "Последний вход", "properties": "Объекты", "linked_properties": "Связанные объекты", "owner_properties": "Объекты владельца", "property_name": "Название объекта", "property_type": "Тип объекта", "city_location": "Город / местоположение", "unit_count": "Количество единиц", "no_properties": "К этому владельцу пока не привязано ни одного объекта.", "activity": "Активность", "activity_summary": "Сводка активности аккаунта", "owner_registrations": "Регистрации владельца", "magic_logins": "Входы по magic link", "property_creations": "Созданные объекты", "service_requests": "Заявки на услуги", "owner_settings": "Настройки владельца", "status_notes": "Статус и внутренние заметки", "status": "Статус", "internal_notes": "Внутренние заметки", "notes_placeholder": "Личные заметки для административной команды", "save_owner": "Сохранить владельца", "timeline": "Хронология", "owner_timeline": "Хронология владельца", "no_timeline": "Событий пока нет.", "super_admin": "ТОЛЬКО ДЛЯ SUPER ADMIN", "delete_owner": "Удалить владельца навсегда", "delete_warning": "Это действие необратимо и удаляет досье владельца и связанные операционные данные.", "owner_dossier": "Досье владельца", "currently_has": "У этого владельца сейчас:", "delete_all": "Удаление владельца навсегда удалит все связанные данные.", "type_delete": "Введите DELETE, чтобы продолжить:", "cancel": "Отмена", "partner_detail": "Детали заявки партнёра", "review_partner": "Рассмотреть заявку партнёра", "partner_intro": "Обновите статус, назначьте ответственного и добавьте внутренние заметки.", "back_partners": "Назад к заявкам партнёров", "export_csv": "Экспорт CSV", "owner": "Ответственный", "unassigned": "Не назначен", "contact_person": "Контактное лицо", "website": "Сайт", "category": "Категория", "location": "Местоположение", "years_business": "Лет в бизнесе", "description": "Описание", "update_status": "Обновить статус", "assign_owner": "Назначить ответственного", "save_application": "Сохранить заявку", "activity_history": "История активности", "newest_first": "Сначала новые", "no_activity": "Активности пока нет.", "no_activity_copy": "После следующего сохранения здесь начнут появляться события.", "partner_pipeline": "Партнёрский pipeline", "partner_applications": "Заявки партнёров", "partner_intro_list": "Просматривайте заявки компаний, обновляйте CRM-статус и отслеживайте ответственных.", "partner_metrics": "Метрики партнёрских заявок", "total_applications": "Всего заявок", "new": "Новые", "contacted": "Связались", "qualified": "Квалифицированы", "converted": "Конвертированы", "lost": "Потеряны", "contact": "Контакт", "no_partners": "Заявок партнёров пока нет.", "no_partners_copy": "Отправленные заявки появятся здесь сразу после сохранения.", "recycle_title": "КОРЗИНА АДМИНИСТРАТОРА", "recoverable": "Восстанавливаемые записи", "recycle_intro": "Удалённые заявки на услуги можно восстановить в течение 30 дней. Архивированные владельцы доступны для восстановления без ограничения срока.", "operator_console": "Консоль оператора", "owner_accounts": "Владельцы", "deleted_requests": "Удалённые или архивированные заявки", "property": "Объект", "restore_request": "Восстановить заявку", "delete_permanently": "Удалить навсегда", "no_deleted": "Удалённых заявок на услуги нет.", "owners": "Владельцы", "archived_dossiers": "Архивированные досье владельцев", "archived": "АРХИВИРОВАН", "restore_owner": "Восстановить владельца", "no_archived": "Архивированных владельцев нет."}} %}
+{% set _ui_lang = page_lang|default(current_lang|default('en')) %}
+{% if _ui_lang not in ['bg','en','fr','ru'] %}{% set _ui_lang = 'en' %}{% endif %}
+{% set ui = ADMIN_UI[_ui_lang] %}
 <body class="admin-owner-detail-page">
   {% include '_admin_sidebar.html' %}
   <main class="admin-owner-detail-shell">
@@ -244,7 +248,7 @@
       <div>
         <div class="admin-owner-detail-meta">
           <span class="admin-owner-detail-chip">Admin</span>
-          <span class="admin-owner-detail-chip">Owner CRM</span>
+          <span class="admin-owner-detail-chip">{{ ui.owner_crm }}</span>
           <span class="admin-owner-detail-chip admin-owner-detail-chip--status">{{ owner_account.status|upper|e }}</span>
         </div>
         <h1>{{ owner_account.full_name|e }}</h1>
@@ -253,20 +257,20 @@
         </p>
       </div>
       <div class="admin-owner-detail-actions">
-        <a class="button button--secondary" href="/admin/owner-accounts">Back to owner accounts</a>
-        <a class="button button--ghost" href="#owner-settings">Edit owner</a>
+        <a class="button button--secondary" href="/admin/owner-accounts">{{ ui.back_owners }}</a>
+        <a class="button button--ghost" href="#owner-settings">{{ ui.edit_owner }}</a>
         <form method="post" action="{{ url_for('admin_owner_account_archive', owner_id=owner_account.id) }}">
           <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
-          <button class="button button--ghost" type="submit">Archive owner</button>
+          <button class="button button--ghost" type="submit">{{ ui.archive_owner }}</button>
         </form>
-        <a class="button button--ghost" href="{{ url_for('admin_owner_account_detail', owner_id=owner_account.id) }}">Export owner data</a>
-        <a class="button button--ghost" href="{{ url_for('admin_property_detail', property_id=properties[0].id) if properties else url_for('admin_properties') }}">Transfer properties</a>
+        <a class="button button--ghost" href="{{ url_for('admin_owner_account_detail', owner_id=owner_account.id) }}">{{ {'bg':'Експортирай данните','en':'Export owner data','fr':'Exporter les données','ru':'Экспортировать данные'}[_ui_lang] }}</a>
+        <a class="button button--ghost" href="{{ url_for('admin_property_detail', property_id=properties[0].id) if properties else url_for('admin_properties') }}">{{ {'bg':'Прехвърли имоти','en':'Transfer properties','fr':'Transférer les biens','ru':'Перенести объекты'}[_ui_lang] }}</a>
         {% if is_super_admin %}
-          <a class="button button--ghost" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner_account.id) }}">Delete owner permanently</a>
+          <a class="button button--ghost" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner_account.id) }}">{{ ui.delete_owner }}</a>
         {% endif %}
         <a class="button button--ghost" href="{{ url_for('admin_operations', owner=owner_account.email) }}">Open Tasks</a>
-        <a class="button button--ghost" href="/admin/recycle-bin">Recycle bin</a>
-        <a class="button button--ghost" href="/admin">Back to cockpit</a>
+        <a class="button button--ghost" href="/admin/recycle-bin">{{ ui.recycle_bin }}</a>
+        <a class="button button--ghost" href="/admin">{{ ui.back_cockpit }}</a>
       </div>
     </section>
 
@@ -283,11 +287,11 @@
     <section class="admin-owner-detail-grid">
       <div class="admin-owner-detail-stack">
         <article class="admin-owner-detail-panel" id="owner-settings">
-          <p class="eyebrow">Owner profile</p>
-          <h2 class="admin-owner-detail-section-title">Account details</h2>
+          <p class="eyebrow">{{ ui.owner_profile }}</p>
+          <h2 class="admin-owner-detail-section-title">{{ ui.account_details }}</h2>
           <dl class="admin-owner-detail-dl">
             <div>
-              <dt>Full name</dt>
+              <dt>{{ ui.full_name }}</dt>
               <dd>{{ owner_account.full_name|e }}</dd>
             </div>
             <div>
@@ -295,35 +299,35 @@
               <dd>{{ owner_account.email|e }}</dd>
             </div>
             <div>
-              <dt>Phone</dt>
+              <dt>{{ ui.phone }}</dt>
               <dd>{{ owner_account.phone|e }}</dd>
             </div>
             <div>
-              <dt>Language</dt>
+              <dt>{{ ui.language }}</dt>
               <dd>{{ owner_account.language|upper|e }}</dd>
             </div>
             <div>
-              <dt>Registration date</dt>
+              <dt>{{ ui.registration_date }}</dt>
               <dd>{{ owner_account.created_at|e }}</dd>
             </div>
             <div>
-              <dt>Last login</dt>
+              <dt>{{ ui.last_login }}</dt>
               <dd>{% if owner_account.last_login_at %}{{ owner_account.last_login_at|e }}{% else %}n/a{% endif %}</dd>
             </div>
           </dl>
         </article>
 
         <article class="admin-owner-detail-panel">
-          <p class="eyebrow">Properties</p>
-          <h2 class="admin-owner-detail-section-title">Linked properties</h2>
+          <p class="eyebrow">{{ ui.properties }}</p>
+          <h2 class="admin-owner-detail-section-title">{{ ui.linked_properties }}</h2>
           {% if properties %}
-            <table class="admin-owner-detail-table" aria-label="Owner properties">
+            <table class="admin-owner-detail-table" aria-label="{{ ui.owner_properties|e }}">
               <thead>
                 <tr>
-                  <th>Property name</th>
-                  <th>Property type</th>
-                  <th>City / location</th>
-                  <th>Unit count</th>
+                  <th>{{ ui.property_name }}</th>
+                  <th>{{ ui.property_type }}</th>
+                  <th>{{ ui.city_location }}</th>
+                  <th>{{ ui.unit_count }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -338,28 +342,28 @@
               </tbody>
             </table>
           {% else %}
-            <p class="admin-owner-detail-empty">No properties are linked to this owner yet.</p>
+            <p class="admin-owner-detail-empty">{{ ui.no_properties }}</p>
           {% endif %}
         </article>
 
         <article class="admin-owner-detail-panel">
-          <p class="eyebrow">Activity</p>
-          <h2 class="admin-owner-detail-section-title">Account activity summary</h2>
+          <p class="eyebrow">{{ ui.activity }}</p>
+          <h2 class="admin-owner-detail-section-title">{{ ui.activity_summary }}</h2>
           <div class="admin-owner-detail-card-grid">
             <div class="admin-owner-detail-stat">
-              <span>Owner registrations</span>
+              <span>{{ ui.owner_registrations }}</span>
               <strong>{{ activity_counts.registrations }}</strong>
             </div>
             <div class="admin-owner-detail-stat">
-              <span>Magic-link logins</span>
+              <span>{{ ui.magic_logins }}</span>
               <strong>{{ activity_counts.magic_link_logins }}</strong>
             </div>
             <div class="admin-owner-detail-stat">
-              <span>Property creations</span>
+              <span>{{ ui.property_creations }}</span>
               <strong>{{ activity_counts.property_creations }}</strong>
             </div>
             <div class="admin-owner-detail-stat">
-              <span>Service requests</span>
+              <span>{{ ui.service_requests }}</span>
               <strong>{{ activity_counts.service_requests }}</strong>
             </div>
           </div>
@@ -368,12 +372,12 @@
 
       <div class="admin-owner-detail-stack">
         <article class="admin-owner-detail-panel">
-          <p class="eyebrow">Owner settings</p>
-          <h2 class="admin-owner-detail-section-title">Status and internal notes</h2>
+          <p class="eyebrow">{{ ui.owner_settings }}</p>
+          <h2 class="admin-owner-detail-section-title">{{ ui.status_notes }}</h2>
           <form class="admin-owner-detail-form" method="post" action="/admin/owner-accounts/{{ owner_account.id|e }}">
             <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
-              <span>Status</span>
+              <span>{{ ui.status }}</span>
               <select name="status" required>
                 {% for option in owner_status_options %}
                   <option value="{{ option|lower|e }}" {% if owner_account.status|upper == option %}selected{% endif %}>{{ option|title|e }}</option>
@@ -381,16 +385,16 @@
               </select>
             </label>
             <label>
-              <span>Internal notes</span>
-              <textarea name="internal_notes" placeholder="Private notes for the admin team">{{ owner_account.internal_notes|e }}</textarea>
+              <span>{{ ui.internal_notes }}</span>
+              <textarea name="internal_notes" placeholder="{{ ui.notes_placeholder|e }}">{{ owner_account.internal_notes|e }}</textarea>
             </label>
-            <button class="button button--primary" type="submit">Save owner</button>
+            <button class="button button--primary" type="submit">{{ ui.save_owner }}</button>
           </form>
         </article>
 
         <article class="admin-owner-detail-panel">
-          <p class="eyebrow">Timeline</p>
-          <h2 class="admin-owner-detail-section-title">Owner timeline</h2>
+          <p class="eyebrow">{{ ui.timeline }}</p>
+          <h2 class="admin-owner-detail-section-title">{{ ui.owner_timeline }}</h2>
           {% if timeline %}
             <div class="admin-owner-detail-timeline">
               {% for event in timeline %}
@@ -406,7 +410,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="admin-owner-detail-empty">No timeline events yet.</p>
+            <p class="admin-owner-detail-empty">{{ ui.no_timeline }}</p>
           {% endif %}
         </article>
       </div>

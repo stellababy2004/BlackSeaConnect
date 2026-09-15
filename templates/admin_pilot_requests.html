@@ -8,34 +8,104 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Pilot Requests</title>
+  <title>
+{% if page_lang == 'bg' %}BlackSea Connect | Заявки за пилотен достъп
+{% elif page_lang == 'fr' %}BlackSea Connect | Demandes d’accès pilote
+{% elif page_lang == 'ru' %}BlackSea Connect | Заявки на пилотный доступ
+{% else %}BlackSea Connect | Pilot access requests
+{% endif %}
+</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page">
 
 {% set pilot_ui = {
 'bg': {
-'eyebrow':'Пилотен достъп','title':'Заявки за пилотен достъп',
-'intro':'{{ pilotui.intro }}',
-'back':'Назад към таблото','export':'Експорт на заявките',
-'lead_search':'Търсене на заявки','filter':'Филтриране на заявките',
-'search':'Търсене','placeholder':'Име, имейл, град или тип имот'
+'eyebrow':'Пилотен достъп',
+'title':'Заявки за пилотен достъп',
+'intro':'Управлявайте заявки от собственици, агенции и оператори.',
+'back':'Назад към таблото',
+'export':'Експорт на заявките',
+'lead_search':'Търсене на заявки',
+'filter':'Филтриране на заявките',
+'search':'Търсене',
+'placeholder':'Име, имейл, град или тип имот',
+'anonymous':'Анонимна заявка',
+'property_type':'Тип имот',
+'apartment_count':'Брой апартаменти',
+'city':'Град / местоположение',
+'concierge_needs':'Необходими услуги',
+'owner':'Собственик',
+'email':'Имейл',
+'language':'Език',
+'empty_title':'Все още няма заявки за пилотен достъп.',
+'empty_copy':'Когато бъде изпратена пилотна форма, заявката ще се появи тук.'
 },
 'en': {
-'eyebrow':'Pilot access','title':'Pilot access requests',
+'eyebrow':'Pilot access',
+'title':'Pilot access requests',
 'intro':'Manage requests from owners, agencies and operators.',
-'back':'Back to dashboard','export':'Export requests',
-'lead_search':'Lead search','filter':'Filter requests',
-'search':'Search','placeholder':'Name, email, city or property type'
+'back':'Back to dashboard',
+'export':'Export requests',
+'lead_search':'Lead search',
+'filter':'Filter requests',
+'search':'Search',
+'placeholder':'Name, email, city or property type',
+'anonymous':'Anonymous request',
+'property_type':'Property type',
+'apartment_count':'Apartment count',
+'city':'City / location',
+'concierge_needs':'Concierge needs',
+'owner':'Owner',
+'email':'Email',
+'language':'Language',
+'empty_title':'No pilot requests yet.',
+'empty_copy':'As soon as a pilot form is saved, it will appear here in the operational queue.'
 },
 'fr': {
-'eyebrow':'Accès pilote','title':'Demandes d’accès pilote',
+'eyebrow':'Accès pilote',
+'title':'Demandes d’accès pilote',
 'intro':'Gérez les demandes des propriétaires, agences et opérateurs.',
-'back':'Retour au tableau de bord','export':'Exporter les demandes',
-'lead_search':'Recherche de demandes','filter':'Filtrer les demandes',
-'search':'Recherche','placeholder':'Nom, e-mail, ville ou type de bien'
+'back':'Retour au tableau de bord',
+'export':'Exporter les demandes',
+'lead_search':'Recherche de demandes',
+'filter':'Filtrer les demandes',
+'search':'Recherche',
+'placeholder':'Nom, e-mail, ville ou type de bien',
+'anonymous':'Demande anonyme',
+'property_type':'Type de bien',
+'apartment_count':'Nombre d’appartements',
+'city':'Ville / localisation',
+'concierge_needs':'Services nécessaires',
+'owner':'Propriétaire',
+'email':'E-mail',
+'language':'Langue',
+'empty_title':'Aucune demande d’accès pilote.',
+'empty_copy':'Dès qu’un formulaire pilote est enregistré, la demande apparaîtra ici.'
+},
+'ru': {
+'eyebrow':'Пилотный доступ',
+'title':'Заявки на пилотный доступ',
+'intro':'Управляйте заявками от владельцев, агентств и операторов.',
+'back':'Назад к панели',
+'export':'Экспорт заявок',
+'lead_search':'Поиск заявок',
+'filter':'Фильтр заявок',
+'search':'Поиск',
+'placeholder':'Имя, e-mail, город или тип объекта',
+'anonymous':'Анонимная заявка',
+'property_type':'Тип объекта',
+'apartment_count':'Количество апартаментов',
+'city':'Город / местоположение',
+'concierge_needs':'Необходимые услуги',
+'owner':'Владелец',
+'email':'E-mail',
+'language':'Язык',
+'empty_title':'Заявок на пилотный доступ пока нет.',
+'empty_copy':'После отправки пилотной формы заявка появится здесь.'
 }
 } %}
+
 {% set pilotui = pilot_ui.get(page_lang|default('en'), pilot_ui['en']) %}
 
 
@@ -47,8 +117,8 @@
         <p>{{ pilotui.intro }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin">{{ pilotui.back }}</a>
-        <a class="button button--ghost" href="/admin/pilot-requests/export">{{ pilotui.export }}</a>
+        <a class="button button--secondary" href="/admin?lang={{ page_lang|e }}">{{ pilotui.back }}</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export?lang={{ page_lang|e }}">{{ pilotui.export }}</a>
       </div>
     </section>
 
@@ -70,7 +140,7 @@
         {% for item in requests %}
           <a
             class="admin-pilot-card admin-pilot-card--link"
-            href="/admin/pilot-requests/{{ item.id|e }}"
+            href="/admin/pilot-requests/{{ item.id|e }}?lang={{ page_lang|e }}"
             data-pilot-request-card
             data-search="{{ (item.name ~ ' ' ~ item.email ~ ' ' ~ item.city ~ ' ' ~ item.property_type ~ ' ' ~ item.owner)|lower|e }}"
           >
@@ -78,24 +148,24 @@
               <p class="eyebrow">{{ item.created_at|e }}</p>
               <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
             </div>
-            <h2>{{ item.name|e if item.name else "Anonymous request" }}</h2>
-            <p><strong>Property type:</strong> {{ item.property_type|e }}</p>
-            <p><strong>Apartment count:</strong> {{ item.apartment_count|e }}</p>
-            <p><strong>City / location:</strong> {{ item.city|e }}</p>
-            <p><strong>Concierge needs:</strong> {{ item.concierge_needs|e }}</p>
+            <h2>{{ item.name|e if item.name else pilotui.anonymous }}</h2>
+            <p><strong>{{ pilotui.property_type }}:</strong> {{ item.property_type|e }}</p>
+            <p><strong>{{ pilotui.apartment_count }}:</strong> {{ item.apartment_count|e }}</p>
+            <p><strong>{{ pilotui.city }}:</strong> {{ item.city|e }}</p>
+            <p><strong>{{ pilotui.concierge_needs }}:</strong> {{ item.concierge_needs|e }}</p>
             {% if item.owner %}
-              <p><strong>Owner:</strong> {{ item.owner|e }}</p>
+              <p><strong>{{ pilotui.owner }}:</strong> {{ item.owner|e }}</p>
             {% endif %}
-            <p><strong>Email:</strong> {{ item.email|e }}</p>
+            <p><strong>{{ pilotui.email }}:</strong> {{ item.email|e }}</p>
             {% if item.current_language %}
-              <p><strong>Language:</strong> {{ item.current_language|e }}</p>
+              <p><strong>{{ pilotui.language }}:</strong> {{ item.current_language|e }}</p>
             {% endif %}
           </a>
         {% endfor %}
       {% else %}
         <article class="admin-pilot-card admin-empty-state">
-          <h2>No pilot requests yet.</h2>
-          <p>As soon as a pilot form is saved, it will appear here in the operational queue.</p>
+          <h2>{{ pilotui.empty_title }}</h2>
+          <p>{{ pilotui.empty_copy }}</p>
         </article>
       {% endif %}
     </section>

@@ -8,20 +8,178 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title data-i18n="adminPilotRequestDetail.pageTitle">BlackSea Connect | Pilot Request Detail</title>
+  <title>
+{% if page_lang == 'bg' %}BlackSea Connect | Детайли на пилотна заявка
+{% elif page_lang == 'fr' %}BlackSea Connect | Détail de la demande pilote
+{% elif page_lang == 'ru' %}BlackSea Connect | Детали пилотной заявки
+{% else %}BlackSea Connect | Pilot request detail
+{% endif %}
+</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
-  <main class="admin-cockpit-shell">
+
+{% set pilot_detail_ui = {
+'bg': {
+'page_title':'Детайли на пилотна заявка',
+'eyebrow':'Пилотна заявка',
+'title':'Детайли на заявката',
+'copy':'Прегледайте заявката, определете отговорник и поддържайте вътрешната хронология актуална.',
+'back':'Назад към заявките','export':'Експорт CSV',
+'anonymous':'Анонимна заявка','source':'Източник','pilot_form':'Пилотна форма',
+'status':'Статус','owner':'Собственик / контакт','unassigned':'Невъзложено',
+'property_type':'Тип имот','apartment_count':'Брой апартаменти',
+'city':'Град / местоположение','concierge_needs':'Необходими услуги',
+'email':'Имейл','language':'Език','submitted_from':'Изпратено от',
+'description':'Описание на заявката','asked_for':'Какво е поискал собственикът',
+'assign_owner':'Определи отговорник','owner_placeholder':'Контакт или вътрешен отговорник',
+'notes':'Вътрешни бележки','notes_placeholder':'Лични бележки за администраторския екип',
+'save':'Запази заявката','context':'Контекст на заявката',
+'legacy':'Детайли на пилотната заявка','unified':'Единен административен изглед',
+'legacy_copy':'Този запис използва същите четими карти, контроли и оформление като останалите административни заявки.',
+'timeline':'Хронология','recent':'Последните събития са първи',
+'no_timeline':'Все още няма записи в хронологията.',
+'no_timeline_copy':'Хронологията ще се появи след следващото записване.'
+},
+'en': {
+'page_title':'Pilot request detail','eyebrow':'Pilot request','title':'Pilot request detail',
+'copy':'Review the request, assign a responsible owner, and keep the internal timeline current.',
+'back':'Back to requests','export':'Export Leads CSV','anonymous':'Anonymous request',
+'source':'Source','pilot_form':'Pilot access form','status':'Status','owner':'Owner / contact',
+'unassigned':'Unassigned','property_type':'Property type','apartment_count':'Apartment count',
+'city':'City / location','concierge_needs':'Concierge needs','email':'Email','language':'Language',
+'submitted_from':'Submitted from','description':'Request description',
+'asked_for':'What the owner asked for','assign_owner':'Assign owner',
+'owner_placeholder':'Owner contact or internal assignee','notes':'Internal notes',
+'notes_placeholder':'Private notes for the admin team','save':'Save request',
+'context':'Request context','legacy':'Legacy pilot request details',
+'unified':'Unified admin cockpit view',
+'legacy_copy':'This legacy record now uses the same readable cards, controls and spacing as the rest of the admin request pages.',
+'timeline':'Timeline','recent':'Most recent events first',
+'no_timeline':'No timeline entries yet.','no_timeline_copy':'The request timeline will appear after the next save.'
+},
+'fr': {
+'page_title':'Détail de la demande pilote','eyebrow':'Demande pilote','title':'Détail de la demande',
+'copy':'Examinez la demande, attribuez un responsable et maintenez la chronologie interne à jour.',
+'back':'Retour aux demandes','export':'Exporter CSV','anonymous':'Demande anonyme',
+'source':'Source','pilot_form':'Formulaire pilote','status':'Statut','owner':'Propriétaire / contact',
+'unassigned':'Non attribué','property_type':'Type de bien','apartment_count':'Nombre d’appartements',
+'city':'Ville / localisation','concierge_needs':'Services nécessaires','email':'E-mail','language':'Langue',
+'submitted_from':'Envoyé depuis','description':'Description de la demande',
+'asked_for':'Demande du propriétaire','assign_owner':'Attribuer un responsable',
+'owner_placeholder':'Contact ou responsable interne','notes':'Notes internes',
+'notes_placeholder':'Notes privées pour l’équipe admin','save':'Enregistrer la demande',
+'context':'Contexte de la demande','legacy':'Détails de la demande pilote',
+'unified':'Vue administrative unifiée',
+'legacy_copy':'Cet enregistrement utilise les mêmes cartes, contrôles et espacements que les autres demandes administratives.',
+'timeline':'Chronologie','recent':'Événements les plus récents en premier',
+'no_timeline':'Aucune entrée dans la chronologie.','no_timeline_copy':'La chronologie apparaîtra après le prochain enregistrement.'
+},
+'ru': {
+'page_title':'Детали пилотной заявки','eyebrow':'Пилотная заявка','title':'Детали заявки',
+'copy':'Проверьте заявку, назначьте ответственного и поддерживайте внутреннюю хронологию в актуальном состоянии.',
+'back':'Назад к заявкам','export':'Экспорт CSV','anonymous':'Анонимная заявка',
+'source':'Источник','pilot_form':'Пилотная форма','status':'Статус','owner':'Владелец / контакт',
+'unassigned':'Не назначено','property_type':'Тип объекта','apartment_count':'Количество апартаментов',
+'city':'Город / местоположение','concierge_needs':'Необходимые услуги','email':'E-mail','language':'Язык',
+'submitted_from':'Отправлено из','description':'Описание заявки',
+'asked_for':'Что запросил владелец','assign_owner':'Назначить ответственного',
+'owner_placeholder':'Контакт или внутренний ответственный','notes':'Внутренние заметки',
+'notes_placeholder':'Личные заметки для команды администраторов','save':'Сохранить заявку',
+'context':'Контекст заявки','legacy':'Детали пилотной заявки',
+'unified':'Единый административный интерфейс',
+'legacy_copy':'Эта запись использует те же удобные карточки, элементы управления и оформление, что и остальные административные заявки.',
+'timeline':'Хронология','recent':'Сначала последние события',
+'no_timeline':'Записей в хронологии пока нет.','no_timeline_copy':'Хронология появится после следующего сохранения.'
+}
+} %}
+
+{% set pilot_status_labels = {
+  'bg': {
+    'new':'НОВА',
+    'contacted':'СВЪРЗАНИ',
+    'qualified':'КВАЛИФИЦИРАНА',
+    'converted':'КОНВЕРТИРАНА',
+    'lost':'ЗАГУБЕНА',
+    'pending':'В ИЗЧАКВАНЕ',
+    'open':'ОТВОРЕНА',
+    'closed':'ЗАТВОРЕНА'
+  },
+  'en': {
+    'new':'NEW',
+    'contacted':'CONTACTED',
+    'qualified':'QUALIFIED',
+    'converted':'CONVERTED',
+    'lost':'LOST',
+    'pending':'PENDING',
+    'open':'OPEN',
+    'closed':'CLOSED'
+  },
+  'fr': {
+    'new':'NOUVELLE',
+    'contacted':'CONTACTÉE',
+    'qualified':'QUALIFIÉE',
+    'converted':'CONVERTIE',
+    'lost':'PERDUE',
+    'pending':'EN ATTENTE',
+    'open':'OUVERTE',
+    'closed':'FERMÉE'
+  },
+  'ru': {
+    'new':'НОВАЯ',
+    'contacted':'СВЯЗАЛИСЬ',
+    'qualified':'КВАЛИФИЦИРОВАНА',
+    'converted':'КОНВЕРТИРОВАНА',
+    'lost':'ПОТЕРЯНА',
+    'pending':'В ОЖИДАНИИ',
+    'open':'ОТКРЫТА',
+    'closed':'ЗАКРЫТА'
+  }
+} %}
+
+{% set pilot_timeline_labels = {
+  'bg': {
+    'note_added':'Добавена бележка',
+    'status_changed':'Променен статус',
+    'assigned':'Назначен отговорник',
+    'updated':'Заявката е обновена',
+    'created':'Заявката е създадена'
+  },
+  'en': {
+    'note_added':'Note added',
+    'status_changed':'Status changed',
+    'assigned':'Responsible person assigned',
+    'updated':'Request updated',
+    'created':'Request created'
+  },
+  'fr': {
+    'note_added':'Note ajoutée',
+    'status_changed':'Statut modifié',
+    'assigned':'Responsable attribué',
+    'updated':'Demande mise à jour',
+    'created':'Demande créée'
+  },
+  'ru': {
+    'note_added':'Добавлена заметка',
+    'status_changed':'Статус изменён',
+    'assigned':'Назначен ответственный',
+    'updated':'Заявка обновлена',
+    'created':'Заявка создана'
+  }
+} %}
+
+{% set pdui = pilot_detail_ui.get(page_lang|default('en'), pilot_detail_ui['en']) %}
+
+  <main data-admin-no-i18n class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
-        <p class="eyebrow" data-i18n="adminPilotRequestDetail.heroEyebrow">PRIVATE INTAKE</p>
-        <h1 data-i18n="adminPilotRequestDetail.heroTitle">Pilot request detail</h1>
-        <p data-i18n="adminPilotRequestDetail.heroCopy">Review the request, assign a responsible owner, and keep the internal timeline current.</p>
+        <p class="eyebrow">{{ pdui['eyebrow'] }}</p>
+        <h1>{{ pdui['title'] }}</h1>
+        <p>{{ pdui['copy'] }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin/pilot-requests" data-i18n="adminPilotRequestDetail.backToRequests">Back to requests</a>
-        <a class="button button--ghost" href="/admin/pilot-requests/export" data-i18n="adminPilotRequestDetail.exportCsv">Export Leads CSV</a>
+        <a class="button button--secondary" href="/admin/pilot-requests?lang={{ page_lang|e }}">{{ pdui['back'] }}</a>
+        <a class="button button--ghost" href="/admin/pilot-requests/export?lang={{ page_lang|e }}">{{ pdui['export'] }}</a>
       </div>
     </section>
 
@@ -29,15 +187,15 @@
       <div class="admin-pilot-card__topline admin-request-detail-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
         <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ item.status|lower|e }}">
-          {{ item.status|replace('_', ' ')|upper }}
+          {{ pilot_status_labels.get(admin_lang, pilot_status_labels['en']).get(item.status|lower, item.status|replace('_', ' ')|upper) }}
         </span>
       </div>
 
       <h2 class="admin-request-detail-card__title">
-        {% if item.name %}{{ item.name|e }}{% else %}Anonymous request{% endif %}
+        {% if item.name %}{{ item.name|e }}{% else %}{{ pdui['anonymous'] }}{% endif %}
       </h2>
       <p class="admin-request-detail-card__source">
-        <strong>Source:</strong> {{ item.submitted_from|e if item.submitted_from else 'Pilot form' }}
+        <strong>{{ pdui['source'] }}:</strong> {{ item.submitted_from|e if item.submitted_from else pdui.pilot_form }}
       </p>
 
       <dl class="admin-pilot-details admin-request-detail-details">
@@ -46,39 +204,39 @@
           <dd>{{ item.id|e }}</dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>{{ item.status|replace('_', ' ')|upper }}</dd>
+          <dt>{{ pdui['status'] }}</dt>
+          <dd>{{ pilot_status_labels.get(admin_lang, pilot_status_labels['en']).get(item.status|lower, item.status|replace('_', ' ')|upper) }}</dd>
         </div>
         <div>
-          <dt data-i18n="adminPilotRequestDetail.detailOwner">Owner / contact</dt>
-          <dd>{% if item.owner %}{{ item.owner|e }}{% else %}Unassigned{% endif %}</dd>
+          <dt>{{ pdui['owner'] }}</dt>
+          <dd>{% if item.owner %}{{ item.owner|e }}{% else %}{{ pdui['unassigned'] }}{% endif %}</dd>
         </div>
         <div>
-          <dt>Property type</dt>
+          <dt>{{ pdui['property_type'] }}</dt>
           <dd>{{ item.property_type|e }}</dd>
         </div>
         <div>
-          <dt>Apartment count</dt>
+          <dt>{{ pdui['apartment_count'] }}</dt>
           <dd>{% if item.apartment_count %}{{ item.apartment_count|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt>City / location</dt>
+          <dt>{{ pdui['city'] }}</dt>
           <dd>{% if item.city %}{{ item.city|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt>Concierge needs</dt>
+          <dt>{{ pdui['concierge_needs'] }}</dt>
           <dd>{% if item.concierge_needs %}{{ item.concierge_needs|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt>Email</dt>
+          <dt>{{ pdui['email'] }}</dt>
           <dd>{% if item.email %}{{ item.email|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt>Language</dt>
+          <dt>{{ pdui['language'] }}</dt>
           <dd>{% if item.current_language %}{{ item.current_language|e }}{% else %}n/a{% endif %}</dd>
         </div>
         <div>
-          <dt>Submitted from</dt>
+          <dt>{{ pdui['submitted_from'] }}</dt>
           <dd>{% if item.submitted_from %}{{ item.submitted_from|e }}{% else %}n/a{% endif %}</dd>
         </div>
       </dl>
@@ -86,8 +244,8 @@
       <section class="admin-cockpit-panel admin-request-detail-description">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Request description</p>
-            <h3>What the owner asked for</h3>
+            <p class="eyebrow">{{ pdui['description'] }}</p>
+            <h3>{{ pdui['asked_for'] }}</h3>
           </div>
         </div>
         <p class="admin-request-detail-description__copy">{% if item.needs %}{{ item.needs|e }}{% else %}{{ item.concierge_needs|e }}{% endif %}</p>
@@ -95,47 +253,48 @@
 
       <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/update">
         <label>
-          <span data-i18n="adminPilotRequestDetail.updateStatus">Status</span>
+          <span>{{ pdui['status'] }}</span>
           <select class="admin-request-detail-form__control" name="status" required>
             {% for option in status_options %}
-              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+              {% set status_key = option['value']|string|lower %}
+              <option value="{{ option['value']|e }}" {% if item.status|string|lower == status_key %}selected{% endif %}>{{ pilot_status_labels[admin_lang][status_key] if admin_lang in pilot_status_labels and status_key in pilot_status_labels[admin_lang] else pilot_status_labels['en'].get(status_key, option['label']) }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span data-i18n="adminPilotRequestDetail.ownerLabel">Assign owner</span>
-          <input class="admin-request-detail-form__control" type="text" name="owner" value="{{ item.owner|e }}" placeholder="Owner contact or internal assignee">
+          <span>{{ pdui['assign_owner'] }}</span>
+          <input class="admin-request-detail-form__control" type="text" name="owner" value="{{ item.owner|e }}" placeholder="{{ pdui['owner_placeholder'] }}">
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span data-i18n="adminPilotRequestDetail.internalNotes">Internal notes</span>
+          <span>{{ pdui['notes'] }}</span>
           <textarea
             class="admin-request-detail-form__control admin-request-detail-form__textarea"
             name="notes"
             rows="6"
-            placeholder="Private notes for the admin team"
+            placeholder="{{ pdui['notes_placeholder'] }}"
           >{{ item.notes|e }}</textarea>
         </label>
-        <button class="button button--primary admin-request-detail-form__submit" type="submit">Save request</button>
+        <button class="button button--primary admin-request-detail-form__submit" type="submit">{{ pdui['save'] }}</button>
       </form>
 
       <section class="admin-cockpit-panel admin-request-detail-matching">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminPilotRequestDetail.timelineEyebrow">Request context</p>
-            <h3 data-i18n="adminPilotRequestDetail.timelineTitle">Legacy pilot request details</h3>
+            <p class="eyebrow">{{ pdui['context'] }}</p>
+            <h3>{{ pdui['legacy'] }}</h3>
           </div>
         </div>
         <div class="admin-empty-state">
-          <h3 data-i18n="adminPilotRequestDetail.timelineEmptyTitle">Unified admin cockpit view</h3>
-          <p data-i18n="adminPilotRequestDetail.timelineEmptyCopy">This legacy record now uses the same readable cards, controls and spacing as the rest of the admin request pages.</p>
+          <h3>{{ pdui['unified'] }}</h3>
+          <p>{{ pdui['legacy_copy'] }}</p>
         </div>
       </section>
 
       <div class="admin-pilot-timeline admin-request-detail-timeline">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow" data-i18n="adminPilotRequestDetail.timelineEyebrow">Timeline</p>
-            <h3 data-i18n="adminPilotRequestDetail.timelineTitle">Most recent events first</h3>
+            <p class="eyebrow">{{ pdui['timeline'] }}</p>
+            <h3>{{ pdui['recent'] }}</h3>
           </div>
         </div>
 
@@ -145,7 +304,7 @@
               <article class="admin-timeline-item admin-request-detail-timeline__item">
                 <div class="admin-pilot-card__topline admin-request-detail-timeline__topline">
                   <span class="admin-pilot-status admin-request-detail-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">
-                    {{ event.type|replace('_', ' ')|title }}
+                    {{ pilot_timeline_labels.get(admin_lang, pilot_timeline_labels['en']).get(event.type, event.type|replace('_', ' ')|title) }}
                   </span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
@@ -158,8 +317,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No timeline entries yet.</h3>
-            <p>The request timeline will appear after the next save.</p>
+            <h3>{{ pdui['no_timeline'] }}</h3>
+            <p>{{ pdui['no_timeline_copy'] }}</p>
           </div>
         {% endif %}
       </div>
