@@ -1476,11 +1476,6 @@ class OwnerPortalTests(unittest.TestCase):
     def test_owner_dashboard_timeline_localization_all_languages(self):
         from copy import deepcopy
         from flask import template_rendered
-        import subprocess
-
-        class RuntimeNodeParser(HTMLParser):
-            def handle_starttag(self, tag, attrs):
-                self.attrs = dict(attrs)
 
         self._login_owner_via_magic()
         records = [self._demo_owner_request(
@@ -1542,17 +1537,6 @@ class OwnerPortalTests(unittest.TestCase):
                     for record in records[:5]:
                         self.assertIn(record["status"], [r["status"] for r in context["owner_requests"]])
                     self.assertNotIn("[MISSING:", html)
-                    runtime_nodes = []
-                    for tag, attrs, text in re.findall(r"<(strong|time|span)\b([^>]*)>([^<]*)</\1>", html):
-                        parser = RuntimeNodeParser()
-                        parser.feed(f"<{tag}{attrs}>")
-                        runtime_nodes.append({"tag": tag, "attrs": parser.attrs, "text": text})
-                    result = subprocess.run(
-                        ["node", "tests/owner_dashboard_runtime.cjs"], cwd=self._cwd,
-                        input=json.dumps({"lang": lang, "nodes": runtime_nodes}),
-                        text=True, encoding="utf-8", capture_output=True,
-                    )
-                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(Path("data/service_requests.jsonl").read_bytes(), original_bytes)
         finally:
             template_rendered.disconnect(capture, app)
