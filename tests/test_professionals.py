@@ -1536,6 +1536,159 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertTrue(any(row["metadata"] == "professional_completion" for row in notifications))
         self.assertTrue(any(message["To"] == "ops@example.com" for message in FakeSMTP.sent_messages))
 
+    def test_owner_last_completed_task_selection_uses_ids_and_completion_instants(self):
+        owner = {"id": "owner-a", "email": "same@example.com"}
+        properties = [
+            {"id": "property-a", "owner_id": "owner-a"},
+            {"id": "property-a2", "owner_id": "owner-a"},
+            {"id": "property-b", "owner_id": "owner-b"},
+        ]
+        older = {"id": "older", "owner_id": "owner-a", "property_id": "property-a",
+                 "status": "DONE", "completed_at": "2026-09-16T12:00:00+03:00",
+                 "updated_at": "2026-09-20T10:00:00Z"}
+        newer = {"id": "newer", "property_id": "property-a2", "status": "completed",
+                 "completed_at": "2026-09-16T10:00:00Z"}
+        excluded = [
+            {**newer, "id": "foreign", "owner_id": "owner-b", "property_id": "property-b"},
+            {**newer, "id": "conflicting-owner", "owner_id": "owner-b"},
+            {**newer, "id": "conflicting-property", "owner_id": "owner-a", "property_id": "property-b"},
+            {**newer, "id": "names-only", "property_id": "", "owner_email": owner["email"],
+             "property_name": "Stella Appart"},
+            {**newer, "id": "unfinished", "status": "IN_PROGRESS"},
+            {**newer, "id": "cancelled", "status": "CANCELLED"},
+        ]
+        select = lambda tasks: app_module._owner_latest_completed_task(owner, properties, tasks)
+        self.assertIsNone(select(excluded))
+        self.assertEqual(select([older])["id"], "older")
+        self.assertEqual(select([older, newer, *excluded])["id"], "newer")
+        tied = {**newer, "id": "z-tied", "completed_at": "2026-09-16T10:00:00"}
+        self.assertEqual(select([newer, tied])["id"], "z-tied")
+        self.assertEqual(select([tied, newer])["id"], "z-tied")
+        fallback = {**older, "id": "fallback", "completed_at": "invalid",
+                    "updated_at": "2026-09-16T11:00:00Z"}
+        self.assertEqual(select([newer, fallback])["id"], "fallback")
+        fallback.update(updated_at="", created_at="2026-09-16T08:00:00Z")
+        self.assertEqual(select([newer, fallback])["id"], "newer")
+
+    def test_owner_last_completed_task_after_full_professional_workflow(self):
+        owner = app_module._upsert_owner_account({
+            "id": "owner-summary", "email": "summary-owner@example.com", "full_name": "Stella",
+        })
+        owner_client = app.test_client()
+        with owner_client.session_transaction() as state:
+            state[app_module.OWNER_SESSION_LOGGED_IN_KEY] = True
+            state[app_module.OWNER_SESSION_ID_KEY] = owner["id"]
+            state[app_module.OWNER_SESSION_EMAIL_KEY] = owner["email"]
+        response = owner_client.post("/owners/property/new", data={
+            "name": "Stella Appart", "property_type": "Apartment", "location": "Varna",
+            "bedrooms": "1", "bathrooms": "1", "guest_capacity": "2", "operating_mode": "year-round",
+        })
+        self.assertEqual(response.status_code, 302)
+        property_record = app_module._owner_properties_for_account(owner["id"])[0]
+
+        def assert_card(expected_by_language=None):
+            for language in ("bg", "en", "fr", "ru"):
+                with self.subTest(language=language, expected=expected_by_language):
+                    response = owner_client.get(f"/owners/dashboard?lang={language}")
+                    self.assertEqual(response.status_code, 200)
+                    match = re.search(
+                        r'data-i18n="ownerDashboardLastCompletedTaskLabel"[^>]*>[^<]*</(?:p|span)>\s*'
+                        r'<strong([^>]*)>(.*?)</strong>', response.get_data(as_text=True), re.S,
+                    )
+                    self.assertIsNotNone(match)
+                    if expected_by_language is None:
+                        self.assertIn('data-i18n="ownerDashboardLastCompletedTaskWaiting"', match[1])
+                        expected = app_module._load_public_i18n_value(
+                            "ownersDashboard", language, "ownerDashboardLastCompletedTaskWaiting", "",
+                        )
+                        self.assertTrue(expected)
+                    else:
+                        self.assertNotIn("ownerDashboardLastCompletedTaskWaiting", match[1])
+                        expected = expected_by_language[language]
+                    self.assertEqual(html_module.unescape(match[2]), expected)
+
+        assert_card()
+        self._seed_professional_account(full_name="Stella Test Pro", email="summary-pro@example.com")
+        professional = app_module._find_professional_account_by_email("summary-pro@example.com")
+        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), \
+                patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP), \
+                patch("app._queue_service_request_ai_triage"):
+            response = owner_client.post("/owners/request-service?lang=fr", data={
+                "category": "Maintenance", "property_id": property_record["id"],
+                "property": "Stella Appart", "preferred_date": "2026-09-16",
+                "description": "Réparer la serrure", "contact_preference": "Email",
+            })
+            self.assertEqual(response.status_code, 302)
+            task = next(task for task in app_module._load_operations_tasks()
+                        if task["property_id"] == property_record["id"])
+            task_id = task["id"]
+            response = self.client.post(f"/admin/operations/{task_id}", headers=self._auth_headers(), data={
+                "status": "NEW", "assigned_professional_id": professional["id"],
+                "priority": "NORMAL", "due_date": "2026-09-16",
+            })
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(app_module._find_operations_task(task_id)["status"], "ASSIGNED")
+            self._login_professional_via_magic(professional["email"])
+            for action, status in (("accept", "ACCEPTED"), ("on_the_way", "ON_THE_WAY"),
+                                   ("arrived", "ARRIVED"), ("start", "IN_PROGRESS")):
+                response = self._professional_task_post(f"/professionals/tasks/{task_id}", data={"task_action": action})
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(app_module._find_operations_task(task_id)["status"], status)
+            for key, _label in app_module.OPERATIONS_TASK_CHECKLIST_ITEMS:
+                response = self._professional_task_post(f"/professionals/tasks/{task_id}", data={
+                    "task_action": "checklist", "checklist_key": key, "checked": "1",
+                })
+                self.assertEqual(response.status_code, 302)
+            response = self._professional_task_post(f"/professionals/tasks/{task_id}", data={
+                "task_action": "attachment", "attachment_category": "after_photos",
+                "attachment_file": (io.BytesIO(base64.b64decode(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                )), "intervention.png"),
+            }, content_type="multipart/form-data")
+            self.assertIn("notice=evidence_uploaded", response.headers["Location"])
+            assert_card()
+            response = self._professional_task_post(f"/professionals/tasks/{task_id}", data={
+                "task_action": "complete", "completed_work": "Serrure réparée",
+                "completion_notes": "Fonctionnement vérifié",
+            })
+            self.assertEqual(response.status_code, 302)
+
+        completed = app_module._find_operations_task(task_id)
+        self.assertEqual(completed["status"], "COMPLETED")
+        self.assertTrue(completed["completed_at"])
+        self.assertEqual(completed["owner_id"], owner["id"])
+        self.assertEqual(completed["property_id"], property_record["id"])
+        self.assertEqual(sum(bool(item["checked"]) for item in completed["checklist_items"]), 9)
+        maintenance = {"bg": "Поддръжка", "en": "Maintenance", "fr": "Maintenance", "ru": "Техническое обслуживание"}
+        assert_card(maintenance)
+
+        # Archiving the source hides it from the legacy request list, but must
+        # not hide the completed operation from the owner's summary.
+        records = app_module._load_service_requests()
+        self.assertEqual(len(records), 1)
+        records[0]["archived_at"] = app_module._utc_now_iso()
+        app_module._save_service_requests(records)
+        self.assertEqual(app_module._load_service_requests(), [])
+        assert_card(maintenance)
+
+        # A newer completion on another owned property wins, even if an older
+        # task is edited later. Identical display names confer no ownership.
+        response = owner_client.post("/owners/property/new", data={
+            "name": "Stella Appart", "property_type": "Apartment", "location": "Varna",
+            "bedrooms": "1", "bathrooms": "1", "guest_capacity": "2", "operating_mode": "year-round",
+        })
+        self.assertEqual(response.status_code, 302)
+        second_property = next(record for record in app_module._owner_properties_for_account(owner["id"])
+                               if record["id"] != property_record["id"])
+        completion_time = app_module._parse_iso_datetime(completed["completed_at"])
+        self._seed_operations_task("newest-owner-completion", owner_id=owner["id"],
+            property_id=second_property["id"], category="Cleaning", status="DONE",
+            completed_at=(completion_time + timedelta(hours=1)).isoformat())
+        self._seed_operations_task("foreign-completion", owner_id="owner-b", property_id="property-b",
+            property_name="Stella Appart", owner_email=owner["email"], category="Inspection", status="COMPLETED",
+            completed_at=(completion_time + timedelta(hours=2)).isoformat())
+        assert_card({"bg": "Почистване", "en": "Cleaning", "fr": "Nettoyage", "ru": "Уборка"})
+
     def test_professional_checklist_button_remains_interactive_after_two_completed_items(self):
         self._seed_professional_account(
             full_name="Checklist Professional",

@@ -14253,6 +14253,34 @@ def _build_calendar_page_context(scope, owner_account=None):
     }
 
 
+def _owner_latest_completed_task(owner_account, owner_properties, operations_tasks):
+    owner_id = str(owner_account.get("id", "")).strip()
+    property_ids = {
+        str(record.get("id", "")).strip()
+        for record in owner_properties
+        if owner_id and str(record.get("owner_id", "")).strip() == owner_id
+    } - {""}
+    completed_tasks = [
+        task for task in operations_tasks
+        if str(task.get("property_id", "")).strip() in property_ids
+        and str(task.get("owner_id", "")).strip() in {"", owner_id}
+        and _normalize_operations_task_status(task.get("status")) == "COMPLETED"
+    ]
+
+    def completion_order(task):
+        # Older imported tasks may lack completed_at. Later edits must not
+        # outrank an actual completion timestamp; compare instants, not strings.
+        timestamp = next((
+            parsed for field in ("completed_at", "updated_at", "created_at")
+            if (parsed := _parse_iso_datetime(task.get(field))) is not None
+        ), datetime.min.replace(tzinfo=timezone.utc))
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        return timestamp.astimezone(timezone.utc), str(task.get("id", ""))
+
+    return max(completed_tasks, key=completion_order, default=None)
+
+
 def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang):
     dashboard_copy = _owner_dashboard_copy(current_lang)
     owner_properties = [
@@ -14261,9 +14289,10 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         if str(property_record.get("owner_id", "")).strip() == str(owner_account.get("id", "")).strip()
     ]
     owner_reservations = _load_reservations(owner_id=owner_account.get("id", ""), property_ids=[property_record.get("id", "") for property_record in owner_properties])
+    operations_tasks = _load_operations_tasks()
     owner_finance_quotes = [
         task
-        for task in _load_operations_tasks()
+        for task in operations_tasks
         if (
             _owner_can_view_operations_task(task, owner_account)
             and str(task.get("quote_status", "NONE")).strip().upper() in {"SENT", "APPROVED", "FUNDED", "PAID_OUT"}
@@ -14388,10 +14417,10 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
 
     last_completed_task = dashboard_copy["last_completed_task_label"]
     last_completed_task_key = "ownerDashboardLastCompletedTaskWaiting"
-    if completed_requests:
-        latest_completed = max(completed_requests, key=lambda request: str(request.get("last_update_at", request.get("created_at", ""))))
-        latest_category = str(latest_completed.get("service_category", "")).strip()
-        last_completed_task = _owner_service_category_display(latest_category, current_lang) or latest_completed.get("description", "") or dashboard_copy["last_completed_task_label"]
+    latest_completed = _owner_latest_completed_task(owner_account, owner_properties, operations_tasks)
+    if latest_completed:
+        latest_category = str(latest_completed.get("category", "")).strip()
+        last_completed_task = _owner_service_category_display(latest_category, current_lang) or latest_completed.get("title", "") or dashboard_copy["last_completed_task_label"]
         last_completed_task_key = ""
 
     owner_portal = {
