@@ -12290,18 +12290,43 @@ def _normalize_site_language(language):
 
 
 def _resolve_current_language():
-    for candidate in (
-        request.values.get("lang"),
-        request.args.get("lang"),
-        session.get(SITE_LANGUAGE_SESSION_KEY),
-    ):
-        normalized = _normalize_site_language(candidate)
-        if normalized:
-            session[SITE_LANGUAGE_SESSION_KEY] = normalized
-            return normalized
+    # A valid language explicitly supplied by the user is authoritative.
+    # Query-string selection wins over a POST form value. Both are validated
+    # before being remembered, so unsupported values cannot poison the session.
+    explicit = _normalize_site_language(request.args.get("lang"))
+    if not explicit and request.method in {"POST", "PUT", "PATCH"}:
+        explicit = _normalize_site_language(request.form.get("lang"))
 
-    session[SITE_LANGUAGE_SESSION_KEY] = "bg"
-    return "bg"
+    if explicit:
+        session[SITE_LANGUAGE_SESSION_KEY] = explicit
+        return explicit
+
+    remembered = _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
+    if remembered:
+        return remembered
+
+    # Opt in only after the deployment guarantees this header is overwritten
+    # by its CDN and direct origin requests cannot spoof it. ProxyFix/IP headers
+    # alone are not a country signal. Never persist an automatic choice.
+    header = str(app.config.get("TRUSTED_COUNTRY_HEADER", "") or "").strip().lower()
+    if header in {"cf-ipcountry", "cloudfront-viewer-country", "x-vercel-ip-country"}:
+        country = str(request.headers.get(header, "")).strip().upper()
+        return {"BG": "bg", "FR": "fr", "RU": "ru"}.get(country, "en")
+    return "en"
+
+
+@app.before_request
+def _remember_explicit_site_language():
+    # Includes redirects and non-template endpoints, not just context processors.
+    _resolve_current_language()
+
+
+@app.after_request
+def _vary_site_language(response):
+    header = app.config.get("TRUSTED_COUNTRY_HEADER", "")
+    if header:
+        response.vary.add(header)
+    return response
 
 @app.context_processor
 def _inject_global_language_context():
@@ -12546,9 +12571,7 @@ def sitemap_xml():
 
 
 def _render_seo_landing_page(path):
-    lang = str(request.args.get("lang", "en")).strip().lower() or "en"
-    if lang not in SEO_SUPPORTED_LANGS:
-        lang = "en"
+    lang = _resolve_current_language()
     page = resolve_seo_landing_page(path, lang)
     return render_template("seo_longform_page.html", page=page)
 
@@ -12556,14 +12579,12 @@ def _render_seo_landing_page(path):
 @app.route("/")
 def home():
     explicit_language = "lang" in request.args
-    requested_language = _normalize_site_language(request.args.get("lang")) if explicit_language else ""
     stored_language = _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
 
     if not explicit_language and stored_language in {"en", "fr", "ru"}:
         return redirect(url_for("home", lang=stored_language))
 
-    current_lang = requested_language or "bg"
-    session[SITE_LANGUAGE_SESSION_KEY] = current_lang
+    current_lang = _resolve_current_language()
     return render_template(
         "index.html",
         home_counters=_build_home_counters(),
@@ -17032,12 +17053,7 @@ def professionals_apply():
 
 @app.route("/professionals/login", methods=["GET", "POST"])
 def professionals_login():
-    current_lang = (
-        _normalize_site_language(request.values.get("lang"))
-        or _normalize_site_language(request.args.get("lang"))
-        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
-        or "bg"
-    )
+    current_lang = _resolve_current_language()
     form_values = {"email": ""}
     errors = {}
     if request.method == "POST":
@@ -17067,12 +17083,7 @@ def professionals_login():
 
 @app.get("/auth/professional-magic/<token>")
 def professional_magic_login(token):
-    current_lang = (
-        _normalize_site_language(request.values.get("lang"))
-        or _normalize_site_language(request.args.get("lang"))
-        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
-        or "bg"
-    )
+    current_lang = _resolve_current_language()
     token_record = _find_professional_magic_token(token)
     if not token_record:
         return redirect(url_for("professionals_login", invalid_token="1", lang=current_lang))
@@ -17108,12 +17119,7 @@ def professionals_logout():
     session.pop(PROFESSIONAL_SESSION_EMAIL_KEY, None)
     session.pop(PROFESSIONAL_SESSION_NAME_KEY, None)
     _clear_enterprise_session()
-    current_lang = (
-        _normalize_site_language(request.values.get("lang"))
-        or _normalize_site_language(request.args.get("lang"))
-        or _normalize_site_language(session.get(SITE_LANGUAGE_SESSION_KEY))
-        or "bg"
-    )
+    current_lang = _resolve_current_language()
     return redirect(url_for("professionals_login", lang=current_lang))
 
 
@@ -26768,7 +26774,7 @@ def admin_demo_data():
     return render_template_string(
         """
         <!doctype html>
-        <html lang="en">
+        <html lang="{{ current_lang }}">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">

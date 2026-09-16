@@ -143,6 +143,11 @@ class OwnerPortalTests(unittest.TestCase):
         app.config["TESTING"] = True
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
+        # These business-flow fixtures assert Bulgarian copy and redirect URLs.
+        # Select it explicitly; fresh-session English/geolocation has dedicated
+        # coverage in test_language_resolver.py.
+        with self.client.session_transaction() as session_state:
+            session_state[app_module.SITE_LANGUAGE_SESSION_KEY] = "bg"
 
     def tearDown(self):
         self._env_patcher.stop()

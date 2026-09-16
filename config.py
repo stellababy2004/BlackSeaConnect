@@ -56,6 +56,7 @@ class AppSettings:
     analytics_enabled: bool
     ga4_measurement_id: str
     microsoft_clarity_project_id: str
+    trusted_country_header: str = ""
 
     def flask_mapping(self) -> dict[str, object]:
         return {
@@ -68,6 +69,7 @@ class AppSettings:
             "MANUAL_FINANCE_ENABLED": self.manual_finance_enabled,
             "LOG_LEVEL": self.log_level,
             "TRUST_PROXY_HEADERS": self.trust_proxy_headers,
+            "TRUSTED_COUNTRY_HEADER": self.trusted_country_header,
             "SESSION_COOKIE_SECURE": self.session_cookie_secure,
             "SESSION_COOKIE_SAMESITE": self.session_cookie_samesite,
             "ANALYTICS_ENABLED": self.analytics_enabled,
@@ -140,6 +142,7 @@ def load_settings(environ: Mapping[str, str] | None = None) -> AppSettings:
         analytics_enabled=_boolean(source, "ANALYTICS_ENABLED", False),
         ga4_measurement_id=value("GA4_MEASUREMENT_ID"),
         microsoft_clarity_project_id=value("MICROSOFT_CLARITY_PROJECT_ID"),
+        trusted_country_header=value("TRUSTED_COUNTRY_HEADER"),
     )
     validate_settings(settings, check_database=protected)
     return settings
@@ -169,6 +172,10 @@ def _database_issues(database_path: Path) -> list[str]:
 
 def validate_settings(settings: AppSettings, *, check_database: bool = True) -> None:
     issues: list[str] = []
+    if settings.trusted_country_header.lower() not in {
+        "", "cf-ipcountry", "cloudfront-viewer-country", "x-vercel-ip-country",
+    }:
+        issues.append("TRUSTED_COUNTRY_HEADER must be an explicitly supported CDN country header")
     protected = settings.environment in {"staging", "production"}
     parsed_url = urlparse(settings.site_url)
     if protected and (parsed_url.scheme != "https" or not parsed_url.netloc):

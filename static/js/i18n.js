@@ -1,5 +1,5 @@
 (function () {
-  const DEFAULT_LANG = "bg";
+  const DEFAULT_LANG = "en";
   const FALLBACK_LANG = "en";
   const SUPPORTED_LANGS = new Set(["bg", "en", "fr", "ru"]);
   const PAGE_NAMESPACE_BY_PATH = {
@@ -60,7 +60,7 @@
     const pageLanguageNode = document.querySelector("[data-page-lang]");
     const fromPage = normalizeLanguage(pageLanguageNode && pageLanguageNode.getAttribute("data-page-lang"));
     const fromDocument = normalizeLanguage(document.documentElement.lang);
-    return fromUrl || (SUPPORTED_LANGS.has(fromPage) ? fromPage : "") || (SUPPORTED_LANGS.has(fromDocument) ? fromDocument : "") || DEFAULT_LANG;
+    return (SUPPORTED_LANGS.has(fromPage) ? fromPage : "") || (SUPPORTED_LANGS.has(fromDocument) ? fromDocument : "") || fromUrl || DEFAULT_LANG;
   }
 
   function setLanguageInUrl(lang) {
@@ -397,7 +397,7 @@
     const pageNamespace = getPageNamespace();
     function applyLanguage(lang, options) {
       const settings = options || {};
-      const activeLang = translations[lang] ? lang : defaultLang;
+      const activeLang = SUPPORTED_LANGS.has(lang) ? lang : defaultLang;
       const dictionary = translations[activeLang] || translations[FALLBACK_LANG] || translations[defaultLang] || {};
       const nodes = document.querySelectorAll("[data-i18n]:not([data-i18n-html])");
       const htmlNodes = document.querySelectorAll("[data-i18n-html]");
@@ -514,6 +514,7 @@
 
       if (normalizeLanguage(document.documentElement.lang) === selectedLanguage) {
         event.preventDefault();
+        persistLanguage(selectedLanguage);
         return;
       }
 
@@ -583,11 +584,7 @@
     function boot() {
       bindLanguageControls();
 
-      let initialLanguage = getInitialLanguage();
-      if (!translations[initialLanguage]) {
-        initialLanguage = defaultLang;
-      }
-
+      const initialLanguage = getInitialLanguage();
       applyLanguage(initialLanguage, { syncUrl: false });
     }
 

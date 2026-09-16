@@ -177,7 +177,7 @@ class ReservationEngineTests(unittest.TestCase):
             ))
             self.assertEqual(owner_one_response.status_code, 302)
             reservation_one = app_module._load_reservations()[0]
-            owner_one_dashboard = self.client.get("/owners/dashboard")
+            owner_one_dashboard = self.client.get("/owners/dashboard?lang=bg")
             owner_one_reservations = self.client.get("/owners/reservations")
 
             self.client.get("/owners/logout")

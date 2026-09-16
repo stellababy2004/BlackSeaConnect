@@ -5,8 +5,6 @@
   "bg": {
       "ownersDashboard": {
     "ownerMetricReady": "Готово",
-      "ownerMetricPilot": "Пилотный",
-      "ownerMetricGrowing": "Развивается",
       "ownerMetricPilot": "Пилотен",
       "ownerMetricGrowing": "Развива се",
       "ownerDashboardPortfolioLabel": "Портфолио",

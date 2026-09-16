@@ -706,7 +706,7 @@ class MultilingualRouteTests(unittest.TestCase):
 
             const document = {
               readyState: 'complete',
-              documentElement: { lang: 'bg' },
+              documentElement: { lang: 'fr' },
               querySelectorAll(selector) {
                 if (selector === 'a[href]:not([data-lang-switch]):not([data-lang])') {
                   return [services, login, external];
@@ -1140,17 +1140,20 @@ class MultilingualRouteTests(unittest.TestCase):
         self.assertTrue(payload["hasEnServices"])
         self.assertTrue(payload["hasBgDemo"])
 
-    def test_pilot_access_uses_url_language_only(self):
+    def test_pilot_access_uses_server_language_and_explicit_selection(self):
         repo_root = Path(__file__).resolve().parents[1]
         i18n = (repo_root / "static" / "js" / "i18n.js").read_text(encoding="utf-8")
 
-        self.assertIn('const DEFAULT_LANG = "bg";', i18n)
+        self.assertIn('const DEFAULT_LANG = "en";', i18n)
         self.assertNotIn('const DEFAULT_LANG = "fr";', i18n)
         self.assertNotIn("localStorage", i18n)
         self.assertNotIn("navigator.language", i18n)
         self.assertIn("URLSearchParams(window.location.search)", i18n)
 
-        default_response = self.client.get("/pilot-access")
+        fallback_response = self.client.get("/pilot-access")
+        self.assertEqual(fallback_response.status_code, 200)
+        self.assertIn('<html lang="en">', fallback_response.get_data(as_text=True))
+        default_response = self.client.get("/pilot-access?lang=bg")
         default_html = default_response.get_data(as_text=True)
         self.assertEqual(default_response.status_code, 200)
         self.assertIn('<html lang="bg">', default_html)
@@ -1201,7 +1204,7 @@ class MultilingualRouteTests(unittest.TestCase):
 
                 const document = {{
                   readyState: 'complete',
-                  documentElement: {{ lang: 'bg' }},
+                  documentElement: {{ lang: {json.dumps(lang or 'en')} }},
                   querySelectorAll(selector) {{
                     if (selector === '[data-i18n]:not([data-i18n-html])') {{
                       return [bodyNode, titleNode];
@@ -1261,14 +1264,15 @@ class MultilingualRouteTests(unittest.TestCase):
             return json.loads(result.stdout.strip())
 
         bg_expected = render("/pilot-access", "bg", "formName")
+        en_expected = render("/pilot-access", "en", "formName")
         ru_expected = render("/pilot-access", "ru", "formName")
         bg_demo_cta = render("/pilot-access", "bg", "pilotDemoCta")
         ru_demo_cta = render("/pilot-access", "ru", "pilotDemoCta")
 
         default_result = render("/pilot-access", "", "formName")
-        self.assertEqual(default_result["htmlLang"], "bg")
-        self.assertEqual(default_result["body"], bg_expected["body"])
-        self.assertEqual(default_result["title"], bg_expected["title"])
+        self.assertEqual(default_result["htmlLang"], "en")
+        self.assertEqual(default_result["body"], en_expected["body"])
+        self.assertEqual(default_result["title"], en_expected["title"])
         self.assertNotEqual(default_result["body"], ru_expected["body"])
         self.assertNotEqual(default_result["title"], ru_expected["title"])
         self.assertEqual(bg_demo_cta["body"], "Виж демото")

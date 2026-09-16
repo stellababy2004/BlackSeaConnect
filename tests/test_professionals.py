@@ -399,7 +399,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         }
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            response = self.client.post("/professionals/apply", data=payload)
+            response = self.client.post("/professionals/apply?lang=bg", data=payload)
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
@@ -414,7 +414,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         }
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            response = self.client.post("/professionals/apply", data=payload)
+            response = self.client.post("/professionals/apply?lang=bg", data=payload)
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
@@ -429,7 +429,7 @@ class ApplicationWorkflowTests(unittest.TestCase):
         }
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            response = self.client.post("/professionals/apply", data=payload)
+            response = self.client.post("/professionals/apply?lang=bg", data=payload)
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
