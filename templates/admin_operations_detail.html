@@ -3163,7 +3163,12 @@
   {% elif task_is_closed %}
     {% set sla_label = 'Завършена в срок' if task_sla_has_due else 'Завършена' %}
     {% set sla_tone = 'green' %}
-    {% set sla_detail = od.task_completed %}
+    {% set sla_detail = {
+      'bg': 'Задачата е завършена',
+      'en': 'Task completed',
+      'fr': 'Tâche terminée',
+      'ru': 'Задача завершена'
+    }.get(operations_lang, 'Task completed') %}
   {% elif task_open_overdue %}
     {% set sla_label = 'Просрочена' %}
     {% set sla_tone = 'red' %}
