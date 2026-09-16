@@ -121,6 +121,11 @@ DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
 DEMO_SCENARIO = "BlackSea Connect Pilot"
 DEMO_SEASON = "Summer 2026"
 DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
+
+DEMO_DATA_ENABLED = str(
+    os.getenv("DEMO_DATA_ENABLED", "0") or "0"
+).strip().lower() in {"1", "true", "yes", "on"}
+
 REQUIRED_READINESS_TABLES = {
     "owner_db_meta",
     "owner_accounts",
@@ -20777,6 +20782,9 @@ def _clear_demo_manifest():
 
 
 def _demo_records(kind):
+    if not DEMO_DATA_ENABLED:
+        return []
+
     manifest = _load_demo_manifest()
     if not manifest:
         return []
@@ -20795,6 +20803,9 @@ def _demo_record_index(kind):
 
 
 def _demo_owner_account_by_email(email):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(email or "").strip().lower()
     if not target:
         return None
@@ -20805,6 +20816,9 @@ def _demo_owner_account_by_email(email):
 
 
 def _demo_professional_account_by_email(email):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(email or "").strip().lower()
     if not target:
         return None
@@ -20815,6 +20829,9 @@ def _demo_professional_account_by_email(email):
 
 
 def _demo_reservation_by_id(reservation_id):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(reservation_id or "").strip()
     if not target:
         return None
@@ -20822,6 +20839,9 @@ def _demo_reservation_by_id(reservation_id):
 
 
 def _demo_property_by_id(property_id):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(property_id or "").strip()
     if not target:
         return None
@@ -20829,6 +20849,9 @@ def _demo_property_by_id(property_id):
 
 
 def _demo_operations_task_by_id(task_id):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(task_id or "").strip()
     if not target:
         return None
@@ -20843,6 +20866,9 @@ def _demo_operations_task_by_id(task_id):
 
 
 def _demo_professional_by_id(professional_id):
+    if not DEMO_DATA_ENABLED:
+        return None
+
     target = str(professional_id or "").strip()
     if not target:
         return None
@@ -20850,6 +20876,15 @@ def _demo_professional_by_id(professional_id):
 
 
 def _demo_manifest_summary():
+    if not DEMO_DATA_ENABLED:
+        return {
+            "enabled": False,
+            "batch_id": "",
+            "scenario": "",
+            "seed_date": "",
+            "record_counts": {},
+        }
+
     manifest = _load_demo_manifest() or _demo_manifest_default()
     records = manifest["records"]
     return {
