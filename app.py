@@ -12327,6 +12327,33 @@ def _remember_explicit_site_language():
 
 
 @app.after_request
+def _apply_security_headers(response):
+    """Apply baseline browser security headers to every response."""
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin",
+    )
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=()",
+    )
+
+    # HSTS must only be emitted for the real HTTPS production site.
+    if (
+        getattr(SETTINGS, "environment", "") == "production"
+        and str(SITE_URL).lower().startswith("https://")
+    ):
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains",
+        )
+
+    return response
+
+
+@app.after_request
 def _vary_site_language(response):
     header = app.config.get("TRUSTED_COUNTRY_HEADER", "")
     if header:
