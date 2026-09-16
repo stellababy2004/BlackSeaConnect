@@ -2181,6 +2181,22 @@ class ApplicationWorkflowTests(unittest.TestCase):
         task = app_module._find_operations_task(task_id)
         self.assertEqual(task["status"], "COMPLETED")
 
+        # Regression: completed tasks must render in Admin Operations detail
+        # for every supported language.
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+            for language in ("bg", "en", "fr", "ru"):
+                completed_detail = self.client.get(
+                    f"/admin/operations/{task_id}?lang={language}",
+                    headers=self._auth_headers(),
+                )
+                self.assertEqual(
+                    completed_detail.status_code,
+                    200,
+                    f"completed admin detail failed for lang={language}",
+                )
+                completed_detail_html = completed_detail.get_data(as_text=True)
+                self.assertIn("Canonical lifecycle operation", completed_detail_html)
+
         event_types = [event["event_type"] for event in app_module._load_operations_task_events(task_id)]
         for event_type in (
             "professional_assigned",
