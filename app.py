@@ -8156,7 +8156,7 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
     owner_name = {
         "PILOT_REQUEST": str(record.get("name", "")).strip(),
         "OWNER_REGISTRATION": str(record.get("full_name", "")).strip(),
-        "PROFESSIONAL_APPLICATION": str(record.get("full_name", "")).strip(),
+        "PROFESSIONAL_APPLICATION": "",
         "PARTNER_APPLICATION": str(record.get("contact_person", "")).strip() or str(record.get("company_name", "")).strip(),
         "CONCIERGE_REQUEST": str(record.get("name", "")).strip(),
         "SERVICE_REQUEST": str(record.get("owner_name", "")).strip() or str(record.get("name", "")).strip(),
@@ -8165,7 +8165,7 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
     owner_email = {
         "PILOT_REQUEST": str(record.get("email", "")).strip(),
         "OWNER_REGISTRATION": str(record.get("email", "")).strip(),
-        "PROFESSIONAL_APPLICATION": str(record.get("email", "")).strip(),
+        "PROFESSIONAL_APPLICATION": "",
         "PARTNER_APPLICATION": str(record.get("email", "")).strip(),
         "CONCIERGE_REQUEST": str(record.get("email", "")).strip(),
         "SERVICE_REQUEST": str(record.get("owner_email", "")).strip() or str(record.get("email", "")).strip(),
