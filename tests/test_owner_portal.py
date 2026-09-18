@@ -618,6 +618,7 @@ class OwnerPortalTests(unittest.TestCase):
         return {
             "category": "Concierge Support",
             "preferred_date": "2026-07-15",
+            "property_id": "property-1",
             "property": "Sea View Villa",
             "description": "Need airport pickup and welcome coordination.",
             "contact_phone": "+359888333444",
@@ -5166,6 +5167,7 @@ class OwnerPortalTests(unittest.TestCase):
         self._login_owner_via_magic()
 
         payload = self._service_request_payload()
+        payload.pop("property_id", None)
         self.assertNotIn("property_id", payload)
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):

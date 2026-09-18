@@ -16172,14 +16172,25 @@ def owner_property_document_delete(property_id, document_id):
 def owners_request_service():
     current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
-    selected_property = _find_owner_property(request.args.get("property_id", ""))
-    if selected_property and str(selected_property.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
-        selected_property = None
+    owner_id = str(owner_account.get("id", "")).strip()
+    owner_properties = _owner_properties_for_account(owner_id)
+
+    requested_property_id = str(request.args.get("property_id", "")).strip()
+    selected_property = next(
+        (
+            item for item in owner_properties
+            if str(item.get("id", "")).strip() == requested_property_id
+        ),
+        None,
+    )
+
+    if not selected_property and len(owner_properties) == 1:
+        selected_property = owner_properties[0]
     form_values = {
         "category": _normalize_owner_service_category(request.args.get("category", "")),
         "preferred_date": "",
         "property_id": selected_property.get("id", "") if selected_property else "",
-        "property": selected_property.get("name", "") if selected_property else owner_account.get("property_name", "") or owner_account.get("property_type", ""),
+        "property": selected_property.get("name", "") if selected_property else "",
         "description": "",
         "urgency": "Standard",
         "contact_preference": "Email",
@@ -16197,6 +16208,32 @@ def owners_request_service():
             "urgency": str(request.form.get("urgency", "")).strip() or "Standard",
             "contact_preference": str(request.form.get("contact_preference", "")).strip() or "Email",
         })
+
+        submitted_property = next(
+            (
+                item
+                for item in owner_properties
+                if str(item.get("id", "")).strip() == form_values["property_id"]
+            ),
+            None,
+        )
+
+        if not submitted_property and form_values["property"]:
+            submitted_property_name = form_values["property"].strip().casefold()
+            matching_properties = [
+                item
+                for item in owner_properties
+                if str(item.get("name", "")).strip().casefold() == submitted_property_name
+            ]
+            if len(matching_properties) == 1:
+                submitted_property = matching_properties[0]
+
+        if submitted_property:
+            form_values["property_id"] = str(submitted_property.get("id", "")).strip()
+            form_values["property"] = str(submitted_property.get("name", "")).strip()
+        elif owner_properties:
+            form_values["property_id"] = ""
+            form_values["property"] = ""
 
         required_fields = {
             "category": "categoryRequiredError",
@@ -16353,6 +16390,7 @@ def owners_request_service():
         form_values=form_values,
         errors=errors,
         submitted=submitted,
+        owner_properties=owner_properties,
         service_categories=_owner_service_category_items(),
         current_lang=current_lang,
     ), (400 if errors else 200)
