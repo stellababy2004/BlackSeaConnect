@@ -11292,6 +11292,82 @@ def _load_service_requests(*, include_deleted=False, include_archived=False):
     return requests_list
 
 
+def _service_request_with_assignment(record, backing_task=None):
+    """Return a display copy with assignment synchronized from Operations."""
+    display_record = dict(record or {})
+
+    request_id = str(
+        display_record.get("id", "")
+        or display_record.get("request_id", "")
+    ).strip()
+
+    if backing_task is None and request_id:
+        backing_task = _find_operations_task(request_id)
+
+    backing_task = backing_task or {}
+
+    professional_id = (
+        str(display_record.get("assigned_provider_id", "")).strip()
+        or str(display_record.get("assigned_professional_id", "")).strip()
+        or str(backing_task.get("assigned_professional_id", "")).strip()
+    )
+
+    professional_account = (
+        _find_professional_account(professional_id)
+        if professional_id
+        else None
+    )
+
+    existing_name = (
+        str(display_record.get("assigned_provider_company", "")).strip()
+        or str(display_record.get("assigned_provider_name", "")).strip()
+        or str(display_record.get("assigned_professional_company", "")).strip()
+        or str(display_record.get("assigned_professional_name", "")).strip()
+    )
+
+    backing_name = str(backing_task.get("assigned_to", "")).strip()
+
+    if professional_account:
+        professional_name = str(
+            professional_account.get("full_name", "")
+        ).strip()
+        professional_company = str(
+            professional_account.get("company_name", "")
+            or professional_account.get("company", "")
+        ).strip()
+
+        assignment_label = (
+            professional_company
+            or professional_name
+            or existing_name
+            or backing_name
+        )
+    else:
+        professional_name = existing_name or backing_name
+        assignment_label = professional_name
+
+    if professional_id:
+        display_record["assigned_provider_id"] = professional_id
+        display_record["assigned_professional_id"] = professional_id
+
+    if assignment_label:
+        display_record["assigned_provider_name"] = (
+            professional_name or assignment_label
+        )
+        display_record["assigned_provider_company"] = assignment_label
+        display_record["assigned_professional_name"] = (
+            professional_name or assignment_label
+        )
+        display_record["assigned_professional_company"] = assignment_label
+        display_record["assigned_professional"] = assignment_label
+
+    display_record["is_assigned"] = _record_is_assigned(
+        display_record,
+        backing_task,
+    )
+
+    return display_record
+
 def _save_service_requests(requests_list):
     data_dir = SERVICE_REQUESTS_JSONL_PATH.parent
     data_dir.mkdir(exist_ok=True)
@@ -25896,10 +25972,6 @@ def admin_service_request_detail(request_id):
             _resolve_current_language(),
         )
 
-    if backing_task:
-        display_record["assigned_provider_id"] = str(display_record.get("assigned_provider_id", "")).strip() or str(backing_task.get("assigned_professional_id", "")).strip()
-        display_record["assigned_provider_name"] = str(display_record.get("assigned_provider_name", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
-        display_record["assigned_provider_company"] = str(display_record.get("assigned_provider_company", "")).strip() or str(backing_task.get("assigned_to", "")).strip()
     display_record["operation_navigation"] = _operations_navigation(
         backing_task or display_record,
         source_kind="operation" if backing_task else "service_request",
