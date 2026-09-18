@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import io
 import html as html_lib
 from html.parser import HTMLParser
@@ -787,8 +787,6 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn('<html lang="fr">', html)
-        self.assertIn("Aperçu premium du bien.", html)
-        self.assertIn("Retour au site", html)
         self.assertIn('href="/owners/request-service?lang=fr"', html)
         self.assertIn('href="/owners/property/new?lang=fr"', html)
 
@@ -1438,7 +1436,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("owner-request-1", html)
         self.assertNotIn("public-request-1", html)
 
-    def test_owner_dashboard_uses_portal_sections_and_quick_actions(self):
+    def test_owner_dashboard_uses_simplified_owner_home(self):
         self._seed_jsonl("service_requests.jsonl", [self._demo_owner_request()])
 
         self._login_owner_via_magic()
@@ -1446,37 +1444,33 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
+
         for phrase in [
-            'data-i18n="ownerDashboardPropertyOverview"',
-            'data-i18n="ownerDashboardOperationsSnapshot"',
-            'data-i18n="ownerDashboardPropertyHealth"',
-            'data-i18n="ownerDashboardTrustedLocalTeam"',
-            'data-i18n="ownerDashboardMonthlySummary"',
-            'data-i18n="ownerDashboardPerformanceSnapshot"',
-            'data-i18n="ownerDashboardActivityTimeline"',
-            'data-i18n="ownerDashboardQuickActions"',
-            'data-i18n="ownerDashboardNotificationCenter"',
-            'data-i18n="ownerDashboardRecentPropertyUpdates"',
             'data-i18n="ownerDashboardPrimaryCta"',
-            'data-i18n="navOwnerLogout"',
+            'owner-latest-updates-title',
+            'owner-upcoming-title',
+            'owner-properties-title',
+            'data-lang-switch="bg"',
         ]:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, html)
-        self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html)
-        self.assertIn("owner-dashboard-page", html)
+
+        self.assertIn(
+            'body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"',
+            html,
+        )
         self.assertIn("owner-dashboard-masthead", html)
         self.assertIn("owner-dashboard-main", html)
         self.assertIn("owner-dashboard-section", html)
-        self.assertIn("owner-operational-command", html)
-        self.assertIn("owner-operational-kpis", html)
-        self.assertIn("owner-dashboard-disclosure", html)
-        self.assertIn("owner-kpi-card--summary", html)
-        self.assertIn("owner-portal-card--performance", html)
-        self.assertIn("owner-timeline-item", html)
-        self.assertIn("/static/img/saint-vlas.jpg", html)
-        self.assertNotIn('<footer class="site-footer"', html)
+
+        # Owner sees their own latest activity.
         self.assertIn("owner-request-1", html)
-        self.assertNotRegex(re.sub(r"<[^>]+>", "", html), r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+
+        self.assertNotIn('<footer class="site-footer"', html)
+        self.assertNotRegex(
+            re.sub(r"<[^>]+>", "", html),
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z",
+        )
 
     def test_owner_dashboard_timeline_localization_all_languages(self):
         from copy import deepcopy
@@ -1523,12 +1517,10 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertNotIn("foreign-request", html)
                     items = context["owner_portal"]["activity_timeline"]
                     self.assertEqual([item["label"] for item in items[:2]], [inspection, owner_request])
-                    for class_name in ("owner-ai-timeline", "owner-timeline-list"):
-                        section = html.split(f'class="{class_name}"', 1)[1]
-                        self.assertIn(f"<strong>{inspection}</strong>", section)
-                        self.assertIn(f"<strong>{owner_request}</strong>", section)
-                        self.assertIn(timestamp, section)
-                    self.assertIn('datetime="2026-09-14T10:00:00Z"', html)
+                    self.assertIn('id="owner-latest-updates-title"', html)
+                    self.assertIn(f"<strong>{inspection}</strong>", html)
+                    self.assertIn(timestamp, html)
+                    self.assertNotIn("foreign-request", html)
                     self.assertNotIn("14 Sep 2026", html)
                     for item in items:
                         for field in ("label", "detail"):
