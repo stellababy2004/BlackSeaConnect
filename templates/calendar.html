@@ -1985,9 +1985,38 @@
       padding: 8px 12px;
     }
 
+    body.calendar-page--owner .calendar-tab.is-active {
+      background: #1f2937 !important;
+      border-color: #1f2937 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
     body.calendar-page--owner .calendar-filters {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: minmax(280px, 1.4fr) minmax(220px, 1fr) auto;
+      gap: 16px;
+      align-items: end;
+    }
+
+    body.calendar-page--owner .calendar-filters .calendar-actions {
+      align-self: end !important;
+      display: flex;
+      flex-wrap: nowrap;
       gap: 10px;
+    }
+
+    body.calendar-page--owner .calendar-filters .calendar-actions .button {
+      white-space: nowrap;
+    }
+
+    body.calendar-page--owner .calendar-filters-panel {
+      padding: 20px 24px;
+    }
+
+    @media (max-width: 720px) {
+      body.calendar-page--owner .calendar-filters {
+        grid-template-columns: 1fr;
+      }
     }
 
     body.calendar-page--owner .calendar-grid {
@@ -4131,6 +4160,7 @@
             {% endfor %}
           </select>
         </label>
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('ownersDashboard', 'ownerReservationsOwner', 'Owner') if calendar_scope == 'owner' else cal.owner }}</span>
           <select name="owner">
@@ -4140,6 +4170,8 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('ownersDashboard', 'ownerCalendarProfessional', 'Professional') if calendar_scope == 'owner' else cal.professional }}</span>
           <select name="professional">
@@ -4149,6 +4181,8 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('ownersDashboard', 'ownerCalendarCategory', 'Category') if calendar_scope == 'owner' else cal.category }}</span>
           <select name="category">
@@ -4158,6 +4192,8 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('ownersDashboard', 'ownerReservationsStatus', 'Status') if calendar_scope == 'owner' else cal.status }}</span>
           <select name="status">
@@ -4167,6 +4203,8 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('common', 'dashboardCity', 'City') if calendar_scope == 'owner' else cal.city }}</span>
           <select name="city">
@@ -4176,6 +4214,8 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
+        {% if calendar_scope != 'owner' %}
         <label class="calendar-filter">
           <span>{{ public_i18n('ownersDashboard', 'ownerCalendarPriority', 'Priority') if calendar_scope == 'owner' else cal.priority }}</span>
           <select name="priority">
@@ -4185,6 +4225,7 @@
             {% endfor %}
           </select>
         </label>
+        {% endif %}
         <div class="calendar-actions" style="align-self: end;">
           <button class="button button--primary" type="submit">{{ public_i18n('ownersDashboard', 'ownerCalendarApplyFilters', 'Apply filters') if calendar_scope == 'owner' else 'Приложи филтрите' }}</button>
           <a class="button button--ghost" href="{{ request.path }}?view={{ calendar_view }}">{{ public_i18n('ownersDashboard', 'ownerCalendarClear', 'Clear') if calendar_scope == 'owner' else cal['clear'] }}</a>

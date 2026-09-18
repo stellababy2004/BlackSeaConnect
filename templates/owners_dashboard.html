@@ -768,6 +768,160 @@
         width: 100%;
       }
     }
+
+    /* Compact onboarding strip */
+    .owner-onboarding-progress.owner-onboarding-progress--compact {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(180px, 320px) minmax(220px, auto);
+      align-items: center;
+      gap: 20px;
+      padding: 18px 22px;
+    }
+
+    .owner-onboarding-progress--compact .owner-onboarding-progress__copy {
+      min-width: 0;
+    }
+
+    .owner-onboarding-progress--compact .owner-portal-card__eyebrow {
+      margin: 0 0 4px;
+    }
+
+    .owner-onboarding-progress--compact h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .owner-onboarding-progress--compact .owner-onboarding-progress__meter {
+      margin: 0;
+      width: 100%;
+    }
+
+    .owner-onboarding-progress--compact .owner-onboarding-progress__remaining {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .owner-onboarding-progress--compact .owner-onboarding-progress__remaining span {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid var(--owner-border, #e5e7eb);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 760px) {
+      .owner-onboarding-progress.owner-onboarding-progress--compact {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .owner-onboarding-progress--compact .owner-onboarding-progress__remaining {
+        justify-content: flex-start;
+      }
+    }
+
+
+    /* Compact property cards on Owner Home */
+    .owner-properties-compact__grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .owner-property-compact {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .owner-property-compact__cover {
+      min-height: 170px;
+      background: #f3f4f6;
+    }
+
+    .owner-property-compact__cover img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 170px;
+      object-fit: cover;
+    }
+
+    .owner-property-compact__body {
+      display: grid;
+      gap: 14px;
+      padding: 18px 20px;
+    }
+
+    .owner-property-compact__heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .owner-property-compact__heading h3 {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+    }
+
+    .owner-property-compact__heading p {
+      margin: 0;
+      opacity: .7;
+    }
+
+    .owner-property-compact__readiness {
+      display: grid;
+      gap: 7px;
+    }
+
+    .owner-property-compact__readiness > div:first-child {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: .85rem;
+    }
+
+    .owner-property-compact__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .owner-property-compact__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 760px) {
+      .owner-property-compact {
+        grid-template-columns: 1fr;
+      }
+
+      .owner-property-compact__cover,
+      .owner-property-compact__cover img {
+        min-height: 150px;
+        max-height: 190px;
+      }
+
+      .owner-property-compact__heading,
+      .owner-property-compact__footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
 </style>
 </head>
 <body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page">
@@ -1093,172 +1247,72 @@
         </section>
       {% endif %}
 
-      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-onboarding-progress-title">
-          <article class="owner-portal-card owner-portal-card--summary owner-onboarding-progress" style="--onboarding-progress: {{ owner_portal.onboarding.percentage }}%;">
-            <p class="owner-portal-card__eyebrow">{{ ui.onboarding_eyebrow }}</p>
-            <h2 id="owner-onboarding-progress-title">{{ ui.onboarding_title }}</h2>
-            <div class="owner-onboarding-progress__meter" aria-label="{{ ui.onboarding_title }}">
-              <strong>{{ owner_portal.onboarding.percentage }}%</strong>
-            </div>
-            <div class="owner-onboarding-progress__steps">
-              {% for stage in owner_portal.onboarding.stages %}
-                <div class="owner-onboarding-step {% if stage.complete %}is-complete{% endif %}">
-                  <span class="owner-onboarding-step__index">{{ loop.index }}</span>
-                  <div>
-                    <strong{% if stage.label_key %} data-i18n="{{ stage.label_key }}"{% endif %}>{{ stage.label }}</strong>
-                    <p>{{ stage.completed }}/{{ stage.total }} · {% if stage.complete %}{{ ui.onboarding_complete }}{% else %}{{ ui.onboarding_pending }}{% endif %}</p>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          </article>
-        </section>
+
       {% endif %}
 
-      <details class="owner-dashboard-disclosure" open>
-        <summary>
-          <span data-i18n="ownerDashboardPropertyOverview">{{ ui.summary_eyebrow }}</span>
-          <strong>{{ owner_portal.properties|length }} {{ ui.properties_count_label }}</strong>
-        </summary>
-      <section class="owner-portal-section owner-dashboard-section" aria-labelledby="owner-properties-title">
+      <section class="owner-portal-section owner-dashboard-section owner-properties-compact" aria-labelledby="owner-properties-title">
         <div class="section-heading">
           <p class="section-heading__eyebrow">{{ ui.properties_eyebrow }}</p>
           <h2 id="owner-properties-title">{{ ui.properties_title }}</h2>
         </div>
-        <div class="owner-portal-grid owner-portal-grid--properties">
+
+        <div class="owner-properties-compact__grid">
           {% for property in owner_portal.properties %}
-            <article class="owner-portal-card owner-portal-card--property owner-property-card--feature">
-              <div class="owner-property-card__cover">
+            <article class="owner-portal-card owner-property-compact">
+              <div class="owner-property-compact__cover">
                 {% if property.cover_photo_url %}
                   <img src="{{ property.cover_photo_url }}" alt="{{ property.name|e }}" loading="lazy">
                 {% else %}
                   <img src="{{ url_for('static', filename='img/saint-vlas.jpg' if loop.index is odd else 'img/blacksea-marina-hero.png') }}" alt="{{ property.name|e }}" loading="lazy">
                 {% endif %}
               </div>
-              <div class="owner-property-card__hero">
-                <div>
-                  <p class="owner-portal-card__eyebrow" data-i18n="ownerDashboardPropertyOverview">{{ ui.summary_eyebrow }}</p>
-                  <h3 class="owner-property-card__name">{{ property.name|e }}</h3>
+
+              <div class="owner-property-compact__body">
+                <div class="owner-property-compact__heading">
+                  <div>
+                    <h3>{{ property.name|e }}</h3>
+                    <p>{{ property.city|e or property.location|e }}</p>
+                  </div>
+                  <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}">{{ property.status_label }}</span>
                 </div>
-                <span class="owner-status-badge owner-status-badge--{{ property.status_tone|e }}">{{ property.status_label }}</span>
-              </div>
-              <p class="owner-property-card__location">{{ property.city|e or property.location|e }}</p>
-              <div class="owner-property-readiness">
-                <div class="owner-property-card__hero-copy">
-                  <strong>{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</strong>
-                  <span class="owner-property-card__progress">{{ property.readiness_percent }}%</span>
+
+                <div class="owner-property-compact__readiness">
+                  <div>
+                    <span>{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</span>
+                    <strong>{{ property.readiness_percent }}%</strong>
+                  </div>
+                  <div class="owner-property-readiness__track" role="progressbar" aria-valuenow="{{ property.readiness_percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <span style="width: {{ property.readiness_percent }}%"></span>
+                  </div>
                 </div>
-                <div class="owner-property-readiness__track" role="progressbar" aria-valuenow="{{ property.readiness_percent }}" aria-valuemin="0" aria-valuemax="100">
-                  <span style="width: {{ property.readiness_percent }}%"></span>
+
+                <div class="owner-property-compact__footer">
+                  <span class="owner-property-card__updated">{{ property.last_updated_display|e }}</span>
+                  <div class="owner-property-compact__actions">
+                    <a class="button button--secondary" href="{{ localized_url('/owners/properties/' ~ property.id) }}">{{ ui.view_property }}</a>
+                    <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property.name) }}">{{ public_i18n('common', 'dashboardCalendarNav', 'Calendar') }}</a>
+                    <a class="button button--secondary" href="{{ localized_url('/owners/request-service?property_id=' ~ property.id) }}">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
+                  </div>
                 </div>
-              </div>
-              <div class="owner-property-card__stay">
-                <div>
-                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'Upcoming arrival') }}</span>
-                  <strong>{{ property.availability.upcoming_arrival.arrival_datetime|default('—', true)|e }}</strong>
-                </div>
-                <div>
-                  <span data-i18n="ownerDashboardOpenGuestRequestsLabel">{{ ui.open_guest_requests_label }}</span>
-                  <strong>{{ owner_portal.open_request_count }}</strong>
-                </div>
-                <div>
-                  <span data-i18n="ownerDashboardMaintenanceIssuesLabel">{{ ui.maintenance_issues_label }}</span>
-                  <strong>{% if property.availability.maintenance_required %}1{% else %}0{% endif %}</strong>
-                </div>
-                <div>
-                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardCleaningLabel', 'Cleaning') }}</span>
-                  <strong>{% if property.availability.cleaning_required %}1{% else %}0{% endif %}</strong>
-                </div>
-                <div>
-                  <span>{{ public_i18n('ownersDashboard', 'ownerDashboardOccupancyLabel', 'Occupancy') }}</span>
-                  <strong>{{ property.availability.occupancy_percent }}%</strong>
-                </div>
-              </div>
-              <div class="owner-property-card__chips">
-                <span>{{ localized_operation_value(property.property_type, page_lang)|e }}</span>
-                <span>{{ property.operating_mode_label|e }}</span>
-              </div>
-              <dl class="owner-portal-dl owner-property-card__facts">
-                <div>
-                  <dt data-i18n="ownerDashboardPropertyTypeLabel">{{ ui.property_type_label }}</dt>
-                  <dd>{{ localized_operation_value(property.property_type, page_lang)|e }}</dd>
-                </div>
-                <div>
-                  <dt>{{ ui.bedrooms_label }}</dt>
-                  <dd>{{ property.bedrooms|e }}</dd>
-                </div>
-                <div>
-                  <dt>{{ ui.bathrooms_label }}</dt>
-                  <dd>{{ property.bathrooms|e }}</dd>
-                </div>
-                <div>
-                  <dt>{{ ui.capacity_label }}</dt>
-                  <dd>{{ property.guest_capacity|e }}</dd>
-                </div>
-                <div>
-                  <dt>{{ ui.operating_mode_label }}</dt>
-                  <dd>{{ property.operating_mode_label }}</dd>
-                </div>
-                <div>
-                  <dt>{{ public_i18n('adminHome', 'readiness', 'Readiness') }}</dt>
-                  <dd>{{ property.readiness_completed }}/{{ property.readiness_total }}</dd>
-                </div>
-              </dl>
-              <div class="owner-property-card__footer">
-                <span class="owner-property-card__updated">{{ property.last_updated_display|e }}</span>
-                <a class="button button--secondary" href="{{ localized_url('/owners/properties/' ~ property.id) }}">{{ ui.view_property }}</a>
-                <a class="button button--secondary" href="{{ localized_url('/owners/calendar?property=' ~ property.name) }}">{{ public_i18n('common', 'dashboardCalendarNav', 'Calendar') }}</a>
-                <a class="button button--secondary" href="{{ localized_url('/owners/request-service?property_id=' ~ property.id) }}">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
               </div>
             </article>
           {% endfor %}
         </div>
       </section>
-      </details>
-
-      <details class="owner-dashboard-disclosure">
-        <summary>
-          <span>{{ public_i18n('common', 'dashboardCalendarNav', 'Calendar') }}</span>
-          <strong>{{ owner_portal.calendar_widget.summary.today }}</strong>
-        </summary>
-
-      </details>
-
-      <details class="owner-dashboard-disclosure">
-        <summary>
-          <span>{{ public_i18n('common', 'dashboardReservationsNav', 'Reservations') }}</span>
-          <strong>{{ owner_portal.reservation_widget.stats.upcoming_arrivals }} {{ public_i18n('ownersDashboard', 'ownerDashboardUpcomingArrivalsLabel', 'upcoming arrivals') }}</strong>
-        </summary>
-
-      </details>
 
 
 
 
 
-    <details class="owner-dashboard-disclosure">
-      <summary>
-        <span data-i18n="ownerDashboardMonthlySummary">{{ ui.monthly_summary_eyebrow }}</span>
-        <strong data-i18n="ownerDashboardPerformanceSnapshot">{{ ui.performance_snapshot_eyebrow }}</strong>
-      </summary>
 
-    </details>
 
-    <details class="owner-dashboard-disclosure">
-      <summary>
-        <span data-i18n="ownerDashboardActivityTimeline">{{ ui.activity_timeline_eyebrow }}</span>
-        <strong>{{ owner_portal.activity_timeline|length }}</strong>
-      </summary>
 
-    </details>
 
-    <details class="owner-dashboard-disclosure">
-      <summary>
-        <span data-i18n="ownerDashboardNotificationCenter">{{ ui.notification_center_eyebrow }}</span>
-        <strong>{{ owner_portal.notifications|length }}</strong>
-      </summary>
 
-    </details>
+
+
+
+
   </main>
 
   <script src="/static/js/translations.js?v=20260726f"></script>
