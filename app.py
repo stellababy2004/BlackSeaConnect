@@ -14632,7 +14632,8 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         ] or [
             {
                 **task,
-                "service_category_display": str(task.get("category") or task.get("title") or "").strip(),
+                "service_category_display": str(task.get("title") or task.get("category") or "").strip(),
+                "property": str(task.get("property_name") or task.get("property") or "").strip(),
                 "assigned_professional": str(task.get("assigned_to") or "").strip(),
                 "last_update_display": _format_local_datetime(
                     task.get("updated_at") or task.get("completed_at") or task.get("created_at"),

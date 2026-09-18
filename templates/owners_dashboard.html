@@ -1618,6 +1618,11 @@
                   {% endif %}
                 </div>
                 <p>{{ item.property|e }}</p>
+                {% if item.assigned_professional %}
+                  <p class="owner-activity-item__meta">
+                    <strong>{{ item.assigned_professional|e }}</strong>
+                  </p>
+                {% endif %}
                 <p class="owner-activity-item__meta">
                   <span>{{ ui.updated_label }}</span> {{ item.last_update_display|default(item.last_update_at)|e }}
                   &middot; {{ public_i18n('ownersDashboard', 'ownerDashboardNextStepLabel', 'Next step') }}:
