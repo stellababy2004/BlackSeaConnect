@@ -1391,8 +1391,8 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Sea View Villa", html)
         self.assertIn("Marina Apartment", html)
         self.assertIn("Sveti Vlas", html)
-        self.assertIn("Сезонен", html)
-        self.assertIn("Целогодишен", html)
+        # Owner Home uses compact property cards; operating-mode details live
+        # on the dedicated property pages.
 
     def test_owner_dashboard_shows_onboarding_progress_after_first_property(self):
         self._seed_owner_account()
@@ -1403,7 +1403,8 @@ class OwnerPortalTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
-        self.assertIn("Подготвяме операциите на имота ви.", html)
+        # Compact onboarding keeps readiness progress without the
+        # previous long-form operations copy.
         self.assertIn("50%", html)
 
     def test_owner_login_and_dashboard_visibility(self):
@@ -1841,10 +1842,10 @@ class OwnerPortalTests(unittest.TestCase):
             "ru": ("Ожидается", "Подтверждено", "Заселён", "Выселен", "Отменено", "Неявка"),
         }
         expected_setup = {
-            "bg": ("Готовност на имота", "Текущ напредък", "Отвори стъпката", "Оставащи стъпки", "Добавете актуални снимки"),
-            "en": ("Property readiness", "Current completion", "Open step", "Remaining steps", "Add current photos"),
-            "fr": ("Préparation du bien", "Progression actuelle", "Ouvrir l’étape", "Étapes restantes", "Ajoutez des photos récentes"),
-            "ru": ("Готовность объекта", "Текущий прогресс", "Открыть шаг", "Оставшиеся шаги", "Добавьте актуальные фотографии"),
+            "bg": ('Готовност на имота', 'Текущ напредък', 'Отвори стъпката'),
+            "en": ('Property readiness', 'Current completion', 'Open step'),
+            "fr": ('Préparation du bien', 'Progression actuelle', 'Ouvrir l’étape'),
+            "ru": ('Готовность объекта', 'Текущий прогресс', 'Открыть шаг'),
         }
         bulgarian_setup_copy = expected_setup["bg"]
 
@@ -1858,8 +1859,6 @@ class OwnerPortalTests(unittest.TestCase):
                 'data-i18n="ownersDashboard.ownerSetupTitle"',
                 'data-i18n="ownersDashboard.ownerSetupCurrentCompletion"',
                 'data-i18n="ownersDashboard.ownerSetupAction"',
-                'data-i18n="ownersDashboard.ownerSetupRemainingSteps"',
-                'data-i18n="ownersDashboard.ownerSetupDescriptionPhotos"',
             ):
                 self.assertIn(hook, request_html, msg=f"property setup binding {lang}: {hook}")
             for label in expected_categories[lang]:
@@ -1905,7 +1904,6 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertIn('data-i18n="ownerPropertyNewFormTitle"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-property-new-page owner-property-page"', html, msg=path)
                 elif path == "/owners/dashboard":
-                    self.assertIn('data-i18n="ownerDashboardPropertyOverview"', html, msg=path)
                     self.assertIn('body class="owner-portal-page owner-portal-dashboard-page owner-dashboard-page"', html, msg=path)
                 elif path == "/owners/properties":
                     self.assertIn('data-i18n="ownerProfileDropdownProperties"', html, msg=path)

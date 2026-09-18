@@ -40,44 +40,17 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="owner-setup__guidance">
-        <article class="owner-setup__next">
-          <span data-i18n="ownersDashboard.ownerSetupNextAction">{{ property_setup_ui.next_action|e }}</span>
-          {% if setup.next_action %}
-            <h3 data-i18n="ownersDashboard.{{ setup.next_action.title_key|e }}">{{ setup.next_action.title|e }}</h3>
-            <p data-i18n="ownersDashboard.{{ setup.next_action.description_key|e }}">{{ setup.next_action.description|e }}</p>
-            <a class="button button--primary" href="{{ localized_url(setup.next_action.action_href) }}" data-owner-setup-action="{{ setup.next_action.key|e }}" data-action-available="{{ 'true' if setup.next_action.action_available else 'false' }}" data-i18n="ownersDashboard.ownerSetupAction">{{ setup.next_action.action_label|e }}</a>
-          {% else %}
-            <h3 data-i18n="ownersDashboard.ownerSetupAllComplete">{{ property_setup_ui.all_complete|e }}</h3>
-            <span class="owner-setup-card__complete" data-i18n="ownersDashboard.ownerSetupCompleteState">{{ property_setup_ui.complete_state|e }}</span>
-          {% endif %}
-        </article>
-
-        <article class="owner-setup__recent">
-          <span data-i18n="ownersDashboard.ownerSetupRecentlyCompleted">{{ property_setup_ui.recently_completed|e }}</span>
-          {% if setup.recently_completed %}
-            <ul>
-              {% for step in setup.recently_completed %}
-                <li><b aria-hidden="true">&#10003;</b><span data-i18n="ownersDashboard.{{ step.title_key|e }}">{{ step.title|e }}</span></li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p data-i18n="ownersDashboard.ownerSetupNoRecent">{{ property_setup_ui.no_recent|e }}</p>
-          {% endif %}
-        </article>
-
-        <article class="owner-setup__remaining">
-          <span data-i18n="ownersDashboard.ownerSetupRemainingSteps">{{ property_setup_ui.remaining_steps|e }}</span>
-          <strong>{{ setup.remaining_count }} <span data-i18n="ownersDashboard.ownerSetupStepsLeft">{{ property_setup_ui.steps_left|e }}</span></strong>
-          <div>
-            {% for step in setup.remaining_steps[:3] %}
-              <a href="{{ localized_url(step.navigation_href) }}">
-                <span data-i18n="ownersDashboard.{{ step.title_key|e }}">{{ step.title|e }}</span>
-                <small data-i18n="ownersDashboard.{{ step.category_key|e }}">{{ step.category_label|e }}</small>
-              </a>
-            {% endfor %}
+      <div class="owner-setup__compact-action">
+        {% if setup.next_action %}
+          <div class="owner-setup__compact-next">
+            <span data-i18n="ownersDashboard.ownerSetupNextAction">{{ property_setup_ui.next_action|e }}</span>
+            <strong data-i18n="ownersDashboard.{{ setup.next_action.title_key|e }}">{{ setup.next_action.title|e }}</strong>
           </div>
-        </article>
+          <a class="button button--primary" href="{{ localized_url(setup.next_action.action_href) }}" data-owner-setup-action="{{ setup.next_action.key|e }}" data-action-available="{{ 'true' if setup.next_action.action_available else 'false' }}" data-i18n="ownersDashboard.ownerSetupAction">{{ setup.next_action.action_label|e }}</a>
+        {% else %}
+          <strong data-i18n="ownersDashboard.ownerSetupAllComplete">{{ property_setup_ui.all_complete|e }}</strong>
+          <span class="owner-setup-card__complete" data-i18n="ownersDashboard.ownerSetupCompleteState">{{ property_setup_ui.complete_state|e }}</span>
+        {% endif %}
       </div>
     {% endif %}
   </section>
