@@ -827,6 +827,66 @@
     }
 
 
+
+    /* Owner Dashboard visual polish */
+    .owner-dashboard-section > .section-heading h2,
+    .owner-dashboard-section > .section-heading .section-heading__eyebrow,
+    .owner-dashboard-section > .owner-dashboard-section__header h2,
+    .owner-dashboard-section > .owner-dashboard-section__header .owner-portal-card__eyebrow {
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.28);
+    }
+
+    .owner-dashboard-section > .section-heading,
+    .owner-dashboard-section > .owner-dashboard-section__header {
+      margin-bottom: 16px;
+    }
+
+    .owner-latest-updates-list {
+      gap: 12px;
+    }
+
+    .owner-latest-update {
+      min-height: 0;
+      padding: 24px 28px;
+    }
+
+    .owner-latest-update p,
+    .owner-latest-update strong,
+    .owner-latest-update small {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .owner-dashboard-upcoming__list {
+      gap: 12px;
+    }
+
+    .owner-dashboard-upcoming__item {
+      min-height: 0;
+      padding: 22px 28px;
+    }
+
+    .owner-dashboard-empty-state {
+      min-height: 0;
+      padding: 24px 28px;
+    }
+
+    .owner-dashboard-empty-state h3 {
+      margin: 0 0 8px;
+    }
+
+    .owner-dashboard-empty-state p {
+      margin: 0;
+    }
+
+    .owner-properties-compact > .section-heading h2,
+    .owner-properties-compact > .section-heading .section-heading__eyebrow {
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+    }
+
     /* Compact property cards on Owner Home */
     .owner-properties-compact__grid {
       display: grid;
@@ -921,6 +981,73 @@
         flex-direction: column;
       }
     }
+
+
+  /* PR40: compact Latest Updates on Owner Home only */
+  body.owner-portal-dashboard-page .owner-latest-updates-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body.owner-portal-dashboard-page .owner-latest-update {
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+    margin: 0 !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+  }
+
+  body.owner-portal-dashboard-page .owner-latest-update p {
+    margin: 4px 0 !important;
+  }
+
+  @media (max-width: 720px) {
+    body.owner-portal-dashboard-page .owner-latest-updates-list {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+
+  /* PR41: readable section headings over marina background */
+  body.owner-portal-dashboard-page .owner-dashboard-section > .section-heading h2,
+  body.owner-portal-dashboard-page .owner-dashboard-section > .section-heading .section-heading__eyebrow,
+  body.owner-portal-dashboard-page .owner-dashboard-section > .owner-dashboard-section__header h2,
+  body.owner-portal-dashboard-page .owner-dashboard-section > .owner-dashboard-section__header .owner-portal-card__eyebrow {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .45) !important;
+  }
+
+  /* PR41: compact Upcoming cards on Owner Home */
+  body.owner-portal-dashboard-page .owner-dashboard-upcoming__list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body.owner-portal-dashboard-page .owner-dashboard-upcoming__item,
+  body.owner-portal-dashboard-page .owner-dashboard-empty-state {
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+    margin: 0 !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+  }
+
+  body.owner-portal-dashboard-page .owner-dashboard-upcoming__item p,
+  body.owner-portal-dashboard-page .owner-dashboard-upcoming__item h3,
+  body.owner-portal-dashboard-page .owner-dashboard-empty-state p,
+  body.owner-portal-dashboard-page .owner-dashboard-empty-state h3 {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+  }
+
+  @media (max-width: 720px) {
+    body.owner-portal-dashboard-page .owner-dashboard-upcoming__list {
+      grid-template-columns: 1fr !important;
+    }
+  }
 
 </style>
 </head>
