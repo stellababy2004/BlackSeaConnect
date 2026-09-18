@@ -5162,6 +5162,26 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(record["ai_triage"]["confidence"], 0.88)
         self.assertTrue(record["ai_triage"]["needs_human_review"])
 
+    def test_owner_service_request_resolves_property_id_from_owned_property_name(self):
+        self._login_owner_via_magic()
+
+        payload = self._service_request_payload()
+        self.assertNotIn("property_id", payload)
+
+        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
+            response = self.client.post(
+                "/owners/request-service",
+                data=payload,
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        records = self._read_jsonl("service_requests.jsonl")
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["owner_id"], "owner-1")
+        self.assertEqual(records[0]["property_id"], "property-1")
+        self.assertEqual(records[0]["property"], "Sea View Villa")
+
     def test_owner_service_request_creation_saves_and_emails(self):
         self._login_owner_via_magic()
         FakeSMTP.sent_messages.clear()

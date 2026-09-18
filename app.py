@@ -16217,8 +16217,23 @@ def owners_request_service():
             property_record = _find_owner_property(form_values["property_id"]) if form_values["property_id"] else None
             if property_record and str(property_record.get("owner_id", "")).strip() != str(owner_account.get("id", "")).strip():
                 property_record = None
-            if property_record and not form_values["property"]:
-                form_values["property"] = property_record.get("name", "")
+
+            if not property_record and form_values["property"]:
+                owner_id = str(owner_account.get("id", "")).strip()
+                submitted_property_name = form_values["property"].strip().casefold()
+                property_record = next(
+                    (
+                        item
+                        for item in _owner_properties_for_account(owner_id)
+                        if str(item.get("owner_id", "")).strip() == owner_id
+                        and str(item.get("name", "")).strip().casefold() == submitted_property_name
+                    ),
+                    None,
+                )
+
+            if property_record:
+                form_values["property_id"] = str(property_record.get("id", "")).strip()
+                form_values["property"] = str(property_record.get("name", "")).strip() or form_values["property"]
 
             request_record = {
                 "id": uuid4().hex,
