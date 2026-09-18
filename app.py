@@ -15574,6 +15574,7 @@ def owners_dashboard():
     current_lang = _resolve_current_language()
     owner_account = _current_owner_account()
     owner_requests = []
+    operations_tasks = _load_operations_tasks()
     for record in _load_service_requests():
         if str(record.get("request_source", "public")).lower() != "owner":
             continue
@@ -15585,10 +15586,31 @@ def owners_dashboard():
         if timeline:
             last_update_at = timeline[-1].get("created_at", last_update_at)
 
+        backing_task = next(
+            (
+                task
+                for task in operations_tasks
+                if (
+                    str(task.get("request_id", "")).strip() == str(record.get("id", "")).strip()
+                    or (
+                        str(task.get("source_type", "")).strip().upper() == "OWNER_SERVICE_REQUEST"
+                        and str(task.get("source_id", "")).strip() == str(record.get("id", "")).strip()
+                    )
+                )
+            ),
+            None,
+        )
+        enriched_record = _service_request_with_assignment(record, backing_task)
+
         owner_requests.append({
-            **record,
+            **enriched_record,
             "last_update_at": last_update_at or record.get("created_at", ""),
-            "assigned_professional": record.get("assigned_provider_company", "") or record.get("assigned_provider_name", ""),
+            "assigned_professional": (
+                enriched_record.get("assigned_professional_company", "")
+                or enriched_record.get("assigned_professional_name", "")
+                or enriched_record.get("assigned_provider_company", "")
+                or enriched_record.get("assigned_provider_name", "")
+            ),
             "service_category_key": OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(
                 str(record.get("service_category", "")).strip(),
                 OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS["Other"],
