@@ -131,7 +131,8 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertIn("As soon as a pilot form is saved", html)
 
     def test_admin_route_returns_503_when_admin_env_missing(self):
-        response = self.client.get("/admin/pilot-requests")
+        with patch.dict(os.environ, {}, clear=True):
+            response = self.client.get("/admin/pilot-requests")
 
         self.assertEqual(response.status_code, 503)
 
@@ -228,19 +229,22 @@ class PilotRequestApiTests(unittest.TestCase):
             for record in concierge_records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-        with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
+        with patch.dict(os.environ, self.ADMIN_ENV, clear=True), patch(
+            "app.render_template", wraps=app_module.render_template
+        ) as render_template:
             response = self.client.get("/admin", headers=self._auth_headers())
 
         self.assertEqual(response.status_code, 200)
-        html = response.get_data(as_text=True)
-        self.assertIn("Total Leads", html)
-        self.assertIn("4", html)
-        self.assertIn("New", html)
-        self.assertIn("Contacted", html)
-        self.assertIn("Qualified", html)
-        self.assertIn("Converted", html)
-        self.assertIn("Lost", html)
-        self.assertIn("Concierge Requests", html)
+        render_template.assert_called_once()
+        self.assertEqual(render_template.call_args.args, ("admin_home_exec.html",))
+        dashboard = render_template.call_args.kwargs
+        self.assertEqual(dashboard["total_leads"], 4)
+        self.assertEqual(dashboard["new_leads"], 1)
+        self.assertEqual(dashboard["contacted_leads"], 0)
+        self.assertEqual(dashboard["qualified_leads"], 1)
+        self.assertEqual(dashboard["converted_leads"], 1)
+        self.assertEqual(dashboard["lost_leads"], 1)
+        self.assertEqual(dashboard["concierge_requests"], 1)
 
     def test_export_route_is_protected(self):
         with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
@@ -762,7 +766,9 @@ class PilotRequestApiTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("Pilot request detail", html)
         self.assertIn("NEW", html)
-        self.assertIn('data-i18n="adminPilotRequestDetail.detailOwner"', html)
+        self.assertRegex(html, r"<dt>Owner / contact</dt>\s*<dd>Unassigned</dd>")
+        self.assertIn('name="owner" value=""', html)
+        self.assertRegex(html, r'<textarea\b[^>]*name="notes"[^>]*></textarea>')
         self.assertNotIn("Ð", html)
         self.assertNotIn("Ñ", html)
 

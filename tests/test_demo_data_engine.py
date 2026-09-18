@@ -17,6 +17,9 @@ class DemoDataEngineTests(unittest.TestCase):
     }
 
     def setUp(self):
+        demo_data_patch = patch.object(app_module, "DEMO_DATA_ENABLED", True)
+        demo_data_patch.start()
+        self.addCleanup(demo_data_patch.stop)
         self._cwd = os.getcwd()
         self._tmpdir = Path(self._cwd) / f".tmp_demo_data_tests_{uuid.uuid4().hex}"
         self._tmpdir.mkdir(exist_ok=True)
