@@ -4041,9 +4041,9 @@
           <button class="button button--primary" type="submit" form="admin-operations-assignment-form">{{ od.save_changes }}</button>
           <a class="button button--secondary" href="#operations-checklist">{{ od.to_checklist }}</a>
           <a class="button button--ghost" href="/admin/calendar">{{ od.open_calendar }}</a>
-          {% if task.source_type in ["SERVICE_REQUEST", "OWNER_SERVICE_REQUEST"] %}
-            <a class="button button--ghost" href="/admin/service-requests/{{ task.request_id|e }}">{{ od.open_request }}</a>
-          {% endif %}
+          {% if source_service_request %}
+          <a class="button button--ghost" href="{{ url_for('admin_service_request_detail', request_id=source_service_request.id) }}">{{ od.open_request }}</a>
+        {% endif %}
         </div>
       </div>
     </section>

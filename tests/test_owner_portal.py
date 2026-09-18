@@ -2846,6 +2846,47 @@ class OwnerPortalTests(unittest.TestCase):
                 self.assertIn("High", html)
 
 
+    def test_admin_operations_detail_hides_missing_source_service_request_link(self):
+        missing_request_id = "missing-owner-service-request"
+
+        app_module._upsert_operations_task({
+            "id": missing_request_id,
+            "request_id": missing_request_id,
+            "source_id": missing_request_id,
+            "source_type": "OWNER_SERVICE_REQUEST",
+            "property_id": "",
+            "property": "Test property",
+            "owner": "Test owner",
+            "owner_email": "owner@example.com",
+            "category": "SERVICE",
+            "title": "Missing source request test",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "assigned_to": "",
+            "assigned_professional_id": "",
+            "due_date": "",
+            "notes": "",
+        })
+
+        with patch.dict(
+            os.environ,
+            {**self.ADMIN_ENV, **self.SMTP_ENV},
+            clear=True,
+        ):
+            response = self.client.get(
+                f"/admin/operations/{missing_request_id}",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        self.assertNotIn(
+            f"/admin/service-requests/{missing_request_id}",
+            html,
+        )
+
+
     def test_admin_operations_detail_renders_top_three_ai_assignment_recommendations(self):
         request_id = "owner-request-ai-top3"
 
