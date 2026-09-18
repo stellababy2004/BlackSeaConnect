@@ -14412,6 +14412,21 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         key=lambda item: str(item.get("updated_at", item.get("created_at", ""))),
         reverse=True,
     )
+    owner_visible_tasks = [
+        task
+        for task in operations_tasks
+        if _owner_can_view_operations_task(task, owner_account)
+    ]
+    owner_visible_tasks.sort(
+        key=lambda item: str(
+            item.get("updated_at")
+            or item.get("completed_at")
+            or item.get("created_at")
+            or ""
+        ),
+        reverse=True,
+    )
+
     owner_calendar_context = _build_calendar_page_context("owner", owner_account)
     calendar_widget = _calendar_dashboard_widget([
         _owner_dashboard_calendar_event_display(event, current_lang)
@@ -14614,6 +14629,17 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
                 "last_update_display": _format_local_datetime(record.get("last_update_at") or record.get("created_at"), current_lang) or dashboard_copy["recently"],
             }
             for record in owner_requests[:3]
+        ] or [
+            {
+                **task,
+                "service_category_display": str(task.get("category") or task.get("title") or "").strip(),
+                "assigned_professional": str(task.get("assigned_to") or "").strip(),
+                "last_update_display": _format_local_datetime(
+                    task.get("updated_at") or task.get("completed_at") or task.get("created_at"),
+                    current_lang,
+                ) or dashboard_copy["recently"],
+            }
+            for task in owner_visible_tasks[:3]
         ],
         "open_request_count": len(open_requests),
         "calendar_widget": calendar_widget,
