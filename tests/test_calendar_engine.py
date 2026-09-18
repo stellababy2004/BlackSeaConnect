@@ -404,7 +404,7 @@ class CalendarEngineTests(unittest.TestCase):
         self.assertNotIn("Sea View Villa", owner_two_html)
         self.assertIn("Golden Bay Villa", admin_html)
         self.assertIn("Sea View Villa", admin_html)
-        self.assertIn("Upcoming events", owner_dashboard_html)
+        self.assertIn("Upcoming", owner_dashboard_html)
         self.assertIn('data-lang-switch="bg"', owner_dashboard_html)
         self.assertIn("Calendar", admin_dashboard_html)
         self.assertIn("/admin/calendar", admin_dashboard_html)

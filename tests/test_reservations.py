@@ -220,8 +220,8 @@ class ReservationEngineTests(unittest.TestCase):
         filtered_html = filtered.get_data(as_text=True)
         admin_detail_html = admin_detail.get_data(as_text=True)
 
-        self.assertIn("Резервации и заетост", owner_dashboard_html)
-        self.assertIn("Предстоящи пристигания", owner_dashboard_html)
+        self.assertIn("Предстоящи събития", owner_dashboard_html)
+        self.assertIn("Anna Ivanova", owner_dashboard_html)
 
         # Reservation visibility/isolation.
         self.assertIn("Anna Ivanova", admin_reservations_html)

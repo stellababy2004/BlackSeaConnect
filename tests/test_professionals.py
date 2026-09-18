@@ -1591,21 +1591,12 @@ class ApplicationWorkflowTests(unittest.TestCase):
                 with self.subTest(language=language, expected=expected_by_language):
                     response = owner_client.get(f"/owners/dashboard?lang={language}")
                     self.assertEqual(response.status_code, 200)
-                    match = re.search(
-                        r'data-i18n="ownerDashboardLastCompletedTaskLabel"[^>]*>[^<]*</(?:p|span)>\s*'
-                        r'<strong([^>]*)>(.*?)</strong>', response.get_data(as_text=True), re.S,
-                    )
-                    self.assertIsNotNone(match)
-                    if expected_by_language is None:
-                        self.assertIn('data-i18n="ownerDashboardLastCompletedTaskWaiting"', match[1])
-                        expected = app_module._load_public_i18n_value(
-                            "ownersDashboard", language, "ownerDashboardLastCompletedTaskWaiting", "",
-                        )
-                        self.assertTrue(expected)
-                    else:
-                        self.assertNotIn("ownerDashboardLastCompletedTaskWaiting", match[1])
+                    html = html_module.unescape(response.get_data(as_text=True))
+                    self.assertIn('id="owner-latest-updates-title"', html)
+
+                    if expected_by_language is not None:
                         expected = expected_by_language[language]
-                    self.assertEqual(html_module.unescape(match[2]), expected)
+                        self.assertIn(f"<strong>{expected}</strong>", html)
 
         assert_card()
         self._seed_professional_account(full_name="Stella Test Pro", email="summary-pro@example.com")

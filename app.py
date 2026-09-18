@@ -14648,6 +14648,16 @@ def _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
         "summary_line": dashboard_copy["hero_summary_line"],
         "status_note_key": status_note_key,
         "last_completed_task_key": last_completed_task_key,
+        "last_completed_task": last_completed_task,
+        "latest_completed_task": {
+            **latest_completed,
+            "service_category_display": last_completed_task,
+            "property": str(latest_completed.get("property_name") or latest_completed.get("property") or "").strip(),
+            "last_update_display": _format_local_datetime(
+                latest_completed.get("completed_at") or latest_completed.get("updated_at") or latest_completed.get("created_at"),
+                current_lang,
+            ) or dashboard_copy["recently"],
+        } if latest_completed else None,
         "ui": dashboard_copy,
     }
 
