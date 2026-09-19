@@ -113,11 +113,22 @@
 
       <form class="owner-request-form" method="post" action="/owners/request-service" data-owner-submit-state>
         <input type="hidden" name="lang" value="{{ current_lang }}">
-        <input type="hidden" name="property_id" value="{{ form_values.property_id|e }}">
         <div class="owner-request-form__grid">
           <label class="owner-request-form__field">
             <span data-i18n="ownerRequestServicePropertyLabel">{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyLabel', '') }}</span>
-            <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyPlaceholder', '') }}" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
+            {% if owner_properties %}
+              <select name="property_id" required>
+                {% if owner_properties|length > 1 %}
+                  <option value="" {% if not form_values.property_id %}selected{% endif %}>{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyPlaceholder', '') }}</option>
+                {% endif %}
+                {% for property_record in owner_properties %}
+                  <option value="{{ property_record.id|e }}" {% if form_values.property_id == property_record.id %}selected{% endif %}>{{ property_record.name|e }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input type="hidden" name="property_id" value="">
+              <input type="text" name="property" value="{{ form_values.property|e }}" required placeholder="{{ public_i18n('ownersRequestService', 'ownerRequestServicePropertyPlaceholder', '') }}" data-i18n-attr="placeholder:ownerRequestServicePropertyPlaceholder">
+            {% endif %}
             {% if errors.property %}<p class="form-error" data-i18n="{{ errors.property }}">{{ public_i18n('ownersRequestService', errors.property, public_i18n('ownersRequestService', 'ownerRequestServicePropertyRequiredError', '')) }}</p>{% endif %}
           </label>
 
