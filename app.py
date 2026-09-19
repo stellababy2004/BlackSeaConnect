@@ -16210,6 +16210,76 @@ def owner_property_document_delete(property_id, document_id):
     )
 
 
+@app.get("/owners/requests/<request_id>")
+@owner_required
+def owners_service_request_detail(request_id):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    owner_id = str(owner_account.get("id", "")).strip()
+    owner_email = str(owner_account.get("email", "")).strip().lower()
+
+    service_request = _find_service_request(request_id)
+    if not service_request:
+        return Response("Service request not found.", status=404, mimetype="text/plain")
+
+    request_owner_id = str(service_request.get("owner_id", "")).strip()
+    request_owner_email = str(service_request.get("owner_email", "")).strip().lower()
+
+    belongs_to_owner = bool(
+        owner_id
+        and request_owner_id == owner_id
+    ) or bool(
+        not request_owner_id
+        and owner_email
+        and request_owner_email == owner_email
+    )
+    if (
+        str(service_request.get("request_source", "public")).strip().lower() != "owner"
+        or not belongs_to_owner
+    ):
+        return Response("Service request not found.", status=404, mimetype="text/plain")
+
+    operations_tasks = _load_operations_tasks()
+    backing_task = next(
+        (
+            task
+            for task in operations_tasks
+            if (
+                str(task.get("request_id", "")).strip() == str(service_request.get("id", "")).strip()
+                or (
+                    str(task.get("source_type", "")).strip().upper() == "OWNER_SERVICE_REQUEST"
+                    and str(task.get("source_id", "")).strip() == str(service_request.get("id", "")).strip()
+                )
+            )
+        ),
+        None,
+    )
+
+    service_request = _service_request_with_assignment(
+        service_request,
+        backing_task,
+    )
+    timeline = list(reversed(_service_request_timeline_events(service_request)))
+
+    assigned_professional = (
+        service_request.get("assigned_professional_company", "")
+        or service_request.get("assigned_professional_name", "")
+        or service_request.get("assigned_provider_company", "")
+        or service_request.get("assigned_provider_name", "")
+    )
+
+    return render_template(
+        "owners_service_request_detail.html",
+        owner_account=owner_account,
+        service_request=service_request,
+        backing_task=backing_task,
+        timeline=timeline,
+        assigned_professional=assigned_professional,
+        current_lang=current_lang,
+        page_lang=current_lang,
+    )
+
+
 @app.route("/owners/request-service", methods=["GET", "POST"])
 @owner_required
 def owners_request_service():

@@ -4587,6 +4587,118 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(legacy_fr["summary"], "Legacy summary.")
         self.assertEqual(legacy_fr["suggested_next_action"], "Legacy action.")
 
+
+    def test_owner_can_view_own_service_request_detail(self):
+        self._seed_owner_account(email="owner@blackseaconnect.com")
+        self._seed_owner_property(
+            owner_id="owner-1",
+            owner_email="owner@blackseaconnect.com",
+            name="Sea View Villa",
+        )
+        self._seed_jsonl("service_requests.jsonl", [
+            self._demo_owner_request(
+                id="owner-request-detail-1",
+                owner_id="owner-1",
+                owner_email="owner@blackseaconnect.com",
+                property="Sea View Villa",
+                service_category="Maintenance",
+                description="Window mechanism needs inspection.",
+                assigned_professional_name="Mira Ivanova",
+                assigned_professional_company="Mira Property Care",
+                internal_notes="ADMIN SECRET NOTE",
+            )
+        ])
+
+        self._login_owner_via_magic()
+
+        response = self.client.get(
+            "/owners/requests/owner-request-detail-1"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        self.assertIn("Maintenance", html)
+        self.assertIn("Sea View Villa", html)
+        self.assertIn("Window mechanism needs inspection.", html)
+        self.assertIn("Mira Property Care", html)
+
+        # Internal/admin-only data must never be rendered to the owner.
+        self.assertNotIn("ADMIN SECRET NOTE", html)
+
+
+    def test_owner_cannot_view_another_owners_service_request_detail(self):
+        self._seed_owner_account(email="owner@blackseaconnect.com")
+        self._seed_jsonl("service_requests.jsonl", [
+            self._demo_owner_request(
+                id="other-owner-request",
+                owner_id="owner-other",
+                owner_email="other-owner@example.com",
+                email="other-owner@example.com",
+                description="Private request from another owner.",
+            )
+        ])
+
+        self._login_owner_via_magic()
+
+        response = self.client.get(
+            "/owners/requests/other-owner-request"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn(
+            "Private request from another owner.",
+            response.get_data(as_text=True),
+        )
+
+
+    def test_owner_service_request_detail_returns_404_for_missing_request(self):
+        self._seed_owner_account(email="owner@blackseaconnect.com")
+        self._login_owner_via_magic()
+
+        response = self.client.get(
+            "/owners/requests/request-that-does-not-exist"
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
+    def test_owner_dashboard_links_recent_request_to_detail_page(self):
+        self._seed_owner_account(email="owner@blackseaconnect.com")
+        self._seed_owner_property(
+            owner_id="owner-1",
+            owner_email="owner@blackseaconnect.com",
+            name="Sea View Villa",
+        )
+        self._seed_jsonl("service_requests.jsonl", [
+            self._demo_owner_request(
+                id="owner-request-clickable",
+                owner_id="owner-1",
+                owner_email="owner@blackseaconnect.com",
+                property="Sea View Villa",
+                service_category="Maintenance",
+                description="Clickable owner request.",
+            )
+        ])
+
+        self._login_owner_via_magic()
+
+        response = self.client.get("/owners/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+
+        self.assertIn(
+            "/owners/requests/owner-request-clickable",
+            html,
+        )
+        self.assertIn(
+            "owner-latest-update--request",
+            html,
+        )
+        self.assertIn("View details", html)
+
+
     def test_public_owner_ctas_are_visible(self):
         response_home = self.client.get("/")
         response_services = self.client.get("/services")
