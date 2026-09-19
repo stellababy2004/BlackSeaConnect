@@ -22,15 +22,15 @@
 </head>
 <body class="owner-portal-page owner-login-page">
   <header class="hero hero--home" id="top">
-    <nav class="topbar" aria-label="Primary">
+    <nav class="topbar" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiPrimary') }}">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Owner portal">
+        <nav class="site-nav" aria-label="{{ public_i18n('ownersDashboard', 'ownerPropertiesPortalChip') }}">
           <a class="site-nav__link" href="{{ localized_url('/') }}" data-i18n="navHome">{{ public_i18n('common', 'navHome', 'Home') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal', 'Owners') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="navOwnerRequestService">{{ public_i18n('common', 'navRequestService', 'Request service') }}</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel') }}" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
@@ -57,14 +57,14 @@
           <a class="button button--primary" href="#owner-login-form" data-i18n="ownerLoginPrimaryCta">{{ public_i18n('ownersLogin', 'ownerLoginPrimaryCta', 'Login') }}</a>
           <a class="button button--secondary" href="{{ localized_url('/owners/register') }}" data-i18n="ownerLoginSecondaryCta">{{ public_i18n('ownersLogin', 'ownerLoginSecondaryCta', 'Create account') }}</a>
         </div>
-        <div class="trust-strip" aria-label="Owner login benefits">
+        <div class="trust-strip" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiOwnerLoginBenefits') }}">
           <span class="trust-strip__chip" data-i18n="ownerLoginChip1">{{ public_i18n('ownersLogin', 'ownerLoginChip1', 'Confidential portal') }}</span>
           <span class="trust-strip__chip" data-i18n="ownerLoginChip2">{{ public_i18n('ownersLogin', 'ownerLoginChip2', 'Calm property visibility') }}</span>
           <span class="trust-strip__chip" data-i18n="ownerLoginChip3">{{ public_i18n('ownersLogin', 'ownerLoginChip3', 'Service requests in one place') }}</span>
         </div>
       </div>
 
-      <aside class="owner-portal-card owner-login-card" aria-label="Owner portal summary">
+      <aside class="owner-portal-card owner-login-card" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiOwnerPortalSummary') }}">
         <p class="owner-portal-card__eyebrow" data-i18n="ownerLoginWhatThisIs">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisIs', 'What this is') }}</p>
         <h2 data-i18n="ownerLoginWhatThisTitle">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisTitle', 'Everything you need without the admin noise.') }}</h2>
         <p class="owner-portal-card__subcopy" data-i18n="ownerLoginWhatThisCopy">{{ public_i18n('ownersLogin', 'ownerLoginWhatThisCopy', 'A premium owner view for activity, updates, and service requests.') }}</p>
@@ -160,13 +160,13 @@
     </section>
   </main>
 
-  <footer class="site-footer" aria-label="Site footer">
+  <footer class="site-footer" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiSiteFooter') }}">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
       <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription', 'Calm operational solutions for coastal properties.') }}</p>
     </div>
 
-    <nav class="site-footer__links" aria-label="Footer links">
+    <nav class="site-footer__links" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiFooterLinks') }}">
       <a href="{{ localized_url('/services') }}" data-i18n="navServices">{{ public_i18n('common', 'navServices', 'Services') }}</a>
       <a href="{{ localized_url('/partners') }}" data-i18n="navPartners">{{ public_i18n('common', 'navPartners', 'Partners') }}</a>
       <a href="{{ localized_url('/pilot-access') }}" data-i18n="navPilotAccess">{{ public_i18n('common', 'navPilotAccess', 'Pilot access') }}</a>

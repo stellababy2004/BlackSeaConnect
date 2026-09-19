@@ -1112,7 +1112,7 @@
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
 
       <div class="topbar__actions">
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel') }}" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
@@ -1152,7 +1152,15 @@
         {% endif %}
 
         <div class="hero__cta">
-          <a class="button button--primary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="button"
+               href="{{ localized_url('/owners/requests') }}">
+              {{ public_i18n('ownersDashboard', 'ownerDashboardViewAllRequests', 'View all requests') }}
+            </a>
+            <a class="button button--primary"
+               href="{{ localized_url('/owners/request-service') }}"
+               data-i18n="ownerDashboardPrimaryCta">{{ ui.hero_primary_cta }}</a>
+          </div>
           <a class="button button--ghost" href="{{ localized_url('/owners/request-service?category=maintenance') }}">{{ ui.emergency_issue }}</a>
         </div>
       </div>
@@ -1222,7 +1230,7 @@
               </small>
 
               <div class="owner-completed-task-link-hint">
-                <span>View details</span>
+                <span>{{ public_i18n('ownersDashboard', 'ownerUiViewDetails') }}</span>
                 <span aria-hidden="true">&rarr;</span>
               </div>
             </a>
@@ -1249,7 +1257,7 @@
                 </small>
 
                 <div class="owner-completed-task-link-hint">
-                  <span>View details</span>
+                  <span>{{ public_i18n('ownersDashboard', 'ownerUiViewDetails') }}</span>
                   <span aria-hidden="true">&rarr;</span>
                 </div>
               </a>

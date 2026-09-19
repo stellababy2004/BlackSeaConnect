@@ -499,7 +499,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title{% if calendar_scope == 'admin' %} data-i18n="calendarPageTitle"{% endif %}>BlackSea Connect | {% if calendar_scope == 'admin' %}{{ cal.calendar_title }}{% else %}{{ calendar_scope_label }}{% endif %}</title>
+  <title{% if calendar_scope == 'admin' %} data-i18n="calendarPageTitle"{% endif %}>BlackSea Connect | {% if calendar_scope == 'admin' %}{{ cal.calendar_title }}{% else %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar') if calendar_scope == 'owner' else calendar_scope_label }}{% endif %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .calendar-page {
@@ -4066,7 +4066,7 @@
     {% elif event_type == 'Maintenance' %}{{ public_i18n('owners', 'ownerCategoryMaintenance', 'Maintenance') }}
     {% elif event_type == 'Blocked Dates' %}{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}
     {% elif event_type == 'Personal Stay' %}{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}
-    {% else %}{{ event_type|e }}
+    {% else %}{{ owner_ui_value(event_type) }}
     {% endif %}
   {%- endmacro %}
   {% if calendar_scope == 'admin' %}
@@ -4262,8 +4262,8 @@
                           <p class="calendar-event__copy">{% if event.owner_label %}{{ event.owner_label|e }}{% endif %}{% if event.professional %} · {{ event.professional|e }}{% endif %}</p>
                         </div>
                         <div class="calendar-event__meta">
-                          <p class="calendar-event__copy">{{ cal.status }}: <span data-owner-status="{{ event.status|e }}">{{ event.status|e }}</span></p>
-                          <p class="calendar-event__copy">{% if event.priority %}{{ cal.priority }}: <span data-owner-status="{{ event.priority|e }}">{{ event.priority|e }}</span>{% endif %}</p>
+                          <p class="calendar-event__copy">{{ cal.status }}: <span data-owner-status="{{ event.status|e }}">{{ owner_ui_value(event.status) if calendar_scope == 'owner' else event.status }}</span></p>
+                          <p class="calendar-event__copy">{% if event.priority %}{{ cal.priority }}: <span data-owner-status="{{ event.priority|e }}">{{ owner_ui_value(event.priority) if calendar_scope == 'owner' else event.priority }}</span>{% endif %}</p>
                         </div>
                       </article>
                     {% endfor %}
@@ -4294,7 +4294,7 @@
             </div>
             <p class="calendar-note">{{ public_i18n('ownersDashboard', 'ownerCalendarCreateCopy', 'Owners can create blocked dates and personal stays without touching the operational workflow.') }}</p>
             {% if calendar_owner_properties %}
-              <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}" data-owner-submit-state>
+              <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
                 <div class="calendar-event-type-picker" aria-label="Event type">
                   <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}</button>
                   <button type="button" data-event-type="Personal Stay"><span>⌂</span>{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}</button>
@@ -4316,11 +4316,11 @@
                 </label>
                 <label>
                   <span>{{ public_i18n('ownersDashboard', 'ownerCalendarTitleLabel', 'Title') }}</span>
-                  <input type="text" name="title" placeholder="Optional title">
+                  <input type="text" name="title" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiOptionalTitle') }}">
                 </label>
                 <label>
                   <span>{{ public_i18n('ownersDashboard', 'ownerCalendarDescriptionLabel', 'Description') }}</span>
-                  <textarea name="description" placeholder="Optional note"></textarea>
+                  <textarea name="description" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiOptionalNote') }}"></textarea>
                 </label>
                 <div class="calendar-owner-form__grid">
                   <label>
@@ -4501,7 +4501,7 @@
               <button class="admin-ops-button admin-ops-button--icon" type="button" data-mission-search-clear aria-label="{{ cal['clear'] }}">×</button>
             </div>
             <div class="admin-ops-meta">
-              <span data-admin-timezone>Timezone</span>
+              <span data-admin-timezone>{{ public_i18n('ownersDashboard', 'ownerUiTimezone') }}</span>
               <span>Admin</span>
             </div>
           </div>

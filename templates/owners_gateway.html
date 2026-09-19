@@ -591,15 +591,15 @@
 </head>
 <body class="owner-portal-page owner-portal-landing-page owner-landing-page">
   <header class="hero hero--home" id="top">
-    <nav class="topbar" aria-label="Primary">
+    <nav class="topbar" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiPrimary') }}">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Owner portal">
+        <nav class="site-nav" aria-label="{{ public_i18n('ownersDashboard', 'ownerPropertiesPortalChip') }}">
           <a class="site-nav__link is-active" href="{{ localized_url('/owners') }}" data-i18n="navOwnerPortal">{{ public_i18n('common', 'navOwnerPortal') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/login') }}" data-i18n="ownerLandingSignInNav">{{ public_i18n('ownersLanding', 'ownerLandingSignInNav') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLandingRequestServiceCta">{{ public_i18n('common', 'navRequestService') }}</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel') }}" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
@@ -623,7 +623,7 @@
           <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/owners/register') }}" data-i18n="ownerLandingCreateAccountCta">{{ public_i18n('ownersLanding', 'ownerLandingCreateAccountCta') }}</a>
           <a class="button button--secondary ds-button ds-button--secondary" href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLandingRequestServiceCta">{{ public_i18n('ownersLanding', 'ownerLandingRequestServiceCta') }}</a>
         </div>
-        <div class="owner-landing-kickers" aria-label="Owner portal benefits">
+        <div class="owner-landing-kickers" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiOwnerPortalBenefits') }}">
           <span class="owner-landing-kicker" data-i18n="ownerLandingKickerSecureAccess">{{ public_i18n('ownersLanding', 'ownerLandingKickerSecureAccess') }}</span>
           <span class="owner-landing-kicker" data-i18n="ownerLandingKickerRealtimeUpdates">{{ public_i18n('ownersLanding', 'ownerLandingKickerRealtimeUpdates') }}</span>
           <span class="owner-landing-kicker" data-i18n="ownerLandingKickerPremiumConcierge">{{ public_i18n('ownersLanding', 'ownerLandingKickerPremiumConcierge') }}</span>
@@ -632,7 +632,7 @@
         </div>
       </div>
 
-      <aside class="owner-portal-card owner-landing-preview" aria-label="Dashboard preview">
+      <aside class="owner-portal-card owner-landing-preview" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiDashboardPreview') }}">
         <div class="owner-landing-preview__header">
           <div>
             <p class="owner-landing-preview__badge" data-i18n="ownerLandingPreviewBadge">{{ public_i18n('ownersLanding', 'ownerLandingPreviewBadge') }}</p>
@@ -742,13 +742,13 @@
     </section>
   </main>
 
-  <footer class="site-footer" aria-label="Site footer">
+  <footer class="site-footer" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiSiteFooter') }}">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
       <p data-i18n="footerDescription">{{ public_i18n('common', 'footerDescription') }}</p>
     </div>
 
-    <nav class="site-footer__links" aria-label="Footer links">
+    <nav class="site-footer__links" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiFooterLinks') }}">
       <a href="{{ localized_url('/owners/login') }}" data-i18n="ownerLandingSignInCta">{{ public_i18n('ownersLanding', 'ownerLandingSignInCta') }}</a>
       <a href="{{ localized_url('/owners/register') }}" data-i18n="ownerLandingCreateAccountCta">{{ public_i18n('ownersLanding', 'ownerLandingCreateAccountCta') }}</a>
       <a href="{{ localized_url('/owners/request-service') }}" data-i18n="ownerLandingRequestServiceCta">{{ public_i18n('ownersLanding', 'ownerLandingRequestServiceCta') }}</a>

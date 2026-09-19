@@ -10390,6 +10390,84 @@ def _owner_property_setup_ui(language=None):
     }
 
 
+_OWNER_UI_VALUE_KEYS = {'accepted': ('professionals', 'taskStatusAccepted'),
+ 'after': ('ownersDashboard', 'ownerUiAfter'),
+ 'after photo': ('ownersDashboard', 'ownerUiAfterPhoto'),
+ 'airport transfer': ('owners', 'ownerCategoryAirportTransfer'),
+ 'archived': ('professionals', 'taskStatusArchived'),
+ 'arrived': ('professionals', 'taskStatusArrived'),
+ 'assigned': ('professionals', 'taskStatusAssigned'),
+ 'available': ('ownersDashboard', 'ownerPropertyStateAvailable'),
+ 'before': ('ownersDashboard', 'ownerUiBefore'),
+ 'before photo': ('ownersDashboard', 'ownerUiBeforePhoto'),
+ 'blocked': ('ownersDashboard', 'ownerPropertyStateBlocked'),
+ 'blocked dates': ('ownersDashboard', 'ownerCalendarBlockedDates'),
+ 'blocked dates created': ('ownersDashboard', 'ownerUiBlockedDatesCreated'),
+ 'cancelled': ('ownersDashboard', 'ownerReservationStatusCancelled'),
+ 'check in': ('common', 'dashboardCheckIn'),
+ 'check out': ('common', 'dashboardCheckOut'),
+ 'checked in': ('ownersDashboard', 'ownerReservationStatusCheckedIn'),
+ 'checked out': ('ownersDashboard', 'ownerReservationStatusCheckedOut'),
+ 'cleaning': ('owners', 'ownerCategoryCleaning'),
+ 'completed': ('professionals', 'taskStatusCompleted'),
+ 'concierge': ('owners', 'ownerCategoryConcierge'),
+ 'concierge support': ('owners', 'ownerCategoryConciergeSupport'),
+ 'confirmed': ('ownersDashboard', 'ownerReservationStatusConfirmed'),
+ 'electrical': ('owners', 'ownerCategoryElectrical'),
+ 'guest checked in': ('ownersDashboard', 'ownerDashboardGuestCheckedInTimeline'),
+ 'guest checked out': ('ownersDashboard', 'ownerUiGuestCheckedOut'),
+ 'guest issue': ('owners', 'ownerCategoryGuestIssue'),
+ 'high': ('professionals', 'detailIssueSeverityHigh'),
+ 'in progress': ('professionals', 'taskStatusInProgress'),
+ 'inspection': ('owners', 'ownerCategoryInspection'),
+ 'internal': ('ownersDashboard', 'ownerUiInternal'),
+ 'laundry': ('owners', 'ownerCategoryLaundry'),
+ 'low': ('professionals', 'detailIssueSeverityLow'),
+ 'maintenance': ('owners', 'ownerCategoryMaintenance'),
+ 'manual': ('ownersDashboard', 'ownerReservationsManual'),
+ 'manual reservation': ('ownersDashboard', 'ownerReservationsManual'),
+ 'new': ('professionals', 'taskStatusNew'),
+ 'no show': ('ownersDashboard', 'ownerReservationStatusNoShow'),
+ 'no show recorded': ('ownersDashboard', 'ownerUiNoShowRecorded'),
+ 'normal': ('professionals', 'taskPriorityNormal'),
+ 'occupied': ('ownersDashboard', 'ownerPropertyStateOccupied'),
+ 'on the way': ('professionals', 'taskStatusOnTheWay'),
+ 'other': ('owners', 'ownerCategoryOther'),
+ 'paused': ('professionals', 'taskStatusPaused'),
+ 'pending': ('ownersDashboard', 'ownerDashboardPendingShort'),
+ 'personal stay': ('ownersDashboard', 'ownerCalendarPersonalStay'),
+ 'photography': ('owners', 'ownerCategoryPhotography'),
+ 'plumbing': ('owners', 'ownerCategoryPlumbing'),
+ 'property inspection': ('owners', 'ownerCategoryPropertyInspection'),
+ 'property management': ('owners', 'ownerCategoryPropertyManagement'),
+ 'public': ('ownersDashboard', 'ownerUiPublic'),
+ 'ready': ('ownersDashboard', 'ownerMetricReady'),
+ 'reservation': ('professionals', 'tasksReservation'),
+ 'reservation cancelled': ('ownersDashboard', 'ownerUiReservationCancelled'),
+ 'reservation created': ('ownersDashboard', 'ownerUiReservationCreated'),
+ 'reservation event': ('ownersDashboard', 'ownerUiReservationEvent'),
+ 'reservation imported': ('ownersDashboard', 'ownerUiReservationImported'),
+ 'reservation status changed': ('ownersDashboard', 'ownerUiReservationStatusChanged'),
+ 'scheduled': ('ownersDashboard', 'ownerDashboardTimelineScheduled'),
+ 'seasonal preparation': ('owners', 'ownerCategorySeasonalPreparation'),
+ 'service': ('professionals', 'tasksService'),
+ 'unknown status': ('professionals', 'taskStatusUnknown'),
+ 'urgent': ('professionals', 'detailIssueSeverityUrgent'),
+ 'waiting': ('ownersDashboard', 'ownerUiWaiting'),
+ 'waiting for the team': ('professionals', 'taskStatusWaitingOperations'),
+ 'waiting operations': ('professionals', 'taskStatusWaitingOperations'),
+ 'waiting owner': ('professionals', 'taskStatusWaitingOwner')}
+
+
+def _owner_ui_value(value):
+    raw = str(value or "")
+    normalized = re.sub(r"[ _-]+", " ", raw.strip().casefold())
+    target = _OWNER_UI_VALUE_KEYS.get(normalized)
+    if target is None:
+        return raw
+    return _load_public_i18n_value(target[0], _resolve_current_language(), target[1], raw)
+
+
 @app.context_processor
 def inject_owner_property_setup():
     if not request.path.startswith("/owners") or not session.get(OWNER_SESSION_LOGGED_IN_KEY):
@@ -12614,7 +12692,9 @@ def inject_public_site_settings():
         "localized_url": localized_url,
         "page_lang": current_page_language(),
         "public_i18n": public_i18n,
+        "owner_ui_value": _owner_ui_value,
     }
+
 
 
 @app.after_request
@@ -15605,58 +15685,101 @@ def owners_property_new():
     ), (400 if errors else 200)
 
 
-@app.route("/owners/dashboard")
-@owner_required
-def owners_dashboard():
-    current_lang = _resolve_current_language()
-    owner_account = _current_owner_account()
-    owner_requests = []
+def _owner_service_requests_for_account(owner_account):
+    owner_id = str((owner_account or {}).get("id", "")).strip()
+    owner_email = str((owner_account or {}).get("email", "")).strip().lower()
     operations_tasks = _load_operations_tasks()
+    owner_requests = []
+
     for record in _load_service_requests():
-        if str(record.get("request_source", "public")).lower() != "owner":
-            continue
-        if str(record.get("owner_email", "")).strip().lower() != str(owner_account.get("email", "")).strip().lower():
+        if str(record.get("request_source", "public")).strip().lower() != "owner":
             continue
 
-        timeline = _service_request_timeline_events(record)
-        last_update_at = str(record.get("last_update_at", "")).strip()
-        if timeline:
-            last_update_at = timeline[-1].get("created_at", last_update_at)
+        request_owner_id = str(record.get("owner_id", "")).strip()
+        request_owner_email = str(record.get("owner_email", "")).strip().lower()
+
+        belongs_to_owner = bool(
+            owner_id and request_owner_id == owner_id
+        ) or bool(
+            not request_owner_id
+            and owner_email
+            and request_owner_email == owner_email
+        )
+        if not belongs_to_owner:
+            continue
 
         backing_task = next(
             (
                 task
                 for task in operations_tasks
                 if (
-                    str(task.get("request_id", "")).strip() == str(record.get("id", "")).strip()
+                    str(task.get("request_id", "")).strip()
+                    == str(record.get("id", "")).strip()
                     or (
-                        str(task.get("source_type", "")).strip().upper() == "OWNER_SERVICE_REQUEST"
-                        and str(task.get("source_id", "")).strip() == str(record.get("id", "")).strip()
+                        str(task.get("source_type", "")).strip().upper()
+                        == "OWNER_SERVICE_REQUEST"
+                        and str(task.get("source_id", "")).strip()
+                        == str(record.get("id", "")).strip()
                     )
                 )
             ),
             None,
         )
+
         enriched_record = _service_request_with_assignment(record, backing_task)
+        effective_status = str(
+            (backing_task or {}).get("status")
+            or enriched_record.get("status")
+            or "NEW"
+        ).strip().upper()
+
+        assigned_professional = (
+            enriched_record.get("assigned_professional_company", "")
+            or enriched_record.get("assigned_professional_name", "")
+            or enriched_record.get("assigned_provider_company", "")
+            or enriched_record.get("assigned_provider_name", "")
+        )
 
         owner_requests.append({
             **enriched_record,
-            "last_update_at": last_update_at or record.get("created_at", ""),
-            "assigned_professional": (
-                enriched_record.get("assigned_professional_company", "")
-                or enriched_record.get("assigned_professional_name", "")
-                or enriched_record.get("assigned_provider_company", "")
-                or enriched_record.get("assigned_provider_name", "")
-            ),
-            "service_category_key": OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(
-                str(record.get("service_category", "")).strip(),
-                OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS["Other"],
-            ),
-            "timeline": list(reversed(timeline)),
+            "backing_task": backing_task or {},
+            "effective_status": effective_status,
+            "assigned_professional": assigned_professional,
         })
 
-    owner_requests.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-    owner_portal = _owner_portal_dashboard_context(owner_account, owner_requests, current_lang)
+    return owner_requests
+
+
+@app.route("/owners/dashboard")
+@owner_required
+def owners_dashboard():
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    owner_requests = _owner_service_requests_for_account(owner_account)
+
+    for record in owner_requests:
+        timeline = _service_request_timeline_events(record)
+        last_update_at = str(record.get("last_update_at", "")).strip()
+        if timeline:
+            last_update_at = timeline[-1].get("created_at", last_update_at)
+
+        record["last_update_at"] = (
+            last_update_at or record.get("created_at", "")
+        )
+        record["service_category_key"] = (
+            OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS.get(
+                str(record.get("service_category", "")).strip(),
+                OWNER_SERVICE_CATEGORY_TRANSLATION_KEYS["Other"],
+            )
+        )
+        record["timeline"] = list(reversed(timeline))
+
+    owner_portal = _owner_portal_dashboard_context(
+        owner_account,
+        owner_requests,
+        current_lang,
+    )
+
     return render_template(
         "owners_dashboard.html",
         owner_account=owner_account,
@@ -15665,6 +15788,7 @@ def owners_dashboard():
         current_lang=current_lang,
         owner_finance_csrf_token=_owner_finance_csrf_token(),
     )
+
 
 
 @app.route("/owners/calendar", methods=["GET", "POST"])
@@ -15779,6 +15903,46 @@ def owners_reservations():
     return render_template("reservations_dashboard.html", **context)
 
 
+@app.get("/owners/requests")
+@owner_required
+def owners_service_requests():
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    owner_requests = _owner_service_requests_for_account(owner_account)
+    owner_requests.sort(
+        key=lambda item: (
+            str(item.get("created_at", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=True,
+    )
+
+    for item in owner_requests:
+        item["service_category_display"] = _owner_ui_value(item.get("service_category", ""))
+        item["status_display"] = _owner_ui_value(item.get("effective_status", "NEW"))
+
+    completed_requests = [
+        item
+        for item in owner_requests
+        if item.get("effective_status") == "COMPLETED"
+    ]
+    active_requests = [
+        item
+        for item in owner_requests
+        if item.get("effective_status") != "COMPLETED"
+    ]
+
+    return render_template(
+        "owners_service_requests.html",
+        owner_account=owner_account,
+        owner_requests=owner_requests,
+        active_requests=active_requests,
+        completed_requests=completed_requests,
+        current_lang=current_lang,
+        page_lang=current_lang,
+    )
+
+
 @app.get("/owners/reservations/<reservation_id>")
 @owner_required
 def owner_reservation_detail(reservation_id):
@@ -15792,13 +15956,46 @@ def owner_reservation_detail(reservation_id):
         return Response("Reservation not found.", status=404, mimetype="text/plain")
 
     context = _reservation_detail_context(reservation, scope="owner", owner_account=owner_account)
+    # Localize only generated events, never stored titles, notes or reference IDs.
+    seed_events = _reservation_seed_timeline_events(reservation)
+    stored_events = (reservation.get("metadata") or {}).get("timeline", [])
+    display_timeline = []
+    for event in context["timeline"]:
+        display = dict(event)
+        is_stored = any(
+            isinstance(stored, dict)
+            and all(stored.get(key, "") == event.get(key, "") for key in ("type", "title", "detail"))
+            for stored in stored_events
+        )
+        if not is_stored and event in seed_events:
+            source = _normalize_reservation_source(reservation.get("reservation_source", "Manual"))
+            if event["type"] == "reservation_imported":
+                display["title"] = _load_public_i18n_value("ownersDashboard", current_lang, "ownerUiImportedFrom") + " " + _owner_ui_value(source)
+            else:
+                display["title"] = _owner_ui_value(event["title"])
+            reference = str(reservation.get("reservation_reference", reservation.get("external_reference", ""))).strip()
+            if event["type"] == "reservation_imported" and reference:
+                display["detail"] = reference
+            else:
+                parts = [_owner_ui_value(source)] if source else []
+                if reference:
+                    parts.append(_load_public_i18n_value("ownersDashboard", current_lang, "ownerUiRef") + " " + reference)
+                if event["status"] in {"CHECKED_IN", "CHECKED_OUT"}:
+                    for field, key in (("arrival_datetime", "ownerReservationsArrival"), ("departure_datetime", "ownerReservationsDeparture")):
+                        if reservation.get(field):
+                            parts.append(_load_public_i18n_value("ownersDashboard", current_lang, key) + " " + str(reservation[field]))
+                display["detail"] = " Â· ".join(parts)
+        display_timeline.append(display)
+    context["timeline"] = display_timeline
     context.update({
         "current_lang": current_lang,
+        "scope": "owner",
         "owner_account": owner_account,
         "page_title": "Reservation detail",
         "page_meta": "Owner reservation detail",
     })
     return render_template("reservation_detail.html", **context)
+
 
 
 @app.route("/owners/properties", methods=["GET"])

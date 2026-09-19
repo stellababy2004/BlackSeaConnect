@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <title>BlackSea Connect | Service request</title>
+  <title>BlackSea Connect | {{ public_i18n('ownersDashboard', 'ownerRequestDetailLabel', 'Service request') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260919-owner-request-detail-1">
 
   <style>
@@ -241,7 +241,7 @@
           {{ public_i18n('ownersDashboard', 'ownerRequestDetailLabel', 'Service request') }}
         </p>
 
-        <h1>{{ category|replace('_', ' ')|title|e }}</h1>
+        <h1>{{ owner_ui_value(category) }}</h1>
 
         {% if service_request.property %}
           <p class="owner-request-muted">{{ service_request.property|e }}</p>
@@ -249,7 +249,7 @@
 
         <div class="owner-request-meta">
           <span class="owner-request-chip owner-request-chip--active">
-            {{ task_status|replace('_', ' ')|title|e }}
+            {{ owner_ui_value(task_status) }}
           </span>
 
           {% if service_request.created_at %}
@@ -276,7 +276,7 @@
 
             <div class="owner-request-info__item">
               <span>{{ public_i18n('ownersDashboard', 'ownerRequestDetailCategory', 'Service') }}</span>
-              <strong>{{ category|replace('_', ' ')|title|e }}</strong>
+              <strong>{{ owner_ui_value(category) }}</strong>
             </div>
 
             <div class="owner-request-info__item">
@@ -306,7 +306,7 @@
             {% for status in progress_order %}
               {% set index = loop.index0 %}
               <div class="owner-progress__step {% if index < current_index %}is-done{% elif index == current_index %}is-current{% endif %}">
-                {{ status|replace('_', ' ')|title|e }}
+                {{ owner_ui_value(status) }}
               </div>
             {% endfor %}
           </div>
