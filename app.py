@@ -15816,6 +15816,49 @@ def owners_properties():
     )
 
 
+@app.get("/owners/tasks/<task_id>")
+@owner_required
+def owners_task_detail(task_id):
+    current_lang = _resolve_current_language()
+    owner_account = _current_owner_account()
+    task_id = str(task_id or "").strip()
+    task = _find_operations_task_by_canonical_id(task_id)
+
+    if (
+        not task
+        or str(task.get("id", "")).strip() != task_id
+        or not _owner_can_view_operations_task(task, owner_account)
+    ):
+        return Response(
+            "Task not found.",
+            status=404,
+            mimetype="text/plain",
+        )
+
+    completion_report = task.get(
+        "completion_report",
+        _operations_task_completion_report(
+            task.get("completion_report_json", "")
+        ),
+    )
+    attachments = task.get(
+        "attachments",
+        _operations_task_attachments(
+            task.get("attachments_json", "")
+        ),
+    )
+
+    return render_template(
+        "owners_task_detail.html",
+        owner_account=owner_account,
+        task=task,
+        completion_report=completion_report,
+        attachments=attachments,
+        current_lang=current_lang,
+        page_lang=current_lang,
+    )
+
+
 @app.post("/owners/tasks/<task_id>/review")
 @owner_required
 def owners_task_review(task_id):
