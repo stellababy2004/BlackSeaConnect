@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="{{ page_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <title>BlackSea Connect | Completed task</title>
+  <link rel="stylesheet" href="/static/css/styles.css?v=20260919-owner-task-detail-1">
+
+  <style>
+    .owner-task-page {
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+      color: #1f2937;
+      background: linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 58%, #efe8d4 100%);
+    }
+
+    .owner-task-shell {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .owner-task-back {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: #725d27;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .owner-task-panel {
+      padding: 28px;
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .owner-task-hero h1 {
+      margin: 8px 0 10px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    .owner-task-kicker {
+      margin: 0;
+      color: #8a7132;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .owner-task-muted {
+      color: #6b7280;
+    }
+
+    .owner-task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .owner-task-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.10);
+      color: #725d27;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .owner-task-success {
+      background: #edf8ef;
+      color: #276738;
+    }
+
+    .owner-task-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .owner-task-panel h2 {
+      margin: 7px 0 20px;
+      font-size: 1.45rem;
+    }
+
+    .owner-report-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .owner-report-item {
+      padding: 17px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 18px;
+      background: rgba(255,255,255,.62);
+    }
+
+    .owner-report-item strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .owner-report-item p {
+      margin: 0;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .owner-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .owner-evidence-card {
+      overflow: hidden;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 20px;
+      background: #fff;
+    }
+
+    .owner-evidence-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .owner-evidence-info {
+      padding: 14px;
+    }
+
+    .owner-evidence-info strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .owner-evidence-info p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .owner-evidence-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    @media (max-width: 720px) {
+      .owner-task-page {
+        padding: 20px 14px 40px;
+      }
+
+      .owner-task-panel {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .owner-task-grid,
+      .owner-evidence-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="owner-task-page">
+    <div class="owner-task-shell">
+
+      <a class="owner-task-back" href="{{ localized_url('/owners') }}">
+        &larr; {{ public_i18n('ownersDashboard', 'ownerTaskBackDashboard', 'Back to dashboard') }}
+      </a>
+
+      <section class="owner-task-panel owner-task-hero">
+        <p class="owner-task-kicker">
+          {{ public_i18n('ownersDashboard', 'ownerTaskCompletedLabel', 'Completed task') }}
+        </p>
+
+        <h1>
+          {{ task.category|default(task.service_category, true)|default('Service', true)|replace('_', ' ')|title|e }}
+        </h1>
+
+        {% if task.property_name or task.property %}
+          <p class="owner-task-muted">
+            {{ (task.property_name or task.property)|e }}
+          </p>
+        {% endif %}
+
+        <div class="owner-task-meta">
+          <span class="owner-task-chip owner-task-success">
+            {{ public_i18n('ownersDashboard', 'ownerTaskCompletedStatus', 'Completed') }}
+          </span>
+
+          {% if task.completed_at %}
+            <span class="owner-task-chip">
+              {{ format_local_datetime(task.completed_at, page_lang) }}
+            </span>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="owner-task-grid">
+
+        <article class="owner-task-panel">
+          <p class="owner-task-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerTaskReportLabel', 'Completion report') }}
+          </p>
+
+          <h2>
+            {{ public_i18n('ownersDashboard', 'ownerTaskWorkSummary', 'Work summary') }}
+          </h2>
+
+          <div class="owner-report-list">
+
+            <div class="owner-report-item">
+              <strong>
+                {{ public_i18n('ownersDashboard', 'ownerTaskCompletedWork', 'Completed work') }}
+              </strong>
+              <p>{{ completion_report.completed_work|default('', true)|e or public_i18n('ownersDashboard', 'ownerTaskNotRecorded', 'Not recorded.') }}</p>
+            </div>
+
+            <div class="owner-report-item">
+              <strong>
+                {{ public_i18n('ownersDashboard', 'ownerTaskMaterialsUsed', 'Materials used') }}
+              </strong>
+              <p>{{ completion_report.materials_used|default('', true)|e or public_i18n('ownersDashboard', 'ownerTaskNotRecorded', 'Not recorded.') }}</p>
+            </div>
+
+            <div class="owner-report-item">
+              <strong>
+                {{ public_i18n('ownersDashboard', 'ownerTaskRecommendations', 'Recommendations') }}
+              </strong>
+              <p>{{ completion_report.recommendations|default('', true)|e or public_i18n('ownersDashboard', 'ownerTaskNotRecorded', 'Not recorded.') }}</p>
+            </div>
+
+            <div class="owner-report-item">
+              <strong>
+                {{ public_i18n('ownersDashboard', 'ownerTaskFollowUp', 'Follow-up needed') }}
+              </strong>
+              <p>{{ completion_report.follow_up_needed|default('', true)|e or public_i18n('ownersDashboard', 'ownerTaskNotRecorded', 'Not recorded.') }}</p>
+            </div>
+
+          </div>
+        </article>
+
+        <article class="owner-task-panel">
+          <p class="owner-task-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerTaskPropertyLabel', 'Property') }}
+          </p>
+
+          <h2>
+            {{ (task.property_name or task.property or public_i18n('ownersDashboard', 'ownerTaskPropertyUnknown', 'Property'))|e }}
+          </h2>
+
+          {% if task.description %}
+            <div class="owner-report-item">
+              <strong>
+                {{ public_i18n('ownersDashboard', 'ownerTaskRequestLabel', 'Service request') }}
+              </strong>
+              <p>{{ task.description|e }}</p>
+            </div>
+          {% endif %}
+        </article>
+
+      </section>
+
+      <section class="owner-task-panel">
+        <p class="owner-task-kicker">
+          {{ public_i18n('ownersDashboard', 'ownerTaskEvidenceLabel', 'Work evidence') }}
+        </p>
+
+        <h2>
+          {{ public_i18n('ownersDashboard', 'ownerTaskBeforeAfter', 'Before / after photos') }}
+        </h2>
+
+        <div class="owner-evidence-grid">
+          {% for attachment in attachments or [] %}
+            {% set attachment_name = attachment.name|default('', true)|lower %}
+            {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
+            {% set is_image = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
+
+            {% if attachment.url and is_image %}
+              <article class="owner-evidence-card">
+                <a class="owner-evidence-link"
+                   href="{{ attachment.url|e }}"
+                   target="_blank"
+                   rel="noopener">
+
+                  <img class="owner-evidence-image"
+                       src="{{ attachment.url|e }}"
+                       alt="{{ attachment.name|default('Work photo', true)|e }}"
+                       loading="lazy">
+
+                  <div class="owner-evidence-info">
+                    <strong>
+                      {% if attachment.slot %}
+                        {{ attachment.slot|replace('_', ' ')|title|e }}
+                      {% elif attachment.category %}
+                        {{ attachment.category|replace('_', ' ')|title|e }}
+                      {% else %}
+                        {{ public_i18n('ownersDashboard', 'ownerTaskPhotoLabel', 'Work photo') }}
+                      {% endif %}
+                    </strong>
+
+                    <p>{{ attachment.name|default('', true)|e }}</p>
+                  </div>
+                </a>
+              </article>
+            {% endif %}
+          {% else %}
+            <p class="owner-task-muted">
+              {{ public_i18n('ownersDashboard', 'ownerTaskNoEvidence', 'No photos were added to this task.') }}
+            </p>
+          {% endfor %}
+        </div>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>
