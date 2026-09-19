@@ -380,7 +380,7 @@
               <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsCreate', 'Create reservation') }}</p>
               <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsManualOrBlock', 'Manual reservation or block dates') }}</h2>
             </div>
-            <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}" data-owner-submit-state>
+            <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
               <div class="reservations-form-grid">
                 <label>
                   <span>{{ public_i18n('ownersDashboard', 'ownerReservationsType', 'Reservation type') }}</span>

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="{{ page_lang|default('en') }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | {{ public_i18n('ownersDashboard', 'ownerRequestsTitle', 'My service requests') }}</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #0f2345;
+      background:
+        linear-gradient(rgba(247,250,252,.90), rgba(247,250,252,.96)),
+        url("/static/images/owner-dashboard-bg.jpg") center / cover fixed;
+    }
+
+    .owner-requests-page {
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+
+    .owner-requests-shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .owner-requests-back {
+      display: inline-flex;
+      margin-bottom: 18px;
+      color: #0f2345 !important;
+      -webkit-text-fill-color: #0f2345 !important;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .owner-requests-hero,
+    .owner-requests-section {
+      border: 1px solid rgba(15,35,69,.10);
+      border-radius: 22px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 16px 40px rgba(15,35,69,.08);
+    }
+
+    .owner-requests-hero {
+      padding: 28px;
+      margin-bottom: 22px;
+    }
+
+    .owner-requests-kicker {
+      margin: 0 0 7px;
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .owner-requests-hero h1,
+    .owner-requests-section h2,
+    .owner-request-card strong {
+      color: #0f2345 !important;
+      -webkit-text-fill-color: #0f2345 !important;
+    }
+
+    .owner-requests-hero h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+    }
+
+    .owner-requests-subtitle {
+      margin: 9px 0 0;
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+    }
+
+    .owner-requests-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .owner-requests-stat {
+      padding: 16px;
+      border-radius: 16px;
+      background: #f6f8fb;
+    }
+
+    .owner-requests-stat span {
+      display: block;
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .owner-requests-stat strong {
+      display: block;
+      margin-top: 5px;
+      color: #0f2345 !important;
+      -webkit-text-fill-color: #0f2345 !important;
+      font-size: 1.55rem;
+    }
+
+    .owner-requests-section {
+      padding: 24px;
+      margin-top: 18px;
+    }
+
+    .owner-requests-section h2 {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+    }
+
+    .owner-request-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .owner-request-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid rgba(15,35,69,.10);
+      border-radius: 16px;
+      background: #fff;
+      color: inherit;
+      text-decoration: none;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      cursor: pointer;
+    }
+
+    .owner-request-card:hover,
+    .owner-request-card:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(15,35,69,.24);
+      box-shadow: 0 12px 28px rgba(15,35,69,.10);
+      outline: none;
+    }
+
+    .owner-request-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px 14px;
+      margin-top: 8px;
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+      font-size: 13px;
+    }
+
+    .owner-request-card__status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 96px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: #f3f5f8;
+      color: #42566f !important;
+      -webkit-text-fill-color: #42566f !important;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .owner-request-card__status--completed {
+      background: #edf8ef;
+      color: #276738 !important;
+      -webkit-text-fill-color: #276738 !important;
+    }
+
+    .owner-request-card__arrow {
+      margin-left: 9px;
+      font-weight: 900;
+    }
+
+    .owner-requests-empty {
+      margin: 0;
+      padding: 20px;
+      border-radius: 14px;
+      background: #f6f8fb;
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+    }
+
+    @media (max-width: 700px) {
+      .owner-requests-page { padding: 20px 14px 40px; }
+
+      .owner-requests-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .owner-request-card {
+        grid-template-columns: 1fr;
+      }
+
+      .owner-request-card__status {
+        justify-self: start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="owner-requests-page">
+    <div class="owner-requests-shell">
+
+      <a class="owner-requests-back"
+         href="{{ localized_url('/owners/dashboard') }}">
+        ← {{ public_i18n('ownersDashboard', 'ownerTaskBackDashboard', 'Back to dashboard') }}
+      </a>
+
+      <section class="owner-requests-hero">
+        <p class="owner-requests-kicker">{{ public_i18n('ownersDashboard', 'ownerRequestsKicker', 'Service requests') }}</p>
+        <h1>{{ public_i18n('ownersDashboard', 'ownerRequestsTitle', 'My service requests') }}</h1>
+        <p class="owner-requests-subtitle">
+          {{ public_i18n('ownersDashboard', 'ownerRequestsSubtitle', 'Follow your active requests and review completed work.') }}
+        </p>
+
+        <div class="owner-requests-stats">
+          <div class="owner-requests-stat">
+            <span>{{ public_i18n('ownersDashboard', 'ownerRequestsActive', 'Active') }}</span>
+            <strong>{{ active_requests|length }}</strong>
+          </div>
+
+          <div class="owner-requests-stat">
+            <span>{{ public_i18n('ownersDashboard', 'ownerRequestsCompleted', 'Completed') }}</span>
+            <strong>{{ completed_requests|length }}</strong>
+          </div>
+
+          <div class="owner-requests-stat">
+            <span>{{ public_i18n('ownersDashboard', 'ownerRequestsTotal', 'Total') }}</span>
+            <strong>{{ owner_requests|length }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="owner-requests-section">
+        <h2>{{ public_i18n('ownersDashboard', 'ownerRequestsActiveTitle', 'Active requests') }}</h2>
+
+        {% if active_requests %}
+          <div class="owner-request-list">
+            {% for item in active_requests %}
+              <a class="owner-request-card"
+                 href="{{ localized_url('/owners/requests/' ~ item.id) }}">
+                <div>
+                  <strong>
+                    {{ item.service_category_display|default(item.service_category, true)|default('Service', true) }}
+                  </strong>
+
+                  <div class="owner-request-card__meta">
+                    {% if item.property %}
+                      <span>{{ item.property }}</span>
+                    {% endif %}
+
+                    {% if item.assigned_professional %}
+                      <span>{{ item.assigned_professional }}</span>
+                    {% endif %}
+
+                    {% if item.created_at %}
+                      <span>{{ format_local_datetime(item.created_at) }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div>
+                  <span class="owner-request-card__status">
+                    {{ item.status_display|default(item.effective_status, true) }}
+                  </span>
+                  <span class="owner-request-card__arrow">→</span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="owner-requests-empty">{{ public_i18n('ownersDashboard', 'ownerRequestsNoActive', 'No active service requests.') }}</p>
+        {% endif %}
+      </section>
+
+      <section class="owner-requests-section">
+        <h2>{{ public_i18n('ownersDashboard', 'ownerRequestsCompletedTitle', 'Completed requests') }}</h2>
+
+        {% if completed_requests %}
+          <div class="owner-request-list">
+            {% for item in completed_requests %}
+              <a class="owner-request-card"
+                 href="{{ localized_url('/owners/requests/' ~ item.id) }}">
+                <div>
+                  <strong>
+                    {{ item.service_category_display|default(item.service_category, true)|default('Service', true) }}
+                  </strong>
+
+                  <div class="owner-request-card__meta">
+                    {% if item.property %}
+                      <span>{{ item.property }}</span>
+                    {% endif %}
+
+                    {% if item.assigned_professional %}
+                      <span>{{ item.assigned_professional }}</span>
+                    {% endif %}
+
+                    {% if item.created_at %}
+                      <span>{{ format_local_datetime(item.created_at) }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div>
+                  <span class="owner-request-card__status owner-request-card__status--completed">
+                    {{ public_i18n('ownersDashboard', 'ownerRequestsStatusCompleted', 'Completed') }}
+                  </span>
+                  <span class="owner-request-card__arrow">→</span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="owner-requests-empty">{{ public_i18n('ownersDashboard', 'ownerRequestsNoCompleted', 'No completed service requests yet.') }}</p>
+        {% endif %}
+      </section>
+
+    </div>
+  </main>
+  <script src="/static/js/translations.js?v=20260726f"></script>
+  <script src="/static/js/i18n.js?v=20260919-owner-requests"></script>
+</body>
+</html>

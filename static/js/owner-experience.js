@@ -3,26 +3,12 @@
 
   const pageLanguage = (document.documentElement.lang || "en").toLowerCase().split("-")[0];
   const supportedLanguage = ["en", "fr", "bg", "ru"].includes(pageLanguage) ? pageLanguage : "en";
-  const statusLabels = {
-    en: { NEW: "New", SCHEDULED: "Scheduled", IN_PROGRESS: "In progress", WAITING: "Waiting", COMPLETED: "Completed", CANCELLED: "Cancelled", URGENT: "Urgent", HIGH: "High", NORMAL: "Normal", LOW: "Low" },
-    fr: { NEW: "Nouveau", SCHEDULED: "Planifié", IN_PROGRESS: "En cours", WAITING: "En attente", COMPLETED: "Terminé", CANCELLED: "Annulé", URGENT: "Urgent", HIGH: "Élevée", NORMAL: "Normale", LOW: "Faible" },
-    bg: { NEW: "Нова", SCHEDULED: "Планирана", IN_PROGRESS: "В процес", WAITING: "В изчакване", COMPLETED: "Завършена", CANCELLED: "Отменена", URGENT: "Спешен", HIGH: "Висок", NORMAL: "Нормален", LOW: "Нисък" },
-    ru: { NEW: "Новая", SCHEDULED: "Запланирована", IN_PROGRESS: "В работе", WAITING: "В ожидании", COMPLETED: "Завершена", CANCELLED: "Отменена", URGENT: "Срочный", HIGH: "Высокий", NORMAL: "Обычный", LOW: "Низкий" }
-  };
-  const loadingLabels = {
-    en: "Saving…",
-    fr: "Enregistrement…",
-    bg: "Запазване…",
-    ru: "Сохранение…"
-  };
+  const savingLabel = document.querySelector('[data-owner-saving-label]')?.dataset.ownerSavingLabel;
 
   document.querySelectorAll("[data-owner-status]").forEach(function (badge) {
     const normalized = (badge.dataset.ownerStatus || "").trim().toUpperCase().replace(/[\s-]+/g, "_");
-    const label = statusLabels[supportedLanguage][normalized];
-    if (!label) return;
-    badge.textContent = label;
     badge.classList.add("owner-premium-badge", "owner-premium-badge--" + normalized.toLowerCase().replace(/_/g, "-"));
-    badge.setAttribute("aria-label", label);
+    badge.setAttribute("aria-label", badge.textContent.trim());
   });
 
   document.querySelectorAll("[data-owner-datetime]").forEach(function (element) {
@@ -44,7 +30,7 @@
       const button = form.querySelector('button[type="submit"]');
       if (!button || button.disabled) return;
       button.dataset.idleLabel = button.textContent;
-      button.textContent = loadingLabels[supportedLanguage];
+      if (savingLabel) button.textContent = savingLabel;
       button.disabled = true;
       button.classList.add("is-loading");
       button.setAttribute("aria-busy", "true");

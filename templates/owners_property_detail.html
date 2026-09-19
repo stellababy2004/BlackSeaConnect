@@ -337,16 +337,16 @@
     {% set localized_property_status = public_i18n('ownersDashboard', 'ownerDashboardStatusSetup', 'Setup') %}
   {% endif %}
   <header class="hero hero--home" id="top">
-    <nav class="topbar" aria-label="Primary">
+    <nav class="topbar" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiPrimary') }}">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
-        <nav class="site-nav" aria-label="Owner portal">
+        <nav class="site-nav" aria-label="{{ public_i18n('ownersDashboard', 'ownerPropertiesPortalChip') }}">
           <a class="site-nav__link" href="{{ localized_url('/owners/dashboard') }}">{{ public_i18n('ownersDashboard', 'navOwnerPortal', 'Dashboard') }}</a>
           <a class="site-nav__link is-active" href="{{ localized_url('/owners/properties') }}">{{ public_i18n('ownersDashboard', 'ownerProfileDropdownProperties', 'Properties') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/request-service') }}">{{ public_i18n('ownersDashboard', 'navOwnerRequestService', 'Request service') }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}">{{ public_i18n('ownersDashboard', 'navOwnerLogout', 'Logout') }}</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel') }}" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
@@ -390,7 +390,7 @@
     </div>
   </header>
 
-  <nav class="owner-property-workspace-tabs" aria-label="Property workspace" role="tablist">
+  <nav class="owner-property-workspace-tabs" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiPropertyWorkspace') }}" role="tablist">
     {% for tab_id, tab_label in [
       ('overview', public_i18n('ownersDashboard', 'ownerPropertyTabToday', 'Today')),
       ('property', public_i18n('ownersDashboard', 'ownerPropertyTabDetails', 'Details')),
@@ -570,7 +570,7 @@
             </div>
           </div>
 
-          <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data" data-owner-submit-state>
+          <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
             <input type="hidden" name="status" value="{{ property_context.property.status|e }}">
             <input type="hidden" name="notes" value="{{ property_context.property.notes|e }}">
             {% for field in ['guest_guide_ready', 'access_instructions_ready', 'emergency_contact_ready', 'cleaning_partner_ready'] %}
@@ -583,7 +583,7 @@
                 <span>{{ public_i18n('ownersDashboard', 'ownerSetupDescriptionPhotos', 'Add current property photos.') }}</span>
                 <input type="file" name="knowledge_photos" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
               </label>
-              <p>Choose a cover or mark photos for deletion, then save changes.</p>
+              <p>{{ public_i18n('ownersDashboard', 'ownerUiChooseACoverOrMarkPhotosForDeletionThenSaveChanges') }}</p>
               <div class="owner-property-gallery">
                 {% for photo in knowledge.photos %}
                   <article class="owner-property-gallery__item">
@@ -595,7 +595,7 @@
                     <div class="owner-property-gallery__item-meta">
                       {% if photo in property_context.photos %}
                         <label><input type="radio" name="cover_photo_id" value="{{ photo.id|e }}" {% if photo.id == property_context.property.cover_photo_id %}checked{% endif %}> Set as cover</label>
-                        {% if photo.id == property_context.property.cover_photo_id %}<strong>Current cover</strong>{% endif %}
+                        {% if photo.id == property_context.property.cover_photo_id %}<strong>{{ public_i18n('ownersDashboard', 'ownerUiCurrentCover') }}</strong>{% endif %}
                       {% endif %}
                       <label><input type="checkbox" name="delete_photo_ids" value="{{ photo.id|e }}"> {{ public_i18n('common', 'dashboardDelete', 'Delete') }}</label>
                     </div>
@@ -944,10 +944,10 @@
         <article class="owner-property-detail-panel" data-property-tab-section="property">
           <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyNotesEyebrow', 'Property notes') }}</p>
           <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyInternalNotes', 'Internal notes') }}</h2>
-          <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}" data-owner-submit-state>
+          <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
             <label>
               <span>{{ public_i18n('ownersDashboard', 'ownerPropertyNotes', 'Property notes') }}</span>
-              <textarea name="notes" placeholder="Notes for your local operations team">{{ property_context.property.notes|e }}</textarea>
+              <textarea name="notes" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiNotesForYourLocalOperationsTeam') }}">{{ property_context.property.notes|e }}</textarea>
             </label>
 
             <label>
@@ -1268,7 +1268,7 @@
                     <strong>{{ event.title|e }}</strong>
                     <time>{{ event.display_label|e }}</time>
                   </div>
-                  <p class="owner-property-detail-empty">{{ event.event_type|e }} · {{ event.status|e }}</p>
+                  <p class="owner-property-detail-empty">{{ owner_ui_value(event.event_type) }} · {{ owner_ui_value(event.status) }}</p>
                 </div>
               {% endfor %}
             </div>

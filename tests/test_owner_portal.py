@@ -588,7 +588,7 @@ class OwnerPortalTests(unittest.TestCase):
             "last_update_at": "2026-06-15T11:00:00Z",
             "status": "new",
             "request_source": "owner",
-            "owner_id": "owner-demo",
+            "owner_id": "owner-1",
             "owner_email": "owner@blackseaconnect.com",
             "owner_name": "Elena Petrova",
             "owner_phone": "+359888111222",
@@ -4618,7 +4618,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
 
-        self.assertIn("Maintenance", html)
+        self.assertIn("Поддръжка", html)
         self.assertIn("Sea View Villa", html)
         self.assertIn("Window mechanism needs inspection.", html)
         self.assertIn("Mira Property Care", html)
@@ -4696,7 +4696,6 @@ class OwnerPortalTests(unittest.TestCase):
             "owner-latest-update--request",
             html,
         )
-        self.assertIn("View details", html)
 
 
     def test_public_owner_ctas_are_visible(self):
@@ -5361,3 +5360,97 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(any(event["type"] == "SERVICE_REQUEST_STATUS_UPDATED" for event in updated["timeline"]))
         self.assertGreaterEqual(len(FakeSMTP.sent_messages), 1)
         self.assertTrue(any("Professional assigned" in message["Subject"] or "status updated" in message["Subject"] for message in FakeSMTP.sent_messages))
+
+
+    def test_owner_ui_values_use_public_bundles_for_every_language(self):
+        for lang in ("bg", "en", "fr", "ru"):
+            with self.subTest(lang=lang), app.test_request_context("/owners/requests?lang=" + lang):
+                for value in ("NEW", "ACCEPTED", "ON_THE_WAY", "WAITING_OPERATIONS", "ARCHIVED", "CHECKED_IN", "PUBLIC", "SCHEDULED", "PROPERTY_INSPECTION", "Check-in"):
+                    label = app_module._owner_ui_value(value)
+                    self.assertNotIn("[MISSING:", label)
+                    self.assertNotEqual(value, label)
+                self.assertEqual(app_module._owner_ui_value("Custom <service>"), "Custom <service>")
+
+    def test_owner_request_history_scopes_id_and_legacy_email_and_uses_task_status(self):
+        self._seed_owner_account()
+        self._login_owner_via_magic()
+        records = [
+            self._demo_owner_request(id="own-active", service_category="Inspection", created_at="2026-09-19T10:00:00Z"),
+            self._demo_owner_request(id="own-completed", service_category="Cleaning", created_at="2026-09-18T10:00:00Z"),
+            self._demo_owner_request(id="legacy-email", owner_id="", owner_email="OWNER@BLACKSEACONNECT.COM"),
+            self._demo_owner_request(id="foreign-id", owner_id="someone-else"),
+            self._demo_owner_request(id="foreign-email", owner_id="", owner_email="other@example.com"),
+            self._demo_owner_request(id="public-request", request_source="public"),
+        ]
+        tasks = [{"id": "task-completed", "request_id": "own-completed", "status": "COMPLETED"}]
+        with patch.object(app_module, "_load_service_requests", return_value=records), patch.object(app_module, "_load_operations_tasks", return_value=tasks):
+            for lang in ("bg", "en", "fr", "ru"):
+                response = self.client.get("/owners/requests?lang=" + lang)
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+                for request_id in ("own-active", "own-completed", "legacy-email"):
+                    self.assertIn("/owners/requests/" + request_id, html)
+                for request_id in ("foreign-id", "foreign-email", "public-request"):
+                    self.assertNotIn("/owners/requests/" + request_id, html)
+                self.assertNotIn("[MISSING:", html)
+                self.assertIn(app_module._load_public_i18n_value("owners", lang, "ownerCategoryInspection"), html)
+                self.assertLess(html.index('/owners/requests/own-active'), html.index('/owners/requests/own-completed'))
+
+    def test_owner_request_detail_localizes_status_and_preserves_escaped_user_data(self):
+        self._seed_owner_account()
+        self._login_owner_via_magic()
+        record = self._demo_owner_request(id="display-request", service_category="Inspection", description="Late arrival <script>alert(1)</script>", property="Public House")
+        with patch.object(app_module, "_find_service_request", return_value=record), patch.object(app_module, "_load_operations_tasks", return_value=[{"id": "task-display", "request_id": record["id"], "status": "WAITING_OPERATIONS"}]):
+            for lang in ("bg", "en", "fr", "ru"):
+                html = self.client.get("/owners/requests/display-request?lang=" + lang).get_data(as_text=True)
+                self.assertIn(app_module._load_public_i18n_value("owners", lang, "ownerCategoryInspection"), html)
+                self.assertIn(app_module._load_public_i18n_value("professionals", lang, "taskStatusWaitingOperations"), html)
+                self.assertIn("Late arrival &lt;script&gt;alert(1)&lt;/script&gt;", html)
+                self.assertIn("Public House", html)
+                self.assertNotIn("[MISSING:", html)
+        # A matching email must not override a different explicit owner ID.
+        with patch.object(app_module, "_find_service_request", return_value={**record, "owner_id": "foreign-owner"}):
+            self.assertEqual(self.client.get("/owners/requests/display-request").status_code, 404)
+
+    def test_owner_reservation_detail_localizes_generated_events_only(self):
+        self._seed_owner_account()
+        self._login_owner_via_magic()
+        record = {
+            "id": "reservation-i18n", "property_id": "property-1", "status": "CONFIRMED",
+            "reservation_source": "Manual", "created_at": "2026-09-01T10:00:00Z",
+            "updated_at": "2026-09-01T10:00:00Z", "guest_name": "Public Guest",
+            "guest_email": "guest@example.com", "property_name": "Sea View Villa",
+            "arrival_datetime": "2026-10-01T12:00:00Z", "departure_datetime": "2026-10-03T12:00:00Z",
+            "notes": "Late arrival; key handover coordinated. <private>",
+            "property_status": "Blocked", "adults": 2, "children": 0, "infants": 0, "pets": 0,
+            "metadata": {"timeline": [{"type": "reservation_event", "title": "Reservation created", "detail": "User notes in English", "created_at": "2026-09-02T10:00:00Z", "status": "CONFIRMED", "visibility": "public", "author": "owner"}]},
+        }
+        timeline = app_module._reservation_timeline_events(record)
+        context = dict(reservation=record, timeline=timeline, comments=[], linked_operations=[], calendar_event={"event_type": "Reservation", "status": "SCHEDULED"}, property_status="Blocked", can_view_internal_comments=False)
+        with patch.object(app_module, "_find_reservation", return_value=record), patch.object(app_module, "_find_owner_property", return_value={"id": "property-1", "owner_id": "owner-1"}), patch.object(app_module, "_reservation_detail_context", return_value=context):
+            for lang in ("bg", "en", "fr", "ru"):
+                # Each request gets canonical, untranslated context.
+                context["timeline"] = timeline
+                response = self.client.get("/owners/reservations/reservation-i18n?lang=" + lang)
+                self.assertEqual(response.status_code, 200)
+                html = response.get_data(as_text=True)
+                self.assertIn('/owners/reservations?lang=' + lang, html)
+                self.assertNotIn('/admin/reservations', html)
+                self.assertIn(app_module._load_public_i18n_value("ownersDashboard", lang, "ownerUiReservationCreated"), html)
+                self.assertIn(app_module._load_public_i18n_value("ownersDashboard", lang, "ownerReservationStatusConfirmed"), html)
+                self.assertIn("Reservation created", html)  # Stored user title stays literal.
+                self.assertIn("User notes in English", html)
+                self.assertIn("Late arrival; key handover coordinated. &lt;private&gt;", html)
+                self.assertNotIn("[MISSING:", html)
+        self.assertEqual(record["notes"], "Late arrival; key handover coordinated. <private>")
+
+    def test_owner_pages_render_all_languages_without_missing_translations(self):
+        self._seed_owner_account()
+        self._login_owner_via_magic()
+        paths = ("/owners", "/owners/dashboard", "/owners/requests", "/owners/calendar", "/owners/reservations", "/owners/properties", "/owners/properties/property-1", "/owners/property/new", "/owners/request-service")
+        for lang in ("bg", "en", "fr", "ru"):
+            for path in paths:
+                with self.subTest(lang=lang, path=path):
+                    response = self.client.get(path + "?lang=" + lang, follow_redirects=True)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertNotIn("[MISSING:", response.get_data(as_text=True))

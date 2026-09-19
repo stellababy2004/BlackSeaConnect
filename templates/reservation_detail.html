@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | {{ page_title }}</title>
+  <title>BlackSea Connect | {{ public_i18n('ownersDashboard', 'ownerUiReservationDetail') if scope == 'owner' else page_title }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .reservation-detail-page {
@@ -274,16 +274,16 @@
         <h1>{{ reservation.guest_name|e }}</h1>
         <p class="reservation-detail-copy">
           {{ reservation.property_name|e }}{% if reservation.property_location %} · {{ reservation.property_location|e }}{% endif %}
-          {% if reservation.external_reference %} · Ref {{ reservation.external_reference|e }}{% endif %}
+          {% if reservation.external_reference %} · {{ public_i18n('ownersDashboard', 'ownerUiRef') if scope == 'owner' else 'Ref' }} {{ reservation.external_reference|e }}{% endif %}
         </p>
       </div>
       <div class="reservation-detail-actions">
         {% if scope == 'owner' %}
-          <a class="button button--primary" href="{{ localized_url('/owners/reservations') }}">Back to reservations</a>
-          <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">Open calendar</a>
+          <a class="button button--primary" href="{{ localized_url('/owners/reservations') }}">{{ public_i18n('ownersDashboard', 'ownerUiBackToReservations') if scope == 'owner' else 'Back to reservations' }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/owners/calendar') }}">{{ public_i18n('ownersDashboard', 'ownerReservationsOpenCalendar') if scope == 'owner' else 'Open calendar' }}</a>
         {% else %}
-          <a class="button button--primary" href="{{ localized_url('/admin/reservations') }}">Back to reservations</a>
-          <a class="button button--secondary" href="{{ localized_url('/admin/calendar') }}">Open calendar</a>
+          <a class="button button--primary" href="{{ localized_url('/admin/reservations') }}">{{ public_i18n('ownersDashboard', 'ownerUiBackToReservations') if scope == 'owner' else 'Back to reservations' }}</a>
+          <a class="button button--secondary" href="{{ localized_url('/admin/calendar') }}">{{ public_i18n('ownersDashboard', 'ownerReservationsOpenCalendar') if scope == 'owner' else 'Open calendar' }}</a>
         {% endif %}
       </div>
     </section>
@@ -293,27 +293,27 @@
         <article class="reservation-detail-panel">
           <div class="reservation-detail-statusline">
             <div class="reservation-detail-status-cluster">
-              <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ reservation.property_status }}</span>
-              <span class="reservation-detail-chip" data-owner-status="{{ reservation.status|e }}">{{ reservation.status.replace('_', ' ').title() }}</span>
-              <span class="reservation-detail-chip">{{ reservation.reservation_source|e }}</span>
+              <span class="reservation-detail-badge reservation-detail-badge--{{ reservation.property_status|lower|replace(' ', '-') }}" data-owner-status="{{ reservation.property_status|e }}">{{ owner_ui_value(reservation.property_status) if scope == 'owner' else reservation.property_status }}</span>
+              <span class="reservation-detail-chip" data-owner-status="{{ reservation.status|e }}">{{ owner_ui_value(reservation.status) if scope == 'owner' else reservation.status.replace('_', ' ').title() }}</span>
+              <span class="reservation-detail-chip">{{ owner_ui_value(reservation.reservation_source) if scope == 'owner' else reservation.reservation_source }}</span>
             </div>
             <div class="reservation-detail-window">
-              <span>Stay window</span>
+              <span>{{ public_i18n('ownersDashboard', 'ownerUiStayWindow') if scope == 'owner' else 'Stay window' }}</span>
               <span class="reservation-detail-chip"><time data-owner-datetime="{{ reservation.arrival_datetime|e }}">{{ reservation.arrival_datetime|e }}</time> – <time data-owner-datetime="{{ reservation.departure_datetime|e }}">{{ reservation.departure_datetime|e }}</time></span>
             </div>
           </div>
           <div class="reservation-detail-dl u-mt-16">
-            <div><dt>Guest</dt><dd>{{ reservation.guest_name|e }}<br>{{ reservation.guest_email|e }}{% if reservation.guest_phone %}<br>{{ reservation.guest_phone|e }}{% endif %}</dd></div>
-            <div><dt>Property</dt><dd>{{ reservation.property_name|e }}<br>{{ reservation.property_location|e }}</dd></div>
-            <div><dt>Owner</dt><dd>{{ reservation.owner_name|e }}<br>{{ reservation.owner_email|e }}</dd></div>
-            <div><dt>Stay</dt><dd>{{ reservation.adults }} adults · {{ reservation.children }} children · {{ reservation.infants }} infants · {{ reservation.pets }} pets</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerDashboardGuestShort') if scope == 'owner' else 'Guest' }}</dt><dd>{{ reservation.guest_name|e }}<br>{{ reservation.guest_email|e }}{% if reservation.guest_phone %}<br>{{ reservation.guest_phone|e }}{% endif %}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty') if scope == 'owner' else 'Property' }}</dt><dd>{{ reservation.property_name|e }}<br>{{ reservation.property_location|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerReservationsOwner') if scope == 'owner' else 'Owner' }}</dt><dd>{{ reservation.owner_name|e }}<br>{{ reservation.owner_email|e }}</dd></div>
+            <div><dt>{{ public_i18n('ownersDashboard', 'ownerUiStay') if scope == 'owner' else 'Stay' }}</dt><dd>{{ reservation.adults }} {{ public_i18n('ownersDashboard', 'ownerReservationsAdults') if scope == 'owner' else 'adults' }} · {{ reservation.children }} {{ public_i18n('ownersDashboard', 'ownerReservationsChildren') if scope == 'owner' else 'children' }} · {{ reservation.infants }} {{ public_i18n('ownersDashboard', 'ownerReservationsInfants') if scope == 'owner' else 'infants' }} · {{ reservation.pets }} {{ public_i18n('ownersDashboard', 'ownerReservationsPets') if scope == 'owner' else 'pets' }}</dd></div>
           </div>
         </article>
 
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Timeline</p>
-            <h2>Reservation activity</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerUiTimeline') if scope == 'owner' else 'Timeline' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiReservationActivity') if scope == 'owner' else 'Reservation activity' }}</h2>
           </div>
           {% if timeline %}
             <div class="reservation-detail-rail">
@@ -324,10 +324,10 @@
                     <time datetime="{{ item.created_at|e }}">{{ format_local_datetime(item.created_at, page_lang) }}</time>
                   </div>
                   <div class="reservation-detail-meta u-mt-12">
-                    <span class="reservation-detail-chip">{{ item.type|replace('_', ' ')|title }}</span>
-                    <span class="reservation-detail-chip" data-owner-status="{{ item.status|e }}">{{ item.status.replace('_', ' ').title() }}</span>
+                    <span class="reservation-detail-chip">{{ owner_ui_value(item.type) if scope == 'owner' else item.type|replace('_', ' ')|title }}</span>
+                    <span class="reservation-detail-chip" data-owner-status="{{ item.status|e }}">{{ owner_ui_value(item.status) if scope == 'owner' else item.status.replace('_', ' ').title() }}</span>
                     {% if item.visibility %}
-                      <span class="reservation-detail-chip">{{ item.visibility|title }}</span>
+                      <span class="reservation-detail-chip">{{ owner_ui_value(item.visibility) if scope == 'owner' else item.visibility|title }}</span>
                     {% endif %}
                   </div>
                   {% if item.detail %}
@@ -338,28 +338,28 @@
             </div>
           {% else %}
             <div class="reservation-detail-empty owner-premium-empty">
-              <h3>No activity yet</h3>
-              <p>Reservation updates will appear here as the stay progresses.</p>
+              <h3>{{ public_i18n('ownersDashboard', 'ownerUiNoActivityYet') if scope == 'owner' else 'No activity yet' }}</h3>
+              <p>{{ public_i18n('ownersDashboard', 'ownerUiReservationUpdatesWillAppearHereAsTheStayProgresses') if scope == 'owner' else 'Reservation updates will appear here as the stay progresses.' }}</p>
             </div>
           {% endif %}
         </article>
 
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Notes</p>
-            <h2>Reservation notes</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerReservationsNotes') if scope == 'owner' else 'Notes' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiReservationNotes') if scope == 'owner' else 'Reservation notes' }}</h2>
           </div>
           {% if reservation.notes %}
             <p class="reservation-detail-empty">{{ reservation.notes|e }}</p>
           {% else %}
-            <p class="reservation-detail-empty">No notes were added for this reservation.</p>
+            <p class="reservation-detail-empty">{{ public_i18n('ownersDashboard', 'ownerUiNoNotesWereAddedForThisReservation') if scope == 'owner' else 'No notes were added for this reservation.' }}</p>
           {% endif %}
         </article>
 
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Comments</p>
-            <h2>Conversation</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerUiComments') if scope == 'owner' else 'Comments' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiConversation') if scope == 'owner' else 'Conversation' }}</h2>
           </div>
           {% if comments %}
             <div class="reservation-detail-comment-box">
@@ -374,7 +374,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="reservation-detail-empty">No comments yet.</p>
+            <p class="reservation-detail-empty">{{ public_i18n('ownersDashboard', 'ownerUiNoCommentsYet') if scope == 'owner' else 'No comments yet.' }}</p>
           {% endif %}
 
           {% if can_view_internal_comments %}
@@ -392,52 +392,52 @@
       <aside class="reservation-detail-side">
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Linked operations</p>
-            <h2>Operational tasks</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerUiLinkedOperations') if scope == 'owner' else 'Linked operations' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiOperationalTasks') if scope == 'owner' else 'Operational tasks' }}</h2>
           </div>
           {% if linked_operations %}
             <div class="reservation-detail-list">
               {% for task in linked_operations %}
                 <div class="reservation-detail-list-item">
                   <strong>{{ task.title|e }}</strong>
-                  <span>{{ task.status_label }} · {{ task.category|e }}</span>
+                  <span>{{ owner_ui_value(task.status_label) if scope == 'owner' else task.status_label }} · {{ owner_ui_value(task.category) if scope == 'owner' else task.category }}</span>
                   <div class="u-mt-12">
-                    <a class="button button--ghost" href="{{ localized_url('/admin/operations/' ~ task.id) }}">Open task</a>
+                    <a class="button button--ghost" href="{{ localized_url('/admin/operations/' ~ task.id) }}">{{ public_i18n('professionals', 'dashboardOpenTask') if scope == 'owner' else 'Open task' }}</a>
                   </div>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <p class="reservation-detail-empty">No linked operations yet.</p>
+            <p class="reservation-detail-empty">{{ public_i18n('ownersDashboard', 'ownerUiNoLinkedOperationsYet') if scope == 'owner' else 'No linked operations yet.' }}</p>
           {% endif %}
         </article>
 
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Calendar</p>
-            <h2>Synced event</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCalendar') if scope == 'owner' else 'Calendar' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiSyncedEvent') if scope == 'owner' else 'Synced event' }}</h2>
           </div>
           {% if calendar_event %}
             <div class="reservation-detail-list-item">
-              <strong>{{ calendar_event.event_type|e }}</strong>
+              <strong>{{ owner_ui_value(calendar_event.event_type) if scope == 'owner' else calendar_event.event_type }}</strong>
               <span>{{ calendar_event.start_datetime|e }} - {{ calendar_event.end_datetime|e }}</span>
               <div class="u-mt-12">
-                <span class="reservation-detail-chip" data-owner-status="{{ calendar_event.status|e }}">{{ calendar_event.status }}</span>
+                <span class="reservation-detail-chip" data-owner-status="{{ calendar_event.status|e }}">{{ owner_ui_value(calendar_event.status) if scope == 'owner' else calendar_event.status }}</span>
               </div>
             </div>
           {% else %}
-            <p class="reservation-detail-empty">Calendar event not available yet.</p>
+            <p class="reservation-detail-empty">{{ public_i18n('ownersDashboard', 'ownerUiCalendarEventNotAvailableYet') if scope == 'owner' else 'Calendar event not available yet.' }}</p>
           {% endif %}
         </article>
 
         <article class="reservation-detail-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Property state</p>
-            <h2>Calculated status</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('ownersDashboard', 'ownerUiPropertyState') if scope == 'owner' else 'Property state' }}</p>
+            <h2>{{ public_i18n('ownersDashboard', 'ownerUiCalculatedStatus') if scope == 'owner' else 'Calculated status' }}</h2>
           </div>
           <div class="reservation-detail-list-item">
-            <strong>{{ property_status }}</strong>
-            <span>This state is calculated from the reservation and calendar engine.</span>
+            <strong>{{ owner_ui_value(property_status) if scope == 'owner' else property_status }}</strong>
+            <span>{{ public_i18n('ownersDashboard', 'ownerUiThisStateIsCalculatedFromTheReservationAndCalendarEngine') if scope == 'owner' else 'This state is calculated from the reservation and calendar engine.' }}</span>
           </div>
         </article>
       </aside>

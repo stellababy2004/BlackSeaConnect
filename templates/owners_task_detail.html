@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <title>BlackSea Connect | Completed task</title>
+  <title>BlackSea Connect | {{ public_i18n('ownersDashboard', 'ownerTaskCompletedLabel') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260919-owner-task-detail-1">
 
   <style>
@@ -190,7 +190,7 @@
         </p>
 
         <h1>
-          {{ task.category|default(task.service_category, true)|default('Service', true)|replace('_', ' ')|title|e }}
+          {{ owner_ui_value(task.category|default(task.service_category, true)|default('Service', true)) }}
         </h1>
 
         {% if task.property_name or task.property %}
@@ -301,15 +301,15 @@
 
                   <img class="owner-evidence-image"
                        src="{{ attachment.url|e }}"
-                       alt="{{ attachment.name|default('Work photo', true)|e }}"
+                       alt="{{ attachment.name|default(public_i18n('ownersDashboard', 'ownerTaskPhotoLabel'), true)|e }}"
                        loading="lazy">
 
                   <div class="owner-evidence-info">
                     <strong>
                       {% if attachment.slot %}
-                        {{ attachment.slot|replace('_', ' ')|title|e }}
+                        {{ owner_ui_value(attachment.slot) }}
                       {% elif attachment.category %}
-                        {{ attachment.category|replace('_', ' ')|title|e }}
+                        {{ owner_ui_value(attachment.category) }}
                       {% else %}
                         {{ public_i18n('ownersDashboard', 'ownerTaskPhotoLabel', 'Work photo') }}
                       {% endif %}

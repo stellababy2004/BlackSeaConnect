@@ -15,7 +15,7 @@
 </head>
 <body class="owner-portal-page owner-property-new-page owner-property-page">
   <header class="hero hero--home" id="top">
-    <nav class="topbar" aria-label="Primary">
+    <nav class="topbar" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiPrimary') }}">
       <a class="brand" href="{{ localized_url('/') }}">BlackSea Connect</a>
       <div class="topbar__actions">
         <nav class="site-nav" aria-label="{{ property_page_copy.aria_owner_portal }}">
@@ -23,7 +23,7 @@
           <a class="site-nav__link is-active" href="{{ localized_url('/owners/property/new') }}">{{ property_page_copy.nav_properties_label }}</a>
           <a class="site-nav__link" href="{{ localized_url('/owners/logout') }}">{{ property_page_copy.nav_logout_label }}</a>
         </nav>
-        <div class="language-switcher" aria-label="Language switcher" data-i18n-attr="aria-label:languageSwitcherLabel">
+        <div class="language-switcher" aria-label="{{ public_i18n('common', 'languageSwitcherLabel') }}" data-i18n-attr="aria-label:languageSwitcherLabel">
           <a class="language-switcher__button {% if current_lang == 'bg' %}is-active{% endif %}" href="{{ language_switch_url('bg') }}" data-lang-switch="bg">BG</a>
           <span class="language-switcher__divider" aria-hidden="true">|</span>
           <a class="language-switcher__button {% if current_lang == 'en' %}is-active{% endif %}" href="{{ language_switch_url('en') }}" data-lang-switch="en">EN</a>
@@ -98,49 +98,49 @@
               <label class="owner-property-field owner-property-field--full">
                 <span>{{ property_page_copy.name_label }}</span>
                 <input type="text" name="name" value="{{ form_values.name|e }}" required>
-                {% if errors.name %}<p class="form-error" data-i18n="{{ errors.name }}">Please enter a property name.</p>{% endif %}
+                {% if errors.name %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAPropertyName') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field owner-property-field--full">
                 <span>{{ public_i18n('common', 'dashboardPropertyType', 'Property type') }}</span>
                 <input type="text" name="property_type" value="{{ form_values.property_type|e }}" required>
-                {% if errors.property_type %}<p class="form-error" data-i18n="{{ errors.property_type }}">Please enter a property type.</p>{% endif %}
+                {% if errors.property_type %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAPropertyType') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field owner-property-field--full">
                 <span>{{ public_i18n('common', 'dashboardPropertyAddress', 'Address') }}</span>
                 <input type="text" name="address" value="{{ form_values.address|e }}" required>
-                {% if errors.address %}<p class="form-error" data-i18n="{{ errors.address }}">Please enter an address.</p>{% endif %}
+                {% if errors.address %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAnAddress') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
                 <span data-i18n="ownerDashboardLocationLabel">{{ public_i18n('common', 'dashboardCity', 'City') }}</span>
                 <input type="text" name="city" value="{{ form_values.city|e }}" required>
-                {% if errors.city %}<p class="form-error" data-i18n="{{ errors.city }}">Please enter a city.</p>{% endif %}
+                {% if errors.city %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterACity') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
                 <span>{{ public_i18n('common', 'dashboardCountry', 'Country') }}</span>
                 <input type="text" name="country" value="{{ form_values.country|e }}" required>
-                {% if errors.country %}<p class="form-error" data-i18n="{{ errors.country }}">Please enter a country.</p>{% endif %}
+                {% if errors.country %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterACountry') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
                 <span>{{ property_page_copy.guest_capacity_label }}</span>
                 <input type="number" min="0" name="capacity" value="{{ form_values.guest_capacity|e }}" required>
-                {% if errors.guest_capacity %}<p class="form-error" data-i18n="{{ errors.guest_capacity }}">Please enter a valid guest capacity.</p>{% endif %}
+                {% if errors.guest_capacity %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAValidGuestCapacity') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
                 <span>{{ property_page_copy.bedrooms_label }}</span>
                 <input type="number" min="0" name="bedrooms" value="{{ form_values.bedrooms|e }}" required>
-                {% if errors.bedrooms %}<p class="form-error" data-i18n="{{ errors.bedrooms }}">Please enter a valid bedroom count.</p>{% endif %}
+                {% if errors.bedrooms %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAValidBedroomCount') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
                 <span>{{ property_page_copy.bathrooms_label }}</span>
                 <input type="number" min="0" name="bathrooms" value="{{ form_values.bathrooms|e }}" required>
-                {% if errors.bathrooms %}<p class="form-error" data-i18n="{{ errors.bathrooms }}">Please enter a valid bathroom count.</p>{% endif %}
+                {% if errors.bathrooms %}<p class="form-error">{{ public_i18n('ownersDashboard', 'ownerUiPleaseEnterAValidBathroomCount') }}</p>{% endif %}
               </label>
 
               <label class="owner-property-field">
@@ -275,15 +275,15 @@
                 </label>
                 <label class="owner-property-field">
                   <span>{{ public_i18n('common', 'dashboardSmoking', 'Smoking') }}</span>
-                  <input type="text" name="house_rule_smoking" value="{{ wizard_assets.house_rules.smoking|e }}" placeholder="No smoking">
+                  <input type="text" name="house_rule_smoking" value="{{ wizard_assets.house_rules.smoking|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiNoSmoking') }}">
                 </label>
                 <label class="owner-property-field">
                   <span>{{ public_i18n('common', 'dashboardPets', 'Pets') }}</span>
-                  <input type="text" name="house_rule_pets" value="{{ wizard_assets.house_rules.pets|e }}" placeholder="Pets allowed by request">
+                  <input type="text" name="house_rule_pets" value="{{ wizard_assets.house_rules.pets|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiPetsAllowedByRequest') }}">
                 </label>
                 <label class="owner-property-field owner-property-field--full">
                   <span>{{ public_i18n('common', 'dashboardParties', 'Parties') }}</span>
-                  <input type="text" name="house_rule_parties" value="{{ wizard_assets.house_rules.parties|e }}" placeholder="No parties or events">
+                  <input type="text" name="house_rule_parties" value="{{ wizard_assets.house_rules.parties|e }}" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiNoPartiesOrEvents') }}">
                 </label>
               </div>
             </section>
@@ -378,13 +378,13 @@
     </section>
   </main>
 
-  <footer class="site-footer" aria-label="Site footer">
+  <footer class="site-footer" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiSiteFooter') }}">
     <div class="site-footer__brand">
       <strong>BlackSea Connect</strong>
       <p>{{ property_page_copy.footer_description }}</p>
     </div>
 
-    <nav class="site-footer__links" aria-label="Footer links">
+    <nav class="site-footer__links" aria-label="{{ public_i18n('ownersDashboard', 'ownerUiFooterLinks') }}">
       <a href="{{ localized_url('/owners/dashboard') }}">{{ property_page_copy.nav_dashboard_label }}</a>
       <a href="{{ localized_url('/owners/property/new') }}">{{ property_page_copy.nav_properties_label }}</a>
       <a href="{{ localized_url('/owners/logout') }}">{{ property_page_copy.nav_logout_label }}</a>

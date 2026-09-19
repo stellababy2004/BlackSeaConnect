@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "Checking UTF-8 encoding..."
+python -m pytest tests/test_encoding_safety.py -q
+if [ $? -ne 0 ]; then
+    echo "Encoding check failed. Commit stopped."
+    exit 1
+fi
