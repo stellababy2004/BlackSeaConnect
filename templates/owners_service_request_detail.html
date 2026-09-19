@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="{{ page_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <title>BlackSea Connect | Service request</title>
+  <link rel="stylesheet" href="/static/css/styles.css?v=20260919-owner-request-detail-1">
+
+  <style>
+    .owner-request-page {
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+      color: #0f2345;
+      background: linear-gradient(180deg, #f7f1e3 0%, #fcf8ef 58%, #efe8d4 100%);
+    }
+
+    .owner-request-shell {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .owner-request-back {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: #0f2345 !important;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .owner-request-panel {
+      padding: 28px;
+      color: #0f2345 !important;
+      border: 1px solid rgba(155, 123, 47, 0.18);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .owner-request-panel h1,
+    .owner-request-panel h2,
+    .owner-request-panel h3,
+    .owner-request-panel strong,
+    .owner-request-description {
+      color: #0f2345 !important;
+      opacity: 1 !important;
+      text-shadow: none !important;
+    }
+
+    .owner-request-hero h1 {
+      margin: 8px 0 10px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    .owner-request-kicker {
+      margin: 0;
+      color: #5b6d84 !important;
+      opacity: 1 !important;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .owner-request-muted,
+    .owner-request-info__item span {
+      color: #5b6d84 !important;
+      opacity: 1 !important;
+    }
+
+    .owner-request-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .owner-request-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(155, 123, 47, 0.10);
+      color: #725d27 !important;
+      -webkit-text-fill-color: #725d27 !important;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .owner-request-chip--active {
+      background: #edf8ef;
+      color: #276738 !important;
+      -webkit-text-fill-color: #276738 !important;
+    }
+
+    .owner-request-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .owner-request-panel h2 {
+      margin: 7px 0 20px;
+      font-size: 1.45rem;
+      color: #0f2345 !important;
+      -webkit-text-fill-color: #0f2345 !important;
+    }
+
+    .owner-request-hero h1,
+    .owner-request-info__item strong,
+    .owner-request-description {
+      color: #0f2345 !important;
+      -webkit-text-fill-color: #0f2345 !important;
+    }
+
+    .owner-request-kicker,
+    .owner-request-muted,
+    .owner-request-info__item span {
+      color: #5b6d84 !important;
+      -webkit-text-fill-color: #5b6d84 !important;
+    }
+
+    .owner-request-chip {
+      -webkit-text-fill-color: currentColor;
+    }
+
+    .owner-request-info {
+      display: grid;
+      gap: 12px;
+    }
+
+    .owner-request-info__item {
+      padding: 17px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 18px;
+      background: rgba(255,255,255,.62);
+    }
+
+    .owner-request-info__item span {
+      display: block;
+      margin-bottom: 5px;
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .owner-request-info__item strong {
+      display: block;
+      line-height: 1.5;
+    }
+
+    .owner-request-description {
+      margin: 0;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .owner-progress {
+      display: grid;
+      gap: 10px;
+    }
+
+    .owner-progress__step {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(31, 41, 55, 0.035);
+      color: #6b7280;
+    }
+
+    .owner-progress__step::before {
+      content: "";
+      flex: 0 0 10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+
+    .owner-progress__step.is-done {
+      color: #276738;
+      font-weight: 700;
+      background: #edf8ef;
+    }
+
+    .owner-progress__step.is-done::before {
+      background: #3f8a52;
+    }
+
+    .owner-progress__step.is-current {
+      color: #725d27;
+      font-weight: 800;
+      background: rgba(155, 123, 47, 0.12);
+    }
+
+    .owner-progress__step.is-current::before {
+      background: #9b7b2f;
+      box-shadow: 0 0 0 4px rgba(155, 123, 47, 0.13);
+    }
+
+    @media (max-width: 720px) {
+      .owner-request-page {
+        padding: 20px 14px 40px;
+      }
+
+      .owner-request-panel {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .owner-request-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  {% set task_status = (backing_task.status if backing_task else service_request.status)|default('NEW', true)|upper %}
+  {% set category = service_request.service_category|default('Service', true) %}
+
+  <main class="owner-request-page">
+    <div class="owner-request-shell">
+
+      <a class="owner-request-back" href="{{ localized_url('/owners/dashboard') }}">
+        &larr; {{ public_i18n('ownersDashboard', 'ownerTaskBackDashboard', 'Back to dashboard') }}
+      </a>
+
+      <section class="owner-request-panel owner-request-hero">
+        <p class="owner-request-kicker">
+          {{ public_i18n('ownersDashboard', 'ownerRequestDetailLabel', 'Service request') }}
+        </p>
+
+        <h1>{{ category|replace('_', ' ')|title|e }}</h1>
+
+        {% if service_request.property %}
+          <p class="owner-request-muted">{{ service_request.property|e }}</p>
+        {% endif %}
+
+        <div class="owner-request-meta">
+          <span class="owner-request-chip owner-request-chip--active">
+            {{ task_status|replace('_', ' ')|title|e }}
+          </span>
+
+          {% if service_request.created_at %}
+            <span class="owner-request-chip">
+              {{ format_local_datetime(service_request.created_at, page_lang) }}
+            </span>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="owner-request-grid">
+
+        <article class="owner-request-panel">
+          <p class="owner-request-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerRequestDetailSummary', 'Request details') }}
+          </p>
+          <h2>{{ public_i18n('ownersDashboard', 'ownerRequestDetailWhatRequested', 'What you requested') }}</h2>
+
+          <div class="owner-request-info">
+            <div class="owner-request-info__item">
+              <span>{{ public_i18n('ownersDashboard', 'ownerRequestDetailProperty', 'Property') }}</span>
+              <strong>{{ service_request.property|default('-', true)|e }}</strong>
+            </div>
+
+            <div class="owner-request-info__item">
+              <span>{{ public_i18n('ownersDashboard', 'ownerRequestDetailCategory', 'Service') }}</span>
+              <strong>{{ category|replace('_', ' ')|title|e }}</strong>
+            </div>
+
+            <div class="owner-request-info__item">
+              <span>{{ public_i18n('ownersDashboard', 'ownerRequestDetailProfessional', 'Professional') }}</span>
+              <strong>
+                {% if assigned_professional %}
+                  {{ assigned_professional|e }}
+                {% else %}
+                  {{ public_i18n('ownersDashboard', 'ownerRequestDetailAwaitingAssignment', 'Awaiting assignment') }}
+                {% endif %}
+              </strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="owner-request-panel">
+          <p class="owner-request-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerRequestDetailProgressLabel', 'Progress') }}
+          </p>
+          <h2>{{ public_i18n('ownersDashboard', 'ownerRequestDetailCurrentProgress', 'Current progress') }}</h2>
+
+          {% set progress_order = ['NEW', 'ASSIGNED', 'ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'] %}
+          {% set progress_status = 'IN_PROGRESS' if task_status == 'PAUSED' else task_status %}
+          {% set current_index = progress_order.index(progress_status) if progress_status in progress_order else 0 %}
+
+          <div class="owner-progress">
+            {% for status in progress_order %}
+              {% set index = loop.index0 %}
+              <div class="owner-progress__step {% if index < current_index %}is-done{% elif index == current_index %}is-current{% endif %}">
+                {{ status|replace('_', ' ')|title|e }}
+              </div>
+            {% endfor %}
+          </div>
+
+          {% if task_status == 'PAUSED' %}
+            <p class="owner-request-muted">
+              {{ public_i18n('ownersDashboard', 'ownerRequestDetailPaused', 'Work is temporarily paused. The request remains active.') }}
+            </p>
+          {% endif %}
+        </article>
+      </section>
+
+      {% if service_request.description %}
+        <section class="owner-request-panel">
+          <p class="owner-request-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerRequestDetailNotesLabel', 'Request notes') }}
+          </p>
+          <h2>{{ public_i18n('ownersDashboard', 'ownerRequestDetailDescription', 'Description') }}</h2>
+          <p class="owner-request-description">{{ service_request.description|e }}</p>
+        </section>
+      {% endif %}
+
+    </div>
+  </main>
+</body>
+</html>
