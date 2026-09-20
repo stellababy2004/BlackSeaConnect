@@ -9,6 +9,7 @@
   "assignment": public_i18n("professionals", "detailAssignment", "Assignment"),
   "priority": public_i18n("professionals", "detailPriority", "Priority"),
   "due_date": public_i18n("professionals", "detailDueDate", "Due date"),
+  "completed_at": public_i18n("professionals", "detailCompletedAt", "Completed at"),
   "category": public_i18n("professionals", "detailCategory", "Category"),
   "property": public_i18n("professionals", "detailProperty", "Property"),
   "owner": public_i18n("professionals", "detailOwner", "Owner"),
@@ -462,7 +463,13 @@
         <div class="professional-task-timing">
           {% if task.arrival_date|default('', true) or task.check_in|default('', true) %}<span><strong>{{ public_i18n('professionals', 'detailArrival', 'Arrival') }}:</strong> {{ task.arrival_date|default('', true)|e or task.check_in|default('', true)|e }}</span>{% endif %}
           {% if task.departure_date|default('', true) or task.check_out|default('', true) %}<span><strong>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}:</strong> {{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e }}</span>{% endif %}
-          {% if not (task.arrival_date|default('', true) or task.check_in|default('', true) or task.departure_date|default('', true) or task.check_out|default('', true)) %}<span><strong>{{ labels.due_date }}:</strong> {{ task.due_date|e or labels.due_date_not_set }}</span>{% endif %}
+          {% if not (task.arrival_date|default('', true) or task.check_in|default('', true) or task.departure_date|default('', true) or task.check_out|default('', true)) %}
+            {% if current_status in ['COMPLETED', 'ARCHIVED'] and task.completed_at %}
+            <span><strong>{{ labels.completed_at }}:</strong> {{ task.completed_at|e }}</span>
+            {% else %}
+            <span><strong>{{ labels.due_date }}:</strong> {{ task.due_date|e or labels.due_date_not_set }}</span>
+            {% endif %}
+          {% endif %}
         </div>
       </div>
       {% if property_snapshot.address %}<button class="button button--primary professional-hero__navigate" type="button" data-navigation data-address="{{ property_snapshot.address|e }}" data-latitude="{{ property_snapshot.latitude|e }}" data-longitude="{{ property_snapshot.longitude|e }}">{{ public_i18n('professionals', 'detailNavigate', 'Navigate') }}</button>{% endif %}
@@ -566,7 +573,11 @@
           <dl class="professional-dl">
             <div><dt>{{ labels.assignment }}</dt><dd>{{ task.assigned_professional_label|e }}</dd></div>
             <div><dt>{{ labels.priority }}</dt><dd>{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</dd></div>
+            {% if current_status in ['COMPLETED', 'ARCHIVED'] and task.completed_at %}
+            <div><dt>{{ labels.completed_at }}</dt><dd>{{ task.completed_at|e }}</dd></div>
+            {% else %}
             <div><dt>{{ labels.due_date }}</dt><dd>{{ task.due_date|e or labels.due_date_not_set }}</dd></div>
+            {% endif %}
             <div>
               <dt>{{ labels.category }}</dt>
               <dd>

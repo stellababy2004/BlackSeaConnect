@@ -3223,6 +3223,7 @@
       'brief_aria': 'Key task information',
       'where': 'Where',
       'due': 'Due',
+      'completed_at': 'Completed at',
       'no_due': 'No due date set',
       'urgency': 'Urgency',
       'objective_eyebrow': 'What needs to be done',
@@ -3516,6 +3517,7 @@
     'unassigned': 'Unassigned',
     'priority': 'Priority',
     'due_date': 'Due date',
+    'completed_at': 'Completed at',
     'admin_notes': 'Admin notes',
     'admin_notes_placeholder': 'Private notes for the operations team',
     'other_service': 'Other service',
@@ -3915,7 +3917,11 @@
         {% if task.title and task_display_title != task.title %}<small class="admin-work-order-technical-name">{{ work_order_copy.system_name }}: {{ task.title|e }}</small>{% endif %}
         <div class="admin-work-order-brief" aria-label="{{ work_order_copy.brief_aria }}">
           <span class="admin-work-order-brief__item"><strong>{{ work_order_copy.where }}:</strong> {{ task_property_label|e }}</span>
+          {% if task_is_closed and task.completed_at %}
+          <span class="admin-work-order-brief__item"><strong>{{ work_order_copy.completed_at }}:</strong> {{ bg_datetime(task.completed_at) }}</span>
+          {% else %}
           <span class="admin-work-order-brief__item{% if task_open_overdue or task.priority == 'URGENT' %} admin-work-order-brief__item--urgent{% endif %}"><strong>{{ work_order_copy.due }}:</strong> {{ bg_datetime(task.due_date) if task_sla_has_due else work_order_copy.no_due }}</span>
+          {% endif %}
           <span class="admin-work-order-brief__item{% if severity_tone == 'red' %} admin-work-order-brief__item--urgent{% endif %}"><strong>{{ work_order_copy.urgency }}:</strong> {{ task_priority_label|e }}</span>
         </div>
       </div>
@@ -4385,10 +4391,18 @@
                 {% endfor %}
               </select>
             </label>
+            {% if task_is_closed and task.completed_at %}
+            <label>
+              <span>{{ od.completed_at }}</span>
+              <input type="text" value="{{ bg_datetime(task.completed_at) }}" readonly>
+              <input type="hidden" name="due_date" value="{{ task.due_date|e }}">
+            </label>
+            {% else %}
             <label>
               <span>{{ od.due_date }}</span>
               <input type="date" name="due_date" value="{{ task.due_date|e }}">
             </label>
+            {% endif %}
             <label>
               <span>{{ od.admin_notes }}</span>
               <textarea name="admin_notes" placeholder="{{ od.admin_notes_placeholder }}">{{ task.admin_notes|e }}</textarea>
