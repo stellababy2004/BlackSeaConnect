@@ -780,6 +780,38 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn("Добавете първия си имот, за да започнем оперативната подготовка.", html)
         self.assertIn('href="/owners/property/new?lang=bg"', html)
 
+    def test_owner_dashboard_localizes_other_calendar_event_type_in_bulgarian(self):
+        self._login_owner_via_magic()
+
+        start = app_module.datetime.now(app_module.timezone.utc) + app_module.timedelta(days=1)
+        end = start + app_module.timedelta(hours=1)
+
+        self._insert_owner_db_rows("calendar_events", [{
+            "id": "calendar-owner-other-bg",
+            "created_at": app_module.datetime.now(app_module.timezone.utc).isoformat(),
+            "updated_at": app_module.datetime.now(app_module.timezone.utc).isoformat(),
+            "property_id": "property-1",
+            "owner_id": "owner-1",
+            "operation_task_id": "",
+            "event_type": "Other",
+            "title": "Other owner event",
+            "description": "",
+            "start_datetime": start.isoformat(),
+            "end_datetime": end.isoformat(),
+            "all_day": 0,
+            "status": "SCHEDULED",
+            "assigned_professional": "",
+            "created_by": "admin",
+            "color": "grey",
+            "metadata_json": "{}",
+        }])
+
+        response = self.client.get("/owners/dashboard?lang=bg")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("\u0414\u0440\u0443\u0433\u043e", html)
+
     def test_owner_dashboard_renders_french_copy_and_preserves_lang_links(self):
         self._login_owner_via_magic(seed_property=False)
 
