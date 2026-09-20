@@ -1104,6 +1104,7 @@
     {% elif event_type == 'Seasonal Preparation' %}{{ public_i18n('owners', 'ownerCategorySeasonalPreparation', 'Seasonal preparation') }}
     {% elif event_type == 'Blocked Dates' %}{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}
     {% elif event_type == 'Personal Stay' %}{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}
+    {% elif event_type == 'Other' %}{{ public_i18n('owners', 'ownerCategoryOther', 'Other') }}
     {% else %}{{ event_type|e }}
     {% endif %}
   {%- endmacro %}
