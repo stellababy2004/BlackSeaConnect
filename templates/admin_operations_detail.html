@@ -3938,7 +3938,13 @@
         </div>
       </div>
 
-      {% if ai_triage %}
+      {% set ai_summary_raw = ai_triage.summary|default('', true)|trim if ai_triage else '' %}
+      {% set ai_action_raw = ai_triage.suggested_next_action|default('', true)|trim if ai_triage else '' %}
+      {% set ai_summary_placeholder = ai_summary_raw|lower in ['delayed ai summary', 'delayed ai summary.'] %}
+      {% set ai_action_placeholder = ai_action_raw|lower in ['delayed ai action', 'delayed ai action.'] %}
+      {% set ai_triage_ready = ai_triage and ai_summary_raw and ai_action_raw and not ai_summary_placeholder and not ai_action_placeholder %}
+
+      {% if ai_triage_ready %}
       <section class="admin-operations-ai" aria-label="{{ work_order_copy.ai_review_title }}">
         <div class="admin-operations-ai__header">
           <div>

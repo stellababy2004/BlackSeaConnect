@@ -993,7 +993,13 @@
         <p class="admin-request-detail-description__copy">{{ item.description|e }}</p>
       </section>
 
-      {% if item.ai_triage %}
+      {% set ai_summary_raw = item.ai_triage.summary|default('', true)|trim if item.ai_triage else '' %}
+      {% set ai_action_raw = item.ai_triage.suggested_next_action|default('', true)|trim if item.ai_triage else '' %}
+      {% set ai_summary_placeholder = ai_summary_raw|lower in ['delayed ai summary', 'delayed ai summary.'] %}
+      {% set ai_action_placeholder = ai_action_raw|lower in ['delayed ai action', 'delayed ai action.'] %}
+      {% set ai_triage_ready = item.ai_triage and ai_summary_raw and ai_action_raw and not ai_summary_placeholder and not ai_action_placeholder %}
+
+      {% if ai_triage_ready %}
       <section class="admin-request-ai-triage" aria-label="{{ sr_detail.ai_aria }}">
         <div class="admin-request-ai-triage__header">
           <div>
