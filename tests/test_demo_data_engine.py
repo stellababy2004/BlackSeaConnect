@@ -106,6 +106,29 @@ class DemoDataEngineTests(unittest.TestCase):
             self.assertGreater(professional_context["total_count"], 0)
             self.assertGreaterEqual(professional_context["completed_count"], 0)
 
+    def test_calendar_summary_uses_sofia_date_boundary(self):
+        event = {
+            "id": "sofia-next-day-event",
+            "start_datetime": "2026-07-15T22:30:00+00:00",
+            "event_type": "Cleaning",
+            "status": "SCHEDULED",
+            "title": "Sofia next day",
+        }
+
+        real_datetime = app_module.datetime
+
+        class FrozenDateTime(real_datetime):
+            @classmethod
+            def now(cls, tz=None):
+                frozen = real_datetime.fromisoformat("2026-07-15T20:30:00+00:00")
+                return frozen if tz is None else frozen.astimezone(tz)
+
+        with patch("app.datetime", FrozenDateTime):
+            summary = app_module._calendar_widget_summary([event])
+
+        self.assertEqual(summary["today"], 0)
+        self.assertEqual(summary["tomorrow"], 1)
+
     def test_calendar_dashboard_widget_excludes_past_events_from_upcoming(self):
         now = app_module.datetime.now(app_module.timezone.utc)
 

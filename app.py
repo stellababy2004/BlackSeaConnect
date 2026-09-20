@@ -183,6 +183,9 @@ _configure_logging()
 
 
 
+APP_TIMEZONE = ZoneInfo("Europe/Sofia")
+
+
 def format_sofia_datetime(value, fmt="%d.%m.%Y · %H:%M"):
     """Render stored UTC timestamps in Europe/Sofia local time."""
     if value in (None, ""):
@@ -209,7 +212,7 @@ def format_sofia_datetime(value, fmt="%d.%m.%Y · %H:%M"):
         dt = dt.replace(tzinfo=timezone.utc)
 
     try:
-        return dt.astimezone(ZoneInfo("Europe/Sofia")).strftime(fmt)
+        return dt.astimezone(APP_TIMEZONE).strftime(fmt)
     except Exception:
         return dt.strftime(fmt)
 
@@ -12892,7 +12895,7 @@ def _parse_iso_datetime(value):
         return None
 
 
-OPERATIONS_TIMEZONE = ZoneInfo("Europe/Sofia")
+OPERATIONS_TIMEZONE = APP_TIMEZONE
 
 
 @app.template_global("format_local_datetime")
@@ -12956,7 +12959,7 @@ def _format_owner_portal_timestamp(value):
     parsed_value = _parse_iso_datetime(value)
     if not parsed_value:
         return ""
-    return parsed_value.astimezone(ZoneInfo("Europe/Sofia")).strftime("%d.%m.%Y · %H:%M")
+    return parsed_value.astimezone(APP_TIMEZONE).strftime("%d.%m.%Y · %H:%M")
 
 
 def _owner_portal_metric_value(value, fallback_label):
@@ -14046,8 +14049,8 @@ def _calendar_enrich_event(event, property_map=None, owner_map=None, task_map=No
         start_dt = datetime.now(timezone.utc)
     if end_dt is None:
         end_dt = start_dt
-    today = datetime.now(timezone.utc).date()
-    overdue = bool(_calendar_event_tracks_operations(event) and start_dt.date() < today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"})
+    today = datetime.now(APP_TIMEZONE).date()
+    overdue = bool(_calendar_event_tracks_operations(event) and start_dt.astimezone(APP_TIMEZONE).date() < today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"})
 
     priority = str(metadata.get("priority", "")).strip().upper() or _normalize_operations_task_priority((task_record or {}).get("priority", "NORMAL")) if task_record else ""
     city = str(metadata.get("property_location", "")).strip() or str((property_record or {}).get("location", "")).strip()
@@ -14169,17 +14172,17 @@ def _calendar_group_events(events, calendar_view):
 
 
 def _calendar_widget_summary(events):
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(APP_TIMEZONE).date()
     tomorrow = today + timedelta(days=1)
     week_end = today + timedelta(days=6)
     def _matches_date(event, target_date):
         start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
-        return bool(start_dt and start_dt.date() == target_date)
+        return bool(start_dt and start_dt.astimezone(APP_TIMEZONE).date() == target_date)
 
     return {
         "today": sum(1 for event in events if _matches_date(event, today)),
         "tomorrow": sum(1 for event in events if _matches_date(event, tomorrow)),
-        "this_week": sum(1 for event in events if (start := _calendar_parse_datetime(event.get("start_datetime", ""))[0]) and today <= start.date() <= week_end),
+        "this_week": sum(1 for event in events if (start := _calendar_parse_datetime(event.get("start_datetime", ""))[0]) and today <= start.astimezone(APP_TIMEZONE).date() <= week_end),
         "completed": sum(1 for event in events if _normalize_calendar_event_status(event.get("status", "")) == "COMPLETED"),
         "overdue": sum(1 for event in events if event.get("is_overdue")),
     }
@@ -14198,16 +14201,17 @@ def _calendar_dashboard_widget(events, scope="admin"):
         ][:5]
     else:
         upcoming_events = sorted_events[:5]
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(APP_TIMEZONE).date()
     if scope == "admin":
         def _event_date(event):
-            return _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+            parsed = _calendar_parse_datetime(event.get("start_datetime", ""))[0]
+            return parsed.astimezone(APP_TIMEZONE).date() if parsed else None
 
         summary.update({
-            "todays_operations": sum(1 for event in sorted_events if _event_date(event) and _event_date(event).date() == today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"}),
-            "upcoming_check_ins": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-in" and _event_date(event) and _event_date(event).date() >= today),
-            "upcoming_check_outs": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-out" and _event_date(event) and _event_date(event).date() >= today),
-            "todays_cleaning": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Cleaning" and _event_date(event) and _event_date(event).date() == today),
+            "todays_operations": sum(1 for event in sorted_events if _event_date(event) and _event_date(event) == today and _normalize_calendar_event_status(event.get("status", "")) not in {"COMPLETED", "CANCELLED"}),
+            "upcoming_check_ins": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-in" and _event_date(event) and _event_date(event) >= today),
+            "upcoming_check_outs": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Check-out" and _event_date(event) and _event_date(event) >= today),
+            "todays_cleaning": sum(1 for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Cleaning" and _event_date(event) and _event_date(event) == today),
             "overdue_events": summary["overdue"],
         })
     if scope == "owner":
@@ -14232,13 +14236,13 @@ def _calendar_property_sections(events):
     maintenance_schedule = [event for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) == "Maintenance"][:6]
     blocked_dates = [event for event in sorted_events if _normalize_calendar_event_type(event.get("event_type", "")) in {"Blocked Dates", "Personal Stay"}][:6]
     mini_calendar = []
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(APP_TIMEZONE).date()
     for offset in range(7):
         day = today + timedelta(days=offset)
         day_events = []
         for event in sorted_events:
             start_dt, _ = _calendar_parse_datetime(event.get("start_datetime", ""))
-            if start_dt and start_dt.date() == day:
+            if start_dt and start_dt.astimezone(APP_TIMEZONE).date() == day:
                 day_events.append(event)
         mini_calendar.append({
             "date": day.isoformat(),
@@ -19467,7 +19471,7 @@ def _admin_executive_timestamp_display(value):
     dt = value if isinstance(value, datetime) else _parse_iso_datetime(value)
     if not dt:
         return ""
-    return dt.astimezone(ZoneInfo("Europe/Sofia")).strftime("%d.%m.%Y · %H:%M")
+    return dt.astimezone(APP_TIMEZONE).strftime("%d.%m.%Y · %H:%M")
 
 
 def _admin_executive_record_alert(*, severity, category, property_label="", reservation_label="", operation_label="", created_at=None, recommended_action="", detail="", link=""):
@@ -24562,8 +24566,9 @@ def _build_admin_dashboard():
     task_map = {str(task.get("id", "")).strip(): task for task in operations_tasks}
     enriched_calendar_events = [_calendar_enrich_event(event, property_map, owner_map, task_map) for event in calendar_events]
     now = datetime.now(timezone.utc)
-    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
-    today = datetime.now(timezone.utc).date()
+    local_now = now.astimezone(APP_TIMEZONE)
+    current_month = local_now.strftime("%Y-%m")
+    today = local_now.date()
     tomorrow = today + timedelta(days=1)
     week_end = today + timedelta(days=6)
     all_property_ids = [str(property_record.get("id", "")).strip() for property_record in owner_properties if str(property_record.get("id", "")).strip()]
@@ -24665,8 +24670,8 @@ def _build_admin_dashboard():
     for reservation_item in sorted(reservation_timeline_items, key=lambda item: (item["arrival"], item["departure"], item["property"], item["guest"])):
         reservation_timeline_groups[0 if reservation_item["bucket"] == "today" else 1 if reservation_item["bucket"] == "tomorrow" else 2]["items"].append({
             **reservation_item,
-            "arrival_display": reservation_item["arrival"].astimezone(timezone.utc).strftime("%d.%m · %H:%M UTC"),
-            "departure_display": reservation_item["departure"].astimezone(timezone.utc).strftime("%d.%m · %H:%M UTC"),
+            "arrival_display": reservation_item["arrival"].astimezone(APP_TIMEZONE).strftime("%d.%m · %H:%M"),
+            "departure_display": reservation_item["departure"].astimezone(APP_TIMEZONE).strftime("%d.%m · %H:%M"),
         })
 
     operations_events = []
@@ -24684,7 +24689,7 @@ def _build_admin_dashboard():
         )
         operations_events.append({
             "time": start_dt,
-            "time_label": start_dt.astimezone(timezone.utc).strftime("%H:%M"),
+            "time_label": start_dt.astimezone(APP_TIMEZONE).strftime("%H:%M"),
             "category": category,
             "title": event.get("title", "") or category,
             "detail": event.get("property_label", "") or event.get("owner_label", ""),
@@ -24706,7 +24711,7 @@ def _build_admin_dashboard():
             )
             operations_events.append({
                 "time": arrival_dt,
-                "time_label": arrival_dt.astimezone(timezone.utc).strftime("%H:%M"),
+                "time_label": arrival_dt.astimezone(APP_TIMEZONE).strftime("%H:%M"),
                 "category": "Check-in",
                 "title": reservation.get("guest_label", "") or "Check-in",
                 "detail": reservation.get("property_name", ""),
@@ -24726,7 +24731,7 @@ def _build_admin_dashboard():
             )
             operations_events.append({
                 "time": departure_dt,
-                "time_label": departure_dt.astimezone(timezone.utc).strftime("%H:%M"),
+                "time_label": departure_dt.astimezone(APP_TIMEZONE).strftime("%H:%M"),
                 "category": "Check-out",
                 "title": reservation.get("guest_label", "") or "Check-out",
                 "detail": reservation.get("property_name", ""),
@@ -24962,7 +24967,7 @@ def _build_admin_dashboard():
     recent_activity = [
         {
             "type": item["source"],
-            "created_at": item["created_at"].astimezone(timezone.utc).strftime("%d.%m.%Y · %H:%M UTC"),
+            "created_at": item["created_at"].astimezone(APP_TIMEZONE).strftime("%d.%m.%Y · %H:%M"),
             "title": item["title"],
             "detail": item["detail"],
             "status": item["tone"],
