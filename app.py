@@ -14188,6 +14188,16 @@ def _calendar_widget_summary(events):
 def _calendar_dashboard_widget(events, scope="admin"):
     sorted_events = sorted(events, key=_calendar_event_sort_key)
     summary = _calendar_widget_summary(sorted_events)
+    if scope == "owner":
+        now = datetime.now(timezone.utc)
+        upcoming_events = [
+            event
+            for event in sorted_events
+            if (start := _calendar_parse_datetime(event.get("start_datetime", ""))[0])
+            and start >= now
+        ][:5]
+    else:
+        upcoming_events = sorted_events[:5]
     today = datetime.now(timezone.utc).date()
     if scope == "admin":
         def _event_date(event):
@@ -14210,7 +14220,7 @@ def _calendar_dashboard_widget(events, scope="admin"):
         "headline": headline,
         "supporting_title": supporting_title,
         "summary": summary,
-        "upcoming_events": sorted_events[:5],
+        "upcoming_events": upcoming_events,
         "sorted_events": sorted_events,
     }
 
