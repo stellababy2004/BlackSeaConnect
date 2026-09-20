@@ -1054,7 +1054,7 @@
             {% endif %}
             {% for provider in matching_providers %}
               {% if provider.id != item.assigned_provider_id %}
-                <option value="{{ provider.id|e }}">{{ provider.company_name|e }} · {{ provider.city|e }}</option>
+                <option value="{{ provider.id|e }}">{{ (provider.full_name or provider.company or provider.email or provider.id)|e }}{% if provider.company and provider.company != provider.full_name %} / {{ provider.company|e }}{% endif %}</option>
               {% endif %}
             {% endfor %}
           </select>
@@ -1141,4 +1141,3 @@
   </script>
 </body>
 </html>
-

@@ -8217,6 +8217,20 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
         "OWNER_SERVICE_REQUEST": str(record.get("owner_id", "")).strip() or str(record.get("request_source", "")).strip() or "public",
     }.get(normalized_source_type, str(record.get("owner_id", "")).strip())
 
+    assigned_professional_id = str(
+        record.get("assigned_professional_id", "")
+    ).strip()
+    assigned_to = str(record.get("assigned_to", "")).strip()
+
+    if assigned_professional_id:
+        professional_account = _find_professional_account(
+            assigned_professional_id
+        )
+        if professional_account:
+            assigned_to = _professional_account_display_label(
+                professional_account
+            )
+
     return {
         "id": source_id,
         "request_id": source_id,
@@ -8230,8 +8244,8 @@ def _operations_task_payload_from_source(source_type, source_record, status="NEW
         "owner_email": owner_email,
         "property_id": property_id,
         "property_name": property_name,
-        "assigned_to": str(record.get("assigned_to", "")).strip(),
-        "assigned_professional_id": str(record.get("assigned_professional_id", "")).strip(),
+        "assigned_to": assigned_to,
+        "assigned_professional_id": assigned_professional_id,
         "priority": priority,
         "status": task_status,
         "due_date": due_date,
@@ -26399,11 +26413,17 @@ def admin_service_request_detail(request_id):
         source_kind="operation" if backing_task else "service_request",
     )
     display_record["is_assigned"] = _record_is_assigned(display_record, backing_task)
-    matching_providers = _service_request_matching_providers(record.get("service_category"))
+    professional_accounts = [
+        professional
+        for professional in _load_professional_accounts()
+        if _normalize_professional_account_status(
+            professional.get("status", "PENDING")
+        ) in {"APPROVED", "ACTIVE"}
+    ]
     return render_template(
         "admin_service_request_detail.html",
         item=display_record,
-        matching_providers=matching_providers,
+        matching_providers=professional_accounts,
         status_options=[{"value": status, "label": status.upper()} for status in SERVICE_REQUEST_STATUS_VALUES],
         timeline=list(reversed(_service_request_timeline_events(record))),
     )
@@ -26432,33 +26452,67 @@ def admin_service_request_update(request_id):
 
         original_notes = str(record.get("internal_notes", "")).strip()
         new_notes = str(request.form.get("internal_notes", original_notes)).strip()
-        original_provider_id = str(record.get("assigned_provider_id", "")).strip()
-        selected_provider_id = str(request.form.get("assigned_provider_id", original_provider_id)).strip()
 
-        selected_provider = None
-        if selected_provider_id:
-            for provider in _load_network_providers():
-                if str(provider.get("id", "")) == selected_provider_id:
-                    selected_provider = provider
+        original_professional_id = str(
+            record.get("assigned_professional_id", "")
+            or record.get("assigned_provider_id", "")
+        ).strip()
+
+        selected_professional_id = str(
+            request.form.get(
+                "assigned_professional_id",
+                request.form.get("assigned_provider_id", original_professional_id),
+            )
+        ).strip()
+
+        selected_professional = None
+        if selected_professional_id:
+            for professional in _load_professional_accounts():
+                if (
+                    str(professional.get("id", "")).strip() == selected_professional_id
+                    and _normalize_professional_account_status(
+                        professional.get("status", "PENDING")
+                    ) in {"APPROVED", "ACTIVE"}
+                ):
+                    selected_professional = professional
                     break
 
-        if new_status == "assigned" and selected_provider_id and not selected_provider:
-            return jsonify({"ok": False, "error": "invalid_provider"}), 400
+        if (
+            new_status == "assigned"
+            and selected_professional_id
+            and not selected_professional
+        ):
+            return jsonify({"ok": False, "error": "invalid_professional"}), 400
+
+        selected_provider_id = selected_professional_id
+        selected_provider = selected_professional
 
         status_changed = new_status != original_status
-        provider_changed = selected_provider_id != original_provider_id
+        provider_changed = selected_professional_id != original_professional_id
         completed = new_status == "completed"
 
-        if selected_provider:
-            record["assigned_provider_id"] = selected_provider_id
-            record["assigned_provider_name"] = selected_provider.get("full_name", "")
-            record["assigned_provider_company"] = selected_provider.get("company_name", "") or selected_provider.get("full_name", "")
-            record["assigned_professional_id"] = selected_provider_id
-            record["assigned_professional_name"] = selected_provider.get("full_name", "")
-            record["assigned_professional_company"] = selected_provider.get("company_name", "") or selected_provider.get("full_name", "")
+        if selected_professional:
+            professional_name = str(
+                selected_professional.get("full_name", "")
+            ).strip()
+
+            professional_company = str(
+                selected_professional.get("company", "")
+                or selected_professional.get("company_name", "")
+                or professional_name
+            ).strip()
+
+            record["assigned_provider_id"] = selected_professional_id
+            record["assigned_provider_name"] = professional_name
+            record["assigned_provider_company"] = professional_company
+
+            record["assigned_professional_id"] = selected_professional_id
+            record["assigned_professional_name"] = professional_name
+            record["assigned_professional_company"] = professional_company
 
         record["internal_notes"] = new_notes
         record["last_update_at"] = _utc_now_iso()
+
 
         if status_changed:
             record["status"] = new_status
