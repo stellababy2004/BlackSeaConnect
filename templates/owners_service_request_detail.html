@@ -319,6 +319,31 @@
         </article>
       </section>
 
+      {% if backing_task and task_status in ['COMPLETED', 'ARCHIVED'] %}
+        <section class="owner-request-panel">
+          <p class="owner-request-kicker">
+            {{ public_i18n('ownersDashboard', 'ownerTaskCompletedStatus', 'Completed') }}
+          </p>
+
+          <h2>
+            {{ public_i18n('ownersDashboard', 'ownerTaskReportLabel', 'Completion report') }}
+          </h2>
+
+          {% if backing_task.completed_at %}
+            <p class="owner-request-muted">
+              {{ format_local_datetime(backing_task.completed_at, page_lang) }}
+            </p>
+          {% endif %}
+
+          <p>
+            <a class="owner-request-back"
+               href="{{ url_for('owners_task_detail', task_id=backing_task.id, lang=page_lang) }}">
+              {{ public_i18n('ownersDashboard', 'ownerTaskReportLabel', 'Completion report') }} &rarr;
+            </a>
+          </p>
+        </section>
+      {% endif %}
+
       {% if service_request.description %}
         <section class="owner-request-panel">
           <p class="owner-request-kicker">
