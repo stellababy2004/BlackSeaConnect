@@ -106,6 +106,37 @@ class DemoDataEngineTests(unittest.TestCase):
             self.assertGreater(professional_context["total_count"], 0)
             self.assertGreaterEqual(professional_context["completed_count"], 0)
 
+    def test_calendar_dashboard_widget_excludes_past_events_from_upcoming(self):
+        now = app_module.datetime.now(app_module.timezone.utc)
+
+        events = [
+            {
+                "id": "past-event",
+                "start_datetime": (now - app_module.timedelta(days=1)).isoformat(),
+                "event_type": "Maintenance",
+                "status": "SCHEDULED",
+                "title": "Past maintenance",
+            },
+            {
+                "id": "future-event",
+                "start_datetime": (now + app_module.timedelta(days=1)).isoformat(),
+                "event_type": "Cleaning",
+                "status": "SCHEDULED",
+                "title": "Future cleaning",
+            },
+        ]
+
+        widget = app_module._calendar_dashboard_widget(events, scope="owner")
+
+        self.assertEqual(
+            [event["id"] for event in widget["upcoming_events"]],
+            ["future-event"],
+        )
+        self.assertEqual(
+            [event["id"] for event in widget["sorted_events"]],
+            ["past-event", "future-event"],
+        )
+
     def test_clear_removes_only_demo_records_and_keeps_real_data(self):
         with app_module.app.app_context(), patch.dict(os.environ, self._env(), clear=True):
             real_owner = app_module._upsert_owner_account({
