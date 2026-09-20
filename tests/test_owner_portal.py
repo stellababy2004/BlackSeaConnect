@@ -2990,30 +2990,44 @@ class OwnerPortalTests(unittest.TestCase):
             "organization_id": "org-global",
         })
 
-        # Give Gamma five active tasks. The deterministic scorer applies
-        # a two-point workload penalty per active task:
+        # Give Gamma five active tasks without creating calendar events.
+        # This isolates the workload penalty:
         # Alpha = 80, Gamma = 70, Beta = 65.
+        workload_rows = []
+
         for index in range(5):
-            app_module._upsert_operations_task({
+            workload_rows.append({
                 "id": f"gamma-workload-{index}",
                 "request_id": f"gamma-workload-{index}",
-                "source_id": f"gamma-workload-{index}",
                 "source_type": "MANUAL",
-                "property_id": "",
-                "property": "Workload Property",
-                "property_location": "Sveti Vlas",
-                "owner": "Workload Owner",
-                "owner_email": "workload@example.com",
-                "category": "SERVICE",
+                "source_id": f"gamma-workload-{index}",
+                "created_at": "2026-09-19T08:00:00Z",
+                "updated_at": "2026-09-19T08:00:00Z",
                 "title": f"Existing maintenance task {index}",
-                "priority": "NORMAL",
-                "status": "IN_PROGRESS",
+                "category": "SERVICE",
+                "owner_name": "Workload Owner",
+                "owner_email": "workload@example.com",
+                "property_id": "",
+                "property_name": "Workload Property",
                 "assigned_to": "Maintenance Gamma",
                 "assigned_professional_id": "pro-ai-gamma",
+                "priority": "NORMAL",
+                "status": "IN_PROGRESS",
                 "due_date": "",
                 "notes": "",
+                "completed_at": "",
+                "completion_report_json": "{}",
+                "owner_id": "",
+                "property_location": "Sveti Vlas",
+                "admin_notes": "",
+                "request_status": "new",
+                "checklist_json": "[]",
+                "attachments_json": "[]",
+                "comments_json": "[]",
                 "organization_id": "org-global",
             })
+
+        self._insert_owner_db_rows("operations_tasks", workload_rows)
 
         language_headings = {
             "en": "AI assignment recommendations",
@@ -3036,15 +3050,31 @@ class OwnerPortalTests(unittest.TestCase):
 
                 self.assertEqual(response.status_code, 200)
                 html = response.get_data(as_text=True)
+                print(
+                "RANKS",
+                language,
+                __import__("re").findall(
+                    r"#(\d+)\s+Maintenance\s+(Alpha|Beta|Gamma)[\s\S]{0,800}?(\d+)/100",
+                    html,
+                ),
+            )
 
                 self.assertIn(expected_heading, html)
                 self.assertIn("Maintenance Alpha", html)
                 self.assertIn("Maintenance Gamma", html)
                 self.assertIn("Maintenance Beta", html)
 
-                alpha_position = html.index("Maintenance Alpha")
-                gamma_position = html.index("Maintenance Gamma")
-                beta_position = html.index("Maintenance Beta")
+                alpha_rank = "#1 Maintenance Alpha"
+                gamma_rank = "#2 Maintenance Gamma"
+                beta_rank = "#3 Maintenance Beta"
+
+                self.assertIn(alpha_rank, html)
+                self.assertIn(gamma_rank, html)
+                self.assertIn(beta_rank, html)
+
+                alpha_position = html.index(alpha_rank)
+                gamma_position = html.index(gamma_rank)
+                beta_position = html.index(beta_rank)
 
                 self.assertLess(alpha_position, gamma_position)
                 self.assertLess(gamma_position, beta_position)
