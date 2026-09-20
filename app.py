@@ -9107,7 +9107,7 @@ def _update_operations_task_details(task_id, *, status=None, assigned_to=None, a
                 f"Property: {task.get('property_name', '') or task.get('property_location', '')}",
                 f"Professional: {new_assigned_to or new_assigned_professional_id or 'n/a'}",
                 f"Status: {new_status}",
-                f"Review link: {url_for('owners_dashboard', _external=True)}",
+                f"Review link: {url_for('owners_task_detail', task_id=task_id, _external=True)}",
             ])
             _send_plaintext_email(
                 owner_email,

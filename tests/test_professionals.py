@@ -2167,10 +2167,29 @@ class ApplicationWorkflowTests(unittest.TestCase):
             "follow_up_needed": "None",
             "completion_notes": "Verified safe operation.",
         }
-        completed = self._professional_task_post(f"/professionals/tasks/{task_id}", data=completion_payload)
+        with (
+            patch.dict(os.environ, self.SMTP_ENV, clear=False),
+            patch("app.smtplib.SMTP", FakeSMTP),
+            patch("app.smtplib.SMTP_SSL", FakeSMTP),
+        ):
+            completed = self._professional_task_post(
+                f"/professionals/tasks/{task_id}",
+                data=completion_payload,
+            )
         self.assertIn("notice=task_completed", completed.headers["Location"])
         task = app_module._find_operations_task(task_id)
         self.assertEqual(task["status"], "COMPLETED")
+
+        owner_completion_messages = [
+            message
+            for message in FakeSMTP.sent_messages
+            if message["To"] == owner["email"]
+            and message["Subject"] == "[BlackSeaConnect] Work completed on your property"
+        ]
+        self.assertEqual(len(owner_completion_messages), 1)
+        owner_completion_body = owner_completion_messages[0].get_content()
+        self.assertIn(f"/owners/tasks/{task_id}", owner_completion_body)
+        self.assertNotIn("/owners/dashboard", owner_completion_body)
 
         # Regression: completed tasks must render in Admin Operations detail
         # for every supported language.
