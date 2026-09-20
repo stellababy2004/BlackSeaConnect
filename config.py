@@ -71,6 +71,7 @@ class AppSettings:
             "TRUST_PROXY_HEADERS": self.trust_proxy_headers,
             "TRUSTED_COUNTRY_HEADER": self.trusted_country_header,
             "SESSION_COOKIE_SECURE": self.session_cookie_secure,
+            "SESSION_COOKIE_HTTPONLY": True,
             "SESSION_COOKIE_SAMESITE": self.session_cookie_samesite,
             "ANALYTICS_ENABLED": self.analytics_enabled,
             "GA4_MEASUREMENT_ID": self.ga4_measurement_id,

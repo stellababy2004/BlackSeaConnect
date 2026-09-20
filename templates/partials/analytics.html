@@ -1,5 +1,6 @@
 ﻿<div
   class="analytics-consent"
+  id="analytics-consent"
   data-analytics-consent
   data-ga4-measurement-id="{{ analytics_config.ga4_measurement_id|default('', true)|e }}"
   data-clarity-project-id="{{ analytics_config.clarity_project_id|default('', true)|e }}"
@@ -16,5 +17,18 @@
     </div>
   </section>
 </div>
-<script src="{{ url_for('static', filename='js/analytics.js') }}?v=20260731-2" defer></script>
+
+<button
+  type="button"
+  class="analytics-consent-settings"
+  data-analytics-settings
+  data-i18n="analytics.settings"
+  aria-controls="analytics-consent"
+  aria-expanded="false"
+  hidden
+>
+  {{ public_i18n('analytics', 'settings', 'Cookie settings') }}
+</button>
+
+<script src="{{ url_for('static', filename='js/analytics.js') }}?v=20260920-1" defer></script>
 
