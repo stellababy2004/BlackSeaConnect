@@ -12514,6 +12514,26 @@ def _apply_security_headers(response):
         "Permissions-Policy",
         "camera=(), microphone=(), geolocation=()",
     )
+    # Report-only rollout; inline code and arbitrary HTTPS provider images are
+    # technical debt before enforcement. See docs/CSP_REPORT_ONLY_AUDIT.md.
+    # No collector is configured yet: inspect browser console violations.
+    response.headers.setdefault(
+        "Content-Security-Policy-Report-Only",
+        "default-src 'self'; "
+        "base-uri 'self'; "
+        "object-src 'none'; "
+        "frame-ancestors 'self'; "
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.clarity.ms; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' blob: https:; "
+        "font-src 'self'; "
+        "connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com "
+        "https://*.google.com https://*.clarity.ms https://c.bing.com; "
+        "form-action 'self' https://checkout.stripe.com https://connect.stripe.com; "
+        "frame-src 'self'; "
+        "worker-src 'self'; "
+        "manifest-src 'self'",
+    )
 
     # HSTS must only be emitted for the real HTTPS production site.
     if (
