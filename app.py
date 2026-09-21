@@ -27421,6 +27421,9 @@ def _demo_data_page_context():
 @app.route("/admin/demo-data", methods=["GET"])
 @admin_required
 def admin_demo_data():
+    if not DEMO_DATA_ENABLED:
+        return Response("Not found.", status=404, mimetype="text/plain")
+
     context = _demo_data_page_context()
     message = str(request.args.get("message", "")).strip()
     notice = {
@@ -27529,6 +27532,9 @@ def admin_demo_data():
 @app.post("/admin/demo-data/seed")
 @admin_required
 def admin_demo_data_seed():
+    if not DEMO_DATA_ENABLED:
+        return Response("Not found.", status=404, mimetype="text/plain")
+
     if not _validate_admin_csrf():
         return _admin_csrf_error_response()
 
@@ -27542,6 +27548,9 @@ def admin_demo_data_seed():
 @app.post("/admin/demo-data/clear")
 @admin_required
 def admin_demo_data_clear():
+    if not DEMO_DATA_ENABLED:
+        return Response("Not found.", status=404, mimetype="text/plain")
+
     if not _validate_admin_csrf():
         return _admin_csrf_error_response()
 

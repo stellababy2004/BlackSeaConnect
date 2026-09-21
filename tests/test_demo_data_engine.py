@@ -65,6 +65,27 @@ class DemoDataEngineTests(unittest.TestCase):
             "operations_task_events": len(app_module._load_operations_task_events()),
         }
 
+    def test_demo_data_routes_are_hidden_when_feature_is_disabled(self):
+        with patch.object(app_module, "DEMO_DATA_ENABLED", False), patch.dict(
+            os.environ, self._env(), clear=True
+        ):
+            page = self.client.get(
+                "/admin/demo-data",
+                headers=self._auth_headers(),
+            )
+            seed = self.client.post(
+                "/admin/demo-data/seed",
+                headers=self._auth_headers(),
+            )
+            clear = self.client.post(
+                "/admin/demo-data/clear",
+                headers=self._auth_headers(),
+            )
+
+        self.assertEqual(page.status_code, 404)
+        self.assertEqual(seed.status_code, 404)
+        self.assertEqual(clear.status_code, 404)
+
     def test_seed_is_idempotent_and_populates_dashboards(self):
         with app_module.app.app_context(), patch.dict(os.environ, self._env(), clear=True):
             seed_response = self.client.post("/admin/demo-data/seed", headers=self._auth_headers())
