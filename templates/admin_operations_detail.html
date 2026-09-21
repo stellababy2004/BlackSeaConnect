@@ -4006,6 +4006,7 @@
 
       <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
         <input type="hidden" name="task_action" value="checklist">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <div class="admin-operations-checklist">
           {% for item in checklist_items %}
             <div class="admin-operations-checklist__item">
@@ -4320,6 +4321,7 @@
           {% if not task.is_assigned and assignment_recommendation.professional %}
             <form class="admin-operations-form u-mb-14" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="details">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
               <input type="hidden" name="assignment_source" value="ai_recommendation">
               <input type="hidden" name="status" value="{{ task.status|e }}">
               <input type="hidden" name="assigned_professional_id" value="{{ assignment_recommendation.professional.id|e }}">
@@ -4352,6 +4354,7 @@
                   {% else %}
                     <form class="admin-operations-mini-form" method="post" action="/admin/operations/{{ task.id|e }}">
                       <input type="hidden" name="task_action" value="details">
+                      <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                       <input type="hidden" name="status" value="{{ task.status|e }}">
                       <input type="hidden" name="assigned_professional_id" value="{{ professional.id|e }}">
                       <input type="hidden" name="priority" value="{{ task.priority|e }}">
@@ -4366,6 +4369,7 @@
           </div>
           <form id="admin-operations-assignment-form" class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="details">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
               <span>{{ od.status }}</span>
               <select name="status" required>
@@ -4423,6 +4427,7 @@
           {% if evidence_error %}<p class="admin-evidence__message admin-evidence__message--error" role="alert">{{ evidence_error }}</p>{% endif %}
           <form class="admin-operations-form admin-evidence__form" method="post" action="{{ localized_url('/admin/operations/' ~ task.id|e) }}" enctype="multipart/form-data" data-evidence-form>
             <input type="hidden" name="task_action" value="attachment">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
               <span>{{ evidence_copy.category }}</span>
               <select name="attachment_category" required>
@@ -4516,6 +4521,7 @@
 
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="finance">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
 
           <div class="bsc-finance-form-grid">
             <label>
@@ -4646,6 +4652,7 @@
           {% if (task.quote_status or 'NONE') in ['DRAFT', 'NONE'] and (task.owner_total_amount or 0) > 0 %}
             <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_send">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
               <button class="button button--primary" type="submit">
                 {{ od.send_quote }}
               </button>
@@ -4654,6 +4661,7 @@
           {% elif task.quote_status == 'SENT' %}
             <form class="bsc-finance-actions" method="post" action="/admin/operations/{{ task.id|e }}">
               <input type="hidden" name="task_action" value="finance_reopen">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
               <button class="button" type="submit">
                 {{ od.return_draft }}
               </button>
@@ -4887,6 +4895,7 @@
           <h2 class="admin-operations-section-title">{{ od.admin_only_notes }}</h2>
           <form class="admin-operations-form" method="post" action="/admin/operations/{{ task.id|e }}">
             <input type="hidden" name="task_action" value="comment">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
               <span>{{ od.note_type }}</span>
               <select name="comment_type">

@@ -669,6 +669,7 @@
           <p class="eyebrow">{{ c.admin_notes }}</p>
           <h2 class="admin-property-detail-section-title">{{ c.internal_notes }}</h2>
           <form class="admin-property-detail-form" method="post" action="/admin/properties/{{ property.id|e }}?lang={{ admin_lang }}">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <label>
               <span>{{ c.internal_notes }}</span>
               <textarea name="admin_notes" placeholder="{{ c.notes_placeholder }}">{{ property.admin_notes|e }}</textarea>

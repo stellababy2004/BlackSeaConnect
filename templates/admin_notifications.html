@@ -274,6 +274,7 @@
       </div>
       {% set preference = preferences[0] if preferences else None %}
       <form class="admin-notifications-form" method="post" action="{{ localized_url('/admin/notifications') }}">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label class="admin-notifications-toggle">
           <input type="checkbox" name="email_enabled" {% if preference is none or preference.email_enabled %}checked{% endif %}>
           <span>{{ nui['email_enabled'] }}</span>

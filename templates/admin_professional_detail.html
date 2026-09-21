@@ -87,6 +87,7 @@
       </section>
 
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label>
           <span>Update status</span>
           <select name="status" required>

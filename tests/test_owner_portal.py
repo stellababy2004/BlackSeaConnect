@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import io
 import html as html_lib
 from html.parser import HTMLParser
@@ -163,7 +163,15 @@ class OwnerPortalTests(unittest.TestCase):
 
     def _auth_headers(self):
         token = base64.b64encode(f"{self.ADMIN_ENV['ADMIN_USERNAME']}:{self.ADMIN_ENV['ADMIN_PASSWORD']}".encode("utf-8")).decode("ascii")
-        return {"Authorization": f"Basic {token}"}
+        with self.client.session_transaction() as session_data:
+            csrf_token = str(session_data.get("_admin_csrf_token", "")).strip()
+            if not csrf_token:
+                csrf_token = "test-admin-csrf-token"
+                session_data["_admin_csrf_token"] = csrf_token
+        return {
+            "Authorization": f"Basic {token}",
+            "X-CSRF-Token": csrf_token,
+        }
 
     def _read_jsonl(self, filename):
         owner_table_map = {
@@ -3506,10 +3514,12 @@ class OwnerPortalTests(unittest.TestCase):
                 {"task_action": "finance_payment", "csrf_token": "finance-csrf"},
             )
 
+            missing_csrf_headers = self._auth_headers()
+            missing_csrf_headers.pop("X-CSRF-Token", None)
             missing_csrf = self.client.post(
                 f"/admin/operations/{task_id}",
                 data={"task_action": "finance_payment"},
-                headers=self._auth_headers(),
+                headers=missing_csrf_headers,
             )
             self.assertEqual(missing_csrf.status_code, 400)
             self.assertEqual(app_module._find_operations_task(task_id)["payment_status"], "PENDING")

@@ -326,6 +326,7 @@
             <div class="reservation-import-empty" style="margin-bottom: 14px;">{{ validation_error }}</div>
           {% endif %}
           <form class="reservation-import-form" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <input type="hidden" name="preview_payload_json" value="{{ preview_payload_json|default('')|e }}">
             <div class="reservation-import-form-grid">
               <label>

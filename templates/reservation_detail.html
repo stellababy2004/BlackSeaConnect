@@ -379,6 +379,7 @@
 
           {% if can_view_internal_comments %}
             <form class="reservation-detail-form u-mt-14" method="post" action="{{ localized_url('/admin/reservations/' ~ reservation.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
               <input type="hidden" name="reservation_action" value="comment">
               <textarea name="comment" placeholder="Add an internal comment for Operations"></textarea>
               <div class="reservation-detail-actions-row">

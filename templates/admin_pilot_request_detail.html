@@ -252,6 +252,7 @@
       </section>
 
       <form class="admin-pilot-status-form admin-request-detail-form" method="post" action="/admin/pilot-requests/{{ item.id|e }}/update">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label>
           <span>{{ pdui['status'] }}</span>
           <select class="admin-request-detail-form__control" name="status" required>

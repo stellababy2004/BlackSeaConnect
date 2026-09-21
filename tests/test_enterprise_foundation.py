@@ -80,7 +80,15 @@ class EnterpriseFoundationTests(unittest.TestCase):
         import base64
 
         token = base64.b64encode(f"{self.ADMIN_ENV['ADMIN_USERNAME']}:{self.ADMIN_ENV['ADMIN_PASSWORD']}".encode("utf-8")).decode("ascii")
-        return {"Authorization": f"Basic {token}"}
+        with self.client.session_transaction() as session_data:
+            csrf_token = str(session_data.get("_admin_csrf_token", "")).strip()
+            if not csrf_token:
+                csrf_token = "test-admin-csrf-token"
+                session_data["_admin_csrf_token"] = csrf_token
+        return {
+            "Authorization": f"Basic {token}",
+            "X-CSRF-Token": csrf_token,
+        }
 
     def _fetch_table(self, table_name):
         if not self.owner_db_path.exists():

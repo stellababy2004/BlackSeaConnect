@@ -96,7 +96,15 @@ class ReservationEngineTests(unittest.TestCase):
 
     def _auth_headers(self):
         token = base64.b64encode(f"{self.ADMIN_ENV['ADMIN_USERNAME']}:{self.ADMIN_ENV['ADMIN_PASSWORD']}".encode("utf-8")).decode("ascii")
-        return {"Authorization": f"Basic {token}"}
+        with self.client.session_transaction() as session_data:
+            csrf_token = str(session_data.get("_admin_csrf_token", "")).strip()
+            if not csrf_token:
+                csrf_token = "test-admin-csrf-token"
+                session_data["_admin_csrf_token"] = csrf_token
+        return {
+            "Authorization": f"Basic {token}",
+            "X-CSRF-Token": csrf_token,
+        }
 
     def _seed_owner(self, *, owner_id, email, full_name, city, property_type="Villa", property_name="Sea View Villa", units=2):
         return app_module._upsert_owner_account({

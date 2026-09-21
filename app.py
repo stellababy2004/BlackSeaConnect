@@ -19785,7 +19785,14 @@ def _admin_csrf_token():
 
 def _validate_admin_csrf():
     expected = str(session.get("_admin_csrf_token", "")).strip()
-    submitted = str(request.form.get("csrf_token", "")).strip()
+
+    payload = request.get_json(silent=True) if request.is_json else None
+    submitted = str(
+        request.form.get("csrf_token", "")
+        or ((payload or {}).get("csrf_token", "") if isinstance(payload, dict) else "")
+        or request.headers.get("X-CSRF-Token", "")
+    ).strip()
+
     return bool(expected and submitted and hmac.compare_digest(expected, submitted))
 
 
@@ -19937,6 +19944,9 @@ def admin_organizations():
 @app.post("/admin/organizations")
 @admin_required
 def admin_create_organization():
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     name = str(request.form.get("name", request.json.get("name") if request.is_json and request.json else "")).strip()
     slug = str(request.form.get("slug", request.json.get("slug") if request.is_json and request.json else "")).strip()
     if not name:
@@ -19966,6 +19976,9 @@ def admin_create_organization():
 @app.post("/admin/organizations/<organization_id>/suspend")
 @admin_required
 def admin_suspend_organization(organization_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     organization = _find_organization(organization_id)
     if not organization:
         return Response("Organization not found.", status=404, mimetype="text/plain")
@@ -19990,6 +20003,9 @@ def admin_suspend_organization(organization_id):
 @app.delete("/admin/organizations/<organization_id>")
 @admin_required
 def admin_delete_organization(organization_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     organization = _find_organization(organization_id)
     if not organization:
         return Response("Organization not found.", status=404, mimetype="text/plain")
@@ -20249,6 +20265,9 @@ def admin_owner_account_detail(owner_id):
     ]
 
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         new_status = _normalize_owner_status(request.form.get("status", owner_account.get("status", OWNER_STATUS_DEFAULT)))
         new_notes = str(request.form.get("internal_notes", "")).strip()
         previous_status = _normalize_owner_status(owner_account.get("status", OWNER_STATUS_DEFAULT))
@@ -20462,6 +20481,9 @@ def admin_property_detail(property_id):
         return Response("Property not found.", status=404, mimetype="text/plain")
 
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         previous_notes = str(property_record.get("admin_notes", "")).strip()
         new_notes = str(request.form.get("admin_notes", previous_notes)).strip()
         if new_notes != previous_notes:
@@ -26054,12 +26076,18 @@ def admin_pilot_request_detail(request_id):
 @app.post("/admin/pilot-requests/<request_id>/status")
 @admin_required
 def admin_pilot_request_status(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     return _update_pilot_request_from_form(request_id, update_notes=False, update_owner=False, require_status=True)
 
 
 @app.post("/admin/pilot-requests/<request_id>/update")
 @admin_required
 def admin_pilot_request_update(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     return _update_pilot_request_from_form(request_id, update_notes=True, update_owner=True, require_status=False)
 
 
@@ -26228,6 +26256,9 @@ def admin_partner_application_detail(application_id):
 @app.post("/admin/partners/<application_id>/update")
 @admin_required
 def admin_partner_application_update(application_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     applications = _load_partner_applications()
     applications, error_response, status_code = _update_application_from_form(applications, application_id)
     if error_response is not None:
@@ -26281,6 +26312,9 @@ def admin_professional_detail(application_id):
 @app.post("/admin/professionals/<application_id>/update")
 @admin_required
 def admin_professional_update(application_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     applications = _load_professional_applications()
     applications, error_response, status_code = _update_application_from_form(applications, application_id)
     if error_response is not None:
@@ -26400,6 +26434,9 @@ def admin_service_request_detail(request_id):
 @app.post("/admin/service-requests/<request_id>/update")
 @admin_required
 def admin_service_request_update(request_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     requests_list = _load_service_requests(include_deleted=True, include_archived=True)
     updated = False
 
@@ -26733,6 +26770,9 @@ def admin_reservation_import():
     validation_error = ""
     preview_payload_json = ""
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         action = str(request.form.get("import_action", "preview")).strip().lower() or "preview"
         payload = _reservation_import_request_payload(current_source)
         context = {
@@ -26779,6 +26819,9 @@ def admin_reservation_detail(reservation_id):
         return Response("Reservation not found.", status=404, mimetype="text/plain")
 
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         action = str(request.form.get("reservation_action", "comment")).strip().lower()
         if action == "comment":
             comment_text = str(request.form.get("comment", "")).strip()
@@ -26933,6 +26976,9 @@ def admin_operator_console():
 def admin_notifications():
     current_operator_key = _current_admin_operator_key()
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         email_enabled = _normalize_operations_notification_flag(request.form.get("email_enabled"))
         telegram_enabled = _normalize_operations_notification_flag(request.form.get("telegram_enabled"))
         _set_operations_notification_preferences(
@@ -26974,10 +27020,11 @@ def admin_operations_detail(task_id):
         ), 404
 
     if request.method == "POST":
+        if not _validate_admin_csrf():
+            return _admin_csrf_error_response()
+
         task_action = str(request.form.get("task_action", "details")).strip().lower()
         redirect_args = {"task_id": task_id}
-        if task_action in {"finance_payment", "finance_release"} and not _validate_admin_csrf():
-            return _admin_csrf_error_response()
         if task_action == "checklist":
             checklist_selection = {
                 key: request.form.get(f"checklist_{key}") == "on"
@@ -27293,6 +27340,9 @@ def admin_operations_attachment_delete(task_id, attachment_id):
 @app.post("/admin/operations/<task_id>/status")
 @admin_required
 def admin_operations_status(task_id):
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     payload = request.get_json(silent=True) or {}
     status_value = str(payload.get("status", request.form.get("status", ""))).strip()
     if not status_value:
@@ -27413,9 +27463,11 @@ def admin_demo_data():
               <p class="admin-demo-muted">Seed and clear are optional. Demo records stay isolated in a manifest so production data is untouched.</p>
               <div class="admin-demo-actions">
                 <form method="post" action="{{ url_for('admin_demo_data_seed') }}">
+                <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                   <button class="button button--primary" type="submit">Seed Demo</button>
                 </form>
                 <form method="post" action="{{ url_for('admin_demo_data_clear') }}">
+                <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                   <button class="button button--secondary" type="submit">Clear Demo</button>
                 </form>
                 <a class="button button--ghost" href="{{ url_for('admin_demo_data') }}">Refresh Dashboard</a>
@@ -27477,6 +27529,9 @@ def admin_demo_data():
 @app.post("/admin/demo-data/seed")
 @admin_required
 def admin_demo_data_seed():
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     manifest, created = _seed_demo_data_manifest()
     message = "seeded" if created else "exists"
     if manifest:
@@ -27487,6 +27542,9 @@ def admin_demo_data_seed():
 @app.post("/admin/demo-data/clear")
 @admin_required
 def admin_demo_data_clear():
+    if not _validate_admin_csrf():
+        return _admin_csrf_error_response()
+
     _clear_demo_data_manifest()
     return redirect(url_for("admin_demo_data", message="cleared"))
 

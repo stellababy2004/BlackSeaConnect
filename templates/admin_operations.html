@@ -1865,6 +1865,7 @@
       const drawerFrame = document.querySelector('[data-task-drawer-frame]');
       const drawerClose = document.querySelector('[data-task-drawer-close]');
       let cardWasDragged = false;
+      const adminCsrfToken = "{{ admin_csrf_token()|e }}";
 
       const updateTaskStatus = async (taskId, status) => {
         const response = await fetch(`/admin/operations/${encodeURIComponent(taskId)}/status`, {
@@ -1873,8 +1874,9 @@
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': adminCsrfToken,
           },
-          body: JSON.stringify({ status }),
+          body: JSON.stringify({ status, csrf_token: adminCsrfToken }),
         });
 
         if (!response.ok) {
