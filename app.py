@@ -35,7 +35,7 @@ try:
 except ImportError:  # Production diagnostics handle a missing optional dependency safely.
     stripe = None
 from flask import Flask, Response, after_this_request, flash, g, has_request_context, jsonify, redirect, render_template, render_template_string, request, session, url_for, send_file
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, TooManyRequests
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
@@ -114,6 +114,10 @@ PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
 PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
+ADMIN_AUTH_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
+ADMIN_AUTH_RATE_LIMIT_MAX_FAILURES = 5
+_ADMIN_AUTH_RATE_LIMITS = {}
+_ADMIN_AUTH_RATE_LIMIT_LOCK = RLock()
 _OWNER_DB_SCHEMA_INITIALIZING = False
 _OWNER_DB_BACKFILL_SUPPRESSED = False
 STRIPE_ZERO_DECIMAL_CURRENCIES = {"BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"}
@@ -17979,14 +17983,11 @@ def _owner_can_view_operations_task(task, owner_account):
 def _operations_attachment_viewer_role(task):
     auth = getattr(request, "authorization", None)
     if auth:
-        admin_username = os.getenv("ADMIN_USERNAME", "").strip()
-        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
-        super_username, super_password = _admin_super_credentials()
-        if (
-            _admin_credentials_match(auth.username, auth.password, admin_username, admin_password)
-            or _admin_credentials_match(auth.username, auth.password, super_username, super_password)
-        ):
+        auth_error = _admin_authenticate()
+        if auth_error is None:
             return "admin"
+        if auth_error.status_code == 429:
+            raise TooManyRequests(response=auth_error)
 
     enterprise_user, enterprise_organization, _membership, enterprise_role = _enterprise_user_identity()
     if enterprise_user and enterprise_role in {
@@ -19787,26 +19788,50 @@ def _current_admin_is_super_admin():
     return _admin_credentials_match(auth.username, auth.password, super_username, super_password)
 
 
+def _admin_authenticate():
+    admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+    admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+    super_username, super_password = _admin_super_credentials()
+
+    if not admin_username or not admin_password:
+        app.logger.warning("Admin access disabled: ADMIN_USERNAME or ADMIN_PASSWORD is missing.")
+        return _admin_auth_response(503, "Admin access is not configured.")
+
+    # ProxyFix applies forwarded addresses only when explicitly configured.
+    client_ip = str(request.remote_addr or "").strip() or "unknown"
+    with _ADMIN_AUTH_RATE_LIMIT_LOCK:
+        now = time.monotonic()
+        cutoff = now - ADMIN_AUTH_RATE_LIMIT_WINDOW_SECONDS
+        for ip, failures in list(_ADMIN_AUTH_RATE_LIMITS.items()):
+            if not failures or failures[-1] <= cutoff:
+                del _ADMIN_AUTH_RATE_LIMITS[ip]
+        failures = [stamp for stamp in _ADMIN_AUTH_RATE_LIMITS.get(client_ip, []) if stamp > cutoff]
+        if len(failures) >= ADMIN_AUTH_RATE_LIMIT_MAX_FAILURES:
+            return _admin_auth_response(429, "Too many failed admin login attempts. Try again later.")
+
+        # A missing header is the normal initial HTTP Basic challenge, not a login attempt.
+        if not request.headers.get("Authorization"):
+            return _admin_auth_response(401, "Unauthorized")
+        auth = request.authorization
+        admin_ok = bool(auth and _admin_credentials_match(auth.username, auth.password, admin_username, admin_password))
+        super_ok = bool(auth and _admin_credentials_match(auth.username, auth.password, super_username, super_password))
+        if not (admin_ok or super_ok):
+            failures.append(now)
+            _ADMIN_AUTH_RATE_LIMITS[client_ip] = failures
+            if len(failures) >= ADMIN_AUTH_RATE_LIMIT_MAX_FAILURES:
+                return _admin_auth_response(429, "Too many failed admin login attempts. Try again later.")
+            return _admin_auth_response(401, "Unauthorized")
+
+        _ADMIN_AUTH_RATE_LIMITS.pop(client_ip, None)
+    return None
+
+
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        admin_username = os.getenv("ADMIN_USERNAME", "").strip()
-        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
-        super_username, super_password = _admin_super_credentials()
-
-        if not admin_username or not admin_password:
-            app.logger.warning("Admin access disabled: ADMIN_USERNAME or ADMIN_PASSWORD is missing.")
-            return _admin_auth_response(503, "Admin access is not configured.")
-
-        auth = request.authorization
-        if not auth or not auth.username or not auth.password:
-            return _admin_auth_response(401, "Unauthorized")
-
-        admin_ok = _admin_credentials_match(auth.username, auth.password, admin_username, admin_password)
-        super_ok = _admin_credentials_match(auth.username, auth.password, super_username, super_password)
-        if not (admin_ok or super_ok):
-            return _admin_auth_response(401, "Unauthorized")
-
+        auth_error = _admin_authenticate()
+        if auth_error is not None:
+            return auth_error
         return view(*args, **kwargs)
 
     return wrapped
