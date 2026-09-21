@@ -113,7 +113,9 @@ HOME_SEO_METADATA = {
 }
 PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 PUBLIC_FORM_RATE_LIMIT_MAX_SUBMISSIONS = 5
-PUBLIC_FORM_AUDIT_EVENTS_PATH = Path("data") / "public_form_audit_events.jsonl"
+DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+
+PUBLIC_FORM_AUDIT_EVENTS_PATH = DATA_DIR / "public_form_audit_events.jsonl"
 _PUBLIC_FORM_RATE_LIMITS = {}
 ADMIN_AUTH_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 ADMIN_AUTH_RATE_LIMIT_MAX_FAILURES = 5
@@ -122,7 +124,7 @@ _ADMIN_AUTH_RATE_LIMIT_LOCK = RLock()
 _OWNER_DB_SCHEMA_INITIALIZING = False
 _OWNER_DB_BACKFILL_SUPPRESSED = False
 STRIPE_ZERO_DECIMAL_CURRENCIES = {"BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"}
-DEMO_DATA_MANIFEST_PATH = Path("data") / "demo_data_engine.json"
+DEMO_DATA_MANIFEST_PATH = DATA_DIR / "demo_data_engine.json"
 DEMO_SCENARIO = "BlackSea Connect Pilot"
 DEMO_SEASON = "Summer 2026"
 DEMO_BATCH_ID = "blacksea-connect-pilot-summer-2026"
@@ -522,11 +524,11 @@ NETWORK_SERVICE_CATEGORY_TRANSLATION_KEYS = {
     "Electrical": "network.networkCategoryElectrical",
     "Photography": "network.networkCategoryPhotography",
 }
-SERVICE_REQUESTS_JSONL_PATH = Path("data") / "service_requests.jsonl"
-OWNER_ACCOUNTS_JSONL_PATH = Path("data") / "owner_accounts.jsonl"
-OWNER_PROPERTIES_JSONL_PATH = Path("data") / "owner_properties.jsonl"
-OWNER_MAGIC_TOKENS_PATH = Path("data") / "owner_magic_tokens.jsonl"
-OWNER_MAGIC_EMAIL_EVENTS_PATH = Path("data") / "owner_magic_email_events.jsonl"
+SERVICE_REQUESTS_JSONL_PATH = DATA_DIR / "service_requests.jsonl"
+OWNER_ACCOUNTS_JSONL_PATH = DATA_DIR / "owner_accounts.jsonl"
+OWNER_PROPERTIES_JSONL_PATH = DATA_DIR / "owner_properties.jsonl"
+OWNER_MAGIC_TOKENS_PATH = DATA_DIR / "owner_magic_tokens.jsonl"
+OWNER_MAGIC_EMAIL_EVENTS_PATH = DATA_DIR / "owner_magic_email_events.jsonl"
 OWNER_MAGIC_LINK_TTL_MINUTES = 30
 PROFESSIONAL_MAGIC_LINK_TTL_MINUTES = 30
 SITE_LANGUAGE_SESSION_KEY = "site_lang"
@@ -542,9 +544,9 @@ OWNER_PROPERTY_CHECKLIST_FIELDS = (
     "emergency_contact_ready",
     "cleaning_partner_ready",
 )
-OWNER_PROPERTY_ASSETS_DIR = Path("data") / "owner_property_assets"
-OWNER_PROPERTY_UPLOADS_DIR = Path("data") / "owner_property_uploads"
-PROFESSIONAL_TASK_EVIDENCE_DIR = Path("data") / "professional_task_evidence"
+OWNER_PROPERTY_ASSETS_DIR = DATA_DIR / "owner_property_assets"
+OWNER_PROPERTY_UPLOADS_DIR = DATA_DIR / "owner_property_uploads"
+PROFESSIONAL_TASK_EVIDENCE_DIR = DATA_DIR / "professional_task_evidence"
 PROFESSIONAL_TASK_EVIDENCE_MAX_BYTES = 10 * 1024 * 1024
 PROFESSIONAL_TASK_EVIDENCE_TYPES = {
     "image/jpeg": {".jpg", ".jpeg"},
@@ -17393,7 +17395,7 @@ def partners_apply():
                 status="new",
             )
 
-            data_dir = Path("data")
+            data_dir = DATA_DIR
             data_dir.mkdir(exist_ok=True)
 
             try:
@@ -17821,7 +17823,7 @@ def professionals_apply():
                 status="new",
             )
 
-            data_dir = Path("data")
+            data_dir = DATA_DIR
             data_dir.mkdir(exist_ok=True)
 
             try:
@@ -23190,7 +23192,7 @@ def _normalize_pilot_request(record):
 
 
 def _load_pilot_requests():
-    path = Path("data") / "pilot_requests.jsonl"
+    path = DATA_DIR / "pilot_requests.jsonl"
     requests_list = []
 
     if not path.exists():
@@ -23212,7 +23214,7 @@ def _load_pilot_requests():
 
 
 def _load_concierge_requests():
-    path = Path("data") / "concierge_requests.jsonl"
+    path = DATA_DIR / "concierge_requests.jsonl"
     requests_list = []
 
     if not path.exists():
@@ -23306,7 +23308,7 @@ def _normalize_partner_application(record):
 
 
 def _load_partner_applications():
-    path = Path("data") / "partner_applications.jsonl"
+    path = DATA_DIR / "partner_applications.jsonl"
     applications = []
 
     if not path.exists():
@@ -23328,7 +23330,7 @@ def _load_partner_applications():
 
 
 def _save_partner_applications(applications):
-    data_dir = Path("data")
+    data_dir = DATA_DIR
     data_dir.mkdir(exist_ok=True)
     path = data_dir / "partner_applications.jsonl"
     with path.open("w", encoding="utf-8") as f:
@@ -24369,7 +24371,7 @@ def _normalize_professional_application(record):
 
 
 def _load_professional_applications():
-    path = Path("data") / "professional_applications.jsonl"
+    path = DATA_DIR / "professional_applications.jsonl"
     applications = []
 
     if not path.exists():
@@ -24402,7 +24404,7 @@ def _load_public_professional_applications():
 
 
 def _save_professional_applications(applications):
-    data_dir = Path("data")
+    data_dir = DATA_DIR
     data_dir.mkdir(exist_ok=True)
     path = data_dir / "professional_applications.jsonl"
     with path.open("w", encoding="utf-8") as f:
@@ -26086,7 +26088,7 @@ def _export_professional_applications_csv(applications):
 
 
 def _save_pilot_requests(requests_list):
-    data_dir = Path("data")
+    data_dir = DATA_DIR
     data_dir.mkdir(exist_ok=True)
     path = data_dir / "pilot_requests.jsonl"
     with path.open("w", encoding="utf-8") as f:
@@ -26229,7 +26231,7 @@ def api_pilot_request():
         status="new",
     )
 
-    data_dir = Path("data")
+    data_dir = DATA_DIR
     data_dir.mkdir(exist_ok=True)
 
     try:
@@ -26417,7 +26419,7 @@ def api_concierge():
         "message": payload.get("message", "").strip(),
     }
 
-    data_dir = Path("data")
+    data_dir = DATA_DIR
     data_dir.mkdir(exist_ok=True)
 
     with (data_dir / "concierge_requests.jsonl").open("a", encoding="utf-8") as f:
