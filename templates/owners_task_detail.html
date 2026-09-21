@@ -329,6 +329,483 @@
       </section>
 
     </div>
-  </main>
+
+    {% if task.status|default('', true)|upper == 'COMPLETED' %}
+      <style>
+        .owner-task-review-card {
+          margin-top: 1.5rem;
+        }
+
+        .owner-task-review-form {
+          display: grid;
+          gap: 1.25rem;
+          margin-top: 1.25rem;
+        }
+
+        .owner-task-review-fieldset {
+          border: 0;
+          padding: 0;
+          margin: 0;
+        }
+
+        .owner-task-review-fieldset legend {
+          margin-bottom: .7rem;
+          font-weight: 800;
+          color: #10243c;
+        }
+
+        .owner-task-review-stars {
+          display: inline-flex;
+          flex-direction: row-reverse;
+          justify-content: flex-end;
+          gap: .18rem;
+        }
+
+        .owner-task-review-stars input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .owner-task-review-stars label {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.55rem;
+          height: 2.55rem;
+          cursor: pointer;
+          font-size: 2rem;
+          line-height: 1;
+          color: #cbd4df;
+          transition:
+            color .15s ease,
+            transform .15s ease;
+        }
+
+        .owner-task-review-stars label:hover,
+        .owner-task-review-stars label:hover ~ label,
+        .owner-task-review-stars input:checked ~ label {
+          color: #d7aa43;
+        }
+
+        .owner-task-review-stars label:hover {
+          transform: translateY(-2px) scale(1.06);
+        }
+
+        .owner-task-review-stars input:focus-visible + label {
+          outline: 3px solid rgba(93, 179, 196, .35);
+          outline-offset: 3px;
+          border-radius: 8px;
+        }
+
+        .owner-task-review-comment {
+          display: grid;
+          gap: .5rem;
+        }
+
+        .owner-task-review-comment strong {
+          color: #10243c;
+        }
+
+        .owner-task-review-comment textarea {
+          width: 100%;
+          min-height: 110px;
+          box-sizing: border-box;
+          resize: vertical;
+          padding: .9rem 1rem;
+          border: 1px solid rgba(15, 35, 64, .16);
+          border-radius: 16px;
+          background: #fff;
+          color: #10243c;
+          font: inherit;
+          line-height: 1.5;
+          transition:
+            border-color .15s ease,
+            box-shadow .15s ease;
+        }
+
+        .owner-task-review-comment textarea:focus {
+          outline: none;
+          border-color: #6fbcc9;
+          box-shadow: 0 0 0 4px rgba(111, 188, 201, .14);
+        }
+
+        .owner-task-review-submit {
+          width: fit-content;
+          min-width: 170px;
+          border: 0;
+          border-radius: 999px;
+          padding: .9rem 1.35rem;
+          cursor: pointer;
+          background: linear-gradient(90deg, #ead99d, #9ddce7);
+          color: #10243c;
+          font: inherit;
+          font-weight: 800;
+          box-shadow: 0 10px 24px rgba(16, 36, 60, .08);
+        }
+
+        .owner-task-review-submit:hover {
+          transform: translateY(-1px);
+        }
+
+        .owner-task-review-result {
+          display: grid;
+          gap: .85rem;
+          margin-top: 1.15rem;
+          padding: 1.15rem 1.25rem;
+          border: 1px solid rgba(15, 35, 64, .10);
+          border-radius: 20px;
+          background: rgba(255, 255, 255, .66);
+        }
+
+        .owner-task-review-score {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: .7rem;
+        }
+
+        .owner-task-review-score__stars {
+          display: inline-flex;
+          gap: .12rem;
+          color: #d7aa43;
+          font-size: 1.55rem;
+          line-height: 1;
+          letter-spacing: .03em;
+        }
+
+        .owner-task-review-score__number {
+          display: inline-flex;
+          align-items: center;
+          min-height: 30px;
+          padding: .2rem .65rem;
+          border-radius: 999px;
+          background: rgba(216, 181, 109, .15);
+          color: #7b5c17;
+          font-weight: 800;
+        }
+
+        .owner-task-review-result__comment {
+          margin: 0;
+          color: #263c56;
+          line-height: 1.6;
+        }
+
+        .owner-task-review-thanks {
+          margin: 0;
+          color: #607087;
+          font-size: .94rem;
+        }
+
+
+        /* Review form isolation from global form styles */
+        .owner-task-review-form {
+          width: 100%;
+          max-width: none;
+          padding: 1.35rem 1.5rem;
+          border: 1px solid rgba(15, 35, 64, .10);
+          border-radius: 20px;
+          background: rgba(255, 255, 255, .72) !important;
+          box-shadow: none !important;
+          color: #10243c !important;
+        }
+
+        .owner-task-review-form fieldset,
+        .owner-task-review-form legend,
+        .owner-task-review-form label,
+        .owner-task-review-form strong {
+          color: #10243c;
+        }
+
+        .owner-task-review-fieldset {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+
+        .owner-task-review-fieldset legend {
+          display: block;
+          color: #10243c !important;
+          font-size: 1rem;
+          font-weight: 800;
+        }
+
+        .owner-task-review-stars {
+          width: fit-content;
+          min-height: 44px;
+          align-items: center;
+          background: transparent !important;
+        }
+
+        .owner-task-review-stars label {
+          padding: 0 !important;
+          margin: 0 !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          color: #c8d0da !important;
+          font-size: 2.15rem !important;
+          font-weight: 400 !important;
+        }
+
+        .owner-task-review-stars label.is-selected {
+          color: #d5a842 !important;
+        }
+
+        .owner-task-review-stars label:hover {
+          color: #d5a842 !important;
+          transform: translateY(-2px) scale(1.06);
+        }
+
+        .owner-task-review-comment {
+          background: transparent !important;
+          padding: 0 !important;
+          border: 0 !important;
+          box-shadow: none !important;
+        }
+
+        .owner-task-review-comment strong {
+          color: #10243c !important;
+          font-size: 1rem;
+        }
+
+        .owner-task-review-comment textarea {
+          background: #ffffff !important;
+          color: #10243c !important;
+          border: 1px solid rgba(15, 35, 64, .18) !important;
+          box-shadow: none !important;
+        }
+
+        .owner-task-review-comment textarea::placeholder {
+          color: #718096 !important;
+          opacity: 1;
+        }
+
+        .owner-task-review-form .sr-only {
+          position: absolute !important;
+          width: 1px !important;
+          height: 1px !important;
+          padding: 0 !important;
+          margin: -1px !important;
+          overflow: hidden !important;
+          clip: rect(0, 0, 0, 0) !important;
+          white-space: nowrap !important;
+          border: 0 !important;
+        }
+
+        .owner-task-review-submit {
+          margin-top: .15rem;
+          color: #10243c !important;
+        }
+
+
+        /* Native CSS-only rating */
+        .owner-task-review-form .owner-task-review-stars--native {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          gap: .35rem !important;
+          width: fit-content !important;
+        }
+
+        .owner-task-review-form .owner-task-review-star {
+          position: relative !important;
+          display: inline-flex !important;
+          width: 2.5rem !important;
+          height: 2.5rem !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          cursor: pointer !important;
+          color: #c7d0db !important;
+          font-size: 2.15rem !important;
+          line-height: 1 !important;
+        }
+
+        .owner-task-review-form .owner-task-review-star input {
+          position: absolute !important;
+          opacity: 0 !important;
+          width: 1px !important;
+          height: 1px !important;
+          pointer-events: none !important;
+        }
+
+        .owner-task-review-form .owner-task-review-star span[aria-hidden="true"] {
+          color: inherit !important;
+          pointer-events: none !important;
+        }
+
+        /* Selected star + every star before it */
+        .owner-task-review-form .owner-task-review-star:has(input:checked),
+        .owner-task-review-form .owner-task-review-star:has(
+          ~ .owner-task-review-star input:checked
+        ) {
+          color: #d5a842 !important;
+        }
+
+        /* Hover preview */
+        .owner-task-review-form .owner-task-review-star:hover,
+        .owner-task-review-form .owner-task-review-star:has(
+          ~ .owner-task-review-star:hover
+        ) {
+          color: #d5a842 !important;
+          transform: translateY(-1px);
+        }
+
+        .owner-task-review-form .owner-task-review-star:has(input:focus-visible) {
+          outline: 3px solid rgba(93, 179, 196, .35) !important;
+          outline-offset: 3px !important;
+          border-radius: 8px !important;
+        }
+
+        @media (max-width: 640px) {
+          .owner-task-review-stars label {
+            width: 2.3rem;
+            height: 2.3rem;
+            font-size: 1.8rem;
+          }
+
+          .owner-task-review-submit {
+            width: 100%;
+          }
+
+          .owner-task-review-result {
+            padding: 1rem;
+          }
+        }
+      </style>
+
+      <section class="owner-task-panel owner-task-review-card" id="owner-review">
+        <p class="owner-task-kicker">
+          {{ public_i18n('ownersDashboard', 'ownerTaskReviewLabel', 'Your review') }}
+        </p>
+
+        <h2>
+          {{ public_i18n('ownersDashboard', 'ownerTaskReviewTitle', 'How was the service?') }}
+        </h2>
+
+        {% if existing_review %}
+          <div class="owner-task-review-result">
+            <strong>
+              {{ public_i18n('ownersDashboard', 'ownerTaskReviewSubmittedTitle', 'Your review') }}
+            </strong>
+
+            <div class="owner-task-review-score">
+              <div
+                class="owner-task-review-score__stars"
+                aria-label="{{ existing_review.rating|int }} / 5"
+              >
+                {% for i in range(1, 6) %}
+                  {% if i <= existing_review.rating|int %}
+                    <span aria-hidden="true">&#9733;</span>
+                  {% else %}
+                    <span aria-hidden="true" style="color:#d5dce5;">&#9734;</span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              <span class="owner-task-review-score__number">
+                {{ existing_review.rating|int }}/5
+              </span>
+            </div>
+
+            {% if existing_review.comment %}
+              <p class="owner-task-review-result__comment">
+                {{ existing_review.comment|e }}
+              </p>
+            {% endif %}
+
+            <p class="owner-task-review-thanks">
+              {{ public_i18n(
+                'ownersDashboard',
+                'ownerTaskReviewThanks',
+                'Thank you for your feedback.'
+              ) }}
+            </p>
+          </div>
+
+        {% else %}
+          <form
+            class="owner-task-review-form"
+            method="post"
+            action="{{ url_for('owners_task_review', task_id=task.id, lang=page_lang) }}"
+          >
+            <input
+              type="hidden"
+              name="csrf_token"
+              value="{{ owner_portal_csrf_token()|e }}"
+            >
+
+            <fieldset class="owner-task-review-fieldset">
+              <legend>
+                {{ public_i18n(
+                  'ownersDashboard',
+                  'ownerTaskRatingLabel',
+                  'Rating'
+                ) }}
+              </legend>
+
+              <div class="owner-task-review-stars owner-task-review-stars--native">
+                {% for rating_value in [1, 2, 3, 4, 5] %}
+                  <label
+                    class="owner-task-review-star"
+                    title="{{ rating_value }} / 5"
+                  >
+                    <input
+                      type="radio"
+                      name="rating"
+                      value="{{ rating_value }}"
+                      required
+                    >
+                    <span aria-hidden="true">&#9733;</span>
+                    <span class="sr-only">{{ rating_value }} / 5</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+
+            <label class="owner-task-review-comment">
+              <strong>
+                {{ public_i18n(
+                  'ownersDashboard',
+                  'ownerTaskReviewCommentLabel',
+                  'Comment'
+                ) }}
+              </strong>
+
+              <textarea
+                name="comment"
+                rows="4"
+                maxlength="1000"
+                required
+                placeholder="{{ public_i18n(
+                  'ownersDashboard',
+                  'ownerTaskReviewPlaceholder',
+                  'Tell us how the service went.'
+                ) }}"
+              ></textarea>
+            </label>
+
+            <button
+              class="owner-task-review-submit"
+              type="submit"
+            >
+              {{ public_i18n(
+                'ownersDashboard',
+                'ownerTaskReviewSubmit',
+                'Submit review'
+              ) }}
+            </button>
+          </form>
+        {% endif %}
+      </section>
+    {% endif %}
+
+</main>
 </body>
 </html>

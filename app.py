@@ -16058,12 +16058,28 @@ def owners_task_detail(task_id):
         ),
     )
 
+    existing_review = None
+    with _owner_db_connection() as connection:
+        _ensure_operations_task_schema(connection)
+        review_row = connection.execute(
+            """
+            SELECT *
+            FROM owner_task_reviews
+            WHERE task_id = ?
+            LIMIT 1
+            """,
+            (task_id,),
+        ).fetchone()
+        if review_row:
+            existing_review = dict(review_row)
+
     return render_template(
         "owners_task_detail.html",
         owner_account=owner_account,
         task=task,
         completion_report=completion_report,
         attachments=attachments,
+        existing_review=existing_review,
         current_lang=current_lang,
         page_lang=current_lang,
     )
@@ -16186,20 +16202,12 @@ def owners_task_review(task_id):
                 mimetype="text/plain",
             )
 
-    property_id = str(task.get("property_id", "")).strip()
-    if not property_id:
-        return Response(
-            "Property not found.",
-            status=404,
-            mimetype="text/plain",
-        )
-
     return redirect(
         url_for(
-            "owners_property_detail",
-            property_id=property_id,
+            "owners_task_detail",
+            task_id=task_id,
             lang=current_lang,
-        )
+        ) + "#owner-review"
     )
 
 
