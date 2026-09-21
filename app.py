@@ -21297,39 +21297,6 @@ def admin_calendar_event_delete(event_id):
     return jsonify({"ok": True, "event_id": str(event_id).strip()})
 
 
-@app.post("/admin/seed-owner")
-@admin_required
-def admin_seed_owner():
-    seed_record = {
-        "id": "",
-        "created_at": _utc_now_iso(),
-        "full_name": "Stella",
-        "email": "stoyanova@orange.fr",
-        "phone": "+35987927767",
-        "property_type": "Apartment",
-        "city": "Sveti Vlas",
-        "property_name": "Stella Appart",
-        "number_of_units": 1,
-        "notes": "Seeded from admin probe.",
-        "language": "bg",
-        "status": OWNER_STATUS_DEFAULT,
-    }
-    owner_account, created = _seed_owner_account_if_missing(seed_record)
-    if not owner_account:
-        app.logger.warning("Admin owner seed failed for %s", _mask_email(seed_record["email"]))
-        return _admin_auth_response(500, "Failed to seed owner account.")
-
-    if created:
-        _append_owner_activity_event(
-            owner_account["id"],
-            "owner_registered",
-            "Owner registered",
-            owner_account.get("full_name", ""),
-        )
-
-    app.logger.info("Admin owner seed completed for %s (created=%s)", _mask_email(seed_record["email"]), created)
-    return redirect(url_for("admin_owner_accounts", seeded="1"))
-
 
 def _demo_manifest_default():
     return {

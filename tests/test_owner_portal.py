@@ -2181,7 +2181,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(FakeSMTP.sent_messages, [])
 
     def test_admin_owner_accounts_page_shows_loaded_accounts(self):
-        self._seed_owner_account(email="stoyanova@orange.fr")
+        self._seed_owner_account(email="testowner@example.fr")
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
             response = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
@@ -2190,7 +2190,7 @@ class OwnerPortalTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertIn("CRM на собственици", html)
         self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
-        self.assertIn("stoyanova@orange.fr", html)
+        self.assertIn("testowner@example.fr", html)
         self.assertIn("2026-06-15T10:00:00Z", html)
         self.assertIn("Отвори профила", html)
         self.assertIn("PILOT", html)
@@ -2198,53 +2198,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(html.count('<span data-i18n="shellOwners">Собственици</span>'), 1)
         self.assertNotIn('data-i18n="shellOwnerAccounts"', html)
 
-    def test_admin_seed_owner_creates_account_and_enables_login_delivery_sent(self):
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True), patch("app._send_owner_registration_notification_email") as notify_mock:
-            seed_response = self.client.post("/admin/seed-owner", headers=self._auth_headers())
 
-        self.assertEqual(seed_response.status_code, 302)
-        self.assertIn("/admin/owner-accounts?seeded=1", seed_response.headers["Location"])
-        notify_mock.assert_not_called()
-
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            accounts_response = self.client.get(seed_response.headers["Location"], headers=self._auth_headers())
-
-        self.assertEqual(accounts_response.status_code, 200)
-        html = accounts_response.get_data(as_text=True)
-        self.assertIn("CRM на собственици", html)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
-        self.assertIn("stoyanova@orange.fr", html)
-        self.assertIn("Акаунтът на собственика е създаден успешно.", html)
-        self.assertNotIn('data-testid="new-owner-badge"', html)
-
-        with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
-            login_response = self.client.post("/owners/login", data={"email": "stoyanova@orange.fr"})
-
-        self.assertEqual(login_response.status_code, 302)
-        self.assertIn("delivery=sent", login_response.headers["Location"])
-        self.assertIn("magic_recipient=", login_response.headers["Location"])
-        self.assertIn("lang=bg", login_response.headers["Location"])
-        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["phone"], "+35987927767")
-        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["property_name"], "Stella Appart")
-        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["city"], "Sveti Vlas")
-        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["property_type"], "Apartment")
-        self.assertEqual(self._read_jsonl("owner_accounts.jsonl")[0]["number_of_units"], 1)
-
-    def test_admin_seed_owner_is_idempotent(self):
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            first = self.client.post("/admin/seed-owner", headers=self._auth_headers())
-            second = self.client.post("/admin/seed-owner", headers=self._auth_headers())
-
-        self.assertEqual(first.status_code, 302)
-        self.assertEqual(second.status_code, 302)
-
-        with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            response = self.client.get("/admin/owner-accounts", headers=self._auth_headers())
-
-        self.assertEqual(response.status_code, 200)
-        html = response.get_data(as_text=True)
-        self.assertIn('<strong>1</strong> <span data-i18n="shown">показани</span>', html)
-        self.assertIn("stoyanova@orange.fr", html)
 
     def test_admin_owner_accounts_support_search_and_filters(self):
         self._seed_jsonl("owner_accounts.jsonl", [
@@ -2374,7 +2328,7 @@ class OwnerPortalTests(unittest.TestCase):
 
         runtime_path = Path(app_module.__file__).parent / "static" / "js" / "i18n" / "admin-runtime.js"
         runtime = runtime_path.read_text(encoding="utf-8")
-        for text in ("Search", "Status", "All statuses", "Property count", "Created", "Last login", "Recycle bin", "Back to cockpit", "Reset", "Seed Stella Account", "NEW"):
+        for text in ("Search", "Status", "All statuses", "Property count", "Created", "Last login", "Recycle bin", "Back to cockpit", "Reset", "NEW"):
             self.assertIn(text, runtime)
         for text in ("Recherche", "Statut", "Tous les statuts", "Nombre de biens", "Date de création", "Dernière connexion", "Corbeille", "Retour au cockpit", "Réinitialiser", "NOUVEAU"):
             self.assertIn(text, runtime)
@@ -4374,7 +4328,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertIn(sent_event["smtp_message_id"][1:17], html)
 
     def test_mask_email_helper(self):
-        self.assertEqual(_mask_email("stoyanova@orange.fr"), "s*******@orange.fr")
+        self.assertEqual(_mask_email("testowner@example.fr"), "t*******@example.fr")
         self.assertEqual(_mask_email("ab@example.com"), "a*@example.com")
 
     def test_owner_magic_link_logs_user_in(self):

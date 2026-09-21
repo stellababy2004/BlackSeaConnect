@@ -301,7 +301,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
@@ -339,7 +339,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(len(captured_requests), 1)
         resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
         self.assertEqual(resend_payload["from"], "BlackSea Connect <concierge@blackseaconnect.com>")
-        self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
+        self.assertEqual(resend_payload["to"], ["testowner@example.fr"])
         self.assertEqual(resend_payload["subject"], "[BlackSea Connect] New Pilot Lead Received")
         self.assertIn("Admin Detail URL:", resend_payload["text"])
         self.assertIn("/admin/pilot-requests/", resend_payload["text"])
@@ -362,7 +362,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }
 
         with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
@@ -391,7 +391,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
@@ -420,7 +420,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
@@ -446,7 +446,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
@@ -472,7 +472,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
@@ -499,7 +499,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "PILOT_REQUEST_TO": "concierge@blackseaconnect.com",
         }
 
@@ -533,7 +533,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", side_effect=TimeoutError("connect timeout")), patch("app.urllib.request.urlopen", return_value=FakeResendResponse(status=202)):
             response = self.client.post("/api/pilot-request", json=payload)
 
@@ -798,7 +798,7 @@ class PilotRequestApiTests(unittest.TestCase):
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
             from app import _send_internal_pilot_notification
 
@@ -809,7 +809,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(len(captured_requests), 1)
         resend_payload = json.loads(captured_requests[0].data.decode("utf-8"))
         self.assertEqual(resend_payload["from"], "BlackSea Connect <concierge@blackseaconnect.com>")
-        self.assertEqual(resend_payload["to"], ["stoyanova@orange.fr"])
+        self.assertEqual(resend_payload["to"], ["testowner@example.fr"])
         self.assertIn("Admin Detail URL: https://example.com/admin/pilot-requests/resend-id", resend_payload["text"])
         self.assertNotIn("contact@blackseaconnect.com", resend_payload["text"])
 
@@ -838,7 +838,7 @@ class PilotRequestApiTests(unittest.TestCase):
 
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_resend_urlopen):
             from app import _send_internal_pilot_notification
 
@@ -870,7 +870,7 @@ class PilotRequestApiTests(unittest.TestCase):
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "FORMSPREE_ADMIN_ENDPOINT": "https://formspree.io/f/testlead",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=TimeoutError("connect timeout")):
             from app import _send_internal_pilot_notification
@@ -917,7 +917,7 @@ class PilotRequestApiTests(unittest.TestCase):
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "FORMSPREE_ADMIN_ENDPOINT": formspree_endpoint,
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=fake_urlopen):
             from app import _send_internal_pilot_notification
@@ -970,7 +970,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "FORMSPREE_ADMIN_ENDPOINT": "https://formspree.io/f/testlead",
         }
 
@@ -980,7 +980,7 @@ class PilotRequestApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"ok": True})
         response_text = response.get_data(as_text=True)
-        self.assertNotIn("stoyanova@orange.fr", response_text)
+        self.assertNotIn("testowner@example.fr", response_text)
         self.assertNotIn("formspree.io", response_text)
         self.assertEqual(len(self._read_requests()), 1)
 
@@ -1020,7 +1020,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "TELEGRAM_BOT_TOKEN": telegram_token,
             "TELEGRAM_CHAT_ID": telegram_chat_id,
         }
@@ -1078,7 +1078,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
             "TELEGRAM_BOT_TOKEN": telegram_token,
             "TELEGRAM_CHAT_ID": "123456789",
         }
@@ -1122,7 +1122,7 @@ class PilotRequestApiTests(unittest.TestCase):
         with patch.dict(os.environ, {
             "RESEND_API_KEY": "re_test_key",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }, clear=True), patch("app.urllib.request.urlopen", side_effect=http_error), patch.object(app.logger, "warning") as warning_mock:
             from app import _send_internal_pilot_notification
 
@@ -1170,7 +1170,7 @@ class PilotRequestApiTests(unittest.TestCase):
             "SMTP_FROM": "noreply@example.com",
             "FROM_EMAIL": "BlackSea Connect <concierge@blackseaconnect.com>",
             "RESEND_API_KEY": "re_test_key",
-            "ADMIN_EMAIL": "stoyanova@orange.fr",
+            "ADMIN_EMAIL": "testowner@example.fr",
         }
 
         with patch.dict(os.environ, env, clear=True), patch("app.Thread", ImmediateThread), patch("app.smtplib.SMTP", FakeSMTP), patch("app.urllib.request.urlopen", side_effect=error):
