@@ -7534,20 +7534,13 @@ def _send_operations_notification_via_email(task_record, admin_detail_url, recip
     message["To"] = recipient_email
     message.set_content(_build_operations_notification_body(task_record, admin_detail_url))
 
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as client:
-            client.ehlo()
-            try:
-                client.starttls()
-                client.ehlo()
-            except smtplib.SMTPException:
-                pass
-            if smtp_username and smtp_password:
-                client.login(smtp_username, smtp_password)
-            client.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Operations notification email send failed: %s", type(exc).__name__)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=15)
+    if not ok:
+        app.logger.warning(
+            "Operations notification email send failed: %s",
+            reason,
+        )
+        return False, reason
 
     return True, None
 
@@ -7802,22 +7795,12 @@ def _send_operations_overdue_report(report, admin_detail_url):
                 message["From"] = smtp_from
                 message["To"] = admin_email
                 message.set_content(summary_body)
-                try:
-                    with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as client:
-                        client.ehlo()
-                        try:
-                            client.starttls()
-                            client.ehlo()
-                        except smtplib.SMTPException:
-                            pass
-                        if smtp_username and smtp_password:
-                            client.login(smtp_username, smtp_password)
-                        client.send_message(message)
-                    email_ok = True
-                    email_reason = None
-                except Exception as exc:
-                    app.logger.warning("Operations overdue report email send failed: %s", type(exc).__name__)
-                    email_reason = "smtp_send_failed"
+                email_ok, email_reason = _smtp_send_message_secure(message, timeout=15)
+                if not email_ok:
+                    app.logger.warning(
+                        "Operations overdue report email send failed: %s",
+                        email_reason,
+                    )
             else:
                 email_reason = smtp_reason
         else:
@@ -11887,6 +11870,43 @@ def _service_request_smtp_settings():
     return smtp_host, smtp_port_raw, smtp_from
 
 
+def _smtp_send_message_secure(message, *, timeout=10):
+    smtp_host, smtp_port_raw, _ = _service_request_smtp_settings()
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+
+    if not smtp_host or not smtp_port_raw:
+        return False, "smtp_not_configured"
+
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        return False, "smtp_invalid_port"
+
+    try:
+        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
+        with smtp_factory(smtp_host, smtp_port, timeout=timeout) as smtp:
+            smtp.ehlo()
+
+            if smtp_port != 465:
+                smtp.starttls()
+                smtp.ehlo()
+
+            if smtp_username or smtp_password:
+                smtp.login(smtp_username, smtp_password)
+
+            smtp.send_message(message)
+
+    except smtplib.SMTPAuthenticationError:
+        return False, "smtp_login_failed"
+    except smtplib.SMTPException:
+        return False, "smtp_send_failed"
+    except Exception:
+        return False, "smtp_send_failed"
+
+    return True, None
+
+
 def _service_request_email_body(record, recipient_label, admin_detail_url, event_label):
     assigned_professional = record.get("assigned_provider_company", "") or record.get("assigned_provider_name", "")
     lines = [
@@ -11925,26 +11945,10 @@ def _send_service_request_email(record, recipient_email, recipient_label, admin_
     message["To"] = recipient_email
     message.set_content(_service_request_email_body(record, recipient_label, admin_detail_url, event_label))
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Service request email: SMTP STARTTLS was unavailable.")
-
-            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
-            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Service request email send failed for %s: %s", recipient_label, type(exc).__name__)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning("Service request email send failed for %s: %s", recipient_label, reason)
+        return False, reason
 
     return True, None
 
@@ -12073,35 +12077,10 @@ def _send_owner_magic_link_with_language(email, login_url, language):
     message.set_content(text_body)
     message.add_alternative(html_body, subtype="html")
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Owner magic link email: SMTP STARTTLS was unavailable.")
-
-            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
-            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
-    except smtplib.SMTPAuthenticationError as exc:
-        app.logger.warning("Owner magic link email login failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return {"ok": False, "reason": "smtp_login_failed"}
-    except smtplib.SMTPRecipientsRefused as exc:
-        app.logger.warning("Owner magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return {"ok": False, "reason": "smtp_send_failed"}
-    except smtplib.SMTPException as exc:
-        app.logger.warning("Owner magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return {"ok": False, "reason": "smtp_send_failed"}
-    except Exception as exc:
-        app.logger.warning("Owner magic link email failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return {"ok": False, "reason": "unexpected_error"}
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning("Owner magic link email send failed for %s: %s", _mask_email(email), reason)
+        return {"ok": False, "reason": reason}
 
     app.logger.info("Owner magic link email sent to %s", _mask_email(email))
     return {"ok": True, "reason": "sent", "message_id": message_id}
@@ -12186,24 +12165,14 @@ def _send_professional_magic_link(email, login_url):
     message.set_content(text_body)
     message.add_alternative(html_body, subtype="html")
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    pass
-            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
-            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-            smtp.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Professional magic link email send failed for %s: %s", _mask_email(email), type(exc).__name__)
-        return {"ok": False, "reason": "smtp_send_failed"}
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning(
+            "Professional magic link email send failed for %s: %s",
+            _mask_email(email),
+            reason,
+        )
+        return {"ok": False, "reason": reason}
 
     return {"ok": True, "reason": "sent"}
 

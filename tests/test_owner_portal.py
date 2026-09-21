@@ -5516,3 +5516,54 @@ class OwnerPortalTests(unittest.TestCase):
                     response = self.client.get(path + "?lang=" + lang, follow_redirects=True)
                     self.assertEqual(response.status_code, 200)
                     self.assertNotIn("[MISSING:", response.get_data(as_text=True))
+
+
+class StartTLSFailingSMTP:
+    send_called = False
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def ehlo(self):
+        return None
+
+    def starttls(self):
+        raise smtplib.SMTPException("TLS unavailable")
+
+    def login(self, username, password):
+        return None
+
+    def send_message(self, message):
+        type(self).send_called = True
+
+
+def test_secure_smtp_helper_fails_closed_when_starttls_fails():
+    StartTLSFailingSMTP.send_called = False
+    env = {
+        "SMTP_HOST": "smtp.example.com",
+        "SMTP_PORT": "587",
+        "SMTP_FROM": "BlackSea Connect <noreply@example.com>",
+        "SMTP_USERNAME": "smtp-user",
+        "SMTP_PASSWORD": "smtp-pass",
+    }
+
+    message = EmailMessage()
+    message["Subject"] = "TLS test"
+    message["From"] = env["SMTP_FROM"]
+    message["To"] = "owner@example.com"
+    message.set_content("test")
+
+    with patch.dict(os.environ, env, clear=True), patch(
+        "app.smtplib.SMTP", StartTLSFailingSMTP
+    ):
+        ok, reason = app_module._smtp_send_message_secure(message)
+
+    assert ok is False
+    assert reason == "smtp_send_failed"
+    assert StartTLSFailingSMTP.send_called is False
