@@ -56,6 +56,11 @@ class AppSettings:
     analytics_enabled: bool
     ga4_measurement_id: str
     microsoft_clarity_project_id: str
+    smtp_host: str
+    smtp_port: str
+    smtp_from: str
+    smtp_username: str
+    smtp_password: str
     trusted_country_header: str = ""
 
     def flask_mapping(self) -> dict[str, object]:
@@ -91,6 +96,13 @@ class AppSettings:
             "manual_finance_enabled": self.manual_finance_enabled,
             "secure_session_cookie": self.session_cookie_secure,
             "proxy_headers_explicit": self.proxy_headers_explicit,
+            "smtp_configured": bool(
+                self.smtp_host
+                and self.smtp_port
+                and self.smtp_from
+                and self.smtp_username
+                and self.smtp_password
+            ),
         }
 
 
@@ -143,6 +155,11 @@ def load_settings(environ: Mapping[str, str] | None = None) -> AppSettings:
         analytics_enabled=_boolean(source, "ANALYTICS_ENABLED", False),
         ga4_measurement_id=value("GA4_MEASUREMENT_ID"),
         microsoft_clarity_project_id=value("MICROSOFT_CLARITY_PROJECT_ID"),
+        smtp_host=value("SMTP_HOST"),
+        smtp_port=value("SMTP_PORT"),
+        smtp_from=value("SMTP_FROM"),
+        smtp_username=value("SMTP_USERNAME"),
+        smtp_password=value("SMTP_PASSWORD"),
         trusted_country_header=value("TRUSTED_COUNTRY_HEADER"),
     )
     validate_settings(settings, check_database=protected)
@@ -214,6 +231,27 @@ def validate_settings(settings: AppSettings, *, check_database: bool = True) -> 
         issues.append("MANUAL_FINANCE_ENABLED must be disabled in production")
     if settings.environment == "production" and not settings.session_cookie_secure:
         issues.append("SESSION_COOKIE_SECURE must be enabled in production")
+    if settings.environment == "production":
+        smtp_required = {
+            "SMTP_HOST": settings.smtp_host,
+            "SMTP_PORT": settings.smtp_port,
+            "SMTP_FROM": settings.smtp_from,
+            "SMTP_USERNAME": settings.smtp_username,
+            "SMTP_PASSWORD": settings.smtp_password,
+        }
+        for name, value in smtp_required.items():
+            if not value:
+                issues.append(f"{name} is required in production")
+
+        if settings.smtp_port:
+            try:
+                smtp_port = int(settings.smtp_port)
+            except ValueError:
+                issues.append("SMTP_PORT must be an integer")
+            else:
+                if not 1 <= smtp_port <= 65535:
+                    issues.append("SMTP_PORT must be between 1 and 65535")
+
     if protected and not settings.proxy_headers_explicit:
         issues.append("TRUST_PROXY_HEADERS must be explicitly configured")
     if settings.session_cookie_samesite.lower() not in {"lax", "strict", "none"}:

@@ -25,6 +25,11 @@ def _protected_environment(tmp_path, environment="staging"):
         "TRUST_PROXY_HEADERS": "1",
         "SESSION_COOKIE_SECURE": "1",
         "SESSION_COOKIE_SAMESITE": "Lax",
+        "SMTP_HOST": "smtp.example.com",
+        "SMTP_PORT": "587",
+        "SMTP_FROM": "BlackSea Connect <noreply@example.com>",
+        "SMTP_USERNAME": "smtp-user",
+        "SMTP_PASSWORD": "smtp-password",
     }
 
 
@@ -82,6 +87,20 @@ def test_manual_finance_must_be_disabled_in_production(tmp_path):
     environment = _protected_environment(tmp_path, "production")
     environment["MANUAL_FINANCE_ENABLED"] = "1"
     with pytest.raises(ConfigurationError, match="MANUAL_FINANCE_ENABLED"):
+        load_settings(environment)
+
+
+def test_production_requires_complete_smtp_configuration(tmp_path):
+    environment = _protected_environment(tmp_path, "production")
+    environment.pop("SMTP_PASSWORD")
+    with pytest.raises(ConfigurationError, match="SMTP_PASSWORD is required in production"):
+        load_settings(environment)
+
+
+def test_production_rejects_invalid_smtp_port(tmp_path):
+    environment = _protected_environment(tmp_path, "production")
+    environment["SMTP_PORT"] = "not-a-port"
+    with pytest.raises(ConfigurationError, match="SMTP_PORT must be an integer"):
         load_settings(environment)
 
 

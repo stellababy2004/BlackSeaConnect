@@ -7566,22 +7566,14 @@ def _send_plaintext_email(recipient_email, subject, body):
     message["To"] = recipient_email
     message.set_content(body)
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=15) as client:
-            client.ehlo()
-            if smtp_port != 465:
-                try:
-                    client.starttls()
-                    client.ehlo()
-                except smtplib.SMTPException:
-                    pass
-            if smtp_username and smtp_password:
-                client.login(smtp_username, smtp_password)
-            client.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Plaintext email send failed for %s: %s", _mask_email(recipient_email), type(exc).__name__)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=15)
+    if not ok:
+        app.logger.warning(
+            "Plaintext email send failed for %s: %s",
+            _mask_email(recipient_email),
+            reason,
+        )
+        return False, reason
 
     return True, None
 
@@ -19860,24 +19852,13 @@ def _send_organization_invitation_email(organization, invited_email, role_key, i
         return False, "smtp_invalid_port"
 
     message = _organization_invitation_email_message(organization, invited_email, role_key, invitation_url)
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    pass
-            smtp_username = os.getenv("SMTP_USERNAME", "").strip()
-            smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-            smtp.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Organization invitation email send failed: %s", type(exc).__name__)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning(
+            "Organization invitation email send failed: %s",
+            reason,
+        )
+        return False, reason
 
     return True, None
 
@@ -22621,24 +22602,14 @@ def _send_pilot_request_email(record):
     message["To"] = smtp_to
     message.set_content(_build_pilot_email_body(record))
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Pilot request email: SMTP STARTTLS was unavailable.")
-
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Pilot request email send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning(
+            "Pilot request email send failed for %s: %s",
+            _smtp_endpoint_label(smtp_host, smtp_port),
+            reason,
+        )
+        return False, reason
 
     return True, None
 
@@ -24246,24 +24217,14 @@ def _send_admin_application_notification_email(subject, body):
     message["To"] = smtp_to
     message.set_content(body)
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Admin application email: SMTP STARTTLS was unavailable.")
-
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
-    except Exception as exc:
-        app.logger.warning("Admin application email send failed for %s: %s", _smtp_endpoint_label(smtp_host, smtp_port), exc)
-        return False, "smtp_send_failed"
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
+        app.logger.warning(
+            "Admin application email send failed for %s: %s",
+            _smtp_endpoint_label(smtp_host, smtp_port),
+            reason,
+        )
+        return False, reason
 
     return True, None
 
@@ -24335,74 +24296,21 @@ def _send_owner_registration_notification_email(owner_account, source_url, langu
     message["To"] = recipient_email
     message.set_content(_build_owner_registration_notification_body(owner_account, language, source_url))
 
-    try:
-        smtp_factory = smtplib.SMTP_SSL if smtp_port == 465 else smtplib.SMTP
-        with smtp_factory(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.ehlo()
-            if smtp_port != 465:
-                try:
-                    smtp.starttls()
-                    smtp.ehlo()
-                except smtplib.SMTPException:
-                    app.logger.warning("Owner registration notification: SMTP STARTTLS was unavailable.")
-
-            if smtp_username or smtp_password:
-                smtp.login(smtp_username, smtp_password)
-
-            smtp.send_message(message)
-    except smtplib.SMTPAuthenticationError as exc:
-        app.logger.warning(
-            "Owner registration notification failed for %s: SMTPAuthenticationError",
-            _mask_email(owner_account.get("email", "")),
-        )
-        _append_owner_magic_email_event(
-            "owner_registration_notification_failed",
-            owner_account.get("email", ""),
-            "smtp_login_failed",
-            "register",
-            language,
-        )
-        return {"ok": False, "reason": "smtp_login_failed"}
-    except smtplib.SMTPRecipientsRefused:
-        app.logger.warning(
-            "Owner registration notification failed for %s: SMTPRecipientsRefused",
-            _mask_email(owner_account.get("email", "")),
-        )
-        _append_owner_magic_email_event(
-            "owner_registration_notification_failed",
-            owner_account.get("email", ""),
-            "smtp_send_failed",
-            "register",
-            language,
-        )
-        return {"ok": False, "reason": "smtp_send_failed"}
-    except smtplib.SMTPException:
-        app.logger.warning(
-            "Owner registration notification failed for %s: SMTPException",
-            _mask_email(owner_account.get("email", "")),
-        )
-        _append_owner_magic_email_event(
-            "owner_registration_notification_failed",
-            owner_account.get("email", ""),
-            "smtp_send_failed",
-            "register",
-            language,
-        )
-        return {"ok": False, "reason": "smtp_send_failed"}
-    except Exception as exc:
+    ok, reason = _smtp_send_message_secure(message, timeout=10)
+    if not ok:
         app.logger.warning(
             "Owner registration notification failed for %s: %s",
             _mask_email(owner_account.get("email", "")),
-            type(exc).__name__,
+            reason,
         )
         _append_owner_magic_email_event(
             "owner_registration_notification_failed",
             owner_account.get("email", ""),
-            "unexpected_error",
+            reason,
             "register",
             language,
         )
-        return {"ok": False, "reason": "unexpected_error"}
+        return {"ok": False, "reason": reason}
 
     app.logger.info("Owner registration notification sent for %s", _mask_email(owner_account.get("email", "")))
     _append_owner_magic_email_event(
