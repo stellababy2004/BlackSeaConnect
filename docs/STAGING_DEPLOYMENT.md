@@ -95,14 +95,19 @@ Responses contain booleans/status only. They do not expose paths, keys, database
 
 ## Backup before deployment
 
-Stop writes or place the service out of traffic, then use SQLite's online backup command against the mounted database:
+Recommended backup:
 
-```sh
-sqlite3 /app/data/blacksea_owner.db ".backup '/backup/blacksea_owner-YYYYMMDD-HHMMSS.db'"
-sqlite3 /backup/blacksea_owner-YYYYMMDD-HHMMSS.db "PRAGMA integrity_check;"
-```
+    python scripts/backup_database.py --destination /backup
 
-Copy the verified backup to durable storage outside the container and record the image tag and configuration version. Never bake a database backup into an image.
+If needed, pass --source explicitly. The script uses the SQLite backup API and verifies the backup with PRAGMA integrity_check.
+
+## Restore procedure
+
+Test to a separate target first:
+
+    python scripts/restore_database.py --backup /backup/blacksea_owner-YYYYMMDD-HHMMSS.db --target /app/data/restore-test.db
+
+For an approved in-place restore, use --force. The restore script verifies the backup, creates a safety copy before overwrite, restores through SQLite backup API, and verifies the restored database.
 
 ## Rollback
 

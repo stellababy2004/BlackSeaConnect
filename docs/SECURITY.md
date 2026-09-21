@@ -180,6 +180,8 @@ Before production launch, the deployment must define and test:
 - responsibility for recovery
 - encryption and access control for backups
 
+The repository includes tested SQLite backup and restore utilities: scripts/backup_database.py and scripts/restore_database.py. They use SQLite backup APIs and integrity checks, and forced restore creates a safety copy first.
+
 A backup is not considered operational until a restore has been successfully tested.
 
 ## 14. Security incidents
