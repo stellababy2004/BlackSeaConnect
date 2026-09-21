@@ -40406,3 +40406,134 @@ body.owner-property-detail-page
   -webkit-text-fill-color: #172033 !important;
   opacity: 1 !important;
 }
+
+/* ==========================================================
+   Owner Portal - mobile pilot hardening
+   ========================================================== */
+@media (max-width: 760px) {
+
+  /* Never allow owner content to force horizontal overflow */
+  body.owner-portal-page,
+  body.owner-properties-page,
+  body.owner-property-detail-page,
+  body.calendar-page--owner,
+  body.reservations-page--owner,
+  body.reservation-detail-page--owner {
+    overflow-x: hidden;
+  }
+
+  body.owner-portal-page *,
+  body.owner-properties-page *,
+  body.owner-property-detail-page *,
+  body.calendar-page--owner *,
+  body.reservations-page--owner *,
+  body.reservation-detail-page--owner * {
+    box-sizing: border-box;
+  }
+
+  /* Long French/Bulgarian/Russian headings */
+  body.owner-portal-page :is(h1, h2, h3),
+  body.owner-properties-page :is(h1, h2, h3),
+  body.owner-property-detail-page :is(h1, h2, h3),
+  body.calendar-page--owner :is(h1, h2, h3),
+  body.reservations-page--owner :is(h1, h2, h3) {
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  /* Cards/panels must stay inside the phone viewport */
+  .owner-portal-card,
+  .owner-request-panel,
+  .owner-request-next,
+  .owner-property-detail-panel,
+  .owner-property-workspace-panel,
+  .owner-property-knowledge-section {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Request service form */
+  .owner-request-form,
+  .owner-request-form__grid,
+  .owner-request-form__field,
+  .owner-request-form__field--full {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .owner-request-form__grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .owner-request-form__field input,
+  .owner-request-form__field select,
+  .owner-request-form__field textarea {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .owner-request-form__field input[type="date"] {
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+  }
+
+  /* Property information/edit fields */
+  .owner-property-detail-page :is(input, select, textarea) {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Property hero photo: phone photos should fill a normal card */
+  .owner-property-detail-hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .owner-property-detail-hero__visual {
+    position: relative;
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+    aspect-ratio: 4 / 3;
+    height: auto !important;
+    overflow: hidden;
+  }
+
+  .owner-property-detail-hero__visual img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    object-fit: cover !important;
+    object-position: center;
+  }
+
+  .owner-property-detail-hero__content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Action rows/buttons must wrap instead of escaping the card */
+  .owner-property-detail-actions,
+  .owner-request-form__footer {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .owner-property-detail-actions > *,
+  .owner-request-form__footer > * {
+    max-width: 100%;
+  }
+}
