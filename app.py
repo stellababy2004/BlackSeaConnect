@@ -38,6 +38,7 @@ from flask import Flask, Response, after_this_request, flash, g, has_request_con
 from werkzeug.exceptions import HTTPException, TooManyRequests
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
+from PIL import Image, ImageOps
 
 from config import ConfigurationError, load_settings, validate_settings
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
@@ -564,7 +565,18 @@ OPERATIONS_TASK_EVIDENCE_CATEGORIES = {
     "other",
 }
 OWNER_PROPERTY_MEDIA_LIMIT = 20
-OWNER_PROPERTY_DOCUMENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
+OWNER_PROPERTY_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+OWNER_PROPERTY_PHOTO_TYPES = {
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/png": {".png"},
+    "image/webp": {".webp"},
+    "image/heic": {".heic"},
+    "image/heif": {".heif"},
+}
+OWNER_PROPERTY_DOCUMENT_TYPES = {
+    "application/pdf": {".pdf"},
+    **OWNER_PROPERTY_PHOTO_TYPES,
+}
 OWNER_PROPERTY_APPLIANCE_FIELDS = (
     ("coffee_machine", "Coffee machine"),
     ("dishwasher", "Dishwasher"),
@@ -10671,6 +10683,152 @@ def _owner_property_form_flag(value):
     return str(value or "").strip().lower() in {"1", "true", "yes", "on", "checked"}
 
 
+OWNER_PROPERTY_IMAGE_MAX_DIMENSION = 2000
+OWNER_PROPERTY_JPEG_QUALITY = 88
+
+
+def _prepare_owner_property_image(content, mime_type):
+    if mime_type not in {"image/jpeg", "image/png", "image/webp"}:
+        return content, mime_type
+
+    try:
+        source = io.BytesIO(content)
+
+        with Image.open(source) as image:
+            original_size = image.size
+
+            # Fix orientation stored by phones in EXIF metadata.
+            image = ImageOps.exif_transpose(image)
+
+            orientation_changed = image.size != original_size
+            needs_resize = max(image.size) > OWNER_PROPERTY_IMAGE_MAX_DIMENSION
+
+            # If nothing needs changing, preserve the original bytes.
+            if not orientation_changed and not needs_resize:
+                return content, mime_type
+
+            if needs_resize:
+                image.thumbnail(
+                    (
+                        OWNER_PROPERTY_IMAGE_MAX_DIMENSION,
+                        OWNER_PROPERTY_IMAGE_MAX_DIMENSION,
+                    ),
+                    Image.Resampling.LANCZOS,
+                )
+
+            output = io.BytesIO()
+
+            if mime_type == "image/jpeg":
+                if image.mode not in {"RGB", "L"}:
+                    image = image.convert("RGB")
+                image.save(
+                    output,
+                    format="JPEG",
+                    quality=OWNER_PROPERTY_JPEG_QUALITY,
+                    optimize=True,
+                )
+
+            elif mime_type == "image/png":
+                image.save(
+                    output,
+                    format="PNG",
+                    optimize=True,
+                )
+
+            elif mime_type == "image/webp":
+                if image.mode not in {"RGB", "RGBA"}:
+                    image = image.convert("RGB")
+                image.save(
+                    output,
+                    format="WEBP",
+                    quality=OWNER_PROPERTY_JPEG_QUALITY,
+                    method=6,
+                )
+
+            processed = output.getvalue()
+            return processed or content, mime_type
+
+    except Exception as exc:
+        app.logger.warning(
+            "Owner image optimization failed: %s",
+            type(exc).__name__,
+        )
+        return content, mime_type
+
+
+def _validate_owner_property_upload(file_storage, asset_kind):
+    raw_name = str(getattr(file_storage, "filename", "") or "").strip().replace("\\", "/")
+    original_name = raw_name.rsplit("/", 1)[-1][:255]
+    safe_name = secure_filename(original_name)
+
+    if not original_name or not safe_name:
+        return None, "upload_required"
+
+    suffix = Path(safe_name).suffix.lower()
+
+    allowed_types = (
+        OWNER_PROPERTY_PHOTO_TYPES
+        if asset_kind == "photo"
+        else OWNER_PROPERTY_DOCUMENT_TYPES
+    )
+
+    mime_by_suffix = {
+        extension: mime_type
+        for mime_type, extensions in allowed_types.items()
+        for extension in extensions
+    }
+
+    expected_mime = mime_by_suffix.get(suffix, "")
+    if not expected_mime:
+        return None, "upload_invalid_type"
+
+    declared_mime = str(
+        getattr(file_storage, "mimetype", "")
+        or getattr(file_storage, "content_type", "")
+        or ""
+    ).strip().lower()
+
+    accepted_declared_mimes = {
+        expected_mime,
+        "application/octet-stream",
+    }
+
+    if expected_mime == "image/heic":
+        accepted_declared_mimes.add("image/heif")
+    elif expected_mime == "image/heif":
+        accepted_declared_mimes.add("image/heic")
+
+    if declared_mime and declared_mime not in accepted_declared_mimes:
+        return None, "upload_invalid_type"
+
+    content = file_storage.stream.read(OWNER_PROPERTY_UPLOAD_MAX_BYTES + 1)
+
+    if not content:
+        return None, "upload_empty"
+
+    if len(content) > OWNER_PROPERTY_UPLOAD_MAX_BYTES:
+        return None, "upload_too_large"
+
+    if not _professional_evidence_signature_valid(expected_mime, content):
+        return None, "upload_invalid_type"
+
+    if asset_kind == "photo":
+        content, expected_mime = _prepare_owner_property_image(
+            content,
+            expected_mime,
+        )
+
+    file_storage.stream.seek(0)
+
+    return {
+        "original_name": original_name,
+        "safe_name": safe_name,
+        "mime_type": expected_mime,
+        "size": len(content),
+        "content": content,
+    }, ""
+
+
 def _owner_property_media_record(*, file_storage, asset_kind, is_cover=False):
     original_filename = str(getattr(file_storage, "filename", "") or "").strip()
     media_id = uuid4().hex
@@ -15584,20 +15742,43 @@ def owners_property_new():
                     continue
                 if len(photos) >= OWNER_PROPERTY_MEDIA_LIMIT:
                     break
-                media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="photo", is_cover=False)
+                validated_upload, upload_error = _validate_owner_property_upload(file_storage, "photo")
+                if upload_error:
+                    return Response(
+                        f"Invalid photo upload: {upload_error}",
+                        status=400,
+                        mimetype="text/plain",
+                    )
+                media_record = _owner_property_media_record(
+                    file_storage=file_storage,
+                    asset_kind="photo",
+                    is_cover=False,
+                )
+                media_record["content_type"] = validated_upload["mime_type"]
+                media_record["size"] = validated_upload["size"]
                 media_path = _owner_property_media_path(property_id, media_record["stored_filename"])
-                file_storage.save(media_path)
+                media_path.write_bytes(validated_upload["content"])
                 photos.append(media_record)
 
             for file_storage in request.files.getlist("documents"):
                 if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
                     continue
-                content_type = str(getattr(file_storage, "content_type", "") or "").strip().lower()
-                if content_type and content_type not in OWNER_PROPERTY_DOCUMENT_TYPES and not str(file_storage.filename).lower().endswith((".pdf", ".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif")):
-                    continue
-                media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="document", is_cover=False)
+                validated_upload, upload_error = _validate_owner_property_upload(file_storage, "document")
+                if upload_error:
+                    return Response(
+                        f"Invalid document upload: {upload_error}",
+                        status=400,
+                        mimetype="text/plain",
+                    )
+                media_record = _owner_property_media_record(
+                    file_storage=file_storage,
+                    asset_kind="document",
+                    is_cover=False,
+                )
+                media_record["content_type"] = validated_upload["mime_type"]
+                media_record["size"] = validated_upload["size"]
                 media_path = _owner_property_media_path(property_id, media_record["stored_filename"])
-                file_storage.save(media_path)
+                media_path.write_bytes(validated_upload["content"])
                 documents.append(media_record)
 
             photos = _owner_property_reorder_media(photos, request.form.get("gallery_order", ""))
@@ -16227,24 +16408,46 @@ def owners_property_detail(property_id):
         for file_storage in request.files.getlist("knowledge_documents"):
             if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
                 continue
-            media_record = _owner_property_media_record(file_storage=file_storage, asset_kind="document", is_cover=False)
+            validated_upload, upload_error = _validate_owner_property_upload(file_storage, "document")
+            if upload_error:
+                return Response(
+                    f"Invalid document upload: {upload_error}",
+                    status=400,
+                    mimetype="text/plain",
+                )
+            media_record = _owner_property_media_record(
+                file_storage=file_storage,
+                asset_kind="document",
+                is_cover=False,
+            )
+            media_record["content_type"] = validated_upload["mime_type"]
+            media_record["size"] = validated_upload["size"]
             media_path = _owner_property_media_path(property_record["id"], media_record["stored_filename"])
             if not media_path:
                 continue
-            file_storage.save(str(media_path))
+            media_path.write_bytes(validated_upload["content"])
             document_records.append(media_record)
         for file_storage in request.files.getlist("knowledge_photos"):
             if not file_storage or not str(getattr(file_storage, "filename", "") or "").strip():
                 continue
+            validated_upload, upload_error = _validate_owner_property_upload(file_storage, "photo")
+            if upload_error:
+                return Response(
+                    f"Invalid photo upload: {upload_error}",
+                    status=400,
+                    mimetype="text/plain",
+                )
             media_record = _owner_property_media_record(
                 file_storage=file_storage,
                 asset_kind="photo",
                 is_cover=not photo_records,
             )
+            media_record["content_type"] = validated_upload["mime_type"]
+            media_record["size"] = validated_upload["size"]
             media_path = _owner_property_media_path(property_record["id"], media_record["stored_filename"])
             if not media_path:
                 continue
-            file_storage.save(str(media_path))
+            media_path.write_bytes(validated_upload["content"])
             photo_records.append(media_record)
         photo_records, deleted_photos = _owner_property_edit_photos(property_id, photo_records, request.form)
         updated_knowledge["photos"] = photo_records

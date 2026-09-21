@@ -112,6 +112,18 @@ def fake_urlopen(request, timeout=None):
 FakeUrlopenResponse.calls = []
 
 
+TEST_JPEG_BYTES = base64.b64decode(
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////"
+    "2wBDAf//////////////////////////////////////////////////////////////////////////////////////"
+    "wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA"
+    "/9oADAMBAAIQAxAAAAEf/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAA"
+    "AP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAA"
+    "AP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAA"
+    "AAAAAAAAAAAAAAAA/9oACAEDAQE/EF//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EF//xAAUEAEAAAAAAAAA"
+    "AAAAAAAAAAAA/9oACAEBAAE/EF//2Q=="
+)
+
+
 class OwnerPortalTests(unittest.TestCase):
     ADMIN_ENV = {
         "ADMIN_USERNAME": "admin",
@@ -950,7 +962,7 @@ class OwnerPortalTests(unittest.TestCase):
             data={
                 "wizard_step": "photos",
                 "property_id": property_id,
-                "photos": (io.BytesIO(b"fake-photo-bytes"), "cover.jpg"),
+                "photos": (io.BytesIO(TEST_JPEG_BYTES), "cover.jpg", "image/jpeg"),
                 "documents": (io.BytesIO(b"%PDF-1.4 fake"), "manual.pdf"),
                 "amenity_wifi": "1",
                 "welcome_instructions": "Please enjoy your stay.",
@@ -1016,7 +1028,7 @@ class OwnerPortalTests(unittest.TestCase):
                 "seasonal_open_pool_target_date": "2026-07-01",
                 "seasonal_open_pool_cadence": "Seasonal",
                 "seasonal_open_pool_notes": "Coordinate with maintenance.",
-                "knowledge_photos": (io.BytesIO(b"fake-photo"), "living-room.jpg"),
+                "knowledge_photos": (io.BytesIO(TEST_JPEG_BYTES), "living-room.jpg", "image/jpeg"),
             },
         )
 
@@ -1107,7 +1119,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertFalse(old_path.exists())
         response = self.client.post(
             "/owners/properties/property-1?lang=en",
-            data={"knowledge_photos": (io.BytesIO(b"new-photo"), "new.jpg", "image/jpeg")},
+            data={"knowledge_photos": (io.BytesIO(TEST_JPEG_BYTES), "new.jpg", "image/jpeg")},
             follow_redirects=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -1122,7 +1134,7 @@ class OwnerPortalTests(unittest.TestCase):
         with self.client.get(new_url) as preview:
             self.assertEqual(preview.status_code, 200)
             self.assertEqual(preview.mimetype, "image/jpeg")
-            self.assertEqual(preview.data, b"new-photo")
+            self.assertEqual(preview.data, TEST_JPEG_BYTES)
 
     def test_photo_gallery_threshold_uses_five_physical_files(self):
         photos = [dict(id=f"photo-{i}", stored_filename=f"photo-{i}.jpg") for i in range(6)]
