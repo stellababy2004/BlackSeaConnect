@@ -28885,4 +28885,7 @@ def workspace_settings():
         return guard
     return _render_workspace_page("settings", organization_id=guard["selected_organization_id"], role_key=guard["role_key"], selected_organization_id=guard["selected_organization_id"])
 if __name__ == "__main__":
-    app.run(debug=True, port=5010)
+    app.run(
+        debug=SETTINGS.environment == "development",
+        port=5010,
+    )
