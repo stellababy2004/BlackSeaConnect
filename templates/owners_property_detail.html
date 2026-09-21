@@ -571,6 +571,7 @@
           </div>
 
           <form class="owner-property-detail-form owner-property-knowledge-form" method="post" enctype="multipart/form-data" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
             <input type="hidden" name="status" value="{{ property_context.property.status|e }}">
             <input type="hidden" name="notes" value="{{ property_context.property.notes|e }}">
             {% for field in ['guest_guide_ready', 'access_instructions_ready', 'emergency_contact_ready', 'cleaning_partner_ready'] %}
@@ -912,6 +913,7 @@
                     <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id) }}" target="_blank" rel="noopener">{{ public_i18n('ownersDashboard', 'ownerKnowledgePreviewDocument', 'Preview') }}</a>
                     <a class="button button--ghost" href="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/media/' ~ document.id ~ '?download=1') }}">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDownloadDocument', 'Download') }}</a>
                     <form method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id ~ '/documents/' ~ document.id ~ '/delete') }}" onsubmit="return confirm('{{ public_i18n('ownersDashboard', 'ownerKnowledgeConfirmDeleteDocument', 'Delete this document?')|e }}');">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
                       <button class="button button--ghost" type="submit">{{ public_i18n('ownersDashboard', 'ownerKnowledgeDeleteDocument', 'Delete') }}</button>
                     </form>
                   </div>
@@ -945,6 +947,7 @@
           <p class="eyebrow">{{ public_i18n('ownersDashboard', 'ownerPropertyNotesEyebrow', 'Property notes') }}</p>
           <h2 class="owner-property-detail-section-title">{{ public_i18n('ownersDashboard', 'ownerPropertyInternalNotes', 'Internal notes') }}</h2>
           <form class="owner-property-detail-form" method="post" action="{{ localized_url('/owners/properties/' ~ property_context.property.id) }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
             <label>
               <span>{{ public_i18n('ownersDashboard', 'ownerPropertyNotes', 'Property notes') }}</span>
               <textarea name="notes" placeholder="{{ public_i18n('ownersDashboard', 'ownerUiNotesForYourLocalOperationsTeam') }}">{{ property_context.property.notes|e }}</textarea>
@@ -1136,6 +1139,7 @@
                         method="post"
                         action="{{ url_for('owners_task_review', task_id=request.operation_task.id, lang=page_lang) }}"
                       >
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
                         <strong>
                           {{ public_i18n('ownersDashboard', 'ownerReviewTitle', 'Rate this service') }}
                         </strong>

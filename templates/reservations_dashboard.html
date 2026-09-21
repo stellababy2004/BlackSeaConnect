@@ -381,6 +381,7 @@
               <h2>{{ public_i18n('ownersDashboard', 'ownerReservationsManualOrBlock', 'Manual reservation or block dates') }}</h2>
             </div>
             <form class="reservations-form" method="post" action="{{ localized_url('/owners/reservations') }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
               <div class="reservations-form-grid">
                 <label>
                   <span>{{ public_i18n('ownersDashboard', 'ownerReservationsType', 'Reservation type') }}</span>

@@ -85,6 +85,7 @@
       <div class="owner-property-grid">
         {% if wizard_step != 'photos' %}
           <form class="owner-property-form owner-property-form--wizard" method="post" action="{{ localized_url('/owners/property/new') }}">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
             <input type="hidden" name="lang" value="{{ current_lang }}">
             <input type="hidden" name="wizard_step" value="basic">
             <input type="hidden" name="property_id" value="{{ wizard_property_id|e }}">
@@ -175,6 +176,7 @@
           </form>
         {% else %}
           <form class="owner-property-form owner-property-form--wizard" method="post" action="{{ localized_url('/owners/property/new') }}" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
             <input type="hidden" name="lang" value="{{ current_lang }}">
             <input type="hidden" name="wizard_step" value="photos">
             <input type="hidden" name="property_id" value="{{ wizard_property_id|e }}">

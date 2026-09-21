@@ -112,6 +112,7 @@
       </div>
 
       <form class="owner-request-form" method="post" action="/owners/request-service" data-owner-submit-state>
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
         <input type="hidden" name="lang" value="{{ current_lang }}">
         <div class="owner-request-form__grid">
           <label class="owner-request-form__field">

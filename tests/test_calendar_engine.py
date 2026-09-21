@@ -82,6 +82,11 @@ class CalendarEngineTests(unittest.TestCase):
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
+        self.owner_portal_csrf_token = "test-owner-portal-csrf-token"
+        self.client.environ_base["HTTP_X_CSRF_TOKEN"] = self.owner_portal_csrf_token
+        with self.client.session_transaction() as sess:
+            sess["_owner_portal_csrf_token"] = self.owner_portal_csrf_token
+
     def tearDown(self):
         self._env_patcher.stop()
         os.chdir(self._cwd)

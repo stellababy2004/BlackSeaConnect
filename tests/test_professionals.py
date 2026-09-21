@@ -78,6 +78,11 @@ class ApplicationWorkflowTests(unittest.TestCase):
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
 
+        self.owner_portal_csrf_token = "test-owner-portal-csrf-token"
+        self.client.environ_base["HTTP_X_CSRF_TOKEN"] = self.owner_portal_csrf_token
+        with self.client.session_transaction() as sess:
+            sess["_owner_portal_csrf_token"] = self.owner_portal_csrf_token
+
     def tearDown(self):
         os.chdir(self._cwd)
         shutil.rmtree(self._tmpdir, ignore_errors=True)
@@ -1575,10 +1580,13 @@ class ApplicationWorkflowTests(unittest.TestCase):
             "id": "owner-summary", "email": "summary-owner@example.com", "full_name": "Stella",
         })
         owner_client = app.test_client()
+        owner_csrf_token = "test-owner-portal-csrf-token"
+        owner_client.environ_base["HTTP_X_CSRF_TOKEN"] = owner_csrf_token
         with owner_client.session_transaction() as state:
             state[app_module.OWNER_SESSION_LOGGED_IN_KEY] = True
             state[app_module.OWNER_SESSION_ID_KEY] = owner["id"]
             state[app_module.OWNER_SESSION_EMAIL_KEY] = owner["email"]
+            state["_owner_portal_csrf_token"] = owner_csrf_token
         response = owner_client.post("/owners/property/new", data={
             "name": "Stella Appart", "property_type": "Apartment", "location": "Varna",
             "bedrooms": "1", "bathrooms": "1", "guest_capacity": "2", "operating_mode": "year-round",

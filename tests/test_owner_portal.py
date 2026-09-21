@@ -143,6 +143,11 @@ class OwnerPortalTests(unittest.TestCase):
         app.config["TESTING"] = True
         app_module._PUBLIC_FORM_RATE_LIMITS.clear()
         self.client = app.test_client()
+
+        self.owner_portal_csrf_token = "test-owner-portal-csrf-token"
+        self.client.environ_base["HTTP_X_CSRF_TOKEN"] = self.owner_portal_csrf_token
+        with self.client.session_transaction() as sess:
+            sess["_owner_portal_csrf_token"] = self.owner_portal_csrf_token
         # These business-flow fixtures assert Bulgarian copy and redirect URLs.
         # Select it explicitly; fresh-session English/geolocation has dedicated
         # coverage in test_language_resolver.py.

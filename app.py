@@ -16719,6 +16719,62 @@ def owners_request_service():
     ), (400 if errors else 200)
 
 
+def _owner_portal_csrf_token():
+    token = str(session.get("_owner_portal_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_owner_portal_csrf_token"] = token
+    return token
+
+
+def _owner_portal_csrf_valid(submitted_token):
+    expected = str(session.get("_owner_portal_csrf_token", "")).strip()
+    submitted = str(submitted_token or "").strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+app.jinja_env.globals["owner_portal_csrf_token"] = _owner_portal_csrf_token
+
+
+@app.before_request
+def _protect_owner_portal_post_requests():
+    if request.method != "POST":
+        return None
+
+    if not request.path.startswith("/owners/"):
+        return None
+
+    if request.endpoint in {
+        "owners_login",
+        "owners_register",
+    }:
+        return None
+
+    if not session.get(OWNER_SESSION_LOGGED_IN_KEY):
+        return None
+
+    if request.endpoint in {
+        "owner_finance_approve",
+        "owner_finance_request_changes",
+        "owner_finance_reject",
+        "owner_stripe_checkout",
+    }:
+        return None
+
+    submitted_csrf = (
+        request.form.get("csrf_token")
+        or request.headers.get("X-CSRF-Token")
+    )
+    if not _owner_portal_csrf_valid(submitted_csrf):
+        return Response(
+            "Invalid CSRF token.",
+            status=400,
+            mimetype="text/plain",
+        )
+
+    return None
+
+
 def _owner_finance_csrf_token():
     token = str(session.get("_owner_finance_csrf_token", "")).strip()
     if not token:

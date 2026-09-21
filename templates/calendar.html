@@ -4295,6 +4295,7 @@
             <p class="calendar-note">{{ public_i18n('ownersDashboard', 'ownerCalendarCreateCopy', 'Owners can create blocked dates and personal stays without touching the operational workflow.') }}</p>
             {% if calendar_owner_properties %}
               <form class="calendar-owner-form" method="post" action="{{ request.path }}?view={{ calendar_view }}" data-owner-submit-state data-owner-saving-label="{{ public_i18n('ownersDashboard', 'ownerUiSaving') }}">
+<input type="hidden" name="csrf_token" value="{{ owner_portal_csrf_token()|e }}">
                 <div class="calendar-event-type-picker" aria-label="Event type">
                   <button type="button" data-event-type="Blocked Dates" class="is-active"><span>⊘</span>{{ public_i18n('ownersDashboard', 'ownerCalendarBlockedDates', 'Blocked dates') }}</button>
                   <button type="button" data-event-type="Personal Stay"><span>⌂</span>{{ public_i18n('ownersDashboard', 'ownerCalendarPersonalStay', 'Personal stay') }}</button>
