@@ -97,7 +97,7 @@ Responses contain booleans/status only. They do not expose paths, keys, database
 
 Recommended backup:
 
-    python scripts/backup_database.py --destination /backup
+    python scripts/backup_database.py --destination /backup --retention-days 14
 
 If needed, pass --source explicitly. The script uses the SQLite backup API and verifies the backup with PRAGMA integrity_check.
 

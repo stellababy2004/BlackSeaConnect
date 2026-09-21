@@ -8,10 +8,13 @@ from scripts.restore_database import restore_database
 
 
 def _create_database(path: Path, value: str) -> None:
-    with sqlite3.connect(path) as connection:
+    connection = sqlite3.connect(path)
+    try:
         connection.execute("CREATE TABLE sample (id INTEGER PRIMARY KEY, value TEXT NOT NULL)")
         connection.execute("INSERT INTO sample (value) VALUES (?)", (value,))
         connection.commit()
+    finally:
+        connection.close()
 
 
 def _read_value(path: Path) -> str:
@@ -105,3 +108,45 @@ def test_unicode_and_spaces_in_paths(tmp_path):
     restore_database(backup, target)
 
     assert _read_value(target) == "unicode-ok"
+
+
+def test_backup_retention_removes_old_matching_backups(tmp_path):
+    source = tmp_path / "source.db"
+    backup_dir = tmp_path / "backups"
+    backup_dir.mkdir()
+
+    _create_database(source, "current")
+
+    old_backup = backup_dir / "source-20000101-000000.db"
+    _create_database(old_backup, "old")
+
+    import os
+    import time
+
+    old_time = time.time() - (20 * 24 * 60 * 60)
+    os.utime(old_backup, (old_time, old_time))
+
+    create_backup(source, backup_dir, retention_days=14)
+
+    assert not old_backup.exists()
+
+
+def test_backup_retention_keeps_recent_matching_backups(tmp_path):
+    source = tmp_path / "source.db"
+    backup_dir = tmp_path / "backups"
+    backup_dir.mkdir()
+
+    _create_database(source, "current")
+
+    recent_backup = backup_dir / "source-20000101-000000.db"
+    _create_database(recent_backup, "recent")
+
+    import os
+    import time
+
+    recent_time = time.time() - (10 * 24 * 60 * 60)
+    os.utime(recent_backup, (recent_time, recent_time))
+
+    create_backup(source, backup_dir, retention_days=14)
+
+    assert recent_backup.exists()

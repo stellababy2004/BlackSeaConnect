@@ -4,6 +4,7 @@ import argparse
 import os
 import sqlite3
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -28,7 +29,25 @@ def _integrity_check(database_path: Path) -> None:
         raise RuntimeError(f"SQLite integrity check failed for {database_path}")
 
 
-def create_backup(source: Path, destination_dir: Path) -> Path:
+def _prune_old_backups(destination_dir: Path, source_stem: str, retention_days: int) -> int:
+    if retention_days < 1:
+        raise ValueError("retention_days must be at least 1.")
+
+    cutoff = time.time() - (retention_days * 24 * 60 * 60)
+    removed = 0
+
+    for candidate in destination_dir.glob(f"{source_stem}-*.db"):
+        try:
+            if candidate.is_file() and candidate.stat().st_mtime < cutoff:
+                candidate.unlink()
+                removed += 1
+        except OSError:
+            continue
+
+    return removed
+
+
+def create_backup(source: Path, destination_dir: Path, retention_days: int = 14) -> Path:
     source = source.expanduser().resolve()
     destination_dir = destination_dir.expanduser().resolve()
 
@@ -47,6 +66,7 @@ def create_backup(source: Path, destination_dir: Path) -> Path:
             source_connection.backup(backup_connection)
 
     _integrity_check(backup_path)
+    _prune_old_backups(destination_dir, source.stem, retention_days)
 
     return backup_path
 
@@ -66,6 +86,12 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Directory where the backup will be created.",
     )
+    parser.add_argument(
+        "--retention-days",
+        type=int,
+        default=14,
+        help="Delete matching backups older than this many days. Default: 14.",
+    )
     return parser
 
 
@@ -75,7 +101,7 @@ def main() -> int:
 
     try:
         source = args.source if args.source is not None else _default_database_path()
-        backup_path = create_backup(source, args.destination)
+        backup_path = create_backup(source, args.destination, args.retention_days)
     except (OSError, sqlite3.Error, ValueError, RuntimeError) as exc:
         print(f"BACKUP FAILED: {exc}", file=sys.stderr)
         return 1
