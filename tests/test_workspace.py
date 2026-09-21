@@ -280,11 +280,44 @@ class WorkspaceTests(unittest.TestCase):
         self.assertNotIn("Beta Villa", properties_html)
         self.assertNotIn("Boris Petrov", reservations_html)
 
+    def test_workspace_users_rejects_missing_csrf(self):
+        with patch.dict(os.environ, self._env(), clear=False):
+            organization = app_module._upsert_organization({
+                "name": "Workspace CSRF Org",
+                "slug": "workspace-csrf-org",
+            })
+            user = self._seed_workspace_user(
+                organization,
+                "workspace-csrf@example.com",
+                "Workspace CSRF Admin",
+                app_module.ROLE_COMPANY_ADMIN,
+            )
+            self._set_enterprise_session(
+                user,
+                organization,
+                app_module.ROLE_COMPANY_ADMIN,
+            )
+            with self.client.session_transaction() as sess:
+                sess["_enterprise_csrf_token"] = "expected-workspace-csrf"
+
+            response = self.client.post(
+                "/workspace/users?lang=en",
+                data={
+                    "workspace_action": "invite",
+                    "email": "blocked.workspace@example.com",
+                    "role": app_module.ROLE_OPERATIONS_MANAGER,
+                },
+            )
+
+        self.assertEqual(response.status_code, 400)
+
     def test_workspace_invitation_flow_and_list(self):
         with patch.dict(os.environ, self._env(), clear=False):
             organization = app_module._upsert_organization({"name": "Invite Org", "slug": "invite-org"})
             user = self._seed_workspace_user(organization, "admin@invite.example", "Invite Admin", app_module.ROLE_COMPANY_ADMIN)
             self._set_enterprise_session(user, organization, app_module.ROLE_COMPANY_ADMIN)
+            with self.client.session_transaction() as sess:
+                sess["_enterprise_csrf_token"] = "workspace-test-csrf"
 
             response = self.client.post(
                 "/workspace/users?lang=en",
@@ -292,6 +325,7 @@ class WorkspaceTests(unittest.TestCase):
                     "workspace_action": "invite",
                     "email": "new.user@example.com",
                     "role": app_module.ROLE_OPERATIONS_MANAGER,
+                    "csrf_token": "workspace-test-csrf",
                 },
             )
             invitations_html = self.client.get("/workspace/invitations?lang=en").get_data(as_text=True)

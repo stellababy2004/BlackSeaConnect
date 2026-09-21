@@ -126,6 +126,50 @@ class EnterpriseFoundationTests(unittest.TestCase):
         audit_logs = self._fetch_table("audit_logs")
         self.assertGreaterEqual(len(audit_logs), 2)
 
+    def test_company_admin_invite_rejects_missing_csrf(self):
+        with app.app_context():
+            organization = app_module._upsert_organization({
+                "name": "CSRF Org",
+                "slug": "csrf-org",
+            })
+            company_admin = app_module._upsert_user({
+                "email": "csrf-admin@example.com",
+                "full_name": "CSRF Admin",
+                "organization_id": organization["id"],
+                "status": "ACTIVE",
+            })
+            app_module._upsert_membership({
+                "user_id": company_admin["id"],
+                "organization_id": organization["id"],
+                "role_key": app_module.ROLE_COMPANY_ADMIN,
+                "status": "ACTIVE",
+                "joined_at": app_module._utc_now_iso(),
+            })
+            app_module._upsert_user_role({
+                "user_id": company_admin["id"],
+                "organization_id": organization["id"],
+                "role_key": app_module.ROLE_COMPANY_ADMIN,
+                "status": "ACTIVE",
+            })
+
+        with self.client.session_transaction() as sess:
+            sess[app_module.ENTERPRISE_SESSION_USER_ID_KEY] = company_admin["id"]
+            sess[app_module.ENTERPRISE_SESSION_USER_EMAIL_KEY] = company_admin["email"]
+            sess[app_module.ENTERPRISE_SESSION_USER_NAME_KEY] = company_admin["full_name"]
+            sess[app_module.ENTERPRISE_SESSION_ORGANIZATION_ID_KEY] = organization["id"]
+            sess[app_module.ENTERPRISE_SESSION_ROLE_KEY] = app_module.ROLE_COMPANY_ADMIN
+            sess["_enterprise_csrf_token"] = "expected-enterprise-csrf"
+
+        response = self.client.post(
+            f"/organizations/{organization['id']}/invites",
+            json={
+                "email": "blocked@example.com",
+                "role": app_module.ROLE_OPERATIONS_MANAGER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
     def test_company_admin_invite_flow_creates_user_membership_and_audit(self):
         with app.app_context():
             organization = app_module._upsert_organization({
@@ -158,11 +202,16 @@ class EnterpriseFoundationTests(unittest.TestCase):
             sess[app_module.ENTERPRISE_SESSION_USER_NAME_KEY] = company_admin["full_name"]
             sess[app_module.ENTERPRISE_SESSION_ORGANIZATION_ID_KEY] = organization["id"]
             sess[app_module.ENTERPRISE_SESSION_ROLE_KEY] = app_module.ROLE_COMPANY_ADMIN
+            sess["_enterprise_csrf_token"] = "enterprise-test-csrf"
 
         with patch.dict(os.environ, self.SMTP_ENV, clear=True), patch("app.smtplib.SMTP", FakeSMTP), patch("app.smtplib.SMTP_SSL", FakeSMTP):
             invite_response = self.client.post(
                 f"/organizations/{organization['id']}/invites",
-                json={"email": "new.manager@example.com", "role": app_module.ROLE_OPERATIONS_MANAGER},
+                json={
+                    "email": "new.manager@example.com",
+                    "role": app_module.ROLE_OPERATIONS_MANAGER,
+                    "csrf_token": "enterprise-test-csrf",
+                },
             )
 
         self.assertEqual(invite_response.status_code, 201)

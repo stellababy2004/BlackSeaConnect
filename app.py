@@ -20013,10 +20013,35 @@ def admin_delete_organization(organization_id):
     return jsonify({"deleted": True, "organization": deleted})
 
 
+def _enterprise_csrf_token():
+    token = str(session.get("_enterprise_csrf_token", "")).strip()
+    if not token:
+        token = uuid4().hex
+        session["_enterprise_csrf_token"] = token
+    return token
+
+
+def _enterprise_csrf_valid():
+    expected = str(session.get("_enterprise_csrf_token", "")).strip()
+    payload = request.get_json(silent=True) if request.is_json else None
+    submitted = str(
+        request.form.get("csrf_token", "")
+        or ((payload or {}).get("csrf_token", "") if isinstance(payload, dict) else "")
+        or request.headers.get("X-CSRF-Token", "")
+    ).strip()
+    return bool(expected and submitted and hmac.compare_digest(expected, submitted))
+
+
+app.jinja_env.globals["enterprise_csrf_token"] = _enterprise_csrf_token
+
+
 @app.post("/organizations/<organization_id>/invites")
 @enterprise_required
 @organization_role_required(ROLE_COMPANY_ADMIN)
 def create_organization_invitation(organization_id):
+    if not _enterprise_csrf_valid():
+        return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+
     user, organization, membership, role_key = _enterprise_user_identity()
     target_organization = _find_organization(organization_id)
     if not target_organization or str(target_organization.get("id", "")).strip() != str(organization.get("id", "")).strip():
@@ -28573,6 +28598,7 @@ def _render_workspace_page(section, *, organization_id, role_key, selected_organ
                 <h2>{{ text.users_title }}</h2>
                 <p class="workspace-muted">{{ text.users_copy }}</p>
                 <form class="workspace-form" method="post" action="{{ workspace_url('/workspace/users') }}">
+                  <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                   <input type="hidden" name="workspace_action" value="invite">
                   <div class="workspace-form-grid">
                     <label>{{ text.invite_email }}<input type="email" name="email" required></label>
@@ -28592,6 +28618,7 @@ def _render_workspace_page(section, *, organization_id, role_key, selected_organ
                           <td>{{ member.status }}</td>
                           <td>
                             <form method="post" action="{{ workspace_url('/workspace/users') }}" style="display:inline-flex; gap:8px; flex-wrap:wrap; margin:0;">
+                              <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                               <input type="hidden" name="user_id" value="{{ member.user_id }}">
                               <input type="hidden" name="workspace_action" value="role">
                               <select name="role">
@@ -28602,6 +28629,7 @@ def _render_workspace_page(section, *, organization_id, role_key, selected_organ
                               <button class="button button--ghost" type="submit">{{ text.save }}</button>
                             </form>
                             <form method="post" action="{{ workspace_url('/workspace/users') }}" style="display:inline; margin-left:8px;">
+                              <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                               <input type="hidden" name="user_id" value="{{ member.user_id }}">
                               <input type="hidden" name="workspace_action" value="deactivate">
                               <button class="button button--ghost" type="submit">{{ text.deactivate }}</button>
@@ -28618,6 +28646,7 @@ def _render_workspace_page(section, *, organization_id, role_key, selected_organ
                 <h2>{{ text.invitations_title }}</h2>
                 <p class="workspace-muted">{{ text.invitations_copy }}</p>
                 <form class="workspace-form" method="post" action="{{ workspace_url('/workspace/invitations') }}">
+                  <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                   <input type="hidden" name="workspace_action" value="create">
                   <div class="workspace-form-grid">
                     <label>{{ text.invite_email }}<input type="email" name="email" required></label>
@@ -28639,11 +28668,13 @@ def _render_workspace_page(section, *, organization_id, role_key, selected_organ
                           <td>{{ invitation.expires_at }}</td>
                           <td>
                             <form method="post" action="{{ workspace_url('/workspace/invitations') }}" style="display:inline;">
+                              <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                               <input type="hidden" name="workspace_action" value="resend">
                               <input type="hidden" name="token" value="{{ invitation.token }}">
                               <button class="button button--ghost" type="submit">{{ text.resend }}</button>
                             </form>
                             <form method="post" action="{{ workspace_url('/workspace/invitations') }}" style="display:inline; margin-left:8px;">
+                              <input type="hidden" name="csrf_token" value="{{ enterprise_csrf_token() }}">
                               <input type="hidden" name="workspace_action" value="revoke">
                               <input type="hidden" name="token" value="{{ invitation.token }}">
                               <button class="button button--ghost" type="submit">{{ text.revoke }}</button>
@@ -28793,6 +28824,9 @@ def workspace_users():
         return guard
     organization_id = guard["selected_organization_id"]
     if request.method == "POST":
+        if not _enterprise_csrf_valid():
+            return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+
         action = str(request.form.get("workspace_action", "invite")).strip().lower()
         if action == "invite":
             email = str(request.form.get("email", "")).strip().lower()
@@ -28838,6 +28872,9 @@ def workspace_invitations():
         return guard
     organization_id = guard["selected_organization_id"]
     if request.method == "POST":
+        if not _enterprise_csrf_valid():
+            return Response("Invalid CSRF token.", status=400, mimetype="text/plain")
+
         action = str(request.form.get("workspace_action", "create")).strip().lower()
         email = str(request.form.get("email", "")).strip().lower()
         role_key = _normalize_role_key(request.form.get("role", "")) or ROLE_GUEST
