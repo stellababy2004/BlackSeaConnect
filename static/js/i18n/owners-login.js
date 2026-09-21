@@ -5,11 +5,11 @@
   "bg": {
     "ownersLogin": {
       "ownerLoginPassword": "Парола",
-      "ownerLoginPasswordPlaceholder": "demo1234",
+      "ownerLoginPasswordPlaceholder": "????????",
       "ownerLoginPasswordError": "Моля, въведете демо паролата.",
       "ownerLoginCredentialsError": "Демо данните не са правилни.",
       "ownerLoginDemoLabel": "Демо данни",
-      "ownerLoginDemoNote": "owner@blackseaconnect.com / demo1234",
+      "ownerLoginDemoNote": "",
       "ownerLoginBackToSite": "Обратно към сайта",
       "navOwnerRequestService": "Заяви услуга",
       "ownerLoginSupport": "Вижте последните обновления, какво се случва и как да поискате помощ за имота.",
@@ -63,11 +63,11 @@
   "en": {
     "ownersLogin": {
       "ownerLoginPassword": "Password",
-      "ownerLoginPasswordPlaceholder": "demo1234",
+      "ownerLoginPasswordPlaceholder": "????????",
       "ownerLoginPasswordError": "Please enter the demo password.",
       "ownerLoginCredentialsError": "The demo credentials are not correct.",
       "ownerLoginDemoLabel": "Demo credentials",
-      "ownerLoginDemoNote": "owner@blackseaconnect.com / demo1234",
+      "ownerLoginDemoNote": "",
       "ownerLoginBackToSite": "Back to site",
       "navOwnerRequestService": "Request service",
       "ownerLoginSupport": "See recent updates, what is happening, and how to request help for your property.",
@@ -121,11 +121,11 @@
   "fr": {
     "ownersLogin": {
       "ownerLoginPassword": "Mot de passe",
-      "ownerLoginPasswordPlaceholder": "demo1234",
+      "ownerLoginPasswordPlaceholder": "????????",
       "ownerLoginPasswordError": "Veuillez saisir le mot de passe de démonstration.",
       "ownerLoginCredentialsError": "Les identifiants de démonstration ne sont pas corrects.",
       "ownerLoginDemoLabel": "Identifiants de démonstration",
-      "ownerLoginDemoNote": "owner@blackseaconnect.com / demo1234",
+      "ownerLoginDemoNote": "",
       "ownerLoginBackToSite": "Retour au site",
       "navOwnerRequestService": "Demander un service",
       "ownerLoginSupport": "Consultez les dernières activités, comprenez ce qui se passe et demandez un service sans courir après l'équipe locale.",
@@ -179,11 +179,11 @@
   "ru": {
     "ownersLogin": {
       "ownerLoginPassword": "Пароль",
-      "ownerLoginPasswordPlaceholder": "demo1234",
+      "ownerLoginPasswordPlaceholder": "????????",
       "ownerLoginPasswordError": "Пожалуйста, введите демо-пароль.",
       "ownerLoginCredentialsError": "Демо-данные указаны неверно.",
       "ownerLoginDemoLabel": "Демо-данные",
-      "ownerLoginDemoNote": "owner@blackseaconnect.com / demo1234",
+      "ownerLoginDemoNote": "",
       "ownerLoginBackToSite": "Назад на сайт",
       "navOwnerRequestService": "Запросить услугу",
       "ownerLoginSupport": "Смотрите последние действия, понимайте, что происходит, и запрашивайте услугу без лишних звонков местной команде.",

@@ -727,19 +727,6 @@ ENTERPRISE_SCOPED_TABLES = (
 )
 INVITATION_TTL_HOURS = 72
 ENTERPRISE_SCHEMA_META_KEY = "enterprise_schema_version"
-OWNER_DEMO_LOGIN_EMAIL = "owner@blackseaconnect.com"
-OWNER_DEMO_LOGIN_PASSWORD = "demo1234"
-OWNER_DEMO_PROFILE = {
-    "id": "owner-demo",
-    "full_name": "Elena Petrova",
-    "email": "owner@blackseaconnect.com",
-    "phone": "+359888111222",
-    "property_type": "Villa",
-    "city": "Varna",
-    "property_name": "Sea View Villa",
-    "number_of_units": 2,
-    "notes": "Demo owner profile for local testing.",
-}
 OWNER_SERVICE_CATEGORIES = (
     "Cleaning",
     "Inspection",
