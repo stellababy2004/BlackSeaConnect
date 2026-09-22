@@ -2526,7 +2526,7 @@ class OwnerPortalTests(unittest.TestCase):
             self.assertIn(f'value="{value}"', html)
         for value in ("LOW", "NORMAL", "HIGH", "URGENT"):
             self.assertIn(f'value="{value}"', html)
-        self.assertIn('href="/admin/operations"', html)
+        self.assertIn('href="/admin/operations', html)
         self.assertIn('href="/admin/operations/new"', html)
         self.assertIn('href="/admin/operations/new"', operator_response.get_data(as_text=True))
         self.assertIn('<html lang="en">', english_response.get_data(as_text=True))
@@ -4333,7 +4333,7 @@ class OwnerPortalTests(unittest.TestCase):
         login_token = login_tokens[-1]["token"]
 
         with patch.dict(os.environ, {**self.ADMIN_ENV, **self.SMTP_ENV}, clear=True):
-            admin_response = self.client.get("/admin/owner-magic-events", headers=self._auth_headers())
+            admin_response = self.client.get("/admin/owner-magic-events?lang=en", headers=self._auth_headers())
 
         self.assertEqual(admin_response.status_code, 200)
         html = admin_response.get_data(as_text=True)
