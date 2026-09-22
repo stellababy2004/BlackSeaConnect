@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Recycle Bin</title>
+  <title>BlackSea Connect | {{ {'bg':'Кошче','en':'Recycle Bin','fr':'Corbeille','ru':'Корзина'}.get(page_lang|default('en')|lower, 'Recycle Bin') }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-recycle-list {
@@ -195,6 +195,30 @@
 {% set _ui_lang = page_lang|default(current_lang|default('en')) %}
 {% if _ui_lang not in ['bg','en','fr','ru'] %}{% set _ui_lang = 'en' %}{% endif %}
 {% set ui = ADMIN_UI[_ui_lang] %}
+
+{% set RECYCLE_EXTRA = {
+  'bg': {
+    'page_title': 'Кошче',
+    'deleted': 'ИЗТРИТ',
+    'purged': 'изтекли заявки за услуга бяха изтрити окончателно.'
+  },
+  'en': {
+    'page_title': 'Recycle Bin',
+    'deleted': 'DELETED',
+    'purged': 'expired service request(s) were permanently purged.'
+  },
+  'fr': {
+    'page_title': 'Corbeille',
+    'deleted': 'SUPPRIMÉ',
+    'purged': 'demande(s) de service expirée(s) ont été supprimée(s) définitivement.'
+  },
+  'ru': {
+    'page_title': 'Корзина',
+    'deleted': 'УДАЛЕН',
+    'purged': 'просроченные заявки на услуги были удалены навсегда.'
+  }
+} %}
+{% set recycle_extra = RECYCLE_EXTRA[_ui_lang] %}
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
@@ -204,10 +228,10 @@
         <p>{{ ui.recycle_intro }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--primary" href="{{ url_for('admin_operator_console') }}">{{ ui.operator_console }}</a>
-        <a class="button button--secondary" href="{{ url_for('admin_service_requests') }}">{{ ui.service_requests }}</a>
-        <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}">{{ ui.owner_accounts }}</a>
-        <a class="button button--ghost" href="/admin">{{ ui.back_cockpit }}</a>
+        <a class="button button--primary" href="{{ url_for('admin_operator_console', lang=_ui_lang) }}">{{ ui.operator_console }}</a>
+        <a class="button button--secondary" href="{{ url_for('admin_service_requests', lang=_ui_lang) }}">{{ ui.service_requests }}</a>
+        <a class="button button--ghost" href="{{ url_for('admin_owner_accounts', lang=_ui_lang) }}">{{ ui.owner_accounts }}</a>
+        <a class="button button--ghost" href="/admin?lang={{ _ui_lang }}">{{ ui.back_cockpit }}</a>
       </div>
     </section>
 
@@ -215,7 +239,7 @@
       {% if messages or purged_count %}
         <section class="admin-cockpit-panel">
           {% if purged_count %}
-            <p>{{ purged_count }} expired service request(s) were permanently purged.</p>
+            <p>{{ purged_count }} {{ recycle_extra.purged }}</p>
           {% endif %}
           {% for category, message in messages %}
             <p>{{ message|e }}</p>
@@ -237,19 +261,19 @@
             <article class="admin-recycle-card">
               <div class="admin-pilot-card__topline">
                 <p class="eyebrow">{{ item.deleted_at or item.archived_at }}</p>
-                <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ 'DELETED' if item.deleted_at else '{{ ui.archived }}' }}</span>
+                <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ recycle_extra.deleted if item.deleted_at else ui.archived }}</span>
               </div>
               <h3>{{ item.name|e }}</h3>
               <p><strong>ID:</strong> {{ item.id|e }}</p>
               <p><strong>{{ ui.category }}</strong> {{ item.service_category|e }}</p>
               <p><strong>{{ ui.property }}</strong> {{ (item.property or item.property_city)|e }}</p>
               <div class="admin-recycle-actions">
-                <form method="post" action="{{ url_for('admin_service_request_restore', request_id=item.id) }}">
+                <form method="post" action="{{ url_for('admin_service_request_restore', request_id=item.id, lang=_ui_lang) }}">
                   <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                   <button class="admin-recycle-button" type="submit">{{ ui.restore_request }}</button>
                 </form>
                 {% if is_super_admin %}
-                  <form method="post" action="{{ url_for('admin_service_request_purge', request_id=item.id) }}">
+                  <form method="post" action="{{ url_for('admin_service_request_purge', request_id=item.id, lang=_ui_lang) }}">
                     <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                     <button class="admin-recycle-button admin-recycle-button--danger" type="submit">{{ ui.delete_permanently }}</button>
                   </form>
@@ -282,13 +306,13 @@
               <p><strong>Email:</strong> {{ owner.email|e }}</p>
               <p><strong>{{ ui.phone }}</strong> {{ owner.phone|e }}</p>
               <div class="admin-recycle-actions">
-                <a class="admin-recycle-button" href="{{ url_for('admin_owner_account_detail', owner_id=owner.id) }}">{{ {'bg':'Отвори собственика','en':'Open owner','fr':'Ouvrir le propriétaire','ru':'Открыть владельца'}[_ui_lang] }}</a>
-                <form method="post" action="{{ url_for('admin_owner_account_restore', owner_id=owner.id) }}">
+                <a class="admin-recycle-button" href="{{ url_for('admin_owner_account_detail', owner_id=owner.id, lang=_ui_lang) }}">{{ {'bg':'Отвори собственика','en':'Open owner','fr':'Ouvrir le propriétaire','ru':'Открыть владельца'}[_ui_lang] }}</a>
+                <form method="post" action="{{ url_for('admin_owner_account_restore', owner_id=owner.id, lang=_ui_lang) }}">
                   <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
                   <button class="admin-recycle-button" type="submit">{{ ui.restore_owner }}</button>
                 </form>
                 {% if is_super_admin %}
-                  <a class="admin-recycle-button admin-recycle-button--danger" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner.id) }}">{{ ui.delete_permanently }}</a>
+                  <a class="admin-recycle-button admin-recycle-button--danger" href="{{ url_for('admin_owner_account_delete_confirm', owner_id=owner.id, lang=_ui_lang) }}">{{ ui.delete_permanently }}</a>
                 {% endif %}
               </div>
             </article>

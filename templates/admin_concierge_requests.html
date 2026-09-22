@@ -1,5 +1,57 @@
 <!doctype html>
 <html lang="{{ page_lang|default('en')|e }}">
+
+{% set concierge_lang = page_lang|default('en')|lower %}
+{% if concierge_lang not in ['bg','en','fr','ru'] %}
+  {% set concierge_lang = 'en' %}
+{% endif %}
+{% set CONCIERGE_UI = {
+  'bg': {
+    'title': 'Консиерж заявки',
+    'heading': 'Консиерж заявки',
+    'copy': 'Заявки за услуги от гости, получени от оперативния портал.',
+    'back': 'Назад към панела',
+    'pilot': 'Преглед на пилотните заявки',
+    'email': 'Имейл',
+    'message': 'Съобщение',
+    'empty': 'Все още няма консиерж заявки.',
+    'empty_copy': 'Когато гост изпрати заявка за услуга, тя ще се появи тук от най-новата към най-старата.'
+  },
+  'en': {
+    'title': 'Concierge Requests',
+    'heading': 'Concierge requests',
+    'copy': 'Guest service requests captured from the operational portal.',
+    'back': 'Back to cockpit',
+    'pilot': 'View Pilot Leads',
+    'email': 'Email',
+    'message': 'Message',
+    'empty': 'No concierge requests yet.',
+    'empty_copy': 'When a guest submits a service request, it will appear here in reverse chronological order.'
+  },
+  'fr': {
+    'title': 'Demandes de conciergerie',
+    'heading': 'Demandes de conciergerie',
+    'copy': 'Demandes de services des voyageurs reçues depuis le portail opérationnel.',
+    'back': 'Retour au tableau de bord',
+    'pilot': 'Voir les demandes pilotes',
+    'email': 'E-mail',
+    'message': 'Message',
+    'empty': 'Aucune demande de conciergerie pour le moment.',
+    'empty_copy': 'Lorsqu’un voyageur envoie une demande de service, elle apparaîtra ici de la plus récente à la plus ancienne.'
+  },
+  'ru': {
+    'title': 'Запросы консьержу',
+    'heading': 'Запросы консьержу',
+    'copy': 'Запросы гостей на услуги, полученные через операционный портал.',
+    'back': 'Назад к панели',
+    'pilot': 'Пилотные запросы',
+    'email': 'E-mail',
+    'message': 'Сообщение',
+    'empty': 'Запросов консьержу пока нет.',
+    'empty_copy': 'Когда гость отправит запрос на услугу, он появится здесь.'
+  }
+} %}
+{% set cui = CONCIERGE_UI[concierge_lang] %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +60,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | Concierge Requests</title>
+  <title>BlackSea Connect | {{ cui.title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
 </head>
 <body class="admin-cockpit-page">
@@ -16,12 +68,12 @@
     <section class="admin-cockpit-hero admin-cockpit-hero--compact">
       <div>
         <p class="eyebrow">ADMIN</p>
-        <h1>Concierge requests</h1>
-        <p>Guest service requests captured from the operational portal.</p>
+        <h1>{{ cui.heading }}</h1>
+        <p>{{ cui.copy }}</p>
       </div>
       <div class="admin-cockpit-actions">
-        <a class="button button--secondary" href="/admin">Back to cockpit</a>
-        <a class="button button--ghost" href="/admin/pilot-requests">View Pilot Leads</a>
+        <a class="button button--secondary" href="/admin?lang={{ concierge_lang }}">{{ cui.back }}</a>
+        <a class="button button--ghost" href="/admin/pilot-requests?lang={{ concierge_lang }}">{{ cui.pilot }}</a>
       </div>
     </section>
 
@@ -34,15 +86,15 @@
               <span class="admin-pilot-status admin-pilot-status--contacted">{{ item.service_type|e }}</span>
             </div>
             <h2>{{ item.name|e }}</h2>
-            <p><strong>Email:</strong> {{ item.email|e }}</p>
-            <p><strong>Message:</strong> {{ item.message|e }}</p>
+            <p><strong>{{ cui.email }}:</strong> {{ item.email|e }}</p>
+            <p><strong>{{ cui.message }}:</strong> {{ item.message|e }}</p>
           </article>
         {% endfor %}
       </section>
     {% else %}
       <section class="admin-cockpit-panel admin-empty-state">
-        <h2>No concierge requests yet.</h2>
-        <p>When a guest submits a service request, it will appear here in reverse chronological order.</p>
+        <h2>{{ cui.empty }}</h2>
+        <p>{{ cui.empty_copy }}</p>
       </section>
     {% endif %}
   </main>

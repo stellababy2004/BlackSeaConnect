@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>BlackSea Connect | {{ page_title }}</title>
+  <title>BlackSea Connect | {{ public_i18n('adminReservationImport', 'title', 'Reservation import') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
     .reservation-import-page {
@@ -294,53 +294,53 @@
     <section class="reservation-import-hero">
       <div>
         <p class="eyebrow">BlackSea Connect</p>
-        <h1>{{ page_title }}</h1>
+        <h1>{{ public_i18n('adminReservationImport', 'title', 'Reservation import') }}</h1>
         <p class="reservation-import-copy">
-          Unified reservation import pipeline for CSV, iCal, Google Calendar, OTA adapters, manual entry, and future connectors.
-          Preview first, validate before saving, and keep calendar, operations, notifications, and timeline synchronized.
+          {{ public_i18n('adminReservationImport', 'hero1', 'Unified reservation import pipeline for CSV, iCal, Google Calendar, OTA adapters, manual entry, and future connectors.') }}
+          {{ public_i18n('adminReservationImport', 'hero2', 'Preview first, validate before saving, and keep calendar, operations, notifications, and timeline synchronized.') }}
         </p>
       </div>
       <div class="reservation-import-actions">
-        <a class="button button--primary" href="{{ localized_url('/admin/operator') }}">Operator Console</a>
-        <a class="button button--secondary" href="{{ localized_url('/admin/reservations') }}">Back to reservations</a>
-        <a class="button button--secondary" href="{{ localized_url('/admin') }}">Back to admin</a>
+        <a class="button button--primary" href="{{ localized_url('/admin/operator') }}">{{ public_i18n('adminReservationImport', 'operator', 'Operator console') }}</a>
+        <a class="button button--secondary" href="{{ localized_url('/admin/reservations') }}">{{ public_i18n('adminReservationImport', 'backReservations', 'Back to reservations') }}</a>
+        <a class="button button--secondary" href="{{ localized_url('/admin') }}">{{ public_i18n('adminReservationImport', 'backAdmin', 'Back to admin') }}</a>
       </div>
     </section>
 
-    <section class="reservation-import-steps" aria-label="Import steps">
-      <article class="reservation-import-step"><span>Step 1</span><strong>Select source</strong></article>
-      <article class="reservation-import-step"><span>Step 2</span><strong>Upload or enter data</strong></article>
-      <article class="reservation-import-step"><span>Step 3</span><strong>Validate</strong></article>
-      <article class="reservation-import-step"><span>Step 4</span><strong>Preview</strong></article>
-      <article class="reservation-import-step"><span>Step 5</span><strong>Import</strong></article>
+    <section class="reservation-import-steps" aria-label="{{ public_i18n('adminReservationImport', 'stepsAria', 'Import steps') }}">
+      <article class="reservation-import-step"><span>{{ public_i18n('adminReservationImport', 'step', 'Step') }} 1</span><strong>{{ public_i18n('adminReservationImport', 'selectSource', 'Select source') }}</strong></article>
+      <article class="reservation-import-step"><span>{{ public_i18n('adminReservationImport', 'step', 'Step') }} 2</span><strong>{{ public_i18n('adminReservationImport', 'uploadData', 'Upload data') }}</strong></article>
+      <article class="reservation-import-step"><span>{{ public_i18n('adminReservationImport', 'step', 'Step') }} 3</span><strong>{{ public_i18n('adminReservationImport', 'validate', 'Validate') }}</strong></article>
+      <article class="reservation-import-step"><span>{{ public_i18n('adminReservationImport', 'step', 'Step') }} 4</span><strong>{{ public_i18n('adminReservationImport', 'preview', 'Preview') }}</strong></article>
+      <article class="reservation-import-step"><span>{{ public_i18n('adminReservationImport', 'step', 'Step') }} 5</span><strong>{{ public_i18n('adminReservationImport', 'import', 'Import') }}</strong></article>
     </section>
 
     <section class="reservation-import-grid">
       <div class="reservation-import-stack">
         <article class="reservation-import-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Import wizard</p>
-            <h2>Source and data</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('adminReservationImport', 'wizard', 'Import wizard') }}</p>
+            <h2>{{ public_i18n('adminReservationImport', 'sourceData', 'Source and data') }}</h2>
           </div>
           {% if validation_error %}
-            <div class="reservation-import-empty" style="margin-bottom: 14px;">{{ validation_error }}</div>
+            <div class="reservation-import-empty" style="margin-bottom: 14px;">{% if validation_error == 'Import blocked by validation.' %}{{ public_i18n('adminReservationImport', 'validationBlocked', 'Import blocked by validation.') }}{% elif validation_error == 'Import validation failed.' %}{{ public_i18n('adminReservationImport', 'validationFailed', 'Import validation failed.') }}{% else %}{{ validation_error }}{% endif %}</div>
           {% endif %}
           <form class="reservation-import-form" method="post" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
             <input type="hidden" name="preview_payload_json" value="{{ preview_payload_json|default('')|e }}">
             <div class="reservation-import-form-grid">
               <label>
-                <span>Source</span>
+                <span>{{ public_i18n('adminReservationImport', 'source', 'Source') }}</span>
                 <select name="source">
                   {% for option in import_sources %}
-                    <option value="{{ option.key }}" {% if option.key == current_source %}selected{% endif %}>{{ option.label }}</option>
+                    <option value="{{ option.key }}" {% if option.key == current_source %}selected{% endif %}>{% if option.key == 'manual' %}{{ public_i18n('adminReservationImport', 'manual', 'Manual') }}{% elif option.key == 'direct_booking' %}{{ public_i18n('adminReservationImport', 'directBooking', 'Direct Booking') }}{% else %}{{ option.label }}{% endif %}</option>
                   {% endfor %}
                 </select>
               </label>
               <label>
-                <span>Manual property match</span>
+                <span>{{ public_i18n('adminReservationImport', 'manualMatch', 'Manual property match') }}</span>
                 <select name="manual_property_id">
-                  <option value="">Auto-match</option>
+                  <option value="">{{ public_i18n('adminReservationImport', 'autoMatch', 'Auto-match by property') }}</option>
                   {% for property in property_options %}
                     <option value="{{ property.id|e }}">{{ property.name|e }}</option>
                   {% endfor %}
@@ -350,47 +350,47 @@
 
             {% if current_source == 'manual' %}
               <div class="reservation-import-form-grid" style="margin-top: 12px;">
-                <label><span>Property ID</span><input name="property_id" placeholder="Property id"></label>
-                <label><span>Property name</span><input name="property_name" placeholder="Sea View Villa"></label>
-                <label><span>Guest first name</span><input name="guest_first_name" placeholder="Elena"></label>
-                <label><span>Guest last name</span><input name="guest_last_name" placeholder="Petrova"></label>
-                <label><span>Guest email</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
-                <label><span>Guest phone</span><input name="guest_phone" placeholder="+359..."></label>
-                <label><span>Adults</span><input name="adults" type="number" min="0" value="1"></label>
-                <label><span>Children</span><input name="children" type="number" min="0" value="0"></label>
-                <label><span>Infants</span><input name="infants" type="number" min="0" value="0"></label>
-                <label><span>Pets</span><input name="pets" type="number" min="0" value="0"></label>
-                <label><span>Arrival</span><input name="arrival_datetime" type="datetime-local"></label>
-                <label><span>Departure</span><input name="departure_datetime" type="datetime-local"></label>
-                <label><span>External reference</span><input name="external_reference" placeholder="Manual / source reference"></label>
-                <label><span>Status</span><input name="status" placeholder="CONFIRMED"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'propertyId', 'Property ID') }}</span><input name="property_id" placeholder="Property id"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'propertyName', 'Property name') }}</span><input name="property_name" placeholder="Sea View Villa"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'guestFirst', 'Guest first name') }}</span><input name="guest_first_name" placeholder="Elena"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'guestLast', 'Guest last name') }}</span><input name="guest_last_name" placeholder="Petrova"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'guestEmail', 'Guest email') }}</span><input name="guest_email" type="email" placeholder="guest@example.com"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'guestPhone', 'Guest phone') }}</span><input name="guest_phone" placeholder="+359..."></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'adults', 'Adults') }}</span><input name="adults" type="number" min="0" value="1"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'children', 'Children') }}</span><input name="children" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'infants', 'Infants') }}</span><input name="infants" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'pets', 'Pets') }}</span><input name="pets" type="number" min="0" value="0"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'arrival', 'Arrival') }}</span><input name="arrival_datetime" type="datetime-local"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'departure', 'Departure') }}</span><input name="departure_datetime" type="datetime-local"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'externalRef', 'External reference') }}</span><input name="external_reference" placeholder="Manual / source reference"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'status', 'Status') }}</span><input name="status" placeholder="CONFIRMED"></label>
               </div>
               <label style="margin-top: 12px;">
-                <span>Notes</span>
-                <textarea name="notes" placeholder="Internal notes for the reservation"></textarea>
+                <span>{{ public_i18n('adminReservationImport', 'notes', 'Notes') }}</span>
+                <textarea name="notes" placeholder="{{ public_i18n('adminReservationImport', 'notesPlaceholder', 'Optional notes') }}"></textarea>
               </label>
             {% elif current_source == 'csv' %}
-              <p class="reservation-import-source-note">Upload a CSV file or paste CSV text. Supported fields include Property, Guest, Arrival, Departure, Adults, Children, Email, Phone, and Notes.</p>
+              <p class="reservation-import-source-note">{{ public_i18n('adminReservationImport', 'csvNote', 'Upload a CSV file or paste CSV data.') }}</p>
               <div class="reservation-import-form-grid">
-                <label><span>CSV file</span><input name="csv_file" type="file" accept=".csv,text/csv"></label>
-                <label><span>Or CSV text</span><textarea name="csv_text" placeholder="Property,Guest,Arrival,Departure,..."></textarea></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'csvFile', 'CSV file') }}</span><input name="csv_file" type="file" accept=".csv,text/csv"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'csvText', 'CSV data') }}</span><textarea name="csv_text" placeholder="Property,Guest,Arrival,Departure,..."></textarea></label>
               </div>
             {% elif current_source in ['ical', 'google_calendar', 'ota'] %}
-              <p class="reservation-import-source-note">Upload an .ics file or provide a URL. The parser extracts UID, SUMMARY, DESCRIPTION, DTSTART, DTEND, LOCATION, and STATUS without starting live sync.</p>
+              <p class="reservation-import-source-note">{{ public_i18n('adminReservationImport', 'icsNote', 'Upload an iCal file or provide a calendar URL.') }}</p>
               <div class="reservation-import-form-grid">
-                <label><span>ICS file</span><input name="ics_file" type="file" accept=".ics,text/calendar"></label>
-                <label><span>Calendar URL</span><input name="ics_url" placeholder="https://.../calendar.ics"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'icsFile', 'iCal file') }}</span><input name="ics_file" type="file" accept=".ics,text/calendar"></label>
+                <label><span>{{ public_i18n('adminReservationImport', 'calendarUrl', 'Calendar URL') }}</span><input name="ics_url" placeholder="https://.../calendar.ics"></label>
               </div>
             {% else %}
               <div class="reservation-import-empty" style="margin-top: 12px;">
-                This adapter is reserved as an extension point for future direct booking and API connectors.
+                {{ public_i18n('adminReservationImport', 'adapterFuture', 'This source is prepared for a future adapter.') }}
               </div>
             {% endif %}
 
             <div class="reservation-import-actions-row" style="margin-top: 14px;">
-              <button class="button button--primary" type="submit" name="import_action" value="preview">Validate and preview</button>
+              <button class="button button--primary" type="submit" name="import_action" value="preview">{{ public_i18n('adminReservationImport', 'validatePreview', 'Validate and preview') }}</button>
               {% if preview and preview.report and preview.report.ready_to_import %}
-                <button class="button button--secondary" type="submit" name="import_action" value="import">Confirm import</button>
+                <button class="button button--secondary" type="submit" name="import_action" value="import">{{ public_i18n('adminReservationImport', 'confirmImport', 'Confirm import') }}</button>
               {% endif %}
             </div>
           </form>
@@ -398,71 +398,71 @@
 
         <article class="reservation-import-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Preview</p>
-            <h2>Validation report and records</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('adminReservationImport', 'preview', 'Preview') }}</p>
+            <h2>{{ public_i18n('adminReservationImport', 'report', 'Import report') }}</h2>
           </div>
           {% if preview and preview.report %}
             <div class="reservation-import-report">
               <div class="reservation-import-form-grid">
                 <div class="reservation-import-report__group">
-                  <strong>New reservations</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'newReservations', 'New reservations') }}</strong>
                   <span>{{ preview.report.new_reservations|length }}</span>
                 </div>
                 <div class="reservation-import-report__group">
-                  <strong>Updated reservations</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'updatedReservations', 'Updated reservations') }}</strong>
                   <span>{{ preview.report.updated_reservations|length }}</span>
                 </div>
                 <div class="reservation-import-report__group">
-                  <strong>Duplicates</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'duplicates', 'Duplicates') }}</strong>
                   <span>{{ preview.report.duplicates|length }}</span>
                 </div>
                 <div class="reservation-import-report__group">
-                  <strong>Conflicts</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'conflicts', 'Conflicts') }}</strong>
                   <span>{{ preview.report.conflicts|length }}</span>
                 </div>
               </div>
               {% if preview.report.errors %}
                 <div class="reservation-import-report__group">
-                  <strong>Errors</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'errors', 'Errors') }}</strong>
                   <ul class="reservation-import-report__list">
                     {% for item in preview.report.errors %}
-                      <li>{{ item.guest_name or item.property_name or 'Reservation row' }}: {{ item.validation_errors|join(', ') }}</li>
+                      <li>{{ item.guest_name or item.property_name or public_i18n('adminReservationImport', 'reservationRow', 'Reservation row') }}: {% for error in item.validation_errors %}{% if error == 'missing_property' %}{{ public_i18n('adminReservationImport', 'missingProperty', 'Missing property') }}{% elif error == 'unknown_property' %}{{ public_i18n('adminReservationImport', 'unknownProperty', 'Unknown property') }}{% elif error == 'invalid_dates' %}{{ public_i18n('adminReservationImport', 'invalidDates', 'Invalid dates') }}{% elif error == 'duplicate_in_batch' %}{{ public_i18n('adminReservationImport', 'duplicateInBatch', 'Duplicate in import batch') }}{% else %}{{ error }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</li>
                     {% endfor %}
                   </ul>
                 </div>
               {% endif %}
               {% if preview.report.warnings %}
                 <div class="reservation-import-report__group">
-                  <strong>Warnings</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'warnings', 'Warnings') }}</strong>
                   <ul class="reservation-import-report__list">
                     {% for warning in preview.report.warnings %}
-                      <li>{{ warning }}</li>
+                      <li>{% if warning == 'timezone_issue' %}{{ public_i18n('adminReservationImport', 'timezoneIssue', 'Timezone issue') }}{% else %}{{ warning }}{% endif %}</li>
                     {% endfor %}
                   </ul>
                 </div>
               {% endif %}
               {% if preview["items"] %}
                 <div class="reservation-import-report__group">
-                  <strong>Parsed items</strong>
+                  <strong>{{ public_i18n('adminReservationImport', 'parsedItems', 'Parsed items') }}</strong>
                   <div style="overflow-x:auto;">
                     <table class="reservation-import-table">
                       <thead>
                         <tr>
-                          <th>Guest</th>
-                          <th>Property</th>
-                          <th>Dates</th>
-                          <th>Status</th>
-                          <th>Result</th>
+                          <th>{{ public_i18n('adminReservationImport', 'guest', 'Guest') }}</th>
+                          <th>{{ public_i18n('adminReservationImport', 'property', 'Property') }}</th>
+                          <th>{{ public_i18n('adminReservationImport', 'dates', 'Dates') }}</th>
+                          <th>{{ public_i18n('adminReservationImport', 'status', 'Status') }}</th>
+                          <th>{{ public_i18n('adminReservationImport', 'result', 'Result') }}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {% for item in preview["items"] %}
                           <tr>
-                            <td>{{ (item.guest_first_name ~ ' ' ~ item.guest_last_name)|trim or item.guest_name or 'Blocked dates' }}</td>
-                            <td>{{ item.property_name or item.property_id or 'Unmatched' }}</td>
+                            <td>{{ (item.guest_first_name ~ ' ' ~ item.guest_last_name)|trim or item.guest_name or public_i18n('adminReservationImport', 'blockedDates', 'Blocked dates') }}</td>
+                            <td>{{ item.property_name or item.property_id or public_i18n('adminReservationImport', 'unmatched', 'Unmatched') }}</td>
                             <td>{{ item.arrival_datetime }} - {{ item.departure_datetime }}</td>
-                            <td>{{ item.status or 'PENDING' }}</td>
-                            <td><span class="reservation-import-chip">{{ item.validation_state }}</span></td>
+                            <td>{% set display_status = item.status or 'PENDING' %}{% if display_status == 'PENDING' %}{{ public_i18n('adminReservationImport', 'statusPending', 'Pending') }}{% elif display_status == 'CONFIRMED' %}{{ public_i18n('adminReservationImport', 'statusConfirmed', 'Confirmed') }}{% elif display_status == 'CANCELLED' %}{{ public_i18n('adminReservationImport', 'statusCancelled', 'Cancelled') }}{% else %}{{ display_status }}{% endif %}</td>
+                            <td><span class="reservation-import-chip">{% if item.validation_state == 'new' %}{{ public_i18n('adminReservationImport', 'stateNew', 'New') }}{% elif item.validation_state == 'updated' %}{{ public_i18n('adminReservationImport', 'stateUpdated', 'Updated') }}{% elif item.validation_state == 'duplicate' %}{{ public_i18n('adminReservationImport', 'stateDuplicate', 'Duplicate') }}{% elif item.validation_state == 'conflict' %}{{ public_i18n('adminReservationImport', 'stateConflict', 'Conflict') }}{% elif item.validation_state == 'error' %}{{ public_i18n('adminReservationImport', 'stateError', 'Error') }}{% else %}{{ item.validation_state }}{% endif %}</span></td>
                           </tr>
                         {% endfor %}
                       </tbody>
@@ -472,7 +472,7 @@
               {% endif %}
             </div>
           {% else %}
-            <div class="reservation-import-empty">Upload a file or fill the manual form, then preview the import to see validation, matching, duplicates, and conflicts before anything is saved.</div>
+            <div class="reservation-import-empty">{{ public_i18n('adminReservationImport', 'emptyPreview', 'No preview items yet.') }}</div>
           {% endif %}
         </article>
       </div>
@@ -480,16 +480,16 @@
       <aside class="reservation-import-side">
         <article class="reservation-import-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Adapters</p>
-            <h2>Extension points</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('adminReservationImport', 'adapters', 'Adapters') }}</p>
+            <h2>{{ public_i18n('adminReservationImport', 'extensionPoints', 'Extension points') }}</h2>
           </div>
           <div class="reservation-import-report">
             <div class="reservation-import-report__group">
-              <strong>Live now</strong>
+              <strong>{{ public_i18n('adminReservationImport', 'liveNow', 'Live now') }}</strong>
               <span class="reservation-import-muted">Manual, CSV, iCal parser, Google Calendar scaffold, OTA scaffold</span>
             </div>
             <div class="reservation-import-report__group">
-              <strong>Prepared for later</strong>
+              <strong>{{ public_i18n('adminReservationImport', 'preparedLater', 'Prepared for later') }}</strong>
               <span class="reservation-import-muted">Airbnb, Booking.com, VRBO, Outlook, Apple Calendar, direct booking, and API connectors.</span>
             </div>
           </div>
@@ -497,14 +497,14 @@
 
         <article class="reservation-import-panel">
           <div class="section-heading">
-            <p class="section-heading__eyebrow">Synchronization</p>
-            <h2>What updates on import</h2>
+            <p class="section-heading__eyebrow">{{ public_i18n('adminReservationImport', 'synchronization', 'Synchronization') }}</p>
+            <h2>{{ public_i18n('adminReservationImport', 'updates', 'Updates') }}</h2>
           </div>
           <div class="reservation-import-report">
-            <div class="reservation-import-report__group"><strong>Calendar</strong><span class="reservation-import-muted">Events are created through the reservation engine.</span></div>
-            <div class="reservation-import-report__group"><strong>Operations</strong><span class="reservation-import-muted">Check-in, cleaning, inspection, and check-out tasks are generated automatically.</span></div>
-            <div class="reservation-import-report__group"><strong>Notifications</strong><span class="reservation-import-muted">Import events are announced in the notification center.</span></div>
-            <div class="reservation-import-report__group"><strong>Timeline</strong><span class="reservation-import-muted">Every accepted import gets a timestamped audit trail.</span></div>
+            <div class="reservation-import-report__group"><strong>{{ public_i18n('adminReservationImport', 'calendar', 'Calendar') }}</strong><span class="reservation-import-muted">{{ public_i18n('adminReservationImport', 'calendarCopy', 'Imported reservations update calendar availability.') }}</span></div>
+            <div class="reservation-import-report__group"><strong>{{ public_i18n('adminReservationImport', 'operations', 'Operations') }}</strong><span class="reservation-import-muted">{{ public_i18n('adminReservationImport', 'operationsCopy', 'Operational workflows stay synchronized with reservation changes.') }}</span></div>
+            <div class="reservation-import-report__group"><strong>{{ public_i18n('adminReservationImport', 'notifications', 'Notifications') }}</strong><span class="reservation-import-muted">{{ public_i18n('adminReservationImport', 'notificationsCopy', 'Relevant import events can feed operational notifications.') }}</span></div>
+            <div class="reservation-import-report__group"><strong>{{ public_i18n('adminReservationImport', 'timeline', 'Timeline') }}</strong><span class="reservation-import-muted">{{ public_i18n('adminReservationImport', 'timelineCopy', 'Import activity is retained in the operational timeline.') }}</span></div>
           </div>
         </article>
       </aside>

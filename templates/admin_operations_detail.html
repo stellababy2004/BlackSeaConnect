@@ -2763,7 +2763,12 @@
   {% set operations_lang = page_lang|default(current_lang|default('en'))|lower %}
 {% endif %}
 
-{% set status_labels = {
+{% if operations_lang not in ['bg', 'en', 'fr', 'ru'] %}
+  {% set operations_lang = 'en' %}
+{% endif %}
+
+{% set status_labels_all = {
+  'bg': {
     'NEW': 'Нова',
     'ASSIGNED': 'Възложена',
     'ACCEPTED': 'Приета',
@@ -2775,7 +2780,48 @@
     'WAITING_OPERATIONS': 'Изчаква операции',
     'COMPLETED': 'Завършена',
     'ARCHIVED': 'Архивирана'
-  } %}
+  },
+  'en': {
+    'NEW': 'New',
+    'ASSIGNED': 'Assigned',
+    'ACCEPTED': 'Accepted',
+    'ON_THE_WAY': 'On the way',
+    'ARRIVED': 'Arrived',
+    'IN_PROGRESS': 'In progress',
+    'PAUSED': 'Paused',
+    'WAITING_OWNER': 'Waiting for owner',
+    'WAITING_OPERATIONS': 'Waiting for operations',
+    'COMPLETED': 'Completed',
+    'ARCHIVED': 'Archived'
+  },
+  'fr': {
+    'NEW': 'Nouvelle',
+    'ASSIGNED': 'Attribuée',
+    'ACCEPTED': 'Acceptée',
+    'ON_THE_WAY': 'En route',
+    'ARRIVED': 'Arrivé',
+    'IN_PROGRESS': 'En cours',
+    'PAUSED': 'En pause',
+    'WAITING_OWNER': 'En attente du propriétaire',
+    'WAITING_OPERATIONS': 'En attente des opérations',
+    'COMPLETED': 'Terminée',
+    'ARCHIVED': 'Archivée'
+  },
+  'ru': {
+    'NEW': 'Новая',
+    'ASSIGNED': 'Назначена',
+    'ACCEPTED': 'Принята',
+    'ON_THE_WAY': 'В пути',
+    'ARRIVED': 'Прибыл',
+    'IN_PROGRESS': 'В работе',
+    'PAUSED': 'Пауза',
+    'WAITING_OWNER': 'Ожидание владельца',
+    'WAITING_OPERATIONS': 'Ожидание операций',
+    'COMPLETED': 'Завершена',
+    'ARCHIVED': 'Архивирована'
+  }
+} %}
+{% set status_labels = status_labels_all.get(operations_lang, status_labels_all['en']) %}
   <style>
     .admin-operations-ai {
       margin: 24px 0;
@@ -2886,105 +2932,420 @@
     }
   </style>
 
-  {% set priority_labels = {
+  {% set priority_labels_all = {
+  'bg': {
     'LOW': 'Нисък',
     'NORMAL': 'Нормален',
     'HIGH': 'Висок',
     'URGENT': 'Спешен'
+  },
+  'en': {
+    'LOW': 'Low',
+    'NORMAL': 'Normal',
+    'HIGH': 'High',
+    'URGENT': 'Urgent'
+  },
+  'fr': {
+    'LOW': 'Faible',
+    'NORMAL': 'Normal',
+    'HIGH': 'Élevé',
+    'URGENT': 'Urgent'
+  },
+  'ru': {
+    'LOW': 'Низкий',
+    'NORMAL': 'Обычный',
+    'HIGH': 'Высокий',
+    'URGENT': 'Срочный'
+  }
+} %}
+{% set priority_labels = priority_labels_all.get(operations_lang, priority_labels_all['en']) %}
+  {% set note_type_labels_all = {
+    'bg': {
+      'General': 'Обща бележка',
+      'Urgent': 'Спешно',
+      'Owner': 'Собственик',
+      'Professional': 'Професионалист',
+      'Completion': 'Завършване',
+      'operations': 'Операции',
+      'professional': 'Професионалист'
+    },
+    'en': {
+      'General': 'General note',
+      'Urgent': 'Urgent',
+      'Owner': 'Owner',
+      'Professional': 'Professional',
+      'Completion': 'Completion',
+      'operations': 'Operations',
+      'professional': 'Professional'
+    },
+    'fr': {
+      'General': 'Note générale',
+      'Urgent': 'Urgent',
+      'Owner': 'Propriétaire',
+      'Professional': 'Professionnel',
+      'Completion': 'Finalisation',
+      'operations': 'Opérations',
+      'professional': 'Professionnel'
+    },
+    'ru': {
+      'General': 'Общая заметка',
+      'Urgent': 'Срочно',
+      'Owner': 'Владелец',
+      'Professional': 'Специалист',
+      'Completion': 'Завершение',
+      'operations': 'Операции',
+      'professional': 'Специалист'
+    }
   } %}
-  {% set note_type_labels = {
-    'General': 'Обща бележка',
-    'Urgent': 'Спешно',
-    'Owner': 'Собственик',
-    'Professional': 'Професионалист',
-    'Completion': 'Завършване',
-    'operations': 'Операции',
-    'professional': 'Професионалист'
+  {% set note_type_labels = note_type_labels_all.get(operations_lang, note_type_labels_all['en']) %}
+  {% set event_labels_all = {
+    'bg': {
+      'assigned': 'Възложен е професионалист',
+      'task_created': 'Заявката е създадена',
+      'overdue_detected': 'Засечено е просрочване по SLA',
+      'note_added': 'Добавена е бележка',
+      'comment_added': 'Добавен е коментар',
+      'checklist_updated': 'Обновен е чеклистът',
+      'audit_logged': 'Записана е контролна проверка',
+      'status_changed': 'Променен е статусът на задачата',
+      'completed': 'Задачата е приключена',
+      'archived': 'Задачата е архивирана',
+      'workflow_transitioned': 'Променен е оперативният етап',
+      'professional_assigned': 'Възложен е професионалист',
+      'professional_accepted': 'Приета задача',
+      'professional_on_the_way': 'Професионалистът е на път',
+      'professional_arrived': 'Професионалистът пристигна',
+      'professional_started': 'Работата започна',
+      'professional_paused': 'Пауза',
+      'professional_resumed': 'Работата е подновена',
+      'professional_completed': 'Задачата е завършена',
+      'professional_comment_added': 'Коментар от професионалист',
+      'comment_added_internal': 'Вътрешна бележка',
+      'attachment_added': 'Добавено е доказателство',
+      'completion_report_updated': 'Обновен отчет'
+    },
+    'en': {
+      'assigned': 'Professional assigned',
+      'task_created': 'Request created',
+      'overdue_detected': 'SLA overdue detected',
+      'note_added': 'Note added',
+      'comment_added': 'Comment added',
+      'checklist_updated': 'Checklist updated',
+      'audit_logged': 'Audit check logged',
+      'status_changed': 'Task status changed',
+      'completed': 'Task completed',
+      'archived': 'Task archived',
+      'workflow_transitioned': 'Operational stage changed',
+      'professional_assigned': 'Professional assigned',
+      'professional_accepted': 'Task accepted',
+      'professional_on_the_way': 'Professional is on the way',
+      'professional_arrived': 'Professional arrived',
+      'professional_started': 'Work started',
+      'professional_paused': 'Paused',
+      'professional_resumed': 'Work resumed',
+      'professional_completed': 'Task completed',
+      'professional_comment_added': 'Comment from professional',
+      'comment_added_internal': 'Internal note',
+      'attachment_added': 'Evidence added',
+      'completion_report_updated': 'Completion report updated'
+    },
+    'fr': {
+      'assigned': 'Professionnel attribué',
+      'task_created': 'Demande créée',
+      'overdue_detected': 'Dépassement SLA détecté',
+      'note_added': 'Note ajoutée',
+      'comment_added': 'Commentaire ajouté',
+      'checklist_updated': 'Checklist mise à jour',
+      'audit_logged': 'Contrôle d’audit enregistré',
+      'status_changed': 'Statut de la tâche modifié',
+      'completed': 'Tâche terminée',
+      'archived': 'Tâche archivée',
+      'workflow_transitioned': 'Étape opérationnelle modifiée',
+      'professional_assigned': 'Professionnel attribué',
+      'professional_accepted': 'Tâche acceptée',
+      'professional_on_the_way': 'Professionnel en route',
+      'professional_arrived': 'Professionnel arrivé',
+      'professional_started': 'Travail démarré',
+      'professional_paused': 'En pause',
+      'professional_resumed': 'Travail repris',
+      'professional_completed': 'Tâche terminée',
+      'professional_comment_added': 'Commentaire du professionnel',
+      'comment_added_internal': 'Note interne',
+      'attachment_added': 'Preuve ajoutée',
+      'completion_report_updated': 'Rapport de fin mis à jour'
+    },
+    'ru': {
+      'assigned': 'Специалист назначен',
+      'task_created': 'Заявка создана',
+      'overdue_detected': 'Обнаружена просрочка SLA',
+      'note_added': 'Заметка добавлена',
+      'comment_added': 'Комментарий добавлен',
+      'checklist_updated': 'Чек-лист обновлён',
+      'audit_logged': 'Аудит зарегистрирован',
+      'status_changed': 'Статус задачи изменён',
+      'completed': 'Задача завершена',
+      'archived': 'Задача архивирована',
+      'workflow_transitioned': 'Операционный этап изменён',
+      'professional_assigned': 'Специалист назначен',
+      'professional_accepted': 'Задача принята',
+      'professional_on_the_way': 'Специалист в пути',
+      'professional_arrived': 'Специалист прибыл',
+      'professional_started': 'Работа начата',
+      'professional_paused': 'Пауза',
+      'professional_resumed': 'Работа возобновлена',
+      'professional_completed': 'Задача завершена',
+      'professional_comment_added': 'Комментарий специалиста',
+      'comment_added_internal': 'Внутренняя заметка',
+      'attachment_added': 'Доказательство добавлено',
+      'completion_report_updated': 'Отчёт о завершении обновлён'
+    }
   } %}
-  {% set event_labels = {
-    'assigned': 'Възложен е професионалист',
-    'task_created': 'Заявката е създадена',
-    'overdue_detected': 'Засечено е просрочване по SLA',
-    'note_added': 'Добавена е бележка',
-    'comment_added': 'Добавен е коментар',
-    'checklist_updated': 'Обновен е чеклистът',
-    'audit_logged': 'Записана е контролна проверка',
-    'status_changed': 'Променен е статусът на задачата',
-    'completed': 'Задачата е приключена',
-    'archived': 'Задачата е архивирана',
-    'workflow_transitioned': 'Променен е оперативният етап',
-    'professional_assigned': 'Възложен е професионалист',
-    'professional_accepted': 'Приета задача',
-    'professional_on_the_way': 'Професионалистът е на път',
-    'professional_arrived': 'Професионалистът пристигна',
-    'professional_started': 'Работата започна',
-    'professional_paused': 'Пауза',
-    'professional_resumed': 'Работата е подновена',
-    'professional_completed': 'Задачата е завършена',
-    'professional_comment_added': 'Коментар от професионалист',
-    'comment_added_internal': 'Вътрешна бележка',
-    'attachment_added': 'Добавено е доказателство',
-    'completion_report_updated': 'Обновен отчет'
+  {% set event_labels = event_labels_all.get(operations_lang, event_labels_all['en']) %}
+  {% set professional_status_labels_all = {
+    'bg': {
+      'APPROVED': 'Одобрен',
+      'ACTIVE': 'Активен'
+    },
+    'en': {
+      'APPROVED': 'Approved',
+      'ACTIVE': 'Active'
+    },
+    'fr': {
+      'APPROVED': 'Approuvé',
+      'ACTIVE': 'Actif'
+    },
+    'ru': {
+      'APPROVED': 'Одобрен',
+      'ACTIVE': 'Активен'
+    }
   } %}
-  {% set professional_status_labels = {
-    'APPROVED': 'Одобрен',
-    'ACTIVE': 'Активен'
+  {% set professional_status_labels = professional_status_labels_all.get(operations_lang, professional_status_labels_all['en']) %}
+  {% set request_status_labels_all = {
+    'bg': {
+      'NEW': 'Нова',
+      'IN_REVIEW': 'В преглед',
+      'APPROVED': 'Одобрена',
+      'REJECTED': 'Отказана',
+      'ASSIGNED': 'Възложена',
+      'IN_PROGRESS': 'В работа',
+      'WAITING_OWNER': 'Изчаква собственик',
+      'WAITING_OPERATIONS': 'Изчаква операции',
+      'COMPLETED': 'Завършена',
+      'CANCELLED': 'Отменена',
+      'PENDING': 'В очакване',
+      'CONFIRMED': 'Потвърдена',
+      'CHECKED_IN': 'Настанен',
+      'CHECKED_OUT': 'Освободен',
+      'NO_SHOW': 'Неявяване'
+    },
+    'en': {
+      'NEW': 'New',
+      'IN_REVIEW': 'In review',
+      'APPROVED': 'Approved',
+      'REJECTED': 'Rejected',
+      'ASSIGNED': 'Assigned',
+      'IN_PROGRESS': 'In progress',
+      'WAITING_OWNER': 'Waiting for owner',
+      'WAITING_OPERATIONS': 'Waiting for operations',
+      'COMPLETED': 'Completed',
+      'CANCELLED': 'Cancelled',
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'CHECKED_IN': 'Checked in',
+      'CHECKED_OUT': 'Checked out',
+      'NO_SHOW': 'No show'
+    },
+    'fr': {
+      'NEW': 'Nouvelle',
+      'IN_REVIEW': 'En cours de revue',
+      'APPROVED': 'Approuvée',
+      'REJECTED': 'Refusée',
+      'ASSIGNED': 'Attribuée',
+      'IN_PROGRESS': 'En cours',
+      'WAITING_OWNER': 'En attente du propriétaire',
+      'WAITING_OPERATIONS': 'En attente des opérations',
+      'COMPLETED': 'Terminée',
+      'CANCELLED': 'Annulée',
+      'PENDING': 'En attente',
+      'CONFIRMED': 'Confirmée',
+      'CHECKED_IN': 'Arrivé',
+      'CHECKED_OUT': 'Parti',
+      'NO_SHOW': 'Non présenté'
+    },
+    'ru': {
+      'NEW': 'Новая',
+      'IN_REVIEW': 'На рассмотрении',
+      'APPROVED': 'Одобрена',
+      'REJECTED': 'Отклонена',
+      'ASSIGNED': 'Назначена',
+      'IN_PROGRESS': 'В работе',
+      'WAITING_OWNER': 'Ожидание владельца',
+      'WAITING_OPERATIONS': 'Ожидание операций',
+      'COMPLETED': 'Завершена',
+      'CANCELLED': 'Отменена',
+      'PENDING': 'В ожидании',
+      'CONFIRMED': 'Подтверждена',
+      'CHECKED_IN': 'Заселён',
+      'CHECKED_OUT': 'Выехал',
+      'NO_SHOW': 'Неявка'
+    }
   } %}
-  {% set request_status_labels = {
-    'NEW': 'Нова',
-    'IN_REVIEW': 'В преглед',
-    'APPROVED': 'Одобрена',
-    'REJECTED': 'Отказана',
-    'ASSIGNED': 'Възложена',
-    'IN_PROGRESS': 'В работа',
-    'WAITING_OWNER': 'Изчаква собственик',
-    'WAITING_OPERATIONS': 'Изчаква операции',
-    'COMPLETED': 'Завършена',
-    'CANCELLED': 'Отменена',
-    'PENDING': 'В очакване',
-    'CONFIRMED': 'Потвърдена',
-    'CHECKED_IN': 'Настанен',
-    'CHECKED_OUT': 'Освободен',
-    'NO_SHOW': 'Неявяване'
+  {% set request_status_labels = request_status_labels_all.get(operations_lang, request_status_labels_all['en']) %}
+  {% set category_labels_all = {
+    'en': {
+      'LEAD': 'Lead',
+      'OWNER': 'Owner',
+      'PROFESSIONAL': 'Professional',
+      'PARTNER': 'Partner',
+      'CONCIERGE': 'Concierge request',
+      'SERVICE': 'Service request',
+      'CLEANING': 'Cleaning',
+      'MAINTENANCE': 'Maintenance',
+      'INSPECTION': 'Inspection',
+      'KEYS': 'Keys',
+      'WELCOME PACK': 'Welcome pack',
+      'WELCOME_PACK': 'Welcome pack',
+      'PHOTOS': 'Photos',
+      'UTILITIES': 'Utilities',
+      'WIFI': 'Wi-Fi',
+      'WI-FI': 'Wi-Fi',
+      'PARKING': 'Parking',
+      'INVENTORY': 'Inventory',
+      'TRANSFERS': 'Transfers',
+      'AIRPORT TRANSFER': 'Airport transfer',
+      'CONCIERGE SUPPORT': 'Concierge support',
+      'GUEST ISSUE': 'Guest issue',
+      'SEASONAL PREPARATION': 'Seasonal preparation',
+      'PROPERTY MAINTENANCE': 'Property maintenance',
+      'PROPERTY MANAGEMENT': 'Property management',
+      'PROPERTY MANAGER': 'Property manager',
+      'GUEST RELATIONS': 'Guest relations',
+      'HOSPITALITY': 'Hospitality',
+      'HOSPITALITY CONSULTANT': 'Hospitality consultant',
+      'REAL ESTATE': 'Real estate',
+      'REAL ESTATE PROFESSIONAL': 'Real estate professional',
+      'LAUNDRY': 'Laundry',
+      'PLUMBING': 'Plumbing',
+      'ELECTRICAL': 'Electrical',
+      'PHOTOGRAPHY': 'Photography',
+      'OTHER': 'Other task'
+    },
+    'fr': {
+      'LEAD': 'Nouveau contact',
+      'OWNER': 'Propriétaire',
+      'PROFESSIONAL': 'Professionnel',
+      'PARTNER': 'Partenaire',
+      'CONCIERGE': 'Demande de conciergerie',
+      'SERVICE': 'Demande de service',
+      'CLEANING': 'Ménage',
+      'MAINTENANCE': 'Maintenance',
+      'INSPECTION': 'Inspection',
+      'KEYS': 'Clés',
+      'WELCOME PACK': 'Kit d’accueil',
+      'WELCOME_PACK': 'Kit d’accueil',
+      'PHOTOS': 'Photos',
+      'UTILITIES': 'Services publics',
+      'WIFI': 'Wi-Fi',
+      'WI-FI': 'Wi-Fi',
+      'PARKING': 'Parking',
+      'INVENTORY': 'Inventaire',
+      'TRANSFERS': 'Transferts',
+      'AIRPORT TRANSFER': 'Transfert aéroport',
+      'CONCIERGE SUPPORT': 'Support conciergerie',
+      'GUEST ISSUE': 'Problème voyageur',
+      'SEASONAL PREPARATION': 'Préparation saisonnière',
+      'PROPERTY MAINTENANCE': 'Maintenance du bien',
+      'PROPERTY MANAGEMENT': 'Gestion du bien',
+      'PROPERTY MANAGER': 'Gestionnaire du bien',
+      'GUEST RELATIONS': 'Relations voyageurs',
+      'HOSPITALITY': 'Hôtellerie',
+      'HOSPITALITY CONSULTANT': 'Consultant en hôtellerie',
+      'REAL ESTATE': 'Immobilier',
+      'REAL ESTATE PROFESSIONAL': 'Professionnel de l\'immobilier',
+      'LAUNDRY': 'Lingerie',
+      'PLUMBING': 'Plomberie',
+      'ELECTRICAL': 'Électricité',
+      'PHOTOGRAPHY': 'Photographie',
+      'OTHER': 'Autre tâche'
+    },
+    'ru': {
+      'LEAD': 'Новый контакт',
+      'OWNER': 'Владелец',
+      'PROFESSIONAL': 'Специалист',
+      'PARTNER': 'Партнёр',
+      'CONCIERGE': 'Заявка консьержу',
+      'SERVICE': 'Заявка на услугу',
+      'CLEANING': 'Уборка',
+      'MAINTENANCE': 'Обслуживание',
+      'INSPECTION': 'Инспекция',
+      'KEYS': 'Ключи',
+      'WELCOME PACK': 'Приветственный набор',
+      'WELCOME_PACK': 'Приветственный набор',
+      'PHOTOS': 'Фото',
+      'UTILITIES': 'Коммунальные услуги',
+      'WIFI': 'Wi-Fi',
+      'WI-FI': 'Wi-Fi',
+      'PARKING': 'Парковка',
+      'INVENTORY': 'Инвентарь',
+      'TRANSFERS': 'Трансферы',
+      'AIRPORT TRANSFER': 'Трансфер из аэропорта',
+      'CONCIERGE SUPPORT': 'Поддержка консьержа',
+      'GUEST ISSUE': 'Проблема с гостем',
+      'SEASONAL PREPARATION': 'Сезонная подготовка',
+      'PROPERTY MAINTENANCE': 'Обслуживание объекта',
+      'PROPERTY MANAGEMENT': 'Управление объектом',
+      'PROPERTY MANAGER': 'Управляющий объектом',
+      'GUEST RELATIONS': 'Работа с гостями',
+      'HOSPITALITY': 'Гостеприимство',
+      'HOSPITALITY CONSULTANT': 'Консультант по гостеприимству',
+      'REAL ESTATE': 'Недвижимость',
+      'REAL ESTATE PROFESSIONAL': 'Специалист по недвижимости',
+      'LAUNDRY': 'Стирка',
+      'PLUMBING': 'Сантехника',
+      'ELECTRICAL': 'Электрика',
+      'PHOTOGRAPHY': 'Фотография',
+      'OTHER': 'Другая задача'
+    },
+    'bg': {
+      'LEAD': 'Нов контакт',
+      'OWNER': 'Собственик',
+      'PROFESSIONAL': 'Професионалист',
+      'PARTNER': 'Партньор',
+      'CONCIERGE': 'Консиерж заявка',
+      'SERVICE': 'Сервизна заявка',
+      'CLEANING': 'Почистване',
+      'MAINTENANCE': 'Поддръжка',
+      'INSPECTION': 'Инспекция',
+      'KEYS': 'Ключове',
+      'WELCOME PACK': 'Пакет за посрещане',
+      'WELCOME_PACK': 'Пакет за посрещане',
+      'PHOTOS': 'Снимки',
+      'UTILITIES': 'Комунални услуги',
+      'WIFI': 'Wi-Fi',
+      'WI-FI': 'Wi-Fi',
+      'PARKING': 'Паркинг',
+      'INVENTORY': 'Инвентар',
+      'TRANSFERS': 'Трансфери',
+      'AIRPORT TRANSFER': 'Летищен трансфер',
+      'CONCIERGE SUPPORT': 'Консиерж поддръжка',
+      'GUEST ISSUE': 'Проблем с гост',
+      'SEASONAL PREPARATION': 'Сезонна подготовка',
+      'PROPERTY MAINTENANCE': 'Поддръжка на имот',
+      'PROPERTY MANAGEMENT': 'Управление на имот',
+      'PROPERTY MANAGER': 'Мениджър на имот',
+      'GUEST RELATIONS': 'Връзки с гости',
+      'HOSPITALITY': 'Хотелиерство',
+      'HOSPITALITY CONSULTANT': 'Консултант по гостоприемство',
+      'REAL ESTATE': 'Недвижими имоти',
+      'REAL ESTATE PROFESSIONAL': 'Специалист недвижими имоти',
+      'LAUNDRY': 'Пране',
+      'PLUMBING': 'ВиК',
+      'ELECTRICAL': 'Електро',
+      'PHOTOGRAPHY': 'Фотография',
+      'OTHER': 'Друга задача'
+    }
   } %}
-  {% set category_labels = {
-    'LEAD': 'Нов контакт',
-    'OWNER': 'Собственик',
-    'PROFESSIONAL': 'Професионалист',
-    'PARTNER': 'Партньор',
-    'CONCIERGE': 'Консиерж заявка',
-    'SERVICE': 'Сервизна заявка',
-    'CLEANING': 'Почистване',
-    'MAINTENANCE': 'Поддръжка',
-    'INSPECTION': 'Инспекция',
-    'KEYS': 'Ключове',
-    'WELCOME PACK': 'Пакет за посрещане',
-    'WELCOME_PACK': 'Пакет за посрещане',
-    'PHOTOS': 'Снимки',
-    'UTILITIES': 'Комунални услуги',
-    'WIFI': 'Wi-Fi',
-    'WI-FI': 'Wi-Fi',
-    'PARKING': 'Паркинг',
-    'INVENTORY': 'Инвентар',
-    'TRANSFERS': 'Трансфери',
-    'AIRPORT TRANSFER': 'Летищен трансфер',
-    'CONCIERGE SUPPORT': 'Консиерж поддръжка',
-    'GUEST ISSUE': 'Проблем с гост',
-    'SEASONAL PREPARATION': 'Сезонна подготовка',
-    'PROPERTY MAINTENANCE': 'Поддръжка на имот',
-    'PROPERTY MANAGEMENT': 'Управление на имот',
-    'PROPERTY MANAGER': 'Мениджър на имот',
-    'GUEST RELATIONS': 'Връзки с гости',
-    'HOSPITALITY': 'Хотелиерство',
-    'HOSPITALITY CONSULTANT': 'Консултант по гостоприемство',
-    'REAL ESTATE': 'Недвижими имоти',
-    'REAL ESTATE PROFESSIONAL': 'Специалист недвижими имоти',
-    'LAUNDRY': 'Пране',
-    'PLUMBING': 'ВиК',
-    'ELECTRICAL': 'Електро',
-    'PHOTOGRAPHY': 'Фотография',
-    'OTHER': 'Друга задача'
-  } %}
+  {% set category_labels = category_labels_all.get(operations_lang, category_labels_all['en']) %}
   {% set operations_lang = request.args.get('lang', page_lang|default('en'))|lower %}
   {% if operations_lang not in ['bg', 'en', 'fr', 'ru'] %}
     {% set operations_lang = 'en' %}
@@ -3037,24 +3398,86 @@
     }
   } %}
   {% set checklist_labels = checklist_labels_all[operations_lang] %}
-  {% set attachment_slot_labels = {
-    'before': 'Преди',
-    'after': 'След',
-    'invoice': 'Фактура',
-    'receipt': 'Касова бележка',
-    'damage': 'Щета',
-    'inspection': 'Инспекция'
+  {% set attachment_slot_labels_all = {
+    'bg': {
+      'before': 'Преди',
+      'after': 'След',
+      'invoice': 'Фактура',
+      'receipt': 'Касова бележка',
+      'damage': 'Щета',
+      'inspection': 'Инспекция'
+    },
+    'en': {
+      'before': 'Before',
+      'after': 'After',
+      'invoice': 'Invoice',
+      'receipt': 'Receipt',
+      'damage': 'Damage',
+      'inspection': 'Inspection'
+    },
+    'fr': {
+      'before': 'Avant',
+      'after': 'Après',
+      'invoice': 'Facture',
+      'receipt': 'Reçu',
+      'damage': 'Dégât',
+      'inspection': 'Inspection'
+    },
+    'ru': {
+      'before': 'До',
+      'after': 'После',
+      'invoice': 'Счёт',
+      'receipt': 'Чек',
+      'damage': 'Повреждение',
+      'inspection': 'Инспекция'
+    }
   } %}
+  {% set attachment_slot_labels = attachment_slot_labels_all.get(operations_lang, attachment_slot_labels_all['en']) %}
+  {% set detail_fallback_all = {
+  'bg': {
+    'unassigned': 'Не е възложена',
+    'owner_missing': 'Не е зададен',
+    'new_ref': 'НОВА',
+    'operation': 'Оперативна задача',
+    'no_property': 'Без имот',
+    'no_description': 'Няма клиентско описание.'
+  },
+  'en': {
+    'unassigned': 'Unassigned',
+    'owner_missing': 'Not specified',
+    'new_ref': 'NEW',
+    'operation': 'Operational task',
+    'no_property': 'No property',
+    'no_description': 'No customer description.'
+  },
+  'fr': {
+    'unassigned': 'Non attribuée',
+    'owner_missing': 'Non renseigné',
+    'new_ref': 'NOUV',
+    'operation': 'Tâche opérationnelle',
+    'no_property': 'Aucun bien',
+    'no_description': 'Aucune description client.'
+  },
+  'ru': {
+    'unassigned': 'Не назначена',
+    'owner_missing': 'Не указан',
+    'new_ref': 'НОВ',
+    'operation': 'Операционная задача',
+    'no_property': 'Без объекта',
+    'no_description': 'Нет описания от клиента.'
+  }
+} %}
+{% set detail_fallback = detail_fallback_all.get(operations_lang, detail_fallback_all['en']) %}
   {% set task_status_label = status_labels.get(task.status, task.status_label) %}
   {% set task_priority_label = priority_labels.get(task.priority, task.priority_label) %}
-  {% set task_assignee_label = task.assigned_professional_label or task.assigned_to or 'Не е възложена' %}
-  {% set task_owner_label = owner_account.full_name if owner_account else (task.owner_name or 'Не е зададен') %}
+  {% set task_assignee_label = task.assigned_professional_label or task.assigned_to or detail_fallback.unassigned %}
+  {% set task_owner_label = owner_account.full_name if owner_account else (task.owner_name or detail_fallback.owner_missing) %}
   {% set task_last_activity = task.updated_at or task.created_at %}
   {% set task_ref_seed = (task.request_id or task.id or '')|replace('-', '')|upper %}
-  {% set task_operational_ref = 'OP-' ~ (task_ref_seed[:8] if task_ref_seed else 'НОВА') %}
-  {% set task_category_label = category_labels.get(task.category|upper, 'Оперативна задача') %}
-  {% set task_property_label = property_record.name if property_record else (task.property_name or task.property_location or 'Без имот') %}
-  {% set customer_message = task.notes or task.title or 'Няма клиентско описание.' %}
+  {% set task_operational_ref = 'OP-' ~ (task_ref_seed[:8] if task_ref_seed else detail_fallback.new_ref) %}
+  {% set task_category_label = category_labels.get(task.category|upper, detail_fallback.operation) %}
+  {% set task_property_label = property_record.name if property_record else (task.property_name or task.property_location or detail_fallback.no_property) %}
+  {% set customer_message = task.notes or task.title or detail_fallback.no_description %}
   {% set task_title_catalogs = {
     'bg': {
     'payment_provider': 'Платежен доставчик',
@@ -3156,33 +3579,91 @@
     {% set task_sla_late = false %}
   {% endif %}
   {% set task_open_overdue = task_sla_has_due and (not task_is_closed) and task.overdue %}
+  {% set sla_copy_all = {
+  'bg': {
+    'late': 'Завършена със закъснение',
+    'late_detail': 'Закъснението се изчислява автоматично.',
+    'completed_on_time': 'Завършена в срок',
+    'completed': 'Завършена',
+    'completed_detail': 'Задачата е завършена',
+    'overdue': 'Просрочена',
+    'overdue_detail': 'Срокът е преминал.',
+    'on_time': 'В срок',
+    'on_time_detail': 'Оставащото време се изчислява автоматично.',
+    'no_due': 'Без срок',
+    'no_due_detail': 'Няма зададен краен срок.',
+    'yes': 'Да',
+    'no': 'Не'
+  },
+  'en': {
+    'late': 'Completed late',
+    'late_detail': 'The delay is calculated automatically.',
+    'completed_on_time': 'Completed on time',
+    'completed': 'Completed',
+    'completed_detail': 'Task completed',
+    'overdue': 'Overdue',
+    'overdue_detail': 'The deadline has passed.',
+    'on_time': 'On time',
+    'on_time_detail': 'Remaining time is calculated automatically.',
+    'no_due': 'No deadline',
+    'no_due_detail': 'No deadline has been set.',
+    'yes': 'Yes',
+    'no': 'No'
+  },
+  'fr': {
+    'late': 'Terminée en retard',
+    'late_detail': 'Le retard est calculé automatiquement.',
+    'completed_on_time': 'Terminée dans les délais',
+    'completed': 'Terminée',
+    'completed_detail': 'Tâche terminée',
+    'overdue': 'En retard',
+    'overdue_detail': 'Le délai est dépassé.',
+    'on_time': 'Dans les délais',
+    'on_time_detail': 'Le temps restant est calculé automatiquement.',
+    'no_due': 'Sans échéance',
+    'no_due_detail': 'Aucune échéance n’est définie.',
+    'yes': 'Oui',
+    'no': 'Non'
+  },
+  'ru': {
+    'late': 'Завершена с опозданием',
+    'late_detail': 'Опоздание рассчитывается автоматически.',
+    'completed_on_time': 'Завершена в срок',
+    'completed': 'Завершена',
+    'completed_detail': 'Задача завершена',
+    'overdue': 'Просрочена',
+    'overdue_detail': 'Срок истёк.',
+    'on_time': 'В срок',
+    'on_time_detail': 'Оставшееся время рассчитывается автоматически.',
+    'no_due': 'Без срока',
+    'no_due_detail': 'Крайний срок не задан.',
+    'yes': 'Да',
+    'no': 'Нет'
+  }
+} %}
+{% set sla_copy = sla_copy_all.get(operations_lang, sla_copy_all['en']) %}
   {% if task_is_closed and task_sla_has_due and task_sla_late %}
-    {% set sla_label = 'Завършена със закъснение' %}
+    {% set sla_label = sla_copy.late %}
     {% set sla_tone = 'red' %}
-    {% set sla_detail = 'Закъснението се изчислява автоматично.' %}
+    {% set sla_detail = sla_copy.late_detail %}
   {% elif task_is_closed %}
-    {% set sla_label = 'Завършена в срок' if task_sla_has_due else 'Завършена' %}
+    {% set sla_label = sla_copy.completed_on_time if task_sla_has_due else sla_copy.completed %}
     {% set sla_tone = 'green' %}
-    {% set sla_detail = {
-      'bg': 'Задачата е завършена',
-      'en': 'Task completed',
-      'fr': 'Tâche terminée',
-      'ru': 'Задача завершена'
-    }.get(operations_lang, 'Task completed') %}
+    {% set sla_detail = sla_copy.completed_detail %}
   {% elif task_open_overdue %}
-    {% set sla_label = 'Просрочена' %}
+    {% set sla_label = sla_copy.overdue %}
     {% set sla_tone = 'red' %}
-    {% set sla_detail = 'Срокът е преминал.' %}
+    {% set sla_detail = sla_copy.overdue_detail %}
   {% elif task_sla_has_due %}
-    {% set sla_label = 'В срок' %}
+    {% set sla_label = sla_copy.on_time %}
     {% set sla_tone = 'green' %}
-    {% set sla_detail = 'Оставащо време се изчислява автоматично.' %}
+    {% set sla_detail = sla_copy.on_time_detail %}
   {% else %}
-    {% set sla_label = 'Без срок' %}
+    {% set sla_label = sla_copy.no_due %}
     {% set sla_tone = 'neutral' %}
-    {% set sla_detail = 'Няма зададен краен срок.' %}
+    {% set sla_detail = sla_copy.no_due_detail %}
   {% endif %}
-  {% set sla_overdue_label = 'Да' if task_open_overdue or task_sla_late else 'Не' %}
+  {% set sla_overdue_label = sla_copy.yes if task_open_overdue or task_sla_late else sla_copy.no %}
   {% set severity_tone = 'neutral' if not task_sla_has_due else ('red' if task_open_overdue or task_sla_late or task.priority == 'URGENT' else ('yellow' if task.priority == 'HIGH' or task.status in ['WAITING_OWNER', 'WAITING_OPERATIONS', 'PAUSED'] or not task.is_assigned else 'green')) %}
   {% set work_order_copy_catalogs = {
     'bg': {
@@ -3373,7 +3854,7 @@
     'email': 'Имейл',
     'service_category': 'Категория услуга',
     'not_defined': 'Не е зададено',
-    'not_defined_f': 'Не е зададена',
+    'not_defined_f': '{{ od.not_set }}',
     'copy_email': 'Копирай имейл',
     'email_missing': 'Имейл липсва',
     'copy_phone': 'Копирай телефон',
@@ -4817,7 +5298,7 @@
             </div>
             <div class="admin-operations-property-tile">
               <span>{{ od.location }}</span>
-              <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}Не е зададена{% endif %}</strong>
+              <strong>{% if property_record and property_record.location %}{{ property_record.location|e }}{% elif task.property_location %}{{ task.property_location|e }}{% else %}{{ od.not_set }}{% endif %}</strong>
               <small>{{ od.dispatch_context }}</small>
             </div>
             <div class="admin-operations-property-tile">

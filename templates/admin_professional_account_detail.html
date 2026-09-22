@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="{{ page_lang|default(current_lang|default('en')) }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BlackSea Connect | {{ ui.page_title if ui is defined else "Professional account" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .pro-account-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .pro-account-shell {
+      display: grid;
+      gap: 22px;
+    }
+    .pro-account-card {
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(18,48,78,.12);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 18px 50px rgba(18,48,78,.08);
+    }
+    .pro-account-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .pro-account-eyebrow {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .pro-account-title {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1;
+    }
+    .pro-account-subtitle {
+      margin: 10px 0 0;
+      opacity: .72;
+    }
+    .pro-account-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pro-account-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 800;
+      border: 1px solid rgba(18,48,78,.15);
+      background: #fff;
+    }
+    .pro-account-status {
+      display: inline-flex;
+      margin-top: 16px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #eaf6ef;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .pro-account-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px;
+    }
+    .pro-account-field {
+      padding: 16px;
+      border-radius: 16px;
+      background: #f5f8fb;
+    }
+    .pro-account-field dt {
+      margin-bottom: 5px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      opacity: .65;
+    }
+    .pro-account-field dd {
+      margin: 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .pro-account-stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap: 12px;
+    }
+    .pro-account-stat {
+      padding: 18px;
+      border-radius: 18px;
+      background: #f5f8fb;
+    }
+    .pro-account-stat strong {
+      display: block;
+      font-size: 28px;
+    }
+    .pro-account-stat span {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      opacity: .7;
+    }
+    .pro-account-task {
+      display: block;
+      margin-top: 12px;
+      padding: 18px;
+      border: 1px solid rgba(18,48,78,.12);
+      border-radius: 18px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .pro-account-task:hover {
+      background: #f7f9fb;
+    }
+    .pro-account-task-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .pro-account-task h3 {
+      margin: 0 0 7px;
+    }
+    .pro-account-task p {
+      margin: 4px 0;
+      opacity: .75;
+    }
+    .pro-account-task-status {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef3f7;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    @media (max-width: 850px) {
+      .pro-account-grid,
+      .pro-account-stats {
+        grid-template-columns: 1fr;
+      }
+      .pro-account-page {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+{% set ADMIN_UI = {
+  'bg': {
+    'page_title': 'Професионален акаунт',
+    'eyebrow': 'Админ · Професионален акаунт',
+    'professional': 'Професионалист',
+    'back_accounts': 'Назад към акаунтите',
+    'back_cockpit': 'Назад към кокпита',
+    'account_details': 'Данни за акаунта',
+    'name': 'Име',
+    'email': 'Имейл',
+    'phone': 'Телефон',
+    'company': 'Фирма',
+    'services': 'Услуги',
+    'status': 'Статус',
+    'created': 'Създаден',
+    'last_login': 'Последно влизане',
+    'no_login': 'Няма регистрирано влизане',
+    'stripe_status': 'Stripe статус',
+    'stripe_account': 'Stripe акаунт',
+    'not_connected': 'Не е свързан',
+    'charges_enabled': 'Плащания активни',
+    'payouts_enabled': 'Изплащания активни',
+    'yes': 'Да',
+    'no': 'Не',
+    'operations': 'Оперативна активност',
+    'total': 'Общо',
+    'new': 'Нови',
+    'assigned': 'Възложени',
+    'in_progress': 'В процес',
+    'completed': 'Завършени',
+    'assigned_tasks': 'Възложени задачи',
+    'task': 'Задача',
+    'due': 'Срок',
+    'no_tasks': 'Няма възложени задачи на този професионалист.'
+  },
+  'en': {
+    'page_title': 'Professional account',
+    'eyebrow': 'Admin · Professional account',
+    'professional': 'Professional',
+    'back_accounts': 'Back to accounts',
+    'back_cockpit': 'Back to cockpit',
+    'account_details': 'Account details',
+    'name': 'Name',
+    'email': 'Email',
+    'phone': 'Phone',
+    'company': 'Company',
+    'services': 'Services',
+    'status': 'Status',
+    'created': 'Created',
+    'last_login': 'Last login',
+    'no_login': 'No login recorded',
+    'stripe_status': 'Stripe status',
+    'stripe_account': 'Stripe account',
+    'not_connected': 'Not connected',
+    'charges_enabled': 'Payments enabled',
+    'payouts_enabled': 'Payouts enabled',
+    'yes': 'Yes',
+    'no': 'No',
+    'operations': 'Operational activity',
+    'total': 'Total',
+    'new': 'New',
+    'assigned': 'Assigned',
+    'in_progress': 'In progress',
+    'completed': 'Completed',
+    'other': 'Other',
+    'assigned_tasks': 'Assigned tasks',
+    'task': 'Task',
+    'due': 'Due',
+    'no_tasks': 'No tasks assigned to this professional.'
+  },
+  'fr': {
+    'page_title': 'Compte professionnel',
+    'eyebrow': 'Admin · Compte professionnel',
+    'professional': 'Professionnel',
+    'back_accounts': 'Retour aux comptes',
+    'back_cockpit': 'Retour au cockpit',
+    'account_details': 'Détails du compte',
+    'name': 'Nom',
+    'email': 'E-mail',
+    'phone': 'Téléphone',
+    'company': 'Société',
+    'services': 'Services',
+    'status': 'Statut',
+    'created': 'Création',
+    'last_login': 'Dernière connexion',
+    'no_login': 'Aucune connexion enregistrée',
+    'stripe_status': 'Statut Stripe',
+    'stripe_account': 'Compte Stripe',
+    'not_connected': 'Non connecté',
+    'charges_enabled': 'Paiements activés',
+    'payouts_enabled': 'Versements activés',
+    'yes': 'Oui',
+    'no': 'Non',
+    'operations': 'Activité opérationnelle',
+    'total': 'Total',
+    'new': 'Nouvelles',
+    'assigned': 'Attribuées',
+    'in_progress': 'En cours',
+    'completed': 'Terminées',
+    'assigned_tasks': 'Tâches attribuées',
+    'task': 'Tâche',
+    'due': 'Échéance',
+    'no_tasks': 'Aucune tâche attribuée à ce professionnel.'
+  },
+  'ru': {
+    'page_title': 'Аккаунт специалиста',
+    'eyebrow': 'Админ · Аккаунт специалиста',
+    'professional': 'Специалист',
+    'back_accounts': 'Назад к аккаунтам',
+    'back_cockpit': 'Назад в панель',
+    'account_details': 'Данные аккаунта',
+    'name': 'Имя',
+    'email': 'E-mail',
+    'phone': 'Телефон',
+    'company': 'Компания',
+    'services': 'Услуги',
+    'status': 'Статус',
+    'created': 'Создан',
+    'last_login': 'Последний вход',
+    'no_login': 'Входов ещё не было',
+    'stripe_status': 'Статус Stripe',
+    'stripe_account': 'Аккаунт Stripe',
+    'not_connected': 'Не подключён',
+    'charges_enabled': 'Платежи активны',
+    'payouts_enabled': 'Выплаты активны',
+    'yes': 'Да',
+    'no': 'Нет',
+    'operations': 'Операционная активность',
+    'total': 'Всего',
+    'new': 'Новые',
+    'assigned': 'Назначены',
+    'in_progress': 'В работе',
+    'completed': 'Завершены',
+    'assigned_tasks': 'Назначенные задачи',
+    'task': 'Задача',
+    'due': 'Срок',
+    'no_tasks': 'Этому специалисту задачи не назначены.'
+  }
+} %}
+
+
+{% set ACCOUNT_STATUS_UI = {
+'bg': {'PENDING':'ИЗЧАКВА','APPROVED':'ОДОБРЕН','ACTIVE':'АКТИВЕН','SUSPENDED':'СПРЯН'},
+'en': {'PENDING':'PENDING','APPROVED':'APPROVED','ACTIVE':'ACTIVE','SUSPENDED':'SUSPENDED'},
+'fr': {'PENDING':'EN ATTENTE','APPROVED':'APPROUVÉ','ACTIVE':'ACTIF','SUSPENDED':'SUSPENDU'},
+'ru': {'PENDING':'ОЖИДАЕТ','APPROVED':'ОДОБРЕН','ACTIVE':'АКТИВЕН','SUSPENDED':'ПРИОСТАНОВЛЕН'}
+} %}
+
+{% set TASK_STATUS_UI = {
+'bg': {'NEW':'НОВА','ASSIGNED':'ВЪЗЛОЖЕНА','IN_PROGRESS':'В ПРОЦЕС','COMPLETED':'ЗАВЪРШЕНА'},
+'en': {'NEW':'NEW','ASSIGNED':'ASSIGNED','IN_PROGRESS':'IN PROGRESS','COMPLETED':'COMPLETED'},
+'fr': {'NEW':'NOUVELLE','ASSIGNED':'ATTRIBUÉE','IN_PROGRESS':'EN COURS','COMPLETED':'TERMINÉE'},
+'ru': {'NEW':'НОВАЯ','ASSIGNED':'НАЗНАЧЕНА','IN_PROGRESS':'В РАБОТЕ','COMPLETED':'ЗАВЕРШЕНА'}
+} %}
+
+{% set _ui_lang = page_lang|default(current_lang|default('en')) %}
+{% if _ui_lang not in ['bg','en','fr','ru'] %}{% set _ui_lang = 'en' %}{% endif %}
+{% set ui = ADMIN_UI[_ui_lang] %}
+
+{% set task_other_labels = {
+  'bg': 'Други',
+  'en': 'Other',
+  'fr': 'Autres',
+  'ru': 'Другие'
+} %}
+
+
+<body class="admin-cockpit-page bsc-admin-workspace">
+  {% include "_admin_sidebar.html" %}
+
+  <main class="admin-workspace-main">
+    <div class="pro-account-page">
+      <div class="pro-account-shell">
+
+        <section class="pro-account-card">
+          <div class="pro-account-header">
+            <div>
+              <p class="pro-account-eyebrow">{{ ui.eyebrow }}</p>
+              <h1 class="pro-account-title">
+                {{ professional_account.full_name|e if professional_account.full_name else ui.professional }}
+              </h1>
+
+              {% if professional_account.company %}
+                <p class="pro-account-subtitle">{{ professional_account.company|e }}</p>
+              {% endif %}
+
+              <span class="pro-account-status">
+                {{ ACCOUNT_STATUS_UI[_ui_lang].get(professional_account.status|upper, professional_account.status)|e }}
+              </span>
+            </div>
+
+            <div class="pro-account-actions">
+              <a class="pro-account-button"
+                 href="{{ url_for('admin_professional_accounts', lang=_ui_lang) }}">
+                {{ ui.back_accounts }}
+              </a>
+              <a class="pro-account-button"
+                 href="{{ url_for('admin_home', lang=_ui_lang) }}">
+                {{ ui.back_cockpit }}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="pro-account-card">
+          <h2>{{ ui.account_details }}</h2>
+
+          <dl class="pro-account-grid">
+            <div class="pro-account-field">
+              <dt>{{ ui.name }}</dt>
+              <dd>{{ professional_account.full_name|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.email }}</dt>
+              <dd>{{ professional_account.email|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.phone }}</dt>
+              <dd>{{ professional_account.phone|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.company }}</dt>
+              <dd>{{ professional_account.company|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.services }}</dt>
+              <dd>{{ professional_account.service_categories_label|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.status }}</dt>
+              <dd>{{ ACCOUNT_STATUS_UI[_ui_lang].get(professional_account.status|upper, professional_account.status)|e }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.created }}</dt>
+              <dd>{{ professional_account.created_at|e or '-' }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.last_login }}</dt>
+              <dd>{{ professional_account.last_login_at|e or ui.no_login }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="pro-account-card">
+          <h2>Stripe</h2>
+
+          <dl class="pro-account-grid">
+            <div class="pro-account-field">
+              <dt>{{ ui.stripe_status }}</dt>
+              <dd>{{ professional_account.stripe_status_label|e }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.stripe_account }}</dt>
+              <dd>{{ professional_account.stripe_account_id|e or ui.not_connected }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.charges_enabled }}</dt>
+              <dd>{{ ui.yes if professional_account.stripe_charges_enabled else ui.no }}</dd>
+            </div>
+
+            <div class="pro-account-field">
+              <dt>{{ ui.payouts_enabled }}</dt>
+              <dd>{{ ui.yes if professional_account.stripe_payouts_enabled else ui.no }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="pro-account-card">
+          <h2>{{ ui.operations }}</h2>
+
+          <div class="pro-account-stats">
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.total }}</strong>
+              <span>{{ ui.total }}</span>
+            </div>
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.new }}</strong>
+              <span>{{ ui.new }}</span>
+            </div>
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.assigned }}</strong>
+              <span>{{ ui.assigned }}</span>
+            </div>
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.in_progress }}</strong>
+              <span>{{ ui.in_progress }}</span>
+            </div>
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.completed }}</strong>
+              <span>{{ ui.completed }}</span>
+            </div>
+            <div class="pro-account-stat">
+              <strong>{{ task_counts.other }}</strong>
+              <span>{{ task_other_labels.get(_ui_lang, task_other_labels['en']) }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="pro-account-card">
+          <h2>{{ ui.assigned_tasks }}</h2>
+
+          {% if assigned_tasks %}
+            {% for task in assigned_tasks %}
+              <a class="pro-account-task"
+                 href="{{ url_for('admin_operations_detail', task_id=task.id, lang=_ui_lang) }}">
+                <div class="pro-account-task-top">
+                  <div>
+                    <h3>{{ task.title|e or ui.task }}</h3>
+
+                    {% if task.property_name %}
+                      <p>{{ task.property_name|e }}</p>
+                    {% endif %}
+
+                    {% if task.category %}
+                      <p>{{ task.category|e }}</p>
+                    {% endif %}
+
+                    {% if task.due_date %}
+                      <p>{{ ui.due }}: {{ task.due_date|e }}</p>
+                    {% endif %}
+                  </div>
+
+                  <span class="pro-account-task-status">
+                    {{ TASK_STATUS_UI[_ui_lang].get(task.status|upper, task.status)|e }}
+                  </span>
+                </div>
+              </a>
+            {% endfor %}
+          {% else %}
+            <p>{{ ui.no_tasks }}</p>
+          {% endif %}
+        </section>
+
+      </div>
+    </div>
+  </main>
+</body>
+</html>

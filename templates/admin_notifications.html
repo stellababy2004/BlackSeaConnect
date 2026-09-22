@@ -186,7 +186,10 @@
     'attachment_added': 'Добавен е файл',
     'overdue_detected': 'Открита е просрочена задача',
     'due_date': 'Краен срок:',
-    'attachment_count': 'Брой файлове:'
+    'attachment_count': 'Брой файлове:',
+    'summary': 'Обобщение на известията',
+    'no_alerts': 'Все още няма известия.',
+    'no_overdue': 'Днес не са открити просрочени задачи.'
   },
   'en': {
     'title': 'Operations Notification Center',
@@ -216,7 +219,10 @@
     'attachment_added': 'Attachment added',
     'overdue_detected': 'Task overdue detected',
     'due_date': 'Due date:',
-    'attachment_count': 'Attachment count:'
+    'attachment_count': 'Attachment count:',
+    'summary': 'Notification summary',
+    'no_alerts': 'No alerts yet.',
+    'no_overdue': 'No overdue tasks were detected today.'
   },
   'fr': {
     'title': 'Centre des notifications opérationnelles',
@@ -246,8 +252,46 @@
     'attachment_added': 'Pièce jointe ajoutée',
     'overdue_detected': 'Tâche en retard détectée',
     'due_date': 'Échéance :',
-    'attachment_count': 'Nombre de pièces jointes :'
+    'attachment_count': 'Nombre de pièces jointes :',
+
+    'summary': 'Résumé des notifications',
+    'no_alerts': 'Aucune alerte pour le moment.',
+    'no_overdue': 'Aucune tâche en retard détectée aujourd’hui.'
+  },
+  'ru': {
+    'title': 'Центр операционных уведомлений',
+    'copy': 'Отслеживайте уведомления о задачах, просроченных операциях и ошибках доставки.',
+    'back_admin': 'Назад к административной панели',
+    'view_operations': 'Операции',
+    'settings': 'Настройки',
+    'preferences_for': 'Настройки уведомлений для',
+    'email_enabled': 'Уведомления по e-mail включены',
+    'telegram_enabled': 'Уведомления Telegram включены',
+    'save_preferences': 'Сохранить настройки',
+    'recent_alerts': 'Последние уведомления',
+    'overdue_alerts': 'Просроченные уведомления',
+    'failed_notifications': 'Неудачные уведомления',
+    'alerts': 'Уведомления',
+    'overdue': 'Просрочено',
+    'failures': 'Ошибки',
+    'created': 'Создано',
+    'event': 'Событие',
+    'title_label': 'Заголовок',
+    'detail': 'Детали',
+    'task': 'Задача',
+    'channel': 'Канал',
+    'system': 'Система',
+    'no_failed': 'Неудачных уведомлений пока нет.',
+    'professional_completed': 'Специалист завершил задачу',
+    'attachment_added': 'Добавлен файл',
+    'overdue_detected': 'Обнаружена просроченная задача',
+    'due_date': 'Срок:',
+    'attachment_count': 'Количество файлов:',
+    'summary': 'Сводка уведомлений',
+    'no_alerts': 'Уведомлений пока нет.',
+    'no_overdue': 'Сегодня просроченных задач не обнаружено.'
   }
+
 } %}
 {% set nui = notifications_ui.get(page_lang|default('en'), notifications_ui['en']) %}
 
@@ -287,7 +331,7 @@
       </form>
     </section>
 
-    <section class="admin-notifications-grid" aria-label="Notification summary">
+    <section class="admin-notifications-grid" aria-label="{{ nui['summary'] }}">
       <article class="admin-notifications-card">
         <span>{{ nui['recent_alerts'] }}</span>
         <strong>{{ recent_alerts|length }}</strong>
@@ -346,7 +390,7 @@
           </tbody>
         </table>
       {% else %}
-        <p class="admin-notifications-empty">No alerts yet.</p>
+        <p class="admin-notifications-empty">{{ nui['no_alerts'] }}</p>
       {% endif %}
     </section>
 
@@ -383,7 +427,7 @@
           </tbody>
         </table>
       {% else %}
-        <p class="admin-notifications-empty">No overdue tasks were detected today.</p>
+        <p class="admin-notifications-empty">{{ nui['no_overdue'] }}</p>
       {% endif %}
     </section>
 
@@ -408,7 +452,7 @@
             {% for notification in failed_notifications %}
               <tr>
                 <td><time>{{ notification.created_at|e }}</time></td>
-                <td>{{ notification.channel|e or 'System' }}</td>
+                <td>{{ notification.channel|e or nui['system'] }}</td>
                 <td>{{ {
   'Professional completed task': nui['professional_completed'],
   'Task overdue detected': nui['overdue_detected']

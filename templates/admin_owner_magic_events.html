@@ -1,9 +1,77 @@
 <!doctype html>
 <html lang="{{ page_lang|default('en')|e }}">
+
+{% set magic_lang = page_lang|default('en')|lower %}
+{% if magic_lang not in ['bg','en','fr','ru'] %}
+  {% set magic_lang = 'en' %}
+{% endif %}
+{% set MAGIC_UI = {
+  'bg': {
+    'title': 'Owner Magic събития',
+    'audit': 'Одит на Owner Magic доставката',
+    'heading': 'Owner Magic събития',
+    'copy': 'Последните 100 събития от одитния дневник за доставка на owner magic-link.',
+    'aria': 'Owner Magic събития',
+    'timestamp': 'Време',
+    'event': 'Събитие',
+    'email': 'Имейл',
+    'reason': 'Причина',
+    'source': 'Източник',
+    'language': 'Език',
+    'message_id': 'Message-ID',
+    'empty': 'Все още няма записани Owner Magic събития.'
+  },
+  'en': {
+    'title': 'Owner Magic Events',
+    'audit': 'Owner Magic Delivery Audit',
+    'heading': 'Owner Magic Events',
+    'copy': 'Latest 100 events from the owner magic-link delivery audit log.',
+    'aria': 'Owner magic events',
+    'timestamp': 'Timestamp',
+    'event': 'Event',
+    'email': 'Email',
+    'reason': 'Reason',
+    'source': 'Source',
+    'language': 'Language',
+    'message_id': 'Message-ID',
+    'empty': 'No owner magic events recorded yet.'
+  },
+  'fr': {
+    'title': 'Événements Owner Magic',
+    'audit': 'Audit de livraison Owner Magic',
+    'heading': 'Événements Owner Magic',
+    'copy': 'Les 100 derniers événements du journal d’audit de livraison des liens magiques propriétaire.',
+    'aria': 'Événements Owner Magic',
+    'timestamp': 'Horodatage',
+    'event': 'Événement',
+    'email': 'E-mail',
+    'reason': 'Motif',
+    'source': 'Source',
+    'language': 'Langue',
+    'message_id': 'Message-ID',
+    'empty': 'Aucun événement Owner Magic enregistré pour le moment.'
+  },
+  'ru': {
+    'title': 'События Owner Magic',
+    'audit': 'Аудит доставки Owner Magic',
+    'heading': 'События Owner Magic',
+    'copy': 'Последние 100 событий из журнала аудита доставки owner magic-link.',
+    'aria': 'События Owner Magic',
+    'timestamp': 'Время',
+    'event': 'Событие',
+    'email': 'E-mail',
+    'reason': 'Причина',
+    'source': 'Источник',
+    'language': 'Язык',
+    'message_id': 'Message-ID',
+    'empty': 'Событий Owner Magic пока нет.'
+  }
+} %}
+{% set mui = MAGIC_UI[magic_lang] %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Owner Magic Events</title>
+  <title>BlackSea Connect | {{ mui.title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-events-page {
@@ -84,22 +152,22 @@
     <section class="admin-events-card">
       <div class="admin-events-meta">
         <span class="admin-events-chip">Admin</span>
-        <span class="admin-events-chip">Owner Magic Delivery Audit</span>
+        <span class="admin-events-chip">{{ mui.audit }}</span>
       </div>
-      <h1>Owner Magic Events</h1>
-      <p>Latest 100 events from the owner magic-link delivery audit log.</p>
+      <h1>{{ mui.heading }}</h1>
+      <p>{{ mui.copy }}</p>
 
       {% if events %}
-        <table class="admin-events-table" aria-label="Owner magic events">
+        <table class="admin-events-table" aria-label="{{ mui.aria|e }}">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>Event</th>
-              <th>Email</th>
-              <th>Reason</th>
-              <th>Source</th>
-              <th>Language</th>
-              <th>Message-ID</th>
+              <th>{{ mui.timestamp }}</th>
+              <th>{{ mui.event }}</th>
+              <th>{{ mui.email }}</th>
+              <th>{{ mui.reason }}</th>
+              <th>{{ mui.source }}</th>
+              <th>{{ mui.language }}</th>
+              <th>{{ mui.message_id }}</th>
             </tr>
           </thead>
           <tbody>
@@ -123,7 +191,7 @@
           </tbody>
         </table>
       {% else %}
-        <p class="admin-events-empty">No owner magic events recorded yet.</p>
+        <p class="admin-events-empty">{{ mui.empty }}</p>
       {% endif %}
     </section>
   </main>

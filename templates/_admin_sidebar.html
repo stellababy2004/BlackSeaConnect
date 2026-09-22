@@ -22,6 +22,7 @@
     <section class="bsc-admin-nav-group">
       <h2 data-i18n="shellAccounts">Акаунти</h2>
       <a href="/admin/owner-accounts"{% if request.path.startswith('/admin/owner-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span data-i18n="shellOwners">Собственици</span></a>
+      <a href="/admin/professional-accounts"{% if request.path.startswith('/admin/professional-accounts') %} aria-current="page"{% endif %}><span aria-hidden="true">♙</span><span class="bsc-professional-accounts-label">Професионалисти</span></a>
     </section>
     <section class="bsc-admin-nav-group">
       <h2 data-i18n="shellSystem">Система</h2>
@@ -69,3 +70,21 @@
 <script src="/static/js/i18n/admin-runtime.js?v=20260914-3"></script>
 <script src="/static/js/i18n/index.js"></script>
 <script src="/static/js/i18n.js?v=20260724"></script>
+
+
+<script>
+(function () {
+  var labels = {
+    bg: "Професионалисти",
+    en: "Professionals",
+    fr: "Professionnels",
+    ru: "Специалисты"
+  };
+  var root = document.querySelector(".bsc-admin-sidebar");
+  var node = document.querySelector(".bsc-professional-accounts-label");
+  if (!node) return;
+
+  var lang = (root && root.dataset.pageLang) || "en";
+  node.textContent = labels[lang] || labels.en;
+})();
+</script>

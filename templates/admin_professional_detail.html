@@ -8,32 +8,122 @@
 </head>
 <body class="admin-cockpit-page admin-pilot-detail-page">
 
+{% set professional_status_ui = {
+'bg': {
+'NEW':'НОВА',
+'CONTACTED':'СВЪРЗАНА',
+'QUALIFIED':'КВАЛИФИЦИРАНА',
+'CONVERTED':'КОНВЕРТИРАНА',
+'LOST':'ОТПАДНАЛА'
+},
+'en': {
+'NEW':'NEW',
+'CONTACTED':'CONTACTED',
+'QUALIFIED':'QUALIFIED',
+'CONVERTED':'CONVERTED',
+'LOST':'LOST'
+},
+'fr': {
+'NEW':'NOUVELLE',
+'CONTACTED':'CONTACTÉE',
+'QUALIFIED':'QUALIFIÉE',
+'CONVERTED':'CONVERTIE',
+'LOST':'ÉCARTÉE'
+},
+'ru': {
+'NEW':'НОВАЯ',
+'CONTACTED':'СВЯЗАЛИСЬ',
+'QUALIFIED':'КВАЛИФИЦИРОВАНА',
+'CONVERTED':'КОНВЕРТИРОВАНА',
+'LOST':'ОТКЛОНЕНА'
+}
+} %}
+{% set professional_status_labels = professional_status_ui.get(page_lang|default('en'), professional_status_ui['en']) %}
+
 {% set professional_detail_ui = {
 'bg': {
-'eyebrow':'Детайли за кандидатурата','title':'Преглед на кандидатурата',
-'intro':'Прегледайте и управлявайте данните за кандидатурата.',
-'back':'Назад към кандидатурите','export':'Експорт CSV',
-'save':'Запази кандидатурата','activity':'История на активността','latest':'Най-новите първо',
-'status':'Статус','owner':'Отговорник','email':'Имейл','phone':'Телефон','category':'Категория',
-'location':'Местоположение','languages':'Езици','experience':'Опит','bio':'Кратко представяне','unassigned':'Не е възложено'
+'eyebrow':'Детайли за кандидатурата',
+'title':'Преглед на кандидатурата',
+'intro':'Преглеждайте и управлявайте данните за кандидатурата.',
+'back':'Назад към кандидатурите',
+'export':'Експорт CSV',
+'save':'Запази кандидатурата',
+'activity':'История на активността',
+'latest':'Най-новите първо',
+'status':'Статус','owner':'Отговорник',
+'email':'Имейл','phone':'Телефон',
+'category':'Категория',
+'location':'Местоположение',
+'languages':'Езици','experience':'Опит',
+'bio':'Кратко представяне',
+'unassigned':'Не е възложено',
+'update_status':'Промени статуса',
+'assign_owner':'Задай отговорник',
+'internal_notes':'Вътрешни бележки',
+'notes_placeholder':'Бележки за админ екипа',
+'no_activity':'Все още няма активност.',
+'no_activity_copy':'След следващото запазване тук ще се появят събитията.',
+'configuration':'Конфигурация',
+'ready':'готова','incomplete':'непълна',
+'no_secrets':'Не се показват секретни стойности.'
 },
 'en': {
 'eyebrow':'Application details','title':'Application review',
 'intro':'Change the status, assign an owner and add internal notes.',
-'back':'Back to applications','export':'Export CSV',
-'save':'Save application','activity':'Activity history','latest':'Newest first',
+'back':'Back to applications','export':'Export CSV','save':'Save application',
+'activity':'Activity history','latest':'Newest first',
 'status':'Status','owner':'Owner','email':'Email','phone':'Phone','category':'Category',
-'location':'Location','languages':'Languages','experience':'Experience','bio':'Short Bio','unassigned':'Unassigned'
+'location':'Location','languages':'Languages','experience':'Experience','bio':'Short bio',
+'unassigned':'Unassigned','update_status':'Update status','assign_owner':'Assign owner',
+'internal_notes':'Internal notes','notes_placeholder':'Private notes for the admin team',
+'no_activity':'No activity yet.',
+'no_activity_copy':'This application will start collecting timeline events after the next save.',
+'configuration':'Configuration','ready':'ready','incomplete':'incomplete',
+'no_secrets':'No secret values are displayed.'
 },
 'fr': {
 'eyebrow':'Détails de la candidature','title':'Examen de la candidature',
 'intro':'Modifiez le statut, attribuez un responsable et ajoutez des notes internes.',
 'back':'Retour aux candidatures','export':'Exporter CSV',
-'save':'Enregistrer la candidature','activity':'Historique de l’activité','latest':'Plus récentes en premier',
-'status':'Statut','owner':'Responsable','email':'E-mail','phone':'Téléphone','category':'Catégorie',
-'location':'Localisation','languages':'Langues','experience':'Expérience','bio':'Présentation courte','unassigned':'Non attribué'
+'save':'Enregistrer la candidature','activity':'Historique de l’activité',
+'latest':'Plus récentes en premier','status':'Statut','owner':'Responsable',
+'email':'E-mail','phone':'Téléphone','category':'Catégorie',
+'location':'Localisation','languages':'Langues','experience':'Expérience',
+'bio':'Présentation courte','unassigned':'Non attribué',
+'update_status':'Mettre à jour le statut','assign_owner':'Attribuer un responsable',
+'internal_notes':'Notes internes',
+'notes_placeholder':'Notes privées pour l’équipe admin',
+'no_activity':'Aucune activité pour le moment.',
+'no_activity_copy':'Cette candidature commencera à enregistrer les événements après la prochaine sauvegarde.',
+'configuration':'Configuration','ready':'prête','incomplete':'incomplète',
+'no_secrets':'Aucune valeur secrète n’est affichée.'
+},
+'ru': {
+'eyebrow':'Детали заявки',
+'title':'Просмотр заявки',
+'intro':'Измените статус, назначьте ответственного и добавьте внутренние заметки.',
+'back':'Назад к заявкам',
+'export':'Экспорт CSV','save':'Сохранить заявку',
+'activity':'История активности',
+'latest':'Сначала новые',
+'status':'Статус','owner':'Ответственный',
+'email':'E-mail','phone':'Телефон','category':'Категория',
+'location':'Местоположение',
+'languages':'Языки','experience':'Опыт',
+'bio':'Краткое описание',
+'unassigned':'Не назначено',
+'update_status':'Изменить статус',
+'assign_owner':'Назначить ответственного',
+'internal_notes':'Внутренние заметки',
+'notes_placeholder':'Заметки для администраторов',
+'no_activity':'Активности пока нет.',
+'no_activity_copy':'После следующего сохранения здесь появятся события.',
+'configuration':'Конфигурация',
+'ready':'готова','incomplete':'неполная',
+'no_secrets':'Секретные значения не отображаются.'
 }
 } %}
+
 {% set prdetail = professional_detail_ui.get(page_lang|default('en'), professional_detail_ui['en']) %}
 
 
@@ -54,14 +144,14 @@
     <article class="admin-pilot-card">
       <div class="admin-pilot-card__topline">
         <p class="eyebrow">{{ item.created_at|e }}</p>
-        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ item.status|upper|e }}</span>
+        <span class="admin-pilot-status admin-pilot-status--{{ item.status|lower|e }}">{{ professional_status_labels.get(item.status|upper, item.status|upper)|e }}</span>
       </div>
 
       <h2>{{ item.full_name|e }}</h2>
 
       <dl class="admin-pilot-details">
         <div><dt>ID</dt><dd>{{ item.id|e }}</dd></div>
-        <div><dt>{{ prdetail.status }}</dt><dd>{{ item.status|upper|e }}</dd></div>
+        <div><dt>{{ prdetail.status }}</dt><dd>{{ professional_status_labels.get(item.status|upper, item.status|upper)|e }}</dd></div>
         <div><dt>{{ prdetail.owner }}</dt><dd>{{ item.owner|e if item.owner else prdetail.unassigned }}</dd></div>
         <div><dt>{{ prdetail.email }}</dt><dd>{{ item.email|e }}</dd></div>
         <div><dt>{{ prdetail.phone }}</dt><dd>{{ item.phone|e }}</dd></div>
@@ -75,7 +165,7 @@
       <section class="admin-pilot-card" aria-labelledby="stripe-connect-title">
         <p class="eyebrow">Stripe Connect · {{ stripe_diagnostics.mode|upper }}</p>
         <h3 id="stripe-connect-title">{{ stripe_status_label }}</h3>
-        <p>Configuration: {% if stripe_diagnostics.checkout_ready %}ready{% else %}incomplete{% endif %}; webhook: {% if stripe_diagnostics.webhook_ready %}ready{% else %}incomplete{% endif %}. No secret values are displayed.</p>
+        <p>{{ prdetail.configuration }}: {% if stripe_diagnostics.checkout_ready %}{{ prdetail.ready }}{% else %}{{ prdetail.incomplete }}{% endif %}; webhook: {% if stripe_diagnostics.webhook_ready %}{{ prdetail.ready }}{% else %}{{ prdetail.incomplete }}{% endif %}. {{ prdetail.no_secrets }}</p>
         {% if professional_account and professional_account.stripe_account_status != 'READY' %}
           <form method="post" action="/admin/professionals/{{ item.id|e }}/stripe/connect">
             <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
@@ -89,20 +179,20 @@
       <form class="admin-pilot-status-form" method="post" action="/admin/professionals/{{ item.id|e }}/update">
         <input type="hidden" name="csrf_token" value="{{ admin_csrf_token() }}">
         <label>
-          <span>Update status</span>
+          <span>{{ prdetail.update_status }}</span>
           <select name="status" required>
             {% for option in status_options %}
-              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ option.label|e }}</option>
+              <option value="{{ option.value|e }}" {% if item.status|lower == option.value %}selected{% endif %}>{{ professional_status_labels.get(option.value|upper, option.label)|e }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span>Owner</span>
-          <input type="text" name="owner" value="{{ item.owner|e }}" placeholder="Assign owner">
+          <span>{{ prdetail.owner }}</span>
+          <input type="text" name="owner" value="{{ item.owner|e }}" placeholder="{{ prdetail.assign_owner }}">
         </label>
         <label class="admin-pilot-status-form__notes">
-          <span>Internal notes</span>
-          <textarea name="notes" rows="6" placeholder="Private notes for the admin team">{{ item.internal_notes|e }}</textarea>
+          <span>{{ prdetail.internal_notes }}</span>
+          <textarea name="notes" rows="6" placeholder="{{ prdetail.notes_placeholder }}">{{ item.internal_notes|e }}</textarea>
         </label>
         <button class="button button--primary" type="submit">{{ prdetail.save }}</button>
       </form>
@@ -120,7 +210,7 @@
             {% for event in timeline %}
               <article class="admin-timeline-item">
                 <div class="admin-pilot-card__topline">
-                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type|replace('_', ' ')|title }}</span>
+                  <span class="admin-pilot-status admin-pilot-status--{{ (event.status or item.status)|lower|e }}">{{ event.type_label|default(event.type|replace('_', ' ')|title)|e }}</span>
                   <time>{{ event.created_at|e }}</time>
                 </div>
                 <strong>{{ event.title|e }}</strong>
@@ -130,8 +220,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No activity yet.</h3>
-            <p>This application will start collecting timeline events after the next save.</p>
+            <h3>{{ prdetail.no_activity }}</h3>
+            <p>{{ prdetail.no_activity_copy }}</p>
           </div>
         {% endif %}
       </div>

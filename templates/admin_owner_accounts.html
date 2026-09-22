@@ -254,6 +254,95 @@
     }
   </style>
 </head>
+
+{% set oa_lang = request.args.get('lang', page_lang|default('en')) %}
+{% if oa_lang not in ['bg','en','fr','ru'] %}{% set oa_lang = 'en' %}{% endif %}
+
+{% set oa_catalog = {
+'bg': {
+'title':'Акаунти на собственици',
+'crm':'CRM на собственици',
+'intro':'Търсете собственици, преглеждайте профили и управлявайте бележки, статуси и история на активността.',
+'trash':'Кошче',
+'back':'Назад към управленския панел',
+'shown':'показани',
+'total':'общо',
+'created':'Акаунтът на собственика е създаден успешно.',
+'search':'Търсене',
+'search_ph':'Име, имейл, град',
+'status':'Статус',
+'all_statuses':'Всички статуси',
+'language':'Език',
+'all_languages':'Всички езици',
+'apply':'Приложи филтрите',
+'clear':'Изчисти',
+'new':'НОВ',
+'properties':'Брой имоти',
+'created_at':'Дата на създаване',
+'last_login':'Последен вход',
+'no_data':'няма данни',
+'city':'Град',
+'open':'Отвори профила',
+'empty':'Няма намерени акаунти на собственици.'
+},
+'en': {
+'title':'Owner Accounts','crm':'Owner CRM',
+'intro':'Search owners, review profiles, and manage notes, statuses, and activity history.',
+'trash':'Recycle bin','back':'Back to management dashboard',
+'shown':'shown','total':'total',
+'created':'The owner account was created successfully.',
+'search':'Search','search_ph':'Name, email, city',
+'status':'Status','all_statuses':'All statuses',
+'language':'Language','all_languages':'All languages',
+'apply':'Apply filters','clear':'Clear',
+'new':'NEW','properties':'Properties',
+'created_at':'Created','last_login':'Last login',
+'no_data':'no data','city':'City',
+'open':'Open profile','empty':'No owner accounts found.'
+},
+'fr': {
+'title':'Comptes propriétaires','crm':'CRM propriétaires',
+'intro':'Recherchez des propriétaires, consultez les profils et gérez les notes, les statuts et l’historique des activités.',
+'trash':'Corbeille','back':'Retour au tableau de gestion',
+'shown':'affichés','total':'au total',
+'created':'Le compte propriétaire a été créé avec succès.',
+'search':'Recherche','search_ph':'Nom, e-mail, ville',
+'status':'Statut','all_statuses':'Tous les statuts',
+'language':'Langue','all_languages':'Toutes les langues',
+'apply':'Appliquer les filtres','clear':'Effacer',
+'new':'NOUVEAU','properties':'Nombre de biens',
+'created_at':'Date de création','last_login':'Dernière connexion',
+'no_data':'aucune donnée','city':'Ville',
+'open':'Ouvrir le profil','empty':'Aucun compte propriétaire trouvé.'
+},
+'ru': {
+'title':'Аккаунты владельцев',
+'crm':'CRM владельцев',
+'intro':'Ищите владельцев, просматривайте профили и управляйте заметками, статусами и историей активности.',
+'trash':'Корзина',
+'back':'Назад к панели управления',
+'shown':'показано','total':'всего',
+'created':'Аккаунт владельца успешно создан.',
+'search':'Поиск',
+'search_ph':'Имя, e-mail, город',
+'status':'Статус',
+'all_statuses':'Все статусы',
+'language':'Язык',
+'all_languages':'Все языки',
+'apply':'Применить фильтры',
+'clear':'Очистить',
+'new':'НОВЫЙ',
+'properties':'Количество объектов',
+'created_at':'Дата создания',
+'last_login':'Последний вход',
+'no_data':'нет данных',
+'city':'Город',
+'open':'Открыть профиль',
+'empty':'Аккаунты владельцев не найдены.'
+}
+} %}
+{% set oa = oa_catalog[oa_lang] %}
+
 <body class="admin-owner-accounts-page">
   {% include '_admin_sidebar.html' %}
   <main class="admin-owner-accounts-shell">
@@ -261,24 +350,24 @@
       <div class="admin-owner-accounts-hero">
         <div>
           <span class="admin-owner-accounts-chip">Admin</span>
-          <span class="admin-owner-accounts-chip" data-i18n="ownerAccountsCrm">CRM на собственици</span>
-          <h1 data-i18n="pageOwnerAccounts">Акаунти на собственици</h1>
+          <span class="admin-owner-accounts-chip" data-i18n="ownerAccountsCrm">{{ oa.crm }}</span>
+          <h1 data-i18n="pageOwnerAccounts">{{ oa.title }}</h1>
           <p class="admin-owner-accounts-copy" data-i18n="ownerAccountsIntro">
-            Търсете собственици, преглеждайте профили и управлявайте бележки, статуси и история на активността.
+            {{ oa.intro }}
           </p>
         </div>
         <div class="admin-owner-accounts-actions" style="margin-top:0;">
-          <a class="admin-owner-accounts-button" href="/admin/recycle-bin" data-i18n="recycleBin">Кошче</a>
-          <a class="admin-owner-accounts-button" href="/admin" data-i18n="backToCockpit">Назад към управленския панел</a>
+          <a class="admin-owner-accounts-button" href="/admin/recycle-bin?lang={{ page_lang }}" data-i18n="recycleBin">{{ oa.trash }}</a>
+          <a class="admin-owner-accounts-button" href="/admin" data-i18n="backToCockpit">{{ oa.back }}</a>
         </div>
       </div>
       <p class="admin-owner-accounts-summary">
-        <span><strong>{{ owner_accounts_count }}</strong> <span data-i18n="shown">показани</span></span>
-        <span data-testid="owner-total-count"><strong>{{ owner_accounts_total_count }}</strong> <span data-i18n="total">общо</span></span>
+        <span><strong>{{ owner_accounts_count }}</strong> <span data-i18n="shown">{{ oa.shown }}</span></span>
+        <span data-testid="owner-total-count"><strong>{{ owner_accounts_total_count }}</strong> <span data-i18n="total">{{ oa.total }}</span></span>
 
       </p>
       {% if request.args.get('seeded') == '1' %}
-        <div class="admin-owner-accounts-banner" role="status">Акаунтът на собственика е създаден успешно.</div>
+        <div class="admin-owner-accounts-banner" role="status">{{ oa.created }}</div>
       {% endif %}
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -288,15 +377,16 @@
         {% endif %}
       {% endwith %}
       <form method="get" action="{{ url_for('admin_owner_accounts') }}">
+        <input type="hidden" name="lang" value="{{ page_lang|e }}">
         <div class="admin-owner-accounts-filters">
           <label class="admin-owner-accounts-filter-field">
-            <span data-i18n="search">Търсене</span>
-            <input type="search" name="q" value="{{ search_query|e }}" placeholder="Име, имейл, град" data-i18n-attr="placeholder:ownerAccountsSearchPlaceholder">
+            <span data-i18n="search">{{ oa.search }}</span>
+            <input type="search" name="q" value="{{ search_query|e }}" placeholder="{{ oa.search_ph }}" data-i18n-attr="placeholder:ownerAccountsSearchPlaceholder">
           </label>
           <label class="admin-owner-accounts-filter-field">
-            <span data-i18n="status">Статус</span>
+            <span data-i18n="status">{{ oa.status }}</span>
             <select name="status">
-              <option value="" data-i18n="allStatuses">Всички статуси</option>
+              <option value="" data-i18n="allStatuses">{{ oa.all_statuses }}</option>
               {% for option in owner_status_options %}
                 {% set status_key = 'statusActive' if option == 'ACTIVE' else 'statusInactive' if option == 'INACTIVE' else 'statusArchived' if option == 'ARCHIVED' else 'statusPilot' %}
                 <option value="{{ option|lower|e }}" {% if status_filter|lower == option|lower %}selected{% endif %} data-i18n="{{ status_key }}">{{ option|e }}</option>
@@ -304,9 +394,9 @@
             </select>
           </label>
           <label class="admin-owner-accounts-filter-field">
-            <span data-i18n="language">Език</span>
+            <span data-i18n="language">{{ oa.language }}</span>
             <select name="language">
-              <option value="" data-i18n="allLanguages">Всички езици</option>
+              <option value="" data-i18n="allLanguages">{{ oa.all_languages }}</option>
               {% for option in owner_language_options %}
                 <option value="{{ option|e }}" {% if language_filter|lower == option|lower %}selected{% endif %}>{{ option|upper|e }}</option>
               {% endfor %}
@@ -314,15 +404,15 @@
           </label>
         </div>
         <div class="admin-owner-accounts-filter-actions">
-          <button class="admin-owner-accounts-button" type="submit" data-i18n="applyFilters">Приложи филтрите</button>
-          <a class="button button--ghost" href="{{ url_for('admin_owner_accounts') }}" data-i18n="reset">Изчисти</a>
+          <button class="admin-owner-accounts-button" type="submit" data-i18n="applyFilters">{{ oa.apply }}</button>
+          <a class="button button--ghost" href="{{ url_for('admin_owner_accounts', lang=page_lang) }}" data-i18n="reset">{{ oa.clear }}</a>
         </div>
       </form>
 
       {% if owner_accounts %}
-        <div class="admin-owner-accounts-grid" aria-label="Акаунти на собственици" data-i18n-attr="aria-label:pageOwnerAccounts">
+        <div class="admin-owner-accounts-grid" aria-label="{{ oa.title }}" data-i18n-attr="aria-label:pageOwnerAccounts">
           {% for account in owner_accounts %}
-            <a class="admin-owner-account-card" href="/admin/owner-accounts/{{ account.id|e }}" data-search="{{ (account.full_name ~ ' ' ~ account.email ~ ' ' ~ account.city ~ ' ' ~ account.property_name ~ ' ' ~ account.property_type ~ ' ' ~ account.status ~ ' ' ~ account.language)|lower|e }}">
+            <a class="admin-owner-account-card" href="/admin/owner-accounts/{{ account.id|e }}?lang={{ page_lang|e }}" data-search="{{ (account.full_name ~ ' ' ~ account.email ~ ' ' ~ account.city ~ ' ' ~ account.property_name ~ ' ' ~ account.property_type ~ ' ' ~ account.status ~ ' ' ~ account.language)|lower|e }}">
               <div class="admin-owner-account-card__topline">
                 <div>
                   <p class="admin-owner-account-card__name">{{ account.full_name|e }}</p>
@@ -333,7 +423,7 @@
                 </div>
                 <div class="admin-owner-account-card__badges">
                   {% if account.is_new_for_admin %}
-                    <span class="admin-owner-accounts-chip admin-owner-accounts-chip--new" data-testid="new-owner-badge" data-i18n="newOwnerBadge">НОВ</span>
+                    <span class="admin-owner-accounts-chip admin-owner-accounts-chip--new" data-testid="new-owner-badge" data-i18n="newOwnerBadge">{{ oa.new }}</span>
                   {% endif %}
                   {% set account_status_key = 'statusActive' if account.status == 'ACTIVE' else 'statusInactive' if account.status == 'INACTIVE' else 'statusArchived' if account.status == 'ARCHIVED' else 'statusPilot' %}
                   <span class="admin-owner-accounts-chip admin-owner-accounts-chip--status" data-i18n="{{ account_status_key }}">{{ account.status|upper|e }}</span>
@@ -341,31 +431,31 @@
               </div>
               <dl class="admin-owner-account-card__details">
                 <div class="admin-owner-account-card__detail">
-                  <dt data-i18n="propertyCount">Брой имоти</dt>
+                  <dt data-i18n="propertyCount">{{ oa.properties }}</dt>
                   <dd>{{ account.property_count }}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt data-i18n="createdAt">Дата на създаване</dt>
+                  <dt data-i18n="createdAt">{{ oa.created_at }}</dt>
                   <dd>{{ account.created_at|e }}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt data-i18n="lastLogin">Последен вход</dt>
-                  <dd>{% if account.last_login_at %}{{ account.last_login_at|e }}{% else %}<span data-i18n="notAvailable">няма данни</span>{% endif %}</dd>
+                  <dt data-i18n="lastLogin">{{ oa.last_login }}</dt>
+                  <dd>{% if account.last_login_at %}{{ account.last_login_at|e }}{% else %}<span data-i18n="notAvailable">{{ oa.no_data }}</span>{% endif %}</dd>
                 </div>
                 <div class="admin-owner-account-card__detail">
-                  <dt data-i18n="city">Град</dt>
+                  <dt data-i18n="city">{{ oa.city }}</dt>
                   <dd>{{ account.city|e }}</dd>
                 </div>
               </dl>
               <div class="admin-owner-account-card__footer">
                 <span class="admin-owner-accounts-chip">{{ account.language|upper|e }}</span>
-                <span class="admin-owner-account-card__link" data-i18n="openProfile">Отвори профила</span>
+                <span class="admin-owner-account-card__link" data-i18n="openProfile">{{ oa.open }}</span>
               </div>
             </a>
           {% endfor %}
         </div>
       {% else %}
-        <p class="admin-owner-accounts-empty" data-i18n="noOwnerAccountsFound">Няма намерени акаунти на собственици.</p>
+        <p class="admin-owner-accounts-empty" data-i18n="noOwnerAccountsFound">{{ oa.empty }}</p>
       {% endif %}
     </section>
   </main>

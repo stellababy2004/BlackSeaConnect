@@ -1,5 +1,276 @@
 <!doctype html>
-<html lang="{{ page_lang|default('en')|e }}">
+<html lang="{{ home_lang|e }}">
+
+{% set home_lang = request.args.get('lang', page_lang|default('en')) %}
+{% if home_lang not in ['bg', 'en', 'fr', 'ru'] %}{% set home_lang = 'en' %}{% endif %}
+{% set home_ui = {
+  'bg': {
+    'Admin · BlackSea Connect': 'Админ · BlackSea Connect',
+    'BLACKSEA CONNECT': 'BLACKSEA CONNECT',
+    'Today': 'Днес',
+    'Start with the work that needs attention.': 'Започнете с работата, която изисква внимание.',
+    "Open today's work": 'Отвори днешната работа',
+    'Calendar': 'Календар',
+    'More': 'Още',
+    'Requests': 'Заявки',
+    'Bookings': 'Резервации',
+    'Properties': 'Имоти',
+    'Professionals': 'Професионалисти',
+    'Needs attention': 'Изисква внимание',
+    'What needs attention today': 'Какво изисква внимание днес',
+    "Today's cleanings": 'Днешни почиствания',
+    "Today's arrivals": 'Днешни пристигания',
+    "Today's departures": 'Днешни заминавания',
+    'Overdue': 'Просрочени',
+    'Statistics': 'Статистика',
+    'Total Leads': 'Общо потенциални клиенти',
+    'New Leads': 'Нови потенциални клиенти',
+    'Contacted': 'Контактувани',
+    'Qualified Leads': 'Квалифицирани потенциални клиенти',
+    'Converted Leads': 'Конвертирани потенциални клиенти',
+    'Lost Leads': 'Загубени потенциални клиенти',
+    'Owner Accounts': 'Акаунти на собственици',
+    'Total Properties': 'Общо имоти',
+    'Active Properties': 'Активни имоти',
+    'Seasonal Properties': 'Сезонни имоти',
+    'Inactive Properties': 'Неактивни имоти',
+    'Active Requests': 'Активни заявки',
+    'Completed Requests': 'Завършени заявки',
+    'Requests This Month': 'Заявки този месец',
+    'Concierge Requests': 'Консиерж заявки',
+    'Partner Applications': 'Кандидатури за партньори',
+    'Professional Applications': 'Кандидатури на професионалисти',
+    'Calendar engine': 'Календарен модул',
+    'View calendar': 'Виж календара',
+    "Today's Operations": 'Днешни операции',
+    'Upcoming Check-ins': 'Предстоящи настанявания',
+    'Upcoming Check-outs': 'Предстоящи напускания',
+    "Today's Cleaning": 'Днешно почистване',
+    'Overdue Events': 'Просрочени събития',
+    'No scheduled events yet.': 'Все още няма планирани събития.',
+    'The shared calendar will surface task-driven events, visits, and owner dates here.': 'Споделеният календар ще показва тук събития от задачи, посещения и дати на собствениците.',
+    'Reservation engine': 'Модул за резервации',
+    'Booking and availability': 'Резервации и наличност',
+    'View reservations': 'Виж резервациите',
+    "Today's check-ins": 'Днешни настанявания',
+    "Today's check-outs": 'Днешни напускания',
+    'Occupancy': 'Заетост',
+    'Cleaning queue': 'Опашка за почистване',
+    'Inspections': 'Инспекции',
+    'No active reservations yet.': 'Все още няма активни резервации.',
+    'Reservations will appear here as soon as they are created or imported.': 'Резервациите ще се появят тук веднага след създаване или импортиране.',
+    'Lead pipeline': 'Процес за потенциални клиенти',
+    'Operational stages': 'Оперативни етапи',
+    'Partner pipeline': 'Процес за партньори',
+    'Partner application stages': 'Етапи на партньорските кандидатури',
+    'Professional pipeline': 'Процес за професионалисти',
+    'Professional application stages': 'Етапи на кандидатурите на професионалисти',
+    'Recent activity': 'Последна активност',
+    'Last 10 events': 'Последните 10 събития',
+    'No activity yet.': 'Все още няма активност.',
+    'Once a lead or request is saved, it will appear here automatically.': 'След записване на потенциален клиент или заявка, тя ще се появи тук автоматично.'
+  },
+  'en': {
+    'Admin · BlackSea Connect': 'Admin · BlackSea Connect',
+    'BLACKSEA CONNECT': 'BLACKSEA CONNECT',
+    'Today': 'Today',
+    'Start with the work that needs attention.': 'Start with the work that needs attention.',
+    "Open today's work": "Open today's work",
+    'Calendar': 'Calendar',
+    'More': 'More',
+    'Requests': 'Requests',
+    'Bookings': 'Bookings',
+    'Properties': 'Properties',
+    'Professionals': 'Professionals',
+    'Needs attention': 'Needs attention',
+    'What needs attention today': 'What needs attention today',
+    "Today's cleanings": "Today's cleanings",
+    "Today's arrivals": "Today's arrivals",
+    "Today's departures": "Today's departures",
+    'Overdue': 'Overdue',
+    'Statistics': 'Statistics',
+    'Total Leads': 'Total Leads',
+    'New Leads': 'New Leads',
+    'Contacted': 'Contacted',
+    'Qualified Leads': 'Qualified Leads',
+    'Converted Leads': 'Converted Leads',
+    'Lost Leads': 'Lost Leads',
+    'Owner Accounts': 'Owner Accounts',
+    'Total Properties': 'Total Properties',
+    'Active Properties': 'Active Properties',
+    'Seasonal Properties': 'Seasonal Properties',
+    'Inactive Properties': 'Inactive Properties',
+    'Active Requests': 'Active Requests',
+    'Completed Requests': 'Completed Requests',
+    'Requests This Month': 'Requests This Month',
+    'Concierge Requests': 'Concierge Requests',
+    'Partner Applications': 'Partner Applications',
+    'Professional Applications': 'Professional Applications',
+    'Calendar engine': 'Calendar engine',
+    'View calendar': 'View calendar',
+    "Today's Operations": "Today's Operations",
+    'Upcoming Check-ins': 'Upcoming Check-ins',
+    'Upcoming Check-outs': 'Upcoming Check-outs',
+    "Today's Cleaning": "Today's Cleaning",
+    'Overdue Events': 'Overdue Events',
+    'No scheduled events yet.': 'No scheduled events yet.',
+    'The shared calendar will surface task-driven events, visits, and owner dates here.': 'The shared calendar will surface task-driven events, visits, and owner dates here.',
+    'Reservation engine': 'Reservation engine',
+    'Booking and availability': 'Booking and availability',
+    'View reservations': 'View reservations',
+    "Today's check-ins": "Today's check-ins",
+    "Today's check-outs": "Today's check-outs",
+    'Occupancy': 'Occupancy',
+    'Cleaning queue': 'Cleaning queue',
+    'Inspections': 'Inspections',
+    'No active reservations yet.': 'No active reservations yet.',
+    'Reservations will appear here as soon as they are created or imported.': 'Reservations will appear here as soon as they are created or imported.',
+    'Lead pipeline': 'Lead pipeline',
+    'Operational stages': 'Operational stages',
+    'Partner pipeline': 'Partner pipeline',
+    'Partner application stages': 'Partner application stages',
+    'Professional pipeline': 'Professional pipeline',
+    'Professional application stages': 'Professional application stages',
+    'Recent activity': 'Recent activity',
+    'Last 10 events': 'Last 10 events',
+    'No activity yet.': 'No activity yet.',
+    'Once a lead or request is saved, it will appear here automatically.': 'Once a lead or request is saved, it will appear here automatically.'
+  },
+  'fr': {
+    'Admin · BlackSea Connect': 'Admin · BlackSea Connect',
+    'BLACKSEA CONNECT': 'BLACKSEA CONNECT',
+    'Today': "Aujourd'hui",
+    'Start with the work that needs attention.': 'Commencez par le travail qui nécessite votre attention.',
+    "Open today's work": 'Ouvrir le travail du jour',
+    'Calendar': 'Calendrier',
+    'More': 'Plus',
+    'Requests': 'Demandes',
+    'Bookings': 'Réservations',
+    'Properties': 'Biens',
+    'Professionals': 'Professionnels',
+    'Needs attention': 'Nécessite une attention',
+    'What needs attention today': "Ce qui nécessite votre attention aujourd'hui",
+    "Today's cleanings": 'Nettoyages du jour',
+    "Today's arrivals": 'Arrivées du jour',
+    "Today's departures": 'Départs du jour',
+    'Overdue': 'En retard',
+    'Statistics': 'Statistiques',
+    'Total Leads': 'Total des prospects',
+    'New Leads': 'Nouveaux prospects',
+    'Contacted': 'Contactés',
+    'Qualified Leads': 'Prospects qualifiés',
+    'Converted Leads': 'Prospects convertis',
+    'Lost Leads': 'Prospects perdus',
+    'Owner Accounts': 'Comptes propriétaires',
+    'Total Properties': 'Total des biens',
+    'Active Properties': 'Biens actifs',
+    'Seasonal Properties': 'Biens saisonniers',
+    'Inactive Properties': 'Biens inactifs',
+    'Active Requests': 'Demandes actives',
+    'Completed Requests': 'Demandes terminées',
+    'Requests This Month': 'Demandes ce mois-ci',
+    'Concierge Requests': 'Demandes de conciergerie',
+    'Partner Applications': 'Candidatures partenaires',
+    'Professional Applications': 'Candidatures professionnelles',
+    'Calendar engine': 'Moteur de calendrier',
+    'View calendar': 'Voir le calendrier',
+    "Today's Operations": 'Opérations du jour',
+    'Upcoming Check-ins': 'Arrivées à venir',
+    'Upcoming Check-outs': 'Départs à venir',
+    "Today's Cleaning": 'Nettoyage du jour',
+    'Overdue Events': 'Événements en retard',
+    'No scheduled events yet.': 'Aucun événement planifié pour le moment.',
+    'The shared calendar will surface task-driven events, visits, and owner dates here.': 'Le calendrier partagé affichera ici les événements liés aux tâches, les visites et les dates des propriétaires.',
+    'Reservation engine': 'Moteur de réservation',
+    'Booking and availability': 'Réservations et disponibilités',
+    'View reservations': 'Voir les réservations',
+    "Today's check-ins": 'Arrivées du jour',
+    "Today's check-outs": 'Départs du jour',
+    'Occupancy': 'Occupation',
+    'Cleaning queue': 'File de nettoyage',
+    'Inspections': 'Inspections',
+    'No active reservations yet.': 'Aucune réservation active pour le moment.',
+    'Reservations will appear here as soon as they are created or imported.': 'Les réservations apparaîtront ici dès leur création ou leur importation.',
+    'Lead pipeline': 'Pipeline des prospects',
+    'Operational stages': 'Étapes opérationnelles',
+    'Partner pipeline': 'Pipeline partenaires',
+    'Partner application stages': 'Étapes des candidatures partenaires',
+    'Professional pipeline': 'Pipeline professionnels',
+    'Professional application stages': 'Étapes des candidatures professionnelles',
+    'Recent activity': 'Activité récente',
+    'Last 10 events': '10 derniers événements',
+    'No activity yet.': 'Aucune activité pour le moment.',
+    'Once a lead or request is saved, it will appear here automatically.': "Dès qu'un prospect ou une demande est enregistré, il apparaîtra automatiquement ici."
+  },
+  'ru': {
+    'Admin · BlackSea Connect': 'Админ · BlackSea Connect',
+    'BLACKSEA CONNECT': 'BLACKSEA CONNECT',
+    'Today': 'Сегодня',
+    'Start with the work that needs attention.': 'Начните с работы, требующей внимания.',
+    "Open today's work": 'Открыть работу на сегодня',
+    'Calendar': 'Календарь',
+    'More': 'Ещё',
+    'Requests': 'Запросы',
+    'Bookings': 'Бронирования',
+    'Properties': 'Объекты',
+    'Professionals': 'Профессионалы',
+    'Needs attention': 'Требует внимания',
+    'What needs attention today': 'Что требует внимания сегодня',
+    "Today's cleanings": 'Уборки на сегодня',
+    "Today's arrivals": 'Заезды на сегодня',
+    "Today's departures": 'Выезды на сегодня',
+    'Overdue': 'Просроченные',
+    'Statistics': 'Статистика',
+    'Total Leads': 'Всего лидов',
+    'New Leads': 'Новые лиды',
+    'Contacted': 'Связались',
+    'Qualified Leads': 'Квалифицированные лиды',
+    'Converted Leads': 'Конвертированные лиды',
+    'Lost Leads': 'Потерянные лиды',
+    'Owner Accounts': 'Аккаунты собственников',
+    'Total Properties': 'Всего объектов',
+    'Active Properties': 'Активные объекты',
+    'Seasonal Properties': 'Сезонные объекты',
+    'Inactive Properties': 'Неактивные объекты',
+    'Active Requests': 'Активные запросы',
+    'Completed Requests': 'Завершённые запросы',
+    'Requests This Month': 'Запросы за этот месяц',
+    'Concierge Requests': 'Запросы консьерж-сервиса',
+    'Partner Applications': 'Заявки партнёров',
+    'Professional Applications': 'Заявки профессионалов',
+    'Calendar engine': 'Модуль календаря',
+    'View calendar': 'Открыть календарь',
+    "Today's Operations": 'Операции на сегодня',
+    'Upcoming Check-ins': 'Предстоящие заезды',
+    'Upcoming Check-outs': 'Предстоящие выезды',
+    "Today's Cleaning": 'Уборка на сегодня',
+    'Overdue Events': 'Просроченные события',
+    'No scheduled events yet.': 'Запланированных событий пока нет.',
+    'The shared calendar will surface task-driven events, visits, and owner dates here.': 'Общий календарь будет показывать здесь события по задачам, визиты и даты собственников.',
+    'Reservation engine': 'Модуль бронирований',
+    'Booking and availability': 'Бронирования и доступность',
+    'View reservations': 'Открыть бронирования',
+    "Today's check-ins": 'Заезды на сегодня',
+    "Today's check-outs": 'Выезды на сегодня',
+    'Occupancy': 'Загрузка',
+    'Cleaning queue': 'Очередь уборки',
+    'Inspections': 'Инспекции',
+    'No active reservations yet.': 'Активных бронирований пока нет.',
+    'Reservations will appear here as soon as they are created or imported.': 'Бронирования появятся здесь сразу после создания или импорта.',
+    'Lead pipeline': 'Воронка лидов',
+    'Operational stages': 'Операционные этапы',
+    'Partner pipeline': 'Воронка партнёров',
+    'Partner application stages': 'Этапы заявок партнёров',
+    'Professional pipeline': 'Воронка профессионалов',
+    'Professional application stages': 'Этапы заявок профессионалов',
+    'Recent activity': 'Недавняя активность',
+    'Last 10 events': 'Последние 10 событий',
+    'No activity yet.': 'Активности пока нет.',
+    'Once a lead or request is saved, it will appear here automatically.': 'После сохранения лида или запроса он автоматически появится здесь.'
+  }
+} %}
+{% set home = home_ui[home_lang] %}
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,125 +279,125 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <title>Admin · BlackSea Connect</title>
+  <title>{{ home['Admin · BlackSea Connect'] }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="admin-cockpit-page">
   <main class="admin-cockpit-shell">
     <section class="admin-cockpit-hero">
       <div>
-        <p class="eyebrow">BLACKSEA CONNECT</p>
-        <h1>Today</h1>
-        <p>Start with the work that needs attention.</p>
+        <p class="eyebrow">{{ home['BLACKSEA CONNECT'] }}</p>
+        <h1>{{ home['Today'] }}</h1>
+        <p>{{ home['Start with the work that needs attention.'] }}</p>
       </div>
 
       <div class="admin-cockpit-actions">
-        <a class="button button--primary" href="/admin/operations">Open today's work</a>
-        <a class="button button--secondary" href="/admin/calendar">Calendar</a>
+        <a class="button button--primary" href="/admin/operations?lang={{ home_lang|e }}">{{ home["Open today's work"] }}</a>
+        <a class="button button--secondary" href="/admin/calendar?lang={{ home_lang|e }}">{{ home['Calendar'] }}</a>
         <details>
-          <summary class="button button--ghost">More</summary>
+          <summary class="button button--ghost">{{ home['More'] }}</summary>
           <div class="admin-cockpit-actions">
-            <a class="button button--secondary" href="/admin/service-requests">Requests</a>
-            <a class="button button--secondary" href="/admin/reservations">Bookings</a>
-            <a class="button button--secondary" href="/admin/properties">Properties</a>
-            <a class="button button--secondary" href="/admin/professionals">Professionals</a>
+            <a class="button button--secondary" href="/admin/service-requests?lang={{ home_lang|e }}">{{ home['Requests'] }}</a>
+            <a class="button button--secondary" href="/admin/reservations?lang={{ home_lang|e }}">{{ home['Bookings'] }}</a>
+            <a class="button button--secondary" href="/admin/properties?lang={{ home_lang|e }}">{{ home['Properties'] }}</a>
+            <a class="button button--secondary" href="/admin/professionals?lang={{ home_lang|e }}">{{ home['Professionals'] }}</a>
           </div>
         </details>
       </div>
     </section>
 
-    <section class="admin-kpi-grid" aria-label="What needs attention today">
+    <section class="admin-kpi-grid" aria-label="{{ home['What needs attention today'] }}">
       <article class="admin-kpi-card">
-        <span>Needs attention</span>
+        <span>{{ home['Needs attention'] }}</span>
         <strong>{{ active_service_requests }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Today's cleanings</span>
+        <span>{{ home["Today's cleanings"] }}</span>
         <strong>{{ calendar_widget.summary.todays_cleaning }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Today's arrivals</span>
+        <span>{{ home["Today's arrivals"] }}</span>
         <strong>{{ reservation_widget.stats.todays_check_ins }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Today's departures</span>
+        <span>{{ home["Today's departures"] }}</span>
         <strong>{{ reservation_widget.stats.todays_check_outs }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Overdue</span>
+        <span>{{ home['Overdue'] }}</span>
         <strong>{{ calendar_widget.summary.overdue_events }}</strong>
       </article>
     </section>
 
     <details class="admin-cockpit-panel">
-      <summary><strong>Statistics</strong></summary>
-    <section class="admin-kpi-grid" aria-label="Statistics">
+      <summary><strong>{{ home['Statistics'] }}</strong></summary>
+    <section class="admin-kpi-grid" aria-label="{{ home['Statistics'] }}">
       <article class="admin-kpi-card">
-        <span>Total Leads</span>
+        <span>{{ home['Total Leads'] }}</span>
         <strong>{{ total_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>New Leads</span>
+        <span>{{ home['New Leads'] }}</span>
         <strong>{{ new_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Contacted</span>
+        <span>{{ home['Contacted'] }}</span>
         <strong>{{ contacted_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Qualified Leads</span>
+        <span>{{ home['Qualified Leads'] }}</span>
         <strong>{{ qualified_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Converted Leads</span>
+        <span>{{ home['Converted Leads'] }}</span>
         <strong>{{ converted_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Lost Leads</span>
+        <span>{{ home['Lost Leads'] }}</span>
         <strong>{{ lost_leads }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Owner Accounts</span>
+        <span>{{ home['Owner Accounts'] }}</span>
         <strong>{{ owner_accounts }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Total Properties</span>
+        <span>{{ home['Total Properties'] }}</span>
         <strong>{{ property_total_count }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Active Properties</span>
+        <span>{{ home['Active Properties'] }}</span>
         <strong>{{ active_properties }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Seasonal Properties</span>
+        <span>{{ home['Seasonal Properties'] }}</span>
         <strong>{{ seasonal_properties }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Inactive Properties</span>
+        <span>{{ home['Inactive Properties'] }}</span>
         <strong>{{ inactive_properties }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Active Requests</span>
+        <span>{{ home['Active Requests'] }}</span>
         <strong>{{ active_service_requests }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Completed Requests</span>
+        <span>{{ home['Completed Requests'] }}</span>
         <strong>{{ completed_service_requests }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Requests This Month</span>
+        <span>{{ home['Requests This Month'] }}</span>
         <strong>{{ service_requests_this_month }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Concierge Requests</span>
+        <span>{{ home['Concierge Requests'] }}</span>
         <strong>{{ concierge_requests }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Partner Applications</span>
+        <span>{{ home['Partner Applications'] }}</span>
         <strong>{{ partner_applications }}</strong>
       </article>
       <article class="admin-kpi-card">
-        <span>Professional Applications</span>
+        <span>{{ home['Professional Applications'] }}</span>
         <strong>{{ professional_applications }}</strong>
       </article>
     </section>
@@ -136,29 +407,29 @@
       <div class="admin-panel-header">
         <div>
           <p class="eyebrow">{{ calendar_widget.headline if calendar_widget is defined else 'Unified scheduling' }}</p>
-          <h2>Calendar engine</h2>
+          <h2>{{ home['Calendar engine'] }}</h2>
         </div>
-        <a class="button button--ghost" href="/admin/calendar">View calendar</a>
+        <a class="button button--ghost" href="/admin/calendar?lang={{ home_lang|e }}">{{ home['View calendar'] }}</a>
       </div>
       <div class="admin-kpi-grid">
         <article class="admin-kpi-card">
-          <span>Today's Operations</span>
+          <span>{{ home["Today's Operations"] }}</span>
           <strong>{{ calendar_widget.summary.todays_operations }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Upcoming Check-ins</span>
+          <span>{{ home['Upcoming Check-ins'] }}</span>
           <strong>{{ calendar_widget.summary.upcoming_check_ins }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Upcoming Check-outs</span>
+          <span>{{ home['Upcoming Check-outs'] }}</span>
           <strong>{{ calendar_widget.summary.upcoming_check_outs }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Today's Cleaning</span>
+          <span>{{ home["Today's Cleaning"] }}</span>
           <strong>{{ calendar_widget.summary.todays_cleaning }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Overdue Events</span>
+          <span>{{ home['Overdue Events'] }}</span>
           <strong>{{ calendar_widget.summary.overdue_events }}</strong>
         </article>
       </div>
@@ -176,8 +447,8 @@
           {% endfor %}
         {% else %}
           <div class="admin-empty-state">
-            <h3>No scheduled events yet.</h3>
-            <p>The shared calendar will surface task-driven events, visits, and owner dates here.</p>
+            <h3>{{ home['No scheduled events yet.'] }}</h3>
+            <p>{{ home['The shared calendar will surface task-driven events, visits, and owner dates here.'] }}</p>
           </div>
         {% endif %}
       </div>
@@ -186,30 +457,30 @@
     <section class="admin-cockpit-panel">
       <div class="admin-panel-header">
         <div>
-          <p class="eyebrow">Reservation engine</p>
-          <h2>Booking and availability</h2>
+          <p class="eyebrow">{{ home['Reservation engine'] }}</p>
+          <h2>{{ home['Booking and availability'] }}</h2>
         </div>
-        <a class="button button--ghost" href="/admin/reservations">View reservations</a>
+        <a class="button button--ghost" href="/admin/reservations?lang={{ home_lang|e }}">{{ home['View reservations'] }}</a>
       </div>
       <div class="admin-kpi-grid">
         <article class="admin-kpi-card">
-          <span>Today's check-ins</span>
+          <span>{{ home["Today's check-ins"] }}</span>
           <strong>{{ reservation_widget.stats.todays_check_ins }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Today's check-outs</span>
+          <span>{{ home["Today's check-outs"] }}</span>
           <strong>{{ reservation_widget.stats.todays_check_outs }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Occupancy</span>
+          <span>{{ home['Occupancy'] }}</span>
           <strong>{{ reservation_widget.stats.occupancy }}%</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Cleaning queue</span>
+          <span>{{ home['Cleaning queue'] }}</span>
           <strong>{{ reservation_widget.stats.cleaning_queue }}</strong>
         </article>
         <article class="admin-kpi-card">
-          <span>Inspections</span>
+          <span>{{ home['Inspections'] }}</span>
           <strong>{{ reservation_widget.stats.inspections }}</strong>
         </article>
       </div>
@@ -227,8 +498,8 @@
           {% endfor %}
         {% else %}
           <div class="admin-empty-state">
-            <h3>No active reservations yet.</h3>
-            <p>Reservations will appear here as soon as they are created or imported.</p>
+            <h3>{{ home['No active reservations yet.'] }}</h3>
+            <p>{{ home['Reservations will appear here as soon as they are created or imported.'] }}</p>
           </div>
         {% endif %}
       </div>
@@ -238,8 +509,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Lead pipeline</p>
-            <h2>Operational stages</h2>
+            <p class="eyebrow">{{ home['Lead pipeline'] }}</p>
+            <h2>{{ home['Operational stages'] }}</h2>
           </div>
         </div>
         <div class="admin-pipeline-grid">
@@ -255,8 +526,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Partner pipeline</p>
-            <h2>Partner application stages</h2>
+            <p class="eyebrow">{{ home['Partner pipeline'] }}</p>
+            <h2>{{ home['Partner application stages'] }}</h2>
           </div>
         </div>
         <div class="admin-pipeline-grid">
@@ -272,8 +543,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Professional pipeline</p>
-            <h2>Professional application stages</h2>
+            <p class="eyebrow">{{ home['Professional pipeline'] }}</p>
+            <h2>{{ home['Professional application stages'] }}</h2>
           </div>
         </div>
         <div class="admin-pipeline-grid">
@@ -289,8 +560,8 @@
       <article class="admin-cockpit-panel">
         <div class="admin-panel-header">
           <div>
-            <p class="eyebrow">Recent activity</p>
-            <h2>Last 10 events</h2>
+            <p class="eyebrow">{{ home['Recent activity'] }}</p>
+            <h2>{{ home['Last 10 events'] }}</h2>
           </div>
         </div>
 
@@ -311,8 +582,8 @@
           </div>
         {% else %}
           <div class="admin-empty-state">
-            <h3>No activity yet.</h3>
-            <p>Once a lead or request is saved, it will appear here automatically.</p>
+            <h3>{{ home['No activity yet.'] }}</h3>
+            <p>{{ home['Once a lead or request is saved, it will appear here automatically.'] }}</p>
           </div>
         {% endif %}
       </article>

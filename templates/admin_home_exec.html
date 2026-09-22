@@ -3989,7 +3989,7 @@
         <article class="dashboard-v3-card dashboard-v3-workload">
           <header>
             <div><small>{{ dash.team }}</small><h2>{{ dash.workload }}</h2></div>
-            <a href="/admin/professionals">{{ dash.professionals }}</a>
+            <a href="/admin/professionals?lang={{ page_lang }}">{{ dash.professionals }}</a>
           </header>
 
           <div>
@@ -4060,9 +4060,9 @@
         <p class="admin-hero-copy">
           {{ public_i18n('adminHome', 'heroCopy', 'COO command center for live property operations, guest readiness, and owner response. Focused on what needs your attention now.') }}
         </p>
-        <div class="admin-hero-status" aria-label="Live status summary">
+        <div class="admin-hero-status" aria-label="{{ public_i18n('adminHome', 'liveStatusSummary', 'Live status summary') }}">
           <span class="admin-status-chip"><span class="admin-status-chip__dot" aria-hidden="true"></span> {{ public_i18n('adminHome', 'liveStatus', 'Live') }}</span>
-          <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">Updating...</time></span>
+          <span class="admin-clock-chip"><strong>{{ public_i18n('adminHome', 'localTime', 'Local time') }}</strong> <time data-admin-clock aria-live="polite">{{ public_i18n('adminHome', 'updating', 'Updating...') }}</time></span>
           {% set system_health_tone = 'success' if operations_summary.late_operations == 0 and sla_monitoring.late_percent < 10 else 'warning' if operations_summary.late_operations < 4 and sla_monitoring.late_percent < 25 else 'danger' %}
           <span class="admin-health-chip" data-tone="{{ system_health_tone }}">{{ public_i18n('adminHome', 'operationalStatusHealthy', 'Operations steady') if system_health_tone == 'success' else public_i18n('adminHome', 'operationalStatusWatch', 'Attention required') if system_health_tone == 'warning' else public_i18n('adminHome', 'operationalPressureHigh', 'Operational pressure high') }}</span>
         </div>
@@ -4094,12 +4094,17 @@
           </div>
         </div>
         <div class="admin-cockpit-actions">
-          <a class="button button--primary" href="/admin/operator?lang={{ page_lang }}">Операторска конзола</a>
+          <a class="button button--primary" href="/admin/operator?lang={{ page_lang }}">{{ dash.operator }}</a>
           <a class="button button--primary" href="{{ url_for('admin_operations', lang=page_lang) }}">{{ public_i18n('adminHome', 'openOperations', 'Open operations') }}</a>
           <a class="button button--secondary" href="{{ url_for('admin_calendar', lang=page_lang) }}">{{ public_i18n('adminHome', 'openCalendar', 'Open calendar') }}</a>
-          <a class="button button--secondary" href="/admin/reservations">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
-          <a class="button button--secondary" href="/admin/properties">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
-          <a class="button button--secondary" href="/admin/directory">Потребители и роли</a>
+          <a class="button button--secondary" href="/admin/reservations?lang={{ page_lang }}">{{ public_i18n('adminHome', 'openReservations', 'Open reservations') }}</a>
+          <a class="button button--secondary" href="/admin/properties?lang={{ page_lang }}">{{ public_i18n('adminHome', 'openProperties', 'Open properties') }}</a>
+          <a class="button button--secondary" href="/admin/directory?lang={{ page_lang }}">{{ {
+'bg': 'Потребители и роли',
+'en': 'Users and roles',
+'fr': 'Utilisateurs et rôles',
+'ru': 'Пользователи и роли'
+}.get(page_lang, 'Users and roles') }}</a>
         </div>
       </div>
     </section>
@@ -4181,7 +4186,7 @@
           <div class="admin-kpi-value">{{ critical_alert_count.value }}</div>
           <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'openContext', 'Open context') }}</div>
         </a>
-        <a class="admin-kpi-card" data-tone="success" href="/admin/professionals">
+        <a class="admin-kpi-card" data-tone="success" href="/admin/professionals?lang={{ page_lang }}">
           <div class="admin-kpi-top">
             <span class="admin-kpi-icon">PR</span>
             <span class="admin-badge admin-badge--success">{{ tone_labels.get('success', 'HEALTHY') }}</span>
@@ -4218,7 +4223,7 @@
           </article>
         {% endfor %}
       </div>
-      <div class="admin-exec-action-row" aria-label="Executive next actions">
+      <div class="admin-exec-action-row" aria-label="{{ public_i18n('adminHome', 'executiveNextActions', 'Executive next actions') }}">
         <a class="admin-exec-action" data-tone="danger" href="{{ url_for('admin_operations', lang=page_lang) }}">
           <span>{{ public_i18n('adminHome', 'lateOperations', 'Late operations') }}</span>
           <strong>{{ operations_summary.late_operations }}</strong>
@@ -4451,7 +4456,7 @@
               <span><strong>{{ public_i18n('adminHome', 'riskUnassignedCount', 'Unassigned count') }}</strong><br>{{ property.unassigned_count }}</span>
               <span><strong>{{ public_i18n('adminHome', 'riskOwnerWaitingRequests', 'Owner waiting requests') }}</strong><br>{{ property.owner_waiting_requests }}</span>
             </div>
-            <a class="button button--secondary admin-risk-context" href="/admin/properties/{{ property.id }}">{{ public_i18n('adminHome', 'openRiskContext', 'Open risk context') }}</a>
+            <a class="button button--secondary admin-risk-context" href="/admin/properties/{{ property.id }}?lang={{ page_lang }}">{{ public_i18n('adminHome', 'openRiskContext', 'Open risk context') }}</a>
           </article>
         {% endfor %}
       </div>
@@ -4682,7 +4687,7 @@
           <div class="admin-kpi-value">{{ sla_monitoring.average_completion_time }}</div>
           <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'completionSpeed', 'Completion speed across finished operations') }}</div>
           <div class="admin-sla-pill-row">
-            <span class="admin-badge admin-badge--neutral">Enterprise metric</span>
+            <span class="admin-badge admin-badge--neutral">{{ public_i18n('adminHome', 'enterpriseMetric', 'Enterprise metric') }}</span>
           </div>
         </article>
         <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.average_assignment_time == 'Pending' %}neutral{% else %}info{% endif %}">
@@ -4694,7 +4699,7 @@
           <div class="admin-kpi-value">{{ sla_monitoring.average_assignment_time }}</div>
           <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'assignmentTime', 'Time from creation to assignment') }}</div>
           <div class="admin-sla-pill-row">
-            <span class="admin-badge admin-badge--info">Enterprise metric</span>
+            <span class="admin-badge admin-badge--info">{{ public_i18n('adminHome', 'enterpriseMetric', 'Enterprise metric') }}</span>
           </div>
         </article>
         <article class="admin-kpi-card admin-sla-card" data-tone="{% if sla_monitoring.average_response_time == 'Pending' %}neutral{% else %}warning{% endif %}">
@@ -4706,7 +4711,7 @@
           <div class="admin-kpi-value">{{ sla_monitoring.average_response_time }}</div>
           <div class="admin-kpi-trend">{{ public_i18n('adminHome', 'responseTime', 'Time to first recorded action') }}</div>
           <div class="admin-sla-pill-row">
-            <span class="admin-badge admin-badge--warning">Enterprise metric</span>
+            <span class="admin-badge admin-badge--warning">{{ public_i18n('adminHome', 'enterpriseMetric', 'Enterprise metric') }}</span>
           </div>
         </article>
         <article class="admin-kpi-card admin-sla-card" data-tone="warning">
@@ -5140,8 +5145,15 @@
   <script>
     (function () {
       const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const adminLang = document.documentElement.lang === 'en' ? 'en' : 'bg';
-      const clockLocale = adminLang === 'bg' ? 'bg-BG' : 'en-GB';
+      const adminLang = ['bg', 'en', 'fr', 'ru'].includes(document.documentElement.lang)
+        ? document.documentElement.lang
+        : 'en';
+      const clockLocale = {
+        bg: 'bg-BG',
+        en: 'en-GB',
+        fr: 'fr-FR',
+        ru: 'ru-RU'
+      }[adminLang] || 'en-GB';
 
       const clockNode = document.querySelector('[data-admin-clock]');
       function updateClock() {

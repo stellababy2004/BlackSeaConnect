@@ -24329,6 +24329,174 @@ def _append_professional_timeline_event(record, event_type, title, detail="", st
     _append_application_timeline_event(record, event_type, title, detail=detail, status=status)
 
 
+
+def _localize_professional_application_timeline_event(event, language="en"):
+    """Return display-localized professional application timeline data.
+
+    Stored timeline history remains unchanged. This function only localizes
+    known CRM event labels when rendering the admin UI.
+    """
+    if not isinstance(event, dict):
+        return event
+
+    language = str(language or "en").strip().lower()
+    if language not in {"bg", "en", "fr", "ru"}:
+        language = "en"
+
+    localized = dict(event)
+
+    event_type = str(localized.get("type", "")).strip().upper()
+    title = str(localized.get("title", "")).strip()
+    detail = str(localized.get("detail", "")).strip()
+
+    copy = {
+        "bg": {
+            "created": "\u0421\u044a\u0437\u0434\u0430\u0434\u0435\u043d\u0430 \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0443\u0440\u0430",
+            "note": "\u0414\u043e\u0431\u0430\u0432\u0435\u043d\u0430 \u0431\u0435\u043b\u0435\u0436\u043a\u0430",
+            "status": "\u0421\u0442\u0430\u0442\u0443\u0441\u044a\u0442 \u0435 \u043f\u0440\u043e\u043c\u0435\u043d\u0435\u043d",
+            "status_from": "\u0421\u0442\u0430\u0442\u0443\u0441\u044a\u0442 \u0435 \u043f\u0440\u043e\u043c\u0435\u043d\u0435\u043d \u043e\u0442 {old} \u043d\u0430 {new}",
+            "owner": "\u0417\u0430\u0434\u0430\u0434\u0435\u043d \u043e\u0442\u0433\u043e\u0432\u043e\u0440\u043d\u0438\u043a",
+            "owner_value": "\u041e\u0442\u0433\u043e\u0432\u043e\u0440\u043d\u0438\u043a: {owner}",
+            "unassigned": "\u041d\u0435 \u0435 \u0432\u044a\u0437\u043b\u043e\u0436\u0435\u043d\u043e",
+            "created_named": "\u0421\u044a\u0437\u0434\u0430\u0434\u0435\u043d\u0430 \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0443\u0440\u0430: {name}",
+        },
+        "en": {
+            "created": "Professional application created",
+            "note": "Note added",
+            "status": "Status changed",
+            "status_from": "Status changed from {old} to {new}",
+            "owner": "Owner assigned",
+            "owner_value": "Owner assigned: {owner}",
+            "unassigned": "Unassigned",
+            "created_named": "Professional application created: {name}",
+        },
+        "fr": {
+            "created": "Candidature professionnelle cr\u00e9\u00e9e",
+            "note": "Note ajout\u00e9e",
+            "status": "Statut modifi\u00e9",
+            "status_from": "Statut modifi\u00e9 de {old} \u00e0 {new}",
+            "owner": "Responsable attribu\u00e9",
+            "owner_value": "Responsable attribu\u00e9 : {owner}",
+            "unassigned": "Non attribu\u00e9",
+            "created_named": "Candidature professionnelle cr\u00e9\u00e9e : {name}",
+        },
+        "ru": {
+            "created": "\u0417\u0430\u044f\u0432\u043a\u0430 \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u0430 \u0441\u043e\u0437\u0434\u0430\u043d\u0430",
+            "note": "\u0417\u0430\u043c\u0435\u0442\u043a\u0430 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0430",
+            "status": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0438\u0437\u043c\u0435\u043d\u0435\u043d",
+            "status_from": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0438\u0437\u043c\u0435\u043d\u0435\u043d: {old} \u2192 {new}",
+            "owner": "\u041d\u0430\u0437\u043d\u0430\u0447\u0435\u043d \u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439",
+            "owner_value": "\u041e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439: {owner}",
+            "unassigned": "\u041d\u0435 \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u043e",
+            "created_named": "\u0417\u0430\u044f\u0432\u043a\u0430 \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u0430 \u0441\u043e\u0437\u0434\u0430\u043d\u0430: {name}",
+        },
+    }[language]
+
+    status_labels = {
+        "bg": {
+            "NEW": "\u041d\u041e\u0412\u0410",
+            "CONTACTED": "\u0421\u0412\u042a\u0420\u0417\u0410\u041d\u0410",
+            "QUALIFIED": "\u041a\u0412\u0410\u041b\u0418\u0424\u0418\u0426\u0418\u0420\u0410\u041d\u0410",
+            "CONVERTED": "\u041a\u041e\u041d\u0412\u0415\u0420\u0422\u0418\u0420\u0410\u041d\u0410",
+            "LOST": "\u041e\u0422\u041f\u0410\u0414\u041d\u0410\u041b\u0410",
+        },
+        "en": {
+            "NEW": "NEW",
+            "CONTACTED": "CONTACTED",
+            "QUALIFIED": "QUALIFIED",
+            "CONVERTED": "CONVERTED",
+            "LOST": "LOST",
+        },
+        "fr": {
+            "NEW": "NOUVELLE",
+            "CONTACTED": "CONTACT\u00c9E",
+            "QUALIFIED": "QUALIFI\u00c9E",
+            "CONVERTED": "CONVERTIE",
+            "LOST": "\u00c9CART\u00c9E",
+        },
+        "ru": {
+            "NEW": "\u041d\u041e\u0412\u0410\u042f",
+            "CONTACTED": "\u0421\u0412\u042f\u0417\u0410\u041b\u0418\u0421\u042c",
+            "QUALIFIED": "\u041a\u0412\u0410\u041b\u0418\u0424\u0418\u0426\u0418\u0420\u041e\u0412\u0410\u041d\u0410",
+            "CONVERTED": "\u041a\u041e\u041d\u0412\u0415\u0420\u0422\u0418\u0420\u041e\u0412\u0410\u041d\u0410",
+            "LOST": "\u041e\u0422\u041a\u041b\u041e\u041d\u0415\u041d\u0410",
+        },
+    }[language]
+
+    def status_label(value):
+        raw = str(value or "").strip()
+        key = raw.upper()
+        return status_labels.get(key, raw)
+
+    # Creation event, including legacy fallback titles.
+    created_prefix = "Professional application created:"
+    if event_type == "PROFESSIONAL_APPLICATION_CREATED" or title.startswith(created_prefix):
+        if title.startswith(created_prefix):
+            name = title[len(created_prefix):].strip()
+            localized["title"] = copy["created_named"].format(name=name)
+        else:
+            localized["title"] = copy["created"]
+
+    # Notes.
+    elif event_type in {"NOTE_ADDED", "PROFESSIONAL_APPLICATION_NOTE_ADDED"} or title == "Note added":
+        localized["title"] = copy["note"]
+
+    # Status changes. Legacy titles have:
+    # "Status changed from X to Y"
+    elif (
+        event_type in {"STATUS_CHANGED", "PROFESSIONAL_APPLICATION_STATUS_CHANGED"}
+        or title.startswith("Status changed from ")
+        or title == "Status changed"
+    ):
+        prefix = "Status changed from "
+        if title.startswith(prefix) and " to " in title[len(prefix):]:
+            old_value, new_value = title[len(prefix):].split(" to ", 1)
+            localized["title"] = copy["status_from"].format(
+                old=status_label(old_value),
+                new=status_label(new_value),
+            )
+        else:
+            localized["title"] = copy["status"]
+
+    # Owner assignment. Legacy titles have:
+    # "Owner assigned: NAME"
+    elif (
+        event_type in {"OWNER_ASSIGNED", "PROFESSIONAL_APPLICATION_OWNER_ASSIGNED"}
+        or title.startswith("Owner assigned:")
+        or title == "Owner assigned"
+    ):
+        if title.startswith("Owner assigned:"):
+            owner = title.split(":", 1)[1].strip()
+            if owner.lower() == "unassigned":
+                owner = copy["unassigned"]
+            localized["title"] = copy["owner_value"].format(owner=owner)
+        else:
+            localized["title"] = copy["owner"]
+
+    # Localize common legacy detail values without changing arbitrary notes.
+    if detail == "Unassigned":
+        localized["detail"] = copy["unassigned"]
+
+    localized["type_label"] = {
+        "PROFESSIONAL_APPLICATION_CREATED": copy["created"],
+        "NOTE_ADDED": copy["note"],
+        "PROFESSIONAL_APPLICATION_NOTE_ADDED": copy["note"],
+        "STATUS_CHANGED": copy["status"],
+        "PROFESSIONAL_APPLICATION_STATUS_CHANGED": copy["status"],
+        "OWNER_ASSIGNED": copy["owner"],
+        "PROFESSIONAL_APPLICATION_OWNER_ASSIGNED": copy["owner"],
+    }.get(event_type, event_type.replace("_", " ").title())
+
+    return localized
+
+
+def _localize_professional_application_timeline(events, language="en"):
+    return [
+        _localize_professional_application_timeline_event(event, language)
+        for event in (events or [])
+    ]
+
+
 def _professional_application_timeline_events(record):
     timeline = _normalize_professional_application_timeline(record.get("timeline"))
     if timeline:
@@ -26526,6 +26694,204 @@ def admin_partner_application_update(application_id):
     return redirect(url_for("admin_partner_application_detail", application_id=application_id))
 
 
+
+def _professional_admin_service_categories_label(value, language="en"):
+    language = str(language or "en").lower()
+    if language not in {"bg", "en", "fr", "ru"}:
+        language = "en"
+
+    labels = {
+        "Cleaning": {
+            "bg": "Почистване",
+            "en": "Cleaning",
+            "fr": "Ménage",
+            "ru": "Уборка",
+        },
+        "Inspection": {
+            "bg": "Инспекция",
+            "en": "Inspection",
+            "fr": "Inspection",
+            "ru": "Инспекция",
+        },
+        "Maintenance": {
+            "bg": "Поддръжка",
+            "en": "Maintenance",
+            "fr": "Maintenance",
+            "ru": "Обслуживание",
+        },
+        "Concierge Support": {
+            "bg": "Консиерж услуги",
+            "en": "Concierge Support",
+            "fr": "Conciergerie",
+            "ru": "Консьерж-сервис",
+        },
+        "Property Manager": {
+            "bg": "Управление на имоти",
+            "en": "Property Manager",
+            "fr": "Gestionnaire de biens",
+            "ru": "Управление недвижимостью",
+        },
+    }
+
+    raw_items = [
+        item.strip()
+        for item in str(value or "").split(",")
+        if item.strip()
+    ]
+
+    return ", ".join(
+        labels.get(item, {}).get(language, item)
+        for item in raw_items
+    )
+
+
+def _professional_admin_stripe_status_label(account, language="en"):
+    return _stripe_account_status_label(account, language)
+
+
+@app.get("/admin/professional-accounts")
+@admin_required
+def admin_professional_accounts():
+    accounts = _load_professional_accounts()
+
+    search_query = str(request.args.get("q", "")).strip()
+    status_filter = str(request.args.get("status", "")).strip().upper()
+
+    status_options = sorted({
+        _normalize_professional_account_status(account.get("status", "PENDING"))
+        for account in accounts
+        if account.get("status")
+    })
+
+    filtered_accounts = []
+    search_value = search_query.lower()
+
+    for account in accounts:
+        account_status = _normalize_professional_account_status(
+            account.get("status", "PENDING")
+        )
+
+        if status_filter and account_status != status_filter:
+            continue
+
+        if search_value:
+            searchable = " ".join([
+                str(account.get("full_name", "")),
+                str(account.get("email", "")),
+                str(account.get("phone", "")),
+                str(account.get("company", "")),
+                str(account.get("service_categories", "")),
+            ]).lower()
+
+            if search_value not in searchable:
+                continue
+
+        filtered_accounts.append(account)
+
+    current_language = _resolve_current_language()
+
+    display_accounts = []
+    for account in filtered_accounts:
+        display_account = dict(account)
+        display_account["service_categories_label"] = (
+            _professional_admin_service_categories_label(
+                account.get("service_categories", ""),
+                current_language,
+            )
+        )
+        display_account["stripe_status_label"] = (
+            _professional_admin_stripe_status_label(
+                account,
+                current_language,
+            )
+        )
+        display_accounts.append(display_account)
+
+    return render_template(
+        "admin_professional_accounts.html",
+        professional_accounts=display_accounts,
+        professional_accounts_count=len(filtered_accounts),
+        professional_accounts_total_count=len(accounts),
+        professional_status_options=status_options,
+        search_query=search_query,
+        status_filter=status_filter,
+    )
+
+
+@app.get("/admin/professional-accounts/<professional_id>")
+@admin_required
+def admin_professional_account_detail(professional_id):
+    professional_account = _find_professional_account(professional_id)
+
+    if not professional_account:
+        return Response(
+            "Professional account not found.",
+            status=404,
+            mimetype="text/plain",
+        )
+
+    assigned_tasks = [
+        task
+        for task in _load_operations_tasks()
+        if str(task.get("assigned_professional_id", "")).strip()
+        == str(professional_account.get("id", "")).strip()
+    ]
+
+    assigned_tasks.sort(
+        key=lambda task: str(
+            task.get("updated_at", "")
+            or task.get("created_at", "")
+        ),
+        reverse=True,
+    )
+
+    task_counts = {
+        "total": len(assigned_tasks),
+        "new": 0,
+        "assigned": 0,
+        "in_progress": 0,
+        "completed": 0,
+        "other": 0,
+    }
+
+    for task in assigned_tasks:
+        task_status = str(task.get("status", "")).strip().upper()
+
+        if task_status == "NEW":
+            task_counts["new"] += 1
+        elif task_status == "ASSIGNED":
+            task_counts["assigned"] += 1
+        elif task_status == "IN_PROGRESS":
+            task_counts["in_progress"] += 1
+        elif task_status == "COMPLETED":
+            task_counts["completed"] += 1
+        else:
+            task_counts["other"] += 1
+
+    current_language = _resolve_current_language()
+
+    professional_account = dict(professional_account)
+    professional_account["service_categories_label"] = (
+        _professional_admin_service_categories_label(
+            professional_account.get("service_categories", ""),
+            current_language,
+        )
+    )
+    professional_account["stripe_status_label"] = (
+        _professional_admin_stripe_status_label(
+            professional_account,
+            current_language,
+        )
+    )
+
+    return render_template(
+        "admin_professional_account_detail.html",
+        professional_account=professional_account,
+        assigned_tasks=assigned_tasks,
+        task_counts=task_counts,
+    )
+
+
 @app.get("/admin/professionals")
 @admin_required
 def admin_professionals():
@@ -26563,7 +26929,10 @@ def admin_professional_detail(application_id):
         stripe_ui=_stripe_ui_copy(_resolve_current_language()),
         stripe_status_label=_stripe_account_status_label(professional_account, _resolve_current_language()),
         status_options=[{"value": status, "label": _application_status_label(status)} for status in CRM_PIPELINE_STATUS_VALUES],
-        timeline=list(reversed(_professional_application_timeline_events(record))),
+        timeline=_localize_professional_application_timeline(
+            list(reversed(_professional_application_timeline_events(record))),
+            _resolve_current_language(),
+        ),
     )
 
 

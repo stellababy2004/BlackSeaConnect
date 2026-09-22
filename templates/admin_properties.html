@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlackSea Connect | Admin Properties</title>
+  <title>BlackSea Connect | {{ propui.title }}</title>
   <link rel="stylesheet" href="/static/css/styles.css?v=20260731-analytics-banner-1">
   <style>
     .admin-properties-page {
@@ -239,12 +239,32 @@
 'linked':'demandes associées',
 'empty':'Aucun bien ne correspond aux filtres sélectionnés.',
 'ACTIVE':'Actif','INACTIVE':'Inactif','SEASONAL':'Saisonnier','SETUP':'Configuration'
-}
-} %}
-{% set propui = properties_ui.get(page_lang|default('en'), properties_ui['en']) %}
+},
+  'ru': {
+    'title': 'Объекты',
+    'intro': 'Управление объектами и их операционной готовностью.',
+    'dashboard': 'Панель управления',
+    'metrics': 'Показатели объектов',
+    'total': 'Всего',
+    'shown': 'Показано',
+    'search': 'Поиск',
+    'status': 'Статус',
+    'type': 'Тип',
+    'apply': 'Применить',
+    'property': 'Объект',
+    'capacity': 'Вместимость',
+    'linked': 'Связано',
+    'empty': 'Объекты не найдены.',
+    'ACTIVE': 'Активен'
+  }
+} %}{% set properties_lang = page_lang|default('en')|lower %}
+{% if properties_lang not in ['bg', 'en', 'fr', 'ru'] %}
+  {% set properties_lang = 'en' %}
+{% endif %}
+{% set propui = properties_ui.get(properties_lang, properties_ui['en']) %}
 
 
-  <div hidden>Property Operations Setup <strong>{{ properties_count }}</strong> filtered</div>
+  <div hidden aria-hidden="true"><strong>{{ properties_count }}</strong></div>
   {% include '_admin_sidebar.html' %}
   <main class="admin-properties-shell">
     <section class="admin-properties-panel">
@@ -258,7 +278,7 @@
         </div>
         <div class="admin-properties-actions">
           <a class="button button--secondary" href="/admin">{{ propui.dashboard }}</a>
-          <a class="button button--primary" href="/admin/owner-accounts">{{ propui.owners }}</a>
+          <a class="button button--primary" href="/admin/owner-accounts?lang={{ page_lang }}">{{ propui.owners }}</a>
         </div>
       </div>
 
@@ -275,6 +295,7 @@
       </p>
 
       <form method="get" action="{{ url_for('admin_properties') }}">
+        <input type="hidden" name="lang" value="{{ properties_lang|e }}">
         <div class="admin-properties-filters">
           <label class="admin-properties-field">
             <span>{{ propui.search }}</span>
@@ -302,13 +323,13 @@
         </div>
         <div class="admin-properties-filter-actions">
           <button class="button button--primary" type="submit">{{ propui.apply }}</button>
-          <a class="button button--ghost" href="{{ url_for('admin_properties') }}">{{ propui.clear }}</a>
+          <a class="button button--ghost" href="{{ url_for('admin_properties', lang=properties_lang) }}">{{ propui.clear }}</a>
         </div>
       </form>
 
       {% if properties %}
         <div class="bsc-admin-table-scroll">
-        <table class="admin-properties-table" aria-label="Property list">
+        <table class="admin-properties-table" aria-label="{{ propui.property }}">
           <thead>
             <tr>
               <th>{{ propui.property }}</th>
