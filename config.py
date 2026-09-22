@@ -211,11 +211,16 @@ def validate_settings(settings: AppSettings, *, check_database: bool = True) -> 
         issues.append("STRIPE_MODE must be test or live")
     if settings.environment == "staging" and settings.stripe_mode != "test":
         issues.append("staging requires STRIPE_MODE=test")
-    if settings.environment == "production" and settings.stripe_mode != "live":
-        issues.append("production requires STRIPE_MODE=live")
+    if (
+        settings.environment == "production"
+        and settings.stripe_connect_enabled
+        and settings.stripe_mode != "live"
+    ):
+        issues.append("production requires STRIPE_MODE=live when Stripe Connect is enabled")
 
-    expected_secret = "sk_test_" if settings.environment != "production" else "sk_live_"
-    expected_public = "pk_test_" if settings.environment != "production" else "pk_live_"
+    live_stripe = settings.environment == "production" and settings.stripe_connect_enabled
+    expected_secret = "sk_live_" if live_stripe else "sk_test_"
+    expected_public = "pk_live_" if live_stripe else "pk_test_"
     if settings.stripe_secret_key and not settings.stripe_secret_key.startswith(expected_secret):
         issues.append("Stripe secret key mode does not match APP_ENV")
     if settings.stripe_publishable_key and not settings.stripe_publishable_key.startswith(expected_public):

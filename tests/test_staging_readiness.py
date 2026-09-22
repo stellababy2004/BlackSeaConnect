@@ -56,6 +56,21 @@ def test_staging_rejects_live_secret_key(tmp_path):
         load_settings(environment)
 
 
+def test_production_allows_stripe_disabled(tmp_path):
+    environment = _protected_environment(tmp_path, "production")
+    environment["SITE_URL"] = "https://blackseaconnect.com"
+    environment["STRIPE_CONNECT_ENABLED"] = "0"
+    environment["STRIPE_MODE"] = "test"
+    environment["STRIPE_SECRET_KEY"] = "sk_test_not_real"
+    environment["STRIPE_PUBLISHABLE_KEY"] = "pk_test_not_real"
+
+    settings = load_settings(environment)
+
+    assert settings.environment == "production"
+    assert settings.stripe_mode == "test"
+    assert not settings.stripe_connect_enabled
+
+
 def test_production_rejects_test_secret_key(tmp_path):
     environment = _protected_environment(tmp_path, "production")
     environment["STRIPE_SECRET_KEY"] = "sk_test_do_not_use"
