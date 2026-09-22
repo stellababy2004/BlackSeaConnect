@@ -2243,8 +2243,8 @@ class ApplicationWorkflowTests(unittest.TestCase):
         self.assertEqual(len(app_module._load_operations_notifications()), notification_count)
 
         with patch.dict(os.environ, self.ADMIN_ENV, clear=True):
-            board_html = self.client.get("/admin/operations", headers=self._auth_headers()).get_data(as_text=True)
-        self.assertRegex(board_html, r"Completed Tasks</span>\s*<strong>1</strong>")
+            board_html = self.client.get("/admin/operations?lang=en", headers=self._auth_headers()).get_data(as_text=True)
+        self.assertRegex(board_html, r"Completed tasks</span>\s*<strong>1</strong>")
         owner_events = app_module._load_owner_activity_events(owner["id"])
         property_events = app_module._load_property_activity_events("property-lifecycle")
         self.assertEqual(sum(event["event_type"] == "operation_completed" for event in owner_events), 1)
