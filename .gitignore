@@ -19,3 +19,6 @@ artifacts/*test*.txt
 
 *.before-demo-isolation
 stripe-connect-review.patch
+
+# Local database backups
+backups/
