@@ -39,6 +39,9 @@ from werkzeug.exceptions import HTTPException, TooManyRequests
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageOps
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 from config import ConfigurationError, load_settings, validate_settings
 from seo_pages import SEO_LANDING_PAGE_ORDER, SEO_LANDING_PAGES, SEO_SUPPORTED_LANGS, resolve_seo_landing_page
@@ -10690,26 +10693,28 @@ OWNER_PROPERTY_JPEG_QUALITY = 88
 
 
 def _prepare_owner_property_image(content, mime_type):
-    if mime_type not in {"image/jpeg", "image/png", "image/webp"}:
+    supported_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+        "image/heif",
+    }
+
+    if mime_type not in supported_types:
         return content, mime_type
 
     try:
         source = io.BytesIO(content)
 
         with Image.open(source) as image:
-            original_size = image.size
+            # Fully decode the uploaded image before processing it.
+            image.load()
 
-            # Fix orientation stored by phones in EXIF metadata.
+            # Apply orientation stored by phones before removing metadata.
             image = ImageOps.exif_transpose(image)
 
-            orientation_changed = image.size != original_size
-            needs_resize = max(image.size) > OWNER_PROPERTY_IMAGE_MAX_DIMENSION
-
-            # If nothing needs changing, preserve the original bytes.
-            if not orientation_changed and not needs_resize:
-                return content, mime_type
-
-            if needs_resize:
+            if max(image.size) > OWNER_PROPERTY_IMAGE_MAX_DIMENSION:
                 image.thumbnail(
                     (
                         OWNER_PROPERTY_IMAGE_MAX_DIMENSION,
@@ -10720,9 +10725,17 @@ def _prepare_owner_property_image(content, mime_type):
 
             output = io.BytesIO()
 
-            if mime_type == "image/jpeg":
+            # HEIC/HEIF is normalized to JPEG for broad browser support.
+            output_mime = (
+                "image/jpeg"
+                if mime_type in {"image/heic", "image/heif"}
+                else mime_type
+            )
+
+            if output_mime == "image/jpeg":
                 if image.mode not in {"RGB", "L"}:
                     image = image.convert("RGB")
+
                 image.save(
                     output,
                     format="JPEG",
@@ -10730,16 +10743,17 @@ def _prepare_owner_property_image(content, mime_type):
                     optimize=True,
                 )
 
-            elif mime_type == "image/png":
+            elif output_mime == "image/png":
                 image.save(
                     output,
                     format="PNG",
                     optimize=True,
                 )
 
-            elif mime_type == "image/webp":
+            elif output_mime == "image/webp":
                 if image.mode not in {"RGB", "RGBA"}:
                     image = image.convert("RGB")
+
                 image.save(
                     output,
                     format="WEBP",
@@ -10748,7 +10762,11 @@ def _prepare_owner_property_image(content, mime_type):
                 )
 
             processed = output.getvalue()
-            return processed or content, mime_type
+
+            if not processed:
+                raise ValueError("Image processing produced empty output.")
+
+            return processed, output_mime
 
     except Exception as exc:
         app.logger.warning(
@@ -10831,10 +10849,23 @@ def _validate_owner_property_upload(file_storage, asset_kind):
     }, ""
 
 
-def _owner_property_media_record(*, file_storage, asset_kind, is_cover=False):
+def _owner_property_media_record(
+    *,
+    file_storage,
+    asset_kind,
+    is_cover=False,
+    stored_suffix="",
+):
     original_filename = str(getattr(file_storage, "filename", "") or "").strip()
     media_id = uuid4().hex
-    stored_filename = _owner_property_media_filename(media_id, original_filename)
+
+    if stored_suffix:
+        normalized_suffix = str(stored_suffix).strip().lower()
+        if not normalized_suffix.startswith("."):
+            normalized_suffix = f".{normalized_suffix}"
+        stored_filename = f"{media_id}{normalized_suffix}"
+    else:
+        stored_filename = _owner_property_media_filename(media_id, original_filename)
     return {
         "id": media_id,
         "kind": asset_kind,
@@ -15755,6 +15786,11 @@ def owners_property_new():
                     file_storage=file_storage,
                     asset_kind="photo",
                     is_cover=False,
+                    stored_suffix=(
+                        ".jpg"
+                        if validated_upload["mime_type"] == "image/jpeg"
+                        else ""
+                    ),
                 )
                 media_record["content_type"] = validated_upload["mime_type"]
                 media_record["size"] = validated_upload["size"]
@@ -16443,6 +16479,11 @@ def owners_property_detail(property_id):
                 file_storage=file_storage,
                 asset_kind="photo",
                 is_cover=not photo_records,
+                stored_suffix=(
+                    ".jpg"
+                    if validated_upload["mime_type"] == "image/jpeg"
+                    else ""
+                ),
             )
             media_record["content_type"] = validated_upload["mime_type"]
             media_record["size"] = validated_upload["size"]

@@ -40982,7 +40982,7 @@ body.owner-property-detail-page
 }
 
 /* =========================================================
-   OWNER PROPERTY DETAIL — FINAL MOBILE FORM FIX
+   OWNER PROPERTY DETAIL - FINAL MOBILE FORM FIX
    Keep every editor card and field inside the phone viewport.
    ========================================================= */
 @media (max-width: 700px) {
@@ -41611,7 +41611,7 @@ body.owner-property-detail-page
 
 
 /* ==========================================================
-   OWNER PROPERTY DETAIL — FINAL MOBILE WIDTH NORMALIZATION
+   OWNER PROPERTY DETAIL - FINAL MOBILE WIDTH NORMALIZATION
    Keeps every knowledge/editor section inside the phone card
    ========================================================== */
 @media (max-width: 760px) {

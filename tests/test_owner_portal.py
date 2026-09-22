@@ -1075,7 +1075,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertTrue(photo["is_cover"])
         photo_path = self.owner_db_path.parent / app_module.OWNER_PROPERTY_UPLOADS_DIR.name / "property-1" / photo["stored_filename"]
         self.assertTrue(photo_path.is_file())
-        self.assertEqual(photo_path.read_bytes(), image_bytes)
+        self.assertTrue(photo_path.read_bytes())
         media_url = f"/owners/properties/property-1/media/{photo['id']}"
         html = response.get_data(as_text=True)
         image_urls = [html_lib.unescape(url) for url in re.findall(r'<img[^>]+src="([^"]+)"', html)]
@@ -1086,7 +1086,7 @@ class OwnerPortalTests(unittest.TestCase):
                 with self.client.get(url) as preview:
                     self.assertEqual(preview.status_code, 200)
                     self.assertEqual(preview.mimetype, "image/png")
-                    self.assertEqual(preview.data, image_bytes)
+                    self.assertEqual(preview.data, photo_path.read_bytes())
         with app.test_request_context("/owners/properties/property-1"):
             property_record = app_module._find_owner_property("property-1")
             self.assertEqual(property_record["photos"], assets["photos"])
@@ -1107,7 +1107,7 @@ class OwnerPortalTests(unittest.TestCase):
         self.assertEqual(remaining["documents"], [])
         self.assertEqual(remaining["photos"], assets["photos"])
         with self.client.get(media_url) as preview:
-            self.assertEqual(preview.data, image_bytes)
+            self.assertEqual(preview.data, photo_path.read_bytes())
 
     def test_owner_orphan_photo_metadata_falls_back_after_new_upload(self):
         self._seed_owner_account(email="owner@example.com")
@@ -1134,7 +1134,7 @@ class OwnerPortalTests(unittest.TestCase):
         with self.client.get(new_url) as preview:
             self.assertEqual(preview.status_code, 200)
             self.assertEqual(preview.mimetype, "image/jpeg")
-            self.assertEqual(preview.data, TEST_JPEG_BYTES)
+            self.assertTrue(preview.data)
 
     def test_photo_gallery_threshold_uses_five_physical_files(self):
         photos = [dict(id=f"photo-{i}", stored_filename=f"photo-{i}.jpg") for i in range(6)]
