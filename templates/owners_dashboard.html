@@ -1310,29 +1310,7 @@
         </a>
       </div>
 
-      {% if owner_portal.calendar_widget.upcoming_events %}
-        <div class="owner-dashboard-upcoming__list">
-          {% for event in owner_portal.calendar_widget.upcoming_events[:3] %}
-            <article class="owner-portal-card owner-dashboard-upcoming__item">
-              <div>
-                <p class="owner-portal-card__eyebrow">
-                  {{ owner_event_type(event.event_type) }}
-                </p>
-                <h3>{{ event.display_label|e }}</h3>
 
-                {% if event.property_label %}
-                  <p>{{ event.property_label|e }}</p>
-                {% endif %}
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="owner-portal-card owner-dashboard-empty-state">
-          <h3>{{ public_i18n('ownersDashboard', 'ownerDashboardEverythingOk', 'Everything is OK.') }}</h3>
-          <p>{{ public_i18n('ownersDashboard', 'ownerDashboardNoEventScheduled', 'No event scheduled') }}</p>
-        </div>
-      {% endif %}
     </section>
 
     {% if owner_portal.pending_finance_quotes %}
