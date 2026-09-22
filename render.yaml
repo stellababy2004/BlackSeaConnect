@@ -1,7 +1,18 @@
-﻿services:
+services:
   - type: web
     name: blackseaconnect
     env: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: flask --app app init-db && gunicorn app:app
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+      - key: DATABASE_PATH
+        value: /var/data/blacksea_owner.db
+      - key: WEB_CONCURRENCY
+        value: "1"
+    disk:
+      name: blackseaconnect-data
+      mountPath: /var/data
+      sizeGB: 1
