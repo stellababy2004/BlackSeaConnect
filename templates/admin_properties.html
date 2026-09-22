@@ -323,7 +323,7 @@
         </div>
         <div class="admin-properties-filter-actions">
           <button class="button button--primary" type="submit">{{ propui.apply }}</button>
-          <a class="button button--ghost" href="{{ url_for('admin_properties', lang=properties_lang) }}">{{ propui.clear }}</a>
+          <a class="button button--ghost" href="{{ url_for('admin_properties', lang=properties_lang) }}">{{ propui['clear'] }}</a>
         </div>
       </form>
 
