@@ -324,7 +324,41 @@
         width: auto;
       }
     }
-  </style>
+
+    /* Production pilot: keep translated event counts inside 7-column calendar cells. */
+    .owner-property-detail-calendar-day {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .owner-property-detail-calendar-day span,
+    .owner-property-detail-calendar-events,
+    .owner-property-detail-calendar-events * {
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      white-space: normal;
+    }
+
+    .owner-property-detail-calendar-day span {
+      letter-spacing: .035em;
+      line-height: 1.25;
+    }
+
+    @media (max-width: 900px) {
+      .owner-property-detail-calendar-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .owner-property-detail-calendar-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+</style>
 </head>
 <body class="owner-property-detail-page">
   {% if property_context.property.status == 'ACTIVE' %}
@@ -459,6 +493,32 @@
         {% endwith %}
       </div>
     {% endfor %}
+    {% macro pilot_property_type(value) -%}
+      {% set v = value|string|trim|lower %}
+      {% if v in ['apartment', '\u0430\u043f\u0430\u0440\u0442\u0430\u043c\u0435\u043d\u0442'] %}
+        {{ {'bg':'\u0410\u043f\u0430\u0440\u0442\u0430\u043c\u0435\u043d\u0442','en':'Apartment','fr':'Appartement','ru':'\u041a\u0432\u0430\u0440\u0442\u0438\u0440\u0430'}.get(page_lang, 'Apartment') }}
+      {% elif v in ['house', '\u043a\u044a\u0449\u0430'] %}
+        {{ {'bg':'\u041a\u044a\u0449\u0430','en':'House','fr':'Maison','ru':'\u0414\u043e\u043c'}.get(page_lang, 'House') }}
+      {% elif v in ['villa', '\u0432\u0438\u043b\u0430'] %}
+        {{ {'bg':'\u0412\u0438\u043b\u0430','en':'Villa','fr':'Villa','ru':'\u0412\u0438\u043b\u043b\u0430'}.get(page_lang, 'Villa') }}
+      {% elif v in ['studio', '\u0441\u0442\u0443\u0434\u0438\u043e'] %}
+        {{ {'bg':'\u0421\u0442\u0443\u0434\u0438\u043e','en':'Studio','fr':'Studio','ru':'\u0421\u0442\u0443\u0434\u0438\u044f'}.get(page_lang, 'Studio') }}
+      {% else %}
+        {{ value|e }}
+      {% endif %}
+    {%- endmacro %}
+
+    {% macro pilot_yes_no(value) -%}
+      {% set v = value|string|trim|lower %}
+      {% if v in ['yes','true','1','oui','\u0434\u0430'] %}
+        {{ {'bg':'\u0414\u0430','en':'Yes','fr':'Oui','ru':'\u0414\u0430'}.get(page_lang, 'Yes') }}
+      {% elif v in ['no','false','0','non','\u043d\u0435','\u043d\u0435\u0442'] %}
+        {{ {'bg':'\u041d\u0435','en':'No','fr':'Non','ru':'\u041d\u0435\u0442'}.get(page_lang, 'No') }}
+      {% else %}
+        {{ value|e }}
+      {% endif %}
+    {%- endmacro %}
+
     <article class="owner-property-detail-panel owner-property-overview" data-property-tab-section="overview">
       <div class="owner-property-overview__header">
         <div>
@@ -468,7 +528,7 @@
         <span class="owner-property-detail-chip owner-property-detail-chip--status">{{ localized_property_status }}</span>
       </div>
       <div class="owner-property-overview__grid">
-        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty', 'Property') }}</span><strong>{{ property_context.property.property_type|e }}</strong><small>{{ property_context.property.location|e }}</small></div>
+        <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailProperty', 'Property') }}</span><strong>{{ pilot_property_type(property_context.property.property_type) }}</strong><small>{{ property_context.property.location|e }}</small></div>
         <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailCurrentStatus', 'Current status') }}</span><strong>{{ localized_property_status }}</strong><small>{% if property_context.property.readiness_percent == 100 %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailEverythingReady', 'Everything is ready') }}{% else %}{{ property_context.property.readiness_completed }}/{{ property_context.property.readiness_total }} {{ public_i18n('ownersDashboard', 'ownerPropertyDetailChecksComplete', 'checks complete') }}{% endif %}</small></div>
         <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailNextBooking', 'Next booking') }}</span><strong data-owner-datetime="{{ property_context.availability.upcoming_arrival.arrival_datetime|default('', true)|e }}">{{ property_context.availability.upcoming_arrival.arrival_datetime|default(public_i18n('ownersDashboard', 'ownerPropertyDetailNoBooking', 'No booking planned'), true)|e }}</strong><small>{{ property_context.availability.upcoming_arrival.guest_label|default(public_i18n('ownersDashboard', 'ownerPropertyDetailNothingPrepare', 'Nothing to prepare'), true)|e }}</small></div>
         <div><span>{{ public_i18n('ownersDashboard', 'ownerPropertyDetailTodaysWork', "Today's work") }}</span><strong>{{ open_request_count.value }}</strong><small>{% if open_request_count.value %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailWorkInProgress', 'work items in progress') }}{% else %}{{ public_i18n('ownersDashboard', 'ownerPropertyDetailNoWorkToday', 'No work planned today') }}{% endif %}</small></div>
@@ -518,14 +578,14 @@
           {% set profile = property_context.property.property_profile if property_context.property.property_profile else {} %}
           <dl class="owner-property-detail-dl">
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyName', 'Property name') }}</dt><dd>{{ property_context.property.name|e }}</dd></div>
-            <div><dt>{{ public_i18n('common', 'dashboardPropertyType', 'Property type') }}</dt><dd>{{ property_context.property.property_type|e }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardPropertyType', 'Property type') }}</dt><dd>{{ pilot_property_type(property_context.property.property_type) }}</dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyLocation', 'City / location') }}</dt><dd>{{ property_context.property.location|e }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardPropertyAddress', 'Address') }}</dt><dd>{{ profile.address|e if profile else property_context.property.location|e }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardCity', 'City') }}</dt><dd>{{ profile.city|e if profile else property_context.property.location|e }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardCountry', 'Country') }}</dt><dd>{{ profile.country|e if profile else '' }}</dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyUnitCount', 'Unit count') }}</dt><dd>{{ property_context.property.guest_capacity }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardFloor', 'Floor') }}</dt><dd>{{ profile.floor|e if profile else '' }}</dd></div>
-            <div><dt>{{ public_i18n('common', 'dashboardElevator', 'Elevator') }}</dt><dd>{{ profile.elevator|e if profile else '' }}</dd></div>
+            <div><dt>{{ public_i18n('common', 'dashboardElevator', 'Elevator') }}</dt><dd>{{ pilot_yes_no(profile.elevator) if profile else '' }}</dd></div>
             <div><dt>{{ public_i18n('common', 'dashboardParking', 'Parking') }}</dt><dd>{{ profile.parking|e if profile else '' }}</dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanation', 'Status explanation') }}</dt><dd>{{ localized_property_status }}. {{ public_i18n('ownersDashboard', 'ownerPropertyStatusExplanationCopy', 'We use this to decide whether the local team should monitor, prepare, or pause work.') }}</dd></div>
             <div><dt>{{ public_i18n('ownersDashboard', 'ownerPropertyAddedPortal', 'Added to portal') }}</dt><dd><time datetime="{{ property_context.property.created_at|e }}">{{ format_local_datetime(property_context.property.created_at, page_lang) }}</time></dd></div>
@@ -546,7 +606,16 @@
           <div class="owner-property-detail-summary owner-property-detail-summary--health">
             <div class="owner-property-detail-stat">
               <span>{{ public_i18n('ownersDashboard', 'ownerPropertyHealth', 'Property health') }}</span>
-              <strong>{{ property_context.property_health.overall }}</strong>
+              {% set pilot_health_status = property_context.property_health.overall|default('', true)|trim %}
+              {% if pilot_health_status == 'Excellent' %}
+                <strong>{{ public_i18n('ownersDashboard', 'ownerPropertyHealthExcellent', 'Excellent') }}</strong>
+              {% elif pilot_health_status == 'Good' %}
+                <strong>{{ public_i18n('ownersDashboard', 'ownerPropertyHealthGood', 'Good') }}</strong>
+              {% elif pilot_health_status == 'Needs Attention' %}
+                <strong>{{ public_i18n('ownersDashboard', 'ownerPropertyHealthNeedsAttention', 'Needs attention') }}</strong>
+              {% else %}
+                <strong>{{ pilot_health_status|e }}</strong>
+              {% endif %}
             </div>
             <div class="owner-property-detail-stat">
               <span>{{ public_i18n('ownersDashboard', 'ownerPropertyKnowledgeCompleteness', 'Knowledge completeness') }}</span>

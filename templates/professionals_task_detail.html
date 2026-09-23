@@ -439,7 +439,59 @@
       .professional-grid > .professional-stack:first-child > article:not(#evidence-upload):not(#issue-report):not(#completion-report) { display:none; }
       .professional-grid > .professional-stack:last-child > article:nth-child(n+3) { display:none; }
     }
-  </style>
+
+    /* Production pilot: dark task forms must remain readable. */
+    .professional-panel .professional-form label,
+    .professional-panel .professional-form label > span,
+    .professional-panel .professional-form legend,
+    .professional-panel .professional-form small {
+      color: #f8fafc;
+    }
+
+    .professional-panel .professional-form input,
+    .professional-panel .professional-form textarea,
+    .professional-panel .professional-form select {
+      color: #111827;
+      background: #ffffff;
+    }
+
+    .professional-panel .professional-form input::placeholder,
+    .professional-panel .professional-form textarea::placeholder {
+      color: #6b7280;
+      opacity: 1;
+    }
+
+    /* Production pilot: checklist must remain readable on dark cards. */
+    .professional-checklist,
+    .professional-checklist li,
+    .professional-checklist label,
+    .professional-checklist span,
+    .professional-checklist small,
+    [class*="checklist"] label,
+    [class*="checklist"] span,
+    [class*="checklist"] small {
+      color: #f8fafc;
+    }
+
+    [class*="checklist"] input[type="checkbox"] {
+      accent-color: #22c55e;
+    }
+
+    /* Evidence filenames are technical metadata, not primary UI. */
+    .professional-evidence-card {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .professional-evidence-card img {
+      max-width: 100%;
+    }
+
+    .professional-evidence-card .pilot-hidden-filename {
+      display: none !important;
+    }
+
+</style>
 </head>
 <body class="professional-task-page">
   <main class="professional-task-shell">
@@ -465,7 +517,7 @@
           {% if task.departure_date|default('', true) or task.check_out|default('', true) %}<span><strong>{{ public_i18n('professionals', 'detailDeparture', 'Departure') }}:</strong> {{ task.departure_date|default('', true)|e or task.check_out|default('', true)|e }}</span>{% endif %}
           {% if not (task.arrival_date|default('', true) or task.check_in|default('', true) or task.departure_date|default('', true) or task.check_out|default('', true)) %}
             {% if current_status in ['COMPLETED', 'ARCHIVED'] and task.completed_at %}
-            <span><strong>{{ labels.completed_at }}:</strong> {{ task.completed_at|e }}</span>
+            <span><strong>{{ labels.completed_at }}:</strong> {{ format_local_datetime(task.completed_at, current_lang) }}</span>
             {% else %}
             <span><strong>{{ labels.due_date }}:</strong> {{ task.due_date|e or labels.due_date_not_set }}</span>
             {% endif %}
@@ -574,7 +626,7 @@
             <div><dt>{{ labels.assignment }}</dt><dd>{{ task.assigned_professional_label|e }}</dd></div>
             <div><dt>{{ labels.priority }}</dt><dd>{{ priority_labels.get(task.priority|upper, task.priority|replace('_', ' ')|title) }}</dd></div>
             {% if current_status in ['COMPLETED', 'ARCHIVED'] and task.completed_at %}
-            <div><dt>{{ labels.completed_at }}</dt><dd>{{ task.completed_at|e }}</dd></div>
+            <div><dt>{{ labels.completed_at }}</dt><dd>{{ format_local_datetime(task.completed_at, current_lang) }}</dd></div>
             {% else %}
             <div><dt>{{ labels.due_date }}</dt><dd>{{ task.due_date|e or labels.due_date_not_set }}</dd></div>
             {% endif %}
@@ -778,7 +830,7 @@
             {% for attachment in task.attachments or [] %}
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
-                  {% if attachment.url %}<a href="{{ attachment.url|e }}" target="_blank" rel="noopener"><strong>{{ attachment.name|e }}</strong></a>{% else %}<strong>{{ attachment.name|e }}</strong>{% endif %}
+                  {% if attachment.url %}<a href="{{ attachment.url|e }}" target="_blank" rel="noopener"><strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong></a>{% else %}<strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong>{% endif %}
                   <time datetime="{{ attachment.created_at|e }}">{{ format_local_datetime(attachment.created_at, page_lang) }}</time>
                 </div>
                 <p>
@@ -863,7 +915,9 @@
                   <span class="professional-badge">{% if event_type.startswith('professional_') or event_type in ['attachment_added', 'comment_added_internal', 'checklist_updated', 'completion_report_updated'] %}{{ task.assigned_professional_label|e or labels.professional_actor }}{% else %}{{ labels.operations_actor }}{% endif %}</span>
                   <span class="professional-badge">{{ status_labels.get(event.status|upper, labels.task_status_unknown) }}</span>
                 </div>
-                {% if event.detail %}<p class="professional-preserve-format">{{ event.detail|e }}</p>{% endif %}
+                {% if event.detail and event_type not in ['attachment_added', 'checklist_updated'] %}
+                  <p class="professional-preserve-format">{{ event.detail|e }}</p>
+                {% endif %}
               </div>
             {% else %}
               <p>{{ labels.no_timeline_entries }}</p>

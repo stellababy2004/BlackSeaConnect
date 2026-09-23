@@ -122,7 +122,34 @@
       border: 1px solid rgba(155, 123, 47, 0.16);
       color: #7a6328;
     }
-  </style>
+
+    /* Production pilot: improve login readability on the glass panel. */
+    .professional-login-card,
+    .professional-login-card p,
+    .professional-login-card label,
+    .professional-login-card small,
+    .professional-login-card h1,
+    .professional-login-card h2,
+    .professional-login-card h3 {
+      color: #f8fafc !important;
+    }
+
+    .professional-login-card input {
+      color: #0f172a !important;
+      background: rgba(255,255,255,.96) !important;
+    }
+
+    .professional-login-card input::placeholder {
+      color: #475569 !important;
+      opacity: 1 !important;
+    }
+
+    .professional-login-card .button--ghost,
+    .professional-login-card a {
+      color: #f8fafc;
+    }
+
+</style>
 </head>
 <body class="professional-login-page">
   <main class="professional-login-shell">

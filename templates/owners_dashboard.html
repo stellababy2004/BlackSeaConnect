@@ -406,9 +406,10 @@
         "copy steps"
         "meter steps";
       gap: 8px 22px;
-      max-height: 250px;
+      min-height: 0;
+      max-height: none;
       padding: 18px;
-      overflow: hidden;
+      overflow: visible;
     }
     .owner-onboarding-progress > .owner-portal-card__eyebrow,
     .owner-onboarding-progress > h2 { grid-area: copy; }
@@ -1085,6 +1086,35 @@
   .owner-completed-task-link-hint span:last-child {
     transition: transform 160ms ease;
   }
+
+
+    /* Production pilot: translated onboarding steps must have room to wrap. */
+    .owner-onboarding-progress,
+    .owner-onboarding-progress__steps,
+    .owner-onboarding-progress__step {
+      min-width: 0;
+    }
+
+    .owner-onboarding-progress__steps {
+      overflow: visible;
+    }
+
+    .owner-onboarding-progress__step,
+    .owner-onboarding-progress__step * {
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    @media (max-width: 900px) {
+      .owner-onboarding-progress {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "copy"
+          "meter"
+          "steps";
+        max-height: none;
+      }
+    }
 
 </style>
 </head>

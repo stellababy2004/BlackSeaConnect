@@ -5498,6 +5498,75 @@ class OwnerPortalTests(unittest.TestCase):
                     self.assertEqual(response.status_code, 200)
                     self.assertNotIn("[MISSING:", response.get_data(as_text=True))
 
+    def test_property_photo_upload_never_becomes_document(self):
+        """Photo upload must remain a photo and never become a document."""
+        import io
+
+        self._seed_owner_account(email="owner@blackseaconnect.com")
+        self._seed_owner_property(
+            owner_id="owner-1",
+            owner_email="owner@blackseaconnect.com",
+            name="Photo Classification Test",
+        )
+
+        with self.client.session_transaction() as sess:
+            sess["owner_logged_in"] = True
+            sess["owner_id"] = "owner-1"
+            sess["owner_email"] = "owner@blackseaconnect.com"
+            sess["owner_name"] = "Owner Test"
+
+        property_record = next(
+            item
+            for item in app_module._load_owner_properties()
+            if item.get("name") == "Photo Classification Test"
+        )
+        property_id = property_record["id"]
+
+        png = (
+            b"\x89PNG\r\n\x1a\n"
+            b"\x00\x00\x00\rIHDR"
+            b"\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
+            b"\x00\x00\x00\rIDAT\x08\xd7c\xf8\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99=\x1d"
+            b"\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+
+        response = self.client.post(
+            f"/owners/properties/{property_id}?lang=fr",
+            data={
+                "knowledge_photos": (
+                    io.BytesIO(png),
+                    "pilot-photo.png",
+                ),
+            },
+            content_type="multipart/form-data",
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        refreshed = app_module._find_owner_property(property_id)
+        assets = refreshed.get("assets", {})
+
+        photos = assets.get("photos", [])
+        documents = assets.get("documents", [])
+
+        self.assertEqual(
+            len(photos),
+            1,
+            f"Expected one photo, got: {photos!r}",
+        )
+        self.assertEqual(
+            documents,
+            [],
+            f"Photo leaked into documents: {documents!r}",
+        )
+        self.assertTrue(
+            str(photos[0].get("filename", "")).strip(),
+            f"Photo record has no filename: {photos[0]!r}",
+        )
+
+
 
 class StartTLSFailingSMTP:
     send_called = False

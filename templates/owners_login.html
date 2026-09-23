@@ -19,6 +19,35 @@
   <meta name="twitter:title" data-i18n-attr="content:ownerLoginPageTitleOg" content="{{ public_i18n('ownersLogin', 'ownerLoginPageTitleOg', 'BlackSea Connect | Owner Login') }}">
   <meta name="twitter:description" data-i18n-attr="content:ownerLoginMetaOg" content="{{ public_i18n('ownersLogin', 'ownerLoginMetaOg', 'Log in to your owner portal with email and continue to your dashboard.') }}">
   <link rel="stylesheet" href="/static/css/styles.css?v=20260906-owner-mobile-1">
+
+  <style>
+    /* Production pilot: prevent long translated login headings from clipping. */
+    body.owner-login-page .owner-portal-auth-layout .hero__copy {
+      min-width: 0;
+    }
+
+    body.owner-login-page .owner-portal-auth-layout .hero__copy h1 {
+      max-width: 13ch;
+      font-size: clamp(2.25rem, 5vw, 4.8rem);
+      line-height: .98;
+      overflow-wrap: normal;
+      word-break: normal;
+      text-wrap: balance;
+    }
+
+    body.owner-login-page .owner-portal-auth-layout {
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      body.owner-login-page .owner-portal-auth-layout .hero__copy h1 {
+        max-width: 100%;
+        font-size: clamp(2rem, 9vw, 3.4rem);
+        line-height: 1.02;
+      }
+    }
+  </style>
+
 </head>
 <body class="owner-portal-page owner-login-page">
   <header class="hero hero--home" id="top">

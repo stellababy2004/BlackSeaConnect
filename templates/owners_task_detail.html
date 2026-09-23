@@ -173,7 +173,24 @@
         grid-template-columns: 1fr;
       }
     }
-  </style>
+
+    /* Production pilot: evidence cards should show the proof, not camera filenames. */
+    .owner-task-evidence,
+    .owner-task-evidence-card,
+    [class*="evidence"] {
+      min-width: 0;
+    }
+
+    .owner-task-evidence-card .pilot-hidden-filename,
+    [class*="evidence"] .pilot-hidden-filename {
+      display: none !important;
+    }
+
+    [class*="evidence"] img {
+      max-width: 100%;
+    }
+
+</style>
 </head>
 
 <body>
@@ -315,7 +332,7 @@
                       {% endif %}
                     </strong>
 
-                    <p>{{ attachment.name|default('', true)|e }}</p>
+                    <p class="pilot-hidden-filename">{{ attachment.name|default('', true)|e }}</p>
                   </div>
                 </a>
               </article>
