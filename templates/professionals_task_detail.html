@@ -504,6 +504,36 @@
       display: none !important;
     }
 
+    /* Final checklist readability */
+    .professional-check-item .professional-check-toggle,
+    .professional-check-item .professional-check-toggle strong,
+    .professional-check-item .professional-check-toggle span {
+      color: #f8fafc !important;
+      -webkit-text-fill-color: #f8fafc !important;
+      opacity: 1 !important;
+    }
+
+    .professional-check-item .professional-badge {
+      color: #14213d !important;
+      -webkit-text-fill-color: #14213d !important;
+      background: #f8fafc !important;
+      opacity: 1 !important;
+    }
+
+    .professional-check-item .professional-check-mark {
+      background: #ffffff !important;
+      border-color: #d6bd72 !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    .professional-check-item .professional-check-mark--done {
+      background: #318064 !important;
+      border-color: #318064 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+
 </style>
 </head>
 <body class="professional-task-page">
@@ -841,9 +871,10 @@
           <h2>{{ labels.before_after_evidence }}</h2>
           <div class="professional-list">
             {% for attachment in task.attachments or [] %}
+              {% set canonical_attachment_url = '/operations/tasks/' ~ task.request_id ~ '/attachments/' ~ attachment.id if attachment.id else attachment.url %}
               <div class="professional-list-item">
                 <div class="professional-list-item__topline">
-                  {% if attachment.url %}<a href="{{ attachment.url|e }}" target="_blank" rel="noopener"><strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong></a>{% else %}<strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong>{% endif %}
+                  {% if canonical_attachment_url %}<a href="{{ canonical_attachment_url|e }}" target="_blank" rel="noopener"><strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong></a>{% else %}<strong class="pilot-hidden-filename">{{ attachment.name|e }}</strong>{% endif %}
                   <time datetime="{{ attachment.created_at|e }}">{{ format_local_datetime(attachment.created_at, page_lang) }}</time>
                 </div>
                 <p>
@@ -859,13 +890,13 @@
                 {% set attachment_name = attachment.name|default('', true)|lower %}
                 {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
                 {% set is_image_attachment = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
-                {% if attachment.url and is_image_attachment %}
-                  <a href="{{ attachment.url|e }}" target="_blank" rel="noopener" aria-label="{{ labels.view_evidence }}: {{ attachment.name|e }}"><img class="professional-evidence-image" src="{{ attachment.url|e }}" alt="{{ attachment.name|e }}" loading="lazy"></a>
+                {% if canonical_attachment_url and is_image_attachment %}
+                  <a href="{{ canonical_attachment_url|e }}" target="_blank" rel="noopener" aria-label="{{ labels.view_evidence }}"><img class="professional-evidence-image" src="{{ canonical_attachment_url|e }}" alt="" loading="lazy" onerror="this.closest('a').style.display='none';"></a>
                 {% endif %}
-                {% if attachment.url %}
+                {% if canonical_attachment_url %}
                   <div class="professional-actions" style="margin-top:10px;">
-                    <a class="button button--ghost" href="{{ attachment.url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
-                    <a class="button button--ghost" href="{{ attachment.download_url|default(attachment.url ~ '?download=1', true)|e }}">{{ labels.download_evidence }}</a>
+                    <a class="button button--ghost" href="{{ canonical_attachment_url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
+                    <a class="button button--ghost" href="{{ canonical_attachment_url|e }}?download=1">{{ labels.download_evidence }}</a>
                     {% if current_status not in ['COMPLETED', 'ARCHIVED'] and attachment.id and attachment.uploader_role == 'professional' and attachment.uploader_id == professional_account.id %}
                       <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e ~ '/attachments/' ~ attachment.id|e ~ '/delete') }}" onsubmit="return confirm('{{ labels.delete_evidence }}?');"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}">
                         <button class="button button--ghost" type="submit">{{ labels.delete_evidence }}</button>
