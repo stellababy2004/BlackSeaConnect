@@ -1726,13 +1726,26 @@ def _operations_task_attachments(attachments_value):
         created_at = str(item.get("upload_timestamp", item.get("created_at", ""))).strip()
         original_filename = str(item.get("original_filename", item.get("name", ""))).strip()
         stored_filename = str(item.get("filename", "")).strip()
+        task_id = str(item.get("task_id", "")).strip()
+        safe_task_id = secure_filename(task_id)
+        safe_stored_filename = secure_filename(stored_filename)
+        file_available = bool(
+            safe_task_id
+            and stored_filename
+            and safe_stored_filename == stored_filename
+            and (
+                PROFESSIONAL_TASK_EVIDENCE_DIR
+                / safe_task_id
+                / stored_filename
+            ).is_file()
+        )
         try:
             file_size = max(0, int(item.get("file_size", 0) or 0))
         except (TypeError, ValueError):
             file_size = 0
         attachments.append({
             "id": str(item.get("id", "")).strip(),
-            "task_id": str(item.get("task_id", "")).strip(),
+            "task_id": task_id,
             "operation_id": str(item.get("operation_id", "")).strip(),
             "property_id": str(item.get("property_id", "")).strip(),
             "uploader_id": str(item.get("uploader_id", "")).strip(),
@@ -1749,6 +1762,7 @@ def _operations_task_attachments(attachments_value):
             "slot": str(item.get("slot", "")).strip(),
             "mime_type": str(item.get("mime_type", "")).strip(),
             "file_size": file_size,
+            "file_available": file_available,
         })
     attachments.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return attachments

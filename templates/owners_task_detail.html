@@ -309,7 +309,7 @@
             {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
             {% set is_image = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
 
-            {% if attachment.url and is_image %}
+            {% if attachment.file_available and attachment.url and is_image %}
               <article class="owner-evidence-card">
                 <a class="owner-evidence-link"
                    href="{{ attachment.url|e }}"

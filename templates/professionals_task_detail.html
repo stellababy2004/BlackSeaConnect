@@ -890,10 +890,10 @@
                 {% set attachment_name = attachment.name|default('', true)|lower %}
                 {% set attachment_mime = attachment.mime_type|default('', true)|lower %}
                 {% set is_image_attachment = attachment_mime in ['image/jpeg', 'image/png', 'image/webp'] or attachment_name.endswith('.jpg') or attachment_name.endswith('.jpeg') or attachment_name.endswith('.png') or attachment_name.endswith('.webp') %}
-                {% if canonical_attachment_url and is_image_attachment %}
+                {% if attachment.file_available and canonical_attachment_url and is_image_attachment %}
                   <a href="{{ canonical_attachment_url|e }}" target="_blank" rel="noopener" aria-label="{{ labels.view_evidence }}"><img class="professional-evidence-image" src="{{ canonical_attachment_url|e }}" alt="" loading="lazy" onerror="this.closest('a').style.display='none';"></a>
                 {% endif %}
-                {% if canonical_attachment_url %}
+                {% if attachment.file_available and canonical_attachment_url %}
                   <div class="professional-actions" style="margin-top:10px;">
                     <a class="button button--ghost" href="{{ canonical_attachment_url|e }}" target="_blank" rel="noopener">{{ labels.view_evidence }}</a>
                     <a class="button button--ghost" href="{{ canonical_attachment_url|e }}?download=1">{{ labels.download_evidence }}</a>
