@@ -979,7 +979,7 @@ class CalendarEngineTests(unittest.TestCase):
                 )
             )
             detail_html = self.client.get("/admin/operations/assign-target", headers=self._auth_headers()).get_data(as_text=True)
-            self.assertIn("Възложен", detail_html)
+            self.assertIn("Assigned", detail_html)
             self.assertIn("Reassign", detail_html)
             self.assertNotIn("Няма точно съвпадение", detail_html)
             class FixedDateTime(datetime):

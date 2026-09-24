@@ -84,6 +84,16 @@
   "issue_severity_urgent": public_i18n("professionals", "detailIssueSeverityUrgent", "Urgent"),
   "checklist": public_i18n("professionals", "detailChecklist", "Checklist"),
   "task_checklist": public_i18n("professionals", "detailTaskChecklist", "Task checklist"),
+  "total_progress": {
+    "bg": "Общ напредък", "en": "Total progress",
+    "fr": "Progression totale", "ru": "Общий прогресс"
+  }.get(current_lang, "Total progress"),
+  "current_action_hint": {
+    "bg": "Броят включва всички точки. Показва се само следващата незавършена точка.",
+    "en": "The count includes all items. Only the next unfinished item is shown.",
+    "fr": "Le compteur inclut tous les points. Seul le prochain point à terminer est affiché.",
+    "ru": "Счётчик учитывает все пункты. Показан только следующий незавершённый пункт."
+  }.get(current_lang, "The count includes all items. Only the next unfinished item is shown."),
   "no_checklist_items": public_i18n("professionals", "detailNoChecklistItems", "No checklist items are configured yet."),
   "done": public_i18n("professionals", "detailDone", "Done"),
   "open": public_i18n("professionals", "detailOpen", "Open"),
@@ -326,7 +336,8 @@
     .professional-panel { min-width:0; background:rgba(255,255,255,.96); border:1px solid rgba(15,35,69,.1); border-radius:24px; box-shadow:0 18px 42px rgba(15,35,69,.1); backdrop-filter:blur(18px); padding:26px; }
     .professional-hero { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap; }
     .professional-hero > * { min-width:0; max-width:100%; }
-    .professional-hero h1 { max-width:100%; font-size:clamp(2rem,5vw,3.25rem); letter-spacing:-.045em; overflow-wrap:anywhere; }
+    .professional-task-page .professional-hero h1 { max-width:100% !important; margin:8px 0 !important; font-size:clamp(1.65rem,3vw,2.35rem) !important; line-height:1.15 !important; letter-spacing:-.03em; overflow-wrap:anywhere; }
+    .professional-task-page .professional-panel h2 { margin:4px 0 12px; font-size:1.2rem; line-height:1.3; overflow-wrap:anywhere; }
     .professional-meta { display:flex; max-width:100%; min-width:0; flex-wrap:wrap; gap:8px; align-items:center; }
     .professional-badge { display:inline-flex; max-width:100%; align-items:center; padding:5px 10px; border-radius:999px; background: rgba(155,123,47,0.1); color:#7a6328; font-size:12px; font-weight:700; white-space:normal; overflow-wrap:anywhere; }
     .professional-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); gap:18px; min-width:0; align-items:start; }
@@ -345,20 +356,28 @@
     .professional-task-page .is-loading { cursor:wait; opacity:.72; }
     .professional-task-page .is-loading::before { content:""; width:14px; height:14px; margin-right:8px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:professional-spin .7s linear infinite; }
     @keyframes professional-spin { to { transform:rotate(360deg); } }
-    .professional-form { display:grid; gap:12px; }
+    /* Neutralize legacy global form cards inside this existing task layout. */
+    .professional-task-page form { width:auto !important; margin:0 !important; padding:0 !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; backdrop-filter:none !important; }
+    .professional-task-page .professional-form { display:grid; gap:12px; }
+    .professional-task-page .professional-form label { min-width:0; letter-spacing:normal; text-transform:none; font-size:.875rem; }
+    .professional-task-page .professional-form [hidden] { display:none; }
     .professional-form label { color:#0f2345; font-weight:650; }
     .professional-form textarea,
     .professional-form input,
     .professional-form select { width:100%; min-width:0; border-radius:16px; border:1px solid rgba(15,35,69,.18); padding:12px 14px; font:inherit; background:#fff; color:#0f2345; }
-    .professional-form textarea { min-height:120px; resize:vertical; }
+    .professional-task-page .professional-form textarea { min-height:88px; resize:vertical; }
     .professional-form small { color:#40536e; line-height:1.55; }
-    .professional-dl { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
-    .professional-dl > div { min-width:0; padding:14px; border-radius:18px; background:rgba(247,244,238,.92); border:1px solid rgba(15,35,69,.1); }
+    .professional-dl { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; margin:0; }
+    .professional-dl > div { min-width:0; padding:10px 12px; border-radius:12px; background:rgba(247,244,238,.92); border:1px solid rgba(15,35,69,.1); }
     .professional-dl dt { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#5b6d84; font-weight:700; margin-bottom:6px; }
     .professional-dl dd { margin:0; line-height:1.55; word-break:break-word; }
     .professional-list { display:grid; gap:10px; }
-    .professional-task-page .professional-list-item { min-width:0; padding:14px 16px; border-radius:18px; background:rgba(247,244,238,.96); border:1px solid rgba(15,35,69,.1); color:#0f2345; }
-    .professional-list-item__topline { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .professional-task-page .professional-list-item { min-width:0; padding:10px 12px !important; border-radius:12px !important; background:rgba(247,244,238,.96) !important; border:1px solid rgba(15,35,69,.1) !important; color:#0f2345; }
+    .professional-list-item__topline { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 8px; align-items:flex-start; overflow-wrap:anywhere; }
+    .professional-list-item__topline time { font-size:.8rem; }
+    .professional-task-page .professional-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .professional-task-page .button { min-height:44px; padding:10px 14px; line-height:1.3; }
+    .professional-task-page :is(.professional-panel, .professional-grid) [id] { scroll-margin-block:16px 100px; }
     .professional-list-item p { margin:8px 0 0; color:#23395d; line-height:1.6; overflow-wrap:anywhere; }
     .professional-preserve-format { white-space:pre-wrap; }
     .professional-alert { padding:14px 16px; border-radius:16px; font-weight:700; }
@@ -366,7 +385,7 @@
     .professional-alert--error { color:#8a2f2f; background:#fff0f0; border:1px solid rgba(138,47,47,.18); }
     .professional-timeline { display:grid; gap:10px; }
     .professional-timeline-icon { display:inline-grid; place-items:center; flex:0 0 28px; height:28px; border-radius:9px; background:#e8f3ef; color:#16624c; font-weight:900; }
-    .professional-kicker { color:#5b6d84; text-transform:uppercase; letter-spacing:0.08em; font-size:12px; font-weight:700; }
+    .professional-task-page .professional-kicker { margin:0 0 4px; color:#5b6d84; text-transform:uppercase; letter-spacing:0.06em; font-size:11px; font-weight:700; }
     .professional-photo-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
     .professional-photo-slot { min-width:0; min-height:140px; padding:18px; border-radius:22px; border:1px dashed rgba(15,35,69,.25); background:linear-gradient(145deg,#f7f4ee,#fff); display:flex; flex-direction:column; justify-content:flex-end; }
     .professional-photo-slot::before { content:"＋"; display:grid; place-items:center; width:42px; height:42px; margin-bottom:auto; border-radius:14px; background:#efe7d5; color:#7a6328; font-size:22px; }
@@ -375,7 +394,9 @@
     .professional-status-controls { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
     .professional-status-controls form { min-width:0; }
     .professional-status-controls .button { max-width:100%; min-height:44px; white-space:normal; overflow-wrap:anywhere; }
-    .professional-check-progress { display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+    .professional-check-progress { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 10px; }
+    .professional-check-progress__label { font-size:.875rem; }
+    .professional-check-hint { margin:0 0 12px; font-size:.875rem; line-height:1.5; }
     .professional-check-progress__track { flex:1; height:8px; overflow:hidden; border-radius:999px; background:#eee9df; }
     .professional-check-progress__track span { display:block; height:100%; background:linear-gradient(90deg,#96772e,#c2a45b); }
     .professional-check-item { display:flex; align-items:center; gap:12px; min-height:54px; }
@@ -385,7 +406,7 @@
     .professional-check-toggle:focus-visible { outline:3px solid #96772e; outline-offset:4px; border-radius:12px; }
     .professional-check-mark { display:grid; place-items:center; flex:0 0 28px; height:28px; border:2px solid #c6b788; border-radius:8px; color:#fff; background:#fff; }
     .professional-check-mark--done { border-color:#318064; background:#318064; }
-    .professional-evidence-image { display:block; width:100%; max-height:220px; margin-top:12px; border-radius:14px; object-fit:cover; }
+    .professional-evidence-image { display:block; width:100%; height:140px; margin-top:8px; border-radius:12px; object-fit:contain; background:#eef2f4; }
     .professional-dropzone { min-height:120px; display:grid; place-items:center; padding:18px; border:2px dashed rgba(15,35,69,.24); border-radius:18px; background:#fbfaf7; text-align:center; cursor:pointer; }
     .professional-dropzone.is-dragging { border-color:#318064; background:#edf7f3; }
     .professional-preview-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
@@ -403,17 +424,23 @@
     .professional-task-address { margin:8px 0 0; color:#40536e; font-size:1rem; line-height:1.5; }
     .professional-task-timing { display:flex; flex-wrap:wrap; gap:8px 18px; margin:14px 0 0; color:#23395d; }
     .professional-task-timing span { display:inline-flex; gap:6px; align-items:center; }
-    .professional-hero__navigate { width:min(100%,320px); min-height:58px; font-size:1.05rem; }
-    .professional-step-flow { display:grid; gap:0; padding:6px 2px; }
-    .professional-step { position:relative; display:grid; grid-template-columns:42px minmax(0,1fr); gap:12px; align-items:center; min-height:62px; color:#657287; }
-    .professional-step:not(:last-child)::after { content:""; position:absolute; left:20px; top:43px; bottom:-3px; width:2px; background:#dbe3df; }
-    .professional-step__number { position:relative; z-index:1; display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:#edf1ef; color:#526177; font-weight:900; }
+    .professional-hero__navigate { width:auto; min-height:44px; font-size:.95rem; }
+    .professional-step-flow { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; padding:0; }
+    .professional-step { position:relative; display:grid; grid-template-columns:32px minmax(0,1fr); gap:8px; align-items:center; min-height:48px; color:#657287; }
+    .professional-task-page .professional-step__number { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:#edf1ef; color:#526177 !important; -webkit-text-fill-color:currentColor !important; font-weight:900; }
     .professional-step strong { display:block; color:#23395d; font-size:1rem; }
     .professional-step small { display:block; margin-bottom:2px; font-size:10px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
-    .professional-step.is-current .professional-step__number { background:#0f2345; color:#fff; box-shadow:0 0 0 5px rgba(15,35,69,.1); }
+    .professional-task-page .professional-step.is-current .professional-step__number { background:#0f2345; color:#fff !important; box-shadow:0 0 0 3px rgba(15,35,69,.1); }
     .professional-step.is-current strong { color:#0f2345; font-size:1.08rem; }
-    .professional-step.is-done .professional-step__number { background:#318064; color:#fff; }
-    .professional-secondary-tools { border:0; box-shadow:none; background:transparent; padding:0 4px; }
+    .professional-task-page .professional-step.is-done .professional-step__number { background:#318064; color:#fff !important; }
+    .professional-workflow-options > summary { min-height:44px; cursor:pointer; font-weight:700; line-height:1.4; }
+    .professional-workflow-options[open] > summary { margin-bottom:12px; }
+    .professional-task-page summary:focus-visible { outline:3px solid #96772e; outline-offset:3px; }
+    @media (min-width:1100px) {
+      #completion-report .professional-form { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+      #completion-report .professional-form > button { grid-column:1 / -1; justify-self:start; }
+    }
+    .professional-secondary-tools { border:1px solid rgba(15,35,69,.1); border-radius:12px; box-shadow:none; background:rgba(255,255,255,.96); padding:0 12px; }
     .professional-secondary-tools summary { min-height:48px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#40536e; font-weight:800; }
     .professional-secondary-tools__content { display:flex; flex-wrap:wrap; gap:8px; padding:8px 0 4px; }
     .professional-completion-celebration { padding:30px 20px; border-radius:24px; background:#e8f3ef; color:#16624c; text-align:center; }
@@ -422,8 +449,8 @@
     .professional-completion-celebration p { margin:0; line-height:1.55; }
     @media (max-width: 920px) {
       .professional-grid,
-      .professional-grid-two-up,
-      .professional-dl { grid-template-columns: 1fr; }
+      .professional-grid-two-up { grid-template-columns: 1fr; }
+      .professional-step-flow { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .professional-workbar { grid-template-columns:1fr; }
     }
     @media (max-width:640px) {
@@ -431,12 +458,14 @@
       .professional-task-shell { width:100%; max-width:100%; margin-inline:auto; gap:12px; }
       .professional-panel { width:100%; max-width:100%; padding:18px 15px; border-radius:24px; }
       .professional-hero { display:grid; padding:22px 18px; }
-      .professional-hero h1 { margin:4px 0!important; font-size:clamp(1.75rem,9vw,2.35rem); line-height:1.05; }
+      .professional-task-page .professional-hero h1 { margin:4px 0 !important; font-size:clamp(1.5rem,7vw,2rem) !important; }
+      .professional-dl { grid-template-columns:1fr; }
       .professional-hero__navigate { width:100%; }
       .professional-workbar { position:fixed; inset:auto 10px calc(8px + env(safe-area-inset-bottom)); top:auto; z-index:20; margin:0; padding:8px; border-radius:20px; box-shadow:0 16px 40px rgba(15,35,69,.24); }
       .professional-workbar .professional-live { display:none; }
-      .professional-workbar .professional-status-controls { width:100%; display:block; }
-      .professional-workbar .button { width:100%; min-width:0; min-height:58px; font-size:1.05rem; }
+      .professional-workbar .professional-status-controls { width:100%; display:flex; flex-wrap:wrap; gap:8px; }
+      .professional-workbar .professional-status-controls > * { flex:1 1 0; }
+      .professional-workbar .button { width:100%; min-width:0; min-height:48px; font-size:.95rem; }
       .professional-photo-grid { grid-template-columns:1fr 1fr; }
       .professional-photo-slot { min-height:135px; padding:14px; }
       .professional-form .button { width:100%; min-height:52px; }
@@ -444,20 +473,19 @@
       .professional-check-item { min-height:68px; padding:8px 14px!important; }
       .professional-check-toggle { min-height:58px; }
       .professional-check-mark { flex-basis:34px; height:34px; }
-      .professional-evidence-image { max-height:none; aspect-ratio:4/3; border-radius:18px; }
-      .professional-dropzone { min-height:190px; }
-      .professional-grid > .professional-stack:first-child { order:2; }
-      .professional-grid > .professional-stack:last-child { order:1; }
-      .professional-grid > .professional-stack:first-child > article:not(#evidence-upload):not(#issue-report):not(#completion-report) { display:none; }
-      .professional-grid > .professional-stack:last-child > article:nth-child(n+3) { display:none; }
+      .professional-evidence-image { height:160px; }
+      .professional-dropzone { min-height:120px; }
+      .professional-grid > .professional-stack { display:contents; }
+      #task-checklist { order:-1; }
+      .professional-task-page .professional-form :is(input,select,textarea) { font-size:16px; }
     }
 
-    /* Production pilot: dark task forms must remain readable. */
+    /* Task forms share the light panel surface; login contrast stays independent. */
     .professional-panel .professional-form label,
     .professional-panel .professional-form label > span,
     .professional-panel .professional-form legend,
     .professional-panel .professional-form small {
-      color: #f8fafc;
+      color: #23395d;
     }
 
     .professional-panel .professional-form input,
@@ -504,12 +532,12 @@
       display: none !important;
     }
 
-    /* Final checklist readability */
+    /* Checklist text stays readable on the light task surface. */
     .professional-check-item .professional-check-toggle,
     .professional-check-item .professional-check-toggle strong,
     .professional-check-item .professional-check-toggle span {
-      color: #f8fafc !important;
-      -webkit-text-fill-color: #f8fafc !important;
+      color: #14213d !important;
+      -webkit-text-fill-color: #14213d !important;
       opacity: 1 !important;
     }
 
@@ -662,7 +690,7 @@
 
     <section class="professional-grid">
       <div class="professional-stack">
-        <article class="professional-panel" id="task-checklist">
+        <article class="professional-panel">
           <p class="professional-kicker">{{ labels.task_summary }}</p>
           <h2>{{ labels.execution_details }}</h2>
           <dl class="professional-dl">
@@ -704,9 +732,8 @@
           </dl>
         </article>
 
-        <article class="professional-panel">
-          <p class="professional-kicker">{{ labels.status_controls }}</p>
-          <h2>{{ labels.arrival_workflow }}</h2>
+        <details class="professional-panel professional-workflow-options">
+          <summary>{{ labels.arrival_workflow }}</summary>
           <div class="professional-status-controls">
             {% if current_status in ['NEW', 'ASSIGNED'] %}
               <form method="post" action="{{ localized_url('/professionals/tasks/' ~ task.request_id|e) }}"><input type="hidden" name="csrf_token" value="{{ professional_task_csrf_token()|e }}"><input type="hidden" name="task_action" value="accept"><button class="button button--primary" type="submit">{{ labels.accept_task }}</button></form>
@@ -726,7 +753,7 @@
             {% endif %}
             {% if current_status == 'IN_PROGRESS' %}<a class="button button--secondary" href="#completion-report">{{ labels.complete_work }}</a>{% endif %}
           </div>
-        </article>
+        </details>
 
         <article class="professional-panel" id="completion-report">
           <p class="professional-kicker">{{ labels.completion_report }}</p>
@@ -833,16 +860,18 @@
       </div>
 
       <div class="professional-stack">
-        <article class="professional-panel">
+        <article class="professional-panel" id="task-checklist">
           <p class="professional-kicker">{{ labels.checklist }}</p>
           <h2>{{ labels.task_checklist }}</h2>
           {% set checklist = task.checklist_items or [] %}
           {% set checked_count = checklist|selectattr('checked')|list|length %}
           {% set checklist_progress = ((checked_count * 100 / checklist|length)|round|int) if checklist else 0 %}
-          <div class="professional-check-progress" data-check-progress>
-            <div class="professional-check-progress__track" aria-label="{{ checklist_progress }}%"><span style="width:{{ checklist_progress }}%" data-check-progress-bar></span></div>
+          <div class="professional-check-progress" data-check-progress role="status">
+            <span class="professional-check-progress__label">{{ labels.total_progress }}</span>
+            <div class="professional-check-progress__track" aria-hidden="true"><span style="width:{{ checklist_progress }}%" data-check-progress-bar></span></div>
             <strong data-check-progress-count>{{ checked_count }}/{{ checklist|length }}</strong>
           </div>
+          <p class="professional-check-hint">{{ labels.current_action_hint }}</p>
           <div class="professional-list">
             {% set checklist_state = namespace(active_shown=false) %}
             {% for item in task.checklist_items or [] %}
