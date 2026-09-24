@@ -323,10 +323,11 @@
 
                   <div class="owner-evidence-info">
                     <strong>
-                      {% if attachment.slot %}
-                        {{ owner_ui_value(attachment.slot) }}
-                      {% elif attachment.category %}
-                        {{ owner_ui_value(attachment.category) }}
+                      {% set evidence_kind = attachment.slot|default(attachment.category, true)|default('', true)|lower %}
+                      {% if evidence_kind in ['before_photos', 'before_photo', 'before'] %}
+                        {{ public_i18n('ownersDashboard', 'ownerTaskBeforePhoto', 'Before') }}
+                      {% elif evidence_kind in ['after_photos', 'after_photo', 'after'] %}
+                        {{ public_i18n('ownersDashboard', 'ownerTaskAfterPhoto', 'After') }}
                       {% else %}
                         {{ public_i18n('ownersDashboard', 'ownerTaskPhotoLabel', 'Work photo') }}
                       {% endif %}

@@ -244,6 +244,13 @@
   "parking": public_i18n("professionals", "detailChecklistParking", "Parking"),
   "inventory": public_i18n("professionals", "detailChecklistInventory", "Inventory")
 } %}
+{% set attachment_count_labels = {
+  "bg": "Prikacheni failove",
+  "en": "Attachments",
+  "fr": "Pi&#232;ces jointes",
+  "ru": "Prikreplennye fayly"
+} %}
+
 {% set notice_labels = {
   "status_updated": labels.notice_status_updated,
   "checklist_saved": labels.notice_checklist_saved,
@@ -916,7 +923,12 @@
                   <span class="professional-badge">{{ status_labels.get(event.status|upper, labels.task_status_unknown) }}</span>
                 </div>
                 {% if event.detail and event_type not in ['attachment_added', 'checklist_updated'] %}
-                  <p class="professional-preserve-format">{{ event.detail|e }}</p>
+                  <p class="professional-preserve-format">{% set event_detail = event.detail|default('', true) %}
+                  {% if event.event_type == 'attachment_added' and event_detail.startswith('Attachment count:') %}
+                    {{ attachment_count_labels.get(current_lang, attachment_count_labels.en)|safe }}: {{ event_detail.split(':', 1)[1]|trim|e }}
+                  {% else %}
+                    {{ event_detail|e }}
+                  {% endif %}</p>
                 {% endif %}
               </div>
             {% else %}

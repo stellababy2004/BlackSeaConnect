@@ -612,7 +612,7 @@
               {% elif pilot_health_status == 'Good' %}
                 <strong>{{ public_i18n('ownersDashboard', 'ownerPropertyHealthGood', 'Good') }}</strong>
               {% elif pilot_health_status == 'Needs Attention' %}
-                <strong>{{ public_i18n('ownersDashboard', 'ownerPropertyHealthNeedsAttention', 'Needs attention') }}</strong>
+                <strong>{{ ({'bg': 'Изисква внимание', 'en': 'Needs attention', 'fr': 'À vérifier', 'ru': 'Требует внимания'}).get(current_lang, 'Needs attention') }}</strong>
               {% else %}
                 <strong>{{ pilot_health_status|e }}</strong>
               {% endif %}
