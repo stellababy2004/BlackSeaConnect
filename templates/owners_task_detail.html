@@ -325,9 +325,9 @@
                     <strong>
                       {% set evidence_kind = attachment.slot|default(attachment.category, true)|default('', true)|lower %}
                       {% if evidence_kind in ['before_photos', 'before_photo', 'before'] %}
-                        {{ public_i18n('ownersDashboard', 'ownerTaskBeforePhoto', 'Before') }}
+                        {{ {'bg': 'Преди', 'en': 'Before', 'fr': 'Avant', 'ru': 'До'}.get(current_lang, 'Before') }}
                       {% elif evidence_kind in ['after_photos', 'after_photo', 'after'] %}
-                        {{ public_i18n('ownersDashboard', 'ownerTaskAfterPhoto', 'After') }}
+                        {{ {'bg': 'След', 'en': 'After', 'fr': 'Après', 'ru': 'После'}.get(current_lang, 'After') }}
                       {% else %}
                         {{ public_i18n('ownersDashboard', 'ownerTaskPhotoLabel', 'Work photo') }}
                       {% endif %}
@@ -696,7 +696,20 @@
             padding: 1rem;
           }
         }
-      </style>
+
+    /* Pilot polish 20260924 */
+    .owner-task-back,
+    .owner-task-back:visited {
+      color: #ffffff !important;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, .45);
+    }
+
+    .owner-task-back:hover {
+      color: #f8fafc !important;
+    }
+
+  </style>
 
       <section class="owner-task-panel owner-task-review-card" id="owner-review">
         <p class="owner-task-kicker">
