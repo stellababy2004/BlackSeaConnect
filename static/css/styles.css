@@ -845,6 +845,11 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 52px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
   padding: 0 23px;
   border-radius: 999px;
   border: 1px solid transparent;
@@ -29552,7 +29557,12 @@ body.owner-portal-landing-page .owner-landing-preview__header .owner-landing-pre
   justify-content: center;
   gap: 0.5rem;
   min-height: 50px;
-  padding: 0 22px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  padding: 8px 22px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
@@ -34240,9 +34250,9 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   --app-border: #e7ebf0;
   --app-text: #172033;
   --app-muted: #647084;
-  --app-radius: 24px;
-  --app-gap: 32px;
-  --app-pad: 32px;
+  --app-radius: 18px;
+  --app-gap: 18px;
+  --app-pad: 20px;
   --app-shadow: 0 8px 28px rgba(20, 32, 55, .06);
   color: var(--app-text);
   background: var(--app-background) !important;
@@ -34335,7 +34345,7 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
   text-shadow: none !important;
 }
 
-/* One 32px layout rhythm for all application workspaces. */
+/* Shared compact layout rhythm for all application workspaces. */
 :is(
   .owner-portal-dashboard-page, .owner-properties-page, .owner-property-detail-page,
   .owner-request-service-page, .owner-property-new-page, .calendar-page,
@@ -34447,8 +34457,8 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
     .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
     .professional-task-page
   ) {
-    --app-gap: 20px;
-    --app-pad: 24px;
+    --app-gap: 16px;
+    --app-pad: 18px;
   }
 }
 
@@ -34463,9 +34473,9 @@ body.owner-property-detail-page.has-workspace-tabs main.owner-property-detail-sh
     .reservation-import-page, .professional-dashboard-page, .professional-tasks-page,
     .professional-task-page
   ) {
-    --app-gap: 16px;
-    --app-pad: 20px;
-    --app-radius: 20px;
+    --app-gap: 12px;
+    --app-pad: 16px;
+    --app-radius: 16px;
   }
 }
 
